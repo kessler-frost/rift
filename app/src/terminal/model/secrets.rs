@@ -19,6 +19,27 @@ use super::terminal_model::RangeInModel;
 use crate::terminal::model::find::RegexDFAs;
 use crate::terminal::model::index::Point;
 
+/// Replacement character used when redacting detected secrets.
+pub const SECRET_REDACTION_REPLACEMENT_CHARACTER: &str = "*";
+
+/// Redact all detected secrets in-place within the given string, replacing each
+/// match with the redaction character. Salvaged from the removed AI module; used
+/// by the block model as a fallback when grid-level secret obfuscation is off.
+pub fn redact_secrets(input: &mut String) {
+    let secrets_regex = SECRETS_REGEX.lock().clone();
+    let mut ranges: Vec<std::ops::Range<usize>> = secrets_regex
+        .regex
+        .find_iter(input.as_str())
+        .map(|m| m.start()..m.end())
+        .collect();
+    ranges.sort_by_key(|r| r.start);
+    for range in ranges.into_iter().rev() {
+        let replacement = SECRET_REDACTION_REPLACEMENT_CHARACTER
+            .repeat(range.end.saturating_sub(range.start));
+        input.replace_range(range, &replacement);
+    }
+}
+
 /// A regex pattern that can be used to detect secrets in text.
 pub struct SecretsRegex {
     /// The regex pattern to match secrets in strings.  This is a meta::Regex which supports

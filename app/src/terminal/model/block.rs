@@ -35,7 +35,7 @@ use super::grid::{Cursor, RespectDisplayedOutput};
 use super::header_grid::{HeaderGrid, PromptEndPoint};
 use super::image_map::StoredImageMetadata;
 use super::kitty::{KittyAction, KittyResponse};
-use super::secrets::RespectObfuscatedSecrets;
+use super::secrets::{redact_secrets, RespectObfuscatedSecrets};
 use super::selection::ScrollDelta;
 use super::session::{command_executor, Sessions};
 pub use super::BlockId;
