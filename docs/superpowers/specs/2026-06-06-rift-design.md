@@ -81,20 +81,37 @@ A flat crate — no trait abstraction, since omlx is the only backend.
 
 ```
 crates/rift_ai/
-  config.rs    — RiftAiConfig { endpoint, model, api_key }
-  context.rs   — CommandContext, ContextMessageInput,
-                 HistoryContext, NextCommandContext (adapted from Warp)
-  complete.rs  — complete(ctx: &NextCommandContext, cfg: &RiftAiConfig) -> Vec<String>
-  translate.rs — translate(nl: &str, ctx: &NextCommandContext, cfg: &RiftAiConfig) -> String
+  config.rs    — RiftAiConfig { endpoint, model, api_key, timeout_ms }; TOML loader
+  context.rs   — RiftContext, CommandContext, ContextMessageInput
+                 (lean, serializable subset adapted from Warp; app-independent)
+  messages.rs  — Anthropic Messages request/response serde types + pure builders/parsers
+  client.rs    — async POST to {endpoint}/v1/messages
+  complete.rs  — complete(ctx: &RiftContext, cfg: &RiftAiConfig) -> Vec<String>
+  translate.rs — translate(nl: &str, ctx: &RiftContext, cfg: &RiftAiConfig) -> String
 ```
 
-Both `complete` and `translate` take the same `NextCommandContext` — translate
+Both `complete` and `translate` take the same context type so translate
 benefits from the same pwd/git/history signals as completion (e.g. "deploy it"
 resolves better with recent commands in view), and a single context type keeps
-the crate simple. Both POST to `{endpoint}/v1/messages` (omlx's
-Anthropic-compatible endpoint). `complete` streams for responsiveness;
-`translate` is a single completion constrained by system prompt to emit only a
-shell command.
+the crate simple.
+
+Because Warp's `NextCommandContext` is app-coupled (it references
+`WarpAiExecutionContext` and persistence models), `rift_ai` stays
+app-independent by defining its own lean, serializable `RiftContext`
+(the prompt-relevant subset of `CommandContext` / `ContextMessageInput`). The
+app converts its rich `NextCommandContext` into a `RiftContext` at the call
+site and passes it to both functions. Signatures:
+`complete(ctx: &RiftContext, cfg: &RiftAiConfig)` and
+`translate(nl: &str, ctx: &RiftContext, cfg: &RiftAiConfig)`.
+
+Both POST to `{endpoint}/v1/messages` (omlx's Anthropic-compatible endpoint).
+`complete` streams for responsiveness; `translate` is a single completion
+constrained by system prompt to emit only a shell command.
+
+**Sequencing (decided at planning):** Build and wire `rift_ai` *before*
+stripping the cloud AI path, so a working local-AI replacement always exists
+before anything is removed. Order: foundation → rename → `rift_ai` → wiring →
+(Plan 2) strip cloud AI calls → strip auth/Drive/billing.
 
 Warp's `ApiKeyManager`, `CustomEndpoint`, AWS/OIDC credential machinery, and
 cloud server client are deleted and replaced by `RiftAiConfig`.
