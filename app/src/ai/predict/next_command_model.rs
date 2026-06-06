@@ -23,6 +23,7 @@ use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 use super::generate_ai_input_suggestions::{
     create_generate_ai_input_suggestions_request, get_context_messages,
     GenerateAIInputSuggestionsRequest, GenerateAIInputSuggestionsResponseV2, NextCommandContext,
+    WarpAiExecutionContext,
 };
 use crate::ai::block_context::BlockContext;
 use crate::completer::SessionContext;

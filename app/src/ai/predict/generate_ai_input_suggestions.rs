@@ -48,6 +48,18 @@ pub struct NextCommandContext {
     pub context_messages: Vec<ContextMessageInput>,
 }
 
+/// Local no-op stub for the removed cloud AI execution context. The local
+/// autocomplete path (rift_bridge) ignores it; retained only so the legacy
+/// suggestion-request plumbing keeps compiling.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct WarpAiExecutionContext;
+
+impl WarpAiExecutionContext {
+    pub fn to_json_string(&self) -> String {
+        String::new()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CommandWithContext {
     pub command: String,
