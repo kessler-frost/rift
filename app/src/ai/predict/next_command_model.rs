@@ -132,6 +132,9 @@ pub struct ZeroStateSuggestionInfo {
 pub struct NextCommandModel {
     sessions: ModelHandle<Sessions>,
     model: Arc<FairMutex<TerminalModel>>,
+    // Retained but unused after the local-AI rewire (suggestions now go through
+    // rift_ai/omlx, not warp-server). Removed wholesale in Plan 2 (cloud strip).
+    #[allow(dead_code)]
     server_api: Arc<ServerApi>,
     #[cfg(feature = "local_fs")]
     conn: Option<Arc<Mutex<SqliteConnection>>>,
@@ -342,7 +345,6 @@ impl NextCommandModel {
         previous_result: Option<IntelligentAutosuggestionResult>,
         ctx: &mut ModelContext<Self>,
     ) {
-        let server_api = self.server_api.clone();
         let terminal_model = self.model.clone();
         let cached_next_command_context = self.cached_zerostate_next_command_context.clone();
 
@@ -466,7 +468,7 @@ impl NextCommandModel {
                     // For zero-state next command suggestions, return the result immediately.
                     let Some(prefix) = prefix else {
                         return (
-                            server_api.generate_ai_input_suggestions(&request).await,
+                            crate::ai::predict::rift_bridge::local_suggestions(&next_command_context, "").await,
                             request,
                             true,
                             start_ts_ms,
@@ -547,7 +549,7 @@ impl NextCommandModel {
                     };
 
                     // Only if we have no commands from history and no completions, use the LLM to generate a partial suggestion.
-                    let response = server_api.generate_ai_input_suggestions(&request).await;
+                    let response = crate::ai::predict::rift_bridge::local_suggestions(&next_command_context, &prefix).await;
                     (
                         response,
                         request,

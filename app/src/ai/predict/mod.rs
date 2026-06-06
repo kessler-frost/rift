@@ -7,3 +7,4 @@ pub(crate) mod generate_am_query_suggestions;
 pub mod next_command_model;
 pub(crate) mod predict_am_queries;
 pub mod prompt_suggestions;
+pub(crate) mod rift_bridge;

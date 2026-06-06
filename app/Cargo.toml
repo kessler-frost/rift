@@ -226,6 +226,7 @@ version-compare.workspace = true
 vte.workspace = true
 walkdir.workspace = true
 warp-workflows.workspace = true
+rift_ai = { workspace = true }
 rift_assets.workspace = true
 rift_completer.workspace = true
 rift_core.workspace = true
