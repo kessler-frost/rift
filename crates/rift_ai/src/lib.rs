@@ -9,4 +9,4 @@ pub mod complete;
 pub mod translate;
 
 pub use config::RiftAiConfig;
-// TODO(Task 4): pub use context::{CommandContext, ContextMessageInput, RiftContext};
+pub use context::{CommandContext, ContextMessageInput, RiftContext};
