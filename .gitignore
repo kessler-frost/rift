@@ -69,3 +69,6 @@ __pycache__/
 
 # Project notes
 .note/
+
+# Python venv for local tooling/test scripts (managed by uv)
+.venv/
