@@ -6,8 +6,11 @@ pub use rift_core::features::*;
 /// Mark all features which should be enabled on the current channel as enabled.
 /// This sets global feature flag state and should never be called in a unit test.
 pub fn init_feature_flags() {
+    let disabled = ChannelState::disabled_features();
     for flag in enabled_features() {
-        flag.set_enabled(true);
+        if !disabled.contains(&flag) {
+            flag.set_enabled(true);
+        }
     }
     mark_initialized();
 }

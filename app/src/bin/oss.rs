@@ -4,7 +4,25 @@
 
 use anyhow::Result;
 use rift_core::channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig};
+use rift_core::features::FeatureFlag;
 use rift_core::AppId;
+
+/// Cloud feature flags that are suppressed in the OSS (Rift) build.
+/// These flags gate server-dependent UI/behaviour that has no local equivalent.
+const OSS_DISABLED_FLAGS: &[FeatureFlag] = &[
+    FeatureFlag::CloudMode,
+    FeatureFlag::CloudModeFromLocalSession,
+    FeatureFlag::CloudConversations,
+    FeatureFlag::CloudEnvironments,
+    FeatureFlag::CloudObjects,
+    FeatureFlag::DriveObjectsAsContext,
+    FeatureFlag::HandoffLocalCloud,
+    FeatureFlag::HandoffCloudCloud,
+    FeatureFlag::BillingAndUsagePageV2,
+    FeatureFlag::TeamApiKeys,
+    FeatureFlag::MultiWorkspace,
+    FeatureFlag::SharedWithMe,
+];
 
 // Simple wrapper around rift::run() for Warp OSS builds.
 fn main() -> Result<()> {
@@ -20,7 +38,8 @@ fn main() -> Result<()> {
             autoupdate_config: None,
             mcp_static_config: None,
         },
-    );
+    )
+    .with_disabled_features(OSS_DISABLED_FLAGS);
     if cfg!(debug_assertions) {
         state = state.with_additional_features(rift_core::features::DEBUG_FLAGS);
     }
