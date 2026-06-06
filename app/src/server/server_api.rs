@@ -7,7 +7,6 @@ pub mod integrations;
 pub mod managed_secrets;
 pub mod object;
 pub(crate) mod presigned_upload;
-pub mod referral;
 pub mod team;
 pub mod workspace;
 
@@ -30,7 +29,6 @@ use instant::Instant;
 use object::ObjectClient;
 use parking_lot::{Mutex, RwLock};
 use prost::Message;
-use referral::ReferralsClient;
 use reqwest::StatusCode;
 use rift_core::context_flag::ContextFlag;
 use rift_core::errors::{register_error, AnyhowErrorExt, ErrorExt};
@@ -1599,10 +1597,6 @@ impl ServerApiProvider {
 
     pub fn get_auth_client(&self) -> Arc<dyn AuthClient> {
         self.auth_client.clone()
-    }
-
-    pub fn get_referrals_client(&self) -> Arc<dyn ReferralsClient> {
-        self.server_api.clone()
     }
 
     pub fn get_block_client(&self) -> Arc<dyn BlockClient> {

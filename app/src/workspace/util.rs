@@ -94,7 +94,6 @@ pub struct WorkspaceState {
     pub is_theme_deletion_modal_open: bool,
     pub is_changelog_modal_open: bool,
     pub is_tab_being_dragged: bool,
-    pub is_reward_modal_open: bool,
     pub is_launch_config_save_modal_open: bool,
     pub is_resource_center_open: bool,
     pub is_command_search_open: bool,
@@ -112,7 +111,6 @@ pub struct WorkspaceState {
     pub is_rewind_confirmation_dialog_open: bool,
     pub is_delete_conversation_confirmation_dialog_open: bool,
     pub is_native_quit_modal_open: bool,
-    pub is_shared_objects_creation_denied_modal_open: bool,
     pub is_suggested_agent_mode_workflow_modal_open: bool,
     pub is_suggested_rule_modal_open: bool,
     pub is_enable_auto_reload_modal_open: bool,
@@ -149,7 +147,6 @@ impl WorkspaceState {
             || self.tab_being_renamed.is_some()
             || self.pane_being_renamed.is_some()
             || self.tab_group_being_renamed.is_some()
-            || self.is_reward_modal_open
             || self.is_launch_config_save_modal_open
             || self.is_command_search_open
             || self.is_prompt_editor_open
@@ -157,7 +154,6 @@ impl WorkspaceState {
             || self.is_header_toolbar_editor_open
             || self.is_agent_management_popup_open
             || self.is_import_modal_open
-            || self.is_shared_objects_creation_denied_modal_open
             || self.is_suggested_rule_modal_open
             || self.is_suggested_agent_mode_workflow_modal_open
             || self.is_enable_auto_reload_modal_open
@@ -191,7 +187,6 @@ impl WorkspaceState {
         self.tab_being_renamed = None;
         self.pane_being_renamed = None;
         self.tab_group_being_renamed = None;
-        self.is_reward_modal_open = false;
         self.is_launch_config_save_modal_open = false;
         self.is_command_search_open = false;
         self.is_workflow_modal_open = false;
@@ -199,7 +194,6 @@ impl WorkspaceState {
         self.is_agent_toolbar_editor_open = false;
         self.is_header_toolbar_editor_open = false;
         self.is_import_modal_open = false;
-        self.is_shared_objects_creation_denied_modal_open = false;
         self.is_auth_override_modal_open = false;
         self.is_require_login_modal_open = false;
         self.is_suggested_rule_modal_open = false;
