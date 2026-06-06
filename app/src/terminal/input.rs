@@ -6741,6 +6741,14 @@ impl Input {
         }
 
         let command = self.get_command(ctx);
+        // Rift: a "# "-prefixed line is a natural-language request, not a command.
+        // Translate it locally and replace the input for review (never auto-run).
+        if let Some(nl) = crate::ai::predict::rift_nl_prefix::nl_request(&command) {
+            let nl = nl.to_string();
+            self.rift_translate_into_input(nl, ctx);
+            self.has_pending_command = false;
+            return;
+        }
         if self.can_execute_command(ctx).is_no() {
             return;
         }
@@ -6751,6 +6759,35 @@ impl Input {
         self.editor.update(ctx, |editor, ctx| {
             editor.set_interaction_state(InteractionState::Editable, ctx);
         });
+    }
+
+    /// Translate a natural-language request (`# ...`) via local AI and replace the
+    /// input buffer with the resulting command for the user to review. No-op on error
+    /// or missing config, so the terminal never blocks on AI.
+    fn rift_translate_into_input(&mut self, nl: String, ctx: &mut ViewContext<Self>) {
+        let Ok(cfg) = rift_ai::config::RiftAiConfig::load_from(
+            &rift_ai::config::RiftAiConfig::default_path(),
+        ) else {
+            return;
+        };
+        ctx.spawn(
+            async move {
+                rift_ai::translate::translate(
+                    &nl,
+                    &rift_ai::context::RiftContext::default(),
+                    &cfg,
+                )
+                .await
+                .ok()
+            },
+            move |input, cmd: Option<String>, ctx| {
+                if let Some(cmd) = cmd.filter(|c| !c.is_empty()) {
+                    input.editor.update(ctx, |editor, ctx| {
+                        editor.set_buffer_text(&cmd, ctx);
+                    });
+                }
+            },
+        );
     }
 
     /// Try to execute a command in the local session that was
