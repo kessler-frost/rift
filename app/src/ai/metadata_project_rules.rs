@@ -5,8 +5,8 @@ use futures::future::{BoxFuture, FutureExt as _};
 use remote_server::proto::{
     file_context_proto, FileContextProto, ReadFileContextFile, ReadFileContextRequest,
 };
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::{AppContext, SingletonEntity};
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::{AppContext, SingletonEntity};
 
 use crate::remote_server::manager::RemoteServerManager;
 

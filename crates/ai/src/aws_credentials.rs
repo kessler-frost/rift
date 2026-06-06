@@ -1,8 +1,8 @@
 use std::time::SystemTime;
 
 use chrono::{DateTime, Local};
-use warp_core::ui::Icon;
-use warp_multi_agent_api as api;
+use rift_core::ui::Icon;
+use rift_multi_agent_api as api;
 
 /// Temporary AWS credentials loaded from the AWS SDK.
 /// These are not persisted and are only used at runtime.

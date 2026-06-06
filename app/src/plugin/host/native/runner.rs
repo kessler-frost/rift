@@ -1,7 +1,7 @@
 use anyhow::{Context as AnyhowContext, Result};
 use async_channel::Receiver;
+use rift_js::JsFunctionId;
 use rquickjs::{Context, Function, Runtime};
-use warp_js::JsFunctionId;
 
 use super::js_api;
 use super::plugin::{AppServiceCallers, PluginHandle};

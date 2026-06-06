@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use instant::Instant;
+use rift_cli::agent::Harness;
+use rift_core::features::FeatureFlag;
+use rift_core::user_preferences::GetUserPreferences;
+use rift_managed_secrets::client::SecretOwner;
+use rift_managed_secrets::{ManagedSecretManager, ManagedSecretValue};
+use riftui::{Entity, ModelContext, RequestState, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warp_cli::agent::Harness;
-use warp_core::features::FeatureFlag;
-use warp_core::user_preferences::GetUserPreferences;
-use warp_managed_secrets::client::SecretOwner;
-use warp_managed_secrets::{ManagedSecretManager, ManagedSecretValue};
-use warpui::{Entity, ModelContext, RequestState, SingletonEntity};
 
 use crate::ai::harness_display;
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
@@ -217,7 +217,7 @@ impl HarnessAvailabilityModel {
             OUT_OF_BAND_REQUEST_RETRY_STRATEGY,
             is_transient_graphql_or_http_error,
             move |me,
-                  result: RequestState<Vec<warp_graphql::managed_secrets::ManagedSecret>>,
+                  result: RequestState<Vec<rift_graphql::managed_secrets::ManagedSecret>>,
                   ctx| match result {
                 RequestState::RequestSucceeded(secrets) => {
                     let entries = secrets
@@ -387,12 +387,12 @@ fn get_cached(ctx: &ModelContext<HarnessAvailabilityModel>) -> Option<Vec<Harnes
     serde_json::from_str::<Vec<HarnessAvailability>>(&raw).ok()
 }
 
-fn secret_owner_from_space(space: &warp_graphql::object::Space) -> SecretOwner {
+fn secret_owner_from_space(space: &rift_graphql::object::Space) -> SecretOwner {
     match space.type_ {
-        warp_graphql::object::SpaceType::Team => SecretOwner::Team {
+        rift_graphql::object::SpaceType::Team => SecretOwner::Team {
             team_uid: space.uid.clone().into_inner(),
         },
-        warp_graphql::object::SpaceType::User => SecretOwner::CurrentUser,
+        rift_graphql::object::SpaceType::User => SecretOwner::CurrentUser,
     }
 }
 
@@ -403,12 +403,12 @@ fn remove_deleted_auth_secret_entry(
 ) {
     entries.retain(|entry| entry.name.as_str() != name || &entry.owner != owner);
 }
-fn harness_to_graphql_harness(harness: Harness) -> Option<warp_graphql::ai::AgentHarness> {
+fn harness_to_graphql_harness(harness: Harness) -> Option<rift_graphql::ai::AgentHarness> {
     match harness {
-        Harness::Oz => Some(warp_graphql::ai::AgentHarness::Oz),
-        Harness::Claude => Some(warp_graphql::ai::AgentHarness::ClaudeCode),
-        Harness::Gemini => Some(warp_graphql::ai::AgentHarness::Gemini),
-        Harness::Codex => Some(warp_graphql::ai::AgentHarness::Codex),
+        Harness::Oz => Some(rift_graphql::ai::AgentHarness::Oz),
+        Harness::Claude => Some(rift_graphql::ai::AgentHarness::ClaudeCode),
+        Harness::Gemini => Some(rift_graphql::ai::AgentHarness::Gemini),
+        Harness::Codex => Some(rift_graphql::ai::AgentHarness::Codex),
         Harness::OpenCode | Harness::Unknown => None,
     }
 }

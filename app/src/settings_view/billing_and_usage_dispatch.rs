@@ -1,10 +1,10 @@
 //! Dispatch wrapper that routes between the legacy and v2 billing & usage
 //! pages.
 
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{ChildView, Container};
-use warpui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext, ViewHandle};
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{ChildView, Container};
+use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext, ViewHandle};
 
 use super::billing_and_usage_page::{BillingAndUsagePageEvent, BillingAndUsagePageView};
 use super::billing_and_usage_page_v2::BillingAndUsagePageV2View;

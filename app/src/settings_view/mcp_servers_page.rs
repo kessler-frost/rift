@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use uuid::Uuid;
-use warpui::elements::{ChildView, Container};
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{
+use riftui::elements::{ChildView, Container};
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use uuid::Uuid;
 
 use crate::ai::mcp::gallery::MCPGalleryManager;
 use crate::ai::mcp::templatable_installation::VariableValue;

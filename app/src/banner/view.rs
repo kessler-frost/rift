@@ -5,15 +5,15 @@ use markdown_parser::{
     FormattedText, FormattedTextFragment, FormattedTextInline, FormattedTextLine,
 };
 use pathfinder_geometry::vector::Vector2F;
-use warpui::elements::{
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, Flex, FormattedTextElement,
     HighlightedHyperlink, HyperlinkLens, HyperlinkUrl, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     Action, AppContext, Element, Entity, EventContext, SingletonEntity, TypedActionView, View,
     ViewContext,
 };

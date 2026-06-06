@@ -10,11 +10,11 @@ use std::mem;
 use std::ops::RangeInclusive;
 pub use std::ops::{Range, RangeBounds};
 
+use rift_core::semantic_selection::SemanticSelection;
+use rift_terminal::model::grid::cell;
+use riftui::text::SelectionType;
+use riftui::units::Lines;
 use vec1::Vec1;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_terminal::model::grid::cell;
-use warpui::text::SelectionType;
-use warpui::units::Lines;
 
 use super::index::{Direction, VisibleRow};
 use crate::terminal::model::ansi::CursorShape;

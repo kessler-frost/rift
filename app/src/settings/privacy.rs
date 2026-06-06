@@ -3,13 +3,13 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use regex::Regex;
+use rift_core::features::FeatureFlag;
+use rift_core::report_if_error;
+use rift_graphql::mutations::update_user_settings::UpdateUserSettingsInput;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity, UpdateModel};
 use serde::{Deserialize, Serialize};
 use settings::macros::{define_settings_group, maybe_define_setting, register_settings_events};
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
-use warp_core::features::FeatureFlag;
-use warp_core::report_if_error;
-use warp_graphql::mutations::update_user_settings::UpdateUserSettingsInput;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity, UpdateModel};
 
 use super::cloud_preferences_syncer::CloudPreferencesSyncer;
 use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;

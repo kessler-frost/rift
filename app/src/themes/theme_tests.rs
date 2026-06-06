@@ -430,7 +430,7 @@ fn in_memory_theme_generation_test() {
     .iter()
     .collect();
 
-    let mut in_memory_theme = warpui::r#async::block_on(InMemoryThemeOptions::new(
+    let mut in_memory_theme = riftui::r#async::block_on(InMemoryThemeOptions::new(
         "mountains".to_string(),
         mountains_bg_path.clone(),
     ))

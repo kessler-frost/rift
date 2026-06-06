@@ -1,13 +1,13 @@
 use pathfinder_color::ColorU;
-use warp_core::ui::theme::phenomenon::PhenomenonStyle;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::phenomenon::PhenomenonStyle;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, Stack,
 };
-use warpui::ui_components::checkbox::Checkbox;
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::Element;
+use riftui::ui_components::checkbox::Checkbox;
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::Element;
 
 use crate::appearance::Appearance;
 use crate::ui_components::icons::Icon;

@@ -1,22 +1,22 @@
 use std::rc::Rc;
 
-use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Empty, Fill, Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     ParentElement, Radius, ScrollbarWidth, Shrinkable,
 };
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::ui_components::toggle_menu::{ToggleMenuItem, ToggleMenuStateHandle};
-use warpui::{
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::ui_components::toggle_menu::{ToggleMenuItem, ToggleMenuStateHandle};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, IntoStaticStr};
 
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::Revision;
@@ -596,7 +596,7 @@ impl EnumCreationDialog {
             .with_centered_text_label(label_text.to_owned())
             .with_style(UiComponentStyles {
                 font_size: Some(BUTTON_FONT_SIZE),
-                font_weight: Some(warpui::fonts::Weight::Normal),
+                font_weight: Some(riftui::fonts::Weight::Normal),
                 ..Default::default()
             });
 
@@ -607,7 +607,7 @@ impl EnumCreationDialog {
         button
             .build()
             .on_click(move |ctx, _, _| ctx.dispatch_typed_action(action.clone()))
-            .with_cursor(warpui::platform::Cursor::PointingHand)
+            .with_cursor(riftui::platform::Cursor::PointingHand)
             .finish()
     }
 

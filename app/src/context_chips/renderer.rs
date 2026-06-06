@@ -2,15 +2,15 @@
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, DraggableState, Flex, Hoverable,
     MouseStateHandle, OffsetPositioning, ParentElement, ParentOffsetBounds, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{Action, Element};
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{Action, Element};
 
 use super::context_chip::ContextChip;
 use super::display_chip::{chip_container, udi_font_size};
@@ -208,8 +208,8 @@ impl Renderer {
                 OffsetPositioning::offset_from_parent(
                     vec2f(0., -2.5 * font_size),
                     ParentOffsetBounds::Unbounded,
-                    warpui::elements::ParentAnchor::Center,
-                    warpui::elements::ChildAnchor::Center,
+                    riftui::elements::ParentAnchor::Center,
+                    riftui::elements::ChildAnchor::Center,
                 ),
             );
             stack.finish()

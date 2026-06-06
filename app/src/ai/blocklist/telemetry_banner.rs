@@ -1,11 +1,11 @@
-use warpui::elements::{
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Shrinkable, Text,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
 
 use crate::settings_view::SettingsSection;
 use crate::terminal::view::TerminalAction;

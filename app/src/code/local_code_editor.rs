@@ -25,38 +25,38 @@ use pathfinder_geometry::vector::Vector2F;
 use remote_server::manager::RemoteServerManager;
 #[cfg(feature = "local_fs")]
 use repo_metadata::repositories::DetectedRepositories;
-use string_offset::CharOffset;
-use vec1::Vec1;
-use vim::vim::{MotionType, VimMode};
-use warp_core::features::FeatureFlag;
-use warp_core::r#async::debounce;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::icons::Icon;
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::content::text::IndentUnit;
-use warp_editor::render::model::{Decoration, LineCount};
-use warp_util::content_version::ContentVersion;
-use warp_util::file::{FileId, FileLoadError, FileSaveError};
+use rift_core::features::FeatureFlag;
+use rift_core::r#async::debounce;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::icons::Icon;
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::content::text::IndentUnit;
+use rift_editor::render::model::{Decoration, LineCount};
+use rift_util::content_version::ContentVersion;
+use rift_util::file::{FileId, FileLoadError, FileSaveError};
 #[cfg(feature = "local_fs")]
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::path::to_relative_path;
-use warp_util::sync::Condition;
-use warpui::elements::{
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::path::to_relative_path;
+use rift_util::sync::Condition;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, DropShadow, Flex, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius,
     Rect, Shrinkable, Stack, Text,
 };
-use warpui::keymap::macros::*;
-use warpui::keymap::FixedBinding;
-use warpui::platform::SaveFilePickerConfiguration;
-use warpui::text::point::Point;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::macros::*;
+use riftui::keymap::FixedBinding;
+use riftui::platform::SaveFilePickerConfiguration;
+use riftui::text::point::Point;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WindowId,
 };
+use string_offset::CharOffset;
+use vec1::Vec1;
+use vim::vim::{MotionType, VimMode};
 
 use crate::ai::persisted_workspace::{PersistedWorkspace, PersistedWorkspaceEvent};
 use crate::code::buffer_location::LocalOrRemotePath as BufferFileLocation;
@@ -80,7 +80,7 @@ const DROP_SHADOW_COLOR: ColorU = ColorU {
 
 const HOVER_DEBOUNCE_PERIOD: Duration = Duration::from_millis(500);
 
-use warp_core::send_telemetry_from_ctx;
+use rift_core::send_telemetry_from_ctx;
 
 use super::diff_viewer::DiffViewer;
 use super::editor::scroll::{ScrollPosition, ScrollTrigger};
@@ -649,7 +649,7 @@ impl LocalCodeEditorView {
                 let window_id = ctx.window_id();
 
                 // Create the on-click action based on whether we have a definition
-                let on_click: Box<dyn Fn(&mut warpui::AppContext)> = if has_different_definition {
+                let on_click: Box<dyn Fn(&mut riftui::AppContext)> = if has_different_definition {
                     let target_location = definition_locations.first().unwrap().target.clone();
                     Box::new(move |app| {
                         app.dispatch_typed_action_for_view(
@@ -2140,13 +2140,13 @@ impl View for LocalCodeEditorView {
         "LocalCodeEditorView"
     }
 
-    fn on_focus(&mut self, focus_ctx: &warpui::FocusContext, ctx: &mut ViewContext<Self>) {
+    fn on_focus(&mut self, focus_ctx: &riftui::FocusContext, ctx: &mut ViewContext<Self>) {
         if focus_ctx.is_self_focused() {
             self.editor.update(ctx, |editor, ctx| editor.focus(ctx));
         }
     }
 
-    fn render(&self, app: &AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &AppContext) -> Box<dyn riftui::Element> {
         // Rendering the remote disconnection banner or version conflict banner.
         // Only show the disconnection banner if the file was successfully loaded;
         // if it never loaded, the error/loading state handles that.

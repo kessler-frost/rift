@@ -1,11 +1,11 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::AnsiColorIdentifier;
-use warpui::elements::{
+use rift_core::ui::theme::AnsiColorIdentifier;
+use riftui::elements::{
     ChildAnchor, ConstrainedBox, Container, CornerRadius, Empty, Fill, OffsetPositioning,
     ParentAnchor, ParentElement as _, ParentOffsetBounds, Radius, Stack,
 };
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::Element;
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::Element;
 
 use crate::appearance::Appearance;
 

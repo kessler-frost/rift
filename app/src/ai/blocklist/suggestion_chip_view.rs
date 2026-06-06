@@ -1,9 +1,9 @@
 use pathfinder_color::ColorU;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{Align, ChildView, Container, ParentElement, SavePosition, Stack};
-use warpui::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{Align, ChildView, Container, ParentElement, SavePosition, Stack};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

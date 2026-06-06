@@ -9,22 +9,22 @@ use diesel::SqliteConnection;
 #[cfg(feature = "local_fs")]
 use parking_lot::Mutex;
 use pathfinder_geometry::vector::vec2f;
-use uuid::Uuid;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, Container, CornerRadius, CrossAxisAlignment, Flex,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack, Text,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use uuid::Uuid;
 
 use crate::ai::blocklist::secret_redaction::find_secrets_in_text;
 use crate::ai::mcp::parsing::{prettify_json, resolve_json, ParsedTemplatableMCPServerResult};
@@ -165,8 +165,8 @@ impl MCPServersEditPageView {
                 ctx,
             )
             .with_horizontal_scrollbar_appearance(
-                warpui::elements::new_scrollable::ScrollableAppearance::new(
-                    warpui::elements::ScrollbarWidth::Auto,
+                riftui::elements::new_scrollable::ScrollableAppearance::new(
+                    riftui::elements::ScrollbarWidth::Auto,
                     true,
                 ),
             );

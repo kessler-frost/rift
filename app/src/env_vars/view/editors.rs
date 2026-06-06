@@ -1,10 +1,10 @@
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Align, ConstrainedBox, Container, Flex, ParentElement, SavePosition, Shrinkable, Stack,
 };
-use warpui::fonts::FamilyId;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, ViewContext, ViewHandle};
+use riftui::fonts::FamilyId;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, ViewContext, ViewHandle};
 
 use crate::editor::{
     EditOrigin, EditorOptions, EditorView, Event as EditorEvent, InteractionState,

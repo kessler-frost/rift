@@ -4,15 +4,15 @@ use std::sync::Arc;
 
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use rift_completer::completer::TopLevelCommandCaseSensitivity;
+use rift_completer::parsers::classify_command;
+use rift_completer::parsers::hir::{Command, Expression};
+use rift_completer::parsers::simple::all_parsed_commands;
+use rift_completer::signatures::CommandRegistry;
+use rift_util::path::EscapeChar;
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::{SingletonEntity, ViewContext};
 use settings::Setting as _;
-use warp_completer::completer::TopLevelCommandCaseSensitivity;
-use warp_completer::parsers::classify_command;
-use warp_completer::parsers::hir::{Command, Expression};
-use warp_completer::parsers::simple::all_parsed_commands;
-use warp_completer::signatures::CommandRegistry;
-use warp_util::path::EscapeChar;
-use warpui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
-use warpui::{SingletonEntity, ViewContext};
 
 use super::{Event, InlineBannerItem, InlineBannerType, TerminalView};
 #[cfg(feature = "local_fs")]

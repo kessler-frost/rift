@@ -1,14 +1,14 @@
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
     Container, CornerRadius, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, ScrollbarWidth,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -312,7 +312,7 @@ impl RuleEditorView {
                     ScrollbarWidth::Auto,
                     appearance.theme().nonactive_ui_detail().into(),
                     appearance.theme().active_ui_detail().into(),
-                    warpui::elements::Fill::None,
+                    riftui::elements::Fill::None,
                 )
                 .finish(),
             )

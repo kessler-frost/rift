@@ -22,15 +22,15 @@ pub use markdown_parser::{
 };
 use pathfinder_color::ColorU;
 use rand::Rng;
+use rift_core::features::FeatureFlag;
+use riftui_core::AppContext;
+use riftui_core::elements::ListIndentLevel;
+use riftui_core::fonts::{Properties, Style, Weight};
+use riftui_core::text::BlockHeaderSize as HeaderSize;
+use riftui_core::text::point::Point;
 use serde::{Deserialize, Serialize};
 use string_offset::{ByteOffset, CharOffset, impl_offset};
 use sum_tree::{Cursor, SeekBias, SumTree};
-use warp_core::features::FeatureFlag;
-use warpui_core::AppContext;
-use warpui_core::elements::ListIndentLevel;
-use warpui_core::fonts::{Properties, Style, Weight};
-use warpui_core::text::BlockHeaderSize as HeaderSize;
-use warpui_core::text::point::Point;
 
 use super::buffer::Buffer;
 use super::core::CursorType;

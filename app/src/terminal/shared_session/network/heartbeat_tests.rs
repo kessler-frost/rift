@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use warpui::r#async::Timer;
-use warpui::App;
+use riftui::r#async::Timer;
+use riftui::App;
 
 use super::{Event, Heartbeat};
 
@@ -67,7 +67,7 @@ fn test_idle_timeout() {
         // Reset the idle timeout.
         heartbeat.update(
             &mut app,
-            |heartbeat, ctx: &mut warpui::ModelContext<Heartbeat>| {
+            |heartbeat, ctx: &mut riftui::ModelContext<Heartbeat>| {
                 heartbeat.reset_idle_timeout(ctx)
             },
         );

@@ -5,11 +5,11 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use anyhow::Context;
+use rift_core::safe_info;
+use rift_managed_secrets::ManagedSecretManager;
+use riftui::{ModelSpawner, SingletonEntity};
 use tempfile::{Builder, NamedTempFile};
 use vec1::Vec1;
-use warp_core::safe_info;
-use warp_managed_secrets::ManagedSecretManager;
-use warpui::{ModelSpawner, SingletonEntity};
 
 use super::super::terminal::TerminalDriver;
 use super::{CloudProvider, CloudProviderSetupError, Result};
@@ -96,7 +96,7 @@ impl CloudProvider for AwsCloudProvider {
                     ManagedSecretManager::handle(ctx)
                         .as_ref(ctx)
                         .issue_task_identity_token(
-                            warp_managed_secrets::client::IdentityTokenOptions {
+                            rift_managed_secrets::client::IdentityTokenOptions {
                                 audience,
                                 requested_duration: duration,
                                 subject_template,

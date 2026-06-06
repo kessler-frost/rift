@@ -3,21 +3,21 @@ use async_trait::async_trait;
 use cynic::{MutationBuilder, QueryBuilder};
 #[cfg(test)]
 use mockall::{automock, predicate::*};
-use warp_graphql::error::UserFacingErrorInterface;
-use warp_graphql::mutations::purchase_addon_credits::{
+use rift_graphql::error::UserFacingErrorInterface;
+use rift_graphql::mutations::purchase_addon_credits::{
     PurchaseAddonCredits, PurchaseAddonCreditsInput, PurchaseAddonCreditsResult,
     PurchaseAddonCreditsVariables,
 };
-use warp_graphql::mutations::stripe_billing_portal::{
+use rift_graphql::mutations::stripe_billing_portal::{
     StripeBillingPortal, StripeBillingPortalInput, StripeBillingPortalResult,
     StripeBillingPortalVariables,
 };
-use warp_graphql::mutations::update_workspace_settings::{
+use rift_graphql::mutations::update_workspace_settings::{
     AddonCreditsSettingsInput, UpdateWorkspaceSettings, UpdateWorkspaceSettingsInput,
     UpdateWorkspaceSettingsResult, UpdateWorkspaceSettingsVariables,
     UsageBasedPricingSettingsInput,
 };
-use warp_graphql::queries::get_ai_overages_for_workspace::{
+use rift_graphql::queries::get_ai_overages_for_workspace::{
     GetAiOveragesForWorkspace, GetAiOveragesForWorkspaceVariables, UserResult,
 };
 

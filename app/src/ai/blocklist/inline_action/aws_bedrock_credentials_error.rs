@@ -1,15 +1,15 @@
-use settings::Setting as _;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::ui::Icon;
+use riftui::elements::{
     ChildView, ConstrainedBox, Container, CrossAxisAlignment, Flex, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, ParentElement, Shrinkable, SizeConstraintCondition,
     SizeConstraintSwitch, Text,
 };
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, EventContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::Setting as _;
 
 use super::inline_action_icons::icon_size;
 use crate::ai::blocklist::view_util::error_color;

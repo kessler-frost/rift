@@ -1,7 +1,7 @@
 use pathfinder_geometry::vector::vec2f;
-use warpui::elements::{Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle};
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::elements::{Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle};
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 
 use super::settings_page::{MatchData, NAV_ITEM_LEFT_MARGIN};
 use super::SettingsSection;

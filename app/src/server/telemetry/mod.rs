@@ -18,12 +18,12 @@ pub use collector::*;
 pub use context::telemetry_context;
 pub use events::*;
 use futures::FutureExt;
+use rift_core::channel::RudderStackDestination;
+use riftui::telemetry::Event;
 use rudder_message::{
     Batch as RudderBatch, BatchMessage as RudderBatchMessageWithMetadata,
     BatchMessageItem as RudderBatchMessage, Message as RudderMessage,
 };
-use warp_core::channel::RudderStackDestination;
-use warpui::telemetry::Event;
 
 use crate::auth::UserUid;
 use crate::features::FeatureFlag;
@@ -37,14 +37,14 @@ const RUDDER_TELEMETRY_EVENTS_FILE_NAME: &str = "rudder_telemetry_events.json";
 
 /// Filepath where the Rudder events should be written on app quit.
 fn rudder_event_file_path() -> PathBuf {
-    warp_core::paths::secure_state_dir()
-        .unwrap_or_else(warp_core::paths::state_dir)
+    rift_core::paths::secure_state_dir()
+        .unwrap_or_else(rift_core::paths::state_dir)
         .join(RUDDER_TELEMETRY_EVENTS_FILE_NAME)
 }
 
 /// Removes all telemetry events from the app telemetry event queue.
 pub fn clear_event_queue() {
-    let _ = warpui::telemetry::flush_events();
+    let _ = riftui::telemetry::flush_events();
 }
 
 pub struct TelemetryApi {
@@ -92,7 +92,7 @@ impl TelemetryApi {
     // Batches up telemetry events from the global queue and sends a Message to the Rudderstack API.
     // Returns the number of events that were flushed.
     pub async fn flush_events(&self, settings_snapshot: PrivacySettingsSnapshot) -> Result<usize> {
-        let events = warpui::telemetry::flush_events();
+        let events = riftui::telemetry::flush_events();
         let event_count = events.len();
 
         #[cfg(not(target_family = "wasm"))]
@@ -170,7 +170,7 @@ impl TelemetryApi {
 
         let file = File::create(path)?;
 
-        let events = warpui::telemetry::flush_events();
+        let events = riftui::telemetry::flush_events();
         if events.len() > max_event_count {
             log::error!("More telemetry events in queue than the limit to persist")
         }
@@ -199,7 +199,7 @@ impl TelemetryApi {
 
     #[cfg(not(target_family = "wasm"))]
     fn persist_events_to_telemetry_log_file(&self, events: Vec<Event>) -> Result<()> {
-        let log_directory = warp_logging::log_directory()?;
+        let log_directory = rift_logging::log_directory()?;
         let telemetry_file_path = log_directory.join(&*ChannelState::telemetry_file_name());
 
         let file = OpenOptions::new()
@@ -215,16 +215,16 @@ impl TelemetryApi {
         &self,
         user_id: Option<UserUid>,
         anonymous_id: String,
-        event: impl warp_core::telemetry::TelemetryEvent,
+        event: impl rift_core::telemetry::TelemetryEvent,
         settings_snapshot: PrivacySettingsSnapshot,
     ) -> Result<()> {
-        let event = warpui::telemetry::create_event(
+        let event = riftui::telemetry::create_event(
             user_id.map(|uid| uid.as_string()),
             anonymous_id,
             event.name().into(),
             event.payload(),
             event.contains_ugc(),
-            warpui::time::get_current_time(),
+            riftui::time::get_current_time(),
         );
 
         self.send_telemetry_event_internal(event, settings_snapshot)

@@ -4,6 +4,7 @@ use async_channel::Sender;
 use futures_util::stream::AbortHandle;
 use instant::Instant;
 use parking_lot::FairMutex;
+use riftui::{App, ModelHandle};
 use session_sharing_protocol::common::{
     ActivePrompt, OrderedTerminalEvent, OrderedTerminalEventType, ParticipantId, Selection,
     SessionId,
@@ -11,7 +12,6 @@ use session_sharing_protocol::common::{
 use session_sharing_protocol::sharer::{
     DownstreamMessage, FailedToInitializeSessionReason, QuotaType, ReconnectToken, UpstreamMessage,
 };
-use warpui::{App, ModelHandle};
 use websocket::{Message, WebsocketMessage as _};
 
 use super::{
@@ -816,7 +816,7 @@ fn test_events_are_saved_on_send_and_removed_on_ack() {
         // Simulate receiving the EventsProcessedAck message from the server.
         network.update(
             &mut app,
-            |network, ctx: &mut warpui::ModelContext<'_, Network>| {
+            |network, ctx: &mut riftui::ModelContext<'_, Network>| {
                 let downstream_message = DownstreamMessage::EventsProcessedAck {
                     latest_processed_event_no: 1,
                 };

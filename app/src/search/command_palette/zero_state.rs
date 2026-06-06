@@ -2,10 +2,10 @@ mod items;
 use std::collections::HashMap;
 
 pub use items::Items;
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{Container, Flex, MouseStateHandle, ParentElement, Shrinkable, Wrap};
-use warpui::{
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use riftui::elements::{Container, Flex, MouseStateHandle, ParentElement, Shrinkable, Wrap};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     WindowId,
 };

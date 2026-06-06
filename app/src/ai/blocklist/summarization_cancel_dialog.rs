@@ -1,19 +1,19 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{Align, Container, CrossAxisAlignment, Dismiss, Flex, ParentElement, Stack};
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{BorderStyle, Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use rift_core::ui::theme::Fill;
+use riftui::elements::{Align, Container, CrossAxisAlignment, Dismiss, Flex, ParentElement, Stack};
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{BorderStyle, Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
 use crate::ui_components::buttons;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -45,7 +45,7 @@ pub enum SummarizationCancelDialogAction {
     Continue,
 }
 
-use warpui::elements::MouseStateHandle;
+use riftui::elements::MouseStateHandle;
 
 #[derive(Default)]
 pub struct SummarizationCancelDialog {
@@ -63,7 +63,7 @@ impl View for SummarizationCancelDialog {
         "SummarizationCancelDialog"
     }
 
-    fn on_focus(&mut self, _focus_ctx: &warpui::FocusContext, ctx: &mut ViewContext<Self>) {
+    fn on_focus(&mut self, _focus_ctx: &riftui::FocusContext, ctx: &mut ViewContext<Self>) {
         // Ensure this dialog takes focus away from the terminal editor
         ctx.focus_self();
     }
@@ -118,7 +118,7 @@ impl View for SummarizationCancelDialog {
             .finish();
 
         // Close header with Icon::X and ESC pill
-        let esc_keystroke = warpui::keymap::Keystroke::parse("escape").expect("Valid keystroke");
+        let esc_keystroke = riftui::keymap::Keystroke::parse("escape").expect("Valid keystroke");
         let close_header = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_children([
@@ -190,11 +190,11 @@ impl View for SummarizationCancelDialog {
         let mut stack = Stack::new();
         stack.add_positioned_child(
             dialog_dismiss,
-            warpui::elements::OffsetPositioning::offset_from_parent(
+            riftui::elements::OffsetPositioning::offset_from_parent(
                 vec2f(0., 0.),
-                warpui::elements::ParentOffsetBounds::WindowByPosition,
-                warpui::elements::ParentAnchor::Center,
-                warpui::elements::ChildAnchor::Center,
+                riftui::elements::ParentOffsetBounds::WindowByPosition,
+                riftui::elements::ParentAnchor::Center,
+                riftui::elements::ChildAnchor::Center,
             ),
         );
 

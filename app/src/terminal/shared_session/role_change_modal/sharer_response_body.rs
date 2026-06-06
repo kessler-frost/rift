@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use session_sharing_protocol::common::{ParticipantId, Role, RoleRequestId};
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, Flex, MainAxisAlignment, MouseStateHandle,
     ParentElement, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use session_sharing_protocol::common::{ParticipantId, Role, RoleRequestId};
 
 use super::{BODY_PADDING, HEADER_FONT_SIZE, MODAL_PADDING, TEXT_FONT_SIZE};
 use crate::appearance::Appearance;

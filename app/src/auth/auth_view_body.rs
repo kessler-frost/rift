@@ -1,19 +1,19 @@
 use anyhow::anyhow;
 use lazy_static::lazy_static;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::DEFAULT_COMMAND_PALETTE_FONT_SIZE;
-use warp_core::ui::builder::UiBuilder;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::clipboard::ClipboardContent;
-use warpui::color::ColorU;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::DEFAULT_COMMAND_PALETTE_FONT_SIZE;
+use rift_core::ui::builder::UiBuilder;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::clipboard::ClipboardContent;
+use riftui::color::ColorU;
+use riftui::elements::{
     Align, Border, Container, CornerRadius, CrossAxisAlignment, Dismiss, Fill, Flex,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, UpdateModel, View,
     ViewContext, ViewHandle,
 };
@@ -61,7 +61,7 @@ lazy_static! {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "enter",

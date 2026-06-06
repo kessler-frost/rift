@@ -11,8 +11,8 @@ use repo_metadata::repository::{
     BufferingRepositorySubscriber, RepositorySubscriber, SubscriberId,
 };
 use repo_metadata::{CanonicalizedPath, DirectoryWatcher, Repository, RepositoryUpdate};
+use riftui::{Entity, ModelContext, ModelHandle, SingletonEntity};
 use settings::Setting as _;
-use warpui::{Entity, ModelContext, ModelHandle, SingletonEntity};
 
 use super::OutlineStatus;
 use crate::ai::persisted_workspace::all_working_directories;

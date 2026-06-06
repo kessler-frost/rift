@@ -19,9 +19,9 @@ use std::fmt;
 pub use cloud_objects::drive::CloudObjectTypeAndId;
 pub use index::DriveIndexVariant;
 pub use panel::{DrivePanel, DrivePanelEvent};
+use rift_core::user_preferences::GetUserPreferences as _;
+use riftui::AppContext;
 use serde::{Deserialize, Serialize};
-use warp_core::user_preferences::GetUserPreferences as _;
-use warpui::AppContext;
 
 use crate::cloud_object::model::view::{CloudViewModel, UpdateTimestamp};
 use crate::cloud_object::{CloudObject, ObjectType};

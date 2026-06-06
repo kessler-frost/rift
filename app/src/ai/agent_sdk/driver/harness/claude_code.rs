@@ -7,13 +7,13 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use parking_lot::Mutex;
+use rift_cli::agent::Harness;
+use rift_managed_secrets::ManagedSecretValue;
+use riftui::{ModelHandle, ModelSpawner};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tempfile::NamedTempFile;
 use uuid::Uuid;
-use warp_cli::agent::Harness;
-use warp_managed_secrets::ManagedSecretValue;
-use warpui::{ModelHandle, ModelSpawner};
 
 use super::super::terminal::{CommandHandle, TerminalDriver};
 use super::super::{AgentDriver, AgentDriverError};

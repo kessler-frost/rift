@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use chrono::Utc;
 use pathfinder_geometry::vector::vec2f;
 use persistence::model::ConversationUsageMetadata;
+use rift_multi_agent_api::{self as api, client_action as api_client_action};
+use riftui::platform::WindowStyle;
+use riftui::{App, EntityId, TypedActionView, ViewHandle};
 use session_sharing_protocol::sharer::SessionSourceType;
-use warp_multi_agent_api::{self as api, client_action as api_client_action};
-use warpui::platform::WindowStyle;
-use warpui::{App, EntityId, TypedActionView, ViewHandle};
 
 use super::*;
 use crate::ai::agent::api::ServerConversationToken;

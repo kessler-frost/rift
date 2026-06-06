@@ -1,6 +1,6 @@
+use riftui::elements::MouseStateHandle;
+use riftui::{AppContext, EntityId, SingletonEntity, ViewContext, ViewHandle, WindowId};
 use serde::{Deserialize, Serialize};
-use warpui::elements::MouseStateHandle;
-use warpui::{AppContext, EntityId, SingletonEntity, ViewContext, ViewHandle, WindowId};
 
 use super::OneTimeModalModel;
 use crate::appearance::Appearance;
@@ -392,7 +392,7 @@ pub fn get_context_target_terminal_view(
 pub fn get_terminal_background_fill(
     window_id: WindowId,
     app: &AppContext,
-) -> warpui::elements::Fill {
+) -> riftui::elements::Fill {
     let theme = Appearance::as_ref(app).theme();
     let terminal_opacity = get_terminal_background_opacity(window_id, app);
     theme.background().with_opacity(terminal_opacity).into()

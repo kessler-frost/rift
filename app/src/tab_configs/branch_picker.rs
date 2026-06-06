@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use warpui::elements::ChildView;
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::{AppContext, Element, Entity, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::elements::ChildView;
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::{AppContext, Element, Entity, TypedActionView, View, ViewContext, ViewHandle};
 
 use crate::tab_configs::PickerStyle;
 use crate::util::git::{

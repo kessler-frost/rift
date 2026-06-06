@@ -9,17 +9,16 @@ use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use parking_lot::{FairMutex, RwLock};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warp_core::report_error;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::new_scrollable::SingleAxisConfig;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::report_error;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::new_scrollable::SingleAxisConfig;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, DropShadow, Empty, Expanded, Fill, Flex,
     FormattedTextElement, Highlight, HighlightedHyperlink, Hoverable, MainAxisAlignment,
@@ -27,15 +26,16 @@ use warpui::elements::{
     PositionedElementAnchor, PositionedElementOffsetBounds, Radius, SavePosition, SelectableArea,
     SelectionHandle, Shrinkable, SizeConstraintCondition, SizeConstraintSwitch, Stack, Text,
 };
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::keymap::{EditableBinding, Keystroke};
-use warpui::platform::{Cursor, OperatingSystem};
-use warpui::r#async::{SpawnedFutureHandle, Timer};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::keymap::{EditableBinding, Keystroke};
+use riftui::platform::{Cursor, OperatingSystem};
+use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use settings::Setting as _;
 
 use super::cli_controller::{CLISubagentController, CLISubagentEvent, UserTakeOverReason};
 use super::model::{AIBlockModel, AIBlockModelHelper, AIBlockModelImpl, AIBlockOutputStatus};
@@ -125,8 +125,8 @@ const HAS_PENDING_NON_TRANSFER_CONTROL_ACTION_CONTEXT_KEY: &str =
 const BLOCKED_ACTION_MESSAGE_FOR_TRANSFER_CONTROL: &str = "Agent is asking you to take control.";
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
-    use warpui::keymap::FixedBinding;
+    use riftui::keymap::macros::*;
+    use riftui::keymap::FixedBinding;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -944,7 +944,7 @@ impl View for CLISubagentView {
         "CLISubagentView"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         let terminal_model = self.terminal_model.lock();
         let Some(block) = terminal_model.block_list().block_with_id(&self.block_id) else {
             return Empty::new().finish();
@@ -1379,7 +1379,7 @@ impl View for CLISubagentView {
         result.finish()
     }
 
-    fn keymap_context(&self, app: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut context = Self::default_keymap_context();
 
         let terminal_model = self.terminal_model.lock();
@@ -1549,7 +1549,7 @@ fn render_action(action: AIAgentActionType, app: &AppContext) -> Option<Box<dyn 
 
     let icon = Container::new(
         ConstrainedBox::new(
-            warpui::elements::Icon::new(icon.into(), internal_colors::neutral_5(theme)).finish(),
+            riftui::elements::Icon::new(icon.into(), internal_colors::neutral_5(theme)).finish(),
         )
         .with_width(icon_size(app))
         .with_height(icon_size(app))
@@ -1591,7 +1591,7 @@ fn render_web_search(query: Option<String>, app: &AppContext) -> Box<dyn Element
 
     let icon = Container::new(
         ConstrainedBox::new(
-            warpui::elements::Icon::new(Icon::Search.into(), internal_colors::neutral_5(theme))
+            riftui::elements::Icon::new(Icon::Search.into(), internal_colors::neutral_5(theme))
                 .finish(),
         )
         .with_width(icon_size(app))

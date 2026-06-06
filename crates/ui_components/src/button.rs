@@ -2,12 +2,12 @@ mod params;
 pub mod themes;
 
 pub use params::*;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::ContrastingColor as _;
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use riftui_core::elements::{MouseState, MouseStateHandle};
+use riftui_core::prelude::*;
 pub use themes::Theme;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::ContrastingColor as _;
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warpui_core::elements::{MouseState, MouseStateHandle};
-use warpui_core::prelude::*;
 
 use crate::{keyboard_shortcut, tooltip};
 

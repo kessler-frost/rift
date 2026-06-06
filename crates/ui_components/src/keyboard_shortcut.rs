@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::icons::Icon;
-use warpui_core::keymap::Keystroke;
-use warpui_core::platform::OperatingSystem;
-use warpui_core::prelude::*;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::icons::Icon;
+use riftui_core::keymap::Keystroke;
+use riftui_core::platform::OperatingSystem;
+use riftui_core::prelude::*;
 
 use crate::Component;
 

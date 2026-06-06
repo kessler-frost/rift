@@ -10,8 +10,8 @@ use std::sync::Arc;
 use ignore::gitignore::Gitignore;
 #[cfg(feature = "local_fs")]
 use notify_debouncer_full::notify::WatchFilter;
+use rift_util::standardized_path::StandardizedPath;
 use thiserror::Error;
-use warp_util::standardized_path::StandardizedPath;
 
 use crate::standing_queries::{StandingQueryDefinitions, StandingQueryResults};
 

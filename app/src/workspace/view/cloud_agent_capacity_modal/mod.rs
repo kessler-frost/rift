@@ -2,22 +2,22 @@ use asset_macro::bundled_or_fetched_asset;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use thousands::Separable;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warp_graphql::billing::StripeSubscriptionPlan;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use rift_graphql::billing::StripeSubscriptionPlan;
+use riftui::elements::{
     Align, CacheOption, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DropShadow, Expanded, Flex, FormattedTextElement, HighlightedHyperlink, Image,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use thousands::Separable;
 
 use crate::auth::AuthStateProvider;
 use crate::pricing::PricingInfoModel;
@@ -42,7 +42,7 @@ pub enum CloudAgentCapacityModalVariant {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",

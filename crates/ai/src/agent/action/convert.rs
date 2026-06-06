@@ -2,9 +2,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use itertools::Itertools as _;
+use rift_core::features::FeatureFlag;
+use rift_multi_agent_api as api;
 use uuid::Uuid;
-use warp_core::features::FeatureFlag;
-use warp_multi_agent_api as api;
 
 use crate::agent::action::{
     AIAgentActionType, AIAgentPtyWriteMode, CommentSide, FileEdit, InsertReviewComment,
@@ -55,7 +55,7 @@ impl From<api::message::tool_call::write_to_long_running_shell_command::Mode>
     fn from(value: api::message::tool_call::write_to_long_running_shell_command::Mode) -> Self {
         match value.mode {
             Some(mode) => {
-                use warp_multi_agent_api::message::tool_call::write_to_long_running_shell_command::mode::Mode;
+                use rift_multi_agent_api::message::tool_call::write_to_long_running_shell_command::mode::Mode;
                 match mode {
                     Mode::Raw(_) => AIAgentPtyWriteMode::Raw,
                     Mode::Line(_) => AIAgentPtyWriteMode::Line,
@@ -290,8 +290,8 @@ impl TryFrom<api::message::tool_call::SuggestPrompt> for AIAgentActionType {
     }
 }
 
-impl From<warp_multi_agent_api::FileContent> for FileContext {
-    fn from(content: warp_multi_agent_api::FileContent) -> Self {
+impl From<rift_multi_agent_api::FileContent> for FileContext {
+    fn from(content: rift_multi_agent_api::FileContent) -> Self {
         let line_range = content.line_range.map(|r| r.start as usize..r.end as usize);
 
         FileContext::new(
@@ -303,8 +303,8 @@ impl From<warp_multi_agent_api::FileContent> for FileContext {
     }
 }
 
-impl From<warp_multi_agent_api::AnyFileContent> for FileContext {
-    fn from(content: warp_multi_agent_api::AnyFileContent) -> Self {
+impl From<rift_multi_agent_api::AnyFileContent> for FileContext {
+    fn from(content: rift_multi_agent_api::AnyFileContent) -> Self {
         match content.content {
             Some(api::any_file_content::Content::BinaryContent(binary_content)) => {
                 FileContext::new(

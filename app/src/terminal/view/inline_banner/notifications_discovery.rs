@@ -1,7 +1,7 @@
+use riftui::elements::MouseStateHandle;
+use riftui::notification::RequestPermissionsOutcome;
+use riftui::Element;
 use serde::Serialize;
-use warpui::elements::MouseStateHandle;
-use warpui::notification::RequestPermissionsOutcome;
-use warpui::Element;
 
 use super::{
     render_inline_block_list_banner, InlineBannerButtonState, InlineBannerCloseButton,

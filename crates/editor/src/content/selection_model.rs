@@ -1,9 +1,9 @@
 use std::ops::Range;
 
 use itertools::Itertools;
+use riftui_core::{AppContext, Entity, ModelHandle};
 use string_offset::CharOffset;
 use vec1::{Vec1, vec1};
-use warpui_core::{AppContext, Entity, ModelHandle};
 
 use crate::content::anchor::{Anchor, AnchorSide, AnchorUpdate, Anchors};
 use crate::content::buffer::{Buffer, SelectionOffsets, ToBufferPoint};
@@ -307,7 +307,7 @@ impl BufferSelectionModel {
     }
 
     /// Validate the buffer content with this selection model's anchors.
-    pub fn validate_buffer(&self, ctx: &impl warpui_core::ModelAsRef) {
+    pub fn validate_buffer(&self, ctx: &impl riftui_core::ModelAsRef) {
         self.buffer.as_ref(ctx).validate(&self.anchors);
     }
 

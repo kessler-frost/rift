@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use rift_core::features::FeatureFlag;
+use riftui::elements::{Flex, MouseStateHandle, ParentElement};
+use riftui::ui_components::components::UiComponent;
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
 use settings::{Setting, ToggleableSetting};
-use warp_core::features::FeatureFlag;
-use warpui::elements::{Flex, MouseStateHandle, ParentElement};
-use warpui::ui_components::components::UiComponent;
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
 
 use crate::appearance::Appearance;
 use crate::server::telemetry::TelemetryEvent;
@@ -271,7 +271,7 @@ impl View for ExternalEditorView {
         "ExternalEditorView"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         let appearance = Appearance::as_ref(app);
 
         let default_editor = render_dropdown_item(

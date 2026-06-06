@@ -1,1 +1,1 @@
-pub use warp_core::interval_timer::IntervalTimer;
+pub use rift_core::interval_timer::IntervalTimer;

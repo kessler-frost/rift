@@ -1,16 +1,16 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Align, Border, ChildAnchor, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
     Container, CornerRadius, CrossAxisAlignment, Flex, Highlight, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, ScrollbarWidth,
     Shrinkable, Stack, Text,
 };
-use warpui::platform::{FilePickerConfiguration, FileType};
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::platform::{FilePickerConfiguration, FileType};
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

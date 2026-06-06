@@ -4,10 +4,10 @@ use std::path::PathBuf;
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::RepoMetadataModel;
+use rift_core::features::FeatureFlag;
+use riftui::{App, Entity, ModelHandle, SingletonEntity as _};
 use settings::Setting as _;
 use uuid::Uuid;
-use warp_core::features::FeatureFlag;
-use warpui::{App, Entity, ModelHandle, SingletonEntity as _};
 use watcher::HomeDirectoryWatcher;
 
 use super::{CloudEnvMcpScanServer, FileBasedMCPManager, FileBasedMCPManagerEvent, MCPProvider};
@@ -18,7 +18,7 @@ use crate::warp_managed_paths_watcher::{warp_managed_mcp_config_path, WarpManage
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 // Helper to initialize dependencies and return FileBasedMCPManager handle
-fn setup_app(app: &mut App) -> warpui::ModelHandle<FileBasedMCPManager> {
+fn setup_app(app: &mut App) -> riftui::ModelHandle<FileBasedMCPManager> {
     app.add_singleton_model(DirectoryWatcher::new);
     app.add_singleton_model(|_| DetectedRepositories::default());
     app.add_singleton_model(RepoMetadataModel::new);
@@ -274,7 +274,7 @@ fn test_update_file_based_servers_removes_unreferenced_servers() {
     });
 }
 
-/// A Warp-global installation detected from the managed `~/.warp*/.mcp.json`
+/// A Warp-global installation detected from the managed `~/.rift*/.mcp.json`
 /// watcher uses the home directory as its logical root and still always
 /// auto-spawns.
 #[test]

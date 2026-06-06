@@ -1,17 +1,17 @@
-use warp_core::ui::builder::UiBuilder;
-use warp_core::ui::color::blend::Blend;
-use warp_core::ui::color::darken;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::color::ColorU;
-use warpui::elements::{
+use rift_core::ui::builder::UiBuilder;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::color::darken;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::color::ColorU;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Fill, Flex, Icon,
     MouseStateHandle, ParentElement, Radius, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
 };
 
@@ -64,7 +64,7 @@ pub struct AuthOverrideWarningBody {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "enter",

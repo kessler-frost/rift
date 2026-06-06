@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
 use chrono::{DateTime, Local};
+use rift_core::channel::ChannelState;
+use rift_core::ui::appearance::Appearance;
+use riftui::color::ColorU;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, SingletonEntity, WeakViewHandle};
 use session_sharing_protocol::common::SessionId;
-use warp_core::channel::ChannelState;
-use warp_core::ui::appearance::Appearance;
-use warpui::color::ColorU;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, SingletonEntity, WeakViewHandle};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::blocklist::BlocklistAIHistoryModel;

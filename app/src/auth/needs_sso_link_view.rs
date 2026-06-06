@@ -1,7 +1,7 @@
-use warpui::elements::{Align, MouseStateHandle, Shrinkable};
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::elements::{Align, MouseStateHandle, Shrinkable};
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use super::auth_manager::AuthManager;
 use crate::appearance::Appearance;

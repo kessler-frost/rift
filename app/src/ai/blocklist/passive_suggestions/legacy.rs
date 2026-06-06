@@ -8,10 +8,10 @@ use chrono::Utc;
 #[cfg(not(target_family = "wasm"))]
 use command::r#async::Command;
 use parking_lot::FairMutex;
+use rift_core::features::FeatureFlag;
+use riftui::r#async::{FutureExt as AsyncFutureExt, SpawnedFutureHandle, Timer};
+use riftui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 use serde_json::json;
-use warp_core::features::FeatureFlag;
-use warpui::r#async::{FutureExt as AsyncFutureExt, SpawnedFutureHandle, Timer};
-use warpui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 use super::static_prompt_suggestions::static_suggested_query;
 #[cfg(not(target_family = "wasm"))]

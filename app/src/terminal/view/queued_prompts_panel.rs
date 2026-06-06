@@ -11,21 +11,21 @@ use std::collections::HashMap;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::new_scrollable::{NewScrollable, ScrollableAppearance, SingleAxisConfig};
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::new_scrollable::{NewScrollable, ScrollableAppearance, SingleAxisConfig};
+use riftui::elements::{
     Border, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, DragAxis, Draggable, DraggableState, Empty, Expanded, Fill,
     Flex, Hoverable, MinSize, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Radius, SavePosition, ScrollbarWidth, Stack, Text,
     DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::platform::Cursor;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::platform::Cursor;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, BlurContext, Element, Entity, EntityId, FocusContext, ModelHandle, SingletonEntity,
     TypedActionView, View, ViewContext, ViewHandle,
 };

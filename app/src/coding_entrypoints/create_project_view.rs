@@ -1,12 +1,12 @@
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::icons::Icon;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::icons::Icon;
+use riftui::elements::{
     ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Expanded, Fill, Flex,
     Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement as _, Radius, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity as _, TypedActionView, View,
     ViewContext, ViewHandle,
 };

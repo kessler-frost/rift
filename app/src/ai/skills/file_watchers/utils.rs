@@ -6,11 +6,11 @@ use ai::skills::{
 };
 use anyhow::Error;
 use repo_metadata::{RepoMetadataModel, RepositoryIdentifier};
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::remote_path::RemotePath;
+use rift_util::standardized_path::StandardizedPath;
+use riftui::AppContext;
 use walkdir::{DirEntry, WalkDir};
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::remote_path::RemotePath;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::AppContext;
 
 use crate::warp_managed_paths_watcher::warp_managed_skill_dirs;
 

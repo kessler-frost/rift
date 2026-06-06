@@ -12,9 +12,9 @@ use repo_metadata::repositories::{
 };
 use repo_metadata::repository::{Repository, RepositorySubscriber, SubscriberId};
 use repo_metadata::watcher::{DirectoryWatcher, RepositoryUpdate};
+use rift_core::safe_warn;
+use riftui::{Entity, ModelContext, ModelHandle, SingletonEntity};
 use strum::IntoEnumIterator;
-use warp_core::safe_warn;
-use warpui::{Entity, ModelContext, ModelHandle, SingletonEntity};
 use watcher::HomeDirectoryWatcherEvent;
 
 use crate::ai::mcp::parsing::normalize_codex_toml_to_json;
@@ -285,7 +285,7 @@ impl FileMCPWatcher {
         }
 
         let Ok(std_path) =
-            warp_util::standardized_path::StandardizedPath::from_local_canonicalized(subdir_path)
+            rift_util::standardized_path::StandardizedPath::from_local_canonicalized(subdir_path)
         else {
             return;
         };

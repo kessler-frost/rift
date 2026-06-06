@@ -3,29 +3,29 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use itertools::Itertools;
-use markdown_parser::html_parser::WARP_EMBED_ATTRIBUTE_NAME;
+use markdown_parser::html_parser::RIFT_EMBED_ATTRIBUTE_NAME;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use serde_yaml::Mapping;
-use string_offset::ByteOffset;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::content::markdown::MarkdownStyle;
-use warp_editor::content::text::TextStylesWithMetadata;
-use warp_editor::editor::EmbeddedItemModel;
-use warp_editor::extract_block;
-use warp_editor::render::element::{CursorData, CursorDisplayType, RenderContext, RenderableBlock};
-use warp_editor::render::layout::TextLayout;
-use warp_editor::render::model::viewport::ViewportItem;
-use warp_editor::render::model::{
+use rift_core::ui::appearance::Appearance;
+use rift_editor::content::markdown::MarkdownStyle;
+use rift_editor::content::text::TextStylesWithMetadata;
+use rift_editor::editor::EmbeddedItemModel;
+use rift_editor::extract_block;
+use rift_editor::render::element::{CursorData, CursorDisplayType, RenderContext, RenderableBlock};
+use rift_editor::render::layout::TextLayout;
+use rift_editor::render::model::viewport::ViewportItem;
+use rift_editor::render::model::{
     BlockItem, BlockSpacing, BrokenBlockEmbedding, EmbeddedItem, EmbeddedItemHTMLRepresentation,
     EmbeddedItemRichFormat, LaidOutEmbeddedItem, ParagraphStyles, RenderState,
     EMBEDDED_ITEM_FIRST_LINE_HEIGHT,
 };
-use warp_editor::render::BLOCK_FOOTER_HEIGHT;
-use warpui::elements::{Border, ConstrainedBox, CornerRadius, Empty, Margin, Padding, Radius};
-use warpui::text_layout::TextFrame;
-use warpui::units::{IntoPixels, Pixels};
-use warpui::{AppContext, Element, LayoutContext, SingletonEntity, SizeConstraint};
+use rift_editor::render::BLOCK_FOOTER_HEIGHT;
+use riftui::elements::{Border, ConstrainedBox, CornerRadius, Empty, Margin, Padding, Radius};
+use riftui::text_layout::TextFrame;
+use riftui::units::{IntoPixels, Pixels};
+use riftui::{AppContext, Element, LayoutContext, SingletonEntity, SizeConstraint};
+use serde_yaml::Mapping;
+use string_offset::ByteOffset;
 
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::CloudObject;
@@ -321,7 +321,7 @@ impl EmbeddedItem for EmbeddedWorkflow {
             html: EmbeddedItemHTMLRepresentation {
                 element_name: "pre",
                 content: workflow_content,
-                attributes: HashMap::from([(WARP_EMBED_ATTRIBUTE_NAME, self.hashed_id())]),
+                attributes: HashMap::from([(RIFT_EMBED_ATTRIBUTE_NAME, self.hashed_id())]),
             },
         }
     }
@@ -611,7 +611,7 @@ impl RenderableBlock for RenderableEmbeddedWorkflow {
             );
         }
 
-        ctx.paint.scene.start_layer(warpui::ClipBounds::ActiveLayer);
+        ctx.paint.scene.start_layer(riftui::ClipBounds::ActiveLayer);
 
         // Position the block footer right below the content area, flush with its right-hand edge.
         // This gives the footer some padding relative to the visible area with a background.
@@ -626,15 +626,15 @@ impl RenderableBlock for RenderableEmbeddedWorkflow {
         ctx.paint.scene.stop_layer();
     }
 
-    fn after_layout(&mut self, ctx: &mut warpui::AfterLayoutContext, app: &warpui::AppContext) {
+    fn after_layout(&mut self, ctx: &mut riftui::AfterLayoutContext, app: &riftui::AppContext) {
         self.footer.after_layout(ctx, app);
     }
 
     fn dispatch_event(
         &mut self,
-        _model: &warp_editor::render::model::RenderState,
-        event: &warpui::event::DispatchedEvent,
-        ctx: &mut warpui::EventContext,
+        _model: &rift_editor::render::model::RenderState,
+        event: &riftui::event::DispatchedEvent,
+        ctx: &mut riftui::EventContext,
         app: &AppContext,
     ) -> bool {
         self.footer.dispatch_event(event, ctx, app)

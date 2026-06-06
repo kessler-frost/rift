@@ -2,22 +2,22 @@ use markdown_parser::{
     FormattedText, FormattedTextFragment, FormattedTextInline, FormattedTextLine,
 };
 use pathfinder_geometry::vector::vec2f;
-use serde::{Deserialize, Serialize};
-use warp_core::paths::home_relative_path;
-use warp_core::ui::theme::Fill;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::elements::{
+use rift_core::paths::home_relative_path;
+use rift_core::ui::theme::Fill;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, CornerRadius,
     Element, Empty, Flex, FormattedTextElement, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, SavePosition, Shrinkable, Stack, Text,
 };
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::button::{Button, ButtonVariant};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::button::{Button, ButtonVariant};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::app_state::{get_app_state, AppState};
 use crate::appearance::Appearance;
@@ -42,7 +42,7 @@ const SAVE_CONFIG_BUTTON_LABEL: &str = "Save Configuration";
 const OPEN_FILE_BUTTON_LABEL: &str = "Open YAML File";
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",
@@ -161,7 +161,7 @@ pub enum LaunchConfigModalEvent {
     OpenFileWithTarget {
         path: std::path::PathBuf,
         target: FileTarget,
-        line_col: Option<warp_util::path::LineAndColumnArg>,
+        line_col: Option<rift_util::path::LineAndColumnArg>,
     },
     Close,
 }

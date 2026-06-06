@@ -3,10 +3,10 @@
 
 use std::sync::OnceLock;
 
+#[cfg(target_family = "wasm")]
+use riftui::platform::wasm;
 use serde::Serialize;
 use serde_json::{json, Value};
-#[cfg(target_family = "wasm")]
-use warpui::platform::wasm;
 
 use super::rudder_message::Message as RudderMessage;
 use crate::server::OperatingSystemInfo;

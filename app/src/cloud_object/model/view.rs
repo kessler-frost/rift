@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use chrono::{Duration, Utc};
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::persistence::{CloudModel, CloudModelEvent};
 use crate::auth::{AuthStateProvider, UserUid};

@@ -1,6 +1,6 @@
-use warpui::integration::TestStep;
-use warpui::windowing::WindowManager;
-use warpui::{async_assert, SingletonEntity, WindowId};
+use riftui::integration::TestStep;
+use riftui::windowing::WindowManager;
+use riftui::{async_assert, SingletonEntity, WindowId};
 
 use super::open_workflow_count;
 use crate::cloud_object::model::persistence::CloudModel;

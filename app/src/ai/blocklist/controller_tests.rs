@@ -1,5 +1,5 @@
+use riftui::{App, SingletonEntity};
 use uuid::Uuid;
-use warpui::{App, SingletonEntity};
 
 use crate::ai::agent::PassiveSuggestionTrigger;
 use crate::ai::ambient_agents::AmbientAgentTaskId;

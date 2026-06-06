@@ -1,21 +1,21 @@
 use pathfinder_color::ColorU;
-use serde::Serialize;
-pub use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::elements::{
+pub use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DropShadow, Element, Flex, Hoverable, MouseStateHandle, OffsetPositioning,
     ParentAnchor, ParentOffsetBounds, Radius, SavePosition, Shrinkable, Text,
 };
-pub use warpui::elements::{ParentElement as _, Stack};
-pub use warpui::geometry::vector::vec2f;
-use warpui::keymap::EditableBinding;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::UiComponent;
-pub use warpui::AppContext;
-use warpui::{
+pub use riftui::elements::{ParentElement as _, Stack};
+pub use riftui::geometry::vector::vec2f;
+use riftui::keymap::EditableBinding;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::UiComponent;
+pub use riftui::AppContext;
+use riftui::{
     Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use serde::Serialize;
 
 use crate::appearance::Appearance;
 use crate::editor::{
@@ -129,7 +129,7 @@ pub enum FindAction {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_editable_bindings([
         EditableBinding::new(

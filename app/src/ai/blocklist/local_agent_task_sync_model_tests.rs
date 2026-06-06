@@ -2,9 +2,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use rift_graphql::ai::{AgentTaskState, PlatformErrorCode};
+use riftui::App;
 use session_sharing_protocol::common::SessionId;
-use warp_graphql::ai::{AgentTaskState, PlatformErrorCode};
-use warpui::App;
 
 use super::super::history_model::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
 use super::{classify_renderable_error, map_cli_session_status, LocalAgentTaskSyncModel};
@@ -177,14 +177,14 @@ fn fixed_session_id() -> SessionId {
 /// background poll to happen at least once.
 async fn pump_spawned_tasks() {
     for _ in 0..5 {
-        warpui::r#async::Timer::after(Duration::from_millis(2)).await;
+        riftui::r#async::Timer::after(Duration::from_millis(2)).await;
     }
 }
 
 fn install_model_with_call_counter(
     app: &mut App,
 ) -> (
-    warpui::ModelHandle<LocalAgentTaskSyncModel>,
+    riftui::ModelHandle<LocalAgentTaskSyncModel>,
     Arc<AtomicUsize>,
 ) {
     register_cli_agent_sessions_model(app);
@@ -221,7 +221,7 @@ fn shared_session_link_fires_update_agent_task_with_session_id() {
         let task_id = fixed_task_id();
         conversation.set_run_id(task_id.to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -255,7 +255,7 @@ fn shared_session_link_uses_correct_argument_order() {
         let task_id = fixed_task_id();
         conversation.set_run_id(task_id.to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -305,7 +305,7 @@ fn shared_session_link_skips_viewer_conversations() {
             AIConversation::new(/* is_viewing_shared_session */ true, false);
         conversation.set_run_id(fixed_task_id().to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -338,7 +338,7 @@ fn shared_session_link_skips_remote_child_conversations() {
         conversation.set_run_id(fixed_task_id().to_string());
         conversation.mark_as_remote_child();
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -370,7 +370,7 @@ fn shared_session_link_skips_when_task_id_missing() {
         // No set_run_id call: the conversation has no task_id yet.
         let conversation = AIConversation::new(false, false);
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -431,7 +431,7 @@ fn conversation_server_token_assigned_fires_update_with_conversation_id() {
         conversation.set_run_id(task_id.to_string());
         conversation.set_server_conversation_token("server-conversation-id".to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -479,7 +479,7 @@ fn conversation_server_token_assigned_skips_viewer_conversations() {
         conversation.set_run_id(fixed_task_id().to_string());
         conversation.set_server_conversation_token("server-conversation-id".to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -513,7 +513,7 @@ fn conversation_server_token_assigned_skips_remote_child_conversations() {
         conversation.set_server_conversation_token("server-conversation-id".to_string());
         conversation.mark_as_remote_child();
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });
@@ -545,7 +545,7 @@ fn conversation_server_token_assigned_skips_without_task_id() {
         let mut conversation = AIConversation::new(false, false);
         conversation.set_server_conversation_token("server-conversation-id".to_string());
         let conversation_id = conversation.id();
-        let terminal_view_id = warpui::EntityId::new();
+        let terminal_view_id = riftui::EntityId::new();
         history_model.update(&mut app, |model, ctx| {
             model.restore_conversations(terminal_view_id, vec![conversation], ctx);
         });

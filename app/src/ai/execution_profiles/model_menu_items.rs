@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use itertools::Itertools;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::ui::Icon;
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, Flex, ParentElement, SavePosition, Shrinkable,
     Text,
 };
-use warpui::fonts::{Properties, Style};
-use warpui::{Action, AppContext, Element, SingletonEntity as _};
+use riftui::fonts::{Properties, Style};
+use riftui::{Action, AppContext, Element, SingletonEntity as _};
 
 use crate::ai::llms::{
     is_using_api_key_for_provider, should_show_bedrock_icon_for_model, DisableReason, LLMId,

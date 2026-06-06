@@ -10,10 +10,10 @@ use std::time::Duration;
 use futures::channel::oneshot;
 use futures::executor::block_on;
 use ignore::gitignore::Gitignore;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::r#async::FutureExt as _;
+use riftui_core::App;
 use virtual_fs::{Stub, VirtualFS};
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::r#async::FutureExt as _;
-use warpui_core::App;
 #[cfg(feature = "local_fs")]
 use watcher::BulkFilesystemWatcherEvent;
 
@@ -1910,7 +1910,7 @@ fn removed_external_symlink_target_directory_queues_lexical_removal_and_clears_m
 }
 #[test]
 fn test_canonicalized_path_functionality() {
-    use warp_util::standardized_path::StandardizedPath;
+    use rift_util::standardized_path::StandardizedPath;
     VirtualFS::test("canonicalized_path_test", |dirs, mut vfs| {
         let repo_path = dirs.tests();
 
@@ -1977,7 +1977,7 @@ fn test_canonicalized_path_functionality() {
 
 #[test]
 fn test_repository_operations_with_standardized_paths() {
-    use warp_util::standardized_path::StandardizedPath;
+    use rift_util::standardized_path::StandardizedPath;
 
     VirtualFS::test("repo_canonicalized_test", |dirs, mut vfs| {
         let test_root = dirs.tests();
@@ -2090,7 +2090,7 @@ fn test_repository_operations_with_standardized_paths() {
 
 #[test]
 fn test_standardized_path_edge_cases() {
-    use warp_util::standardized_path::StandardizedPath;
+    use rift_util::standardized_path::StandardizedPath;
 
     VirtualFS::test("canonicalized_edge_cases", |dirs, mut vfs| {
         let test_root = dirs.tests();

@@ -1,7 +1,7 @@
-use warpui::elements::{CrossAxisAlignment, Fill, Flex, ParentElement, Shrinkable};
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::elements::{CrossAxisAlignment, Fill, Flex, ParentElement, Shrinkable};
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
 
 use crate::appearance::Appearance;
 use crate::editor::{EditorView, Event, SingleLineEditorOptions, TextOptions};
@@ -202,7 +202,7 @@ impl View for StartupShellView {
     }
 
     /// Renders controls to change the default shell for new sessions.
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         let appearance = Appearance::as_ref(app);
         let ui_builder = appearance.ui_builder();
         let theme = appearance.theme();

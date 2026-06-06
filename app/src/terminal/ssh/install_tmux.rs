@@ -1,14 +1,14 @@
 use std::rc::Rc;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use warp_core::ui::theme::WarpTheme;
-use warpui::elements::{
+use rift_core::ui::theme::WarpTheme;
+use riftui::elements::{
     Border, Container, CrossAxisAlignment, Flex, FormattedTextElement, HighlightedHyperlink,
     Hoverable, Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
 };
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::toggle_menu::ToggleMenuStateHandle;
-use warpui::{
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::toggle_menu::ToggleMenuStateHandle;
+use riftui::{
     AppContext, BlurContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View,
     ViewContext,
 };
@@ -97,7 +97,7 @@ pub struct SshInstallTmuxBlock {
     show_tmux_install_block: bool,
     script_status: RequestedScriptStatus,
     system_details: SystemDetails,
-    /// The script to install tmux locally, in a ~/.warp directory
+    /// The script to install tmux locally, in a ~/.rift directory
     tmux_local_install_script: String,
     ssh_host: Option<String>,
     ssh_command: String,
@@ -114,7 +114,7 @@ pub struct SystemInstallState {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -262,7 +262,7 @@ impl SshInstallTmuxBlock {
                 content: tmux_system_install_script.to_string(),
             },
             TitledScript {
-                title: "Install to ~/.warp".to_string(),
+                title: "Install to ~/.rift".to_string(),
                 content: self.tmux_local_install_script.clone(),
             },
             *is_first_script_active,
@@ -512,7 +512,7 @@ impl TypedActionView for SshInstallTmuxBlock {
 #[allow(unused_variables)]
 pub fn install_tmux_script(system: &SystemDetails, app: &AppContext) -> Option<String> {
     use asset_macro::bundled_asset;
-    use warpui::assets::asset_cache::{AssetCache, AssetState};
+    use riftui::assets::asset_cache::{AssetCache, AssetState};
 
     let asset_source = match (
         system.operating_system.as_str(),
@@ -550,7 +550,7 @@ pub fn install_root_tmux_script(
     can_run_sudo: bool,
 ) -> Option<String> {
     use asset_macro::bundled_asset;
-    use warpui::assets::asset_cache::{AssetCache, AssetState};
+    use riftui::assets::asset_cache::{AssetCache, AssetState};
 
     let asset_source = match (
         system.operating_system.as_str(),

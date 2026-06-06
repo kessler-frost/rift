@@ -1,18 +1,18 @@
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use warp_core::features::FeatureFlag;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, AnchorPair, ChildAnchor, Clipped, ClippedScrollStateHandle, ClippedScrollable,
     ConstrainedBox, Container, CrossAxisAlignment, DispatchEventResult, EventHandler, Fill, Flex,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, OffsetType, ParentAnchor,
     ParentElement, ParentOffsetBounds, PositioningAxis, SavePosition, ScrollbarWidth, Shrinkable,
     Stack, XAxisAnchor, YAxisAnchor,
 };
-use warpui::keymap::EditableBinding;
-use warpui::platform::Cursor;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::keymap::EditableBinding;
+use riftui::platform::Cursor;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     id, AppContext, BlurContext, Element, Entity, FocusContext, ModelAsRef, ModelHandle,
     SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WindowId,
 };
@@ -1281,7 +1281,7 @@ impl View for EnvVarCollectionView {
         }
     }
 
-    fn render(&self, app: &AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &AppContext) -> Box<dyn riftui::Element> {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
         let mut content = Flex::column();

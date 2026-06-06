@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use ai::diff_validation::DiffDelta;
-use warp_util::path::LineAndColumnArg;
-use warpui::elements::{DraggableState, Empty, MouseStateHandle};
-use warpui::{
+use rift_util::path::LineAndColumnArg;
+use riftui::elements::{DraggableState, Empty, MouseStateHandle};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, TypedActionView, View, ViewContext, ViewHandle,
 };
 

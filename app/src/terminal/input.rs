@@ -51,6 +51,51 @@ use parking_lot::FairMutex;
 #[cfg(feature = "local_fs")]
 use parking_lot::Mutex;
 use regex::Regex;
+use rift_cli::agent::Harness;
+use rift_completer::completer::{
+    self, CompleterOptions, CompletionContext, CompletionsFallbackStrategy, Description, Match,
+    MatchStrategy, MatchType, PathSeparators, SuggestionResults,
+};
+use rift_completer::meta::{HasSpan, Spanned};
+use rift_completer::parsers::simple::command_at_cursor_position;
+use rift_completer::parsers::LiteCommand;
+use rift_completer::signatures::CommandRegistry;
+use rift_completer::util::parse_current_commands_and_tokens;
+use rift_core::context_flag::ContextFlag;
+use rift_core::r#async::debounce;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::AnsiColorIdentifier;
+use rift_core::user_preferences::GetUserPreferences as _;
+use rift_editor::editor::NavigationKey;
+use rift_util::path::ShellFamily;
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::clipboard::{ClipboardContent, ImageData};
+use riftui::clipboard_utils::CLIPBOARD_IMAGE_MIME_TYPES;
+use riftui::color::ColorU;
+use riftui::elements::{
+    resizable_state_handle, Align, AnchorPair, ChildAnchor, Clipped, ConstrainedBox, Container,
+    CornerRadius, CrossAxisAlignment, DispatchEventResult, DropTargetData, Element, EventHandler,
+    Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, OffsetType,
+    ParentAnchor, ParentElement, PositionedElementOffsetBounds, PositioningAxis, Radius,
+    ResizableStateHandle, SavePosition, SelectionHandle, Text, Wrap, XAxisAnchor, YAxisAnchor,
+};
+pub use riftui::elements::{ParentElement as _, Stack};
+pub use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::keymap::{BindingDescription, EditableBinding, FixedBinding, Keystroke};
+use riftui::platform::OperatingSystem;
+use riftui::presenter::ChildView;
+#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
+use riftui::r#async::FutureExt as _;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::text_layout::TextStyle;
+use riftui::ui_components::chip::Chip;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::units::IntoPixels;
+pub use riftui::WindowId;
+use riftui::{
+    end_trace, start_trace, AppContext, Entity, EntityId, FocusContext, ModelAsRef, ModelHandle,
+    SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use session_sharing_protocol::common::{AgentAttachment, ParticipantId, ServerConversationToken};
@@ -58,51 +103,6 @@ use settings::{Setting as _, ToggleableSetting};
 use string_offset::{ByteOffset, CharOffset};
 use vec1::Vec1;
 use vim::vim::{VimHandler, VimMode};
-use warp_cli::agent::Harness;
-use warp_completer::completer::{
-    self, CompleterOptions, CompletionContext, CompletionsFallbackStrategy, Description, Match,
-    MatchStrategy, MatchType, PathSeparators, SuggestionResults,
-};
-use warp_completer::meta::{HasSpan, Spanned};
-use warp_completer::parsers::simple::command_at_cursor_position;
-use warp_completer::parsers::LiteCommand;
-use warp_completer::signatures::CommandRegistry;
-use warp_completer::util::parse_current_commands_and_tokens;
-use warp_core::context_flag::ContextFlag;
-use warp_core::r#async::debounce;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::AnsiColorIdentifier;
-use warp_core::user_preferences::GetUserPreferences as _;
-use warp_editor::editor::NavigationKey;
-use warp_util::path::ShellFamily;
-use warpui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
-use warpui::clipboard::{ClipboardContent, ImageData};
-use warpui::clipboard_utils::CLIPBOARD_IMAGE_MIME_TYPES;
-use warpui::color::ColorU;
-use warpui::elements::{
-    resizable_state_handle, Align, AnchorPair, ChildAnchor, Clipped, ConstrainedBox, Container,
-    CornerRadius, CrossAxisAlignment, DispatchEventResult, DropTargetData, Element, EventHandler,
-    Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, OffsetType,
-    ParentAnchor, ParentElement, PositionedElementOffsetBounds, PositioningAxis, Radius,
-    ResizableStateHandle, SavePosition, SelectionHandle, Text, Wrap, XAxisAnchor, YAxisAnchor,
-};
-pub use warpui::elements::{ParentElement as _, Stack};
-pub use warpui::geometry::vector::{vec2f, Vector2F};
-use warpui::keymap::{BindingDescription, EditableBinding, FixedBinding, Keystroke};
-use warpui::platform::OperatingSystem;
-use warpui::presenter::ChildView;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use warpui::r#async::FutureExt as _;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::text_layout::TextStyle;
-use warpui::ui_components::chip::Chip;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::units::IntoPixels;
-pub use warpui::WindowId;
-use warpui::{
-    end_trace, start_trace, AppContext, Entity, EntityId, FocusContext, ModelAsRef, ModelHandle,
-    SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
-};
 
 use self::decorations::InputBackgroundJobOptions;
 pub use self::handoff_compose::{HandoffComposeState, HandoffComposeStateEvent};
@@ -1763,7 +1763,7 @@ impl DeferredRemoteOperations {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     if cfg!(feature = "integration_tests") {
         app.register_fixed_bindings([
@@ -2298,7 +2298,7 @@ impl Input {
                             HostSelector::new(menu_positioning_provider.clone(), ctx)
                         });
                         // Env var takes priority over workspace setting for developer testing.
-                        let effective_host = std::env::var("WARP_CLOUD_MODE_DEFAULT_HOST")
+                        let effective_host = std::env::var("RIFT_CLOUD_MODE_DEFAULT_HOST")
                             .ok()
                             .filter(|s| !s.is_empty())
                             .or_else(|| {
@@ -2349,7 +2349,7 @@ impl Input {
                                 if !matches!(event, UserWorkspacesEvent::TeamsChanged) {
                                     return;
                                 }
-                                let effective_host = std::env::var("WARP_CLOUD_MODE_DEFAULT_HOST")
+                                let effective_host = std::env::var("RIFT_CLOUD_MODE_DEFAULT_HOST")
                                     .ok()
                                     .filter(|s| !s.is_empty())
                                     .or_else(|| {
@@ -9994,7 +9994,7 @@ impl Input {
                             // the completions finish quickly, since that causes a jittery UX.
                             let _ = ctx.spawn(
                                 async move {
-                                    warpui::r#async::Timer::after(Duration::from_millis(750)).await;
+                                    riftui::r#async::Timer::after(Duration::from_millis(750)).await;
                                     old_buffer_text_original
                                 },
                                 move |input, old_buffer_text_original, ctx| {
@@ -10608,7 +10608,7 @@ impl Input {
                                     .and_then(|pwd| {
                                         // Find git repo and construct absolute path
                                         use repo_metadata::repositories::DetectedRepositories;
-                                        use warp_util::local_or_remote_path::LocalOrRemotePath;
+                                        use rift_util::local_or_remote_path::LocalOrRemotePath;
                                         let git_repo_path = DetectedRepositories::as_ref(ctx)
                                             .get_root_for_path(&LocalOrRemotePath::Local(
                                                 Path::new(pwd).to_path_buf(),
@@ -10622,7 +10622,7 @@ impl Input {
                                             .map(|session| session.is_wsl())
                                             .unwrap_or(false);
 
-                                        let relative_path = warp_util::path::to_relative_path(
+                                        let relative_path = rift_util::path::to_relative_path(
                                             is_wsl,
                                             &absolute_path,
                                             Path::new(pwd),
@@ -10699,7 +10699,7 @@ impl Input {
                         None => image_filepaths.clone(),
                     };
                     let paths_str =
-                        warpui::clipboard_utils::escaped_paths_str(&transformed, shell_family);
+                        riftui::clipboard_utils::escaped_paths_str(&transformed, shell_family);
 
                     self.editor.update(ctx, |editor, ctx| {
                         editor.user_insert(&paths_str, ctx);
@@ -10749,7 +10749,7 @@ impl Input {
 
         // Check if we should insert clipboard text in advance
         let mut already_inserted_text = false;
-        if warpui::clipboard::should_insert_text_on_paste(&content) {
+        if riftui::clipboard::should_insert_text_on_paste(&content) {
             self.insert_clipboard_text_content(ctx, content.clone());
             already_inserted_text = true;
         }
@@ -10761,7 +10761,7 @@ impl Input {
             self.handle_pasted_image_data(content.clone(), ctx) == 0
         } else if content.num_paths() > 0 {
             // Else, we check the pasted file paths for any images.
-            let image_filepaths = warpui::clipboard_utils::get_image_filepaths_from_paths(
+            let image_filepaths = riftui::clipboard_utils::get_image_filepaths_from_paths(
                 content.paths.as_deref().unwrap_or(&[]),
             );
             let num_images_expected = image_filepaths.len();
@@ -15468,7 +15468,7 @@ impl View for Input {
         }
     }
 
-    fn keymap_context(&self, app: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut ctx = Self::default_keymap_context();
         let ai_settings = AISettings::as_ref(app);
 

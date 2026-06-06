@@ -14,8 +14,8 @@ use remote_server::proto::{
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::repository::{Repository, SubscriberId};
 use repo_metadata::{DirectoryWatcher, RepoMetadataModel, RepositoryIdentifier, RepositoryUpdate};
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 use watcher::{BulkFilesystemWatcherEvent, HomeDirectoryWatcher, HomeDirectoryWatcherEvent};
 
 use super::subscribers::{
@@ -750,7 +750,7 @@ impl SkillWatcher {
             }
 
             let Ok(std_dir_path) =
-                warp_util::standardized_path::StandardizedPath::from_local_canonicalized(
+                rift_util::standardized_path::StandardizedPath::from_local_canonicalized(
                     &canonical_dir,
                 )
             else {
@@ -997,7 +997,7 @@ impl SkillWatcher {
         ctx: &mut ModelContext<Self>,
     ) {
         let Ok(std_path) =
-            warp_util::standardized_path::StandardizedPath::from_local_canonicalized(path)
+            rift_util::standardized_path::StandardizedPath::from_local_canonicalized(path)
         else {
             return;
         };

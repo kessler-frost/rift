@@ -8,10 +8,10 @@ use std::ops::Range;
 use num_traits::SaturatingSub;
 use pathfinder_color::ColorU;
 use rangemap::{RangeMap, RangeSet};
+use riftui_core::elements::Border;
+use riftui_core::text_layout::PaintStyleOverride;
+use riftui_core::{Action, AppContext, Element, TypedActionView, View};
 use string_offset::CharOffset;
-use warpui_core::elements::Border;
-use warpui_core::text_layout::PaintStyleOverride;
-use warpui_core::{Action, AppContext, Element, TypedActionView, View};
 
 use crate::content::version::BufferVersion;
 use crate::render::element::RichTextAction;

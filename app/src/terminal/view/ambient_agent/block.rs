@@ -5,10 +5,10 @@ mod setup_command_text;
 
 pub use entry::*;
 pub use harness_session_header::*;
+use riftui::prelude::Container;
+use riftui::{AppContext, Element, ModelHandle};
 pub use setup_command::*;
 pub use setup_command_text::*;
-use warpui::prelude::Container;
-use warpui::{AppContext, Element, ModelHandle};
 
 use super::AmbientAgentViewModel;
 use crate::ai::blocklist::block::view_impl::{

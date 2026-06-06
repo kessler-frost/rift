@@ -1,9 +1,9 @@
-use warpui::elements::{Container, CornerRadius, Dismiss, MouseStateHandle, Radius};
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::elements::{Container, CornerRadius, Dismiss, MouseStateHandle, Radius};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
 use crate::ui_components::blended_colors;

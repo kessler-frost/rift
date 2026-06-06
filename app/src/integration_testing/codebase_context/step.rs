@@ -2,9 +2,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
+use riftui::integration::{AssertionOutcome, StepData, TestStep};
+use riftui::{async_assert, App, ReadModel, SingletonEntity, UpdateModel, WindowId};
 use settings::Setting;
-use warpui::integration::{AssertionOutcome, StepData, TestStep};
-use warpui::{async_assert, App, ReadModel, SingletonEntity, UpdateModel, WindowId};
 
 use crate::integration_testing::step::new_step_with_default_assertions;
 use crate::settings::CodeSettings;

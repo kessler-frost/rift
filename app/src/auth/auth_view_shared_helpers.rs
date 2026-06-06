@@ -1,20 +1,20 @@
 use pathfinder_color::ColorU;
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::builder::UiBuilder;
-use warp_core::ui::color::{darken, lighten};
-use warp_core::ui::theme::ColorScheme;
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::builder::UiBuilder;
+use rift_core::ui::color::{darken, lighten};
+use rift_core::ui::theme::ColorScheme;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{
     Border, CacheOption, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Fill, Flex,
     Image, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{Action, AppContext, Element, SingletonEntity as _};
+use riftui::fonts::Weight;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{Action, AppContext, Element, SingletonEntity as _};
 
 use crate::settings::PrivacySettings;
 use crate::themes::theme::ThemeKind;

@@ -1,16 +1,16 @@
 use chrono::{DateTime, Utc};
 use comfy_table::Cell;
 use futures::future;
-use serde::Serialize;
-use warp_cli::agent::OutputFormat;
-use warp_cli::schedule::{
+use rift_cli::agent::OutputFormat;
+use rift_cli::schedule::{
     CreateScheduleArgs, DeleteScheduleArgs, GetScheduleArgs, PauseScheduleArgs, ScheduleCommand,
     ScheduleSubcommand, UnpauseScheduleArgs, UpdateScheduleArgs,
 };
-use warp_cli::GlobalOptions;
-use warp_graphql::queries::get_scheduled_agent_history::ScheduledAgentHistory;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, SingletonEntity};
+use rift_cli::GlobalOptions;
+use rift_graphql::queries::get_scheduled_agent_history::ScheduledAgentHistory;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, SingletonEntity};
+use serde::Serialize;
 
 use super::common::{EnvironmentChoice, ResolveConfigurationError};
 use super::output::{self, TableFormat};

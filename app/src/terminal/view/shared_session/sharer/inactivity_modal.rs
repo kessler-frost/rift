@@ -1,15 +1,15 @@
 use std::time::Duration;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     ChildView, Container, CrossAxisAlignment, Flex, MouseStateHandle, ParentElement, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::r#async::Timer;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::r#async::Timer;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

@@ -1,5 +1,5 @@
-use warpui::async_assert_eq;
-use warpui::integration::{AssertionCallback, AssertionOutcome};
+use riftui::async_assert_eq;
+use riftui::integration::{AssertionCallback, AssertionOutcome};
 
 use crate::ai::agent::redaction::redact_secrets;
 use crate::ai::blocklist::block::secret_redaction::find_secrets_in_text;

@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
+use rift_util::path::ShellFamily;
+use riftui::platform::OperatingSystem;
 use serde::{Deserialize, Serialize};
-use warp_util::path::ShellFamily;
-use warpui::platform::OperatingSystem;
 
 #[derive(
     Debug,

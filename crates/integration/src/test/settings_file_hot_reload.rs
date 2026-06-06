@@ -6,19 +6,19 @@
 
 use std::time::Duration;
 
+use rift::features::FeatureFlag;
+use rift::integration_testing::step::new_step_with_default_assertions;
+use rift::integration_testing::terminal::wait_until_bootstrapped_single_pane_for_tab;
+use rift::settings::FontSettings;
+use riftui_core::integration::TestStep;
+use riftui_core::{async_assert_eq, SingletonEntity};
 use settings::Setting as _;
-use warp::features::FeatureFlag;
-use warp::integration_testing::step::new_step_with_default_assertions;
-use warp::integration_testing::terminal::wait_until_bootstrapped_single_pane_for_tab;
-use warp::settings::FontSettings;
-use warpui_core::integration::TestStep;
-use warpui_core::{async_assert_eq, SingletonEntity};
 
 use super::{new_builder, Builder};
 
 /// Helper: returns the path to the TOML settings file.
 fn toml_file_path() -> std::path::PathBuf {
-    warp::settings::user_preferences_toml_file_path()
+    rift::settings::user_preferences_toml_file_path()
 }
 
 /// Verifies the full settings hot-reload pipeline end-to-end: the filesystem
@@ -31,7 +31,7 @@ pub fn test_settings_file_hot_reload_applies_new_values() -> Builder {
     new_builder()
         .with_setup(move |utils| {
             // Use a short watcher delay so each reload fires quickly.
-            utils.set_env("WARP_CONFIG_WATCHER_DELAY_MS", Some("10".to_string()));
+            utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some("10".to_string()));
 
             // Write an initial valid settings file so the watcher is already
             // tracking it and the app reads a known value at startup.

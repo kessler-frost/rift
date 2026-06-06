@@ -3,24 +3,24 @@ use itertools::Itertools;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting as _;
-use thousands::Separable;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warp_graphql::billing::{AddonCreditsOption, StripeSubscriptionPlan};
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use rift_graphql::billing::{AddonCreditsOption, StripeSubscriptionPlan};
+use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DropShadow, Flex, FormattedTextElement, HighlightedHyperlink, Image,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack,
 };
-use warpui::fonts::{FamilyId, Weight};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{FamilyId, Weight};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use settings::Setting as _;
+use thousands::Separable;
 
 use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
 use crate::terminal::general_settings::GeneralSettings;
@@ -283,7 +283,7 @@ impl BuildPlanMigrationModal {
             ChildView::new(&self.reload_denominations_dropdown).finish()
         } else {
             // Match dropdown height to prevent layout shift (dropdown is typically ~28-32px)
-            ConstrainedBox::new(warpui::elements::Empty::new().finish())
+            ConstrainedBox::new(riftui::elements::Empty::new().finish())
                 .with_width(DROPDOWN_WIDTH)
                 .with_height(28.)
                 .finish()

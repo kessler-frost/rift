@@ -7,14 +7,14 @@
 //! then connected worker hosts, then the user's most recent custom slug,
 //! then a "Custom host…" entry.
 
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
     PositionedElementAnchor, Radius,
 };
-use warpui::platform::Cursor;
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

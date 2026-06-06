@@ -1,20 +1,20 @@
 use chrono::{Local, TimeZone};
-use uuid::Uuid;
-use warp_core::ui::external_product_icon::ExternalProductIcon;
-use warp_core::ui::icons::Icon;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::external_product_icon::ExternalProductIcon;
+use rift_core::ui::icons::Icon;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Align, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Flex, Hoverable, MainAxisAlignment, MouseStateHandle, Padding, ParentElement, Radius,
     Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::Keystroke;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::Keystroke;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use uuid::Uuid;
 
 use crate::ai::mcp::{Author, MCPServerUpdate};
 use crate::appearance::Appearance;

@@ -3,13 +3,13 @@ use std::sync::Arc;
 use chrono::{Duration, Utc};
 use futures_util::future::BoxFuture;
 use itertools::Itertools;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::editor::EditorView;
-use warpui::platform::WindowStyle;
-use warpui::presenter::ChildView;
-use warpui::r#async::Timer;
-use warpui::telemetry::EventPayload;
-use warpui::{
+use rift_core::ui::appearance::Appearance;
+use rift_editor::editor::EditorView;
+use riftui::platform::WindowStyle;
+use riftui::presenter::ChildView;
+use riftui::r#async::Timer;
+use riftui::telemetry::EventPayload;
+use riftui::{
     AddSingletonModel, App, AppContext, Element, Entity, SingletonEntity, TypedActionView, View,
     ViewHandle, WindowId,
 };
@@ -383,7 +383,7 @@ fn test_focus_tracking() {
 #[ignore]
 fn test_edit_telemetry() {
     fn edit_events() -> Vec<serde_json::Value> {
-        warpui::telemetry::flush_events()
+        riftui::telemetry::flush_events()
             .into_iter()
             .filter_map(|event| match event.payload {
                 EventPayload::NamedEvent { name, value, .. } if name == "Notebook Edited" => value,

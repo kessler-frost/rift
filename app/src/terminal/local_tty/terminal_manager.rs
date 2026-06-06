@@ -12,6 +12,10 @@ use anyhow::Context as _;
 use async_broadcast::InactiveReceiver;
 use parking_lot::{FairMutex, Mutex};
 use pathfinder_geometry::vector::Vector2F;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::send_telemetry_from_ctx;
+use riftui::r#async::executor::Background;
+use riftui::{AppContext, ModelContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
 use session_sharing_protocol::common::{
     ActivePrompt, AgentPromptFailureReason, CLIAgentSessionState, CommandExecutionFailureReason,
     ControlAction, ControlActionFailureReason, SelectedAgentModel,
@@ -27,10 +31,6 @@ use session_sharing_protocol::sharer::{
     TeamAccessLevelUpdateResponse, UpdatePendingUserRoleResponse,
 };
 use settings::Setting as _;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::send_telemetry_from_ctx;
-use warpui::r#async::executor::Background;
-use warpui::{AppContext, ModelContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
 #[cfg(unix)]
 use {
     super::terminal_attributes::TerminalAttributesPoller,
@@ -2605,7 +2605,7 @@ pub fn get_shell_starter(
     // TODO(alokedesai): Further refactor this function to make it clear that it's expensive.
     shell_starter_or_wsl_name
         .and_then(|starter| {
-            warpui::r#async::block_on(async { starter.to_shell_starter_source().await })
+            riftui::r#async::block_on(async { starter.to_shell_starter_source().await })
         })
         .map(|starter_source| {
             get_shell_starter_internal(

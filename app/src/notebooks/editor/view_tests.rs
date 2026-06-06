@@ -3,23 +3,23 @@ use std::sync::Arc;
 
 use async_channel::TryRecvError;
 use parking_lot::Mutex;
-use string_offset::CharOffset;
-use tempfile::tempdir;
-use warp_editor::content::mermaid_diagram::mermaid_asset_source;
-use warp_editor::render::element::RichTextAction;
-use warp_editor::render::model::{
+use rift_editor::content::mermaid_diagram::mermaid_asset_source;
+use rift_editor::render::element::RichTextAction;
+use rift_editor::render::model::{
     BlockItem, BlockSpacing, HitTestBlockType, ImageBlockConfig, Location, RenderEvent,
 };
-use warp_util::user_input::UserInput;
-use warpui::assets::asset_cache::{AssetCache, AssetState};
-use warpui::event::ModifiersState;
-use warpui::image_cache::ImageType;
-use warpui::platform::WindowStyle;
-use warpui::presenter::ChildView;
-use warpui::r#async::block_on;
-use warpui::units::Pixels;
-use warpui::windowing::WindowManager;
-use warpui::{App, Element, Entity, SingletonEntity, TypedActionView, View, ViewHandle, WindowId};
+use rift_util::user_input::UserInput;
+use riftui::assets::asset_cache::{AssetCache, AssetState};
+use riftui::event::ModifiersState;
+use riftui::image_cache::ImageType;
+use riftui::platform::WindowStyle;
+use riftui::presenter::ChildView;
+use riftui::r#async::block_on;
+use riftui::units::Pixels;
+use riftui::windowing::WindowManager;
+use riftui::{App, Element, Entity, SingletonEntity, TypedActionView, View, ViewHandle, WindowId};
+use string_offset::CharOffset;
+use tempfile::tempdir;
 
 use super::{EditorViewAction, LayoutAffectingAssetLoad, RichTextEditorConfig, RichTextEditorView};
 use crate::appearance::Appearance;
@@ -61,7 +61,7 @@ impl View for TestView {
         "TestView"
     }
 
-    fn render(&self, _app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, _app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         ChildView::new(&self.editor).finish()
     }
 }
@@ -146,7 +146,7 @@ async fn reset_editor_with_markdown(
 fn link_offset(
     editor: &RichTextEditorView,
     link_url: &str,
-    ctx: &warpui::AppContext,
+    ctx: &riftui::AppContext,
 ) -> CharOffset {
     let max_offset = editor.markdown(ctx).chars().count();
     (0..=max_offset)
@@ -164,7 +164,7 @@ fn link_offset(
 
 fn rendered_mermaid_block_range(
     editor: &RichTextEditorView,
-    ctx: &warpui::AppContext,
+    ctx: &riftui::AppContext,
 ) -> Option<std::ops::Range<CharOffset>> {
     let render_state = editor.model.as_ref(ctx).render_state().clone();
     let render_state = render_state.as_ref(ctx);
@@ -175,7 +175,7 @@ fn rendered_mermaid_block_range(
         let block_end = block_start + block.content_length();
         if matches!(
             block,
-            warp_editor::render::model::BlockItem::MermaidDiagram { .. }
+            rift_editor::render::model::BlockItem::MermaidDiagram { .. }
         ) {
             return Some(block_start..block_end);
         }
@@ -337,7 +337,7 @@ fn test_appearance_changes() {
 
         // Simulate an appearance change.
         Appearance::handle(&app).update(&mut app, |appearance, ctx| {
-            appearance.set_monospace_font_family(warpui::fonts::FamilyId(123), ctx);
+            appearance.set_monospace_font_family(riftui::fonts::FamilyId(123), ctx);
             ctx.notify()
         });
 
@@ -348,7 +348,7 @@ fn test_appearance_changes() {
             // The render model's style should be updated.
             assert_eq!(
                 model.styles().code_text.font_family,
-                warpui::fonts::FamilyId(123)
+                riftui::fonts::FamilyId(123)
             );
         });
 

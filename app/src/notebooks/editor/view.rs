@@ -5,47 +5,47 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use markdown_parser::{parse_html, parse_markdown, FormattedText};
 use pathfinder_geometry::vector::vec2f;
-use string_offset::CharOffset;
-use warp_editor::content::anchor::Anchor;
-use warp_editor::content::text::{BufferTextStyle, CodeBlockType, TextStyles};
-use warp_editor::content::version::BufferVersion;
-use warp_editor::editor::{EmbeddedItemModel, NavigationKey, RunnableCommandModel, TextDecoration};
-use warp_editor::model::{CoreEditorModel, RichTextEditorModel};
-use warp_editor::render::element::{
+use rift_editor::content::anchor::Anchor;
+use rift_editor::content::text::{BufferTextStyle, CodeBlockType, TextStyles};
+use rift_editor::content::version::BufferVersion;
+use rift_editor::editor::{EmbeddedItemModel, NavigationKey, RunnableCommandModel, TextDecoration};
+use rift_editor::model::{CoreEditorModel, RichTextEditorModel};
+use rift_editor::render::element::{
     DisplayOptions, DisplayStateHandle, RichTextAction, RichTextElement, VerticalExpansionBehavior,
 };
-use warp_editor::render::model::{BlockItem, HitTestBlockType, Location, RenderState};
-use warp_editor::selection::{TextDirection, TextUnit};
-use warp_util::path::LineAndColumnArg;
-use warp_util::user_input::UserInput;
-use warpui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
-use warpui::actions::StandardAction;
-use warpui::assets::asset_cache::{AssetCache, AssetHandle, AssetState};
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_editor::render::model::{BlockItem, HitTestBlockType, Location, RenderState};
+use rift_editor::selection::{TextDirection, TextUnit};
+use rift_util::path::LineAndColumnArg;
+use rift_util::user_input::UserInput;
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::actions::StandardAction;
+use riftui::assets::asset_cache::{AssetCache, AssetHandle, AssetState};
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     AnchorPair, Axis, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     Dismiss, Fill, Flex, Hoverable, Icon, MouseStateHandle, OffsetPositioning, OffsetType,
     ParentAnchor, ParentElement, PositionedElementOffsetBounds, PositioningAxis, Radius,
     ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth, Stack, XAxisAnchor,
     YAxisAnchor,
 };
-use warpui::event::ModifiersState;
-use warpui::fonts::{FallbackFontEvent, FallbackFontModel};
-use warpui::image_cache::ImageType;
-use warpui::keymap::{EditableBinding, FixedBinding, PerPlatformKeystroke};
-use warpui::platform::{Cursor, OperatingSystem};
-use warpui::presenter::ChildView;
-use warpui::r#async::SpawnedFutureHandle;
+use riftui::event::ModifiersState;
+use riftui::fonts::{FallbackFontEvent, FallbackFontModel};
+use riftui::image_cache::ImageType;
+use riftui::keymap::{EditableBinding, FixedBinding, PerPlatformKeystroke};
+use riftui::platform::{Cursor, OperatingSystem};
+use riftui::presenter::ChildView;
+use riftui::r#async::SpawnedFutureHandle;
 #[cfg(feature = "local_fs")]
-use warpui::text::word_boundaries::WordBoundariesPolicy;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::units::Pixels;
-use warpui::windowing::WindowManager;
-use warpui::{
+use riftui::text::word_boundaries::WordBoundariesPolicy;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::units::Pixels;
+use riftui::windowing::WindowManager;
+use riftui::{
     windowing, AppContext, BlurContext, CursorInfo, Element, Entity, FocusContext, ModelHandle,
     SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
 };
+use string_offset::CharOffset;
 
 use super::block_insertion_menu::{BlockInsertionMenuState, BlockInsertionSource};
 use super::find_bar::{FindBar, FindBarEvent, FindBarState};
@@ -88,7 +88,7 @@ const MAX_EDITOR_TIP_WIDTH: f32 = 300.;
 const GUTTER_WIDTH: f32 = ICON_DIMENSIONS + 4.;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     // Context for text entry/navigation/selection:
     // - The editor is focused
@@ -832,7 +832,7 @@ pub enum EditorViewAction {
     Redo,
     OpenBlockInsertionMenu,
     /// Insert a block of the given type after the hovered location.
-    InsertBlock(warp_editor::content::text::BlockType),
+    InsertBlock(rift_editor::content::text::BlockType),
     Indent,
     Unindent,
     Tab,
@@ -916,7 +916,7 @@ enum LayoutAffectingAssetLoad {
 }
 
 fn mermaid_diagram_needs_loaded_layout(
-    config: &warp_editor::render::model::ImageBlockConfig,
+    config: &rift_editor::render::model::ImageBlockConfig,
     image: &ImageType,
 ) -> bool {
     let ImageType::Svg { svg } = image else {
@@ -2072,7 +2072,7 @@ impl RichTextEditorView {
     /// Inserts a new `block_type` block after the hovered block.
     pub(super) fn insert_block(
         &mut self,
-        block_type: warp_editor::content::text::BlockType,
+        block_type: rift_editor::content::text::BlockType,
         ctx: &mut ViewContext<Self>,
     ) {
         enum InsertionMode {
@@ -2125,7 +2125,7 @@ impl RichTextEditorView {
                         model.insert_block_after(insertion_offset + 1, block_type, ctx);
                     }
                     InsertionMode::DeleteSlashAndRestyleLine(cursor_position) => match block_type {
-                        warp_editor::content::text::BlockType::Item(item) => {
+                        rift_editor::content::text::BlockType::Item(item) => {
                             // Set one more offset position to the left to avoid additional linebreaks.
                             // Note: We can use `set_last_selection_head` because the menu cannot
                             // be opened when there are multiple selections.
@@ -2133,7 +2133,7 @@ impl RichTextEditorView {
                             model.insert_block_item(item, ctx);
                             model.cursor_at(cursor_position + 1, ctx);
                         }
-                        warp_editor::content::text::BlockType::Text(style) => {
+                        rift_editor::content::text::BlockType::Text(style) => {
                             // Note: We can use `set_last_selection_head` because the menu cannot
                             // be opened when there are multiple selections.
                             model.set_last_selection_head(cursor_position, ctx);
@@ -2504,7 +2504,7 @@ impl RichTextEditorView {
         appearance: &Appearance,
         ctx: &AppContext,
     ) -> Box<dyn Element> {
-        use warpui::EventContext;
+        use riftui::EventContext;
         type FilePathTooltipLinks = Vec<TooltipLink<Box<dyn Fn(&mut EventContext)>>>;
 
         let path = selected_file_path.path.clone();
@@ -2742,7 +2742,7 @@ impl View for RichTextEditorView {
         stack.finish()
     }
 
-    fn active_cursor_position(&self, ctx: &ViewContext<Self>) -> Option<warpui::CursorInfo> {
+    fn active_cursor_position(&self, ctx: &ViewContext<Self>) -> Option<riftui::CursorInfo> {
         let model = self.model.as_ref(ctx);
         let render_state = model.render_state().as_ref(ctx);
         let font_size = model.cursor_font_size(ctx);
@@ -2753,7 +2753,7 @@ impl View for RichTextEditorView {
             })
     }
 
-    fn keymap_context(&self, ctx: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {
         let mut context = Self::default_keymap_context();
 
         if self.is_editable(ctx) {
@@ -3336,7 +3336,7 @@ impl TypedActionView for RichTextEditorView {
     }
 }
 
-impl warp_editor::editor::EditorView for RichTextEditorView {
+impl rift_editor::editor::EditorView for RichTextEditorView {
     type RichTextAction = EditorViewAction;
 
     fn runnable_command_at<'a>(

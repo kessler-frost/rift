@@ -3,13 +3,13 @@ use std::fmt;
 use std::result::Result;
 use std::str::FromStr;
 
+use riftui::{AppContext, SingletonEntity};
 use serde::de::{self, MapAccess, Visitor};
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_yaml::Value;
 use strum::VariantNames as _;
 use strum_macros::{Display, EnumString, VariantNames};
-use warpui::{AppContext, SingletonEntity};
 
 use super::workflow::{Argument, ArgumentType, Workflow};
 use super::workflow_enum::{EnumVariants, WorkflowEnum};

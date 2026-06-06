@@ -1,8 +1,8 @@
+use rift_completer::meta::SpannedItem;
+use rift_completer::parsers::ParsedToken;
+use rift_completer::signatures::CommandRegistry;
+use riftui::App;
 use typed_path::TypedPathBuf;
-use warp_completer::meta::SpannedItem;
-use warp_completer::parsers::ParsedToken;
-use warp_completer::signatures::CommandRegistry;
-use warpui::App;
 
 use super::*;
 use crate::completer::SessionContext;

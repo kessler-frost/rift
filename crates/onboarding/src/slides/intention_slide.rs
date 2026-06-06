@@ -1,24 +1,24 @@
-use ui_components::{button, Component as _, Options as _};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_core::ui::Icon;
-use warpui_core::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_core::ui::Icon;
+use riftui_core::elements::{
     Border, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Flex, FormattedTextElement, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     ParentElement, Radius,
 };
-use warpui_core::fonts::Weight;
-use warpui_core::keymap::Keystroke;
-use warpui_core::platform::Cursor;
-use warpui_core::prelude::Align;
-use warpui_core::text_layout::TextAlignment;
-use warpui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui_core::{
+use riftui_core::fonts::Weight;
+use riftui_core::keymap::Keystroke;
+use riftui_core::platform::Cursor;
+use riftui_core::prelude::Align;
+use riftui_core::text_layout::TextAlignment;
+use riftui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;

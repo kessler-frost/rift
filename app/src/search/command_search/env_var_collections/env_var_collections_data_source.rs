@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use warpui::{AppContext, SingletonEntity};
+use riftui::{AppContext, SingletonEntity};
 
 use super::EnvVarCollectionSearchItem;
 use crate::cloud_object::model::persistence::CloudModel;

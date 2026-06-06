@@ -3,17 +3,17 @@ use std::collections::HashMap;
 use itertools::Itertools as _;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::channel::ChannelState;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DropShadow,
     Empty, Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack,
     Text,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, EventContext, SingletonEntity};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, EventContext, SingletonEntity};
 
 use crate::ai::AIRequestUsageModel;
 use crate::auth::AuthStateProvider;

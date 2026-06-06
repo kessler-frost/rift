@@ -1,4 +1,4 @@
-use warpui::{Entity, ModelContext, SingletonEntity};
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::AuthStateProvider;
@@ -7,7 +7,7 @@ use crate::report_error;
 use crate::server::server_api::ai::ConnectedSelfHostedWorker;
 use crate::server::server_api::ServerApiProvider;
 use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
-pub const WARP_WORKER_HOST: &str = "warp";
+pub const RIFT_WORKER_HOST: &str = "warp";
 
 pub enum ConnectedSelfHostedWorkersEvent {
     Changed,
@@ -63,7 +63,7 @@ impl ConnectedSelfHostedWorkersModel {
             .iter()
             .map(|worker| worker.worker_host.clone())
             .filter(|host| !host.trim().is_empty())
-            .filter(|host| !host.eq_ignore_ascii_case(WARP_WORKER_HOST))
+            .filter(|host| !host.eq_ignore_ascii_case(RIFT_WORKER_HOST))
             .filter(|host| match excluded {
                 Some(excluded) => !host.eq_ignore_ascii_case(excluded),
                 None => true,

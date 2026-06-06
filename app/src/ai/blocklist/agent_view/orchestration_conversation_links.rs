@@ -1,16 +1,16 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty, Expanded, Flex, Hoverable,
     MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
 };
-use warpui::fonts::Properties;
-use warpui::fonts::Weight::Bold;
-use warpui::platform::Cursor;
-use warpui::text_layout::ClipConfig;
-use warpui::{AppContext, Element, EntityId, EventContext, SingletonEntity};
+use riftui::fonts::Properties;
+use riftui::fonts::Weight::Bold;
+use riftui::platform::Cursor;
+use riftui::text_layout::ClipConfig;
+use riftui::{AppContext, Element, EntityId, EventContext, SingletonEntity};
 
 use crate::ai::agent::api::ServerConversationToken;
 use crate::ai::agent::conversation::{AIConversation, AIConversationId};

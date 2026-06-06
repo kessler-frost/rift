@@ -1,4 +1,4 @@
-use warpui::{Entity, ModelContext, SingletonEntity};
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 use super::CloudEnvVarCollectionModel;
 use crate::cloud_object::breadcrumbs::ContainingObject;

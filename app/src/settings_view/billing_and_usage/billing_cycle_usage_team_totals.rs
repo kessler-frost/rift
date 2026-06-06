@@ -1,13 +1,13 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack,
     Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::Element;
+use riftui::fonts::{Properties, Weight};
+use riftui::Element;
 
 use crate::settings_view::billing_and_usage::billing_cycle_usage_common::{
     aggregate_segments, cost_type_color, format_cost_cents, format_credits,

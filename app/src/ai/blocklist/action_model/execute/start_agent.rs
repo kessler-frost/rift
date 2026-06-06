@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use futures::future::BoxFuture;
 use futures::FutureExt;
-use warp_cli::agent::Harness;
-use warpui::{Entity, ModelContext, SingletonEntity};
+use rift_cli::agent::Harness;
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 use super::{ActionExecution, AnyActionExecution, ExecuteActionInput, PreprocessActionInput};
 use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};

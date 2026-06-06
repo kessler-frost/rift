@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use futures::future::Either;
 use futures::StreamExt;
 use instant::Instant;
-use warp_core::errors::AnyhowErrorExt as _;
-use warpui::r#async::Timer;
+use rift_core::errors::AnyhowErrorExt as _;
+use riftui::r#async::Timer;
 
 use crate::server::retry_strategies::is_transient_http_error;
 use crate::server::server_api::ai::AgentRunEvent;

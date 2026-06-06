@@ -24,7 +24,7 @@ impl PtyController {
                 let _ = tx.send(());
             })),
         });
-        let _ = warpui::r#async::block_on(rx);
+        let _ = riftui::r#async::block_on(rx);
     }
 }
 

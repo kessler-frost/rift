@@ -11,22 +11,22 @@ use base64::Engine;
 use hex::FromHexError;
 use instant::Instant;
 use itertools::{Either, Itertools};
+use rift_core::features::FeatureFlag;
+use rift_core::report_error;
+use rift_core::semantic_selection::SemanticSelection;
+pub use rift_terminal::model::BlockIndex;
+use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
+use riftui::assets::asset_cache::Asset;
+use riftui::image_cache::ImageType;
+use riftui::r#async::executor::Background;
+#[cfg(not(target_family = "wasm"))]
+use riftui::util::save_as_file;
+use riftui::AppContext;
 use serde::Serialize;
 use session_sharing_protocol::common::{
     AICommandMetadata, OrderedTerminalEventType, ParticipantId,
 };
 use session_sharing_protocol::sharer::SessionSourceType;
-use warp_core::features::FeatureFlag;
-use warp_core::report_error;
-use warp_core::semantic_selection::SemanticSelection;
-pub use warp_terminal::model::BlockIndex;
-use warp_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use warpui::assets::asset_cache::Asset;
-use warpui::image_cache::ImageType;
-use warpui::r#async::executor::Background;
-#[cfg(not(target_family = "wasm"))]
-use warpui::util::save_as_file;
-use warpui::AppContext;
 
 use super::super::{AltScreen, BlockList};
 use super::ansi::{
@@ -1355,7 +1355,7 @@ impl TerminalModel {
     /// link the new server-assigned token to an existing conversation from historical replay.
     pub fn send_agent_response_for_shared_session(
         &mut self,
-        response: &warp_multi_agent_api::ResponseEvent,
+        response: &rift_multi_agent_api::ResponseEvent,
         response_initiator: Option<ParticipantId>,
         forked_from_conversation_token: Option<String>,
     ) {
@@ -2728,7 +2728,7 @@ impl ansi::Handler for TerminalModel {
         delegate!(self.configure_charset(index, charset));
     }
 
-    fn set_color(&mut self, index: usize, color: warpui::color::ColorU) {
+    fn set_color(&mut self, index: usize, color: riftui::color::ColorU) {
         self.override_colors[index] = Some(color);
     }
 

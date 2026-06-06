@@ -40,10 +40,10 @@ pub use model_selector::{
 };
 pub use progress::{render_progress, ProgressProps, ProgressStep, ProgressStepState};
 pub use progress_ui_state::AmbientAgentProgressUIState;
+use rift_core::features::FeatureFlag;
+use riftui::geometry::vector::Vector2F;
+use riftui::{AppContext, ModelHandle, ViewHandle, WindowId};
 pub use tips::{get_cloud_mode_tips, CloudModeTip};
-use warp_core::features::FeatureFlag;
-use warpui::geometry::vector::Vector2F;
-use warpui::{AppContext, ModelHandle, ViewHandle, WindowId};
 
 use crate::ai::blocklist::agent_view::{AgentViewController, AgentViewState};
 use crate::pane_group::TerminalViewResources;

@@ -7,10 +7,10 @@ use futures::future::BoxFuture;
 #[cfg(not(target_family = "wasm"))]
 use futures::future::Either;
 use futures::FutureExt;
-use warp_core::send_telemetry_from_ctx;
+use rift_core::send_telemetry_from_ctx;
 #[cfg(not(target_family = "wasm"))]
-use warpui::r#async::Timer;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use riftui::r#async::Timer;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::{ActionExecution, AnyActionExecution, ExecuteActionInput, PreprocessActionInput};
 use crate::ai::agent::conversation::AIConversationId;

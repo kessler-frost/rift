@@ -4,24 +4,24 @@ use markdown_parser::{
     FormattedText, FormattedTextFragment, FormattedTextLine, FormattedTextStyles, Hyperlink,
 };
 use pathfinder_color::ColorU;
-use settings::Setting;
-use warp_core::ui::theme::phenomenon::PhenomenonStyle;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::phenomenon::PhenomenonStyle;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Align, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty, Flex,
     FormattedTextElement, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius,
     Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::geometry::vector::Vector2F;
-use warpui::keymap::{FixedBinding, Keystroke};
-use warpui::platform::file_picker::{FilePickerConfiguration, FilePickerError};
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::geometry::vector::Vector2F;
+use riftui::keymap::{FixedBinding, Keystroke};
+use riftui::platform::file_picker::{FilePickerConfiguration, FilePickerError};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, EventContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::Setting;
 
 use super::{tab_config_step, welcome_banner};
 use crate::appearance::Appearance;
@@ -117,8 +117,8 @@ impl HoaOnboardingStep {
     }
 }
 
-pub fn init(app: &mut warpui::AppContext) {
-    use warpui::keymap::macros::*;
+pub fn init(app: &mut riftui::AppContext) {
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "enter",
@@ -567,7 +567,7 @@ impl View for HoaOnboardingFlow {
         "HoaOnboardingFlow"
     }
 
-    fn on_focus(&mut self, _focus_ctx: &warpui::FocusContext, ctx: &mut ViewContext<Self>) {
+    fn on_focus(&mut self, _focus_ctx: &riftui::FocusContext, ctx: &mut ViewContext<Self>) {
         ctx.focus_self();
     }
 

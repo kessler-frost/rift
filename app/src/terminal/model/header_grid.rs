@@ -6,8 +6,8 @@ use std::io;
 
 use instant::Instant;
 use pathfinder_color::ColorU;
-use warp_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use warpui::units::{IntoLines as _, Lines};
+use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
+use riftui::units::{IntoLines as _, Lines};
 
 use super::ansi::{self, Attr, Handler, PrecmdValue, PreexecValue, Processor};
 use super::block::{BlockGridPoint, BlockSize};
@@ -1150,7 +1150,7 @@ impl ansi::Handler for HeaderGrid {
                     honor_ps1
                 );
                 // We send a terminal event which will result in bindkeys being issued to the shell session, to
-                // switch the prompt mode via the $WARP_HONOR_PS1 environment variable.
+                // switch the prompt mode via the $RIFT_HONOR_PS1 environment variable.
                 self.event_proxy
                     .send_terminal_event(Event::HonorPS1OutOfSync);
 

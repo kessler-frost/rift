@@ -1,9 +1,9 @@
-use warpui::elements::{Container, CornerRadius, Dismiss, MouseStateHandle, Radius};
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::elements::{Container, CornerRadius, Dismiss, MouseStateHandle, Radius};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

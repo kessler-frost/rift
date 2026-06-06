@@ -1,9 +1,9 @@
 use std::fmt::Write;
 
 use itertools::Itertools;
+use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback, ModalButton};
+use riftui::{AppContext, EntityId, SingletonEntity, ViewContext, WeakViewHandle, WindowId};
 use settings::ToggleableSetting as _;
-use warpui::modals::{AlertDialogWithCallbacks, AppModalCallback, ModalButton};
-use warpui::{AppContext, EntityId, SingletonEntity, ViewContext, WeakViewHandle, WindowId};
 
 use crate::code::editor_management::{CodeEditorStatus, CodeEditorSummary};
 use crate::pane_group::{CodePane, PaneGroup, PaneId, TerminalPane};

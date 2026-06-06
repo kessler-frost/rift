@@ -6,22 +6,22 @@ use ai::document::AIDocumentId;
 use ai::skills::SkillPathOrigin;
 use chrono::{DateTime, Local, TimeZone};
 use itertools::Itertools as _;
+use rift_cli::agent::Harness;
+use rift_core::command::ExitCode;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::WarpTheme;
+use rift_multi_agent_api::response_event::stream_finished;
+use rift_multi_agent_api::response_event::stream_finished::TokenUsage;
+use rift_multi_agent_api::{self as api};
+use riftui::color::ColorU;
+use riftui::{AppContext, EntityId, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use vec1::{Size0Error, Vec1};
-use warp_cli::agent::Harness;
-use warp_core::command::ExitCode;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::WarpTheme;
-use warp_multi_agent_api::response_event::stream_finished;
-use warp_multi_agent_api::response_event::stream_finished::TokenUsage;
-use warp_multi_agent_api::{self as api};
-use warpui::color::ColorU;
-use warpui::{AppContext, EntityId, ModelContext, SingletonEntity};
 
 use super::api::ServerConversationToken;
 use super::task::helper::*;
@@ -1172,11 +1172,11 @@ impl AIConversation {
     ///
     /// This filters the full task list using DFS linearization to determine
     /// which tasks have open subagent tool calls without corresponding results.
-    pub fn compute_active_tasks(&self) -> Vec<warp_multi_agent_api::Task> {
+    pub fn compute_active_tasks(&self) -> Vec<rift_multi_agent_api::Task> {
         use std::collections::HashMap;
 
         let root_task_id = self.get_root_task_id().to_string();
-        let all_tasks: HashMap<&str, &warp_multi_agent_api::Task> = self
+        let all_tasks: HashMap<&str, &rift_multi_agent_api::Task> = self
             .all_tasks()
             .filter_map(|task| {
                 let source = task.source()?;
@@ -1829,7 +1829,7 @@ impl AIConversation {
     pub fn initialize_output_for_response_stream(
         &mut self,
         stream_id: &ResponseStreamId,
-        init_event: warp_multi_agent_api::response_event::StreamInit,
+        init_event: rift_multi_agent_api::response_event::StreamInit,
         terminal_view_id: EntityId,
         ctx: &mut ModelContext<BlocklistAIHistoryModel>,
     ) -> Result<(), UpdateConversationError> {
@@ -2314,11 +2314,11 @@ impl AIConversation {
         &mut self,
         response_stream_id: &ResponseStreamId,
         terminal_view_id: EntityId,
-        action: warp_multi_agent_api::client_action::Action,
+        action: rift_multi_agent_api::client_action::Action,
         skill_path_origin: &SkillPathOrigin,
         ctx: &mut ModelContext<BlocklistAIHistoryModel>,
     ) -> Result<(), UpdateConversationError> {
-        use warp_multi_agent_api::client_action::*;
+        use rift_multi_agent_api::client_action::*;
         match action {
             Action::BeginTransaction(_) => {
                 self.begin_transaction();
@@ -4204,7 +4204,7 @@ impl std::fmt::Display for ConversationStatus {
 }
 
 impl ConversationStatus {
-    pub fn render_icon(&self, appearance: &Appearance) -> warpui::elements::Icon {
+    pub fn render_icon(&self, appearance: &Appearance) -> riftui::elements::Icon {
         match self {
             ConversationStatus::InProgress => in_progress_icon(appearance),
             ConversationStatus::Success => succeeded_icon(appearance),

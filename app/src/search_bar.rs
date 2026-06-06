@@ -1,9 +1,9 @@
-use warpui::elements::{
+use riftui::elements::{
     Border, ChildView, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, EventHandler, Flex, Icon, ParentElement, Radius, Shrinkable,
 };
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
 
 use crate::appearance::Appearance;
 use crate::editor::EditorView;
@@ -42,7 +42,7 @@ impl View for SearchBar {
         "SearchBar"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn Element> {
         let styles = {
             let appearance = Appearance::as_ref(app);
             let context_styles = UiComponentStyles {

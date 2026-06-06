@@ -6,8 +6,8 @@ use std::sync::Arc;
 use itertools::Itertools;
 use mio::Interest;
 use parking_lot::Mutex;
+use rift_cli::TerminalServerArgs;
 use signal_hook_mio::v1_0::Signals;
-use warp_cli::TerminalServerArgs;
 
 use super::{api, logging, protocol, RECV_SOCKET_FILENO, SEND_SOCKET_FILENO};
 use crate::terminal::local_tty::server::protocol::NonblockingSocketFd;

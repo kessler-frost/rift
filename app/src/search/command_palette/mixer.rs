@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use rift_util::path::LineAndColumnArg;
+use riftui::keymap::BindingId;
+use riftui::{EntityId, WindowId};
 use strum_macros::IntoStaticStr;
-use warp_util::path::LineAndColumnArg;
-use warpui::keymap::BindingId;
-use warpui::{EntityId, WindowId};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::drive::CloudObjectTypeAndId;

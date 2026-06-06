@@ -3,15 +3,15 @@ use std::collections::HashMap;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use thousands::Separable;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Align, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DropShadow, Empty,
     Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable,
     Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::Element;
+use riftui::fonts::{Properties, Weight};
+use riftui::Element;
+use thousands::Separable;
 
 use crate::settings_view::billing_and_usage_page_v2::{
     AGGREGATE_CREDITS_DOT_COLOR, AMBIENT_CREDITS_DOT_COLOR, BASE_CREDITS_DOT_COLOR,
@@ -322,7 +322,7 @@ fn render_tooltip_row(
     cost_cents: i64,
     label_color: ColorU,
     value_color: ColorU,
-    font_family: warpui::fonts::FamilyId,
+    font_family: riftui::fonts::FamilyId,
     bold: bool,
 ) -> Box<dyn Element> {
     let style = if bold {

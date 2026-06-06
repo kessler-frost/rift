@@ -1,7 +1,7 @@
 use pathfinder_color::ColorU;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{Align, ConstrainedBox, Container, Empty};
-use warpui::Element;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{Align, ConstrainedBox, Container, Empty};
+use riftui::Element;
 
 use crate::appearance::Appearance;
 use crate::search::result_renderer::ItemHighlightState;
@@ -50,5 +50,5 @@ fn render_search_item_icon_inner(
 }
 
 pub mod colors {
-    pub const WARP_AI: u32 = 0xF3B911FF;
+    pub const RIFT_AI: u32 = 0xF3B911FF;
 }

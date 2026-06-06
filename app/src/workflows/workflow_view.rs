@@ -7,30 +7,30 @@ use env_var_selector::{EnvVarSelector, EnvVarSelectorEvent};
 use itertools::Itertools;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use string_offset::CharOffset;
-use syntax_highlightable::SyntaxHighlightable;
-use url::Url;
-use warp_core::context_flag::ContextFlag;
-use warp_core::settings::Setting;
-use warp_core::ui::theme::AnsiColorIdentifier;
-use warp_editor::editor::NavigationKey;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::context_flag::ContextFlag;
+use rift_core::settings::Setting;
+use rift_core::ui::theme::AnsiColorIdentifier;
+use rift_editor::editor::NavigationKey;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable,
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, Rect, ScrollbarWidth, Shrinkable, Stack,
 };
-use warpui::fonts::{FamilyId, Weight};
-use warpui::keymap::EditableBinding;
-use warpui::platform::Cursor;
-use warpui::text_layout::TextStyle;
-use warpui::ui_components::button::{Button, ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{FamilyId, Weight};
+use riftui::keymap::EditableBinding;
+use riftui::platform::Cursor;
+use riftui::text_layout::TextStyle;
+use riftui::ui_components::button::{Button, ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle, WindowId,
 };
+use string_offset::CharOffset;
+use syntax_highlightable::SyntaxHighlightable;
+use url::Url;
 
 use super::aliases::WorkflowAliases;
 use super::command_parser::WorkflowCommandDisplayData;
@@ -105,7 +105,7 @@ pub mod env_var_selector;
 mod syntax_highlightable;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::id;
+    use riftui::keymap::macros::id;
     app.register_editable_bindings([EditableBinding::new(
         "workflowview:save",
         "Save workflow",
@@ -3044,7 +3044,7 @@ impl View for WorkflowView {
                 SCROLLBAR_WIDTH,
                 theme.nonactive_ui_detail().into(),
                 theme.active_ui_detail().into(),
-                warpui::elements::Fill::None,
+                riftui::elements::Fill::None,
             )
             .finish(),
         );

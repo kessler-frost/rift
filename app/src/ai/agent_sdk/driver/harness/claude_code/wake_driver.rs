@@ -4,10 +4,10 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use rift_cli::agent::Harness;
+use rift_graphql::ai::AgentTaskState;
 use shell_words::quote as shell_quote;
 use uuid::Uuid;
-use warp_cli::agent::Harness;
-use warp_graphql::ai::AgentTaskState;
 
 use super::super::claude_transcript::{
     claude_config_dir, write_envelope, write_session_index_entry, ClaudeTranscriptEnvelope,

@@ -1,5 +1,5 @@
-use warp_core::telemetry::{TelemetryContextModel, TelemetryContextProvider};
-use warpui::{AppContext, ModelContext, SingletonEntity};
+use rift_core::telemetry::{TelemetryContextModel, TelemetryContextProvider};
+use riftui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::auth::AuthStateProvider;
 

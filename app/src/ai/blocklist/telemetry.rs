@@ -1,7 +1,7 @@
+use rift_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 use serde::Serialize;
 use serde_json::{json, Value};
 use strum_macros::{EnumDiscriminants, EnumIter};
-use warp_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 
 use crate::ai::agent::conversation::AIConversationId;
 
@@ -309,7 +309,7 @@ impl TelemetryEvent for BlocklistOrchestrationTelemetryEvent {
     }
 
     fn event_descs() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
-        warp_core::telemetry::enum_events::<Self>()
+        rift_core::telemetry::enum_events::<Self>()
     }
 }
 
@@ -355,4 +355,4 @@ impl TelemetryEventDesc for BlocklistOrchestrationTelemetryEventDiscriminants {
     }
 }
 
-warp_core::register_telemetry_event!(BlocklistOrchestrationTelemetryEvent);
+rift_core::register_telemetry_event!(BlocklistOrchestrationTelemetryEvent);

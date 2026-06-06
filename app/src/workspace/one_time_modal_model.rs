@@ -1,6 +1,6 @@
+use rift_core::features::FeatureFlag;
+use riftui::{Entity, ModelContext, SingletonEntity, WindowId};
 use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warpui::{Entity, ModelContext, SingletonEntity, WindowId};
 
 use super::hoa_onboarding;
 use crate::ai::blocklist::agent_view::toolbar_item::AgentToolbarItemKind;

@@ -1,19 +1,19 @@
-use settings::Setting;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::Icon;
+use riftui::elements::{
     ConstrainedBox, Container, CrossAxisAlignment, Flex, Hoverable, MainAxisSize, MouseStateHandle,
     ParentElement, Shrinkable, Text,
 };
-use warpui::fonts::Properties;
-use warpui::platform::Cursor;
-use warpui::prelude::Empty;
-use warpui::text_layout::ClipConfig;
-use warpui::{
+use riftui::fonts::Properties;
+use riftui::platform::Cursor;
+use riftui::prelude::Empty;
+use riftui::text_layout::ClipConfig;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WeakModelHandle,
 };
+use settings::Setting;
 
 use super::super::{AmbientAgentViewModelEvent, Status};
 use crate::ai::agent::conversation::ConversationStatus;
@@ -257,7 +257,7 @@ impl View for AmbientAgentEntryBlock {
                 )
                 .with_color(theme.main_text_color(theme.background()).into_solid())
                 .with_style(Properties {
-                    weight: warpui::fonts::Weight::Bold,
+                    weight: riftui::fonts::Weight::Bold,
                     ..Default::default()
                 })
                 .soft_wrap(false)

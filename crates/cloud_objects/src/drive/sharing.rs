@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
+use rift_graphql::object_permissions::AccessLevel;
 use serde::{Deserialize, Serialize};
 use session_sharing_protocol::common::{ProfileData as SessionSharingProfileData, Role};
-use warp_graphql::object_permissions::AccessLevel;
 
 use crate::auth::UserUid;
 use crate::cloud_object::Owner;

@@ -1,11 +1,11 @@
 pub mod util;
 use anyhow::{bail, Result};
-pub use util::{action_type_to_gql_action_type, object_action_history_from_gql};
-use warp_graphql::generic_string_object::GenericStringObjectFormat;
-use warp_graphql::mutations::update_generic_string_object::{
+use rift_graphql::generic_string_object::GenericStringObjectFormat;
+use rift_graphql::mutations::update_generic_string_object::{
     GenericStringObjectUpdate, UpdateGenericStringObjectResult,
 };
-use warp_graphql::object::ObjectUpdateSuccess;
+use rift_graphql::object::ObjectUpdateSuccess;
+pub use util::{action_type_to_gql_action_type, object_action_history_from_gql};
 
 use crate::cloud_object::{
     RevisionAndLastEditor, ServerAIExecutionProfile, ServerAIFact, ServerAmbientAgentEnvironment,
@@ -16,10 +16,10 @@ use crate::cloud_object::{
 use crate::server::graphql::get_user_facing_error_message;
 
 fn boxed_rejected_generic_string_object<T>(
-    object: warp_graphql::generic_string_object::GenericStringObject,
+    object: rift_graphql::generic_string_object::GenericStringObject,
 ) -> Result<Box<dyn ServerObject>>
 where
-    T: TryFromGql<GqlType = warp_graphql::generic_string_object::GenericStringObject>
+    T: TryFromGql<GqlType = rift_graphql::generic_string_object::GenericStringObject>
         + ServerObject
         + 'static,
 {

@@ -1,5 +1,5 @@
-use warpui::elements::MouseStateHandle;
-use warpui::{AppContext, ViewHandle};
+use riftui::elements::MouseStateHandle;
+use riftui::{AppContext, ViewHandle};
 
 use crate::code::local_code_editor::LocalCodeEditorView;
 

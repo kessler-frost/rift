@@ -1,9 +1,9 @@
-use thiserror::Error;
 #[cfg(test)]
-pub use warp_server_client::auth::MockAuthClient;
-pub use warp_server_client::auth::{
+pub use rift_server_client::auth::MockAuthClient;
+pub use rift_server_client::auth::{
     AuthClient, FetchUserResult, MintCustomTokenError, SyncedUserSettings, UserAuthenticationError,
 };
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 /// Error type when creating anonymous users.

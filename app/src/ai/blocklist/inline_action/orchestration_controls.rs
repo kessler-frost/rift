@@ -12,28 +12,28 @@ use ai::agent::action::RunAgentsExecutionMode;
 use ai::agent::orchestration_config::{OrchestrationConfig, OrchestrationExecutionMode};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use settings::Setting;
-use warp_cli::agent::Harness;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_cli::agent::Harness;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
     Point, Radius, Text,
 };
-use warpui::event::DispatchedEvent;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{
+use riftui::event::DispatchedEvent;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{
     AfterLayoutContext, AppContext, Element, EventContext, LayoutContext, PaintContext,
     SingletonEntity, SizeConstraint, View, ViewContext, ViewHandle,
 };
+use settings::Setting;
 
 use crate::ai::auth_secret_types::auth_secret_types_for_harness;
 use crate::ai::blocklist::inline_action::host_picker::HostPicker;
 use crate::ai::cloud_agent_settings::CloudAgentSettings;
 use crate::ai::cloud_environments::CloudAmbientAgentEnvironment;
-use crate::ai::connected_self_hosted_workers::{ConnectedSelfHostedWorkersModel, WARP_WORKER_HOST};
+use crate::ai::connected_self_hosted_workers::{ConnectedSelfHostedWorkersModel, RIFT_WORKER_HOST};
 use crate::ai::execution_profiles::model_menu_items::available_model_menu_items;
 use crate::ai::harness_availability::{AuthSecretFetchState, HarnessAvailabilityModel};
 use crate::ai::harness_display;
@@ -56,11 +56,11 @@ use crate::{report_if_error, LLMPreferences};
 
 /// Env var override for the workspace default host (developer testing).
 /// Mirrors the single-agent ambient flow.
-const DEFAULT_HOST_ENV_VAR: &str = "WARP_CLOUD_MODE_DEFAULT_HOST";
+const DEFAULT_HOST_ENV_VAR: &str = "RIFT_CLOUD_MODE_DEFAULT_HOST";
 
 // ── Shared constants ────────────────────────────────────────────────
 
-pub const ORCHESTRATION_WARP_WORKER_HOST: &str = WARP_WORKER_HOST;
+pub const ORCHESTRATION_WARP_WORKER_HOST: &str = RIFT_WORKER_HOST;
 pub const ORCHESTRATION_ENV_NONE_LABEL: &str = "Empty environment";
 
 pub const ORCHESTRATION_PICKER_HEIGHT: f32 = 36.;
@@ -394,7 +394,7 @@ pub fn picker_styles(appearance: &Appearance) -> (UiComponentStyles, PickerColor
     // card background in the config block shows through, and so that
     // gradient-background themes render correctly.
     let background_fill: Fill = theme.surface_overlay_1();
-    let background: warpui::elements::Fill = background_fill.into();
+    let background: riftui::elements::Fill = background_fill.into();
     // Border and font colors are intentionally left to the dropdown's
     // default ButtonVariant::Secondary styling, which uses
     // theme.outline() and theme.main_text_color() — both are
@@ -421,7 +421,7 @@ pub fn picker_styles(appearance: &Appearance) -> (UiComponentStyles, PickerColor
 pub struct PickerColors {
     pub padding: Coords,
     pub corner_radius: CornerRadius,
-    pub background: warpui::elements::Fill,
+    pub background: riftui::elements::Fill,
 }
 
 // ── Picker creation (generic over action type) ──────────────────────
@@ -942,7 +942,7 @@ pub fn populate_host_picker<V: View>(
 }
 
 /// Resolves the workspace-configured default host slug, honoring the
-/// `WARP_CLOUD_MODE_DEFAULT_HOST` env var override for developer
+/// `RIFT_CLOUD_MODE_DEFAULT_HOST` env var override for developer
 /// testing. Mirrors the single-agent ambient flow.
 pub fn resolve_default_host_slug(ctx: &AppContext) -> Option<String> {
     if let Ok(slug) = std::env::var(DEFAULT_HOST_ENV_VAR) {
@@ -1281,7 +1281,7 @@ pub fn populate_auth_secret_picker_for_harness<A: OrchestrationControlAction, V:
 ///
 /// Does NOT repopulate the picker — doing so from inside the action the
 /// picker just dispatched would re-enter the dropdown's view and trip
-/// warpui's circular-update guard. The dropdown already reflects the
+/// riftui's circular-update guard. The dropdown already reflects the
 /// chosen value.
 pub fn apply_auth_secret_change<A: OrchestrationControlAction, V: View>(
     state: &mut OrchestrationEditState,
@@ -1842,7 +1842,7 @@ pub fn render_mode_toggle<A: OrchestrationControlAction>(
         active_segment_bg,
     );
 
-    let segment_outer_bg = warp_core::ui::theme::color::internal_colors::fg_overlay_2(theme);
+    let segment_outer_bg = rift_core::ui::theme::color::internal_colors::fg_overlay_2(theme);
     let segments_row = Flex::row()
         .with_cross_axis_alignment(CrossAxisAlignment::Stretch)
         .with_main_axis_alignment(MainAxisAlignment::Start)
@@ -1895,7 +1895,7 @@ fn render_segment_button<A: OrchestrationControlAction>(
     let active_text_color = blended_colors::text_main(theme, theme.surface_1());
     let inactive_text_color = blended_colors::text_disabled(theme, theme.surface_1());
     let segment_active_bg = active_bg_override
-        .unwrap_or_else(|| warp_core::ui::theme::color::internal_colors::fg_overlay_4(theme));
+        .unwrap_or_else(|| rift_core::ui::theme::color::internal_colors::fg_overlay_4(theme));
     Hoverable::new(mouse_state, move |_| {
         let text = Text::new(label_owned.clone(), font_family, font_size)
             .with_color(if is_active {
@@ -1904,7 +1904,7 @@ fn render_segment_button<A: OrchestrationControlAction>(
                 inactive_text_color
             })
             .finish();
-        let centered = warpui::elements::Align::new(text).finish();
+        let centered = riftui::elements::Align::new(text).finish();
         let mut container = Container::new(centered)
             .with_vertical_padding(ORCHESTRATION_SEGMENT_VERTICAL_PADDING)
             .with_corner_radius(CornerRadius::with_all(Radius::Pixels(4.)));

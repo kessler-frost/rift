@@ -15,21 +15,15 @@ use ai::document::{AIDocumentId, AIDocumentVersion};
 use parking_lot::FairMutex;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use settings::{Setting, ToggleableSetting};
-#[cfg(not(target_family = "wasm"))]
-use tokio::fs;
-use toolbar_item::AgentToolbarItemKind;
-#[cfg(feature = "voice_input")]
-use voice_input::{StartListeningError, VoiceSessionResult};
-use warp_cli::agent::Harness;
-use warp_core::context_flag::ContextFlag;
-use warp_core::report_if_error;
-use warp_core::ui::color::blend::Blend;
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warp_core::ui::color::ContrastingColor;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::{AnsiColorIdentifier, Fill};
-use warpui::elements::{
+use rift_cli::agent::Harness;
+use rift_core::context_flag::ContextFlag;
+use rift_core::report_if_error;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use rift_core::ui::color::ContrastingColor;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill};
+use riftui::elements::{
     Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Expanded, Flex,
     MainAxisAlignment, MainAxisSize, OffsetPositioning, ParentElement, PositionedElementAnchor,
@@ -37,13 +31,19 @@ use warpui::elements::{
     WrapFillEntireRun, DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
 #[cfg(feature = "voice_input")]
-use warpui::r#async::SpawnedFutureHandle;
+use riftui::r#async::SpawnedFutureHandle;
 #[cfg(not(target_family = "wasm"))]
-use warpui::r#async::Timer;
-use warpui::{
+use riftui::r#async::Timer;
+use riftui::{
     AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::{Setting, ToggleableSetting};
+#[cfg(not(target_family = "wasm"))]
+use tokio::fs;
+use toolbar_item::AgentToolbarItemKind;
+#[cfg(feature = "voice_input")]
+use voice_input::{StartListeningError, VoiceSessionResult};
 
 #[cfg(feature = "local_fs")]
 pub(crate) use self::environment_selector::sort_environments_by_recency;
@@ -1029,7 +1029,7 @@ impl AgentInputFooter {
     fn select_cli_file(&mut self, ctx: &mut ViewContext<Self>) {
         let window_id = ctx.window_id();
         let view_id = ctx.view_id();
-        let file_picker_config = warpui::platform::FilePickerConfiguration::new();
+        let file_picker_config = riftui::platform::FilePickerConfiguration::new();
 
         ctx.open_file_picker(
             move |result, ctx| match result {
@@ -1761,8 +1761,8 @@ impl AgentInputFooter {
         // For key-based toggling, validate the key state against current voice state.
         if let voice_input::VoiceInputToggledFrom::Key { state } = source {
             match (&self.cli_voice_input_state, state) {
-                (CLIVoiceInputState::Stopped, warpui::event::KeyState::Released) => return,
-                (CLIVoiceInputState::Listening, warpui::event::KeyState::Pressed) => return,
+                (CLIVoiceInputState::Stopped, riftui::event::KeyState::Released) => return,
+                (CLIVoiceInputState::Listening, riftui::event::KeyState::Pressed) => return,
                 _ => {}
             }
         }
@@ -2164,7 +2164,7 @@ impl View for AgentInputFooter {
         "AgentViewFooter"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         if self.should_render_cloud_mode_v2(app) {
             return self.render_cloud_mode_v2_footer(app);
         }
@@ -2415,7 +2415,7 @@ pub enum AgentInputFooterAction {
 impl TypedActionView for AgentInputFooter {
     type Action = AgentInputFooterAction;
 
-    fn handle_action(&mut self, action: &Self::Action, ctx: &mut warpui::ViewContext<Self>) {
+    fn handle_action(&mut self, action: &Self::Action, ctx: &mut riftui::ViewContext<Self>) {
         match action {
             #[cfg(feature = "voice_input")]
             AgentInputFooterAction::ToggleVoiceInput => {
@@ -2711,10 +2711,10 @@ impl ActionButtonTheme for AgentInputButtonTheme {
         true
     }
 
-    fn font_properties(&self) -> Option<warpui::fonts::Properties> {
+    fn font_properties(&self) -> Option<riftui::fonts::Properties> {
         if crate::features::FeatureFlag::CloudModeInputV2.is_enabled() {
-            Some(warpui::fonts::Properties {
-                weight: warpui::fonts::Weight::Semibold,
+            Some(riftui::fonts::Properties {
+                weight: riftui::fonts::Weight::Semibold,
                 ..Default::default()
             })
         } else {
@@ -2781,7 +2781,7 @@ impl ActionButtonTheme for ActiveMicButtonTheme {
         true
     }
 
-    fn font_properties(&self) -> Option<warpui::fonts::Properties> {
+    fn font_properties(&self) -> Option<riftui::fonts::Properties> {
         AgentInputButtonTheme.font_properties()
     }
 }

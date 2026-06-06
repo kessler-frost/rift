@@ -8,8 +8,8 @@ use std::sync::Arc;
 use futures::FutureExt;
 use itertools::Itertools as _;
 use persistence::model::AgentConversationRecord;
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, SingletonEntity};
 
 use super::{
     agent_id_key_from_persisted_data, AIConversationMetadata, BlocklistAIHistoryModel,
@@ -189,9 +189,9 @@ pub async fn load_conversation_from_server(
 
 /// Boxes a future with the right type for the platform.
 /// On WASM, futures must not implement Send.
-fn box_future<F>(f: F) -> warpui::r#async::BoxFuture<'static, Option<CloudConversationData>>
+fn box_future<F>(f: F) -> riftui::r#async::BoxFuture<'static, Option<CloudConversationData>>
 where
-    F: Future<Output = Option<CloudConversationData>> + warpui::r#async::Spawnable,
+    F: Future<Output = Option<CloudConversationData>> + riftui::r#async::Spawnable,
 {
     cfg_if::cfg_if! {
         if #[cfg(target_family = "wasm")] {
@@ -233,7 +233,7 @@ impl BlocklistAIHistoryModel {
         &self,
         conversation_id: AIConversationId,
         ctx: &AppContext,
-    ) -> warpui::r#async::BoxFuture<'static, Option<CloudConversationData>> {
+    ) -> riftui::r#async::BoxFuture<'static, Option<CloudConversationData>> {
         // First check if the conversation is already in memory
         if let Some(conversation) = self.conversations_by_id.get(&conversation_id) {
             return box_future(futures::future::ready(Some(CloudConversationData::Oz(
@@ -289,7 +289,7 @@ impl BlocklistAIHistoryModel {
         &mut self,
         server_token: &ServerConversationToken,
         ctx: &AppContext,
-    ) -> warpui::r#async::BoxFuture<'static, Option<CloudConversationData>> {
+    ) -> riftui::r#async::BoxFuture<'static, Option<CloudConversationData>> {
         let conversation_id =
             self.get_or_set_canonical_conversation_id_for_server_token(server_token);
         if self.conversations_by_id.contains_key(&conversation_id)
@@ -583,12 +583,12 @@ impl BlocklistAIHistoryModel {
                 for task in &agent_conversation.tasks {
                     for message in &task.messages {
                         match &message.message {
-                            Some(warp_multi_agent_api::message::Message::UserQuery(_)) => {
+                            Some(rift_multi_agent_api::message::Message::UserQuery(_)) => {
                                 has_user_query = true;
                             }
-                            Some(warp_multi_agent_api::message::Message::SystemQuery(sys)) => {
+                            Some(rift_multi_agent_api::message::Message::SystemQuery(sys)) => {
                                 if let Some(
-                                    warp_multi_agent_api::message::system_query::Type::AutoCodeDiff(_),
+                                    rift_multi_agent_api::message::system_query::Type::AutoCodeDiff(_),
                                 ) = &sys.r#type
                                 {
                                     has_autocodediff = true;
@@ -614,17 +614,17 @@ impl BlocklistAIHistoryModel {
                         task.messages
                             .iter()
                             .find_map(|msg| match &msg.message {
-                                Some(warp_multi_agent_api::message::Message::UserQuery(
+                                Some(rift_multi_agent_api::message::Message::UserQuery(
                                     user_query,
                                 )) => Some(user_query.query.clone()),
-                                Some(warp_multi_agent_api::message::Message::ToolCall(
+                                Some(rift_multi_agent_api::message::Message::ToolCall(
                                     tool_call,
                                 )) => {
                                     let Some(tool) = &tool_call.tool else {
                                         return None;
                                     };
 
-                                    if let warp_multi_agent_api::message::tool_call::Tool::ApplyFileDiffs(diff_suggestion) = tool
+                                    if let rift_multi_agent_api::message::tool_call::Tool::ApplyFileDiffs(diff_suggestion) = tool
                                     {
                                         Some(diff_suggestion.summary.clone())
                                     } else {

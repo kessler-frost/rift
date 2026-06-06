@@ -1,23 +1,23 @@
-use settings::Setting as _;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{Align, Container, Empty, Flex, MouseStateHandle, ParentElement};
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::modals::{AlertDialogWithCallbacks, AppModalCallback};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::text::Span;
-use warpui::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{Align, Container, Empty, Flex, MouseStateHandle, ParentElement};
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::text::Span;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
+use settings::Setting as _;
 
 use crate::appearance::Appearance;
 use crate::terminal::general_settings::{GeneralSettings, GeneralSettingsChangedEvent};
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 
 pub(super) fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings(vec![
         FixedBinding::new("escape", NativeModalAction::Close, id!("NativeModal")),
@@ -120,7 +120,7 @@ impl View for NativeModal {
         "NativeModal"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         let Some(alert_dialog) = self.alert_dialog.as_ref() else {
             log::warn!("No alert dialog was set for the native modal");
             return Empty::new().finish();

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use warpui::{Action, AppContext};
+use riftui::{Action, AppContext};
 
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{AsyncDataSource, BoxFuture, DataSourceRunErrorWrapper};

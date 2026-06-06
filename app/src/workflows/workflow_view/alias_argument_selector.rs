@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use warp_core::ui::appearance::Appearance;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::ChildView;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use rift_core::ui::appearance::Appearance;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::ChildView;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

@@ -28,10 +28,10 @@ use instant::Instant;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::debug;
+pub use rift_terminal::model::ansi::control_sequence_parameters::*;
+use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
+use riftui::color::ColorU;
 use vte::{Params, Parser as VteParser, Perform as VtePerform};
-pub use warp_terminal::model::ansi::control_sequence_parameters::*;
-use warp_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use warpui::color::ColorU;
 
 use super::kitty::parse_kitty_chunk;
 use super::terminal_model::TmuxInstallationState;
@@ -52,15 +52,15 @@ use crate::{safe_debug, safe_error};
 /// Marks an OSC as one that is sent by Warp logic registered in the shell.
 ///
 /// 9277 spells out "WARP" on a dialpad :).
-const WARP_IN_BAND_GENERATOR_OSC_MARKER: &[u8] = b"9277";
-const WARP_IN_BAND_GENERATOR_START_BYTE: &[u8] = b"A";
-const WARP_IN_BAND_GENERATOR_END_BYTE: &[u8] = b"B";
+const RIFT_IN_BAND_GENERATOR_OSC_MARKER: &[u8] = b"9277";
+const RIFT_IN_BAND_GENERATOR_START_BYTE: &[u8] = b"A";
+const RIFT_IN_BAND_GENERATOR_END_BYTE: &[u8] = b"B";
 
 /// Marks an OSC that is used for messages containing shell hooks.
-const WARP_OSC_MARKER: &[u8] = b"9278";
+const RIFT_OSC_MARKER: &[u8] = b"9278";
 /// Marks an OSC that is used for resetting ConPTY's grid. This is useful for performing a series
 /// of checks ensuring that Warp's grids and ConPTY's grid are in sync.
-const WARP_RESET_GRID_OSC_MARKER: &[u8] = b"9279";
+const RIFT_RESET_GRID_OSC_MARKER: &[u8] = b"9279";
 
 /// The amount of time a single synchronized update can take from the time the corresponding
 /// 'Set Mode' escape sequence is processed before a redraw is forced.
@@ -77,23 +77,23 @@ lazy_static! {
     static ref SYNC_OUTPUT_MAX_BUFFER_SIZE: Byte = Byte::from_u64_with_unit(2, ByteUnit::MiB).expect("Can create byte size for sync output max buffer size");
 }
 
-const WARP_COMPLETIONS_OSC_MARKER: &[u8] = b"9280";
-const WARP_COMPLETIONS_START_BYTE: &[u8] = b"A";
-const WARP_COMPLETIONS_END_BYTE: &[u8] = b"B";
-const WARP_COMPLETIONS_MATCH_RESULT_BYTE: &[u8] = b"C";
+const RIFT_COMPLETIONS_OSC_MARKER: &[u8] = b"9280";
+const RIFT_COMPLETIONS_START_BYTE: &[u8] = b"A";
+const RIFT_COMPLETIONS_END_BYTE: &[u8] = b"B";
+const RIFT_COMPLETIONS_MATCH_RESULT_BYTE: &[u8] = b"C";
 
 /// Denotes an OSC that sends metadata about the last match result.
 /// The sequence begins with `D?` followed by the field that should be updated.
 /// For example: `D?description'{OSC_PAYLOAD}` updates the description of the last match.
-const WARP_COMPLETIONS_MATCH_UPDATE_METADATA: &[u8] = b"D?";
+const RIFT_COMPLETIONS_MATCH_UPDATE_METADATA: &[u8] = b"D?";
 
 /// Marks an OSC that tells the terminal that the shell is ready to receive
 /// the the string to run completions for.
-const WARP_COMPLETIONS_PROMPT_BYTE: &[u8] = b"P";
+const RIFT_COMPLETIONS_PROMPT_BYTE: &[u8] = b"P";
 
-const WARP_KV_START_BYTE: &[u8] = b"A";
-const WARP_KV_ENTRY_BYTE: &[u8] = b"B";
-const WARP_KV_END_BYTE: &[u8] = b"C";
+const RIFT_KV_START_BYTE: &[u8] = b"A";
+const RIFT_KV_ENTRY_BYTE: &[u8] = b"B";
+const RIFT_KV_END_BYTE: &[u8] = b"C";
 
 /// Parse colors in XParseColor format.
 #[allow(dead_code)]
@@ -746,14 +746,14 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
 
     fn handle_kv_marker(&mut self, params: &[&[u8]]) {
         match params.get(2) {
-            Some(&WARP_KV_START_BYTE) => {
+            Some(&RIFT_KV_START_BYTE) => {
                 let Some(hook) = params.get(3).map(|data| String::from_utf8_lossy(data)) else {
                     log::error!("Start pending hook OSC did not contain shell hook");
                     return;
                 };
                 self.handler.start_receiving_hook(hook.into());
             }
-            Some(&WARP_KV_END_BYTE) => {
+            Some(&RIFT_KV_END_BYTE) => {
                 let Some(pending_shell_hook) = self.handler.finish_receiving_hook() else {
                     return;
                 };
@@ -764,7 +764,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
                 );
                 self.handle_decoded_hook(Ok(hook));
             }
-            Some(&WARP_KV_ENTRY_BYTE) => {
+            Some(&RIFT_KV_ENTRY_BYTE) => {
                 let Some(key) = params.get(3) else {
                     log::error!("Pending hook update OSC did not contain key");
                     return;
@@ -1145,12 +1145,12 @@ where
             }
 
             // Received a Warp OSC used for in-band generators.
-            WARP_IN_BAND_GENERATOR_OSC_MARKER => match params.get(1) {
-                Some(&WARP_IN_BAND_GENERATOR_START_BYTE) => {
+            RIFT_IN_BAND_GENERATOR_OSC_MARKER => match params.get(1) {
+                Some(&RIFT_IN_BAND_GENERATOR_START_BYTE) => {
                     log::info!("Received a Warp OSC marker for starting in-band command output.");
                     self.handler.start_in_band_command_output();
                 }
-                Some(&WARP_IN_BAND_GENERATOR_END_BYTE) => {
+                Some(&RIFT_IN_BAND_GENERATOR_END_BYTE) => {
                     self.handler.end_in_band_command_output(true);
                 }
                 _ => {
@@ -1159,7 +1159,7 @@ where
             },
 
             // Received a Warp OSC used for shell hooks.
-            WARP_OSC_MARKER => {
+            RIFT_OSC_MARKER => {
                 let Some(json_marker_char) = params
                     .get(1)
                     .map(|json_marker_bytes| String::from_utf8_lossy(json_marker_bytes))
@@ -1209,14 +1209,14 @@ where
                 }
             }
 
-            WARP_RESET_GRID_OSC_MARKER => {
+            RIFT_RESET_GRID_OSC_MARKER => {
                 log::debug!("Received Warp OSC string for reset grid");
                 self.handler.on_reset_grid();
             }
 
             // Received a Warp OSC used for completions.
-            WARP_COMPLETIONS_OSC_MARKER => match params.get(1) {
-                Some(&WARP_COMPLETIONS_START_BYTE) => {
+            RIFT_COMPLETIONS_OSC_MARKER => match params.get(1) {
+                Some(&RIFT_COMPLETIONS_START_BYTE) => {
                     let Some(format) = params
                         .get(2)
                         .map(|osc_data| String::from_utf8_lossy(osc_data))
@@ -1227,10 +1227,10 @@ where
                     };
                     self.handler.start_completions_output(format);
                 }
-                Some(&WARP_COMPLETIONS_END_BYTE) => {
+                Some(&RIFT_COMPLETIONS_END_BYTE) => {
                     self.handler.end_completions_output();
                 }
-                Some(&WARP_COMPLETIONS_MATCH_RESULT_BYTE) => {
+                Some(&RIFT_COMPLETIONS_MATCH_RESULT_BYTE) => {
                     // The payload for the OSC is contained in the third parameter.
                     let Some(data_str) = params
                         .get(2)
@@ -1247,7 +1247,7 @@ where
                     self.handler
                         .on_completion_result_received(shell_completion_result);
                 }
-                Some(bytes) if bytes.starts_with(WARP_COMPLETIONS_MATCH_UPDATE_METADATA) => {
+                Some(bytes) if bytes.starts_with(RIFT_COMPLETIONS_MATCH_UPDATE_METADATA) => {
                     let Ok(parameter) = String::from_utf8(bytes.to_vec()) else {
                         log::warn!(
                             "Unable to convert update completions match parameter into a string"
@@ -1280,7 +1280,7 @@ where
                         }
                     }
                 }
-                Some(&WARP_COMPLETIONS_PROMPT_BYTE) => {
+                Some(&RIFT_COMPLETIONS_PROMPT_BYTE) => {
                     self.handler.send_completions_prompt();
                 }
                 _ => {

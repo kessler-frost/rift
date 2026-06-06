@@ -12,10 +12,10 @@ use std::sync::Arc;
 
 use instant::Instant;
 use remote_server::manager::{RemoteServerManager, RemoteServerManagerEvent};
-use warp_core::{send_telemetry_from_ctx, HostId, SessionId};
-use warp_util::remote_path::RemotePath;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::{ModelContext, SingletonEntity};
+use rift_core::{send_telemetry_from_ctx, HostId, SessionId};
+use rift_util::remote_path::RemotePath;
+use rift_util::standardized_path::StandardizedPath;
+use riftui::{ModelContext, SingletonEntity};
 
 use super::{
     BackendOrigin, DiffMetadata, DiffMode, DiffOperation, DiffState, DiffStateError,
@@ -51,7 +51,7 @@ pub struct RemoteDiffStateModel {
     tracked_diff_load_start_time: Option<Instant>,
 }
 
-impl warpui::Entity for RemoteDiffStateModel {
+impl riftui::Entity for RemoteDiffStateModel {
     type Event = DiffStateModelEvent;
 }
 
@@ -249,7 +249,7 @@ impl RemoteDiffStateModel {
             Ok((metadata, state, diffs)) => self.apply_snapshot(metadata, state, diffs, ctx),
             Err(error) => {
                 self.tracked_diff_load_start_time = None;
-                warp_core::safe_error!(
+                rift_core::safe_error!(
                     safe: ("RemoteDiffStateModel: failed to decode diff state snapshot"),
                     full: ("RemoteDiffStateModel: failed to decode diff state snapshot: {error}")
                 );
@@ -271,7 +271,7 @@ impl RemoteDiffStateModel {
             Ok(Some(metadata)) => self.apply_metadata_update(&metadata, ctx),
             Ok(None) => {}
             Err(error) => {
-                warp_core::safe_error!(
+                rift_core::safe_error!(
                     safe: ("RemoteDiffStateModel: failed to decode diff state metadata update"),
                     full: ("RemoteDiffStateModel: failed to decode diff state metadata update: {error}")
                 );
@@ -289,7 +289,7 @@ impl RemoteDiffStateModel {
                 self.apply_file_delta(file_path, diff, metadata, ctx)
             }
             Err(error) => {
-                warp_core::safe_error!(
+                rift_core::safe_error!(
                     safe: ("RemoteDiffStateModel: failed to decode diff state file delta"),
                     full: ("RemoteDiffStateModel: failed to decode diff state file delta: {error}")
                 );
@@ -371,7 +371,7 @@ impl RemoteDiffStateModel {
                     .take()
                     .map(|start| start.elapsed());
                 let err = DiffStateError::from_message(&msg);
-                warp_core::report_error!(&err);
+                rift_core::report_error!(&err);
                 send_telemetry_from_ctx!(
                     CodeReviewTelemetryEvent::LoadDiffFailed {
                         backend_origin: BackendOrigin::ClientRemote,
@@ -395,7 +395,7 @@ impl RemoteDiffStateModel {
                         .take()
                         .map(|start| start.elapsed());
                     let err = DiffStateError::empty_diff_data();
-                    warp_core::report_error!(&err);
+                    rift_core::report_error!(&err);
                     send_telemetry_from_ctx!(
                         CodeReviewTelemetryEvent::LoadDiffFailed {
                             backend_origin: BackendOrigin::ClientRemote,
@@ -557,7 +557,7 @@ impl RemoteDiffStateModel {
         }
     }
 
-    pub fn is_git_operation_blocked(&self, _ctx: &warpui::AppContext) -> bool {
+    pub fn is_git_operation_blocked(&self, _ctx: &riftui::AppContext) -> bool {
         false
     }
 

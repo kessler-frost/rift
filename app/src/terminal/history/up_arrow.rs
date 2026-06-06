@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, EntityId, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, EntityId, SingletonEntity};
 
 use super::History;
 use crate::ai::blocklist::{BlocklistAIHistoryModel, InputConfig};

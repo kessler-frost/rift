@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Local, TimeZone as _};
 use futures::Future;
+use rift_core::command::ExitCode;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warp_core::command::ExitCode;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::model::block::{AgentInteractionMetadata, Block, SerializedAIMetadata, SerializedBlock};
 use super::shell::ShellType;

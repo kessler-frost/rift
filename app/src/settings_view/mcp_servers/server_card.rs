@@ -1,23 +1,23 @@
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::external_product_icon::ExternalProductIcon;
-use warp_core::ui::icons::{Icon, ICON_DIMENSIONS};
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::AnsiColorIdentifier;
-use warpui::accessibility::ActionAccessibilityContent;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::external_product_icon::ExternalProductIcon;
+use rift_core::ui::icons::{Icon, ICON_DIMENSIONS};
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::AnsiColorIdentifier;
+use riftui::accessibility::ActionAccessibilityContent;
+use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Expanded, Fill, Flex,
     FormattedTextElement, HighlightedHyperlink, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseState, MouseStateHandle, Padding, ParentElement, Radius, Text, Wrap,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::chip::Chip;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::chip::Chip;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::ai::mcp::templatable::CloudTemplatableMCPServer;
 use crate::ai::mcp::{MCPServerState, TemplatableMCPServerManager};
@@ -859,7 +859,7 @@ impl ServerCardView {
         }
 
         if self.render_options.show_add_icon {
-            let add_icon = warpui::elements::Icon::new(
+            let add_icon = riftui::elements::Icon::new(
                 Icon::Plus.into(),
                 blended_colors::text_main(appearance.theme(), appearance.theme().background()),
             );

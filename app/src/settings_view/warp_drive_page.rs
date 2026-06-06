@@ -1,15 +1,15 @@
-use warp_core::features::FeatureFlag;
-use warp_core::report_if_error;
-use warp_core::settings::ToggleableSetting as _;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::report_if_error;
+use rift_core::settings::ToggleableSetting as _;
+use riftui::elements::{
     Container, Element, Flex, MouseStateHandle, ParentElement, Shrinkable, Text,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::ContextPredicate;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::ContextPredicate;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     id, Action, AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
@@ -189,8 +189,8 @@ impl SettingsWidget for WarpDriveHeaderWidget {
                 .with_style(UiComponentStyles {
                     font_size: Some(14.),
                     font_weight: Some(Weight::Semibold),
-                    border_radius: Some(warpui::elements::CornerRadius::with_all(
-                        warpui::elements::Radius::Pixels(4.),
+                    border_radius: Some(riftui::elements::CornerRadius::with_all(
+                        riftui::elements::Radius::Pixels(4.),
                     )),
                     padding: Some(Coords {
                         top: 8.,
@@ -211,7 +211,7 @@ impl SettingsWidget for WarpDriveHeaderWidget {
 
         Container::new(
             Flex::row()
-                .with_cross_axis_alignment(warpui::elements::CrossAxisAlignment::Center)
+                .with_cross_axis_alignment(riftui::elements::CrossAxisAlignment::Center)
                 .with_child(Shrinkable::new(1., message).finish())
                 .with_child(button)
                 .finish(),

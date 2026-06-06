@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use instant::Instant;
+use rift_cli::agent::Harness;
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_terminal::model::BlockId;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 use session_sharing_protocol::common::SessionId;
-use warp_cli::agent::Harness;
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_terminal::model::BlockId;
-use warpui::r#async::{SpawnedFutureHandle, Timer};
-use warpui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 
 use super::AmbientAgentProgressUIState;
 use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
@@ -1153,7 +1153,7 @@ impl AmbientAgentViewModel {
     /// Builds the default `AgentConfigSnapshot` for spawning a cloud agent from this pane.
     ///
     /// Reads the user's preferred model, computer-use autonomy, optional self-hosted
-    /// host (`WARP_CLOUD_MODE_DEFAULT_HOST`), and the pane's currently-selected env
+    /// host (`RIFT_CLOUD_MODE_DEFAULT_HOST`), and the pane's currently-selected env
     /// and harness. Shared by `spawn_agent` and the local-to-cloud handoff path so
     /// both flows route to the same worker host and inherit the same defaults.
     pub(crate) fn build_default_spawn_config(&self, ctx: &AppContext) -> AgentConfigSnapshot {

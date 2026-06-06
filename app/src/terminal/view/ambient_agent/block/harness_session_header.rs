@@ -1,13 +1,13 @@
-use warp_core::ui::appearance::Appearance;
-use warp_terminal::model::BlockId;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_terminal::model::BlockId;
+use riftui::elements::{
     ConstrainedBox, CrossAxisAlignment, Flex, Hoverable, MainAxisSize, ParentElement, Shrinkable,
     Text,
 };
-use warpui::platform::Cursor;
-use warpui::prelude::{Container, MouseStateHandle};
-use warpui::text_layout::ClipConfig;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::platform::Cursor;
+use riftui::prelude::{Container, MouseStateHandle};
+use riftui::text_layout::ClipConfig;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::terminal::view::PADDING_LEFT;
 use crate::terminal::CLIAgent;

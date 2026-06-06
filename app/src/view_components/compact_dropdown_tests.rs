@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{App, View};
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{App, View};
 
 use super::{CompactDropdown, CompactDropdownItem};
 use crate::menu::MenuVariant;

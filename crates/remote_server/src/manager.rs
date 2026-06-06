@@ -8,15 +8,15 @@ use std::time::Duration;
 
 use futures::channel::oneshot;
 use repo_metadata::RepoMetadataUpdate;
+#[cfg(not(target_family = "wasm"))]
+use rift_core::channel::ChannelState;
+use rift_core::SessionId;
+use rift_util::remote_path::{RemoteNavigationResult, RemotePath};
+use rift_util::standardized_path::StandardizedPath;
+#[cfg(not(target_family = "wasm"))]
+use riftui_core::r#async::FutureExt as _;
+use riftui_core::{Entity, ModelContext, ModelSpawner, SingletonEntity};
 use serde::Serialize;
-#[cfg(not(target_family = "wasm"))]
-use warp_core::channel::ChannelState;
-use warp_core::SessionId;
-use warp_util::remote_path::{RemoteNavigationResult, RemotePath};
-use warp_util::standardized_path::StandardizedPath;
-#[cfg(not(target_family = "wasm"))]
-use warpui_core::r#async::FutureExt as _;
-use warpui_core::{Entity, ModelContext, ModelSpawner, SingletonEntity};
 
 use crate::auth::RemoteServerAuthContext;
 #[cfg(not(target_family = "wasm"))]
@@ -978,7 +978,7 @@ pub struct RemoteServerManager {
     /// Only used off-wasm (timers and detached tasks aren't available on
     /// wasm), so the field is allowed to be dead there.
     #[cfg_attr(target_family = "wasm", allow(dead_code))]
-    executor: Arc<warpui_core::r#async::executor::Background>,
+    executor: Arc<riftui_core::r#async::executor::Background>,
 }
 
 impl Entity for RemoteServerManager {
@@ -1821,7 +1821,7 @@ impl RemoteServerManager {
         auth_context: &RemoteServerAuthContext,
         codebase_index_limits: Option<CodebaseIndexLimits>,
         spawner: &ModelSpawner<Self>,
-        executor: &Arc<warpui_core::r#async::executor::Background>,
+        executor: &Arc<riftui_core::r#async::executor::Background>,
     ) -> Result<InitializeHandshake, ConnectAndHandshakeError> {
         // Phase 1: Connect (establish streams, create client).
         let Connection {

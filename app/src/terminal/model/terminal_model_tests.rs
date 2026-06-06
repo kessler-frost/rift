@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, Local};
+use rift_core::command::ExitCode;
+use rift_terminal::model::ansi::ClearMode;
+use riftui::r#async::executor::Background;
+use riftui::text::{str_to_byte_vec, SelectionType};
 use vec1::vec1;
-use warp_core::command::ExitCode;
-use warp_terminal::model::ansi::ClearMode;
-use warpui::r#async::executor::Background;
-use warpui::text::{str_to_byte_vec, SelectionType};
 
 use super::*;
 use crate::terminal::color;

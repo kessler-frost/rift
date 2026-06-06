@@ -4,9 +4,9 @@ use std::sync::mpsc::SyncSender;
 use chrono::{DateTime, Duration, Utc};
 use itertools::Itertools;
 use rand::Rng;
-use warp_core::features::FeatureFlag;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::generic_string_model::GenericStringObjectId;
 use crate::ai::execution_profiles::CloudAIExecutionProfile;

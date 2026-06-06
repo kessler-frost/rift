@@ -3,8 +3,8 @@ use std::{pin, task};
 
 use futures_lite::{ready, Stream};
 use pin::Pin;
+use riftui::r#async::Timer;
 use task::{Context, Poll};
-use warpui::r#async::Timer;
 
 pub struct Throttle<S> {
     period: Duration,

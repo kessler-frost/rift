@@ -1,10 +1,10 @@
+use rift_core::ui::builder::MIN_FONT_SIZE;
+use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
+use riftui::fonts::Weight;
+use riftui::rendering::ThinStrokes;
+use riftui::{AppContext, SingletonEntity};
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
-use warp_core::ui::builder::MIN_FONT_SIZE;
-use warpui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
-use warpui::fonts::Weight;
-use warpui::rendering::ThinStrokes;
-use warpui::{AppContext, SingletonEntity};
 
 use super::EnforceMinimumContrast as EnforceMinimumContrastEnum;
 

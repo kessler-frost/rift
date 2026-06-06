@@ -5,10 +5,10 @@ use std::path::PathBuf;
 use async_recursion::async_recursion;
 use async_trait::async_trait;
 use pathfinder_color::ColorU;
+use rift_core::ui::color::hex_color::coloru_from_hex_string;
+use rift_core::ui::theme::{AnsiColor, AnsiColors, TerminalColors, WarpTheme};
+use riftui::fonts::FontInfo;
 use serde::Deserialize;
-use warp_core::ui::color::hex_color::coloru_from_hex_string;
-use warp_core::ui::theme::{AnsiColor, AnsiColors, TerminalColors, WarpTheme};
-use warpui::fonts::FontInfo;
 
 use super::config::{
     calculate_accent_color, Config, ConfigError, ImportableSetting, ParseableConfig, SettingType,

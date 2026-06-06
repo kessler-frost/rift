@@ -3,21 +3,21 @@ use std::mem;
 use std::ops::Range;
 use std::sync::Arc;
 
-use string_offset::{ByteOffset, CharOffset};
-use warp_completer::signatures::CommandRegistry;
-use warp_editor::content::anchor::Anchor;
-use warp_editor::content::buffer::Buffer;
-use warp_editor::content::selection_model::BufferSelectionModel;
-use warp_editor::editor::EmbeddedItemModel;
-use warp_util::user_input::UserInput;
-use warpui::elements::{
+use rift_completer::signatures::CommandRegistry;
+use rift_editor::content::anchor::Anchor;
+use rift_editor::content::buffer::Buffer;
+use rift_editor::content::selection_model::BufferSelectionModel;
+use rift_editor::editor::EmbeddedItemModel;
+use rift_util::user_input::UserInput;
+use riftui::elements::{
     Align, Border, Container, CrossAxisAlignment, Empty, Flex, MainAxisAlignment, MouseStateHandle,
     ParentElement, Shrinkable,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, Entity, ModelAsRef, ModelContext, ModelHandle, SingletonEntity};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, Entity, ModelAsRef, ModelContext, ModelHandle, SingletonEntity};
+use string_offset::{ByteOffset, CharOffset};
 
 use super::embedded_item::EmbeddedWorkflow;
 use super::keys::{custom_action_to_display, NotebookKeybindings};

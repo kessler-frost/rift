@@ -1,4 +1,4 @@
-use warpui::{Entity, ModelContext, SingletonEntity};
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 pub struct FileMCPWatcher {}
 

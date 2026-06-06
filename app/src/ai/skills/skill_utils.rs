@@ -8,13 +8,13 @@ use ai::skills::{
     provider_parent_directory_for_skills_root, provider_rank, ParsedSkill, SkillProvider,
 };
 use lazy_static::lazy_static;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::prelude::MouseStateHandle;
+use riftui::{AppContext, Element, EventContext, SingletonEntity};
 use siphasher::sip::SipHasher;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::prelude::MouseStateHandle;
-use warpui::{AppContext, Element, EventContext, SingletonEntity};
 
 use super::{SkillDescriptor, SkillManager};
 use crate::ai::agent::conversation::AIConversationId;
@@ -58,7 +58,7 @@ fn try_insert_skill(
 ///
 /// Two skills are considered duplicates only when they share the same owning directory
 /// **and** identical content — which is the common case when a tool like `npx skills`
-/// symlinks the same skill under `~/.agents/skills/`, `~/.warp/skills/`, `~/.claude/skills/`, etc.
+/// symlinks the same skill under `~/.agents/skills/`, `~/.rift/skills/`, `~/.claude/skills/`, etc.
 ///
 /// Each element of `skill_paths` is a `(dir_path, skill_file_path)` tuple where
 /// `dir_path` is the directory that owns the skill.

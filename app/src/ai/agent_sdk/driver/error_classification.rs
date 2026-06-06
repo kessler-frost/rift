@@ -1,4 +1,4 @@
-use warp_graphql::ai::{AgentTaskState, PlatformErrorCode};
+use rift_graphql::ai::{AgentTaskState, PlatformErrorCode};
 
 use super::terminal::ShareSessionError;
 use super::AgentDriverError;
@@ -71,12 +71,12 @@ pub fn classify_driver_error(error: &AgentDriverError) -> (AgentTaskState, TaskS
             ),
         ),
         AgentDriverError::NotLoggedIn => {
-            let bin = warp_cli::binary_name().unwrap_or_else(|| "warp".to_string());
+            let bin = rift_cli::binary_name().unwrap_or_else(|| "warp".to_string());
             (
                 AgentTaskState::Error,
                 TaskStatusUpdate::with_error_code(
                     format!(
-                        "Authentication required. Log in via '{bin} login', provide an API key via '--api-key', or set the WARP_API_KEY environment variable."
+                        "Authentication required. Log in via '{bin} login', provide an API key via '--api-key', or set the RIFT_API_KEY environment variable."
                     ),
                     PlatformErrorCode::AuthenticationRequired,
                 ),

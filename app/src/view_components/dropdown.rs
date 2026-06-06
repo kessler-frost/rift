@@ -2,18 +2,18 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use pathfinder_color::ColorU;
-use warpui::elements::{
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, Element, Fill, Icon,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentElement,
     PositionedElementAnchor, PositionedElementOffsetBounds, SavePosition, Stack,
 };
-use warpui::fonts::FamilyId;
-use warpui::geometry::vector::vec2f;
-use warpui::scene::DropShadow;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::FamilyId;
+use riftui::geometry::vector::vec2f;
+use riftui::scene::DropShadow;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     Action, AppContext, BlurContext, Entity, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WeakViewHandle,
 };

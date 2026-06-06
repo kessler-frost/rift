@@ -1,6 +1,6 @@
 //! Compact free-form text input used by inline AI block actions.
-use warpui::presenter::ChildView;
-use warpui::{
+use riftui::presenter::ChildView;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, View, ViewContext, ViewHandle,
 };
 

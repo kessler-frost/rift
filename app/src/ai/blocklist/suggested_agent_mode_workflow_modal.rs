@@ -3,16 +3,16 @@ use std::default::Default;
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::vec2f;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     ChildAnchor, Empty, OffsetPositioning, PositionedElementAnchor, PositionedElementOffsetBounds,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
@@ -66,7 +66,7 @@ pub enum SuggestedAgentModeWorkflowModalEvent {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",

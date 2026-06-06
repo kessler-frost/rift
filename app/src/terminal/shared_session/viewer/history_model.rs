@@ -1,4 +1,4 @@
-use warpui::Entity;
+use riftui::Entity;
 
 use crate::terminal::HistoryEntry;
 

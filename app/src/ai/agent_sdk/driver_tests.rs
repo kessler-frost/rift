@@ -7,17 +7,17 @@ use std::time::Duration;
 
 use futures::channel::oneshot;
 use repo_metadata::{DirectoryWatcher, RepoMetadataEvent, RepoMetadataModel, RepositoryIdentifier};
-use tempfile::TempDir;
-use warp_cli::agent::Harness;
-use warp_cli::skill::SkillSpec;
-use warp_cli::{
+use rift_cli::agent::Harness;
+use rift_cli::skill::SkillSpec;
+use rift_cli::{
     OZ_CLI_ENV, OZ_HARNESS_ENV, OZ_PARENT_RUN_ID_ENV, OZ_RUN_ID_ENV, SERVER_ROOT_URL_OVERRIDE_ENV,
     SESSION_SHARING_SERVER_URL_OVERRIDE_ENV, WS_SERVER_URL_OVERRIDE_ENV,
 };
-use warp_core::channel::ChannelState;
-use warp_managed_secrets::ManagedSecretValue;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::{App, SingletonEntity as _};
+use rift_core::channel::ChannelState;
+use rift_managed_secrets::ManagedSecretValue;
+use rift_util::standardized_path::StandardizedPath;
+use riftui::{App, SingletonEntity as _};
+use tempfile::TempDir;
 
 use super::{
     build_secret_env_vars, AgentDriver, IdleTimeoutSender,

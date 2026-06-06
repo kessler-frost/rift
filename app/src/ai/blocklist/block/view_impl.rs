@@ -34,25 +34,25 @@ use std::collections::{HashMap, HashSet};
 use common::get_highlight_ranges_for_find_matches;
 use itertools::Itertools;
 use pathfinder_color::ColorU;
-use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::ui::color::contrast::{
+use rift_core::features::FeatureFlag;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::color::contrast::{
     foreground_color_with_minimum_contrast, MinimumAllowedContrast,
 };
-use warp_core::ui::color::Rgb;
-use warp_core::ui::theme::{Fill, WarpTheme};
-use warpui::elements::{
+use rift_core::ui::color::Rgb;
+use rift_core::ui::theme::{Fill, WarpTheme};
+use riftui::elements::{
     Align, Border, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, FormattedTextElement, Highlight, HighlightedRange, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, SavePosition,
     SelectableArea, Text,
 };
-use warpui::fonts::Properties;
-use warpui::platform::Cursor;
-use warpui::text_layout::TextStyle;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, SingletonEntity, View, ViewContext};
+use riftui::fonts::Properties;
+use riftui::platform::Cursor;
+use riftui::text_layout::TextStyle;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, SingletonEntity, View, ViewContext};
+use settings::Setting as _;
 
 use super::secret_redaction::SecretRedactionState;
 use super::{
@@ -93,7 +93,7 @@ use crate::workspace::WorkspaceAction;
 fn create_secret_gray_highlight() -> Highlight {
     Highlight::new().with_text_style(
         TextStyle::new()
-            .with_foreground_color(warpui::color::ColorU::new(128, 128, 128, 255))
+            .with_foreground_color(riftui::color::ColorU::new(128, 128, 128, 255))
             .with_show_strikethrough(true),
     )
 }
@@ -132,7 +132,7 @@ fn add_slash_command_highlight(
 
         let current_properties = existing.properties();
         let mut bold_properties = current_properties;
-        bold_properties.weight = warpui::fonts::Weight::Bold;
+        bold_properties.weight = riftui::fonts::Weight::Bold;
 
         Highlight::new()
             .with_text_style(updated_style)
@@ -140,7 +140,7 @@ fn add_slash_command_highlight(
     } else {
         // Create new highlight with default properties and bold weight
         let default_properties = Properties {
-            weight: warpui::fonts::Weight::Bold,
+            weight: riftui::fonts::Weight::Bold,
             ..Default::default()
         };
         Highlight::new()
@@ -727,7 +727,7 @@ pub fn render_citation(
 /// [`render_autonomy_checkbox_setting_speedbump_footer`].
 pub fn render_autonomy_dropdown_setting_speedbump_footer<A>(
     description: &'static str,
-    dropdown: &warpui::ViewHandle<crate::view_components::dropdown::Dropdown<A>>,
+    dropdown: &riftui::ViewHandle<crate::view_components::dropdown::Dropdown<A>>,
     settings_link_handle: MouseStateHandle,
     app: &AppContext,
 ) -> Box<dyn Element>
@@ -755,7 +755,7 @@ where
                 .finish(),
             )
             .with_child(
-                Container::new(warpui::elements::ChildView::new(dropdown).finish())
+                Container::new(riftui::elements::ChildView::new(dropdown).finish())
                     .with_margin_right(8.)
                     .finish(),
             )
@@ -1250,13 +1250,13 @@ impl View for AIBlock {
         selectable.finish()
     }
 
-    fn on_focus(&mut self, focus_ctx: &warpui::FocusContext, ctx: &mut ViewContext<Self>) {
+    fn on_focus(&mut self, focus_ctx: &riftui::FocusContext, ctx: &mut ViewContext<Self>) {
         if focus_ctx.is_self_focused() {
             self.focus_subview_if_necessary(ctx);
         }
     }
 
-    fn keymap_context(&self, app: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut context = Self::default_keymap_context();
 
         if self

@@ -1,10 +1,10 @@
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable, Icon,
     MouseStateHandle, ParentElement, Radius, Text,
 };
-use warpui::platform::Cursor;
-use warpui::{Element, EventContext};
+use riftui::platform::Cursor;
+use riftui::{Element, EventContext};
 
 use crate::appearance::Appearance;
 use crate::search::QueryFilter;

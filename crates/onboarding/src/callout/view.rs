@@ -1,12 +1,12 @@
-use ui_components::Component;
-use warp_core::ui::appearance::Appearance;
-use warpui_core::elements::Empty;
-use warpui_core::keymap::macros::*;
-use warpui_core::keymap::{FixedBinding, Keystroke};
-use warpui_core::{
+use rift_core::ui::appearance::Appearance;
+use riftui_core::elements::Empty;
+use riftui_core::keymap::macros::*;
+use riftui_core::keymap::{FixedBinding, Keystroke};
+use riftui_core::{
     AppContext, Element, Entity, EventContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext,
 };
+use ui_components::Component;
 
 /// Display strings for keybindings shown in the onboarding callout.
 #[derive(Clone, Debug)]

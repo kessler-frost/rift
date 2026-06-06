@@ -9,14 +9,14 @@ use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::CanonicalizedPath;
 #[cfg(feature = "local_fs")]
 use repo_metadata::RepoMetadataModel;
+use rift_editor::editor::NavigationKey;
+use riftui::platform::WindowStyle;
+use riftui::{AddSingletonModel, App, ViewHandle};
 use session_sharing_protocol::common::SessionId;
 #[cfg(feature = "local_fs")]
 use tempfile::TempDir;
 use terminal::shared_session::permissions_manager::SessionPermissionsManager;
 use terminal::view::ActiveSessionState;
-use warp_editor::editor::NavigationKey;
-use warpui::platform::WindowStyle;
-use warpui::{AddSingletonModel, App, ViewHandle};
 use watcher::HomeDirectoryWatcher;
 
 use super::*;
@@ -549,7 +549,7 @@ fn test_worktree_sidecar_search_editor_enter_executes_selection() {
 }
 
 /// RAII guard that removes tab config TOML files whose name starts with
-/// `prefix` from `~/.warp/tab_configs/` on drop. Because `Drop` runs even
+/// `prefix` from `~/.rift/tab_configs/` on drop. Because `Drop` runs even
 /// when a test panics, this prevents stale worktree configs from leaking
 /// into Warp dev.
 #[cfg(feature = "local_fs")]
@@ -3048,11 +3048,11 @@ fn test_worktree_sidecar_hides_linked_worktrees_from_repo_list() {
             let external_git_dir_canon = CanonicalizedPath::try_from(external_git_dir.as_path())
                 .expect("canonical external git dir");
 
-            let main_repo_std: warp_util::standardized_path::StandardizedPath =
+            let main_repo_std: rift_util::standardized_path::StandardizedPath =
                 main_repo_canon.into();
-            let linked_worktree_std: warp_util::standardized_path::StandardizedPath =
+            let linked_worktree_std: rift_util::standardized_path::StandardizedPath =
                 linked_worktree_canon.into();
-            let external_git_dir_std: warp_util::standardized_path::StandardizedPath =
+            let external_git_dir_std: rift_util::standardized_path::StandardizedPath =
                 external_git_dir_canon.into();
 
             DetectedRepositories::handle(ctx).update(ctx, |repos, _ctx| {

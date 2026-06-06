@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use warpui_core::geometry::vector::{Vector2F, vec2f};
-use warpui_core::text_layout::Line;
-use warpui_core::{AppContext, LayoutContext};
+use riftui_core::geometry::vector::{Vector2F, vec2f};
+use riftui_core::text_layout::Line;
+use riftui_core::{AppContext, LayoutContext};
 
 use super::{CursorData, RenderContext};
 use crate::content::text::BufferBlockStyle;

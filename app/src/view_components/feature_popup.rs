@@ -1,9 +1,9 @@
-use warpui::elements::{
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable, MouseStateHandle,
     ParentElement, Radius, Text,
 };
-use warpui::platform::Cursor;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::platform::Cursor;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
 use crate::ui_components::icons::Icon;

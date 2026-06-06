@@ -10,9 +10,9 @@ use channel_versions::VersionInfo;
 use command::blocking::Command;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
+use rift_core::channel::{Channel, ChannelState};
+use riftui::AppContext;
 use tempfile::TempPath;
-use warp_core::channel::{Channel, ChannelState};
-use warpui::AppContext;
 
 use super::{release_assets_directory_url, DownloadReady};
 use crate::server::telemetry::TelemetryEvent;
@@ -75,7 +75,7 @@ pub(super) async fn download_update_and_cleanup(
 const UPDATE_LOG_FILENAME: &str = "warp_update.log";
 
 fn autoupdate_log_file() -> Result<PathBuf> {
-    warp_logging::log_directory().map(|dir| dir.join(UPDATE_LOG_FILENAME))
+    rift_logging::log_directory().map(|dir| dir.join(UPDATE_LOG_FILENAME))
 }
 
 fn parse_exit_code_after_marker(contents_lowercase: &[u8], failed_marker: &[u8]) -> Option<i32> {

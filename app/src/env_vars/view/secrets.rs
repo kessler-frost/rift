@@ -1,17 +1,17 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, Empty, Fill, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Shrinkable, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::fonts::Weight;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 #[cfg(not(target_family = "wasm"))]
-use warpui::SingletonEntity;
-use warpui::{Element, ViewContext};
+use riftui::SingletonEntity;
+use riftui::{Element, ViewContext};
 
 use super::env_var_collection::{
     EnvVarCollectionAction, EnvVarCollectionView, VariableRowIndex, CORE_MAX_WIDTH, ROW_SPACING,

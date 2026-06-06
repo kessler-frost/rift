@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{App, SingletonEntity, ViewHandle};
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{App, SingletonEntity, ViewHandle};
 
 use super::WorkflowModal;
 use crate::auth::AuthStateProvider;

@@ -1,5 +1,5 @@
+use riftui::{AppContext, SingletonEntity};
 use serde::Serialize;
-use warpui::{AppContext, SingletonEntity};
 
 use super::conversation::AIConversationId;
 use super::{

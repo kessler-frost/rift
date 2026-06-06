@@ -3,9 +3,9 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use rift_cli::agent::Harness;
 use shell_words::quote as shell_quote;
 use uuid::Uuid;
-use warp_cli::agent::Harness;
 
 use crate::ai::agent_sdk::driver::harness::claude_code::prepare_claude_environment_config;
 use crate::ai::agent_sdk::driver::harness::{

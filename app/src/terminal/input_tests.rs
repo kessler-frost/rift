@@ -9,22 +9,22 @@ use fuzzy_match::FuzzyMatchResult;
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::RepoMetadataModel;
+use rift_completer::completer::{
+    EngineFileType, Match, MatchStrategy, MatchedSuggestion, Priority, Suggestion,
+    SuggestionResults, SuggestionType,
+};
+use rift_completer::meta::Span;
+use rift_util::user_input::UserInput;
+use riftui::platform::WindowStyle;
+use riftui::r#async::Timer;
+use riftui::telemetry::EventPayload;
+use riftui::text::SelectionType;
+use riftui::{App, ReadModel, UpdateView, WindowId};
 use session_sharing_protocol::common::Role;
 use smol_str::SmolStr;
 use unindent::Unindent;
 #[cfg(feature = "voice_input")]
 use voice_input::VoiceInputToggledFrom;
-use warp_completer::completer::{
-    EngineFileType, Match, MatchStrategy, MatchedSuggestion, Priority, Suggestion,
-    SuggestionResults, SuggestionType,
-};
-use warp_completer::meta::Span;
-use warp_util::user_input::UserInput;
-use warpui::platform::WindowStyle;
-use warpui::r#async::Timer;
-use warpui::telemetry::EventPayload;
-use warpui::text::SelectionType;
-use warpui::{App, ReadModel, UpdateView, WindowId};
 use watcher::HomeDirectoryWatcher;
 use workflows::workflow::{Argument, ArgumentType, Workflow};
 
@@ -6284,7 +6284,7 @@ fn test_source_less_locked_config_clears_decision_source() {
 #[test]
 fn test_input_buffer_submitted_telemetry_uses_raw_input_type_decision_source() {
     fn input_buffer_submitted_events() -> Vec<serde_json::Value> {
-        warpui::telemetry::flush_events()
+        riftui::telemetry::flush_events()
             .into_iter()
             .filter_map(|event| match event.payload {
                 EventPayload::NamedEvent { name, value, .. }
@@ -7144,7 +7144,7 @@ fn test_custom_terminal_page_scroll_binding_applies_when_prompt_is_focused() {
         app.update(|ctx| {
             ctx.set_custom_trigger(
                 "terminal:scroll_up_one_page".to_owned(),
-                warpui::keymap::Trigger::Keystrokes(
+                riftui::keymap::Trigger::Keystrokes(
                     vec![Keystroke::parse("shift-pageup").unwrap()],
                 ),
             );

@@ -7,20 +7,20 @@ use std::ops::Range;
 
 use lazy_static::lazy_static;
 use rangemap::RangeSet;
+use rift_editor::content::version::BufferVersion;
+use rift_editor::editor::{EmbeddedItemModel, RunnableCommandModel, TextDecoration};
+use rift_editor::model::{CoreEditorModel, PlainTextEditorModel};
+use rift_editor::render::element::RichTextAction;
+use rift_editor::render::model::{ExpansionType, LineCount, Location};
+use rift_editor::selection::{TextDirection, TextUnit};
+use rift_util::user_input::UserInput;
+use riftui::actions::StandardAction;
+use riftui::elements::Axis;
+use riftui::event::ModifiersState;
+use riftui::keymap::{EditableBinding, FixedBinding, Keystroke, PerPlatformKeystroke};
+use riftui::units::Pixels;
+use riftui::{AppContext, TypedActionView, ViewContext, WeakViewHandle};
 use string_offset::CharOffset;
-use warp_editor::content::version::BufferVersion;
-use warp_editor::editor::{EmbeddedItemModel, RunnableCommandModel, TextDecoration};
-use warp_editor::model::{CoreEditorModel, PlainTextEditorModel};
-use warp_editor::render::element::RichTextAction;
-use warp_editor::render::model::{ExpansionType, LineCount, Location};
-use warp_editor::selection::{TextDirection, TextUnit};
-use warp_util::user_input::UserInput;
-use warpui::actions::StandardAction;
-use warpui::elements::Axis;
-use warpui::event::ModifiersState;
-use warpui::keymap::{EditableBinding, FixedBinding, Keystroke, PerPlatformKeystroke};
-use warpui::units::Pixels;
-use warpui::{AppContext, TypedActionView, ViewContext, WeakViewHandle};
 
 use crate::cmd_or_ctrl_shift;
 use crate::code::editor::line::EditorLineLocation;
@@ -42,7 +42,7 @@ lazy_static! {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     let text_entry = id!("CodeEditorView") & !id!("IMEOpen");
     // We use this to disable some keybindings that would conflict with the Agent Mode embedded editor.
@@ -1128,7 +1128,7 @@ impl TypedActionView for CodeEditorView {
     }
 }
 
-impl warp_editor::editor::EditorView for CodeEditorView {
+impl rift_editor::editor::EditorView for CodeEditorView {
     type RichTextAction = CodeEditorViewAction;
 
     fn runnable_command_at<'a>(

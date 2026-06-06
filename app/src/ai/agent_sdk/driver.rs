@@ -19,19 +19,19 @@ use itertools::Itertools as _;
 use oneshot::{Canceled, Receiver, Sender};
 use repo_metadata::local_model::IndexedRepoState;
 use repo_metadata::{RepoMetadataModel, RepositoryIdentifier};
+use rift_cli::agent::{Harness, OutputFormat};
+use rift_cli::mcp::MCPSpec;
+use rift_cli::share::ShareRequest;
+use rift_cli::skill::SkillSpec;
+use rift_core::features::FeatureFlag;
+use rift_core::{report_error, report_if_error, safe_debug, safe_error, safe_info};
+use rift_graphql::ai::AgentTaskState;
+use rift_managed_secrets::ManagedSecretValue;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::r#async::{FutureExt, TimeoutError};
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, ModelSpawner, SingletonEntity};
 use session_sharing_protocol::sharer::SessionRetentionReason;
 use uuid::Uuid;
-use warp_cli::agent::{Harness, OutputFormat};
-use warp_cli::mcp::MCPSpec;
-use warp_cli::share::ShareRequest;
-use warp_cli::skill::SkillSpec;
-use warp_core::features::FeatureFlag;
-use warp_core::{report_error, report_if_error, safe_debug, safe_error, safe_info};
-use warp_graphql::ai::AgentTaskState;
-use warp_managed_secrets::ManagedSecretValue;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::r#async::{FutureExt, TimeoutError};
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, ModelSpawner, SingletonEntity};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::{
@@ -108,7 +108,7 @@ const MCP_SERVER_STARTUP_TIMEOUT: Duration = Duration::from_secs(20);
 const HARNESS_SAVE_INTERVAL: Duration = Duration::from_secs(30);
 /// Timeout for individual harness auth preflight commands.
 const PREFLIGHT_CHECK_TIMEOUT: Duration = Duration::from_secs(30);
-pub(crate) const WARP_DRIVE_SYNC_TIMEOUT: Duration = Duration::from_secs(60);
+pub(crate) const RIFT_DRIVE_SYNC_TIMEOUT: Duration = Duration::from_secs(60);
 const SETUP_FAILED_IDLE_TIMEOUT: Duration = Duration::from_secs(120);
 /// Maximum time to wait for an automatic error resume before propagating the error.
 /// If no follow-up status arrives within this window, the driver terminates with the
@@ -417,7 +417,7 @@ pub enum AgentDriverError {
     #[error("Agent profile \"{0}\" not found")]
     ProfileError(String),
     #[error(
-        "Failed to authenticate with server - please log in via 'oz login', provide an API key via '--api-key <key>', or set the WARP_API_KEY environment variable"
+        "Failed to authenticate with server - please log in via 'oz login', provide an API key via '--api-key <key>', or set the RIFT_API_KEY environment variable"
     )]
     NotLoggedIn,
     #[error("Saved prompt not found for id {0}")]
@@ -515,8 +515,8 @@ pub enum AgentDriverError {
     },
 }
 
-impl From<warpui::ModelDropped> for AgentDriverError {
-    fn from(_: warpui::ModelDropped) -> Self {
+impl From<riftui::ModelDropped> for AgentDriverError {
+    fn from(_: riftui::ModelDropped) -> Self {
         AgentDriverError::InvalidRuntimeState
     }
 }
@@ -608,7 +608,7 @@ impl AgentDriver {
 
         // Signal to third-party harnesses (e.g. Claude Code) that we're in a sandbox
         // so they allow root execution with permissive flags.
-        if warp_isolation_platform::detect().is_some() {
+        if rift_isolation_platform::detect().is_some() {
             env_vars.insert(OsString::from("IS_SANDBOX"), OsString::from("1"));
         }
 
@@ -849,7 +849,7 @@ impl AgentDriver {
                         log::info!(
                             "Environment setup failed; keeping session alive for {timeout:?}"
                         );
-                        warpui::r#async::Timer::after(timeout).await;
+                        riftui::r#async::Timer::after(timeout).await;
                     }
                 }
             }
@@ -1960,7 +1960,7 @@ impl AgentDriver {
                 // and then call stop_sharing_session when they're done. To know when streams are finished, we would need to modify start_ordered_terminal_events_listener
                 // to send a message when the streams are finished, flushed, and the websocket is disconnected. For now, we'll just sleep for a second, as this seems
                 // to be enough time for the streams to be finished and the events to be flushed.
-                warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+                riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
                 conversation_status.into_result()
             }
@@ -2325,7 +2325,7 @@ impl AgentDriver {
         let command_result = loop {
             futures::select! {
                 exit_code = command_handle => break exit_code,
-                _ = warpui::r#async::Timer::after(HARNESS_SAVE_INTERVAL).fuse() => {
+                _ = riftui::r#async::Timer::after(HARNESS_SAVE_INTERVAL).fuse() => {
                     log::debug!("Triggering periodic save of harness conversation data");
                     report_if_error!(runner
                         .save_conversation(SavePoint::Periodic, foreground)
@@ -2350,7 +2350,7 @@ impl AgentDriver {
                         let telemetry_pattern = error.pattern.clone();
                         let _ = foreground
                             .spawn(move |_, ctx| {
-                                use warp_core::telemetry::TelemetryEvent as _;
+                                use rift_core::telemetry::TelemetryEvent as _;
                                 let event =
                                     ThirdPartyHarnessTelemetryEvent::RuntimeErrorDetected {
                                         harness: telemetry_harness,

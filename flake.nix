@@ -59,7 +59,7 @@
                     postPatch = (old.postPatch or "") + ''
                       find . -name 'Cargo.toml.orig' -delete
 
-                      ${lib.optionalString (hasCrate "warp_multi_agent_api") ''
+                      ${lib.optionalString (hasCrate "rift_multi_agent_api") ''
                         mkdir -p apis/multi_agent/v1/gen/rust/nix-vendored-protos
                         cp apis/multi_agent/v1/*.proto \
                           apis/multi_agent/v1/gen/rust/nix-vendored-protos/

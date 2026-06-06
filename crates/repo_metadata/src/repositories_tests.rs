@@ -1,9 +1,9 @@
 use std::fs;
 
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::App;
 use virtual_fs::{Stub, VirtualFS};
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::App;
 
 use crate::repositories::{stub_git_repository, DetectedRepositories, RepoDetectionSource};
 use crate::watcher::DirectoryWatcher;

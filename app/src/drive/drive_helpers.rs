@@ -1,7 +1,7 @@
-use warp_server_auth::auth_state::AuthState;
-use warp_server_auth::user::PersonalObjectLimits;
-use warp_server_auth::AuthStateProvider;
-use warpui::{AppContext, SingletonEntity};
+use rift_server_auth::auth_state::AuthState;
+use rift_server_auth::user::PersonalObjectLimits;
+use rift_server_auth::AuthStateProvider;
+use riftui::{AppContext, SingletonEntity};
 
 use crate::auth::auth_manager::AuthManager;
 use crate::cloud_object::model::persistence::CloudModel;

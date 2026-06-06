@@ -1,6 +1,6 @@
+use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use settings::Setting as _;
-use warpui::{AppContext, SingletonEntity};
 
 use crate::auth::AuthStateProvider;
 use crate::features::FeatureFlag;

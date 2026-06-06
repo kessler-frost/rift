@@ -1,15 +1,15 @@
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use warp_core::channel::ChannelState;
-use warp_core::ui::theme::WarpTheme;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::ui::theme::WarpTheme;
+use riftui::elements::{
     Border, Container, CrossAxisAlignment, Flex, HighlightedHyperlink, Hoverable, Icon,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
 };
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, BlurContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View,
     ViewContext,
 };
@@ -110,7 +110,7 @@ pub struct SshErrorBlock {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(

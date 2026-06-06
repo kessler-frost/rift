@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::App;
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::App;
 
 use super::DrivePanel;
 use crate::ai::blocklist::BlocklistAIHistoryModel;

@@ -1,17 +1,17 @@
 use std::marker::PhantomData;
 
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Dismiss, DispatchEventResult, Element, EventHandler, Flex,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentElement,
     PositionedElementAnchor, PositionedElementOffsetBounds, Radius, SavePosition, Shrinkable,
     Stack,
 };
-use warpui::geometry::vector::vec2f;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::geometry::vector::vec2f;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, BlurContext, Entity, FocusContext, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle, WeakViewHandle,
 };

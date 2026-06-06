@@ -1,7 +1,7 @@
+use riftui::integration::{AssertionCallback, AssertionOutcome};
+use riftui::units::{IntoPixels, Lines};
+use riftui::{async_assert, async_assert_eq, AppContext, SingletonEntity, WindowId};
 use settings::Setting as _;
-use warpui::integration::{AssertionCallback, AssertionOutcome};
-use warpui::units::{IntoPixels, Lines};
-use warpui::{async_assert, async_assert_eq, AppContext, SingletonEntity, WindowId};
 
 use crate::integration_testing::terminal::util::ExpectedOutput;
 use crate::integration_testing::view_getters::{

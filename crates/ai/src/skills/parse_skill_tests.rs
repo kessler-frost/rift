@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use tempfile::TempDir;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
 
 use super::*;
 

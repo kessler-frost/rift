@@ -1,11 +1,11 @@
 use std::fmt::Display;
 use std::time::Duration;
 
+use rift_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 use serde::Serialize;
 use serde_json::json;
 use serde_with::SerializeDisplay;
 use strum_macros::{EnumDiscriminants, EnumIter};
-use warp_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 
 use crate::code_review::diff_state::{BackendOrigin, DiffMode, DiffOperation};
 use crate::features::FeatureFlag;
@@ -527,7 +527,7 @@ impl TelemetryEvent for CodeReviewTelemetryEvent {
     }
 
     fn event_descs() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
-        warp_core::telemetry::enum_events::<Self>()
+        rift_core::telemetry::enum_events::<Self>()
     }
 }
 
@@ -619,4 +619,4 @@ impl TelemetryEventDesc for CodeReviewTelemetryEventDiscriminants {
     }
 }
 
-warp_core::register_telemetry_event!(CodeReviewTelemetryEvent);
+rift_core::register_telemetry_event!(CodeReviewTelemetryEvent);

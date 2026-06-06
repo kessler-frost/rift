@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{App, TypedActionView};
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{App, TypedActionView};
 
 use super::{Menu, MenuAction, MenuItem, MenuItemFields, SelectAction, SubMenu};
 

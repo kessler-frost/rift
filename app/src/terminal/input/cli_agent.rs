@@ -1,12 +1,12 @@
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warp_core::ui::color::ContrastingColor;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use rift_core::ui::color::ContrastingColor;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTarget, Element,
     EventHandler, Flex, Hoverable, ParentElement, SavePosition, Stack,
 };
-use warpui::presenter::ChildView;
-use warpui::{AppContext, SingletonEntity as _, ViewContext};
+use riftui::presenter::ChildView;
+use riftui::{AppContext, SingletonEntity as _, ViewContext};
 
 use super::common::{
     add_input_suggestions_overlays, wrap_input_with_terminal_padding_and_focus_handler,

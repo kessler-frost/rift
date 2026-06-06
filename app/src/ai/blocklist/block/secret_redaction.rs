@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use itertools::Itertools;
+use riftui::elements::{MouseStateHandle, PartialClickableElement, SecretRange};
+use riftui::platform::Cursor;
 use similar::DiffableStr;
-use warpui::elements::{MouseStateHandle, PartialClickableElement, SecretRange};
-use warpui::platform::Cursor;
 
 use super::{AIBlockAction, TextLocation};
 use crate::ai::agent::{AIAgentOutput, AIAgentTextSection, AgentOutputText};

@@ -6,19 +6,19 @@ use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use comfy_table::Cell;
 use inquire::{Confirm, InquireError, Select};
-use serde::Serialize;
-use warp_cli::agent::OutputFormat;
-use warp_cli::api_key::{
+use rift_cli::agent::OutputFormat;
+use rift_cli::api_key::{
     ApiKeyCommand, ApiKeyExpirationArgs, ApiKeySortByArg, CreateApiKeyArgs, ExpireApiKeyArgs,
     ListApiKeysArgs,
 };
-use warp_cli::{GlobalOptions, SortOrderArg};
-use warp_graphql::mutations::expire_api_key::ExpireApiKeyResult;
-use warp_graphql::mutations::generate_api_key::GenerateApiKeyResult;
-use warp_graphql::queries::api_keys::ApiKeyProperties;
-use warp_graphql::scalars::Time;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, ModelContext, SingletonEntity};
+use rift_cli::{GlobalOptions, SortOrderArg};
+use rift_graphql::mutations::expire_api_key::ExpireApiKeyResult;
+use rift_graphql::mutations::generate_api_key::GenerateApiKeyResult;
+use rift_graphql::queries::api_keys::ApiKeyProperties;
+use rift_graphql::scalars::Time;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, ModelContext, SingletonEntity};
+use serde::Serialize;
 
 use super::output::{self, TableFormat};
 use crate::server::ids::ApiKeyUid;
@@ -108,7 +108,7 @@ impl ApiKeyCommandRunner {
                     },
                     GenerateApiKeyResult::UserFacingError(e) => {
                         return Err(anyhow!(
-                            warp_graphql::client::get_user_facing_error_message(e)
+                            rift_graphql::client::get_user_facing_error_message(e)
                         ));
                     }
                     GenerateApiKeyResult::Unknown => {
@@ -208,7 +208,7 @@ impl ApiKeyCommandRunner {
                             ExpireApiKeyResult::ExpireApiKeyOutput(output) => output.success,
                             ExpireApiKeyResult::UserFacingError(e) => {
                                 return Err(anyhow!(
-                                    warp_graphql::client::get_user_facing_error_message(e)
+                                    rift_graphql::client::get_user_facing_error_message(e)
                                 ));
                             }
                             ExpireApiKeyResult::Unknown => {
@@ -230,7 +230,7 @@ impl ApiKeyCommandRunner {
     }
 }
 
-impl warpui::Entity for ApiKeyCommandRunner {
+impl riftui::Entity for ApiKeyCommandRunner {
     type Event = ();
 }
 
@@ -428,7 +428,7 @@ fn expires_at_from_args(args: ApiKeyExpirationArgs) -> Result<Option<Time>> {
 fn print_created_api_key(
     result: CreatedApiKeyInfo,
     output_format: OutputFormat,
-    json_output: warp_cli::json_filter::JsonOutput,
+    json_output: rift_cli::json_filter::JsonOutput,
 ) -> Result<()> {
     if json_output.force_json_output() {
         output::print_raw_json(serde_json::to_value(&result)?, &json_output)?;
@@ -451,7 +451,7 @@ fn print_expire_api_key_result(
     key_uid: String,
     expired: bool,
     output_format: OutputFormat,
-    json_output: warp_cli::json_filter::JsonOutput,
+    json_output: rift_cli::json_filter::JsonOutput,
 ) -> Result<()> {
     let result = ExpiredApiKeyInfo { key_uid, expired };
     if json_output.force_json_output() {

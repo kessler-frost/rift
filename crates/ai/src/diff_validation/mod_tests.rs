@@ -617,7 +617,7 @@ mod proxy;
 pub fn run_daemon() -> anyhow::Result<()> {
     // Logging is now handled by init_common (log_destination: File).
 
-    // socket_path: ~/.warp[-channel]/remote-server/server.sock
+    // socket_path: ~/.rift[-channel]/remote-server/server.sock
     //   The Unix domain socket the daemon binds on.
 }
 ";
@@ -641,7 +641,7 @@ pub fn run_daemon() -> anyhow::Result<()> {
     assert_eq!(deltas[0].replacement_line_range, 2..6);
     assert_eq!(
         deltas[0].insertion,
-        "pub fn run_daemon() -> anyhow::Result<()> {\n    // socket_path: ~/.warp[-channel]/remote-server/server.sock"
+        "pub fn run_daemon() -> anyhow::Result<()> {\n    // socket_path: ~/.rift[-channel]/remote-server/server.sock"
     );
 
     let file_lines: Vec<&str> = file_content.lines().collect();
@@ -662,7 +662,7 @@ pub fn run_daemon() -> anyhow::Result<()> {
         "\
 mod proxy;
 pub fn run_daemon() -> anyhow::Result<()> {
-    // socket_path: ~/.warp[-channel]/remote-server/server.sock
+    // socket_path: ~/.rift[-channel]/remote-server/server.sock
     //   The Unix domain socket the daemon binds on.
 }
 "

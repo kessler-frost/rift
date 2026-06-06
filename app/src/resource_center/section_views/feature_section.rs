@@ -1,11 +1,11 @@
-use warpui::elements::{
+use riftui::elements::{
     Align, ConstrainedBox, Container, CrossAxisAlignment, Element, Flex, Hoverable, Icon,
     MouseState, MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     Action, AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, WindowId,
 };

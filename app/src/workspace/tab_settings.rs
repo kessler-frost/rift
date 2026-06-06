@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use rift_core::ui::theme::AnsiColorIdentifier;
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, SupportedPlatforms, SyncToCloud};
-use warp_core::ui::theme::AnsiColorIdentifier;
 
 #[derive(
     Default,
@@ -195,7 +195,7 @@ settings::macros::implement_setting_for_enum!(
     toml_path: "appearance.tabs.directory_tab_colors",
     max_table_depth: 0,
     description: "Mapping of directory paths to their tab color assignments.",
-    feature_flag: warp_core::features::FeatureFlag::DirectoryTabColors,
+    feature_flag: rift_core::features::FeatureFlag::DirectoryTabColors,
 );
 
 impl DirectoryTabColors {

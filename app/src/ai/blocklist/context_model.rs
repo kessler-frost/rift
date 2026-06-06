@@ -7,9 +7,9 @@ use std::sync::Arc;
 
 use ai::project_context::model::ProjectContextModel;
 use parking_lot::FairMutex;
-use warp_core::features::FeatureFlag;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::{
+use rift_core::features::FeatureFlag;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::{
     AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity, WeakModelHandle,
 };
 
@@ -271,7 +271,7 @@ impl BlocklistAIContextModel {
         // In sandboxed/autonomous mode (SDK mode with --sandboxed flag), automatically set
         // conversations to RunToCompletion mode so they don't wait for user confirmation.
         let pending_query_state =
-            if warp_core::execution_mode::AppExecutionMode::as_ref(ctx).is_sandboxed() {
+            if rift_core::execution_mode::AppExecutionMode::as_ref(ctx).is_sandboxed() {
                 PendingQueryState::New {
                     autoexecute_override: AIConversationAutoexecuteMode::RunToCompletion,
                 }

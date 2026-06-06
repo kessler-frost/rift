@@ -4,15 +4,15 @@ use std::sync::Arc;
 
 use parking_lot::FairMutex;
 use pathfinder_geometry::vector::Vector2F;
+use riftui::{AppContext, SingletonEntity, ViewHandle};
 use settings::Setting as _;
-use warpui::{AppContext, SingletonEntity, ViewHandle};
 
 use super::event_listener::ChannelEventListener;
 use super::model::block::BlockSize;
 use super::safe_mode_settings::get_secret_obfuscation_mode;
 use super::session_settings::SessionSettings;
 use super::settings::TerminalSettings;
-use super::view::{create_size_info_for_blocklist, WARP_PROMPT_HEIGHT_LINES};
+use super::view::{create_size_info_for_blocklist, RIFT_PROMPT_HEIGHT_LINES};
 use super::{color, ShellLaunchState, SizeInfo, TerminalModel, TerminalView};
 use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;
 use crate::ai::blocklist::SerializedBlockListItem;
@@ -42,7 +42,7 @@ pub trait TerminalManager: Any {
     fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
-impl warpui::Entity for Box<dyn TerminalManager> {
+impl riftui::Entity for Box<dyn TerminalManager> {
     type Event = ();
 }
 
@@ -70,7 +70,7 @@ pub(super) fn compute_block_size(initial_size: Vector2F, ctx: &mut AppContext) -
         block_padding: terminal_spacing.block_padding,
         size: size_info,
         max_block_scroll_limit: maximum_grid_size,
-        warp_prompt_height_lines: WARP_PROMPT_HEIGHT_LINES,
+        warp_prompt_height_lines: RIFT_PROMPT_HEIGHT_LINES,
     }
 }
 

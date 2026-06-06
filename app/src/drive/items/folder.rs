@@ -1,6 +1,6 @@
-use warp_core::features::FeatureFlag;
-use warpui::elements::MouseStateHandle;
-use warpui::{AppContext, Element};
+use rift_core::features::FeatureFlag;
+use riftui::elements::MouseStateHandle;
+use riftui::{AppContext, Element};
 
 use super::{WarpDriveItem, WarpDriveItemId};
 use crate::appearance::Appearance;

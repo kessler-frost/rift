@@ -1,15 +1,15 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Align, ChildAnchor, Container, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentOffsetBounds, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::text::Span;
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::text::Span;
+use riftui::{
     AppContext, Element, Entity, EntityId, SingletonEntity, TypedActionView, View, ViewContext,
 };
 

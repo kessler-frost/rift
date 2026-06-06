@@ -1,23 +1,23 @@
-use ui_components::{button, keyboard_shortcut, Component as _, Options as _};
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::coloru_with_opacity;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warpui_core::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::coloru_with_opacity;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use riftui_core::elements::{
     Align, ClippedScrollStateHandle, ConstrainedBox, Container, CrossAxisAlignment, Flex,
     MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui_core::fonts::Weight;
-use warpui_core::keymap::Keystroke;
-use warpui_core::platform::file_picker::{FilePickerConfiguration, FilePickerError};
-use warpui_core::prelude::{MainAxisAlignment, MainAxisSize, Vector2F};
-use warpui_core::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui_core::{
+use riftui_core::fonts::Weight;
+use riftui_core::keymap::Keystroke;
+use riftui_core::platform::file_picker::{FilePickerConfiguration, FilePickerError};
+use riftui_core::prelude::{MainAxisAlignment, MainAxisSize, Vector2F};
+use riftui_core::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext,
 };
+use ui_components::{button, keyboard_shortcut, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;
@@ -292,7 +292,7 @@ impl ProjectSlide {
         );
 
         let theme_picker_last =
-            warp_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled();
+            rift_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled();
 
         let (label, keystroke, action) = match settings {
             ProjectOnboardingSettings::Project { .. } => (
@@ -484,7 +484,7 @@ impl ProjectSlide {
         }
 
         self.onboarding_state.update(ctx, |model, ctx| {
-            if warp_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled() {
+            if rift_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled() {
                 model.next(ctx);
             } else {
                 model.complete(ctx);
@@ -495,7 +495,7 @@ impl ProjectSlide {
     fn skip(&mut self, ctx: &mut ViewContext<Self>) {
         self.onboarding_state.update(ctx, |model, ctx| {
             model.set_project_selected_local_folder(None, ctx);
-            if warp_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled() {
+            if rift_core::features::FeatureFlag::OpenWarpNewSettingsModes.is_enabled() {
                 model.next(ctx);
             } else {
                 model.complete(ctx);

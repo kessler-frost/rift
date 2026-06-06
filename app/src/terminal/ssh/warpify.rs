@@ -1,13 +1,13 @@
 use asset_macro::bundled_asset;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use warp_core::ui::theme::WarpTheme;
-use warpui::assets::asset_cache::{AssetCache, AssetState};
-use warpui::elements::{
+use rift_core::ui::theme::WarpTheme;
+use riftui::assets::asset_cache::{AssetCache, AssetState};
+use riftui::elements::{
     Border, Container, CrossAxisAlignment, Flex, HighlightedHyperlink, Hoverable, Icon,
     MouseStateHandle, ParentElement,
 };
-use warpui::keymap::FixedBinding;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::keymap::FixedBinding;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::ai::blocklist::inline_action::requested_action::RenderableAction;
 use crate::appearance::Appearance;
@@ -35,7 +35,7 @@ pub struct SshWarpifyBlock {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "ctrl-c",

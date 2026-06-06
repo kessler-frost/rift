@@ -8,9 +8,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::str::FromStr;
 
-use warp_cli::agent::Harness;
-use warpui::platform::WindowStyle;
-use warpui::{App, SingletonEntity, TypedActionView, ViewContext, ViewHandle};
+use rift_cli::agent::Harness;
+use riftui::platform::WindowStyle;
+use riftui::{App, SingletonEntity, TypedActionView, ViewContext, ViewHandle};
 
 use super::queued_prompts_panel::{
     QueuedPromptsPanelAction, QueuedPromptsPanelEvent, QueuedPromptsPanelView,
@@ -126,7 +126,7 @@ fn queue_texts(
 
 fn with_singleton<F>(test: F)
 where
-    F: FnOnce(App, warpui::ModelHandle<QueuedQueryModel>, AIConversationId) + 'static,
+    F: FnOnce(App, riftui::ModelHandle<QueuedQueryModel>, AIConversationId) + 'static,
 {
     App::test((), |mut app| async move {
         // `QueuedQueryModel::new` reads and subscribes to `AISettings`, so settings

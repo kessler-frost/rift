@@ -6,10 +6,10 @@ use repo_metadata::local_model::IndexedRepoState;
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::RepoMetadataModel;
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{App, ModelHandle};
 use virtual_fs::{Stub, VirtualFS};
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{App, ModelHandle};
 
 use super::FileTreeView;
 use crate::auth::AuthStateProvider;
@@ -22,8 +22,8 @@ use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::ToastStack;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
-fn std_path(path: &std::path::Path) -> warp_util::standardized_path::StandardizedPath {
-    warp_util::standardized_path::StandardizedPath::try_from_local(path).unwrap()
+fn std_path(path: &std::path::Path) -> rift_util::standardized_path::StandardizedPath {
+    rift_util::standardized_path::StandardizedPath::try_from_local(path).unwrap()
 }
 
 fn initialize_app(
@@ -59,7 +59,7 @@ fn build_repo_state(repo_root: &std::path::Path) -> FileTreeState {
         false,
     ));
     let src_dir = Entry::Directory(DirectoryEntry {
-        path: warp_util::standardized_path::StandardizedPath::try_from_local(
+        path: rift_util::standardized_path::StandardizedPath::try_from_local(
             &repo_root.join("packages/app/src"),
         )
         .unwrap(),
@@ -68,7 +68,7 @@ fn build_repo_state(repo_root: &std::path::Path) -> FileTreeState {
         loaded: true,
     });
     let app_dir = Entry::Directory(DirectoryEntry {
-        path: warp_util::standardized_path::StandardizedPath::try_from_local(
+        path: rift_util::standardized_path::StandardizedPath::try_from_local(
             &repo_root.join("packages/app"),
         )
         .unwrap(),
@@ -77,7 +77,7 @@ fn build_repo_state(repo_root: &std::path::Path) -> FileTreeState {
         loaded: true,
     });
     let packages_dir = Entry::Directory(DirectoryEntry {
-        path: warp_util::standardized_path::StandardizedPath::try_from_local(
+        path: rift_util::standardized_path::StandardizedPath::try_from_local(
             &repo_root.join("packages"),
         )
         .unwrap(),
@@ -96,7 +96,7 @@ fn build_repo_state(repo_root: &std::path::Path) -> FileTreeState {
 
 fn build_repo_state_with_unloaded_directory(repo_root: &std::path::Path) -> FileTreeState {
     let unloaded_src_dir = Entry::Directory(DirectoryEntry {
-        path: warp_util::standardized_path::StandardizedPath::try_from_local(
+        path: rift_util::standardized_path::StandardizedPath::try_from_local(
             &repo_root.join("src"),
         )
         .unwrap(),
@@ -116,7 +116,7 @@ fn build_repo_state_with_unloaded_directory(repo_root: &std::path::Path) -> File
 fn flattened_paths(
     view: &FileTreeView,
     root: &std::path::Path,
-) -> Vec<warp_util::standardized_path::StandardizedPath> {
+) -> Vec<rift_util::standardized_path::StandardizedPath> {
     view.root_directories
         .get(&std_path(root))
         .expect("root directory is tracked")
@@ -156,7 +156,7 @@ fn hidden_files_are_filtered_until_setting_is_enabled() {
                 assert!(!paths.contains(&std_path(&hidden_dir)));
             });
 
-            <crate::settings::CodeSettings as warpui::SingletonEntity>::handle(&app).update(
+            <crate::settings::CodeSettings as riftui::SingletonEntity>::handle(&app).update(
                 &mut app,
                 |settings, ctx| {
                     settings::Setting::set_value(&mut settings.show_hidden_files, true, ctx)
@@ -217,7 +217,7 @@ fn selected_hidden_file_is_cleared_when_filtered() {
 
             App::test((), |mut app| async move {
                 let _ = initialize_app(&mut app);
-                <crate::settings::CodeSettings as warpui::SingletonEntity>::handle(&app).update(
+                <crate::settings::CodeSettings as riftui::SingletonEntity>::handle(&app).update(
                     &mut app,
                     |settings, ctx| {
                         settings::Setting::set_value(&mut settings.show_hidden_files, true, ctx)
@@ -245,7 +245,7 @@ fn selected_hidden_file_is_cleared_when_filtered() {
                     view.select_id(&id, ctx);
                 });
 
-                <crate::settings::CodeSettings as warpui::SingletonEntity>::handle(&app).update(
+                <crate::settings::CodeSettings as riftui::SingletonEntity>::handle(&app).update(
                     &mut app,
                     |settings, ctx| {
                         settings::Setting::set_value(&mut settings.show_hidden_files, false, ctx)
@@ -277,7 +277,7 @@ fn repo_transition_unregisters_lazy_loaded_path() {
         let repo_root = dirs.tests().join("repo");
         let displayed_root = repo_root.join("packages/app");
         let canonical_repo_root =
-            warp_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
+            rift_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
                 .unwrap();
 
         App::test((), |mut app| async move {
@@ -296,13 +296,13 @@ fn repo_transition_unregisters_lazy_loaded_path() {
 
             file_tree_view.read(&app, |view, _ctx| {
                 assert!(view.registered_lazy_loaded_paths.contains(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap()
                 ));
                 let displayed_std =
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&displayed_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&displayed_root)
                         .unwrap();
                 assert_eq!(
                     view.root_directories
@@ -313,7 +313,7 @@ fn repo_transition_unregisters_lazy_loaded_path() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap(),
@@ -331,10 +331,10 @@ fn repo_transition_unregisters_lazy_loaded_path() {
 
             file_tree_view.read(&app, |view, _ctx| {
                 let displayed_std =
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&displayed_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&displayed_root)
                         .unwrap();
                 let repo_std =
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap();
                 assert!(!view.registered_lazy_loaded_paths.contains(&displayed_std));
                 assert_eq!(view.root_for_path(&displayed_std), Some(repo_std.clone()));
@@ -347,7 +347,7 @@ fn repo_transition_unregisters_lazy_loaded_path() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(!model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap(),
@@ -382,7 +382,7 @@ fn repo_backed_unloaded_directory_loads_through_model() {
         let nested_dir = repo_root.join("src/nested");
         let source_file = repo_root.join("src/nested/main.rs");
         let canonical_repo_root =
-            warp_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
+            rift_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
                 .unwrap();
 
         App::test((), |mut app| async move {
@@ -410,11 +410,11 @@ fn repo_backed_unloaded_directory_loads_through_model() {
                 assert!(!view
                     .root_directories
                     .get(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                             .unwrap()
                     )
                     .is_some_and(|root_dir| root_dir.entry.contains(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(
                             &source_file
                         )
                         .unwrap()
@@ -423,9 +423,9 @@ fn repo_backed_unloaded_directory_loads_through_model() {
 
             file_tree_view.update(&mut app, |view, ctx| {
                 view.ensure_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&src_dir)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&src_dir)
                         .unwrap(),
                     ctx,
                 );
@@ -435,11 +435,11 @@ fn repo_backed_unloaded_directory_loads_through_model() {
                 assert!(view
                     .root_directories
                     .get(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                             .unwrap()
                     )
                     .is_some_and(|root_dir| root_dir.entry.contains(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(
                             &nested_dir
                         )
                         .unwrap()
@@ -448,9 +448,9 @@ fn repo_backed_unloaded_directory_loads_through_model() {
 
             file_tree_view.update(&mut app, |view, ctx| {
                 view.ensure_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&nested_dir)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&nested_dir)
                         .unwrap(),
                     ctx,
                 );
@@ -460,11 +460,11 @@ fn repo_backed_unloaded_directory_loads_through_model() {
                 assert!(view
                     .root_directories
                     .get(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                             .unwrap()
                     )
                     .is_some_and(|root_dir| root_dir.entry.contains(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(
                             &source_file
                         )
                         .unwrap()
@@ -472,17 +472,17 @@ fn repo_backed_unloaded_directory_loads_through_model() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(!model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
                     ctx
                 ));
                 let id = repo_metadata::RepositoryIdentifier::local(
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
                 );
                 assert!(model.get_repository(&id, ctx).is_some_and(|state| {
                     state.entry.contains(
-                        &warp_util::standardized_path::StandardizedPath::try_from_local(
+                        &rift_util::standardized_path::StandardizedPath::try_from_local(
                             &source_file,
                         )
                         .unwrap(),
@@ -503,7 +503,7 @@ fn pending_repository_root_does_not_register_lazy_loaded_path() {
 
         let repo_root = dirs.tests().join("repo");
         let canonical_repo_root =
-            warp_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
+            rift_util::standardized_path::StandardizedPath::from_local_canonicalized(&repo_root)
                 .unwrap();
 
         App::test((), |mut app| async move {
@@ -525,7 +525,7 @@ fn pending_repository_root_does_not_register_lazy_loaded_path() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 let id = repo_metadata::RepositoryIdentifier::local(
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
                 );
                 assert!(matches!(
@@ -541,18 +541,18 @@ fn pending_repository_root_does_not_register_lazy_loaded_path() {
 
             file_tree_view.read(&app, |view, _ctx| {
                 assert!(!view.registered_lazy_loaded_paths.contains(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap()
                 ));
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(!model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
                     ctx
                 ));
                 let id = repo_metadata::RepositoryIdentifier::local(
-                    warp_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
+                    rift_util::standardized_path::StandardizedPath::try_from_local(&repo_root)
                         .unwrap(),
                 );
                 assert!(matches!(
@@ -581,7 +581,7 @@ fn failed_lazy_loaded_path_registration_is_retried() {
 
             file_tree_view.read(&app, |view, _ctx| {
                 assert!(!view.registered_lazy_loaded_paths.contains(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap()
@@ -589,7 +589,7 @@ fn failed_lazy_loaded_path_registration_is_retried() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(!model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap(),
@@ -614,7 +614,7 @@ fn failed_lazy_loaded_path_registration_is_retried() {
             });
             repository_metadata_model.read(&app, |model, ctx| {
                 assert!(model.is_lazy_loaded_path(
-                    &warp_util::standardized_path::StandardizedPath::try_from_local(
+                    &rift_util::standardized_path::StandardizedPath::try_from_local(
                         &displayed_root
                     )
                     .unwrap(),

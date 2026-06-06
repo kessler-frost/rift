@@ -1,13 +1,13 @@
-use warp_core::ui::icons::ICON_DIMENSIONS;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::icons::ICON_DIMENSIONS;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Align, Clipped, ConstrainedBox, Container, CrossAxisAlignment, Flex, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, SavePosition, Shrinkable,
     Text,
 };
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
-use warpui::Element;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
+use riftui::Element;
 
 use super::super::header_content::HeaderRenderContext;
 use super::{ActionPayload, PaneHeaderAction};

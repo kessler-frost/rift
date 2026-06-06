@@ -1,10 +1,10 @@
 use byte_unit::Byte;
 use instant::Duration;
+use riftui::keymap::ContextPredicate;
+use riftui::{id, AppContext};
 use serde::{Deserialize, Serialize};
 use session_sharing_protocol::common::{Role, Scrollback, ScrollbackBlock, SessionId};
 use session_sharing_protocol::sharer::SessionSourceType;
-use warpui::keymap::ContextPredicate;
-use warpui::{id, AppContext};
 
 use super::model::block::SerializedBlock;
 use super::model::terminal_model::BlockIndex;
@@ -284,7 +284,7 @@ impl SharedSessionScrollbackType {
 
 #[cfg(not(test))]
 pub fn max_session_size(ctx: &AppContext) -> Byte {
-    use warpui::SingletonEntity;
+    use riftui::SingletonEntity;
 
     use crate::workspaces::user_workspaces::UserWorkspaces;
 

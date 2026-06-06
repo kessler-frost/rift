@@ -1,4 +1,4 @@
-use warpui::{AppContext, EntityId, ModelHandle, SingletonEntity};
+use riftui::{AppContext, EntityId, ModelHandle, SingletonEntity};
 
 use super::AIBlockModel;
 use crate::ai::agent::conversation::AIConversation;

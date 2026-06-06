@@ -1,11 +1,11 @@
 use std::any::Any;
 
 use async_channel::Sender;
-use warpui::elements::Point;
-use warpui::event::DispatchedEvent;
-use warpui::geometry::rect::RectF;
-use warpui::geometry::vector::Vector2F;
-use warpui::{
+use riftui::elements::Point;
+use riftui::event::DispatchedEvent;
+use riftui::geometry::rect::RectF;
+use riftui::geometry::vector::Vector2F;
+use riftui::{
     AfterLayoutContext, AppContext, Element, Event, EventContext, LayoutContext, PaintContext,
     SizeConstraint,
 };

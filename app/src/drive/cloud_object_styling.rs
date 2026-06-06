@@ -1,8 +1,8 @@
 use pathfinder_color::ColorU;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warp_core::ui::color::ContrastingColor;
-use warp_core::ui::theme::Fill;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use rift_core::ui::color::ContrastingColor;
+use rift_core::ui::theme::Fill;
 
 use super::DriveObjectType;
 use crate::ui_components::blended_colors;

@@ -22,11 +22,11 @@ use command::blocking::Command;
 use crash_handler::{CrashContext, CrashHandler};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
+use rift_core::report_error;
 use sentry::protocol::{Attachment, AttachmentType};
 use sentry::{Breadcrumb, Level};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use warp_core::report_error;
 
 use super::ToSentryTags;
 
@@ -120,7 +120,7 @@ pub struct MinidumpGuard {
 pub fn run_server(socket_path: &Path) -> anyhow::Result<()> {
     // For troubleshooting, attempt to log from the minidump server. There's not much we can really
     // do if crash reporting fails, so creating the log file itself is best-effort.
-    let log_dir = warp_core::paths::state_dir().join(warp_core::paths::WARP_LOGS_DIR);
+    let log_dir = rift_core::paths::state_dir().join(rift_core::paths::RIFT_LOGS_DIR);
     let _ = std::fs::create_dir_all(&log_dir);
     let log_path = log_dir.join("warp-minidump.log");
     let log_target = File::create(log_path)
@@ -272,7 +272,7 @@ impl MinidumpGuard {
             // On macOS, the maximum length of a socket path is fairly short, so use the temp directory.
             std::env::temp_dir().join(socket_name)
         } else {
-            warp_core::paths::state_dir().join(socket_name)
+            rift_core::paths::state_dir().join(socket_name)
         };
 
         let child =

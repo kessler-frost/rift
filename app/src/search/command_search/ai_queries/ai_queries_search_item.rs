@@ -1,13 +1,13 @@
 use chrono::{DateTime, Local};
 use ordered_float::OrderedFloat;
-use warp_core::ui::builder::MIN_FONT_SIZE;
-use warpui::elements::{
+use rift_core::ui::builder::MIN_FONT_SIZE;
+use riftui::elements::{
     Align, ConstrainedBox, Container, CrossAxisAlignment, Flex, Highlight, Icon, MainAxisAlignment,
     MainAxisSize, ParentElement, Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::fonts::{Properties, Weight};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::ai::blocklist::AIQueryHistoryOutputStatus;
 use crate::appearance::Appearance;

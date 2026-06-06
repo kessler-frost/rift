@@ -2,18 +2,18 @@ use std::sync::Arc;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::color::blend::Blend;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ChildAnchor, ChildView, ConstrainedBox, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Stack,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::Setting;
 
 use super::{AgentInputButtonTheme, AmbientAgentViewModel};
 use crate::ai::ambient_agents::telemetry::CloudAgentTelemetryEvent;

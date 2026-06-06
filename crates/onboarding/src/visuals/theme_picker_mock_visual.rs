@@ -1,7 +1,7 @@
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui_core::elements::Align;
-use warpui_core::Element;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui_core::elements::Align;
+use riftui_core::Element;
 
 use super::onboarding_visual::{OnboardingVisual, Pill, RectPct};
 

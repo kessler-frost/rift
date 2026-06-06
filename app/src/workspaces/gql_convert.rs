@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Result};
 use regex::Regex;
-use warp_graphql::billing::{
+use rift_graphql::billing::{
     AiAutonomyPolicy as GqlAiAutonomyPolicy, AmbientAgentsPolicy as GqlAmbientAgentsPolicy,
     BillingCycleUsageHistory as GqlBillingCycleUsageHistory, BillingMetadata as GqlBillingMetadata,
     BonusGrant as GqlBonusGrant, ByoApiKeyPolicy as GqlByoApiKeyPolicy,
@@ -22,11 +22,11 @@ use warp_graphql::billing::{
     UsageVisibilityGranularity as GqlUsageVisibilityGranularity,
     UsageVisibilityPolicy as GqlUsageVisibilityPolicy, WarpAiPolicy as GqlWarpAiPolicy,
 };
-use warp_graphql::queries::get_conversation_usage as gql_usage;
-use warp_graphql::queries::get_workspaces_metadata_for_user::User as GqlUser;
-use warp_graphql::subscriptions::get_warp_drive_updates::WarpDriveUpdate;
-use warp_graphql::user::DiscoverableTeamData as GqlDiscoverableTeamData;
-use warp_graphql::workspace::{
+use rift_graphql::queries::get_conversation_usage as gql_usage;
+use rift_graphql::queries::get_workspaces_metadata_for_user::User as GqlUser;
+use rift_graphql::subscriptions::get_warp_drive_updates::WarpDriveUpdate;
+use rift_graphql::user::DiscoverableTeamData as GqlDiscoverableTeamData;
+use rift_graphql::workspace::{
     AddonCreditsSettings as GqlAddonCreditsSettings,
     AdminEnablementSetting as GqlAdminEnablementSetting, AiAutonomyValue as GqlAiAutonomyValue,
     AiPermissionsSettings as GqlAiPermissionsSettings,
@@ -231,7 +231,7 @@ impl From<GqlUgcCollectionEnablementSetting> for UgcCollectionEnablementSetting 
                     anyhow!(
                         "Invalid UgcCollectionEnablementSetting '{value}'. Make sure to update client GraphQL types!"
                     ),
-                    warp_core::errors::ReportErrorLogMode::OncePerRun
+                    rift_core::errors::ReportErrorLogMode::OncePerRun
                 );
                 UgcCollectionEnablementSetting::RespectUserSetting
             }
@@ -277,7 +277,7 @@ impl From<GqlAdminEnablementSetting> for AdminEnablementSetting {
                     anyhow!(
                         "Invalid AdminEnablementSetting '{value}'. Make sure to update client GraphQL types!"
                     ),
-                    warp_core::errors::ReportErrorLogMode::OncePerRun
+                    rift_core::errors::ReportErrorLogMode::OncePerRun
                 );
                 AdminEnablementSetting::RespectUserSetting
             }
@@ -297,7 +297,7 @@ impl From<GqlHostEnablementSetting> for HostEnablementSetting {
                     anyhow!(
                         "Invalid HostEnablementSetting '{value}'. Make sure to update client GraphQL types!"
                     ),
-                    warp_core::errors::ReportErrorLogMode::OncePerRun
+                    rift_core::errors::ReportErrorLogMode::OncePerRun
                 );
                 HostEnablementSetting::RespectUserSetting
             }
@@ -459,7 +459,7 @@ impl From<GqlUsageVisibilityGranularity> for UsageVisibilityGranularity {
                     anyhow!(
                         "Invalid UsageVisibilityGranularity '{value}'. Make sure to update client GraphQL types!"
                     ),
-                    warp_core::errors::ReportErrorLogMode::OncePerRun
+                    rift_core::errors::ReportErrorLogMode::OncePerRun
                 );
                 // Fail closed to the most restrictive granularity.
                 UsageVisibilityGranularity::OwnOnly
@@ -663,7 +663,7 @@ fn convert_gql_ai_autonomy_value_to_action_permission(
                 anyhow!(
                     "Invalid AiAutonomyValue '{value}'. Make sure to update client GraphQL types!"
                 ),
-                warp_core::errors::ReportErrorLogMode::OncePerRun
+                rift_core::errors::ReportErrorLogMode::OncePerRun
             );
             None
         }
@@ -683,7 +683,7 @@ fn convert_gql_write_to_pty_autonomy_value_to_write_to_pty_permission(
                 anyhow!(
                     "Invalid WriteToPtyAutonomyValue '{value}'. Make sure to update client GraphQL types!"
                 ),
-                warp_core::errors::ReportErrorLogMode::OncePerRun
+                rift_core::errors::ReportErrorLogMode::OncePerRun
             );
             None
         }
@@ -703,7 +703,7 @@ fn convert_gql_computer_use_autonomy_value_to_computer_use_permission(
                 anyhow!(
                     "Invalid ComputerUseAutonomyValue '{value}'. Make sure to update client GraphQL types!"
                 ),
-                warp_core::errors::ReportErrorLogMode::OncePerRun
+                rift_core::errors::ReportErrorLogMode::OncePerRun
             );
             None
         }
@@ -741,9 +741,9 @@ impl ToPathBufs for Vec<String> {
         self.into_iter().map(PathBuf::from).collect()
     }
 }
-impl From<warp_graphql::workspace::LlmModelHost> for crate::ai::llms::LLMModelHost {
-    fn from(gql_host: warp_graphql::workspace::LlmModelHost) -> Self {
-        use warp_graphql::workspace::LlmModelHost as GqlLlmModelHost;
+impl From<rift_graphql::workspace::LlmModelHost> for crate::ai::llms::LLMModelHost {
+    fn from(gql_host: rift_graphql::workspace::LlmModelHost) -> Self {
+        use rift_graphql::workspace::LlmModelHost as GqlLlmModelHost;
         match gql_host {
             GqlLlmModelHost::DirectApi => Self::DirectApi,
             GqlLlmModelHost::AwsBedrock => Self::AwsBedrock,
@@ -753,7 +753,7 @@ impl From<warp_graphql::workspace::LlmModelHost> for crate::ai::llms::LLMModelHo
                     anyhow!(
                         "Unknown LlmModelHost '{value}'. Make sure to update client GraphQL types!"
                     ),
-                    warp_core::errors::ReportErrorLogMode::OncePerRun
+                    rift_core::errors::ReportErrorLogMode::OncePerRun
                 );
                 Self::Unknown
             }
@@ -761,8 +761,8 @@ impl From<warp_graphql::workspace::LlmModelHost> for crate::ai::llms::LLMModelHo
     }
 }
 
-impl From<warp_graphql::workspace::LlmHostSettings> for super::workspace::LlmHostSettings {
-    fn from(gql_settings: warp_graphql::workspace::LlmHostSettings) -> Self {
+impl From<rift_graphql::workspace::LlmHostSettings> for super::workspace::LlmHostSettings {
+    fn from(gql_settings: rift_graphql::workspace::LlmHostSettings) -> Self {
         Self {
             enabled: gql_settings.enabled,
             enablement_setting: gql_settings
@@ -773,8 +773,8 @@ impl From<warp_graphql::workspace::LlmHostSettings> for super::workspace::LlmHos
     }
 }
 
-impl From<warp_graphql::workspace::LlmSettings> for LlmSettings {
-    fn from(gql_settings: warp_graphql::workspace::LlmSettings) -> Self {
+impl From<rift_graphql::workspace::LlmSettings> for LlmSettings {
+    fn from(gql_settings: rift_graphql::workspace::LlmSettings) -> Self {
         let mut host_configs = std::collections::HashMap::new();
         for entry in gql_settings.host_configs {
             let host: crate::ai::llms::LLMModelHost = entry.host.into();

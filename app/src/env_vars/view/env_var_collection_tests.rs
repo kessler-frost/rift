@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{App, ViewHandle};
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{App, ViewHandle};
 
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::actions::ObjectActions;

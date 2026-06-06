@@ -4,23 +4,23 @@ use ::settings::{Setting, ToggleableSetting};
 use lazy_static::lazy_static;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::channel::ChannelState;
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::icons::Icon;
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::icons::Icon;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{
     Align, Border, CacheOption, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Element, Empty, Flex, Image, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
     Radius, Shrinkable, Text,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::ContextPredicate;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::ContextPredicate;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     id, Action, AppContext, Entity, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
@@ -631,7 +631,7 @@ impl SettingsWidget for AccountWidget {
             self.render_anonymous_account_info(view.auth_state.as_ref(), appearance)
         } else {
             let profile_image_source = view.auth_state.user_photo_url().map(|url| {
-                asset_cache::url_source_with_persistence(url, &warp_core::paths::cache_dir())
+                asset_cache::url_source_with_persistence(url, &rift_core::paths::cache_dir())
             });
             self.render_account_info(
                 profile_image_source.as_ref(),
@@ -1114,7 +1114,7 @@ impl SettingsWidget for IapCredentialsWidget {
             }
             IapCredentialsState::Failed { message, .. } => (format!("Failed: {message}"), ansi_red),
             IapCredentialsState::EnvInjected { .. } => {
-                ("Using injected token (WARP_IAP_TOKEN)".to_string(), active)
+                ("Using injected token (RIFT_IAP_TOKEN)".to_string(), active)
             }
         };
 

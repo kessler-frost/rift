@@ -6,7 +6,7 @@ pub use cloud_object_models::{
     CloudAmbientAgentEnvironmentModel, GcpProviderConfig, GithubRepo, ProvidersConfig,
 };
 use cloud_objects::cloud_object::Owner;
-use warpui::{AppContext, SingletonEntity as _};
+use riftui::{AppContext, SingletonEntity as _};
 
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::generic_string_model::StringModel;

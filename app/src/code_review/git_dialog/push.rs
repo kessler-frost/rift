@@ -7,15 +7,15 @@
 
 use std::collections::HashMap;
 
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Border, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Element, Flex, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, ScrollbarWidth, Text,
 };
-use warpui::platform::Cursor;
-use warpui::ViewContext;
+use riftui::platform::Cursor;
+use riftui::ViewContext;
 
 use crate::code::editor::{add_color, remove_color};
 use crate::code_review::git_dialog::{
@@ -372,7 +372,7 @@ fn render_commits_section(state: &PushState, appearance: &Appearance) -> Box<dyn
             ScrollbarWidth::Auto,
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .finish(),
     )

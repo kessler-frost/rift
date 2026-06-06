@@ -5,21 +5,21 @@ use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use comfy_table::Cell;
 use inquire::{Confirm, InquireError, Password};
-use serde::Serialize;
-use warp_cli::agent::OutputFormat;
-use warp_cli::scope::ObjectScope;
-use warp_cli::secret::{
+use rift_cli::agent::OutputFormat;
+use rift_cli::scope::ObjectScope;
+use rift_cli::secret::{
     AnthropicMethod, CodexMethod, CreateProvider, CreateSecretArgs, DeleteSecretArgs,
     ListSecretsArgs, SecretCommand, SecretType, UpdateSecretArgs, ValueArgs,
 };
-use warp_cli::GlobalOptions;
-use warp_core::features::FeatureFlag;
-use warp_graphql::managed_secrets::{ManagedSecret, ManagedSecretType};
-use warp_graphql::object::SpaceType;
-use warp_managed_secrets::client::SecretOwner;
-use warp_managed_secrets::{ManagedSecretManager, ManagedSecretValue};
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, SingletonEntity as _};
+use rift_cli::GlobalOptions;
+use rift_core::features::FeatureFlag;
+use rift_graphql::managed_secrets::{ManagedSecret, ManagedSecretType};
+use rift_graphql::object::SpaceType;
+use rift_managed_secrets::client::SecretOwner;
+use rift_managed_secrets::{ManagedSecretManager, ManagedSecretValue};
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, SingletonEntity as _};
+use serde::Serialize;
 
 use super::output::{self, TableFormat};
 use crate::auth::UserUid;

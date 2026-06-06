@@ -2,8 +2,8 @@
 
 use std::future::Future;
 
+use riftui::ModelSpawner;
 use uuid::Uuid;
-use warpui::ModelSpawner;
 
 use super::TemplatableMCPServerManager;
 

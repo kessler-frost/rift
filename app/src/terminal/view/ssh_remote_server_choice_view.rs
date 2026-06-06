@@ -16,18 +16,18 @@
 //!
 //! Dismissing the block (on click of either option, or when the session is
 //! deregistered) is the parent's responsibility.
-use settings::Setting;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ChildView, Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, Text,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::Setting;
 
 use crate::ai::blocklist::block::keyboard_navigable_buttons::{
     rich_navigation_button, KeyboardNavigableButtons,

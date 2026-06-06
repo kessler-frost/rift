@@ -1,14 +1,14 @@
 // The test harness in this file is adapted from the alacritty_terminal crate
-// under the Apache license; see: crates/warp_terminal/src/model/LICENSE-ALACRITTY.
+// under the Apache license; see: crates/rift_terminal/src/model/LICENSE-ALACRITTY.
 
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::path::Path;
 use std::sync::Arc;
 
+use riftui::r#async::executor::Background;
 use serde::Deserialize;
 use serde_json as json;
-use warpui::r#async::executor::Background;
 
 use crate::terminal::color::Colors;
 use crate::terminal::event_listener::ChannelEventListener;

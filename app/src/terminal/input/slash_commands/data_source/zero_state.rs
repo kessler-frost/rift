@@ -1,6 +1,6 @@
 use itertools::Itertools;
-use warp_core::features::FeatureFlag;
-use warpui::{Entity, ModelHandle, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use riftui::{Entity, ModelHandle, SingletonEntity};
 
 use crate::ai::skills::SkillManager;
 use crate::cloud_object::model::persistence::CloudModel;
@@ -40,7 +40,7 @@ impl SyncDataSource for ZeroStateDataSource {
     fn run_query(
         &self,
         query: &Query,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Result<Vec<QueryResult<Self::Action>>, DataSourceRunErrorWrapper> {
         if !query.text.is_empty() {
             return Ok(vec![]);

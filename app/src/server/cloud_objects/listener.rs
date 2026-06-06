@@ -5,8 +5,8 @@ use async_channel::Sender;
 pub use cloud_object_client::ObjectUpdateMessage;
 use futures_util::stream::AbortHandle;
 use instant::Instant;
-use warpui::r#async::Timer;
-use warpui::{Entity, ModelContext, RequestState, SingletonEntity};
+use riftui::r#async::Timer;
+use riftui::{Entity, ModelContext, RequestState, SingletonEntity};
 
 use super::update_manager::UpdateManager;
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};

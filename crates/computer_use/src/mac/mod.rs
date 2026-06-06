@@ -5,7 +5,7 @@ mod screenshot;
 mod util;
 
 use async_trait::async_trait;
-use warpui_core::r#async::Timer;
+use riftui_core::r#async::Timer;
 
 use crate::{Action, ActionResult, Options};
 

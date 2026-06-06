@@ -10,11 +10,11 @@ use futures::{select, FutureExt};
 use futures_lite::pin;
 use itertools::Itertools;
 use parking_lot::FairMutex;
-use warp_core::command::ExitCode;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_util::path::ShellFamily;
-use warpui::r#async::{Spawnable, Timer};
-use warpui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
+use rift_core::command::ExitCode;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_util::path::ShellFamily;
+use riftui::r#async::{Spawnable, Timer};
+use riftui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 use super::{ActionExecution, AnyActionExecution, ExecuteActionInput, PreprocessActionInput};
 use crate::ai::agent::{

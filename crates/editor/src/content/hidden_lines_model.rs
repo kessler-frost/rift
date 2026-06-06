@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::ops::Range;
 
 use rangemap::RangeSet;
+use riftui_core::{AppContext, Entity, ModelContext, ModelHandle};
 use string_offset::CharOffset;
-use warpui_core::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::anchor::{Anchor, AnchorSide};
 use crate::content::buffer::Buffer;

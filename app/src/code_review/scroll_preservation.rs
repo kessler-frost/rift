@@ -1,9 +1,9 @@
-use warp_core::features::FeatureFlag;
-use warpui::elements::ScrollOffset;
-use warpui::units::Pixels;
+use rift_core::features::FeatureFlag;
+use riftui::elements::ScrollOffset;
+use riftui::units::Pixels;
 #[cfg(not(target_family = "wasm"))]
-use warpui::{AppContext, WeakViewHandle};
-use warpui::{ViewContext, ViewHandle};
+use riftui::{AppContext, WeakViewHandle};
+use riftui::{ViewContext, ViewHandle};
 
 #[cfg(not(target_family = "wasm"))]
 use super::FILE_HEADER_HEIGHT;

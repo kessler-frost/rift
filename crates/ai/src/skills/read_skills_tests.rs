@@ -1,7 +1,7 @@
 use std::fs;
 
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use tempfile::tempdir;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
 
 use super::*;
 

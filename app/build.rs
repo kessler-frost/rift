@@ -9,13 +9,13 @@ use std::{env, fs};
 
 use anyhow::Result;
 use cfg_aliases::cfg_aliases;
-use sha2::Digest;
-use walkdir::WalkDir;
-use warp_util::assets::{
+use rift_util::assets::{
     ASSETS_DIR, ASYNC_ASSETS_DIR, CONPTY_DLL_FILE, DXCOMPILER_DLL_FILE, DXIL_DLL_FILE,
     OPEN_CONSOLE_EXE_FILE, REMOTE_ASSETS_DIR, WINDOWS_ASSETS_DIR,
 };
-use warp_util::path::app_target_dir;
+use rift_util::path::app_target_dir;
+use sha2::Digest;
+use walkdir::WalkDir;
 
 fn main() -> Result<()> {
     cfg_aliases! {
@@ -383,7 +383,7 @@ fn copy_async_assets() {
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(&contents);
                 let hash: [u8; 32] = hasher.finalize().into();
-                let new_relative_path = warp_util::assets::hashed_asset_path(
+                let new_relative_path = rift_util::assets::hashed_asset_path(
                     asset_path
                         .strip_prefix(&asset_dir)
                         .expect("asset in unexpected location"),
@@ -459,7 +459,7 @@ fn embed_resource_file(target_dir: &Path) {
     use std::io::Write;
 
     let version = env::var("GIT_RELEASE_TAG").unwrap_or("v0".to_owned());
-    let app_name = env::var("WARP_APP_NAME").unwrap_or("Warp".to_owned());
+    let app_name = env::var("RIFT_APP_NAME").unwrap_or("Warp".to_owned());
     let bin_name = env::var("CARGO_BIN_NAME").unwrap_or("local".to_owned());
 
     let icon_path = Path::new("channels")

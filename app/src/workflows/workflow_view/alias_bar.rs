@@ -3,17 +3,17 @@ use std::collections::HashMap;
 
 use anyhow::Error;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors::neutral_4;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors::neutral_4;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Dismiss, Flex, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseState, MouseStateHandle, ParentElement, Radius,
 };
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity as _, TypedActionView, View, ViewContext,
     ViewHandle,
 };

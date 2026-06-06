@@ -1,20 +1,20 @@
-use vec1::{vec1, Vec1};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::builder::AnimatedButtonOptions;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::builder::AnimatedButtonOptions;
+use riftui::elements::{
     Align, Border, ConstrainedBox, Container, CrossAxisAlignment, Element, Flex, Icon,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, SavePosition, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::windowing::{StateEvent, WindowManager};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::windowing::{StateEvent, WindowManager};
+use riftui::{
     AppContext, Entity, EntityId, FocusContext, ModelHandle, SingletonEntity, TypedActionView,
     View, ViewContext, ViewHandle, WindowId,
 };
+use vec1::{vec1, Vec1};
 
 use super::keybindings_page::KeybindingsEvent;
 use super::section_views::{

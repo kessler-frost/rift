@@ -7,13 +7,13 @@ use std::time::Duration;
 
 use futures::TryFutureExt;
 use inquire::{InquireError, Select};
-use warp_cli::agent::Harness;
-use warp_cli::environment::{EnvironmentCreateArgs, EnvironmentUpdateArgs};
-use warpui::r#async::FutureExt;
-use warpui::{AppContext, GetSingletonModelHandle, SingletonEntity as _, UpdateModel};
+use rift_cli::agent::Harness;
+use rift_cli::environment::{EnvironmentCreateArgs, EnvironmentUpdateArgs};
+use riftui::r#async::FutureExt;
+use riftui::{AppContext, GetSingletonModelHandle, SingletonEntity as _, UpdateModel};
 
 use crate::ai::agent::conversation::ServerAIConversationMetadata;
-use crate::ai::agent_sdk::driver::{AgentDriverError, WARP_DRIVE_SYNC_TIMEOUT};
+use crate::ai::agent_sdk::driver::{AgentDriverError, RIFT_DRIVE_SYNC_TIMEOUT};
 use crate::ai::ambient_agents::AmbientAgentTaskId;
 use crate::ai::cloud_environments::CloudAmbientAgentEnvironment;
 use crate::ai::llms::{LLMId, LLMPreferences};
@@ -140,7 +140,7 @@ pub fn refresh_warp_drive(
 ) -> impl Future<Output = anyhow::Result<()>> + Send + 'static {
     UpdateManager::as_ref(ctx)
         .initial_load_complete()
-        .with_timeout(WARP_DRIVE_SYNC_TIMEOUT)
+        .with_timeout(RIFT_DRIVE_SYNC_TIMEOUT)
         .map_err(|_| anyhow::anyhow!("Timed out waiting for Warp Drive to sync"))
 }
 
@@ -252,7 +252,7 @@ impl EnvironmentChoice {
 
             // If there are no synced environments, require the user to create one or use --no-environment.
             if options.len() == 1 {
-                let cli_name = warp_cli::binary_name().unwrap_or_else(|| "warp".to_string());
+                let cli_name = rift_cli::binary_name().unwrap_or_else(|| "warp".to_string());
                 return Err(ResolveConfigurationError::Other(anyhow::anyhow!(
                     "No environments are configured for this account.\n\
 You can create an environment with `{cli_name} environment create`.\n\

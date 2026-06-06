@@ -11,14 +11,14 @@ use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::watcher::DirectoryWatcher;
 #[cfg(feature = "local_fs")]
 use repo_metadata::RepoMetadataModel;
+use rift_core::features::FeatureFlag;
+use riftui::platform::{WindowBounds, WindowStyle};
+use riftui::windowing::state::ApplicationStage;
+use riftui::windowing::WindowManager;
+use riftui::{App, ModelHandle};
 use session_sharing_protocol::common::SessionId;
 use shared_session::permissions_manager::SessionPermissionsManager;
 use uuid::Uuid;
-use warp_core::features::FeatureFlag;
-use warpui::platform::{WindowBounds, WindowStyle};
-use warpui::windowing::state::ApplicationStage;
-use warpui::windowing::WindowManager;
-use warpui::{App, ModelHandle};
 use watcher::HomeDirectoryWatcher;
 
 use super::child_agent::hydration::{
@@ -393,7 +393,7 @@ fn persisted_remote_child_conversation(
             .expect("conversation data should serialize"),
             last_modified_at: Utc::now().naive_utc(),
         },
-        tasks: vec![warp_multi_agent_api::Task {
+        tasks: vec![rift_multi_agent_api::Task {
             id: Uuid::new_v4().to_string(),
             messages: vec![],
             dependencies: None,

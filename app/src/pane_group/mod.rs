@@ -13,6 +13,25 @@ use markdown_parser::FormattedTextFragment;
 use parking_lot::FairMutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
+use rift_cli::agent::Harness;
+use rift_core::command::ExitCode;
+use rift_core::context_flag::ContextFlag;
+use rift_terminal::shell::{ShellName, ShellType};
+use rift_util::path::convert_wsl_to_windows_host_path;
+#[cfg(feature = "local_fs")]
+use rift_util::path::LineAndColumnArg;
+use rift_util::remote_path::RemotePath;
+use riftui::elements::{
+    ChildView, Clipped, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex,
+    MainAxisSize, ParentElement, Shrinkable, Stack,
+};
+use riftui::keymap::{Context, EditableBinding, FixedBinding};
+use riftui::notification::NotificationSendError;
+use riftui::windowing::WindowManager;
+use riftui::{
+    AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
+    ViewHandle, WeakViewHandle, WindowId,
+};
 use serde::{Deserialize, Serialize};
 use session_sharing_protocol::common::{
     ParticipantId, Role, RoleRequestId, RoleRequestRejectedReason, RoleRequestResponse, SessionId,
@@ -22,25 +41,6 @@ use tree::DEFAULT_FLEX_VALUE;
 use typed_path::TypedPath;
 use url::Url;
 use uuid::Uuid;
-use warp_cli::agent::Harness;
-use warp_core::command::ExitCode;
-use warp_core::context_flag::ContextFlag;
-use warp_terminal::shell::{ShellName, ShellType};
-use warp_util::path::convert_wsl_to_windows_host_path;
-#[cfg(feature = "local_fs")]
-use warp_util::path::LineAndColumnArg;
-use warp_util::remote_path::RemotePath;
-use warpui::elements::{
-    ChildView, Clipped, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex,
-    MainAxisSize, ParentElement, Shrinkable, Stack,
-};
-use warpui::keymap::{Context, EditableBinding, FixedBinding};
-use warpui::notification::NotificationSendError;
-use warpui::windowing::WindowManager;
-use warpui::{
-    AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
-    ViewHandle, WeakViewHandle, WindowId,
-};
 
 use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
 use crate::ai::agent::conversation::{AIAgentHarness, AIConversation, AIConversationId};
@@ -263,7 +263,7 @@ fn resolve_tab_config_shell(name: &str, ctx: &AppContext) -> Option<AvailableShe
 
     AvailableShell::try_from(name).ok()
 }
-const WARP_SHELL_COMPATIBILITY_DOCS: &str =
+const RIFT_SHELL_COMPATIBILITY_DOCS: &str =
     "https://docs.warp.dev/getting-started/supported-shells";
 // Default minimum width for a newly created Agent Mode pane so that it is legible. Called "default"
 // because this value may be too large for small windows. In that case, we fall back to 50% of the
@@ -314,7 +314,7 @@ enum PaneRemovalReason {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
     app.register_binding_validator::<PaneGroup>(is_binding_pty_compliant);
 
     self::pane::init(app);
@@ -3014,7 +3014,7 @@ impl PaneGroup {
                     FormattedTextFragment::plain_text(
                         "Warp doesn't currently support your default shell, falling back to zsh.  ",
                     ),
-                    FormattedTextFragment::hyperlink("Learn more", WARP_SHELL_COMPATIBILITY_DOCS),
+                    FormattedTextFragment::hyperlink("Learn more", RIFT_SHELL_COMPATIBILITY_DOCS),
                 ]),
             )
         });

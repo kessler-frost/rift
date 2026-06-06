@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use futures::channel::oneshot;
+use rift_editor::content::buffer::{InitialBufferState, SelectionOffsets};
+use rift_editor::multiline::MultilineString;
+use rift_util::content_version::ContentVersion;
+use riftui::App;
 use vec1::vec1;
-use warp_editor::content::buffer::{InitialBufferState, SelectionOffsets};
-use warp_editor::multiline::MultilineString;
-use warp_util::content_version::ContentVersion;
-use warpui::App;
 
 use super::*;
 use crate::code::editor::line::EditorLineLocation;

@@ -4,10 +4,10 @@ use std::path::PathBuf;
 use chrono::NaiveDateTime;
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{Align, ConstrainedBox, Flex, Highlight, ParentElement, Shrinkable, Text};
-use warpui::fonts::{Properties, Weight};
-use warpui::{AppContext, Element, SingletonEntity};
+use rift_core::ui::theme::Fill;
+use riftui::elements::{Align, ConstrainedBox, Flex, Highlight, ParentElement, Shrinkable, Text};
+use riftui::fonts::{Properties, Weight};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::search::action::search_item::styles;

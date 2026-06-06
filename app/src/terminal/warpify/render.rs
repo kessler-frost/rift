@@ -2,16 +2,16 @@ use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::{Fill, WarpTheme};
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::{Fill, WarpTheme};
+use riftui::elements::{
     Align, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, FormattedTextElement,
     HighlightedHyperlink, Icon, MouseStateHandle, ParentElement, Radius, Rect, Shrinkable, Stack,
     Text,
 };
-use warpui::fonts::{FamilyId, Properties, Weight};
-use warpui::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui::{AppContext, Element, EventContext, PaintContext, SingletonEntity as _};
+use riftui::fonts::{FamilyId, Properties, Weight};
+use riftui::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui::{AppContext, Element, EventContext, PaintContext, SingletonEntity as _};
 
 use super::settings::WarpifySettings;
 use super::SubshellSource;
@@ -27,7 +27,7 @@ const SUBSHELL_FLAG_HORIZONTAL_PADDING: f32 = 8.;
 const SUBSHELL_FLAG_VERTICAL_PADDING: f32 = 1.;
 
 // TODO(liam): remove this once figuring out how to get theme color in layout()
-const WARP_DRIVE_ENV_VAR_COLLECTION_ICON_COLOR: u32 = 0xC464FFFF;
+const RIFT_DRIVE_ENV_VAR_COLLECTION_ICON_COLOR: u32 = 0xC464FFFF;
 const ICON_MARGIN: f32 = 4.;
 const TERMINAL_ICON: &str = "bundled/svg/terminal.svg";
 pub const HORIZONTAL_TEXT_MARGIN: f32 = 20.;
@@ -205,7 +205,7 @@ fn get_subshell_flag_info(subshell_source: &SubshellSource, theme: &WarpTheme) -
     match subshell_source {
         SubshellSource::EnvVarCollection(environment_name) => (
             environment_name.to_string(),
-            Fill::Solid(ColorU::from_u32(WARP_DRIVE_ENV_VAR_COLLECTION_ICON_COLOR)),
+            Fill::Solid(ColorU::from_u32(RIFT_DRIVE_ENV_VAR_COLLECTION_ICON_COLOR)),
         ),
         SubshellSource::Command(command) => (command.to_string(), theme.subshell_background()),
     }
@@ -230,7 +230,7 @@ pub fn draw_flag_pole(
 /// Implementation should match `[draw_subshell_flag_pole]`.
 pub fn render_subshell_flag_pole(
     max_height: f32,
-    fill: impl Into<warpui::elements::Fill>,
+    fill: impl Into<riftui::elements::Fill>,
 ) -> Box<dyn Element> {
     ConstrainedBox::new(Rect::new().with_background(fill.into()).finish())
         .with_width(LEFT_STRIPE_WIDTH)

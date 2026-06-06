@@ -1,8 +1,8 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::Element;
-use warpui::prelude::Container;
-use warpui::scene::Border;
-use warpui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::Element;
+use riftui::prelude::Container;
+use riftui::scene::Border;
+use riftui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
 
 use crate::ai::blocklist::agent_view::{AgentViewController, AgentViewControllerEvent};
 use crate::terminal::input::inline_menu::model::InlineMenuModel;

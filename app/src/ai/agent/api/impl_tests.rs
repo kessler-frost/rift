@@ -1,6 +1,6 @@
-use warp_core::features::FeatureFlag;
-use warp_core::HostId;
-use warp_multi_agent_api as api;
+use rift_core::features::FeatureFlag;
+use rift_core::HostId;
+use rift_multi_agent_api as api;
 
 use super::{
     api_keys_with_warp_credit_fallback_setting, get_supported_cli_agent_tools, get_supported_tools,

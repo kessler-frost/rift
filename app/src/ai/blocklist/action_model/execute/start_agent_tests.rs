@@ -1,5 +1,5 @@
 use ai::agent::action_result::StartAgentVersion;
-use warpui::{App, EntityId};
+use riftui::{App, EntityId};
 
 use super::*;
 use crate::ai::agent::conversation::ConversationStatus;

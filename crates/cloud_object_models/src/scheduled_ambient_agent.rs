@@ -4,8 +4,8 @@ use cloud_objects::cloud_object::{
     GenericCloudObject, GenericServerObject, GenericStringModel, JsonObjectType,
 };
 use cloud_objects::ids::GenericStringObjectId;
+use rift_cli::agent::Harness;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use warp_cli::agent::Harness;
 
 use crate::{JsonModel, JsonSerializer};
 

@@ -2,17 +2,17 @@ use std::sync::Arc;
 
 pub use lightbox::LightboxImage;
 use pathfinder_geometry::vector::Vector2F;
+use riftui::assets::asset_cache::{AssetCache, AssetSource, AssetState};
+use riftui::image_cache::ImageType;
+use riftui::keymap::{FixedBinding, Keystroke};
+use riftui::prelude::*;
+use riftui::{AppContext, BlurContext, Element, Entity, SingletonEntity, View, ViewContext};
 use ui_components::{lightbox, Component as _};
-use warpui::assets::asset_cache::{AssetCache, AssetSource, AssetState};
-use warpui::image_cache::ImageType;
-use warpui::keymap::{FixedBinding, Keystroke};
-use warpui::prelude::*;
-use warpui::{AppContext, BlurContext, Element, Entity, SingletonEntity, View, ViewContext};
 
 use crate::appearance::Appearance;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
     let view_id = id!(LightboxView::ui_name());
     app.register_fixed_bindings([
         FixedBinding::new("escape", LightboxViewAction::Dismiss, view_id.clone()),

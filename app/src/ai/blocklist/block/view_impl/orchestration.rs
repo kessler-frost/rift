@@ -2,12 +2,12 @@
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
-use warpui::elements::{
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, FormattedTextElement,
     Hoverable, MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
 };
-use warpui::platform::Cursor;
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::platform::Cursor;
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::common::render_scrollable_collapsible_content;
 use super::output::{action_icon, Props};

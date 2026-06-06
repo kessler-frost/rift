@@ -16,8 +16,8 @@ use remote_server::proto::{
     file_context_proto, FragmentMetadata as ProtoFragmentMetadata, LineRange, ReadFileContextFile,
     ReadFileContextRequest, ReadFileContextResponse,
 };
+use riftui::{AppContext, ModelContext, SingletonEntity};
 use string_offset::ByteOffset;
-use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent::{
     AnyFileContent, FileContext, SearchCodebaseFailureReason, SearchCodebaseResult,

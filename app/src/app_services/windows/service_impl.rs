@@ -3,8 +3,8 @@ use std::sync::Arc;
 use async_channel::Sender;
 use async_trait::async_trait;
 use ipc::{Client, ConnectionAddress};
+use riftui::r#async::executor::Background;
 use url::Url;
-use warpui::r#async::executor::Background;
 
 use super::single_instance_manager::uri_named_pipe_name;
 

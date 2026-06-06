@@ -1,4 +1,4 @@
-use warpui::{SingletonEntity, ViewContext};
+use riftui::{SingletonEntity, ViewContext};
 
 use crate::ai::agent::api::ServerConversationToken;
 use crate::ai::agent::conversation::{AIConversation, AIConversationId};
@@ -285,7 +285,7 @@ impl PaneGroup {
 
             match conversation {
                 Some(CloudConversationData::Oz(cloud)) => {
-                    let tasks: Vec<warp_multi_agent_api::Task> = cloud
+                    let tasks: Vec<rift_multi_agent_api::Task> = cloud
                         .all_tasks()
                         .filter_map(|task| task.source().cloned())
                         .collect();

@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use cloud_object_client::MockObjectClient;
+use riftui::{App, SingletonEntity};
 use settings::manager::SettingsManager;
-use warpui::{App, SingletonEntity};
 
 use super::*;
 use crate::auth::AuthStateProvider;

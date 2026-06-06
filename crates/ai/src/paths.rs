@@ -1,9 +1,9 @@
-use typed_path::{TypedPath, TypedPathBuf, WindowsPath};
-use warp_terminal::shell::ShellLaunchData;
-use warp_util::path::{
+use rift_terminal::shell::ShellLaunchData;
+use rift_util::path::{
     convert_msys2_to_windows_native_path, convert_wsl_to_windows_host_path, msys2_exe_to_root,
 };
-use warpui_core::platform::OperatingSystem;
+use riftui_core::platform::OperatingSystem;
+use typed_path::{TypedPath, TypedPathBuf, WindowsPath};
 
 fn use_unix_paths(shell: Option<&ShellLaunchData>) -> bool {
     OperatingSystem::get().is_linux()

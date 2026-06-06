@@ -19,24 +19,24 @@ use itertools::Itertools;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use ui_components::{button, Component as _, Options as _};
-use warp_core::channel::ChannelState;
-use warp_core::ui::theme::color::internal_colors;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::elements::new_scrollable::SingleAxisConfig;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::ui::theme::color::internal_colors;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::elements::new_scrollable::SingleAxisConfig;
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Empty, Expanded, Fill, Flex, FormattedTextElement, Hoverable,
     MainAxisAlignment, MainAxisSize, NewScrollable, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Radius, Shrinkable, Stack, Text, Wrap,
 };
-use warpui::keymap::Keystroke;
-use warpui::platform::{Cursor, OperatingSystem};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::radio_buttons::{RadioButtonItem, RadioButtonLayout};
-use warpui::{
+use riftui::keymap::Keystroke;
+use riftui::platform::{Cursor, OperatingSystem};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::radio_buttons::{RadioButtonItem, RadioButtonLayout};
+use riftui::{
     Action, AppContext, Element, EntityId, ModelHandle, SingletonEntity, View, ViewHandle,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::common::{
     format_elapsed_seconds, render_debug_footer, render_failed_output, render_informational_footer,
@@ -2087,7 +2087,7 @@ fn render_stopped_output(props: Props, app: &AppContext) -> Box<dyn Element> {
                 .set_background(internal_colors::fg_overlay_3(theme).into()),
         );
 
-        let resume_button = warpui::ui_components::button::Button::new(
+        let resume_button = riftui::ui_components::button::Button::new(
             props.state_handles.resume_conversation_handle.clone(),
             button_styles,
             Some(hovered_styles),
@@ -2274,7 +2274,7 @@ fn render_suggest_new_conversation(
             ),
             SuggestNewConversationResult::Rejected => (
                 "Continuing current conversation",
-                warpui::elements::Icon::new(
+                riftui::elements::Icon::new(
                     Icon::FlipForward.into(),
                     internal_colors::neutral_6(theme),
                 )
@@ -3426,7 +3426,7 @@ pub fn action_icon<V: View>(
     action_model: &ModelHandle<BlocklistAIActionModel>,
     ai_block_model: &dyn AIBlockModel<View = V>,
     app: &AppContext,
-) -> warpui::elements::Icon {
+) -> riftui::elements::Icon {
     let appearance = Appearance::as_ref(app);
     let status = action_model.as_ref(app).get_action_status(action_id);
     match status {

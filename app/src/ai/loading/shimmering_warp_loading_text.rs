@@ -1,14 +1,14 @@
 //! Shimmering Warp loading text - renders Warp logo with shimmering text for loading states.
 
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::shimmering_text::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::shimmering_text::{
     ShimmerConfig, ShimmeringTextElement, ShimmeringTextStateHandle,
 };
-use warpui::elements::Element;
-use warpui::{AppContext, SingletonEntity};
+use riftui::elements::Element;
+use riftui::{AppContext, SingletonEntity};
 
 /// Warp icon glyph character
-const WARP_GLYPH: &str = "\u{E500}";
+const RIFT_GLYPH: &str = "\u{E500}";
 
 /// Creates a shimmering text element with the Warp glyph.
 pub fn shimmering_warp_loading_text(
@@ -29,7 +29,7 @@ pub fn shimmering_warp_loading_text(
 
     // Create a single shimmering element with glyph and text
     ShimmeringTextElement::new(
-        format!("{} {}", WARP_GLYPH, text.into()),
+        format!("{} {}", RIFT_GLYPH, text.into()),
         appearance.ui_font_family(),
         font_size,
         base_color,

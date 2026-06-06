@@ -1,10 +1,10 @@
-use warp_core::ui::builder::UiBuilder;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::elements::{Align, Container, Element, Flex, MouseStateHandle, ParentElement};
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use rift_core::ui::builder::UiBuilder;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::elements::{Align, Container, Element, Flex, MouseStateHandle, ParentElement};
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
 
@@ -35,7 +35,7 @@ const BUTTON_MARGIN_BOTTOM: f32 = 14.;
 const ACCESSIBILITY_HELP: &str = "Press enter to open the theme chooser or escape to dismiss.";
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "enter",

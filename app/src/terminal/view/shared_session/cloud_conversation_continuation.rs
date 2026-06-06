@@ -1,5 +1,5 @@
-use warp_cli::agent::Harness;
-use warpui::{AppContext, EntityId, SingletonEntity};
+use rift_cli::agent::Harness;
+use riftui::{AppContext, EntityId, SingletonEntity};
 
 use crate::ai::agent::api::ServerConversationToken;
 use crate::ai::agent::conversation::{

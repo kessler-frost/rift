@@ -1,5 +1,5 @@
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, EntityId, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, EntityId, SingletonEntity};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent_conversations_model::AgentConversationsModel;

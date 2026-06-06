@@ -8,37 +8,37 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use markdown_parser::markdown_parser::CODE_BLOCK_DEFAULT_MARKDOWN_LANG;
 use pathfinder_color::ColorU;
+use rift_completer::signatures::CommandRegistry;
+use rift_core::r#async::debounce;
+use rift_editor::content::anchor::Anchor;
+use rift_editor::content::buffer::{Buffer, BufferEvent, EditOrigin};
+use rift_editor::content::mermaid_diagram::mermaid_asset_source;
+use rift_editor::content::selection_model::BufferSelectionModel;
+use rift_editor::content::text::{
+    BlockType, BufferBlockStyle, CodeBlockType, CODE_BLOCK_DEFAULT_DISPLAY_LANG,
+    CODE_BLOCK_SHELL_DISPLAY_LANG,
+};
+use rift_editor::editor::RunnableCommandModel;
+use rift_util::user_input::UserInput;
+use riftui::elements::{
+    Align, Border, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, MainAxisAlignment,
+    MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
+};
+use riftui::fonts::Properties;
+use riftui::platform::Cursor;
+use riftui::presenter::ChildView;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
+    AppContext, AssetProvider as _, Element, Entity, ModelAsRef, ModelContext, ModelHandle,
+    SingletonEntity, ViewHandle, WeakModelHandle, WindowId,
+};
 use string_offset::{ByteOffset, CharOffset};
 use syntect::easy::HighlightLines;
 use syntect::highlighting::{self, Theme, ThemeSet};
 use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
 use ui_components::lightbox::{LightboxImage, LightboxImageSource};
-use warp_completer::signatures::CommandRegistry;
-use warp_core::r#async::debounce;
-use warp_editor::content::anchor::Anchor;
-use warp_editor::content::buffer::{Buffer, BufferEvent, EditOrigin};
-use warp_editor::content::mermaid_diagram::mermaid_asset_source;
-use warp_editor::content::selection_model::BufferSelectionModel;
-use warp_editor::content::text::{
-    BlockType, BufferBlockStyle, CodeBlockType, CODE_BLOCK_DEFAULT_DISPLAY_LANG,
-    CODE_BLOCK_SHELL_DISPLAY_LANG,
-};
-use warp_editor::editor::RunnableCommandModel;
-use warp_util::user_input::UserInput;
-use warpui::elements::{
-    Align, Border, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, MainAxisAlignment,
-    MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
-};
-use warpui::fonts::Properties;
-use warpui::platform::Cursor;
-use warpui::presenter::ChildView;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
-    AppContext, AssetProvider as _, Element, Entity, ModelAsRef, ModelContext, ModelHandle,
-    SingletonEntity, ViewHandle, WeakModelHandle, WindowId,
-};
 
 use super::interaction_state_model::InteractionStateModel;
 use super::keys::{custom_action_to_display, NotebookKeybindings};
@@ -633,7 +633,7 @@ impl RunnableCommandModel for NotebookCommand {
                         appearance.ui_font_size(),
                     )
                     .with_style(Properties {
-                        weight: warpui::fonts::Weight::Light,
+                        weight: riftui::fonts::Weight::Light,
                         ..Default::default()
                     })
                     .with_color(

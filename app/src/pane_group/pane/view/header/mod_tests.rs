@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use cloud_object_client::MockObjectClient;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::Empty;
-use warpui::platform::WindowStyle;
-use warpui::{App, AppContext, Element, Entity, TypedActionView, View, ViewContext};
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::Empty;
+use riftui::platform::WindowStyle;
+use riftui::{App, AppContext, Element, Entity, TypedActionView, View, ViewContext};
 
 use super::{Event, OpenOverlay};
 use crate::ai::blocklist::BlocklistAIHistoryModel;

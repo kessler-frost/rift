@@ -18,6 +18,26 @@ use nav::{SettingsNavItem, SettingsUmbrella};
 use pathfinder_geometry::vector::Vector2F;
 use privacy_page::{PrivacyPageView, PrivacyPageViewEvent};
 use referrals_page::{ReferralsPageEvent, ReferralsPageView};
+use rift_core::channel::ChannelState;
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_core::settings::ToggleableSetting as _;
+use rift_core::ui::theme::color::internal_colors;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
+    Align, Border, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable,
+    ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DispatchEventResult, Empty,
+    EventHandler, Expanded, Fill, Flex, MainAxisSize, OffsetPositioning, ParentAnchor,
+    ParentElement, ParentOffsetBounds, Radius, SavePosition, ScrollbarWidth, Shrinkable, Stack,
+    Text,
+};
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::{ContextPredicate, EnabledPredicate, FixedBinding};
+use riftui::{
+    id, Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView,
+    UpdateView as _, View, ViewContext, ViewHandle,
+};
 use settings_file_footer::{render_footer, SettingsFooterKind, SettingsFooterMouseStates};
 use settings_page::{
     MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle,
@@ -25,27 +45,7 @@ use settings_page::{
 };
 use show_blocks_view::{ShowBlocksEvent, ShowBlocksView};
 use teams_page::{TeamsPageView, TeamsPageViewEvent};
-use warp_core::channel::ChannelState;
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::settings::ToggleableSetting as _;
-use warp_core::ui::theme::color::internal_colors;
-use warp_editor::editor::NavigationKey;
 use warpify_page::{WarpifyPageAction, WarpifyPageView};
-use warpui::elements::{
-    Align, Border, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable,
-    ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DispatchEventResult, Empty,
-    EventHandler, Expanded, Fill, Flex, MainAxisSize, OffsetPositioning, ParentAnchor,
-    ParentElement, ParentOffsetBounds, Radius, SavePosition, ScrollbarWidth, Shrinkable, Stack,
-    Text,
-};
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::{ContextPredicate, EnabledPredicate, FixedBinding};
-use warpui::{
-    id, Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView,
-    UpdateView as _, View, ViewContext, ViewHandle,
-};
 
 use self::telemetry::SettingsTelemetryEvent;
 use crate::ai::execution_profiles::profiles::ClientProfileId;
@@ -185,10 +185,10 @@ pub(super) fn render_beta_chip(appearance: &Appearance) -> Box<dyn Element> {
 pub(super) fn render_model_chips(
     labels: impl IntoIterator<Item = String>,
     appearance: &Appearance,
-    text_color: warp_core::ui::theme::Fill,
+    text_color: rift_core::ui::theme::Fill,
 ) -> Box<dyn Element> {
-    use warpui::ui_components::chip::Chip;
-    use warpui::ui_components::components::{UiComponent, UiComponentStyles};
+    use riftui::ui_components::chip::Chip;
+    use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 
     let theme = appearance.theme();
     let chip_border = internal_colors::neutral_4(theme).into();
@@ -532,7 +532,7 @@ pub mod flags {
     pub const IN_BAND_COMMAND_BLOCKS_FLAG: &str = "In_Band_Command_Blocks_Visible";
     pub const RECORDING_MODE_FLAG: &str = "Recording_Mode_Enabled";
     pub const IN_BAND_GENERATORS_FLAG: &str = "In_Band_Generators_Enabled";
-    pub const WARP_SAME_LINE_PROMPT_FLAG: &str = "Warp_Same_Line_Prompt_Enabled";
+    pub const RIFT_SAME_LINE_PROMPT_FLAG: &str = "Warp_Same_Line_Prompt_Enabled";
     pub const DEBUG_NETWORK_ONLINE_FLAG: &str = "Network_Status_Online";
     pub const AI_INPUT_AUTODETECTION_FLAG: &str = "AI_Input_Autodetection";
     pub const NLD_IN_TERMINAL_FLAG: &str = "NLD_In_Terminal";
@@ -545,9 +545,9 @@ pub mod flags {
     pub const INCLUDE_AGENT_COMMANDS_IN_HISTORY_FLAG: &str = "Include_Agent_Commands_In_History";
     pub const AI_RULES_FLAG: &str = "AI_Rules";
     pub const SUGGESTED_RULES_FLAG: &str = "Suggested_Rules";
-    pub const WARP_DRIVE_CONTEXT_FLAG: &str = "Warp_Drive_Context";
+    pub const RIFT_DRIVE_CONTEXT_FLAG: &str = "Warp_Drive_Context";
     pub const FILE_BASED_MCP_FLAG: &str = "File_Based_MCP";
-    pub const WARP_CREDIT_FALLBACK_FLAG: &str = "Warp_Credit_Fallback";
+    pub const RIFT_CREDIT_FALLBACK_FLAG: &str = "Warp_Credit_Fallback";
     pub const SHOW_BASE_MODEL_PICKER_IN_PROMPT_FLAG: &str = "Show_Base_Model_Picker_In_Prompt";
     pub const DEBUG_SHOW_MEMORY_STATS_FLAG: &str = "Debug_Memory_Statistics";
     pub const ALLOW_NATIVE_WAYLAND: &str = "Allow_Native_Wayland";
@@ -563,7 +563,7 @@ pub mod flags {
     pub const UNIVERSAL_DEVELOPER_INPUT_ENABLED: &str = "UniversalDeveloperInputEnabled";
     pub const AGENT_MODE_INPUT: &str = "InputAgentMode";
     pub const TERMINAL_MODE_INPUT: &str = "InputTerminalMode";
-    pub const WARP_IS_DEFAULT_TERMINAL: &str = "WarpIsDefaultTerminal";
+    pub const RIFT_IS_DEFAULT_TERMINAL: &str = "WarpIsDefaultTerminal";
     pub const PASSIVE_CODE_DIFF_KEYBINDINGS_ENABLED: &str = "PassiveCodeDiffKeybindingsEnabled";
     /// When set, ctrl-enter should accept a prompt suggestion rather than insert a newline.
     /// This flag is set by the terminal Input when there's a pending passive code diff.
@@ -765,7 +765,7 @@ impl<T: Action + Clone> ToggleSettingActionPair<T> {
         context_prefix: &ContextPredicate,
         context_boolean_flag: &'static str,
     ) -> Self {
-        use warpui::keymap::macros::id;
+        use riftui::keymap::macros::id;
 
         ToggleSettingActionPair {
             descriptions: SettingActionPairDescriptions {
@@ -2745,16 +2745,16 @@ impl BackingView for SettingsView {
     fn handle_pane_header_overflow_menu_action(
         &mut self,
         action: &Self::PaneHeaderOverflowMenuAction,
-        ctx: &mut warpui::ViewContext<Self>,
+        ctx: &mut riftui::ViewContext<Self>,
     ) {
         self.handle_action(action, ctx)
     }
 
-    fn close(&mut self, ctx: &mut warpui::ViewContext<Self>) {
+    fn close(&mut self, ctx: &mut riftui::ViewContext<Self>) {
         ctx.emit(SettingsViewEvent::Pane(PaneEvent::Close));
     }
 
-    fn focus_contents(&mut self, ctx: &mut warpui::ViewContext<Self>) {
+    fn focus_contents(&mut self, ctx: &mut riftui::ViewContext<Self>) {
         ctx.focus(&self.search_editor)
     }
 

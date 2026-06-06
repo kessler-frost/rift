@@ -6,21 +6,21 @@ use async_channel::Sender;
 use itertools::Itertools;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
-use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     AnchorPair, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Dismiss, Empty, Fill, Flex, Hoverable, Icon, MouseStateHandle, OffsetPositioning, OffsetType,
     ParentElement, PositionedElementOffsetBounds, PositioningAxis, Radius, SavePosition,
     ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth, Shrinkable, Stack, Text,
     UniformList, UniformListState, XAxisAnchor, YAxisAnchor,
 };
-use warpui::platform::Cursor;
-use warpui::windowing::WindowManager;
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::windowing::WindowManager;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WeakViewHandle,
 };
+use settings::Setting as _;
 
 use super::styles;
 use crate::appearance::Appearance;

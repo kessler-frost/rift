@@ -53,10 +53,10 @@ impl std::fmt::Display for LspServerLogLevel {
 use std::sync::Arc;
 
 use anyhow::Result;
+use riftui_core::r#async::executor::Background;
+use riftui_core::AppContext;
 #[cfg(not(target_arch = "wasm32"))]
 use simple_logger::SimpleLogger;
-use warpui_core::r#async::executor::Background;
-use warpui_core::AppContext;
 
 pub struct LspServiceInitializationResult {
     pub service: LspService,

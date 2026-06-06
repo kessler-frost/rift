@@ -1,29 +1,29 @@
 use std::cell::Cell;
 
 use onboarding::slides::{layout, slide_content};
-use onboarding::{OnboardingIntention, AI_FEATURES, WARP_DRIVE_FEATURES};
+use onboarding::{OnboardingIntention, AI_FEATURES, RIFT_DRIVE_FEATURES};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use ui_components::{button, Component as _, Options as _};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warpui::actions::StandardAction;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use riftui::actions::StandardAction;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, Fill, Flex, FormattedTextElement,
     HighlightedHyperlink, Image, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::{FixedBinding, Keystroke};
-use warpui::text_layout::TextAlignment;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::{FixedBinding, Keystroke};
+use riftui::text_layout::TextAlignment;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, UpdateModel, View,
     ViewContext, ViewHandle,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use crate::appearance::Appearance;
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
@@ -46,7 +46,7 @@ const TOS_URL: &str = "https://www.warp.dev/terms-of-service";
 // ---------------------------------------------------------------------------
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -757,7 +757,7 @@ impl LoginSlideView {
             } else {
                 // First call (narrow layout fallback): placeholder.
                 editor_rendered.set(true);
-                Container::new(warpui::elements::Empty::new().finish())
+                Container::new(riftui::elements::Empty::new().finish())
                     .with_padding_top(12.)
                     .with_padding_bottom(12.)
                     .with_padding_left(16.)
@@ -949,7 +949,7 @@ impl LoginSlideView {
         let mut feature_list =
             Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
         let feature_items: &[&str] = if is_terminal {
-            WARP_DRIVE_FEATURES
+            RIFT_DRIVE_FEATURES
         } else {
             AI_FEATURES
         };
@@ -1108,13 +1108,13 @@ impl View for LoginSlideView {
             );
             let overlay_opacity = (100u8).saturating_sub(img.opacity);
             stack.add_child(
-                warpui::elements::Rect::new()
+                riftui::elements::Rect::new()
                     .with_background(theme.background().with_opacity(overlay_opacity))
                     .finish(),
             );
         } else {
             stack.add_child(
-                Container::new(warpui::elements::Empty::new().finish())
+                Container::new(riftui::elements::Empty::new().finish())
                     .with_background(theme.background())
                     .finish(),
             );

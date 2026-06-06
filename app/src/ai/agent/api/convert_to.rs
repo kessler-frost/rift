@@ -3,7 +3,7 @@
 use ai::agent::convert::ConvertToAPITypeError;
 use anyhow::anyhow;
 use chrono::{DateTime, Local, Timelike};
-use warp_multi_agent_api as api;
+use rift_multi_agent_api as api;
 
 use crate::ai::agent::{
     AIAgentActionResult, AIAgentActionResultType, AIAgentAttachment, AIAgentContext, AIAgentInput,
@@ -490,15 +490,15 @@ impl From<PassiveSuggestionTrigger> for api::request::input::generate_passive_su
     }
 }
 
-impl From<UserQueryMode> for warp_multi_agent_api::UserQueryMode {
+impl From<UserQueryMode> for rift_multi_agent_api::UserQueryMode {
     fn from(value: UserQueryMode) -> Self {
         match value {
-            UserQueryMode::Normal => warp_multi_agent_api::UserQueryMode { r#type: None },
-            UserQueryMode::Plan => warp_multi_agent_api::UserQueryMode {
-                r#type: Some(warp_multi_agent_api::user_query_mode::Type::Plan(())),
+            UserQueryMode::Normal => rift_multi_agent_api::UserQueryMode { r#type: None },
+            UserQueryMode::Plan => rift_multi_agent_api::UserQueryMode {
+                r#type: Some(rift_multi_agent_api::user_query_mode::Type::Plan(())),
             },
-            UserQueryMode::Orchestrate => warp_multi_agent_api::UserQueryMode {
-                r#type: Some(warp_multi_agent_api::user_query_mode::Type::Orchestrate(())),
+            UserQueryMode::Orchestrate => rift_multi_agent_api::UserQueryMode {
+                r#type: Some(rift_multi_agent_api::user_query_mode::Type::Orchestrate(())),
             },
         }
     }
@@ -658,16 +658,16 @@ impl TryFrom<AIAgentActionResult> for api::request::input::user_inputs::user_inp
                 Some(suggest_prompt_result.try_into()?)
             }
             AIAgentActionResultType::OpenCodeReview => Some(
-                warp_multi_agent_api::request::input::tool_call_result::Result::OpenCodeReview(
-                    warp_multi_agent_api::OpenCodeReviewResult {},
+                rift_multi_agent_api::request::input::tool_call_result::Result::OpenCodeReview(
+                    rift_multi_agent_api::OpenCodeReviewResult {},
                 ),
             ),
             AIAgentActionResultType::InsertReviewComments(insert_review_comments_result) => {
                 Some(insert_review_comments_result.try_into()?)
             }
             AIAgentActionResultType::InitProject => Some(
-                warp_multi_agent_api::request::input::tool_call_result::Result::InitProject(
-                    warp_multi_agent_api::InitProjectResult {},
+                rift_multi_agent_api::request::input::tool_call_result::Result::InitProject(
+                    rift_multi_agent_api::InitProjectResult {},
                 ),
             ),
             AIAgentActionResultType::ReadDocuments(read_documents_result) => {

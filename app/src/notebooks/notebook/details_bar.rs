@@ -1,13 +1,13 @@
 //! Components for the notebook header.
 
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     Container, CrossAxisAlignment, Flex, Highlight, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::super::active_notebook_data::ActiveNotebookData;
 use super::{NotebookAction, EDIT_BUTTON_MARGIN};

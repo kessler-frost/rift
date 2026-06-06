@@ -1,5 +1,5 @@
-use warpui::async_assert;
-use warpui::integration::AssertionCallback;
+use riftui::async_assert;
+use riftui::integration::AssertionCallback;
 
 use crate::integration_testing::terminal::util::ExpectedOutput;
 use crate::integration_testing::view_getters::pane_group_view;

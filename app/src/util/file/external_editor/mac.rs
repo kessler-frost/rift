@@ -6,9 +6,9 @@ use instant::Instant;
 use objc2::rc::{autoreleasepool, Retained};
 use objc2_app_kit::NSWorkspace;
 use objc2_foundation::{NSBundle, NSString, NSURL};
-use warp_core::channel::ChannelState;
-use warp_core::AppId;
-use warpui::ApplicationBundleInfo;
+use rift_core::channel::ChannelState;
+use rift_core::AppId;
+use riftui::ApplicationBundleInfo;
 
 use super::*;
 

@@ -1,7 +1,7 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::MouseStateHandle;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::MouseStateHandle;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::server::ids::ApiKeyUid;
 use crate::ui_components::buttons::icon_button;
@@ -52,7 +52,7 @@ impl ExpireApiKeyButton {
             async move { auth_client.expire_api_key(&uid_for_req).await },
             move |me, res, ctx| match res {
                 Ok(
-                    warp_graphql::mutations::expire_api_key::ExpireApiKeyResult::ExpireApiKeyOutput(
+                    rift_graphql::mutations::expire_api_key::ExpireApiKeyResult::ExpireApiKeyOutput(
                         _output,
                     ),
                 ) => {
@@ -63,14 +63,14 @@ impl ExpireApiKeyButton {
                     ctx.notify();
                 }
                 Ok(
-                    warp_graphql::mutations::expire_api_key::ExpireApiKeyResult::UserFacingError(e),
+                    rift_graphql::mutations::expire_api_key::ExpireApiKeyResult::UserFacingError(e),
                 ) => {
-                    let _msg = warp_graphql::client::get_user_facing_error_message(e);
+                    let _msg = rift_graphql::client::get_user_facing_error_message(e);
                     me.request_state = RequestState::Idle;
                     ctx.emit(ExpireApiKeyButtonEvent::ExpireApiKeyFailed { message: _msg });
                     ctx.notify();
                 }
-                Ok(warp_graphql::mutations::expire_api_key::ExpireApiKeyResult::Unknown)
+                Ok(rift_graphql::mutations::expire_api_key::ExpireApiKeyResult::Unknown)
                 | Err(_) => {
                     me.request_state = RequestState::Idle;
                     ctx.emit(ExpireApiKeyButtonEvent::ExpireApiKeyFailed {

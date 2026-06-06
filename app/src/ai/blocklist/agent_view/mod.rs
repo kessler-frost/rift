@@ -22,12 +22,12 @@ pub use ephemeral_message_model::*;
 pub use inline_agent_view_header::*;
 pub use orchestration_pill_bar::{render_orchestration_breadcrumbs, OrchestrationPillBar};
 use pathfinder_color::ColorU;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::blend::Blend;
-use warp_core::ui::theme::Fill;
-use warpui::fonts::Properties;
-use warpui::keymap::Keystroke;
-use warpui::{AppContext, SingletonEntity};
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::theme::Fill;
+use riftui::fonts::Properties;
+use riftui::keymap::Keystroke;
+use riftui::{AppContext, SingletonEntity};
 pub use zero_state_block::*;
 
 use crate::terminal::model::TerminalModel;

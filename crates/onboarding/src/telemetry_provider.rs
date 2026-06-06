@@ -1,5 +1,5 @@
-use warp_core::telemetry::{TelemetryContextModel, TelemetryContextProvider};
-use warpui_core::{AppContext, ModelContext};
+use rift_core::telemetry::{TelemetryContextModel, TelemetryContextProvider};
+use riftui_core::{AppContext, ModelContext};
 
 /// A mock telemetry context provider for the onboarding binary that logs events
 /// instead of sending them to a server.

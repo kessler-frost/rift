@@ -3,13 +3,13 @@
 //! This is tightly coupled to the pane header so that different overlays (context menus, the
 //! sharing dialog, and so on) are correctly displayed.
 
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{ConstrainedBox, MouseStateHandle, ParentElement};
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, ViewContext, ViewHandle};
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{ConstrainedBox, MouseStateHandle, ParentElement};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, ViewContext, ViewHandle};
 
 use super::{Event, OpenOverlay, PaneHeader, PaneHeaderAction};
 use crate::drive::sharing::dialog::{SharingDialog, SharingDialogEvent};
@@ -66,17 +66,17 @@ impl<P: BackingView> PaneHeader<P> {
         &self.shared_content.sharing_dialog
     }
 
-    pub fn has_shareable_object<C: warpui::ViewAsRef>(&self, ctx: &C) -> bool {
+    pub fn has_shareable_object<C: riftui::ViewAsRef>(&self, ctx: &C) -> bool {
         self.sharing_dialog().as_ref(ctx).has_target()
     }
 
-    pub fn has_shareable_shared_session<C: warpui::ViewAsRef>(&self, ctx: &C) -> bool {
+    pub fn has_shareable_shared_session<C: riftui::ViewAsRef>(&self, ctx: &C) -> bool {
         self.sharing_dialog()
             .as_ref(ctx)
             .has_shared_session_target()
     }
 
-    pub fn is_sharing_dialog_enabled<C: warpui::ViewAsRef>(&self, ctx: &C) -> bool {
+    pub fn is_sharing_dialog_enabled<C: riftui::ViewAsRef>(&self, ctx: &C) -> bool {
         let sharing_enabled = self.has_shareable_object(ctx);
         if self.has_shareable_shared_session(ctx) {
             sharing_enabled && FeatureFlag::SessionSharingAcls.is_enabled()

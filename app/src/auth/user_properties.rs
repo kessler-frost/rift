@@ -1,4 +1,4 @@
-use warp_graphql::queries::get_user::UserOutput as GqlUserOutput;
+use rift_graphql::queries::get_user::UserOutput as GqlUserOutput;
 
 use super::user::User;
 use super::UserUid;

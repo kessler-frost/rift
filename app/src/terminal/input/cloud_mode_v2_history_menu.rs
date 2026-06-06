@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
 use pathfinder_color::ColorU;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ChildView, ConstrainedBox, Container, CornerRadius, DropShadow, Radius,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, View, ViewContext,
     ViewHandle,
 };

@@ -1,15 +1,15 @@
 use pathfinder_geometry::vector::vec2f;
-use thousands::Separable;
-use uuid::Uuid;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     ChildAnchor, ChildView, ConstrainedBox, Container, CrossAxisAlignment, Dismiss, Flex,
     Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Shrinkable, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity, ViewHandle};
+use riftui::fonts::{Properties, Weight};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity, ViewHandle};
+use thousands::Separable;
+use uuid::Uuid;
 
 use super::{ExecutionProfileEditorView, ExecutionProfileEditorViewAction};
 use crate::ai::blocklist::BlocklistAIPermissions;
@@ -444,7 +444,7 @@ pub fn render_permissions_section(
     appearance: &Appearance,
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
 ) -> Box<dyn Element> {
     let ai_settings = AISettings::as_ref(app);
     let mut column = Flex::column().with_children([
@@ -715,7 +715,7 @@ fn render_directory_allowlist_section(
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
     appearance: &Appearance,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
 ) -> Box<dyn Element> {
     let ai_settings = AISettings::as_ref(app);
     let is_editable = ai_settings.is_directory_allowlist_editable(app);
@@ -740,7 +740,7 @@ fn render_command_allowlist_section(
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
     appearance: &Appearance,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
 ) -> Box<dyn Element> {
     let ai_settings = AISettings::as_ref(app);
     let is_editable = ai_settings.is_command_allowlist_editable(app);
@@ -766,7 +766,7 @@ fn render_command_denylist_section(
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
     appearance: &Appearance,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
 ) -> Box<dyn Element> {
     use crate::ai::blocklist::BlocklistAIPermissions;
 
@@ -833,7 +833,7 @@ fn display_mcp_name(uuid: &Uuid, app: &AppContext) -> String {
 fn render_mcp_allowlist_section(
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let ai_settings = AISettings::as_ref(app);
@@ -859,7 +859,7 @@ fn render_mcp_allowlist_section(
 fn render_mcp_denylist_section(
     view: &ExecutionProfileEditorView,
     profile_data: &AIExecutionProfile,
-    app: &warpui::AppContext,
+    app: &riftui::AppContext,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let ai_settings = AISettings::as_ref(app);

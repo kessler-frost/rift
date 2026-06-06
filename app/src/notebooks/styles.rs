@@ -1,13 +1,13 @@
 //! Shared styles for notebooks.
 
-use warpui::elements::{
+use riftui::elements::{
     Container, CrossAxisAlignment, Flex, Hoverable, MainAxisAlignment, MouseStateHandle,
     ParentElement,
 };
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent as _;
-use warpui::units::{IntoPixels, Pixels};
-use warpui::{fonts, Element};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent as _;
+use riftui::units::{IntoPixels, Pixels};
+use riftui::{fonts, Element};
 
 use crate::appearance::Appearance;
 use crate::settings::{derived_notebook_font_size, FontSettings};

@@ -2,21 +2,21 @@ use std::fmt::Debug;
 
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use sharing::SharedPaneContent;
-use warp_core::features::FeatureFlag;
-use warp_core::settings::Setting;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::settings::Setting;
+use riftui::elements::{
     AcceptedByDropTarget, Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, Draggable, DraggableState, Empty, Flex, Hoverable,
     Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
     Radius, SavePosition, Shrinkable, Stack, Text,
 };
-use warpui::presenter::ChildView;
-use warpui::{
+use riftui::presenter::ChildView;
+use riftui::{
     AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use sharing::SharedPaneContent;
 
 use super::header_content::{HeaderContent, HeaderRenderContext, StandardHeaderOptions};
 use super::PaneDropTargetData;
@@ -758,7 +758,7 @@ impl<P: BackingView> View for PaneHeader<P> {
         let element = match header_content {
             HeaderContent::Standard(mut header) => {
                 // On mobile devices, always show icons since hover effects don't work with touch
-                if warpui::platform::is_mobile_device() {
+                if riftui::platform::is_mobile_device() {
                     header.options.always_show_icons = true;
                 }
                 self.render_standard_header(header, app)

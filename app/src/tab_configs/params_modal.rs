@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ChildView, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Fill, Flex, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, Padding, ParentElement, Radius, SavePosition, ScrollTarget,
     ScrollToPositionMode, ScrollbarWidth, Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::macros::*;
-use warpui::keymap::{FixedBinding, Keystroke};
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::macros::*;
+use riftui::keymap::{FixedBinding, Keystroke};
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

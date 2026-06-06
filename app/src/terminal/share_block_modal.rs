@@ -5,31 +5,31 @@ use anyhow::Result;
 use parking_lot::FairMutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use serde::Serialize;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::Fill;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::Fill;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     try_rect_with_z, Align, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Dismiss, Element, Empty, Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     ParentElement, Point, Radius, SavePosition, ScrollData, ScrollStateHandle, Scrollable,
     ScrollableElement, ScrollbarWidth, Shrinkable, Stack, Text,
 };
-use warpui::event::{DispatchedEvent, ModifiersState};
-use warpui::fonts::{FamilyId, Properties, Style, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::radio_buttons::{
+use riftui::event::{DispatchedEvent, ModifiersState};
+use riftui::fonts::{FamilyId, Properties, Style, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::radio_buttons::{
     RadioButtonItem, RadioButtonLayout, RadioButtonStateHandle,
 };
-use warpui::units::{IntoLines, IntoPixels, Lines, Pixels};
-use warpui::{
+use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
+use riftui::{
     AfterLayoutContext, AppContext, ClipBounds, Entity, Event, EventContext, FocusContext,
     LayoutContext, PaintContext, SingletonEntity, SizeConstraint, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use serde::Serialize;
 
 use super::grid_renderer::CellGlyphCache;
 use super::model::grid::RespectDisplayedOutput;
@@ -154,7 +154,7 @@ pub enum ShareBlockModalAction {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings(vec![
         FixedBinding::custom(

@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 use logging::initialize_logging;
-use warpui::r#async::executor::Background;
+use riftui::r#async::executor::Background;
 
 use self::plugin_caller::PluginCaller;
 use self::plugin_ref::PluginRef;
@@ -26,7 +26,7 @@ use super::PLUGIN_HOST_ADDRESS_ENV_VAR;
 use crate::plugin::host::runners::PluginRunners;
 
 pub fn run() -> Result<()> {
-    warpui::r#async::block_on(async move {
+    riftui::r#async::block_on(async move {
         let executor = Arc::new(Background::default());
 
         // Initialize a client connection to the warp app process.
@@ -88,7 +88,7 @@ pub fn run() -> Result<()> {
 
 /// Returns a vector of validated plugin directory paths in the plugins directory.
 ///
-/// This assumes that all plugins are located in ~/.warp/plugins.
+/// This assumes that all plugins are located in ~/.rift/plugins.
 fn plugin_paths() -> Vec<PathBuf> {
     const PLUGIN_PATH_SUFFIX: &str = ".warp/plugins";
 

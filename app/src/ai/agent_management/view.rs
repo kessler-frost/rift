@@ -6,33 +6,33 @@ use fuzzy_match::match_indices_case_insensitive;
 use lazy_static::lazy_static;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting;
-use siphasher::sip::SipHasher;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::icons::Icon;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::new_scrollable::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::icons::Icon;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::new_scrollable::{
     NewScrollableElement, ScrollableAppearance, SingleAxisConfig,
 };
-use warpui::elements::{
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Element, Empty, Expanded, Flex, Hoverable, List, ListState, MainAxisSize,
     MouseStateHandle, NewScrollable, OffsetPositioning, Padding, ParentAnchor, ParentElement,
     ParentOffsetBounds, Radius, Rect, ScrollStateHandle, ScrollbarWidth, Shrinkable,
     SizeConstraintCondition, SizeConstraintSwitch, Stack, Text, Wrap,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::scene::DropShadow;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::scene::DropShadow;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle, WeakViewHandle,
 };
+use settings::Setting;
+use siphasher::sip::SipHasher;
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent_conversations_model::{
@@ -121,7 +121,7 @@ pub fn init(app: &mut AppContext) {
     app.register_fixed_bindings([FixedBinding::new(
         cmd_or_ctrl_shift("f"),
         AgentManagementViewAction::FocusSearch,
-        warpui::keymap::macros::id!(AgentManagementView::ui_name()),
+        riftui::keymap::macros::id!(AgentManagementView::ui_name()),
     )]);
 }
 
@@ -2138,7 +2138,7 @@ impl AgentManagementView {
             axis_config,
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .with_vertical_scrollbar(ScrollableAppearance::new(ScrollbarWidth::None, false))
         .with_always_handle_events_first(false)

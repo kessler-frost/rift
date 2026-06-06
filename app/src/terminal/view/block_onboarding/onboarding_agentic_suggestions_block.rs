@@ -2,21 +2,21 @@ use lazy_static::lazy_static;
 use markdown_parser::weight::CustomWeight;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use regex::Regex;
-use serde::{Deserialize, Serialize};
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex,
     FormattedTextElement, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     ParentElement, Radius, Text, Wrap,
 };
-use warpui::keymap::Keystroke;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::Keystroke;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     WeakViewHandle,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::ai::blocklist::{
     ai_brand_color, BlocklistAIActionEvent, BlocklistAIActionModel, BlocklistAIHistoryEvent,
@@ -518,7 +518,7 @@ impl OnboardingAgenticSuggestionsBlock {
                         // Use a more muted background for disabled state
                         theme.surface_1()
                     } else {
-                        warp_core::ui::theme::Fill::Solid(internal_colors::neutral_1(theme))
+                        rift_core::ui::theme::Fill::Solid(internal_colors::neutral_1(theme))
                     };
 
                     let mut button_content =

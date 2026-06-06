@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use persistence::model::ConversationUsageMetadata;
-use warp_cli::agent::Harness;
-use warp_graphql::object_permissions::AccessLevel;
-use warpui::{App, EntityId, SingletonEntity};
+use rift_cli::agent::Harness;
+use rift_graphql::object_permissions::AccessLevel;
+use riftui::{App, EntityId, SingletonEntity};
 
 use super::*;
 use crate::ai::agent::api::ServerConversationToken;

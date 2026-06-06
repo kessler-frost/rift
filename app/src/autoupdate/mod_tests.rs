@@ -1,6 +1,6 @@
 use chrono::{Local, TimeZone};
-use warp_core::execution_mode::{AppExecutionMode, ExecutionMode};
-use warpui::{App, ModelHandle, ReadModel, UpdateModel};
+use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
+use riftui::{App, ModelHandle, ReadModel, UpdateModel};
 
 use super::*;
 use crate::auth::{AuthManager, AuthStateProvider};

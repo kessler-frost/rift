@@ -6,14 +6,14 @@ use chrono::Utc;
 use cynic::{MutationBuilder, QueryBuilder};
 #[cfg(test)]
 use mockall::automock;
-use warp_core::channel::{Channel, ChannelState};
-use warp_graphql::mutations::share_block::{
+use rift_core::channel::{Channel, ChannelState};
+use rift_graphql::mutations::share_block::{
     BlockInput, ShareBlock, ShareBlockResult, ShareBlockVariables,
 };
-use warp_graphql::mutations::unshare_block::{
+use rift_graphql::mutations::unshare_block::{
     UnshareBlock, UnshareBlockInput, UnshareBlockResult, UnshareBlockVariables,
 };
-use warp_graphql::queries::get_blocks_for_user::{
+use rift_graphql::queries::get_blocks_for_user::{
     Block as GqlBlock, GetBlocksForUser, GetBlocksForUserVariables,
 };
 
@@ -124,7 +124,7 @@ impl BlockClient for ServerApi {
         let response = self.send_graphql_request(operation, None).await?;
 
         match response.user {
-            warp_graphql::queries::get_blocks_for_user::UserResult::UserOutput(user_output) => {
+            rift_graphql::queries::get_blocks_for_user::UserResult::UserOutput(user_output) => {
                 Ok(user_output
                     .user
                     .blocks
@@ -132,7 +132,7 @@ impl BlockClient for ServerApi {
                     .filter_map(|block| block.try_into().ok())
                     .collect())
             }
-            warp_graphql::queries::get_blocks_for_user::UserResult::Unknown => {
+            rift_graphql::queries::get_blocks_for_user::UserResult::Unknown => {
                 Err(anyhow!("Unable to fetch blocks"))
             }
         }

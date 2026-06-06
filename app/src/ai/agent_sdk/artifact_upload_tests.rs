@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use std::{env, fs};
 
 use chrono::Utc;
+use rift_cli::artifact::UploadArtifactArgs;
 use tempfile::tempdir;
-use warp_cli::artifact::UploadArtifactArgs;
 
 use super::*;
 use crate::ai::agent::api::ServerConversationToken;

@@ -15,13 +15,13 @@
 use std::path::Path;
 
 use fuzzy_match::FuzzyMatchResult;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     Container, CrossAxisAlignment, Flex, Highlight, MainAxisSize, ParentElement, Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::text_layout::{ClipConfig, ClipDirection, ClipStyle};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::fonts::{Properties, Weight};
+use riftui::text_layout::{ClipConfig, ClipDirection, ClipStyle};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::search::ai_context_menu::safe_truncate;

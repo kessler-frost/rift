@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
+use rift_core::features::FeatureFlag;
+use riftui_core::assets::asset_cache::AssetSource;
+use riftui_core::text::word_boundaries::WordBoundariesPolicy;
+use riftui_core::units::IntoPixels;
+use riftui_core::{App, ModelAsRef};
 use serde_yaml::Value;
 use string_offset::CharOffset;
 use sum_tree::SumTree;
 use vec1::vec1;
-use warp_core::features::FeatureFlag;
-use warpui_core::assets::asset_cache::AssetSource;
-use warpui_core::text::word_boundaries::WordBoundariesPolicy;
-use warpui_core::units::IntoPixels;
-use warpui_core::{App, ModelAsRef};
 
 use super::{SelectionModel, TextDirection, TextUnit};
 use crate::content::buffer::tests::TestEmbeddedItem;
@@ -34,7 +34,7 @@ impl SelectionModel {
 
 fn selection_model_with_rendered_mermaid(
     app: &mut App,
-) -> warpui_core::ModelHandle<SelectionModel> {
+) -> riftui_core::ModelHandle<SelectionModel> {
     app.add_model(|ctx| {
         let buffer = ctx.add_model(|_| Buffer::new(Box::new(|_, _| IndentBehavior::Ignore)));
         let buffer_selection = ctx.add_model(|_| BufferSelectionModel::new(buffer.clone()));

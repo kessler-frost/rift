@@ -1,10 +1,10 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{Container, MouseStateHandle};
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::Element;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{Container, MouseStateHandle};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::Element;
 
 use super::env_var_collection::{EnvVarCollectionAction, EnvVarCollectionView};
 use crate::ui_components::dialog::{dialog_styles, Dialog};

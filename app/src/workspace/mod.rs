@@ -32,17 +32,17 @@ pub use active_session::ActiveSession;
 pub use global_actions::{
     ForkAIConversationParams, ForkFromExchange, ForkedConversationDestination,
 };
+use rift_core::context_flag::ContextFlag;
+use riftui::accessibility::AccessibilityVerbosity;
+use riftui::elements::DropTargetData;
+use riftui::keymap::{BindingDescription, EditableBinding, FixedBinding};
+use riftui::AppContext;
 use serde::{Deserialize, Serialize};
 pub use util::{active_terminal_in_window, PaneViewLocator, TabMovement};
 pub use view::{
     Workspace, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID,
     PANEL_HEADER_HEIGHT, TAB_BAR_HEIGHT, TOTAL_TAB_BAR_HEIGHT, WORKSPACE_PADDING,
 };
-use warp_core::context_flag::ContextFlag;
-use warpui::accessibility::AccessibilityVerbosity;
-use warpui::elements::DropTargetData;
-use warpui::keymap::{BindingDescription, EditableBinding, FixedBinding};
-use warpui::AppContext;
 
 use crate::ai::blocklist::NEW_AGENT_PANE_LABEL;
 use crate::channel::{Channel, ChannelState};
@@ -56,8 +56,8 @@ use crate::util::bindings::{self, cmd_or_ctrl_shift, is_binding_pty_compliant, C
 use crate::{code, modal, notebooks, tab_configs};
 
 // Helper function to access panel header corner radius from other modules
-pub fn panel_header_corner_radius() -> warpui::elements::CornerRadius {
-    warpui::elements::CornerRadius::with_top(warpui::elements::Radius::Pixels(8.))
+pub fn panel_header_corner_radius() -> riftui::elements::CornerRadius {
+    riftui::elements::CornerRadius::with_top(riftui::elements::Radius::Pixels(8.))
 }
 
 pub use one_time_modal_model::OneTimeModalModel;
@@ -78,7 +78,7 @@ use crate::workspace::view::{
 pub fn init(app: &mut AppContext) {
     app.add_singleton_model(|_| WorkspaceRegistry::new());
     app.add_singleton_model(|_| cross_window_tab_drag::CrossWindowTabDrag::new());
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
     app.register_binding_validator::<Workspace>(is_binding_pty_compliant);
 
     modal::init(app);
@@ -1342,7 +1342,7 @@ pub fn init(app: &mut AppContext) {
 }
 
 fn add_open_setting_pages_as_editable_binding(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     // Add the ability to open setting modals to the command palette.
     app.register_editable_bindings([
@@ -1487,7 +1487,7 @@ fn add_open_setting_pages_as_editable_binding(app: &mut AppContext) {
 }
 
 fn add_overflow_menu_items_as_editable_binding(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     // Add the ability to open all overflow menu items to the command palette.
     app.register_editable_bindings([

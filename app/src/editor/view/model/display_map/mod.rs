@@ -6,9 +6,9 @@ use std::ops::Range;
 use anyhow::{Context, Result};
 pub use fold_map::BufferRows;
 use fold_map::FoldMap;
+use riftui::text::point::Point;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 use string_offset::CharOffset;
-use warpui::text::point::Point;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::buffer::{self, Anchor, Buffer, Edit, StylizedChar, ToCharOffset, ToPoint};
 use crate::editor::soft_wrap::{self, DisplayPointAndClampDirection, SoftWrapPoint, SoftWrapState};

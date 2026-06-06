@@ -5,31 +5,31 @@ use std::time::Duration;
 
 use ::settings::{Setting, ToggleableSetting};
 use lazy_static::lazy_static;
-use strum::IntoEnumIterator;
-use warp_core::channel::ChannelState;
-use warp_core::context_flag::ContextFlag;
-use warp_core::semantic_selection::{
+use rift_core::channel::ChannelState;
+use rift_core::context_flag::ContextFlag;
+use rift_core::semantic_selection::{
     SemanticSelection, SemanticSelectionChangedEvent, SmartSelectEnabled,
 };
-use warpui::elements::{
+use riftui::elements::{
     Align, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Dismiss,
     DispatchEventResult, Element, Empty, EventHandler, Fill, Flex, Hoverable, MainAxisAlignment,
     MainAxisSize, MouseState, MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
 };
-use warpui::keymap::{ContextPredicate, FixedBinding, Keystroke};
-use warpui::platform::{Cursor, GraphicsBackend};
-use warpui::rendering::GPUPowerPreference;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::keymap::{ContextPredicate, FixedBinding, Keystroke};
+use riftui::platform::{Cursor, GraphicsBackend};
+use riftui::rendering::GPUPowerPreference;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     Action, AppContext, DisplayIdx, Entity, EventContext, ModelHandle, SingletonEntity, Tracked,
     TypedActionView, View, ViewContext, ViewHandle, WindowId,
 };
+use strum::IntoEnumIterator;
 #[cfg(any(target_os = "linux", target_os = "freebsd"))]
 use {
     crate::settings::ForceX11, crate::settings::LinuxAppConfiguration,
-    warpui::platform::linux::windowing_system_is_customizable,
+    riftui::platform::linux::windowing_system_is_customizable,
 };
 
 use super::keybindings::KeyBindingModifyingState;
@@ -125,7 +125,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
     context: &ContextPredicate,
     builder: fn(SettingsAction) -> T,
 ) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     // Add all of the toggle settings from the Features Page that you want to show up on the Command Palette here.
     let mut toggle_binding_pairs = vec![
@@ -722,7 +722,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             builder(SettingsAction::FeaturesPageToggle(
                 FeaturesPageAction::MakeWarpDefaultTerminal,
             )),
-            context.to_owned() & !id!(flags::WARP_IS_DEFAULT_TERMINAL),
+            context.to_owned() & !id!(flags::RIFT_IS_DEFAULT_TERMINAL),
         )]);
     }
 }
@@ -2030,7 +2030,7 @@ impl TypedActionView for FeaturesPageView {
                 self.force_x11_changed = true;
                 // This is a workaround to make sure the user sees the new text that is added to the description after changing the setting.
                 // Without scrolling, the new description text gets cut off.
-                self.page.scroll_by(warpui::units::Pixels::new(40.));
+                self.page.scroll_by(riftui::units::Pixels::new(40.));
                 ctx.notify();
             }
             ToggleQuitOnLastWindowClosed => {
@@ -4315,7 +4315,7 @@ impl SettingsPageMeta for FeaturesPageView {
     }
 
     fn on_page_selected(&mut self, _: bool, ctx: &mut ViewContext<Self>) {
-        // On MacOS, we rely on [`warpui::platform::AppCallbacks::on_screen_changed`] to update and
+        // On MacOS, we rely on [`riftui::platform::AppCallbacks::on_screen_changed`] to update and
         // notify on the [`DisplayCount`] model. However, no mechanism exists on Linux to trigger
         // that callback. As a workaround, we check for updates here where quake mode is
         // configured.

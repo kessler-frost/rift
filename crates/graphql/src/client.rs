@@ -4,10 +4,10 @@ use cynic::{GraphQlResponse, QueryFragment, QueryVariables};
 use http::StatusCode;
 use instant::Duration;
 use reqwest::header::CONTENT_TYPE;
+use rift_core::channel::ChannelState;
+use rift_core::operating_system_info::OperatingSystemInfo;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use warp_core::channel::ChannelState;
-use warp_core::operating_system_info::OperatingSystemInfo;
 
 use crate::error::{UserFacingError, UserFacingErrorInterface};
 use crate::request_context::{ClientContext, OsContext, RequestContext};

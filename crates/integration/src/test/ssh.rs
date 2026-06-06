@@ -1,29 +1,29 @@
 use std::collections::HashMap;
 
 use regex::Regex;
-use settings::Setting as _;
-use warp::features::FeatureFlag;
-use warp::integration_testing::step::new_step_with_default_assertions;
-use warp::integration_testing::subshell::{
+use rift::features::FeatureFlag;
+use rift::integration_testing::step::new_step_with_default_assertions;
+use rift::integration_testing::subshell::{
     accept_tmux_install, assert_subshell_banner_is_showing, assert_subshell_is_bootstrapped,
     enter_ssh_command, enter_ssh_password, run_exit_command, setup_gcloud_sdk,
     trigger_subshell_bootstrap, wait_for_password_prompt,
 };
-use warp::integration_testing::terminal::util::{
+use rift::integration_testing::terminal::util::{
     current_shell_starter_and_version, nonce, ExactLine, ExpectedExitStatus,
 };
-use warp::integration_testing::terminal::{
+use rift::integration_testing::terminal::{
     assert_active_block_output_for_single_terminal_in_tab,
     assert_long_running_block_executing_for_single_terminal_in_tab,
     execute_command_for_single_terminal_in_tab, validate_block_output,
     wait_until_bootstrapped_single_pane_for_tab,
 };
-use warp::integration_testing::view_getters::{single_terminal_view, single_terminal_view_for_tab};
-use warp::terminal::model::bootstrap::BootstrapStage;
-use warp::terminal::session_settings::{StartupShell, StartupShellOverride};
-use warp::terminal::shell::ShellType;
-use warpui_core::integration::{AssertionCallback, AssertionOutcome, TestStep};
-use warpui_core::{async_assert, async_assert_eq};
+use rift::integration_testing::view_getters::{single_terminal_view, single_terminal_view_for_tab};
+use rift::terminal::model::bootstrap::BootstrapStage;
+use rift::terminal::session_settings::{StartupShell, StartupShellOverride};
+use rift::terminal::shell::ShellType;
+use riftui_core::integration::{AssertionCallback, AssertionOutcome, TestStep};
+use riftui_core::{async_assert, async_assert_eq};
+use settings::Setting as _;
 
 use super::new_builder;
 use crate::Builder;
@@ -119,7 +119,7 @@ fn verify_login_shell(shell: &str) -> TestStep {
         "zsh" => "[[ -o login ]]",
         "fish" => "status --is-login",
         // For other shells, we don't actually start a login shell but do source /etc/profile.
-        _ => "test \"$WARP_PROFILE_LOADED\" = true",
+        _ => "test \"$RIFT_PROFILE_LOADED\" = true",
     };
 
     match shell {

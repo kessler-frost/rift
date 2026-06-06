@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use string_offset::ByteOffset;
 #[cfg(not(target_family = "wasm"))]
-use warp_util::standardized_path::StandardizedPath;
+use rift_util::standardized_path::StandardizedPath;
+use string_offset::ByteOffset;
 
 mod naive;
 #[cfg(not(target_family = "wasm"))]

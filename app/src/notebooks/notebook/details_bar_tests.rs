@@ -1,4 +1,4 @@
-use warpui::{App, SingletonEntity};
+use riftui::{App, SingletonEntity};
 
 use super::editor_display_name;
 use crate::auth::UserUid;

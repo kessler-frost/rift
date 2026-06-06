@@ -6,10 +6,10 @@ use chrono::{DateTime, Local};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use warp_core::ui::color::blend::Blend;
-use warpui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{
+use rift_core::ui::color::blend::Blend;
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ClippedScrollStateHandle, ClippedScrollable,
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult,
     DropShadow, Element, EventHandler, Flex, Hoverable, Icon, Image, MainAxisAlignment,
@@ -18,12 +18,12 @@ use warpui::elements::{
     Radius, Rect, SavePosition, ScrollTarget, ScrollToPositionMode, ScrollbarWidth, Shrinkable,
     Stack, Text,
 };
-use warpui::fonts::{FamilyId, Properties};
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{FamilyId, Properties};
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     Action, AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, WindowId,
 };
 
@@ -1743,7 +1743,7 @@ pub enum MenuAction {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -2223,7 +2223,7 @@ impl<A: Action + Clone> SubMenu<A> {
                         ScrollbarWidth::Auto,
                         appearance.theme().nonactive_ui_detail().into(),
                         appearance.theme().active_ui_detail().into(),
-                        warpui::elements::Fill::None,
+                        riftui::elements::Fill::None,
                     )
                     .with_overlayed_scrollbar()
                     .finish(),

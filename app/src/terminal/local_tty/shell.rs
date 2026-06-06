@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 use std::{io, process};
 
 use itertools::Itertools as _;
+use rift_core::channel::{Channel, ChannelState};
+use rift_util::path::{canonicalize_git_bash_path, is_msys2_path, warp_shell_path};
 use serde::{Deserialize, Serialize};
 use typed_path::UnixPathBuf;
-use warp_core::channel::{Channel, ChannelState};
-use warp_util::path::{canonicalize_git_bash_path, is_msys2_path, warp_shell_path};
 
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::bootstrap::init_shell_script_for_shell;
@@ -29,7 +29,7 @@ pub fn extra_path_entries() -> impl Iterator<Item = PathBuf> {
         if #[cfg(target_os = "macos")] {
             use itertools::Either;
 
-            if let Some(resources_path) = warp_core::paths::bundled_resources_dir() {
+            if let Some(resources_path) = rift_core::paths::bundled_resources_dir() {
                 let bin_path = resources_path.join("bin");
                 Either::Left(std::iter::once(bin_path))
             } else {
@@ -152,7 +152,7 @@ impl ShellStarter {
         if let Some(warp_shell_env_var) = warp_shell_path() {
             let (warp_shell_path, shell_type) = supported_shell_path_and_type(&warp_shell_env_var)
                 .unwrap_or_else(|| {
-                    panic!("Cannot spawn shell; $WARP_SHELL_PATH is invalid: {warp_shell_env_var}")
+                    panic!("Cannot spawn shell; $RIFT_SHELL_PATH is invalid: {warp_shell_env_var}")
                 });
             return Some(
                 ShellStarterSource::Environment(DirectShellStarter {
@@ -319,7 +319,7 @@ pub enum ShellStarterSource {
     /// The user chose the path by setting a custom shell path in settings or selecting a WSL
     /// distribution.
     Override(ShellStarter),
-    /// The user chose the path to the shell by setting the `WARP_SHELL_PATH` environment variable.
+    /// The user chose the path to the shell by setting the `RIFT_SHELL_PATH` environment variable.
     Environment(DirectShellStarter),
     /// The default shell for the user (as indicated by the user's passwd entry on UNIX).
     /// On Windows, this an ordered list of shells hardcoded _by Warp_.
@@ -528,7 +528,7 @@ impl WslShellStarter {
             .output();
         let home_dir =
             decode_wsl_path_result(command_result).filter(|s| !s.as_bytes().is_empty())?;
-        warp_util::path::convert_wsl_to_windows_host_path(
+        rift_util::path::convert_wsl_to_windows_host_path(
             &home_dir.to_typed_path(),
             &self.distribution,
         )

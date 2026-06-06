@@ -2,15 +2,15 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::time::Duration;
 
-use settings::{Setting, ToggleableSetting};
-use warpui::elements::{
+use riftui::elements::{
     Container, CrossAxisAlignment, Flex, MainAxisAlignment, MouseStateHandle, ParentElement, Text,
 };
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use settings::{Setting, ToggleableSetting};
 
 use crate::appearance::Appearance;
 use crate::editor::{self, EditorView, SingleLineEditorOptions, TextOptions};
@@ -209,7 +209,7 @@ impl View for UndoCloseView {
 impl TypedActionView for UndoCloseView {
     type Action = Action;
 
-    fn handle_action(&mut self, action: &Self::Action, ctx: &mut warpui::ViewContext<Self>) {
+    fn handle_action(&mut self, action: &Self::Action, ctx: &mut riftui::ViewContext<Self>) {
         match action {
             Action::ToggleUndoCloseEnabled => {
                 UndoCloseSettings::handle(ctx).update(ctx, |settings, ctx| {

@@ -4,20 +4,20 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use serde_yaml::Mapping;
-use uuid::Uuid;
-use warp_editor::content::markdown::MarkdownStyle;
-use warp_editor::editor::EmbeddedItemModel;
-use warp_editor::render::element::{RenderContext, RenderableBlock};
-use warp_editor::render::layout::TextLayout;
-use warp_editor::render::model::viewport::ViewportItem;
-use warp_editor::render::model::{
+use rift_editor::content::markdown::MarkdownStyle;
+use rift_editor::editor::EmbeddedItemModel;
+use rift_editor::render::element::{RenderContext, RenderableBlock};
+use rift_editor::render::layout::TextLayout;
+use rift_editor::render::model::viewport::ViewportItem;
+use rift_editor::render::model::{
     BlockSpacing, EmbeddedItem, EmbeddedItemHTMLRepresentation, EmbeddedItemRichFormat,
     LaidOutEmbeddedItem, RenderState,
 };
-use warpui::event::DispatchedEvent;
-use warpui::units::Pixels;
-use warpui::{AppContext, EntityId, EventContext, LayoutContext, ViewHandle, WindowId};
+use riftui::event::DispatchedEvent;
+use riftui::units::Pixels;
+use riftui::{AppContext, EntityId, EventContext, LayoutContext, ViewHandle, WindowId};
+use serde_yaml::Mapping;
+use uuid::Uuid;
 
 use crate::code::editor::comment_editor::CommentEditor;
 use crate::code_review::comments::CommentId;

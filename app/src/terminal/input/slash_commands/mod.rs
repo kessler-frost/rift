@@ -9,17 +9,17 @@ use std::path::PathBuf;
 use ai::skills::SkillReference;
 pub use cloud_mode_v2_view::{CloudModeV2SlashCommandView, Section as CloudModeV2Section};
 pub use data_source::*;
-pub use view::{CloseReason, InlineSlashCommandView, SlashCommandsEvent};
 #[cfg(not(target_family = "wasm"))]
-use warp_cli::agent::Harness;
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::AnsiColorIdentifier;
+use rift_cli::agent::Harness;
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::AnsiColorIdentifier;
 #[cfg(feature = "local_fs")]
-use warp_util::path::{CleanPathResult, LineAndColumnArg};
-use warpui::clipboard::ClipboardContent;
-use warpui::{AppContext, SingletonEntity, ViewContext};
+use rift_util::path::{CleanPathResult, LineAndColumnArg};
+use riftui::clipboard::ClipboardContent;
+use riftui::{AppContext, SingletonEntity, ViewContext};
+pub use view::{CloseReason, InlineSlashCommandView, SlashCommandsEvent};
 
 #[cfg(not(target_family = "wasm"))]
 use crate::ai::agent::conversation::AIConversationId;

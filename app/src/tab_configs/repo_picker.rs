@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use warp_util::path::user_friendly_path;
-use warpui::elements::{Border, ChildView, Container, Hoverable, MouseStateHandle, Text};
-use warpui::platform::Cursor;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::{
+use rift_util::path::user_friendly_path;
+use riftui::elements::{Border, ChildView, Container, Hoverable, MouseStateHandle, Text};
+use riftui::platform::Cursor;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

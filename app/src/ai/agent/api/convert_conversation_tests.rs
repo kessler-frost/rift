@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::Utc;
-use warp_multi_agent_api as api;
+use rift_multi_agent_api as api;
 
 use crate::ai::agent::api::convert_conversation::*;
 use crate::ai::agent::api::ServerConversationToken;

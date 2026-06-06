@@ -1,20 +1,20 @@
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting as _;
-use warp_cli::agent::Harness;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_cli::agent::Harness;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, Container, OffsetPositioning, ParentAnchor, ParentElement as _,
     ParentOffsetBounds, Stack,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use settings::Setting as _;
 
 use crate::ai::blocklist::agent_view::agent_input_footer::AgentInputButtonTheme;
 use crate::ai::cloud_agent_settings::CloudAgentSettings;

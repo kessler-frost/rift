@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
 
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warpui::keymap::BindingId;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use riftui::keymap::BindingId;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
 use super::{conversations, warp_drive};
 use crate::drive::settings::WarpDriveSettings;

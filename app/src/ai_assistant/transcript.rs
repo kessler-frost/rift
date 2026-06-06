@@ -2,20 +2,20 @@ use markdown_parser::markdown_parser::RUNNABLE_BLOCK_MARKDOWN_LANG;
 use markdown_parser::CodeBlockText;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::builder::AnimatedButtonOptions;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::ui::builder::AnimatedButtonOptions;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Border, ChildAnchor, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
     Container, CornerRadius, CrossAxisAlignment, DispatchEventResult, EventHandler, Fill, Flex,
     FormattedTextElement, HyperlinkUrl, Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     ParentAnchor, ParentElement, Radius, SavePosition, ScrollbarWidth, Shrinkable, Stack, Text,
     Wrap,
 };
-use warpui::keymap::Keystroke;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::units::{IntoPixels, Pixels};
-use warpui::{
+use riftui::keymap::Keystroke;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::units::{IntoPixels, Pixels};
+use riftui::{
     AppContext, BlurContext, Element, Entity, FocusContext, ModelHandle, SingletonEntity,
     TypedActionView, View, ViewContext, WeakViewHandle,
 };

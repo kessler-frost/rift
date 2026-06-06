@@ -1,11 +1,11 @@
 use std::fmt::Debug;
 
 use itertools::{Itertools, Position};
-use warpui::elements::{
+use riftui::elements::{
     CrossAxisAlignment, Flex, Hoverable, MainAxisSize, MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, EventContext};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, EventContext};
 
 use crate::appearance::Appearance;
 

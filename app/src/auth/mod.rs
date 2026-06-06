@@ -10,7 +10,7 @@ pub mod login_slide;
 pub mod needs_sso_link_view;
 pub mod paste_auth_token_modal;
 mod user_properties;
-pub use warp_server_auth::{auth_state, credentials, user, user_uid};
+pub use rift_server_auth::{auth_state, credentials, user, user_uid};
 #[cfg(target_family = "wasm")]
 pub mod web_handoff;
 
@@ -20,10 +20,10 @@ pub use auth_manager::AuthManager;
 pub use auth_state::AuthStateProvider;
 use itertools::Itertools;
 pub use login_failure_notification::LoginFailureReason;
+use rift_core::user_preferences::GetUserPreferences as _;
+use riftui::modals::{AlertDialogWithCallbacks, ModalButton};
+use riftui::{AppContext, SingletonEntity};
 pub use user_uid::UserUid;
-use warp_core::user_preferences::GetUserPreferences as _;
-use warpui::modals::{AlertDialogWithCallbacks, ModalButton};
-use warpui::{AppContext, SingletonEntity};
 
 use crate::ai::agent_conversations_model::AgentConversationsModel;
 use crate::ai::blocklist::agent_view::orchestration_pill_bar_model::OrchestrationPillBarModel;

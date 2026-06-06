@@ -13,10 +13,10 @@ use markdown_parser::{
     FormattedTextLine, OrderedFormattedIndentTextInline,
 };
 use markup5ever::ns;
+use riftui_core::elements::{ListIndentLevel, ListNumbering};
+use riftui_core::text::point::Point;
+use riftui_core::{AppContext, ModelContext, ModelHandle};
 use string_offset::CharOffset;
-use warpui_core::elements::{ListIndentLevel, ListNumbering};
-use warpui_core::text::point::Point;
-use warpui_core::{AppContext, ModelContext, ModelHandle};
 
 use super::buffer::{
     ActionWithSelectionDelta, Buffer, EditOrigin, EditResult, StyledBufferBlock,

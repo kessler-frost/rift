@@ -1,8 +1,8 @@
 use float_cmp::{approx_eq, assert_approx_eq};
-use warp_core::features::FeatureFlag;
-use warpui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
-use warpui::units::IntoLines;
-use warpui::App;
+use rift_core::features::FeatureFlag;
+use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
+use riftui::units::IntoLines;
+use riftui::App;
 
 use super::*;
 use crate::ai::agent::AIAgentActionId;

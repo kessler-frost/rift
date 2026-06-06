@@ -1,12 +1,12 @@
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
-use warp_core::ui::theme::Fill;
-use warp_core::ui::Icon;
-use warpui::elements::{ConstrainedBox, Container, Flex, Highlight, ParentElement as _, Text};
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::prelude::CrossAxisAlignment;
-use warpui::text_layout::ClipConfig;
-use warpui::{AppContext, Element, SingletonEntity as _};
+use rift_core::ui::theme::Fill;
+use rift_core::ui::Icon;
+use riftui::elements::{ConstrainedBox, Container, Flex, Highlight, ParentElement as _, Text};
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::prelude::CrossAxisAlignment;
+use riftui::text_layout::ClipConfig;
+use riftui::{AppContext, Element, SingletonEntity as _};
 
 use crate::ai::execution_profiles::profiles::ClientProfileId;
 use crate::appearance::Appearance;

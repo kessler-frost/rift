@@ -10,9 +10,9 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use itertools::Itertools;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle};
+use rift_util::standardized_path::StandardizedPath;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::protocol::RequestId;
 use super::server_model::ConnectionId;

@@ -1,5 +1,5 @@
-use warpui::prelude::ChildView;
-use warpui::{Element, EntityId, View, ViewContext, ViewHandle};
+use riftui::prelude::ChildView;
+use riftui::{Element, EntityId, View, ViewContext, ViewHandle};
 
 use super::{InitStepBlock, InitStepKind};
 use crate::ai::agent::conversation::AIConversationId;

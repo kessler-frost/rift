@@ -109,6 +109,53 @@ use regex::Regex;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::repositories::RepoDetectionSource;
+use rift_core::channel::ChannelState;
+use rift_core::command::ExitCode;
+use rift_core::context_flag::ContextFlag;
+use rift_core::r#async::debounce;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::user_preferences::GetUserPreferences as _;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+#[cfg(feature = "local_fs")]
+use rift_util::path::LineAndColumnArg;
+use rift_util::path::ShellFamily;
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::assets::asset_cache::{AssetCache, AssetCacheEvent};
+use riftui::clipboard::ClipboardContent;
+use riftui::clipboard_utils::get_image_filepaths_from_paths;
+use riftui::elements::new_scrollable::{
+    AxisConfiguration, ClippedAxisConfiguration, DualAxisConfig, NewScrollableElement,
+    ScrollableAppearance, SingleAxisConfig,
+};
+use riftui::elements::shimmering_text::ShimmeringTextStateHandle;
+use riftui::elements::{
+    get_rich_content_position_id, Align, Border, ChildAnchor, ChildView, Clipped,
+    ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
+    DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Expanded, Fill, Flex,
+    Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
+    ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
+    Radius, Rect, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth,
+    Shrinkable, Stack, Text,
+};
+use riftui::event::ModifiersState;
+use riftui::fonts::{Cache as FontCache, FamilyId, Properties};
+use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::image_cache::ImageType;
+use riftui::keymap::Keystroke;
+use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
+use riftui::platform::{Cursor, OperatingSystem};
+use riftui::r#async::executor::Background;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::text::SelectionType;
+use riftui::ui_components::components::UiComponent;
+use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
+use riftui::windowing::WindowManager;
+use riftui::{
+    end_trace_after_next, record_trace_event, windowing, AccessibilityData, AppContext,
+    BlurContext, CursorInfo, Element, Entity, EntityId, EventContext, FocusContext, ModelAsRef,
+    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewAsRef, ViewContext,
+    ViewHandle, WeakModelHandle, WeakViewHandle, WindowId,
+};
 use serde::Serialize;
 use serde_json::json;
 use session_sharing_protocol::common::{
@@ -127,53 +174,6 @@ use sum_tree::SeekBias;
 use use_agent_footer::UseAgentToolbar;
 use uuid::Uuid;
 use vec1::vec1;
-use warp_core::channel::ChannelState;
-use warp_core::command::ExitCode;
-use warp_core::context_flag::ContextFlag;
-use warp_core::r#async::debounce;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::user_preferences::GetUserPreferences as _;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-#[cfg(feature = "local_fs")]
-use warp_util::path::LineAndColumnArg;
-use warp_util::path::ShellFamily;
-use warpui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
-use warpui::assets::asset_cache::{AssetCache, AssetCacheEvent};
-use warpui::clipboard::ClipboardContent;
-use warpui::clipboard_utils::get_image_filepaths_from_paths;
-use warpui::elements::new_scrollable::{
-    AxisConfiguration, ClippedAxisConfiguration, DualAxisConfig, NewScrollableElement,
-    ScrollableAppearance, SingleAxisConfig,
-};
-use warpui::elements::shimmering_text::ShimmeringTextStateHandle;
-use warpui::elements::{
-    get_rich_content_position_id, Align, Border, ChildAnchor, ChildView, Clipped,
-    ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Expanded, Fill, Flex,
-    Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
-    ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
-    Radius, Rect, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth,
-    Shrinkable, Stack, Text,
-};
-use warpui::event::ModifiersState;
-use warpui::fonts::{Cache as FontCache, FamilyId, Properties};
-use warpui::geometry::vector::{vec2f, Vector2F};
-use warpui::image_cache::ImageType;
-use warpui::keymap::Keystroke;
-use warpui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
-use warpui::platform::{Cursor, OperatingSystem};
-use warpui::r#async::executor::Background;
-use warpui::r#async::{SpawnedFutureHandle, Timer};
-use warpui::text::SelectionType;
-use warpui::ui_components::components::UiComponent;
-use warpui::units::{IntoLines, IntoPixels, Lines, Pixels};
-use warpui::windowing::WindowManager;
-use warpui::{
-    end_trace_after_next, record_trace_event, windowing, AccessibilityData, AppContext,
-    BlurContext, CursorInfo, Element, Entity, EntityId, EventContext, FocusContext, ModelAsRef,
-    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewAsRef, ViewContext,
-    ViewHandle, WeakModelHandle, WeakViewHandle, WindowId,
-};
 
 use self::link_detection::HighlightedLinkOption;
 pub use self::link_detection::{GridHighlightedLink, RichContentLink, RichContentLinkTooltipInfo};
@@ -617,7 +617,7 @@ pub const WAKEUP_THROTTLE_PERIOD: Duration =
 
 pub const EXECUTE_PENDING_COMMAND_DELAY: Duration = Duration::from_millis(100);
 
-pub const WARP_PROMPT_HEIGHT_LINES: f32 = 0.9;
+pub const RIFT_PROMPT_HEIGHT_LINES: f32 = 0.9;
 
 const SCROLLBAR_WIDTH: ScrollbarWidth = ScrollbarWidth::Auto;
 
@@ -690,7 +690,7 @@ const DEFAULT_AI_BLOCK_HEIGHT: f32 = 96.;
 
 pub const DEFAULT_ASK_AI_AUTOSUGGESTION_TEXT: &str = "What happened here?";
 
-const WARP_MD_PATH: &str = "WARP.md";
+const RIFT_MD_PATH: &str = "WARP.md";
 
 pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY: &str = "LongRunningRequestedCommand";
 pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY: &str =
@@ -2626,14 +2626,14 @@ pub struct TerminalView {
     ///   2. Whether this View's window is the active window.
     ///
     /// We need to derive and cache this state on this View in order to correctly implement focus
-    /// reporting. Because focus is window-scoped, i.e. warpui does not consider activating a
+    /// reporting. Because focus is window-scoped, i.e. riftui does not consider activating a
     /// different window as blurring the focused View in the previously active window, we cannot
-    /// simply rely on the warpui::View::on_blur and on_focus methods to report focus-in/out to the
+    /// simply rely on the riftui::View::on_blur and on_focus methods to report focus-in/out to the
     /// PTY, as those methods will not trigger when changing active windows. The singleton model
-    /// [`warpui::windowing::State`] will allow us to subscribe to active window change. So, we can
+    /// [`riftui::windowing::State`] will allow us to subscribe to active window change. So, we can
     /// subscribe to that and have that callback also report focus-in/out. However, that will still
     /// leave cases for potential double-reporting, as a single click can trigger both
-    /// [`warpui::View::on_focus`] and emit a [`warpui::windowing::StateEvent`]. This field will
+    /// [`riftui::View::on_focus`] and emit a [`riftui::windowing::StateEvent`]. This field will
     /// guard against that double- reporting case, though it needs to be kept in sync with the
     /// focused view and active window.
     is_focused_and_active: bool,
@@ -2831,9 +2831,9 @@ pub struct TerminalView {
     /// Mouse state handle for the conversation details panel toggle button in the pane header.
     /// Only available on non-WASM platforms (WASM uses a per-window button instead).
     #[cfg(not(target_arch = "wasm32"))]
-    conversation_details_panel_toggle_mouse_state: warpui::elements::MouseStateHandle,
+    conversation_details_panel_toggle_mouse_state: riftui::elements::MouseStateHandle,
     /// Mouse state handle for the ambient agent cancel button in the pane header.
-    ambient_agent_cancel_mouse_state: warpui::elements::MouseStateHandle,
+    ambient_agent_cancel_mouse_state: riftui::elements::MouseStateHandle,
 
     /// First-time cloud agent setup view (full-screen overlay for creating initial environment).
     first_time_cloud_agent_setup_view: ViewHandle<ambient_agent::FirstTimeCloudAgentSetupView>,
@@ -7355,7 +7355,7 @@ impl TerminalView {
     }
 
     #[cfg(any(test, feature = "integration_tests"))]
-    pub fn sessions<'a, A: warpui::ModelAsRef>(&self, ctx: &'a A) -> &'a Sessions {
+    pub fn sessions<'a, A: riftui::ModelAsRef>(&self, ctx: &'a A) -> &'a Sessions {
         self.sessions.as_ref(ctx)
     }
 
@@ -8575,7 +8575,7 @@ impl TerminalView {
         });
     }
 
-    /// Receiving the warpui::Event::KeyDown event from a child element.
+    /// Receiving the riftui::Event::KeyDown event from a child element.
     /// Generally, this should be control characters rather than printable characters.
     fn keydown_on_terminal(&mut self, characters: &str, ctx: &mut ViewContext<Self>) {
         if self.is_long_running() {
@@ -8619,7 +8619,7 @@ impl TerminalView {
 
         was_bootstrap_script_echoed || is_shared_session_executor
     }
-    /// Receiving a warpui::Event::TypedCharacters event from a child element.
+    /// Receiving a riftui::Event::TypedCharacters event from a child element.
     /// We can assume `characters` consists of all printable characters, and therefore,
     /// can go into the input box.
     fn typed_characters_on_terminal(&mut self, characters: &str, ctx: &mut ViewContext<Self>) {
@@ -11061,7 +11061,7 @@ impl TerminalView {
         };
         let escape_char = session.shell_family().escape_char();
         let Some(top_level_command) =
-            warp_completer::parsers::simple::top_level_command(command, escape_char)
+            rift_completer::parsers::simple::top_level_command(command, escape_char)
         else {
             return false;
         };
@@ -12073,7 +12073,7 @@ impl TerminalView {
                 if self.is_login_shell_bootstrapped {
                     let _ = ctx.spawn(
                         async move {
-                            warpui::r#async::Timer::after(EXECUTE_PENDING_COMMAND_DELAY).await;
+                            riftui::r#async::Timer::after(EXECUTE_PENDING_COMMAND_DELAY).await;
                         },
                         Self::execute_pending_command,
                     );
@@ -12112,14 +12112,14 @@ impl TerminalView {
                                     .and_then(|session| {
                                         let escape_char = session.shell_family().escape_char();
                                         let cmd =
-                                            warp_completer::parsers::simple::top_level_command(
+                                            rift_completer::parsers::simple::top_level_command(
                                                 command,
                                                 escape_char,
                                             )?;
                                         let cmd = session
                                             .alias_value(cmd.as_str())
                                             .and_then(|alias| {
-                                                warp_completer::parsers::simple::top_level_command(
+                                                rift_completer::parsers::simple::top_level_command(
                                                     alias,
                                                     escape_char,
                                                 )
@@ -12524,7 +12524,7 @@ impl TerminalView {
 
                 ctx.spawn(
                     async {
-                        warpui::r#async::Timer::after(*TRIGGER_RC_FILE_SUBSHELL_BOOTSTRAP_DELAY)
+                        riftui::r#async::Timer::after(*TRIGGER_RC_FILE_SUBSHELL_BOOTSTRAP_DELAY)
                             .await
                     },
                     move |me, _, ctx| {
@@ -15851,7 +15851,7 @@ impl TerminalView {
     fn start_bootstrap_timer(&self, duration: Duration, ctx: &mut ViewContext<Self>) {
         let _ = ctx.spawn(
             async move {
-                warpui::r#async::Timer::after(duration).await;
+                riftui::r#async::Timer::after(duration).await;
             },
             Self::on_bootstrap_failed_timer_complete,
         );
@@ -22839,9 +22839,9 @@ impl TerminalView {
                 SessionType::WarpifiedRemote { host_id } => host_id,
                 SessionType::Local => return None,
             }?;
-            let std_path = warp_util::standardized_path::StandardizedPath::try_new(cwd_str).ok()?;
+            let std_path = rift_util::standardized_path::StandardizedPath::try_new(cwd_str).ok()?;
             Some(LocalOrRemotePath::Remote(
-                warp_util::remote_path::RemotePath::new(host_id, std_path),
+                rift_util::remote_path::RemotePath::new(host_id, std_path),
             ))
         }
     }
@@ -23128,7 +23128,7 @@ impl TerminalView {
         let prompt = Text::new_inline(
             Self::block_prompt(model, sessions, index),
             appearance.monospace_font_family(),
-            appearance.monospace_font_size() * WARP_PROMPT_HEIGHT_LINES,
+            appearance.monospace_font_size() * RIFT_PROMPT_HEIGHT_LINES,
         )
         .with_style(Properties::default().weight(appearance.monospace_font_weight()))
         .with_color(terminal_theme_prompt)
@@ -23141,7 +23141,7 @@ impl TerminalView {
             let duration = Text::new_inline(
                 duration_string,
                 appearance.monospace_font_family(),
-                appearance.monospace_font_size() * WARP_PROMPT_HEIGHT_LINES,
+                appearance.monospace_font_size() * RIFT_PROMPT_HEIGHT_LINES,
             )
             .with_style(Properties::default().weight(appearance.monospace_font_weight()))
             .with_color(terminal_theme_prompt)
@@ -25278,7 +25278,7 @@ impl TerminalView {
                 && session.shell_family() == ShellFamily::Posix
                 && is_in_long_running_command;
             if is_msys2_long_running {
-                let input = warpui::clipboard_utils::escaped_paths_str(paths, None);
+                let input = riftui::clipboard_utils::escaped_paths_str(paths, None);
                 self.typed_characters_on_terminal(&input, ctx);
                 return;
             }
@@ -25289,7 +25289,7 @@ impl TerminalView {
             let paths = if session.is_wsl() {
                 paths_converted = paths
                     .iter()
-                    .map(|p| warp_util::path::convert_windows_path_to_wsl(p))
+                    .map(|p| rift_util::path::convert_windows_path_to_wsl(p))
                     .collect::<Vec<_>>();
                 paths_converted.as_slice()
             } else {
@@ -25297,7 +25297,7 @@ impl TerminalView {
             };
 
             let input =
-                warpui::clipboard_utils::escaped_paths_str(paths, Some(self.shell_family(ctx)));
+                riftui::clipboard_utils::escaped_paths_str(paths, Some(self.shell_family(ctx)));
             self.typed_characters_on_terminal(&input, ctx);
         }
     }
@@ -25440,7 +25440,7 @@ impl TerminalView {
                 let active_block_id = self.model.lock().block_list().active_block_id().clone();
                 ctx.spawn(
                     async {
-                        warpui::r#async::Timer::after(Duration::from_secs(3)).await;
+                        riftui::r#async::Timer::after(Duration::from_secs(3)).await;
                         active_block_id
                     },
                     move |terminal_view, active_block_id, _| {
@@ -26652,7 +26652,7 @@ impl TypedActionView for TerminalView {
                     }
                     images.push(ui_components::lightbox::LightboxImage {
                         source: ui_components::lightbox::LightboxImageSource::Resolved {
-                            asset_source: warpui::assets::asset_cache::AssetSource::Raw {
+                            asset_source: riftui::assets::asset_cache::AssetSource::Raw {
                                 id: asset_id,
                             },
                         },
@@ -26880,7 +26880,7 @@ impl TypedActionView for TerminalView {
             OpenProjectRulesPane => {
                 if let Some(current_dir) = self.pwd() {
                     let mut warp_md_path = PathBuf::from(&current_dir);
-                    warp_md_path.push(WARP_MD_PATH);
+                    warp_md_path.push(RIFT_MD_PATH);
                     #[cfg(feature = "local_fs")]
                     ctx.emit(Event::OpenCodeInWarp {
                         source: CodeSource::ProjectRules {
@@ -27644,7 +27644,7 @@ impl View for TerminalView {
 
             Container::new(
                 Flex::row()
-                    .with_main_axis_size(warpui::elements::MainAxisSize::Max)
+                    .with_main_axis_size(riftui::elements::MainAxisSize::Max)
                     .with_cross_axis_alignment(CrossAxisAlignment::Stretch)
                     .with_child(Shrinkable::new(1., final_element).finish())
                     .with_child(panel_with_background)
@@ -27683,7 +27683,7 @@ impl View for TerminalView {
         }
     }
 
-    fn keymap_context(&self, app: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut context = Self::default_keymap_context();
         context.map.insert(
             "TerminalView_BlockSelectionCardinality",

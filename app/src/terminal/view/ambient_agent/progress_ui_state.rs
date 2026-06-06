@@ -1,8 +1,8 @@
 //! UI state for the ambient agent progress/loading screen.
 
-use warpui::elements::shimmering_text::ShimmeringTextStateHandle;
-use warpui::elements::{MouseStateHandle, SelectionHandle};
-use warpui::ModelHandle;
+use riftui::elements::shimmering_text::ShimmeringTextStateHandle;
+use riftui::elements::{MouseStateHandle, SelectionHandle};
+use riftui::ModelHandle;
 
 use crate::ai::agent_tips::AITipModel;
 use crate::terminal::view::ambient_agent::model::AmbientAgentViewModel;
@@ -29,7 +29,7 @@ pub struct AmbientAgentProgressUIState {
 
 impl AmbientAgentProgressUIState {
     /// Creates a new ambient agent progress UI state with initialized handles.
-    pub fn new(ctx: &mut warpui::ModelContext<AmbientAgentViewModel>) -> Self {
+    pub fn new(ctx: &mut riftui::ModelContext<AmbientAgentViewModel>) -> Self {
         let tip_model = ctx.add_model(|_ctx| {
             use crate::terminal::view::ambient_agent;
             AITipModel::new(ambient_agent::get_cloud_mode_tips())

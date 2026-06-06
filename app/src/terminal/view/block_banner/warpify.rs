@@ -1,13 +1,13 @@
 use pathfinder_color::ColorU;
-use warpui::elements::{
+use riftui::elements::{
     Align, ConstrainedBox, Container, CrossAxisAlignment, Flex, HighlightedHyperlink,
     MouseStateHandle, ParentElement, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::Keystroke;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element};
+use riftui::fonts::Weight;
+use riftui::keymap::Keystroke;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element};
 
 use super::{render_block_banner, BLOCK_BANNER_DESCRIPTION_MAX_HEIGHT};
 use crate::appearance::Appearance;

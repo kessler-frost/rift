@@ -7,13 +7,13 @@ pub use header::PaneHeaderAction::CustomAction as PaneHeaderCustomAction;
 pub use header_content::{
     HeaderContent, HeaderRenderContext, StandardHeader, StandardHeaderOptions,
 };
-use warpui::elements::{
+use riftui::elements::{
     Border, Container, DropTarget, DropTargetData, Flex, MainAxisSize, ParentElement, SavePosition,
     Shrinkable,
 };
-use warpui::keymap::EditableBinding;
-use warpui::presenter::ChildView;
-use warpui::{
+use riftui::keymap::EditableBinding;
+use riftui::presenter::ChildView;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -32,7 +32,7 @@ use crate::util::bindings::CustomAction;
 const HAS_SHARED_OBJECT_CONTEXT_KEY: &str = "PaneView_HasSharedObject";
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_editable_bindings([EditableBinding::new(
         "pane:share_pane_contents",
@@ -425,7 +425,7 @@ impl<P: BackingView> View for PaneView<P> {
         .finish()
     }
 
-    fn keymap_context(&self, ctx: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {
         let mut keymap_context = Self::default_keymap_context();
         if self.header.as_ref(ctx).is_sharing_dialog_enabled(ctx) {
             keymap_context.set.insert(HAS_SHARED_OBJECT_CONTEXT_KEY);

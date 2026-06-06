@@ -18,7 +18,7 @@ use remote_server::setup::{
 };
 use remote_server::ssh::ssh_args;
 use remote_server::transport::{Connection, Error, InstallOutcome, RemoteTransport};
-use warpui::r#async::executor;
+use riftui::r#async::executor;
 
 #[path = "ssh_transport/installation.rs"]
 pub(crate) mod installation;
@@ -173,7 +173,7 @@ impl RemoteTransport for SshTransport {
         let socket_path = self.socket_path.clone();
         Box::pin(async move {
             // Treat the existence of the remote-server install directory
-            // itself as evidence of a prior install. If `~/.warp-XX/remote-server`
+            // itself as evidence of a prior install. If `~/.rift-XX/remote-server`
             // exists, something was installed there before, so any mismatch
             // with the client's expected binary path should be auto-updated
             // rather than surfaced as a first-time install prompt.

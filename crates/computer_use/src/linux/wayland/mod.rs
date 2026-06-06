@@ -14,8 +14,8 @@ use async_trait::async_trait;
 use keyboard::Keyboard;
 use mouse::Mouse;
 use pathfinder_geometry::vector::Vector2I;
+use riftui_core::r#async::Timer;
 use session::PortalSession;
-use warpui_core::r#async::Timer;
 
 use crate::{Action, ActionResult, Options};
 

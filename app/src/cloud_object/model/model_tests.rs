@@ -6,8 +6,8 @@ use cloud_object_client::MockObjectClient;
 use lazy_static::lazy_static;
 use mockall::Sequence;
 use rand::Rng;
+use riftui::{App, ModelHandle};
 use settings::{RespectUserSyncSetting, SyncToCloud};
-use warpui::{App, ModelHandle};
 
 use super::*;
 use crate::auth::auth_manager::AuthManager;
@@ -739,7 +739,7 @@ fn test_load_cloud_objects_on_initial_load_with_empty_cache() {
         initialize_app(&mut app, Vec::new(), Arc::new(cloud_object_server_api_mock));
 
         // Spend time waiting for the initial load to finish etc.
-        warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+        riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
         // TODO: @ianhodge - update tests once cloud model APIs are added
         // Now CloudModel should include all objects that were fetched via initial load
@@ -848,7 +848,7 @@ fn test_loading_all_cloud_objects_after_switching_from_offline() {
         check_cloud_folders(&mut app, 0);
 
         // Spend time waiting for the initial load to finish etc.
-        warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+        riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
         // Now CloudModel should include all objects that were fetched via initial load (in this
         // case: personal only)
@@ -867,7 +867,7 @@ fn test_loading_all_cloud_objects_after_switching_from_offline() {
         });
 
         // Spend time waiting for the load to finish etc.
-        warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+        riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
         // Now CloudModel should include all objects that were fetched via initial load
         check_cloud_workflows(&mut app, personal_workflows_len + team_workflows_len);
@@ -916,7 +916,7 @@ fn test_force_refresh_only_happens_once() {
         initialize_app(&mut app, Vec::new(), Arc::new(cloud_object_server_api_mock));
 
         // Spend time waiting for the initial load to finish etc.
-        warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+        riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
         // Check that pending refresh is now false on CloudModel
         CloudModel::handle(&app).read(&app, |model, _ctx| {
@@ -965,7 +965,7 @@ fn test_force_refresh_correctly_resets_timestamp() {
         initialize_app(&mut app, Vec::new(), Arc::new(cloud_object_server_api_mock));
 
         // Spend time waiting for the initial load to finish etc.
-        warpui::r#async::Timer::after(Duration::from_secs(1)).await;
+        riftui::r#async::Timer::after(Duration::from_secs(1)).await;
 
         // Check that pending refresh is within the acceptable hour range.
         CloudModel::handle(&app).read(&app, |model, _ctx| {

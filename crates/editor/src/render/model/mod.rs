@@ -13,31 +13,31 @@ use num_traits::SaturatingSub;
 use ordered_float::OrderedFloat;
 use parking_lot::Mutex;
 use rangemap::RangeSet;
+use rift_core::channel::ChannelState;
+use rift_core::ui::Icon;
+use rift_core::ui::theme::Fill as ThemeFill;
+use riftui_core::assets::asset_cache::AssetSource;
+use riftui_core::color::ColorU;
+use riftui_core::elements::{
+    Border, Fill, ListIndentLevel, ListNumbering, Margin, MouseStateHandle, Padding, ScrollData,
+};
+use riftui_core::fonts::{FamilyId, Properties, Weight};
+use riftui_core::geometry::rect::RectF;
+use riftui_core::geometry::vector::{Vector2F, vec2f};
+use riftui_core::platform::LineStyle;
+use riftui_core::text_layout::{CaretPosition, LayoutCache, Line, TextFrame};
+use riftui_core::text_selection_utils::{
+    NewlineTickParams, calculate_tick_width, create_newline_tick_rect,
+    selection_crosses_newline_offset_based,
+};
+use riftui_core::units::{IntoPixels, Pixels};
+use riftui_core::{AppContext, Entity, EntityId, ModelContext, ModelHandle};
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use string_offset::{CharOffset, impl_offset};
 use sum_tree::{SeekBias, SumTree};
 use vec1::Vec1;
 use vim::vim::{MotionType, VimMode};
-use warp_core::channel::ChannelState;
-use warp_core::ui::Icon;
-use warp_core::ui::theme::Fill as ThemeFill;
-use warpui_core::assets::asset_cache::AssetSource;
-use warpui_core::color::ColorU;
-use warpui_core::elements::{
-    Border, Fill, ListIndentLevel, ListNumbering, Margin, MouseStateHandle, Padding, ScrollData,
-};
-use warpui_core::fonts::{FamilyId, Properties, Weight};
-use warpui_core::geometry::rect::RectF;
-use warpui_core::geometry::vector::{Vector2F, vec2f};
-use warpui_core::platform::LineStyle;
-use warpui_core::text_layout::{CaretPosition, LayoutCache, Line, TextFrame};
-use warpui_core::text_selection_utils::{
-    NewlineTickParams, calculate_tick_width, create_newline_tick_rect,
-    selection_crosses_newline_offset_based,
-};
-use warpui_core::units::{IntoPixels, Pixels};
-use warpui_core::{AppContext, Entity, EntityId, ModelContext, ModelHandle};
 
 use self::location::WrapDirection;
 pub use self::location::{HitTestOptions, Location};
@@ -648,7 +648,7 @@ impl LineCount {
 }
 
 /// A character offset within a [`TextFrame`]. These offsets count characters in the Rust string
-/// passed to [`warpui_core::text_layout::LayoutCache::layout_text()`].
+/// passed to [`riftui_core::text_layout::LayoutCache::layout_text()`].
 ///
 /// Frame offsets often, but not always, correspond to glyph indices and caret positions. However,
 /// they do not line up 1:1 if a glyph or grapheme contains multiple characters
@@ -4302,7 +4302,7 @@ impl<'a> Positioned<'a, Paragraph> {
                 vec2f(underline_width, UNDERLINE_THICKNESS),
             );
 
-            let dash = warpui_core::scene::Dash {
+            let dash = riftui_core::scene::Dash {
                 dash_length: DASHED_UNDERLINE_DASH_LENGTH,
                 gap_length: DASHED_UNDERLINE_GAP_LENGTH,
                 force_consistent_gap_length: true,
@@ -4311,7 +4311,7 @@ impl<'a> Positioned<'a, Paragraph> {
                 .scene
                 .draw_rect_without_hit_recording(underline_rect)
                 .with_border(
-                    warpui_core::scene::Border::bottom(UNDERLINE_THICKNESS)
+                    riftui_core::scene::Border::bottom(UNDERLINE_THICKNESS)
                         .with_dashed_border(dash)
                         .with_border_color(color),
                 );

@@ -5,15 +5,15 @@ use std::sync::mpsc::SyncSender;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
+use rift_cli::agent::Harness;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_multi_agent_api as multi_agent_api;
+use riftui::{
+    AppContext, EntityId, ModelHandle, SingletonEntity, ViewContext, ViewHandle, WindowId,
+};
 #[cfg(not(target_family = "wasm"))]
 use session_sharing_protocol::sharer::SessionSourceType;
 use url::Url;
-use warp_cli::agent::Harness;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_multi_agent_api as multi_agent_api;
-use warpui::{
-    AppContext, EntityId, ModelHandle, SingletonEntity, ViewContext, ViewHandle, WindowId,
-};
 
 #[cfg(not(target_family = "wasm"))]
 use super::local_harness_launch::{prepare_local_harness_child_launch, PreparedLocalHarnessLaunch};

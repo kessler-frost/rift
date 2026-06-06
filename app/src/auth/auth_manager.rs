@@ -3,18 +3,18 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{anyhow, Result};
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use rift_graphql::mutations::create_anonymous_user::{
+    AnonymousUserType, CreateAnonymousUserResult,
+};
+use rift_server_auth::user::persistence::PersistedUser;
+use riftui::clipboard::ClipboardContent;
+use riftui::{Entity, ModelContext, SingletonEntity, UpdateModel};
 use settings::Setting as _;
 #[cfg(target_family = "wasm")]
 use url::Url;
 use uuid::Uuid;
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warp_graphql::mutations::create_anonymous_user::{
-    AnonymousUserType, CreateAnonymousUserResult,
-};
-use warp_server_auth::user::persistence::PersistedUser;
-use warpui::clipboard::ClipboardContent;
-use warpui::{Entity, ModelContext, SingletonEntity, UpdateModel};
 
 use super::auth_state::{AuthState, PersistAction};
 use super::auth_view_modal::{AuthRedirectPayload, AuthViewVariant};
@@ -452,18 +452,18 @@ impl AuthManager {
                     // TODO(alokedesai): Investigate a more robust way of handling events
                     // that don't get flushed to Rudderstack outside of this event specifically.
                     async move {
-                        warpui::telemetry::record_identify_user_event(
+                        riftui::telemetry::record_identify_user_event(
                             user_id.as_string(),
                             anonymous_id.clone(),
-                            warpui::time::get_current_time(),
+                            riftui::time::get_current_time(),
                         );
-                        warpui::telemetry::record_event(
+                        riftui::telemetry::record_event(
                             Some(user_id.as_string()),
                             anonymous_id,
                             TelemetryEvent::Login.name().into(),
                             TelemetryEvent::Login.payload(),
                             TelemetryEvent::Login.contains_ugc(),
-                            warpui::time::get_current_time(),
+                            riftui::time::get_current_time(),
                         );
 
                         // Note that this snapshot might get overwritten to disabled after the server fetch.
@@ -482,7 +482,7 @@ impl AuthManager {
 
                 // Once the user is authenticated, attempt to report the sandbox that Warp is running in, if any.
                 ctx.spawn(
-                    async { warp_isolation_platform::detect() },
+                    async { rift_isolation_platform::detect() },
                     |_, platform, ctx| {
                         if let Some(platform) = platform {
                             send_telemetry_from_ctx!(

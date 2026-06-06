@@ -4,12 +4,12 @@ use std::path::{Path, PathBuf};
 use async_channel::Sender;
 use repo_metadata::repository::{RepositorySubscriber, SubscriberId};
 use repo_metadata::{DirectoryWatcher, Repository, RepositoryUpdate};
+use rift_core::safe_warn;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::{ModelContext, ModelHandle, SingletonEntity};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use warp_core::safe_warn;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::{ModelContext, ModelHandle, SingletonEntity};
 use watcher::{HomeDirectoryWatcher, HomeDirectoryWatcherEvent};
 
 use super::model::{GlobalRulesDelta, ProjectContextModel, ProjectContextModelEvent, ProjectRule};

@@ -8,12 +8,12 @@ use std::sync::Arc;
 
 use chrono::Local;
 use parking_lot::FairMutex;
+use rift_cli::agent::Harness;
+use rift_terminal::model::escape_sequences::{BRACKETED_PASTE_END, BRACKETED_PASTE_START, C0};
+use riftui::notification::UserNotification;
+use riftui::platform::WindowStyle;
+use riftui::{App, Presenter, ReadModel, WindowInvalidation};
 use session_sharing_protocol::common::CLIAgentSessionState;
-use warp_cli::agent::Harness;
-use warp_terminal::model::escape_sequences::{BRACKETED_PASTE_END, BRACKETED_PASTE_START, C0};
-use warpui::notification::UserNotification;
-use warpui::platform::WindowStyle;
-use warpui::{App, Presenter, ReadModel, WindowInvalidation};
 
 use super::*;
 use crate::ai::agent::conversation::ConversationStatus;
@@ -2139,7 +2139,7 @@ fn pending_cloud_mode_query_clears_when_streaming_exchange_becomes_renderable() 
 /// Test clearing of session flag state when terminal is cleared
 #[test]
 fn test_clear_session_flag_state() {
-    use warp_terminal::shell::ShellType;
+    use rift_terminal::shell::ShellType;
 
     use crate::ai::blocklist::SerializedBlockListItem;
     use crate::terminal::model::block::SerializedBlock;
@@ -2590,7 +2590,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseDown {
+                riftui::Event::LeftMouseDown {
                     position: start_position,
                     modifiers: Default::default(),
                     click_count: 1,
@@ -2603,7 +2603,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseDragged {
+                riftui::Event::LeftMouseDragged {
                     position: end_position,
                     modifiers: Default::default(),
                 },
@@ -2614,7 +2614,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseUp {
+                riftui::Event::LeftMouseUp {
                     position: end_position,
                     modifiers: Default::default(),
                 },
@@ -2636,7 +2636,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseDown {
+                riftui::Event::LeftMouseDown {
                     position: start_position,
                     modifiers: ModifiersState {
                         shift: true,
@@ -2652,7 +2652,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseDragged {
+                riftui::Event::LeftMouseDragged {
                     position: end_position,
                     modifiers: ModifiersState {
                         shift: true,
@@ -2666,7 +2666,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         rerender!(app, presenter, invalidation, size_info);
         app.update(enclose!((presenter) move |ctx| {
             ctx.simulate_window_event(
-                warpui::Event::LeftMouseUp {
+                riftui::Event::LeftMouseUp {
                     position: end_position,
                     modifiers: ModifiersState {
                         shift: true,
@@ -5425,7 +5425,7 @@ fn ctrl_g_closes_cli_agent_rich_input_when_editor_is_focused() {
             .dispatch_keystroke(
                 window_id,
                 &[terminal.id(), input_id, editor_id],
-                &warpui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke"),
+                &riftui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke"),
                 false,
             )
             .expect("dispatch should succeed");
@@ -5470,7 +5470,7 @@ fn ctrl_g_closes_cli_agent_rich_input_from_terminal_context() {
             .dispatch_keystroke(
                 window_id,
                 &[terminal.id()],
-                &warpui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke"),
+                &riftui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke"),
                 false,
             )
             .expect("dispatch should succeed");
@@ -5508,7 +5508,7 @@ fn ctrl_g_toggles_cli_agent_rich_input_from_terminal_context() {
         let (window_id, terminal) =
             open_cli_agent_rich_input_for_agent_with_window_id(&mut app, CLIAgent::OpenCode);
 
-        let keystroke = warpui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke");
+        let keystroke = riftui::keymap::Keystroke::parse("ctrl-g").expect("valid keystroke");
 
         // First close: rich input is open → Ctrl-G should close.
         let handled = app
@@ -5797,7 +5797,7 @@ fn paste_raw_image_clipboard_in_cli_agent_sends_correct_bytes() {
 
                 // Write image-only data to the clipboard (no text, no paths).
                 ctx.clipboard().write(ClipboardContent {
-                    images: Some(vec![warpui::clipboard::ImageData {
+                    images: Some(vec![riftui::clipboard::ImageData {
                         data: vec![0x89, 0x50, 0x4E, 0x47], // PNG magic bytes
                         mime_type: "image/png".to_string(),
                         filename: None,

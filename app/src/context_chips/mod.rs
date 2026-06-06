@@ -19,11 +19,11 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use context_chip::PromptGenerator;
+use riftui::color::ColorU;
+use riftui::elements::Text;
+use riftui::fonts::{Properties, Weight};
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
-use warpui::color::ColorU;
-use warpui::elements::Text;
-use warpui::fonts::{Properties, Weight};
 
 #[allow(unused_imports)]
 pub use self::context_chip::{

@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use instant::Instant;
 use parking_lot::FairMutex;
+use rift_core::send_telemetry_from_ctx;
+use riftui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warp_core::send_telemetry_from_ctx;
-use warpui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::task::TaskId;

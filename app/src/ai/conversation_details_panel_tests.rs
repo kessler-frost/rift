@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use chrono::{Local, Utc};
 use persistence::model::{AgentConversationData, ConversationUsageMetadata};
-use warp_cli::agent::Harness;
-use warp_multi_agent_api as api;
-use warpui::{App, EntityId, SingletonEntity};
+use rift_cli::agent::Harness;
+use rift_multi_agent_api as api;
+use riftui::{App, EntityId, SingletonEntity};
 
 use super::{ConversationDetailsData, PanelMode};
 use crate::ai::agent::api::ServerConversationToken;

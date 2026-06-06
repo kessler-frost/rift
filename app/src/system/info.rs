@@ -6,10 +6,10 @@ use chrono::{DateTime, Local, Utc};
 use itertools::Itertools as _;
 use num_traits::Zero;
 use ordered_float::OrderedFloat;
+use rift_core::channel::ChannelState;
+use riftui::{App, AppContext, Entity, ModelContext, SingletonEntity};
 use serde::Serialize;
 use sysinfo::ProcessesToUpdate;
-use warp_core::channel::ChannelState;
-use warpui::{App, AppContext, Entity, ModelContext, SingletonEntity};
 
 use crate::server::telemetry;
 use crate::system::memory_footprint;
@@ -128,7 +128,7 @@ impl SystemInfo {
     fn schedule_refresh(ctx: &mut ModelContext<Self>) {
         ctx.spawn(
             async {
-                warpui::r#async::Timer::after(REFRESH_INTERVAL).await;
+                riftui::r#async::Timer::after(REFRESH_INTERVAL).await;
             },
             |me, _, ctx| {
                 me.refresh(ctx);

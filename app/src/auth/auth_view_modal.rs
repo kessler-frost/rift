@@ -3,20 +3,20 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use url::Url;
-use warp_core::errors::ErrorExt;
-use warp_core::features::FeatureFlag;
-use warpui::actions::StandardAction;
-use warpui::elements::{
+use rift_core::errors::ErrorExt;
+use rift_core::features::FeatureFlag;
+use riftui::actions::StandardAction;
+use riftui::elements::{
     ChildAnchor, ChildView, Container, Fill, HighlightedHyperlink, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Stack,
 };
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use url::Url;
 
 use super::auth_manager::{AuthManager, AuthManagerEvent};
 use super::auth_view_body::{AuthStep, AuthViewBodyEvent};
@@ -31,7 +31,7 @@ use crate::server::server_api::auth::UserAuthenticationError;
 use crate::util::bindings::CustomAction;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         // Bindings for paste require the StandardAction and CustomAction binding to work on all platforms.

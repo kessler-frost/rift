@@ -7,25 +7,25 @@ use itertools::Itertools;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting;
-use thousands::Separable;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_graphql::billing::AddonCreditsOption;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_graphql::billing::AddonCreditsOption;
+use riftui::elements::{
     Align, Border, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, FormattedTextElement, HighlightedHyperlink, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, Shrinkable, Text, Wrap,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::prelude::ChildView;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::prelude::ChildView;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, UpdateView, View,
     ViewContext, ViewHandle,
 };
+use settings::Setting;
+use thousands::Separable;
 
 use super::billing_and_usage::billing_cycle_usage_section::BillingCycleUsageSectionView;
 use super::billing_and_usage::overage_limit_modal::{SpendingLimitModal, SpendingLimitModalEvent};
@@ -742,7 +742,7 @@ impl BillingAndUsagePageV2View {
         let theme = appearance.theme();
         let icon_color = theme.sub_text_color(theme.background());
         let mouse_state = self.plan_mouse_states.refresh_button.clone();
-        warpui::elements::Hoverable::new(mouse_state, move |_| {
+        riftui::elements::Hoverable::new(mouse_state, move |_| {
             Container::new(
                 ConstrainedBox::new(Icon::Refresh.to_warpui_icon(icon_color).finish())
                     .with_width(16.)
@@ -752,7 +752,7 @@ impl BillingAndUsagePageV2View {
             .with_uniform_padding(2.)
             .finish()
         })
-        .with_cursor(warpui::platform::Cursor::PointingHand)
+        .with_cursor(riftui::platform::Cursor::PointingHand)
         .on_click(|ctx, _, _| {
             ctx.dispatch_typed_action(BillingAndUsagePageAction::RefreshWorkspaceData);
         })
@@ -1238,8 +1238,8 @@ impl BillingAndUsagePageV2View {
                 .with_hyperlink_font_color(theme.accent().into_solid())
                 .register_default_click_handlers_with_action_support(
                     |lens, event, ctx| match lens {
-                        warpui::elements::HyperlinkLens::Url(u) => ctx.open_url(u),
-                        warpui::elements::HyperlinkLens::Action(a) => {
+                        riftui::elements::HyperlinkLens::Url(u) => ctx.open_url(u),
+                        riftui::elements::HyperlinkLens::Action(a) => {
                             if let Some(act) =
                                 a.as_any().downcast_ref::<BillingAndUsagePageAction>()
                             {

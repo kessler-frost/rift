@@ -106,7 +106,7 @@ mod workspaces;
 //
 // If you feel the need to export a module so that a type or function within it
 // can be used by an integration test, you should define a new assertion function
-// in the warp::integration_testing::assertions module (or a sub-module).  These
+// in the rift::integration_testing::assertions module (or a sub-module).  These
 // functions will allow us to keep types internal to this crate and expose a
 // simpler API for integration tests to consume.
 pub mod ai_assistant;
@@ -156,6 +156,8 @@ use quit_warning::UnsavedStateSummary;
 use repo_metadata::{
     repositories::DetectedRepositories, watcher::DirectoryWatcher, RepoMetadataModel,
 };
+use rift_cli::agent::AgentCommand;
+use rift_cli::{CliCommand, GlobalOptions};
 use server::network_log_pane_manager::NetworkLogPaneManager;
 use server::network_logging::NetworkLogModel;
 use server::telemetry::context_provider::AppTelemetryContextProvider;
@@ -169,8 +171,6 @@ use terminal::keys_settings::KeysSettings;
 use terminal::local_shell::LocalShellState;
 pub use util::bindings::cmd_or_ctrl_shift;
 use voice::transcriber::VoiceTranscriber;
-use warp_cli::agent::AgentCommand;
-use warp_cli::{CliCommand, GlobalOptions};
 #[cfg(feature = "local_fs")]
 use watcher::HomeDirectoryWatcher;
 
@@ -202,6 +202,8 @@ pub use persistence::testing as sqlite_testing;
 #[cfg(feature = "plugin_host")]
 pub use plugin::{run_plugin_host, PLUGIN_HOST_FLAG};
 use referral_theme_status::ReferralThemeStatus;
+pub use rift_core::errors::{report_error, report_if_error};
+use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
 use server::server_api::ServerApiProvider;
 use settings::{ExtraMetaKeys, PrivacySettings};
 #[cfg(feature = "local_fs")]
@@ -209,26 +211,24 @@ use shellexpand::tilde;
 use terminal::input;
 use terminal::session_settings::SessionSettings;
 use url::Url;
-pub use warp_core::errors::{report_error, report_if_error};
-use warp_core::execution_mode::{AppExecutionMode, ExecutionMode};
 // Re-export the debounce function to simplify imports.
-pub use warp_core::r#async::debounce;
+pub use rift_core::r#async::debounce;
 // Re-export the send_telemetry_from_ctx macro at the crate root level
-pub use warp_core::send_telemetry_from_app_ctx;
-pub use warp_core::send_telemetry_from_ctx;
-use warp_core::user_preferences::GetUserPreferences as _;
+pub use rift_core::send_telemetry_from_app_ctx;
+pub use rift_core::send_telemetry_from_ctx;
+use rift_core::user_preferences::GetUserPreferences as _;
 // Re-export the safe logging macros at the crate root level for backwards compatibility
-pub use warp_core::{safe_debug, safe_error, safe_info, safe_warn};
+pub use rift_core::{safe_debug, safe_error, safe_info, safe_warn};
 #[cfg(feature = "local_fs")]
-use warp_files::FileModel;
-use warp_logging::LogDestination;
-use warp_managed_secrets::ManagedSecretManager;
-use warpui::integration::TestDriver;
-use warpui::modals::{AlertDialogWithCallbacks, AppModalCallback};
-use warpui::platform::app::ApproveTerminateResult;
-use warpui::platform::TerminationMode;
-use warpui::windowing::state::ApplicationStage;
-use warpui::{App, AppContext, Event, SingletonEntity, WindowId};
+use rift_files::FileModel;
+use rift_logging::LogDestination;
+use rift_managed_secrets::ManagedSecretManager;
+use riftui::integration::TestDriver;
+use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
+use riftui::platform::app::ApproveTerminateResult;
+use riftui::platform::TerminationMode;
+use riftui::windowing::state::ApplicationStage;
+use riftui::{App, AppContext, Event, SingletonEntity, WindowId};
 use window_settings::WindowSettings;
 use workflows::manager::WorkflowManager;
 use workspace::sync_inputs::SyncedInputState;
@@ -314,7 +314,7 @@ use crate::workspaces::user_profiles::UserProfiles;
 use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 
 /// Our embedded application assets.
-pub static ASSETS: warp_assets::Assets = warp_assets::Assets;
+pub static ASSETS: rift_assets::Assets = rift_assets::Assets;
 
 fn determine_agent_source(
     launch_mode: &LaunchMode,
@@ -358,15 +358,15 @@ fn daemon_codebase_index_snapshot_storage(launch_mode: &LaunchMode) -> Option<Sn
 pub enum LaunchMode {
     /// Run the regular GUI application.
     App {
-        args: warp_cli::AppArgs,
-        /// API key for server authentication, if provided via `--api-key` or `WARP_API_KEY`.
+        args: rift_cli::AppArgs,
+        /// API key for server authentication, if provided via `--api-key` or `RIFT_API_KEY`.
         /// Only used on dogfood channels.
         api_key: Option<String>,
     },
 
     /// Run the Warp command-line SDK.
     CommandLine {
-        command: warp_cli::CliCommand,
+        command: rift_cli::CliCommand,
         global_options: GlobalOptions,
         debug: bool,
         /// Whether this CLI invocation is running in a sandboxed environment.
@@ -394,13 +394,13 @@ pub enum LaunchMode {
 }
 
 impl LaunchMode {
-    fn args(&self) -> Cow<'_, warp_cli::AppArgs> {
+    fn args(&self) -> Cow<'_, rift_cli::AppArgs> {
         match self {
             LaunchMode::App { args, .. } => Cow::Borrowed(args),
             LaunchMode::CommandLine { .. }
             | LaunchMode::Test { .. }
             | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => Cow::Owned(warp_cli::AppArgs::default()),
+            | LaunchMode::RemoteServerDaemon { .. } => Cow::Owned(rift_cli::AppArgs::default()),
         }
     }
 
@@ -587,11 +587,11 @@ pub fn run() -> Result<()> {
     features::init_feature_flags();
 
     // Parse command-line arguments.
-    let args = warp_cli::Args::from_env();
+    let args = rift_cli::Args::from_env();
 
     // Server URL overrides are only honored on internal dev channels. Release channels silently
     // ignore `--server-root-url` / `--ws-server-url` / `--session-sharing-server-url` (and their
-    // `WARP_*` env-var equivalents) so shipped builds can't be redirected away from their
+    // `RIFT_*` env-var equivalents) so shipped builds can't be redirected away from their
     // baked-in server URLs. See `Channel::allows_server_url_overrides`.
     if ChannelState::channel().allows_server_url_overrides() {
         if let Some(url) = args.server_root_url() {
@@ -617,11 +617,11 @@ pub fn run() -> Result<()> {
         #[cfg(windows)]
         if command.prints_to_stdout() {
             // We attach a console to ensure that all standard output gets printed correctly.
-            warp_util::windows::attach_to_parent_console();
+            rift_util::windows::attach_to_parent_console();
         }
         match command {
             #[cfg(all(feature = "local_tty", unix))]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::TerminalServer(args)) => {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::TerminalServer(args)) => {
                 // If we were asked to run as a terminal server (as opposed to the main
                 // GUI application), do so immediately.  Ideally, the terminal server would
                 // be a separate binary, but it's much easier to distribute a single binary,
@@ -631,11 +631,11 @@ pub fn run() -> Result<()> {
                 return Ok(());
             }
             #[cfg(feature = "plugin_host")]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::PluginHost { .. }) => {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::PluginHost { .. }) => {
                 return crate::run_plugin_host();
             }
             #[cfg(feature = "local_tty")]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::MinidumpServer { socket_name }) => {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::MinidumpServer { socket_name }) => {
                 cfg_if::cfg_if! {
                     if #[cfg(all(linux_or_windows, feature = "crash_reporting"))] {
                         return crate::crash_reporting::run_minidump_server(socket_name);
@@ -646,12 +646,12 @@ pub fn run() -> Result<()> {
                 }
             }
             #[cfg(not(target_family = "wasm"))]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::RemoteServerProxy(args)) => {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::RemoteServerProxy(args)) => {
                 // Proxy is a thin byte bridge (stdin/stdout ↔ Unix socket).
                 // It only needs logging to stderr since stdout is the protocol
                 // channel. No crash reporting, no initialize_app.
                 let launch_mode = LaunchMode::RemoteServerProxy;
-                warp_logging::init(warp_logging::LogConfig {
+                rift_logging::init(rift_logging::LogConfig {
                     is_cli: true,
                     log_destination: launch_mode.log_destination(),
                     ..Default::default()
@@ -659,20 +659,20 @@ pub fn run() -> Result<()> {
                 return crate::remote_server::run_proxy(args.identity_key.clone());
             }
             #[cfg(not(target_family = "wasm"))]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::RemoteServerDaemon(args)) => {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::RemoteServerDaemon(args)) => {
                 // Daemon handles its own full initialization (including
                 // initialize_app and crash reporting) inside run_daemon_app.
                 return crate::remote_server::run_daemon(args.identity_key.clone());
             }
             #[cfg(not(target_family = "wasm"))]
-            warp_cli::Command::Worker(warp_cli::WorkerCommand::RipgrepSearch {
+            rift_cli::Command::Worker(rift_cli::WorkerCommand::RipgrepSearch {
                 parent,
                 ignore_case,
                 multiline,
                 pattern,
                 paths,
             }) => {
-                warp_ripgrep::search::run_search_subprocess(
+                rift_ripgrep::search::run_search_subprocess(
                     std::slice::from_ref(pattern),
                     paths.clone(),
                     *ignore_case,
@@ -687,20 +687,20 @@ pub fn run() -> Result<()> {
                 feature = "plugin_host",
                 not(target_family = "wasm")
             )))]
-            warp_cli::Command::Worker(worker) => {
+            rift_cli::Command::Worker(worker) => {
                 // Need this case to handle platforms where there are no enum variants in
-                // warp_cli::WorkerCommand, as we still need to check Command::Worker.
+                // rift_cli::WorkerCommand, as we still need to check Command::Worker.
 
                 // On wasm, specifically, we should fail spectacularly if we get here.
                 #[cfg(target_family = "wasm")]
                 panic!("Worker process not supported on WASM: {worker:?}")
             }
-            warp_cli::Command::Completions { shell } => {
-                return warp_cli::completions::generate_to_stdout(*shell);
+            rift_cli::Command::Completions { shell } => {
+                return rift_cli::completions::generate_to_stdout(*shell);
             }
-            warp_cli::Command::CommandLine(cmd) => {
+            rift_cli::Command::CommandLine(cmd) => {
                 let (is_sandboxed, computer_use_override) = match cmd.as_ref() {
-                    warp_cli::CliCommand::Agent(warp_cli::agent::AgentCommand::Run(run_args)) => (
+                    rift_cli::CliCommand::Agent(rift_cli::agent::AgentCommand::Run(run_args)) => (
                         run_args.sandboxed,
                         run_args.computer_use.computer_use_override(),
                     ),
@@ -718,11 +718,11 @@ pub fn run() -> Result<()> {
                     computer_use_override,
                 });
             }
-            warp_cli::Command::DumpDebugInfo => {
+            rift_cli::Command::DumpDebugInfo => {
                 return debug_dump::run();
             }
             #[cfg(not(target_family = "wasm"))]
-            warp_cli::Command::PrintTelemetryEvents => {
+            rift_cli::Command::PrintTelemetryEvents => {
                 return TelemetryEvent::print_telemetry_events_json();
             }
         }
@@ -731,10 +731,10 @@ pub fn run() -> Result<()> {
     // If running as a standalone CLI binary or invoked as "oz", print help
     // instead of launching the GUI app.
     let is_cli_binary = cfg!(feature = "standalone")
-        || warp_cli::binary_name().is_some_and(|name| name.starts_with("oz"))
-        || std::env::var_os("WARP_CLI_MODE").is_some();
+        || rift_cli::binary_name().is_some_and(|name| name.starts_with("oz"))
+        || std::env::var_os("RIFT_CLI_MODE").is_some();
     if is_cli_binary {
-        warp_cli::Args::clap_command().print_help()?;
+        rift_cli::Args::clap_command().print_help()?;
         return Ok(());
     }
 
@@ -747,7 +747,7 @@ pub fn run() -> Result<()> {
 
 /// Runs an integration test using the provided test driver.
 pub fn run_integration_test(driver: TestDriver) -> Result<()> {
-    let is_integration_test = std::env::var("WARP_INTEGRATION").is_ok();
+    let is_integration_test = std::env::var("RIFT_INTEGRATION").is_ok();
     let launch = LaunchMode::Test {
         driver: Box::new(Some(driver)),
         is_integration_test,
@@ -793,16 +793,16 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
     cfg_if::cfg_if! {
         if #[cfg(enable_crash_recovery)] {
             if crash_recovery::is_crash_recovery_process(launch_mode.args().as_ref()) {
-                warp_logging::init_for_crash_recovery_process()?;
+                rift_logging::init_for_crash_recovery_process()?;
             } else {
-                warp_logging::init(warp_logging::LogConfig {
+                rift_logging::init(rift_logging::LogConfig {
                     is_cli,
                     log_destination,
                     ..Default::default()
                 })?;
             }
         } else {
-            warp_logging::init(warp_logging::LogConfig {
+            rift_logging::init(rift_logging::LogConfig {
                 is_cli,
                 log_destination,
                 ..Default::default()
@@ -915,7 +915,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         not(any(enable_crash_recovery, any(target_os = "linux", target_os = "freebsd"))),
         expect(unused)
     )]
-    let prefs_for_public_settings: &dyn warpui_extras::user_preferences::UserPreferences =
+    let prefs_for_public_settings: &dyn riftui_extras::user_preferences::UserPreferences =
         if FeatureFlag::SettingsFile.is_enabled() {
             public_preferences.as_ref()
         } else {
@@ -935,13 +935,13 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         terminal::local_tty::spawner::PtySpawner::new().context("Failed to create pty spawner")?;
 
     let mut app_builder = if launch_mode.is_headless() {
-        warpui::platform::AppBuilder::new_headless(
+        riftui::platform::AppBuilder::new_headless(
             app_callbacks(launch_mode.is_integration_test()),
             Box::new(ASSETS),
             launch_mode.take_test_driver(),
         )
     } else {
-        warpui::platform::AppBuilder::new(
+        riftui::platform::AppBuilder::new(
             app_callbacks(launch_mode.is_integration_test()),
             Box::new(ASSETS),
             launch_mode.take_test_driver(),
@@ -950,8 +950,8 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
 
     #[cfg(target_os = "macos")]
     {
-        use warpui::platform::mac::AppExt;
-        use warpui::AssetProvider as _;
+        use riftui::platform::mac::AppExt;
+        use riftui::AssetProvider as _;
 
         let activate_on_launch = !launch_mode.is_integration_test()
             || std::env::var("WARPUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_ok();
@@ -966,7 +966,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
 
     #[cfg(any(target_os = "linux", target_os = "freebsd"))]
     {
-        use warpui::platform::linux::{self, AppBuilderExt};
+        use riftui::platform::linux::{self, AppBuilderExt};
 
         use crate::settings::ForceX11;
 
@@ -974,14 +974,14 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
 
         let force_x11 = ForceX11::read_from_preferences(prefs_for_public_settings)
             .unwrap_or(ForceX11::default_value());
-        // Force use of wayland if the user has passed the `WARP_ENABLE_WAYLAND` env var.
+        // Force use of wayland if the user has passed the `RIFT_ENABLE_WAYLAND` env var.
         let allow_wayland = linux::is_wayland_env_var_set() || !force_x11;
         app_builder.force_x11(!allow_wayland);
     }
 
     #[cfg(target_os = "windows")]
     {
-        use warpui::platform::windows::AppBuilderExt;
+        use riftui::platform::windows::AppBuilderExt;
         app_builder.set_app_user_model_id(ChannelState::app_id().to_string());
 
         // Only use DXC for DirectX shader compilation if we're not running in a Parallels VM
@@ -989,7 +989,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         let is_parallels_vm = crate::util::vm_detection::is_running_in_windows_parallels_vm();
         if !is_parallels_vm {
             log::info!("Using DXC for DirectX shader compilation");
-            use warpui::platform::windows::DXCPath;
+            use riftui::platform::windows::DXCPath;
 
             app_builder.use_dxc_for_directx_shader_compilation(DXCPath {
                 dxc_path: "dxcompiler.dll".to_string(),
@@ -1018,7 +1018,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         #[cfg(not(target_family = "wasm"))]
         // Rotate the log files in the background.
         ctx.background_executor()
-            .spawn(warp_logging::rotate_log_files())
+            .spawn(rift_logging::rotate_log_files())
             .detach();
 
         ctx.add_singleton_model(|ctx| {
@@ -1072,8 +1072,8 @@ pub struct UpdateQuakeModeEventArg {
 pub(crate) fn initialize_app(
     launch_mode: &LaunchMode,
     mut timer: IntervalTimer,
-    startup_toml_parse_error: Option<warpui_extras::user_preferences::Error>,
-    ctx: &mut warpui::AppContext,
+    startup_toml_parse_error: Option<riftui_extras::user_preferences::Error>,
+    ctx: &mut riftui::AppContext,
     _pre_sentry_errors: impl IntoIterator<Item = anyhow::Error>,
 ) -> Option<AppState> {
     // WARNING: Errors that happen here before crash_reporting::init will not be collected in
@@ -1084,18 +1084,18 @@ pub(crate) fn initialize_app(
     // Register an implementation of the secure storage service.
     cfg_if::cfg_if! {
         if #[cfg(feature = "integration_tests")] {
-            warpui_extras::secure_storage::register_noop(&data_domain, ctx);
+            riftui_extras::secure_storage::register_noop(&data_domain, ctx);
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            warpui_extras::secure_storage::register_with_fallback(&data_domain, warp_core::paths::state_dir(), ctx)
+            riftui_extras::secure_storage::register_with_fallback(&data_domain, rift_core::paths::state_dir(), ctx)
         } else if #[cfg(target_os = "windows")] {
-            warpui_extras::secure_storage::register_with_dir(&data_domain, warp_core::paths::state_dir(), ctx)
+            riftui_extras::secure_storage::register_with_dir(&data_domain, rift_core::paths::state_dir(), ctx)
         } else {
-            warpui_extras::secure_storage::register(&data_domain, ctx);
+            riftui_extras::secure_storage::register(&data_domain, ctx);
         }
     }
 
     // One-time migration: give Preview its own config directory by
-    // symlinking contents from the shared ~/.warp location. Must run
+    // symlinking contents from the shared ~/.rift location. Must run
     // before ensure_warp_watch_roots_exist() creates the new directory.
     #[cfg(target_os = "macos")]
     preview_config_migration::migrate_preview_config_dir_if_needed();
@@ -1476,7 +1476,7 @@ pub(crate) fn initialize_app(
 
             GPUState::handle(ctx).update(ctx, |gpu_state, ctx| {
                 gpu_state
-                    .set_has_lower_power_gpu(warpui::rendering::is_low_power_gpu_available(), ctx);
+                    .set_has_lower_power_gpu(riftui::rendering::is_low_power_gpu_available(), ctx);
             });
 
             for window_id in ctx.window_ids().collect_vec() {
@@ -1533,7 +1533,7 @@ pub(crate) fn initialize_app(
     {
         let imported_config_model = ctx.add_singleton_model(ImportedConfigModel::new);
 
-        if ChannelState::channel() != warp_core::channel::Channel::Integration {
+        if ChannelState::channel() != rift_core::channel::Channel::Integration {
             imported_config_model.update(ctx, |model, ctx| {
                 model.search_for_settings_to_import(ctx);
             });
@@ -1791,7 +1791,7 @@ pub(crate) fn initialize_app(
         ctx.add_singleton_model(|ctx| RepoOutlines::new_with_indexing_enabled(false, ctx));
     }
     ctx.add_singleton_model(|ctx| {
-        warp_core::sync_queue::SyncQueue::<SyncTask>::new_with_rate_limit(
+        rift_core::sync_queue::SyncQueue::<SyncTask>::new_with_rate_limit(
             &ctx.background_executor(),
             Some(DEFAULT_SYNC_REQUESTS_PER_MIN),
         )
@@ -2065,8 +2065,8 @@ pub(crate) fn initialize_app(
     app_state
 }
 
-pub(crate) fn app_callbacks(is_integration_test: bool) -> warpui::platform::AppCallbacks {
-    warpui::platform::AppCallbacks {
+pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppCallbacks {
+    riftui::platform::AppCallbacks {
         on_internet_reachability_changed: Some(Box::new(move |reachable, ctx| {
             NetworkStatus::handle(ctx)
                 .update(ctx, move |me, ctx| me.reachability_changed(reachable, ctx));
@@ -2507,7 +2507,7 @@ fn is_cloud_agent_web_home_launch_url(url: &Url) -> bool {
             .query_pairs()
             .any(|(key, value)| key == "source" && value == "web_home")
 }
-fn launch(ctx: &mut warpui::AppContext, app_state: Option<AppState>, launch_mode: LaunchMode) {
+fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode: LaunchMode) {
     IntervalTimer::handle(ctx).update(ctx, |timer, _ctx| {
         timer.mark_interval_end("APP_LAUNCHED");
     });
@@ -2616,5 +2616,5 @@ fn launch(ctx: &mut warpui::AppContext, app_state: Option<AppState>, launch_mode
 #[cfg(test)]
 fn init_logging_for_unit_tests_glue() {
     // Initialize terminal-friendly logging for tests from the shared logger crate.
-    warp_logging::init_logging_for_unit_tests();
+    rift_logging::init_logging_for_unit_tests();
 }

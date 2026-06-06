@@ -1,15 +1,15 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, Expanded, Flex, Hoverable,
     Icon as WarpUiIcon, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning,
     ParentAnchor, ParentElement as _, ParentOffsetBounds, Percentage, Radius, Rect, Stack, Text,
 };
-use warpui::prelude::{Align, CrossAxisAlignment};
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, SingletonEntity as _};
+use riftui::prelude::{Align, CrossAxisAlignment};
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, SingletonEntity as _};
 
 use crate::ai::llms::LLMSpec;
 use crate::appearance::Appearance;

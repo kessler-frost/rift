@@ -3,15 +3,15 @@ use std::future::Future;
 use std::path::{Path, PathBuf};
 
 use futures::future::{ready, Either};
+use rift_util::host_id::HostId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::remote_path::{RemoteNavigationResult, RemotePath};
+use rift_util::standardized_path::StandardizedPath;
+#[cfg(test)]
+use riftui_core::r#async::FutureId;
+use riftui_core::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 #[cfg(test)]
 use virtual_fs::{Stub, VirtualFS};
-use warp_util::host_id::HostId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::remote_path::{RemoteNavigationResult, RemotePath};
-use warp_util::standardized_path::StandardizedPath;
-#[cfg(test)]
-use warpui_core::r#async::FutureId;
-use warpui_core::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
 use crate::{DirectoryWatcher, Repository};
 

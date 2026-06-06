@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use parking_lot::FairMutex;
 use pathfinder_geometry::vector::Vector2F;
-use warpui::{AppContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
+use riftui::{AppContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
 
 use super::event_listener::ChannelEventListener;
 use super::model::session::Sessions;
@@ -132,8 +132,8 @@ impl TerminalManager for MockTerminalManager {
 
 #[cfg(test)]
 mod testing {
-    use warpui::platform::WindowStyle;
-    use warpui::{App, Element, SingletonEntity};
+    use riftui::platform::WindowStyle;
+    use riftui::{App, Element, SingletonEntity};
 
     use super::*;
     use crate::server::server_api::ServerApiProvider;
@@ -144,21 +144,21 @@ mod testing {
         terminal_view: ViewHandle<TerminalView>,
     }
 
-    impl warpui::Entity for TerminalRootView {
+    impl riftui::Entity for TerminalRootView {
         type Event = ();
     }
 
-    impl warpui::View for TerminalRootView {
+    impl riftui::View for TerminalRootView {
         fn ui_name() -> &'static str {
             "TerminalRootView"
         }
 
-        fn render(&self, _app: &warpui::AppContext) -> Box<dyn warpui::Element> {
-            warpui::elements::ChildView::new(&self.terminal_view).finish()
+        fn render(&self, _app: &riftui::AppContext) -> Box<dyn riftui::Element> {
+            riftui::elements::ChildView::new(&self.terminal_view).finish()
         }
     }
 
-    impl warpui::TypedActionView for TerminalRootView {
+    impl riftui::TypedActionView for TerminalRootView {
         type Action = ();
     }
 

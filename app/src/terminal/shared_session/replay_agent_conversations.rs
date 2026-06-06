@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use api::response_event::stream_finished as stream_finished_event;
 use api::{client_action as api_client_action, response_event as api_response_event};
-use warp_multi_agent_api::{self as api, ResponseEvent};
+use rift_multi_agent_api::{self as api, ResponseEvent};
 
 use crate::ai::agent::conversation::AIConversation;
 use crate::ai::agent::task::TaskId;

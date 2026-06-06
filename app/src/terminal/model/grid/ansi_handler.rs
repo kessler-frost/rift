@@ -1,5 +1,5 @@
 // The code in this file is adapted from the alacritty_terminal crate under the
-// Apache license; see: crates/warp_terminal/src/model/LICENSE-ALACRITTY.
+// Apache license; see: crates/rift_terminal/src/model/LICENSE-ALACRITTY.
 
 // path attribute needed due to current non-fs-based nesting of ansi_handler
 // under grid_handler.
@@ -16,14 +16,14 @@ use base64::Engine as _;
 use bounded_vec_deque::BoundedVecDeque;
 use pathfinder_geometry::vector::Vector2F;
 use rand::Rng;
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use rift_terminal::model::ansi::CharsetIndex;
+use rift_terminal::model::grid::cell;
+use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
+use riftui::image_cache::{resize_dimensions, FitType};
 use tab_stops::TabStops;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warp_terminal::model::ansi::CharsetIndex;
-use warp_terminal::model::grid::cell;
-use warp_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use warpui::image_cache::{resize_dimensions, FitType};
 
 use super::{AbsolutePoint, FullGridClearBehavior, GridHandler, PerformResetGridChecks, TermMode};
 use crate::server::telemetry::ImageProtocol;
@@ -1136,7 +1136,7 @@ impl ansi::Handler for GridHandler {
         self.grid.cursor.charsets[index] = charset;
     }
 
-    fn set_color(&mut self, _: usize, _: warpui::color::ColorU) {
+    fn set_color(&mut self, _: usize, _: riftui::color::ColorU) {
         log::error!("Handler method GridHandler::set_color should never be called. This should be handled by TerminalModel.");
     }
 

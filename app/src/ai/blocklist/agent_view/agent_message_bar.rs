@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use parking_lot::FairMutex;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{Container, Element, Empty, MouseStateHandle};
-use warpui::keymap::Keystroke;
-use warpui::platform::OperatingSystem;
-use warpui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{Container, Element, Empty, MouseStateHandle};
+use riftui::keymap::Keystroke;
+use riftui::platform::OperatingSystem;
+use riftui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
 
 use super::{AgentViewState, EphemeralMessageModel, EphemeralMessageModelEvent};
 use crate::ai::agent::conversation::AIConversation;

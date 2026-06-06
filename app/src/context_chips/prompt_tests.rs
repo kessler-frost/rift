@@ -1,5 +1,5 @@
+use riftui::{App, SingletonEntity};
 use serde_json::Value;
-use warpui::{App, SingletonEntity};
 
 use super::Prompt;
 use crate::auth::AuthStateProvider;

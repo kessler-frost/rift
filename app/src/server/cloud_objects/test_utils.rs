@@ -3,9 +3,9 @@ use std::sync::mpsc::{sync_channel, Receiver};
 use std::sync::Arc;
 
 use cloud_object_client::{MockObjectClient, ObjectClient};
+use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
+use riftui::{App, ModelHandle, SingletonEntity};
 use settings::manager::SettingsManager;
-use warp_core::execution_mode::{AppExecutionMode, ExecutionMode};
-use warpui::{App, ModelHandle, SingletonEntity};
 
 use super::update_manager::UpdateManager;
 use crate::auth::auth_manager::AuthManager;

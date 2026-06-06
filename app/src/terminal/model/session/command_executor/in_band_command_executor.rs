@@ -8,11 +8,11 @@ use anyhow::Result;
 use async_channel::{self, Receiver, Sender};
 use async_trait::async_trait;
 use parking_lot::{Mutex, MutexGuard};
-use warp_completer::completer::{CommandExitStatus, CommandOutput};
-use warp_core::command::ExitCode;
-use warp_terminal::model::Point;
-use warp_util::on_cancel::OnCancelFutureExt;
-use warpui::r#async::block_on;
+use rift_completer::completer::{CommandExitStatus, CommandOutput};
+use rift_core::command::ExitCode;
+use rift_terminal::model::Point;
+use rift_util::on_cancel::OnCancelFutureExt;
+use riftui::r#async::block_on;
 
 use super::ExecuteCommandOptions;
 use crate::safe_info;

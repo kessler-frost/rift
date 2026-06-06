@@ -1,15 +1,15 @@
 use std::marker::PhantomData;
 
 use pathfinder_geometry::vector::vec2f;
-use warpui::elements::{
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, CornerRadius, CrossAxisAlignment, Flex,
     Icon as WarpUiIcon, MainAxisAlignment, MouseStateHandle, OffsetPositioning, ParentElement,
     PositionedElementAnchor, PositionedElementOffsetBounds, Radius, SavePosition, Stack,
 };
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, BlurContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

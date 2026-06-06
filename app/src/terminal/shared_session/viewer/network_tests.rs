@@ -5,8 +5,8 @@ use async_channel::Sender;
 use async_io::Timer;
 use instant::Instant;
 use parking_lot::FairMutex;
+use riftui::{App, ModelHandle};
 use session_sharing_protocol::viewer::UpstreamMessage;
-use warpui::{App, ModelHandle};
 
 use super::{Network, PtyBytesBatchStatus, Stage};
 use crate::terminal::event_listener::ChannelEventListener;

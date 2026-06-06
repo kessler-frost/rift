@@ -1,20 +1,20 @@
 //! This module contains the implementation of `BackingView` for `TerminalView`, as well as
 //! business logic for integrating the terminal view with the pane infra (`crate::pane_group`).
-use settings::Setting as _;
-use warp_core::context_flag::ContextFlag;
-use warpui::elements::{
+use rift_core::context_flag::ContextFlag;
+use riftui::elements::{
     ConstrainedBox, CrossAxisAlignment, Empty, Flex, MainAxisAlignment, MainAxisSize,
     ParentElement, Shrinkable,
 };
-use warpui::prelude::{ChildView, Container};
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
+use riftui::prelude::{ChildView, Container};
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
 #[cfg(not(target_arch = "wasm32"))]
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::{
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::{
     AppContext, Element, ModelHandle, SingletonEntity, TypedActionView, ViewContext,
     WeakModelHandle,
 };
+use settings::Setting as _;
 
 use super::ambient_agent::is_cloud_agent_pre_first_exchange;
 use super::shared_session::adapter::Kind as SharedSessionKind;
@@ -240,7 +240,7 @@ impl TerminalView {
     /// Renders the back button for the pane header, or an empty element if the
     /// back button should not be shown.
     fn maybe_render_header_back_button(&self, app: &AppContext) -> Box<dyn Element> {
-        if !FeatureFlag::AgentView.is_enabled() || warpui::platform::is_mobile_device() {
+        if !FeatureFlag::AgentView.is_enabled() || riftui::platform::is_mobile_device() {
             return Flex::row().finish();
         }
 

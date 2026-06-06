@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use rift_core::features::FeatureFlag;
+use riftui::units::{IntoPixels, Pixels};
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity, WindowId};
 use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warpui::units::{IntoPixels, Pixels};
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity, WindowId};
 
 use super::styles::{HEADER_BORDER, HEADER_ROW_HEIGHT};
 use crate::ai::blocklist::agent_view::AgentViewController;

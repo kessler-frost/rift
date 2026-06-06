@@ -3,23 +3,23 @@ use std::sync::Arc;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warp_core::ui::color::{coloru_with_opacity, ContrastingColor};
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::{AnsiColorIdentifier, Fill};
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use rift_core::ui::color::{coloru_with_opacity, ContrastingColor};
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill};
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex,
     Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, Padding,
     ParentAnchor, ParentElement as _, ParentOffsetBounds, Radius, Stack, Text,
     DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::Keystroke;
-use warpui::platform::Cursor;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::Keystroke;
+use riftui::platform::Cursor;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, BlurContext, Element, Entity, EventContext, FocusContext, Gradient,
     SingletonEntity as _, TypedActionView, View, ViewContext,
 };

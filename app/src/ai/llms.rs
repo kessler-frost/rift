@@ -4,11 +4,11 @@ use std::sync::{Arc, OnceLock};
 use ai::api_keys::{ApiKeyManager, ApiKeyManagerEvent, CustomEndpoint, CustomEndpointModel};
 pub use ai::LLMId;
 use parking_lot::FairMutex;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::icons::Icon;
+use rift_core::user_preferences::GetUserPreferences;
+use riftui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 use serde::{de, Deserialize, Serialize};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::icons::Icon;
-use warp_core::user_preferences::GetUserPreferences;
-use warpui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 
 use super::execution_profiles::profiles::AIExecutionProfilesModel;
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};

@@ -11,5 +11,5 @@ log.workspace = true
 tokio.workspace = true
 tower.workspace = true
 tower-http = { workspace = true, features = ["trace", "cors"] } 
-warpui_core.workspace = true
-warp_core.workspace = true
+riftui_core.workspace = true
+rift_core.workspace = true

@@ -11,12 +11,12 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, ensure, Result};
 use itertools::Itertools;
+use rift_util::path::LineAndColumnArg;
+use riftui::notification::UserNotification;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, EntityId, SingletonEntity as _, TypedActionView, ViewHandle, WindowId};
 use session_sharing_protocol::common::SessionId;
 use url::Url;
-use warp_util::path::LineAndColumnArg;
-use warpui::notification::UserNotification;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, EntityId, SingletonEntity as _, TypedActionView, ViewHandle, WindowId};
 
 use self::docker::open_docker_container;
 use crate::ai::active_agent_views_model::{ActiveAgentViewsModel, ConversationOrTaskId};

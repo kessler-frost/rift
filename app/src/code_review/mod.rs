@@ -22,8 +22,8 @@ pub(crate) mod diff_selector;
 pub(crate) mod file_invalidation_queue;
 
 use code_review_view::CodeReviewAction;
-use warpui::keymap::{EditableBinding, FixedBinding};
-use warpui::{
+use riftui::keymap::{EditableBinding, FixedBinding};
+use riftui::{
     id, AppContext, Entity, EntityId, ModelContext, SingletonEntity, WeakViewHandle, WindowId,
 };
 

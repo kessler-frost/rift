@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use fuzzy_match::match_indices_case_insensitive;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::search::command_palette::launch_config::search_item::SearchItem;
@@ -19,7 +19,7 @@ pub struct DataSource {
 impl DataSource {
     #[cfg(not(target_family = "wasm"))]
     pub fn new(ctx: &mut ModelContext<Self>) -> Self {
-        if warp_core::features::FeatureFlag::UseTantivySearch.is_enabled() {
+        if rift_core::features::FeatureFlag::UseTantivySearch.is_enabled() {
             Self::new_full_text(ctx)
         } else {
             Self::new_fuzzy(ctx)
@@ -121,9 +121,9 @@ mod full_text_searcher {
     use std::sync::Arc;
 
     use fuzzy_match::FuzzyMatchResult;
-    use warp_search_core::define_search_schema;
-    use warpui::r#async::executor::Background;
-    use warpui::{AppContext, SingletonEntity};
+    use rift_search_core::define_search_schema;
+    use riftui::r#async::executor::Background;
+    use riftui::{AppContext, SingletonEntity};
 
     use crate::launch_configs::launch_config::LaunchConfig;
     use crate::search::command_palette::launch_config::data_source::LaunchConfigSearcher;

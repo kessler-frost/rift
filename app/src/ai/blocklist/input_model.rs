@@ -12,12 +12,12 @@ use input_classifier::util::{is_agent_follow_up_input, is_one_off_natural_langua
 pub use input_classifier::{InputClassifierDecisionSource, InputType};
 use instant::Instant;
 use parking_lot::FairMutex;
+use rift_completer::completer::CompletionContext;
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use session_sharing_protocol::common::{InputMode, InputType as ProtocolInputType};
 use settings::Setting as _;
-use warp_completer::completer::CompletionContext;
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 /// The source of the final input type decision applied to the user input.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -828,7 +828,7 @@ impl BlocklistAIInputModel {
                     futures_lite::future::yield_now().await;
 
                     let input =
-                        warp_completer::util::expand_aliases(input, &completion_context).await;
+                        rift_completer::util::expand_aliases(input, &completion_context).await;
 
                     futures_lite::future::yield_now().await;
 

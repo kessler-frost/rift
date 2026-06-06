@@ -9,15 +9,14 @@ use languages::language_by_local_filename;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use settings::Setting as _;
-use warp_core::context_flag::ContextFlag;
-use warp_core::telemetry::TelemetryEvent as _;
-use warp_core::ui::color::blend::Blend;
-use warp_core::ui::color::coloru_with_opacity;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::{AnsiColorIdentifier, Fill as WarpThemeFill, WarpTheme};
-use warp_core::ui::Icon as WarpIcon;
-use warpui::elements::{
+use rift_core::context_flag::ContextFlag;
+use rift_core::telemetry::TelemetryEvent as _;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::color::coloru_with_opacity;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill as WarpThemeFill, WarpTheme};
+use rift_core::ui::Icon as WarpIcon;
+use riftui::elements::{
     resizable_state_handle, Border, ChildAnchor, Clipped, ClippedScrollStateHandle,
     ClippedScrollable, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, DragAxis, DragBarSide, Draggable, DropShadow, DropTarget, Element, Empty,
@@ -27,13 +26,14 @@ use warpui::elements::{
     ResizableStateHandle, SavePosition, ScrollTarget, ScrollToPositionMode, ScrollbarWidth,
     Shrinkable, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::prelude::Align;
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::ui_components::text_input::TextInput;
-use warpui::{AppContext, EntityId, SingletonEntity, ViewHandle, WindowId};
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::prelude::Align;
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::ui_components::text_input::TextInput;
+use riftui::{AppContext, EntityId, SingletonEntity, ViewHandle, WindowId};
+use settings::Setting as _;
 
 use crate::ai::agent::conversation::{ConversationStatus, StatusColorStyle};
 use crate::ai::agent_management::AgentNotificationsModel;
@@ -3196,7 +3196,7 @@ fn pane_display_title_and_subtitle(
             .unwrap_or_default();
         let home_dir = dirs::home_dir();
         let home_str = home_dir.as_ref().and_then(|path| path.to_str());
-        let parent = warp_util::path::user_friendly_path(&parent_raw, home_str).to_string();
+        let parent = rift_util::path::user_friendly_path(&parent_raw, home_str).to_string();
         (filename, parent)
     } else {
         (

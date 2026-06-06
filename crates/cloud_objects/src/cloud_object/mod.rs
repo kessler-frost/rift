@@ -6,19 +6,19 @@ use anyhow::{Result, anyhow};
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use pathfinder_geometry::vector::vec2f;
-use serde::{Deserialize, Serialize};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::Icon;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warp_graphql::object_permissions::AccessLevel;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui_core::Element;
-use warpui_core::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::Icon;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use rift_graphql::object_permissions::AccessLevel;
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui_core::Element;
+use riftui_core::elements::{
     Align, ChildAnchor, ConstrainedBox, Hoverable, MouseStateHandle, OffsetPositioning,
     ParentAnchor, ParentElement, ParentOffsetBounds, Stack,
 };
-use warpui_core::ui_components::components::UiComponent;
+use riftui_core::ui_components::components::UiComponent;
+use serde::{Deserialize, Serialize};
 
 use crate::auth::UserUid;
 use crate::drive::sharing::{SharingAccessLevel, Subject, TeamKind, UserKind};
@@ -229,35 +229,35 @@ impl TryFrom<&str> for JsonObjectType {
     }
 }
 
-impl TryFrom<warp_graphql::object::ObjectType> for ObjectIdType {
+impl TryFrom<rift_graphql::object::ObjectType> for ObjectIdType {
     type Error = anyhow::Error;
-    fn try_from(object_type: warp_graphql::object::ObjectType) -> Result<Self, Self::Error> {
+    fn try_from(object_type: rift_graphql::object::ObjectType) -> Result<Self, Self::Error> {
         match object_type {
-            warp_graphql::object::ObjectType::AIConversation => Err(anyhow!(
+            rift_graphql::object::ObjectType::AIConversation => Err(anyhow!(
                 "AIConversation is not a supported object type for this operation"
             )),
-            warp_graphql::object::ObjectType::Notebook => Ok(ObjectIdType::Notebook),
-            warp_graphql::object::ObjectType::Workflow => Ok(ObjectIdType::Workflow),
-            warp_graphql::object::ObjectType::Folder => Ok(ObjectIdType::Folder),
-            warp_graphql::object::ObjectType::GenericStringObject => {
+            rift_graphql::object::ObjectType::Notebook => Ok(ObjectIdType::Notebook),
+            rift_graphql::object::ObjectType::Workflow => Ok(ObjectIdType::Workflow),
+            rift_graphql::object::ObjectType::Folder => Ok(ObjectIdType::Folder),
+            rift_graphql::object::ObjectType::GenericStringObject => {
                 Ok(ObjectIdType::GenericStringObject)
             }
-            warp_graphql::object::ObjectType::Unknown => {
+            rift_graphql::object::ObjectType::Unknown => {
                 Err(anyhow!("could not convert unknown cloud object type"))
             }
         }
     }
 }
 
-impl From<ObjectType> for warp_graphql::object::ObjectType {
+impl From<ObjectType> for rift_graphql::object::ObjectType {
     fn from(value: ObjectType) -> Self {
         match value {
-            ObjectType::Notebook => warp_graphql::object::ObjectType::Notebook,
-            ObjectType::Workflow => warp_graphql::object::ObjectType::Workflow,
-            ObjectType::Folder => warp_graphql::object::ObjectType::Folder,
+            ObjectType::Notebook => rift_graphql::object::ObjectType::Notebook,
+            ObjectType::Workflow => rift_graphql::object::ObjectType::Workflow,
+            ObjectType::Folder => rift_graphql::object::ObjectType::Folder,
             ObjectType::GenericStringObject(GenericStringObjectFormat::Json(
                 JsonObjectType::EnvVarCollection,
-            )) => warp_graphql::object::ObjectType::GenericStringObject,
+            )) => rift_graphql::object::ObjectType::GenericStringObject,
             ObjectType::GenericStringObject(gso) => {
                 todo!("Moving is not implemented for {:?}", gso);
             }
@@ -844,10 +844,10 @@ pub struct RevisionAndLastEditor {
 // GraphQL conversion impls.
 
 impl From<GenericStringObjectFormat>
-    for warp_graphql::generic_string_object::GenericStringObjectFormat
+    for rift_graphql::generic_string_object::GenericStringObjectFormat
 {
     fn from(format: GenericStringObjectFormat) -> Self {
-        use warp_graphql::generic_string_object::GenericStringObjectFormat as GraphQLFormat;
+        use rift_graphql::generic_string_object::GenericStringObjectFormat as GraphQLFormat;
         match format {
             GenericStringObjectFormat::Json(JsonObjectType::Preference) => {
                 GraphQLFormat::JsonPreference
@@ -881,9 +881,9 @@ impl From<GenericStringObjectFormat>
     }
 }
 
-impl From<CloudObjectEventEntrypoint> for warp_graphql::object::CloudObjectEventEntrypoint {
+impl From<CloudObjectEventEntrypoint> for rift_graphql::object::CloudObjectEventEntrypoint {
     fn from(entrypoint: CloudObjectEventEntrypoint) -> Self {
-        use warp_graphql::object::CloudObjectEventEntrypoint as GraphQLEntrypoint;
+        use rift_graphql::object::CloudObjectEventEntrypoint as GraphQLEntrypoint;
         match entrypoint {
             CloudObjectEventEntrypoint::TeamSettings => GraphQLEntrypoint::TeamSettings,
             CloudObjectEventEntrypoint::ResourceCenter => GraphQLEntrypoint::ResourceCenter,
@@ -898,10 +898,10 @@ impl From<CloudObjectEventEntrypoint> for warp_graphql::object::CloudObjectEvent
 }
 
 impl From<GenericStringObjectUniqueKey>
-    for warp_graphql::generic_string_object::GenericStringObjectUniqueKey
+    for rift_graphql::generic_string_object::GenericStringObjectUniqueKey
 {
     fn from(key: GenericStringObjectUniqueKey) -> Self {
-        use warp_graphql::generic_string_object::GenericStringObjectUniqueKey as GraphQLKey;
+        use rift_graphql::generic_string_object::GenericStringObjectUniqueKey as GraphQLKey;
         GraphQLKey {
             key: key.key,
             unique_per: key.unique_per.into(),
@@ -909,21 +909,21 @@ impl From<GenericStringObjectUniqueKey>
     }
 }
 
-impl From<UniquePer> for warp_graphql::generic_string_object::UniquePer {
+impl From<UniquePer> for rift_graphql::generic_string_object::UniquePer {
     fn from(unique_per: UniquePer) -> Self {
-        use warp_graphql::generic_string_object::UniquePer as GraphQLUniquePer;
+        use rift_graphql::generic_string_object::UniquePer as GraphQLUniquePer;
         match unique_per {
             UniquePer::User => GraphQLUniquePer::User,
         }
     }
 }
 
-impl TryFrom<warp_graphql::object::ObjectMetadata> for ServerMetadata {
+impl TryFrom<rift_graphql::object::ObjectMetadata> for ServerMetadata {
     type Error = anyhow::Error;
 
-    fn try_from(value: warp_graphql::object::ObjectMetadata) -> Result<Self, Self::Error> {
+    fn try_from(value: rift_graphql::object::ObjectMetadata) -> Result<Self, Self::Error> {
         let folder_id: Option<FolderId> = match value.parent {
-            warp_graphql::object::Container::FolderContainer(folder_container) => {
+            rift_graphql::object::Container::FolderContainer(folder_container) => {
                 Some(folder_container.folder_uid.into_inner().into())
             }
             _ => None,
@@ -943,11 +943,11 @@ impl TryFrom<warp_graphql::object::ObjectMetadata> for ServerMetadata {
     }
 }
 
-impl TryFrom<warp_graphql::object_permissions::ObjectPermissions> for ServerPermissions {
+impl TryFrom<rift_graphql::object_permissions::ObjectPermissions> for ServerPermissions {
     type Error = anyhow::Error;
 
     fn try_from(
-        value: warp_graphql::object_permissions::ObjectPermissions,
+        value: rift_graphql::object_permissions::ObjectPermissions,
     ) -> Result<Self, Self::Error> {
         let server_object_guests: Result<Vec<ServerObjectGuest>, _> = value
             .guests
@@ -967,10 +967,10 @@ impl TryFrom<warp_graphql::object_permissions::ObjectPermissions> for ServerPerm
     }
 }
 
-impl TryFrom<warp_graphql::object_permissions::ObjectGuest> for ServerObjectGuest {
+impl TryFrom<rift_graphql::object_permissions::ObjectGuest> for ServerObjectGuest {
     type Error = anyhow::Error;
 
-    fn try_from(value: warp_graphql::object_permissions::ObjectGuest) -> Result<Self, Self::Error> {
+    fn try_from(value: rift_graphql::object_permissions::ObjectGuest) -> Result<Self, Self::Error> {
         let object_guest = ServerObjectGuest {
             subject: value.subject.try_into()?,
             access_level: value.access_level,
@@ -983,38 +983,38 @@ impl TryFrom<warp_graphql::object_permissions::ObjectGuest> for ServerObjectGues
     }
 }
 
-impl TryFrom<warp_graphql::object_permissions::GuestSubject> for ServerGuestSubject {
+impl TryFrom<rift_graphql::object_permissions::GuestSubject> for ServerGuestSubject {
     type Error = anyhow::Error;
 
     fn try_from(
-        value: warp_graphql::object_permissions::GuestSubject,
+        value: rift_graphql::object_permissions::GuestSubject,
     ) -> Result<Self, Self::Error> {
         match value {
-            warp_graphql::object_permissions::GuestSubject::UserGuest(user_guest) => {
+            rift_graphql::object_permissions::GuestSubject::UserGuest(user_guest) => {
                 let guest_subject = ServerGuestSubject::User {
                     firebase_uid: user_guest.firebase_uid.into_inner(),
                 };
                 Ok(guest_subject)
             }
-            warp_graphql::object_permissions::GuestSubject::PendingUserGuest(guest) => {
+            rift_graphql::object_permissions::GuestSubject::PendingUserGuest(guest) => {
                 Ok(ServerGuestSubject::PendingUser { email: guest.email })
             }
-            warp_graphql::object_permissions::GuestSubject::TeamGuest(team_guest) => {
+            rift_graphql::object_permissions::GuestSubject::TeamGuest(team_guest) => {
                 Ok(ServerGuestSubject::Team {
                     team_uid: ServerId::from_string_lossy(team_guest.uid.inner()),
                 })
             }
-            warp_graphql::object_permissions::GuestSubject::Unknown => {
+            rift_graphql::object_permissions::GuestSubject::Unknown => {
                 anyhow::bail!("Unknown GuestSubject type")
             }
         }
     }
 }
 
-impl TryFrom<warp_graphql::object_permissions::LinkSharing> for ServerLinkSharing {
+impl TryFrom<rift_graphql::object_permissions::LinkSharing> for ServerLinkSharing {
     type Error = anyhow::Error;
 
-    fn try_from(value: warp_graphql::object_permissions::LinkSharing) -> Result<Self, Self::Error> {
+    fn try_from(value: rift_graphql::object_permissions::LinkSharing) -> Result<Self, Self::Error> {
         Ok(ServerLinkSharing {
             access_level: value.access_level,
             source: value.source.map(TryInto::try_into).transpose()?,
@@ -1022,35 +1022,35 @@ impl TryFrom<warp_graphql::object_permissions::LinkSharing> for ServerLinkSharin
     }
 }
 
-impl TryFrom<warp_graphql::object::Container> for ServerObjectContainer {
+impl TryFrom<rift_graphql::object::Container> for ServerObjectContainer {
     type Error = anyhow::Error;
 
-    fn try_from(value: warp_graphql::object::Container) -> Result<Self, Self::Error> {
+    fn try_from(value: rift_graphql::object::Container) -> Result<Self, Self::Error> {
         match value {
-            warp_graphql::object::Container::FolderContainer(folder) => {
+            rift_graphql::object::Container::FolderContainer(folder) => {
                 Ok(ServerObjectContainer::Folder {
                     folder_uid: ServerId::from_string_lossy(folder.folder_uid.inner()),
                 })
             }
-            warp_graphql::object::Container::Space(space) => Ok(ServerObjectContainer::Drive {
+            rift_graphql::object::Container::Space(space) => Ok(ServerObjectContainer::Drive {
                 owner: space.try_into()?,
             }),
-            warp_graphql::object::Container::Unknown => {
+            rift_graphql::object::Container::Unknown => {
                 anyhow::bail!("Unknown Container type")
             }
         }
     }
 }
 
-impl TryFrom<warp_graphql::object::Space> for Owner {
+impl TryFrom<rift_graphql::object::Space> for Owner {
     type Error = anyhow::Error;
 
-    fn try_from(value: warp_graphql::object::Space) -> Result<Self, Self::Error> {
+    fn try_from(value: rift_graphql::object::Space) -> Result<Self, Self::Error> {
         let owner = match value.type_ {
-            warp_graphql::object::SpaceType::Team => Owner::Team {
+            rift_graphql::object::SpaceType::Team => Owner::Team {
                 team_uid: ServerId::from_string_lossy(value.uid.inner()),
             },
-            warp_graphql::object::SpaceType::User => Owner::User {
+            rift_graphql::object::SpaceType::User => Owner::User {
                 user_uid: UserUid::new(value.uid.inner()),
             },
         };
@@ -1058,9 +1058,9 @@ impl TryFrom<warp_graphql::object::Space> for Owner {
     }
 }
 
-impl From<Owner> for warp_graphql::object_permissions::Owner {
+impl From<Owner> for rift_graphql::object_permissions::Owner {
     fn from(owner: Owner) -> Self {
-        use warp_graphql::object_permissions::{Owner as GraphQLOwner, OwnerType};
+        use rift_graphql::object_permissions::{Owner as GraphQLOwner, OwnerType};
         match owner {
             Owner::User { user_uid } => GraphQLOwner {
                 type_: OwnerType::User,

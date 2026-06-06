@@ -1,14 +1,14 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use ui_components::tooltip::{Params as TooltipParams, Tooltip as TooltipComponent};
-use ui_components::{Component as _, Options as ComponentOptions};
-use warp_core::ui::theme::{AnsiColorIdentifier, Fill as ThemeFill};
-use warpui::elements::{
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill as ThemeFill};
+use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, Element, Hoverable,
     MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius,
     Stack,
 };
-use warpui::platform::Cursor;
+use riftui::platform::Cursor;
+use ui_components::tooltip::{Params as TooltipParams, Tooltip as TooltipComponent};
+use ui_components::{Component as _, Options as ComponentOptions};
 
 use crate::appearance::Appearance;
 use crate::ui_components::icons::Icon;

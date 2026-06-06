@@ -6,14 +6,14 @@ use std::sync::Arc;
 use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
 use instant::Instant;
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::builder::MIN_FONT_SIZE;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_editor::editor::NavigationKey;
-use warpui::clipboard::ClipboardContent;
-use warpui::color::ColorU;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::builder::MIN_FONT_SIZE;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_editor::editor::NavigationKey;
+use riftui::clipboard::ClipboardContent;
+use riftui::color::ColorU;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
     Container, CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult, DropShadow, Empty,
     EventHandler, Flex, Highlight, Hoverable, MainAxisAlignment, MainAxisSize, MouseInBehavior,
@@ -21,12 +21,12 @@ use warpui::elements::{
     PositionedElementOffsetBounds, Radius, SavePosition, ScrollStateHandle, Scrollable,
     ScrollableElement, ScrollbarWidth, Shrinkable, Stack, Text, UniformList, UniformListState,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::r#async::Timer;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::units::Pixels;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::r#async::Timer;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::units::Pixels;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity as _, TypedActionView, View,
     ViewContext, ViewHandle, WindowId,
 };
@@ -124,7 +124,7 @@ const ENV_SIDE_CAR_OUTER_RADIUS: f32 = 6.;
 const ENV_SIDE_CAR_INNER_RADIUS: f32 = 4.;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(
@@ -896,7 +896,7 @@ impl DisplayChipMenu {
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
             // Leave the scrollbar gutter background transparent.
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .with_padding_start(0.)
         .with_padding_end(0.)
@@ -1305,7 +1305,7 @@ impl DisplayChipMenu {
             scrollbar_width,
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .with_padding_end(0.)
         .with_padding_start(0.);

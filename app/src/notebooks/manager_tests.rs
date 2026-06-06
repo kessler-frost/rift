@@ -1,8 +1,8 @@
 use std::sync::mpsc;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::{AddSingletonModel, App, EntityId, ModelHandle, ViewContext, ViewHandle};
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::{AddSingletonModel, App, EntityId, ModelHandle, ViewContext, ViewHandle};
 
 use super::NotebookManager;
 use crate::ai::blocklist::BlocklistAIHistoryModel;

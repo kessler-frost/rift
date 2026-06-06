@@ -1,9 +1,9 @@
 //! Hit-testing implementation for the rendering model.
 
 use num_traits::SaturatingSub;
+use riftui_core::units::{IntoPixels, Pixels};
 use string_offset::CharOffset;
 use sum_tree::SeekBias;
-use warpui_core::units::{IntoPixels, Pixels};
 
 use super::positioned::{Positioned, PositionedCursor};
 use super::{

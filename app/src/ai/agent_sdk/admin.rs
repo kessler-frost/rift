@@ -1,10 +1,10 @@
 //! General-purpose administrative commands in the Warp CLI.
 
 use anyhow::{Context, Result};
+use rift_cli::agent::OutputFormat;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, SingletonEntity};
 use serde::Serialize;
-use warp_cli::agent::OutputFormat;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, SingletonEntity};
 
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::user::PrincipalType;
@@ -117,7 +117,7 @@ struct WhoamiOutput {
 /// Singleton model that provides a `ModelContext` for the `whoami` command's async work.
 struct WhoamiRunner;
 
-impl warpui::Entity for WhoamiRunner {
+impl riftui::Entity for WhoamiRunner {
     type Event = ();
 }
 

@@ -5,28 +5,28 @@ use std::sync::Arc;
 use pathfinder_geometry::vector::vec2f;
 #[cfg(not(target_family = "wasm"))]
 use remote_server::manager::RemoteServerManager;
-use warp_core::ui::icons::ICON_DIMENSIONS;
-use warp_editor::model::CoreEditorModel;
+use rift_core::ui::icons::ICON_DIMENSIONS;
+use rift_editor::model::CoreEditorModel;
 #[cfg(feature = "local_fs")]
-use warp_files::{FileModel, FileModelEvent};
+use rift_files::{FileModel, FileModelEvent};
 #[cfg(feature = "local_fs")]
-use warp_util::file::FileId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::path::user_friendly_path;
-use warp_util::remote_path::RemotePath;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
+use rift_util::file::FileId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::path::user_friendly_path;
+use rift_util::remote_path::RemotePath;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
 #[cfg(feature = "local_fs")]
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Container, CrossAxisAlignment, DispatchEventResult, Empty, EventHandler, Flex,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, SavePosition, Shrinkable,
     Stack, Text,
 };
-use warpui::keymap::EditableBinding;
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::EditableBinding;
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -111,7 +111,7 @@ pub enum FileNotebookEvent {
     OpenFileWithTarget {
         path: PathBuf,
         target: FileTarget,
-        line_col: Option<warp_util::path::LineAndColumnArg>,
+        line_col: Option<rift_util::path::LineAndColumnArg>,
     },
 }
 
@@ -214,7 +214,7 @@ impl FileState {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_editable_bindings([
         EditableBinding::new(
@@ -1194,14 +1194,14 @@ impl BackingView for FileNotebookView {
             let title_text = render_pane_header_title_text(
                 title,
                 appearance,
-                warpui::text_layout::ClipConfig::start(),
+                riftui::text_layout::ClipConfig::start(),
             );
 
             // Wrap the title in a hoverable tooltip showing the full file path.
             let title_element: Box<dyn Element> =
                 if let Some(display_path) = self.file_state.path().map(|p| p.display_path()) {
                     use pathfinder_geometry::vector::vec2f;
-                    use warpui::elements::{
+                    use riftui::elements::{
                         ChildAnchor, Hoverable, OffsetPositioning, ParentAnchor,
                         ParentOffsetBounds, Stack,
                     };
@@ -1251,7 +1251,7 @@ impl BackingView for FileNotebookView {
                 title,
                 title_secondary: None,
                 title_style: None,
-                title_clip_config: warpui::text_layout::ClipConfig::start(),
+                title_clip_config: riftui::text_layout::ClipConfig::start(),
                 title_max_width: None,
                 left_of_title: None,
                 right_of_title: None,

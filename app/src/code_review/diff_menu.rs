@@ -3,19 +3,19 @@
 use std::cmp;
 
 use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
-use warp_core::ui::theme::Fill;
-use warp_editor::editor::NavigationKey;
-use warpui::color::ColorU;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use rift_editor::editor::NavigationKey;
+use riftui::color::ColorU;
+use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Dismiss,
     DispatchEventResult, DropShadow, Element, Empty, EventHandler, Flex, Highlight, MainAxisSize,
     MouseInBehavior, ParentElement, Radius, ScrollStateHandle, Scrollable, ScrollableElement,
     ScrollbarWidth, Text, UniformList, UniformListState,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     id, AppContext, Entity, FocusContext, SingletonEntity as _, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -412,7 +412,7 @@ impl CodeReviewDiffMenu {
             ScrollbarWidth::None,
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .with_padding_end(0.)
         .with_padding_start(0.);

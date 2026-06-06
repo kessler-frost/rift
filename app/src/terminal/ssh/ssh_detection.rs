@@ -1,7 +1,7 @@
+use rift_core::features::FeatureFlag;
+use rift_core::settings::Setting;
+use rift_util::path::ShellFamily;
 use serde::{Deserialize, Serialize};
-use warp_core::features::FeatureFlag;
-use warp_core::settings::Setting;
-use warp_util::path::ShellFamily;
 
 use crate::terminal::warpify::settings::WarpifySettings;
 

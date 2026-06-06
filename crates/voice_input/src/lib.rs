@@ -7,13 +7,13 @@ use cpal::traits::{DeviceTrait, HostTrait};
 use cpal::{Sample, StreamConfig};
 use futures::channel::oneshot;
 use parking_lot::Mutex;
+use riftui_core::event::KeyState;
+use riftui_core::platform::MicrophoneAccessState;
+use riftui_core::{Entity, ModelContext, SingletonEntity};
 use rubato::{
     Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
 };
 use thiserror::Error;
-use warpui_core::event::KeyState;
-use warpui_core::platform::MicrophoneAccessState;
-use warpui_core::{Entity, ModelContext, SingletonEntity};
 
 const DEFAULT_CHUNK_SIZE: u32 = 512;
 // We only support mono for now.
@@ -217,7 +217,7 @@ impl VoiceInput {
                         .collect();
 
                     // This is blocking, but we aren't on the main thread.
-                    let _ = warpui_core::r#async::block_on(audio_frame_tx.send(mono_samples));
+                    let _ = riftui_core::r#async::block_on(audio_frame_tx.send(mono_samples));
                 },
                 |err| {
                     log::error!("Error in voice input stream: {err}");

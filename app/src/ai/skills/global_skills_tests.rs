@@ -2,11 +2,11 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use ai::skills::{get_provider_for_path, ParsedSkill, SkillProvider, SkillScope};
-use warp_cli::skill::SkillSpec;
-use warp_util::host_id::HostId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::remote_path::RemotePath;
-use warp_util::standardized_path::StandardizedPath;
+use rift_cli::skill::SkillSpec;
+use rift_util::host_id::HostId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::remote_path::RemotePath;
+use rift_util::standardized_path::StandardizedPath;
 
 use super::{filter_skills_by_spec, resolve_skill_repos};
 use crate::ai::cloud_environments::GithubRepo;

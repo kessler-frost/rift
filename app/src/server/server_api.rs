@@ -32,17 +32,17 @@ use parking_lot::{Mutex, RwLock};
 use prost::Message;
 use referral::ReferralsClient;
 use reqwest::StatusCode;
+use rift_core::context_flag::ContextFlag;
+use rift_core::errors::{register_error, AnyhowErrorExt, ErrorExt};
+use rift_core::telemetry::TelemetryEvent;
+use rift_managed_secrets::client::ManagedSecretsClient;
+use rift_server_client::auth::{AuthClientImpl, AuthEvent, AuthSession, EXPERIMENT_ID_HEADER};
+use rift_server_client::base_client::BaseClient as _;
+use riftui::r#async::BoxFuture;
+use riftui::{Entity, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use team::TeamClient;
 use url::Url;
-use warp_core::context_flag::ContextFlag;
-use warp_core::errors::{register_error, AnyhowErrorExt, ErrorExt};
-use warp_core::telemetry::TelemetryEvent;
-use warp_managed_secrets::client::ManagedSecretsClient;
-use warp_server_client::auth::{AuthClientImpl, AuthEvent, AuthSession, EXPERIMENT_ID_HEADER};
-use warp_server_client::base_client::BaseClient as _;
-use warpui::r#async::BoxFuture;
-use warpui::{Entity, ModelContext, SingletonEntity};
 use workspace::WorkspaceClient;
 
 use super::experiments::{ServerExperiment, ServerExperiments};
@@ -68,15 +68,15 @@ pub const FETCH_CHANNEL_VERSIONS_TIMEOUT: std::time::Duration = Duration::from_s
 /// more specific error code information, so that the client can discern between different
 /// errors with the same error code.
 /// See errors/http_error_codes.go on the server for possible values.
-const WARP_ERROR_CODE_HEADER: &str = "X-Warp-Error-Code";
+const RIFT_ERROR_CODE_HEADER: &str = "X-Warp-Error-Code";
 
 /// An error indicating the user is out of credits. The server sends 429s to communicate this
 /// state, but if Cloud Run is overloaded, it can also send 429s that aren't credit-related.
 /// So we use this to distinguish between the two cases.
-const WARP_ERROR_CODE_OUT_OF_CREDITS: &str = "OUT_OF_CREDITS";
+const RIFT_ERROR_CODE_OUT_OF_CREDITS: &str = "OUT_OF_CREDITS";
 
 /// Error code indicating the user has reached their cloud agent concurrency limit.
-const WARP_ERROR_CODE_AT_CAPACITY: &str = "AT_CLOUD_AGENT_CAPACITY";
+const RIFT_ERROR_CODE_AT_CAPACITY: &str = "AT_CLOUD_AGENT_CAPACITY";
 
 /// Header used to communicate the source of an agent run (e.g. "CLI", "GITHUB_ACTION").
 pub(crate) const AGENT_SOURCE_HEADER: &str = "X-Oz-Api-Source";
@@ -258,9 +258,9 @@ impl AIApiError {
     /// Returns the appropriate error for a 429 response by checking the X-Warp-Error-Code header.
     fn error_for_429(headers: &::http::HeaderMap, body: Option<String>) -> Self {
         if headers
-            .get(WARP_ERROR_CODE_HEADER)
+            .get(RIFT_ERROR_CODE_HEADER)
             .and_then(|v| v.to_str().ok())
-            == Some(WARP_ERROR_CODE_OUT_OF_CREDITS)
+            == Some(RIFT_ERROR_CODE_OUT_OF_CREDITS)
         {
             let user_display_message = body
                 .and_then(|body| serde_json::from_str::<OutOfCreditsResponse>(&body).ok())
@@ -387,7 +387,7 @@ pub struct ServerApi {
     telemetry_api: TelemetryApi,
     last_server_time: Arc<Mutex<Option<ServerTime>>>,
     /// Cached ambient workload token for requests from ambient agents.
-    ambient_workload_token: Arc<Mutex<Option<warp_isolation_platform::WorkloadToken>>>,
+    ambient_workload_token: Arc<Mutex<Option<rift_isolation_platform::WorkloadToken>>>,
     /// The ambient agent task ID for requests from cloud agents.
     ambient_agent_task_id: Arc<RwLock<Option<AmbientAgentTaskId>>>,
     /// The source of agent runs (e.g. CLI, GitHub Action). Set once at startup and immutable.
@@ -628,7 +628,7 @@ impl ServerApi {
         Ok(headers)
     }
 
-    pub fn send_graphql_request<'a, QF, O: warp_graphql::client::Operation<QF> + Send + 'a>(
+    pub fn send_graphql_request<'a, QF, O: rift_graphql::client::Operation<QF> + Send + 'a>(
         &'a self,
         operation: O,
         timeout: Option<Duration>,
@@ -636,7 +636,7 @@ impl ServerApi {
     where
         QF: 'a,
     {
-        warp_server_client::graphql_helpers::send_graphql_request(self, operation, timeout)
+        rift_server_client::graphql_helpers::send_graphql_request(self, operation, timeout)
     }
 
     /// Sends a GET request to a public API endpoint.
@@ -862,14 +862,14 @@ impl ServerApi {
         let status = response.status();
         let is_at_capacity = response
             .headers()
-            .get(WARP_ERROR_CODE_HEADER)
+            .get(RIFT_ERROR_CODE_HEADER)
             .and_then(|v| v.to_str().ok())
-            == Some(WARP_ERROR_CODE_AT_CAPACITY);
+            == Some(RIFT_ERROR_CODE_AT_CAPACITY);
         let is_out_of_credits = response
             .headers()
-            .get(WARP_ERROR_CODE_HEADER)
+            .get(RIFT_ERROR_CODE_HEADER)
             .and_then(|v| v.to_str().ok())
-            == Some(WARP_ERROR_CODE_OUT_OF_CREDITS);
+            == Some(RIFT_ERROR_CODE_OUT_OF_CREDITS);
 
         // Get the response text first since we may need to try multiple deserializations.
         let response_text = response.text().await.unwrap_or_default();
@@ -1268,9 +1268,9 @@ impl ServerApi {
                 } else if res.status() == http::StatusCode::TOO_MANY_REQUESTS {
                     if res
                         .headers()
-                        .get(WARP_ERROR_CODE_HEADER)
+                        .get(RIFT_ERROR_CODE_HEADER)
                         .and_then(|v| v.to_str().ok())
-                        == Some(WARP_ERROR_CODE_OUT_OF_CREDITS)
+                        == Some(RIFT_ERROR_CODE_OUT_OF_CREDITS)
                     {
                         Err(TranscribeError::QuotaLimit)
                     } else {
@@ -1290,8 +1290,8 @@ impl ServerApi {
 
     pub async fn generate_multi_agent_output(
         &self,
-        request: &warp_multi_agent_api::Request,
-    ) -> std::result::Result<AIOutputStream<warp_multi_agent_api::ResponseEvent>, Arc<AIApiError>>
+        request: &rift_multi_agent_api::Request,
+    ) -> std::result::Result<AIOutputStream<rift_multi_agent_api::ResponseEvent>, Arc<AIApiError>>
     {
         let auth_token = self
             .get_or_refresh_access_token()
@@ -1302,7 +1302,7 @@ impl ServerApi {
         let is_passive = request.input.as_ref().is_some_and(|input| {
             matches!(
                 input.r#type,
-                Some(warp_multi_agent_api::request::input::Type::GeneratePassiveSuggestions(_))
+                Some(rift_multi_agent_api::request::input::Type::GeneratePassiveSuggestions(_))
             )
         });
         let is_evals = cfg!(feature = "agent_mode_evals");
@@ -1358,7 +1358,7 @@ impl ServerApi {
                 Ok(reqwest_eventsource::Event::Message(message_event)) => {
                     match BASE64_URL_SAFE.decode(message_event.data.trim_matches('"')) {
                         Ok(decoded_data) => {
-                            let action = warp_multi_agent_api::ResponseEvent::decode(
+                            let action = rift_multi_agent_api::ResponseEvent::decode(
                                 decoded_data.as_slice(),
                             );
                             Some(action.map_err(|e| AIApiError::Other(anyhow::Error::from(e))))

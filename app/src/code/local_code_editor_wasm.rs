@@ -3,12 +3,12 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use ai::diff_validation::DiffType;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::render::model::LineCount;
-use warp_util::file::{FileLoadError, FileSaveError};
-use warpui::elements::MouseStateHandle;
-use warpui::{
+use rift_core::ui::appearance::Appearance;
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::render::model::LineCount;
+use rift_util::file::{FileLoadError, FileSaveError};
+use riftui::elements::MouseStateHandle;
+use riftui::{
     AppContext, Element, Entity, TypedActionView, View, ViewContext, ViewHandle, WindowId,
 };
 
@@ -111,7 +111,7 @@ impl View for LocalCodeEditorView {
         "LocalCodeEditorView"
     }
     fn render(&self, _app: &AppContext) -> Box<dyn Element> {
-        warpui::elements::Empty::new().finish()
+        riftui::elements::Empty::new().finish()
     }
 }
 
@@ -128,5 +128,5 @@ pub fn render_unsaved_circle_with_tooltip(
     _right_margin: f32,
     _appearance: &Appearance,
 ) -> Box<dyn Element> {
-    warpui::elements::Empty::new().finish()
+    riftui::elements::Empty::new().finish()
 }

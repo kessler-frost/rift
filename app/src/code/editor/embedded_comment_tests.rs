@@ -1,6 +1,6 @@
+use rift_editor::content::markdown::MarkdownStyle;
+use riftui::{EntityId, WindowId};
 use serde_yaml::{Mapping, Value};
-use warp_editor::content::markdown::MarkdownStyle;
-use warpui::{EntityId, WindowId};
 
 use super::{
     comment_embedded_item_conversion, EmbeddedCommentSpace, EmbeddedItem as _,

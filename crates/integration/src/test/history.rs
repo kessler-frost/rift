@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 
-use settings::Setting as _;
-use warp::integration_testing::command_search::{
+use rift::integration_testing::command_search::{
     assert_command_search_has_results, assert_command_search_is_open,
     assert_history_filter_is_active,
 };
-use warp::integration_testing::input::assert_workflow_info_box_is_open;
-use warp::integration_testing::step::new_step_with_default_assertions;
-use warp::integration_testing::terminal::{
+use rift::integration_testing::input::assert_workflow_info_box_is_open;
+use rift::integration_testing::step::new_step_with_default_assertions;
+use rift::integration_testing::terminal::{
     assert_input_editor_contents, wait_until_bootstrapped_single_pane_for_tab,
 };
-use warp::integration_testing::view_getters::single_input_view;
-use warp::integration_testing::{self};
-use warp::search::command_search::settings::ShowGlobalWorkflowsInUniversalSearch;
-use warp::sqlite_testing::set_user_and_hostname_for_commands;
-use warp::terminal::input::Input;
-use warp::terminal::model::session::get_local_hostname;
-use warp::terminal::shell::ShellType;
-use warpui_core::{async_assert, ViewHandle};
+use rift::integration_testing::view_getters::single_input_view;
+use rift::integration_testing::{self};
+use rift::search::command_search::settings::ShowGlobalWorkflowsInUniversalSearch;
+use rift::sqlite_testing::set_user_and_hostname_for_commands;
+use rift::terminal::input::Input;
+use rift::terminal::model::session::get_local_hostname;
+use rift::terminal::shell::ShellType;
+use riftui_core::{async_assert, ViewHandle};
+use settings::Setting as _;
 
 use super::{new_builder, TEST_ONLY_ASSETS};
 use crate::util::{get_local_user, write_histfiles_for_test};

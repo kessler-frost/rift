@@ -1,4 +1,4 @@
-use warpui::App;
+use riftui::App;
 
 use super::{NetworkLogItem, NetworkLogModel, NETWORK_LOGGING_MAX_ITEMS};
 

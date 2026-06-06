@@ -10,13 +10,13 @@ use markdown_parser::{
 use pathfinder_color::ColorU;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
+use rift_util::content_version::ContentVersion;
+use riftui_core::elements::ListIndentLevel;
+use riftui_core::text::point::Point;
+use riftui_core::{App, AppContext, ModelContext, ModelHandle, ReadModel};
 use serde_yaml::{Mapping, Value};
 use string_offset::{ByteOffset, CharOffset};
 use vec1::{Vec1, vec1};
-use warp_util::content_version::ContentVersion;
-use warpui_core::elements::ListIndentLevel;
-use warpui_core::text::point::Point;
-use warpui_core::{App, AppContext, ModelContext, ModelHandle, ReadModel};
 
 use super::{BufferEvent, EditResult, ToBufferCharOffset};
 use crate::content::buffer::{

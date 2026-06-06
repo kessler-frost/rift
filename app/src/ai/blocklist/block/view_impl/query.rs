@@ -3,16 +3,16 @@
 //! Queries are not rendered in blocks corresponding to requested command or requested action responses.
 
 use pathfinder_color::ColorU;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Container, CornerRadius, DispatchEventResult, EventHandler, Flex, MainAxisAlignment,
     MainAxisSize, ParentElement, Radius, Shrinkable, Wrap,
 };
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::ui_components::chip::Chip;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::ui_components::chip::Chip;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::common::{render_query_text, render_user_avatar, FindContext};
 use crate::ai::blocklist::block::view_impl::common::UserQueryProps;
@@ -111,7 +111,7 @@ pub(crate) fn render_query(
     }
 
     Flex::row()
-        .with_cross_axis_alignment(warpui::elements::CrossAxisAlignment::Start)
+        .with_cross_axis_alignment(riftui::elements::CrossAxisAlignment::Start)
         .with_child(avatar)
         .with_child(Shrinkable::new(1., query.finish()).finish())
         .finish()

@@ -12,6 +12,11 @@ use futures_util::stream::AbortHandle;
 use futures_util::{SinkExt, StreamExt};
 use instant::Instant;
 use parking_lot::FairMutex;
+use rift_core::features::FeatureFlag;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::{
+    Entity, ModelContext, ModelHandle, RequestState, RetryOption, SingletonEntity, WeakViewHandle,
+};
 use session_sharing_protocol::common::{
     ActivePrompt, ActivePromptUpdate, AddGuestsResponse, AgentAttachment, AgentPromptFailureReason,
     AgentPromptRequest, AgentPromptRequestId, CommandExecutionFailureReason, ControlAction,
@@ -26,11 +31,6 @@ use session_sharing_protocol::common::{
 use session_sharing_protocol::viewer::{
     DownstreamMessage, InitPayload, RoleUpdatedReason, SessionEndedReason, UpstreamMessage,
     ViewerRemovedReason,
-};
-use warp_core::features::FeatureFlag;
-use warpui::r#async::{SpawnedFutureHandle, Timer};
-use warpui::{
-    Entity, ModelContext, ModelHandle, RequestState, RetryOption, SingletonEntity, WeakViewHandle,
 };
 use websocket::{Message, Sink, Stream, WebsocketMessage as _};
 

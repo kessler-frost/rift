@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use pathfinder_geometry::rect::RectF;
+use riftui::platform::FullscreenState;
+use riftui::{AppContext, SingletonEntity as _};
 use serde::{Deserialize, Serialize};
-use warpui::platform::FullscreenState;
-use warpui::{AppContext, SingletonEntity as _};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent_conversations_model::AgentManagementFilters;

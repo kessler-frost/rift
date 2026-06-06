@@ -7,14 +7,14 @@ use std::path::PathBuf;
 use ai::skills::SkillProvider;
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
-pub(crate) use saved_prompts::*;
 #[cfg(not(target_family = "wasm"))]
-use warp_cli::agent::Harness;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::Icon as WarpIcon;
-use warpui::fonts::FamilyId;
-use warpui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
+use rift_cli::agent::Harness;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::Icon as WarpIcon;
+use riftui::fonts::FamilyId;
+use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
+pub(crate) use saved_prompts::*;
 pub use zero_state::*;
 
 use super::AcceptSlashCommandOrSavedPrompt;
@@ -297,7 +297,7 @@ impl SlashCommandDataSource {
         }
 
         // Hide /host when no default host is configured (env var or workspace setting).
-        let has_default_host = std::env::var("WARP_CLOUD_MODE_DEFAULT_HOST")
+        let has_default_host = std::env::var("RIFT_CLOUD_MODE_DEFAULT_HOST")
             .ok()
             .filter(|s| !s.is_empty())
             .is_some()
@@ -453,7 +453,7 @@ impl SyncDataSource for SlashCommandDataSource {
     fn run_query(
         &self,
         query: &Query,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Result<Vec<QueryResult<Self::Action>>, DataSourceRunErrorWrapper> {
         if query.text.is_empty() {
             return Ok(vec![]);

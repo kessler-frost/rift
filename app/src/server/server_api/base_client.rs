@@ -3,8 +3,8 @@ use std::sync::Arc;
 use anyhow::{Context as _, Result};
 use async_trait::async_trait;
 use instant::Duration;
-use warp_server_client::auth::{AgentIdentity, AuthEvent};
-use warp_server_client::base_client::BaseClient;
+use rift_server_client::auth::{AgentIdentity, AuthEvent};
+use rift_server_client::base_client::BaseClient;
 
 use super::ServerApi;
 use crate::server::graphql::default_request_options;
@@ -35,14 +35,14 @@ impl BaseClient for ServerApi {
         ServerApi::anonymous_id(self)
     }
 
-    fn unauthenticated_graphql_request_options(&self) -> warp_graphql::client::RequestOptions {
+    fn unauthenticated_graphql_request_options(&self) -> rift_graphql::client::RequestOptions {
         default_request_options()
     }
 
     async fn graphql_request_options(
         &self,
         timeout: Option<Duration>,
-    ) -> Result<warp_graphql::client::RequestOptions> {
+    ) -> Result<rift_graphql::client::RequestOptions> {
         let auth_token = self
             .get_or_refresh_access_token()
             .await
@@ -58,7 +58,7 @@ impl BaseClient for ServerApi {
         for (name, value) in self.ambient_agent_headers().await? {
             headers.insert(name.to_string(), value);
         }
-        Ok(warp_graphql::client::RequestOptions {
+        Ok(rift_graphql::client::RequestOptions {
             auth_token: auth_token.bearer_token(),
             timeout,
             headers,
@@ -89,13 +89,13 @@ impl BaseClient for ServerApi {
             }
         }
         // Issue a new token.
-        let workload_token = match warp_isolation_platform::issue_workload_token(Some(
+        let workload_token = match rift_isolation_platform::issue_workload_token(Some(
             AMBIENT_WORKLOAD_TOKEN_DURATION,
         ))
         .await
         {
             Ok(token) => token,
-            Err(warp_isolation_platform::IsolationPlatformError::NoIsolationPlatformDetected) => {
+            Err(rift_isolation_platform::IsolationPlatformError::NoIsolationPlatformDetected) => {
                 return Ok(None);
             }
             Err(error) => return Err(error.into()),

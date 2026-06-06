@@ -3,24 +3,24 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use settings::ToggleableSetting as _;
-use strum::IntoEnumIterator;
-use uuid::Uuid;
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::AppearanceEvent;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::AppearanceEvent;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use riftui::elements::{
     Align, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Expanded, Fill, Flex, FormattedTextElement, HighlightedHyperlink, MainAxisAlignment,
     MainAxisSize, ParentElement, Radius, Text,
 };
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use settings::ToggleableSetting as _;
+use strum::IntoEnumIterator;
+use uuid::Uuid;
 
 use crate::ai::mcp::gallery::MCPGalleryManagerEvent;
 use crate::ai::mcp::templatable::{GalleryData, TemplatableMCPServer};
@@ -1546,7 +1546,7 @@ impl MCPServersListPageView {
             }
         }
 
-        // If the path is the Warp data directory (e.g. ~/.warp or ~/.warp_dev), set the text to
+        // If the path is the Warp data directory (e.g. ~/.rift or ~/.rift_dev), set the text to
         // "global". The Warp provider stores its data directory as the root path rather than the
         // home directory, unlike other providers that store the home directory directly.
         if root_path == &crate::warp_managed_paths_watcher::warp_data_dir() {

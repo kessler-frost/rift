@@ -6,28 +6,28 @@ use std::time::Duration;
 
 use pathfinder_geometry::vector::vec2f;
 use regex::Regex;
-use settings::Setting as _;
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::WarpTheme;
-use warpui::elements::{
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::WarpTheme;
+use riftui::elements::{
     Align, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Empty, Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Rect, Shrinkable,
     Stack, Text,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::ContextPredicate;
-use warpui::platform::Cursor;
-use warpui::r#async::{SpawnedFutureHandle, Timer};
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::ContextPredicate;
+use riftui::platform::Cursor;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
+use riftui::{
     id, Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView,
     UpdateModel, View, ViewContext, ViewHandle,
 };
+use settings::Setting as _;
 
 use super::privacy::{AddRegexModal, AddRegexModalEvent};
 use super::settings_page::{
@@ -2042,6 +2042,6 @@ mod styles {
     pub const DESCRIPTION_LINE_MARGIN_BOTTOM: f32 = 6.;
 }
 
-fn description_text_color(theme: &WarpTheme) -> warp_core::ui::theme::Fill {
+fn description_text_color(theme: &WarpTheme) -> rift_core::ui::theme::Fill {
     theme.sub_text_color(theme.surface_2())
 }

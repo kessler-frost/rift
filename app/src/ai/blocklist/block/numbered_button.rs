@@ -1,13 +1,13 @@
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, Container, CornerRadius, CrossAxisAlignment, Expanded, Flex, FormattedTextElement,
     MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
     DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
-use warpui::ui_components::button::{Button, ButtonVariant};
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity, ViewHandle};
+use riftui::ui_components::button::{Button, ButtonVariant};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity, ViewHandle};
 
 use super::compact_agent_input::CompactAgentInput;
 use crate::context_chips::spacing;
@@ -172,5 +172,5 @@ pub(super) fn build_text_button_content(
 pub(super) fn build_inline_input_content(
     input_view: &ViewHandle<CompactAgentInput>,
 ) -> Box<dyn Element> {
-    warpui::presenter::ChildView::new(input_view).finish()
+    riftui::presenter::ChildView::new(input_view).finish()
 }

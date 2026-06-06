@@ -7,9 +7,9 @@ use futures::future::FutureExt;
 use futures::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, BufWriter};
 use futures::lock::Mutex;
 use jsonrpc::Transport;
+use riftui_core::r#async::executor::{Background, BackgroundTask};
+use riftui_core::r#async::Timer;
 use simple_logger::SimpleLogger;
-use warpui_core::r#async::executor::{Background, BackgroundTask};
-use warpui_core::r#async::Timer;
 
 /// Transport implementation for LSP communication over process stdin/stdout.
 /// Also manages the LSP server process lifecycle with graceful shutdown capabilities.

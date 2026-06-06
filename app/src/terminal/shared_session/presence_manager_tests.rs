@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::iter;
 
 use itertools::Itertools;
+use rift_core::command::ExitCode;
+use riftui::App;
 use session_sharing_protocol::common::{
     ParticipantId, ParticipantInfo, ParticipantList, ProfileData, Role, Selection, Sharer, Viewer,
 };
-use warp_core::command::ExitCode;
-use warpui::App;
 
 use crate::auth::UserUid;
 use crate::terminal::model::ansi::{CommandFinishedValue, Handler};

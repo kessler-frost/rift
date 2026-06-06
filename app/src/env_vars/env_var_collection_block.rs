@@ -4,20 +4,20 @@ use std::sync::Arc;
 
 use lazy_static::lazy_static;
 use parking_lot::RwLock;
-use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::Icon;
+use riftui::elements::{
     get_rich_content_position_id, Border, Clipped, Container, CornerRadius, CrossAxisAlignment,
     Flex, FormattedTextElement, MouseStateHandle, ParentElement, Radius, SavePosition,
     SelectableArea, SelectionHandle,
 };
-use warpui::keymap::{FixedBinding, Keystroke};
-use warpui::{
+use riftui::keymap::{FixedBinding, Keystroke};
+use riftui::{
     AppContext, Element, Entity, EntityId, FocusContext, SingletonEntity, TypedActionView, View,
     ViewContext,
 };
+use settings::Setting as _;
 
 use crate::ai::agent::icons::{yellow_running_icon, yellow_stop_icon};
 use crate::ai::blocklist::block::view_impl::{
@@ -118,7 +118,7 @@ pub struct EnvVarCollectionBlock {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([
         FixedBinding::new(

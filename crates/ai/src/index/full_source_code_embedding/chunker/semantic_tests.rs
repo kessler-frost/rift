@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use languages::language_by_filename;
-use warp_util::standardized_path::StandardizedPath;
+use rift_util::standardized_path::StandardizedPath;
 
 use super::*;
 

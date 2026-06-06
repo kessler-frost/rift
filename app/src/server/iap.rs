@@ -5,9 +5,9 @@ use anyhow::Result;
 use base64::Engine;
 use blocking::unblock;
 use instant::Instant;
-use warp_core::channel::IapConfig;
-use warpui::r#async::{FutureExt as _, Timer};
-use warpui::{Entity, ModelContext, SingletonEntity};
+use rift_core::channel::IapConfig;
+use riftui::r#async::{FutureExt as _, Timer};
+use riftui::{Entity, ModelContext, SingletonEntity};
 #[cfg(not(target_family = "wasm"))]
 use websocket::connect_error_http_response;
 
@@ -17,7 +17,7 @@ use crate::view_components::DismissibleToast;
 use crate::workspace::{ToastStack, WorkspaceAction};
 
 const PROACTIVE_REFRESH_BUFFER: Duration = Duration::from_secs(5 * 60);
-const INJECTED_TOKEN_ENV_VAR: &str = "WARP_IAP_TOKEN";
+const INJECTED_TOKEN_ENV_VAR: &str = "RIFT_IAP_TOKEN";
 
 const BASE_FAILURE_RETRY_DELAY: Duration = Duration::from_secs(30);
 const MAX_FAILURE_RETRY_DELAY: Duration = Duration::from_secs(5 * 60);

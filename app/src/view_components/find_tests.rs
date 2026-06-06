@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::App;
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::App;
 
 use super::{Find, FindDirection, FindEvent, FindModel};
 use crate::auth::AuthStateProvider;
@@ -17,7 +17,7 @@ use crate::workspaces::user_workspaces::UserWorkspaces;
 
 struct MockFindModel;
 
-impl warpui::Entity for MockFindModel {
+impl riftui::Entity for MockFindModel {
     type Event = FindEvent;
 }
 
@@ -28,7 +28,7 @@ impl FindModel for MockFindModel {
     fn match_count(&self) -> usize {
         0
     }
-    fn default_find_direction(&self, _app: &warpui::AppContext) -> FindDirection {
+    fn default_find_direction(&self, _app: &riftui::AppContext) -> FindDirection {
         FindDirection::Down
     }
 }

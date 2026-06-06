@@ -1,11 +1,11 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::external_product_icon::ExternalProductIcon;
-use warp_core::ui::icons::Icon;
-use warpui::elements::{
+use rift_core::ui::external_product_icon::ExternalProductIcon;
+use rift_core::ui::icons::Icon;
+use riftui::elements::{
     self, Align, Border, CacheOption, ChildAnchor, ConstrainedBox, Container, Element, Image,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Stack, Text,
 };
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 
 use super::red_notification_dot::RedNotificationDot;
 

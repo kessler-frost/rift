@@ -1,6 +1,6 @@
+use rift_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 use serde_json::{json, Value};
 use strum_macros::{EnumDiscriminants, EnumIter};
-use warp_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 
 #[derive(Debug, EnumDiscriminants)]
 #[strum_discriminants(derive(EnumIter))]
@@ -37,7 +37,7 @@ impl TelemetryEvent for AntivirusInfoTelemetryEvent {
     }
 
     fn event_descs() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
-        warp_core::telemetry::enum_events::<Self>()
+        rift_core::telemetry::enum_events::<Self>()
     }
 }
 
@@ -65,4 +65,4 @@ impl TelemetryEventDesc for AntivirusInfoTelemetryEventDiscriminants {
     }
 }
 
-warp_core::register_telemetry_event!(AntivirusInfoTelemetryEvent);
+rift_core::register_telemetry_event!(AntivirusInfoTelemetryEvent);

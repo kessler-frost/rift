@@ -6,27 +6,27 @@ use std::rc::Rc;
 
 use ::settings::{Setting, SettingSection, ToggleableSetting};
 use enum_iterator::all;
-use warp_core::ui::theme::color::internal_colors;
-use warp_util::path::user_friendly_path;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use rift_util::path::user_friendly_path;
+use riftui::elements::{
     Align, Border, ChildView, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Dismiss, Element, Empty, Fill, Flex, FormattedTextElement, Hoverable, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable, Text, Wrap,
     DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
-use warpui::fonts::{FamilyId, FontInfo, Weight};
-use warpui::keymap::{ContextPredicate, FixedBinding};
-use warpui::platform::{Cursor, FilePickerConfiguration, GraphicsBackend, SystemTheme};
-use warpui::rendering::ThinStrokes;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::radio_buttons::{
+use riftui::fonts::{FamilyId, FontInfo, Weight};
+use riftui::keymap::{ContextPredicate, FixedBinding};
+use riftui::platform::{Cursor, FilePickerConfiguration, GraphicsBackend, SystemTheme};
+use riftui::rendering::ThinStrokes;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::radio_buttons::{
     RadioButtonItem, RadioButtonLayout, RadioButtonStateHandle,
 };
-use warpui::ui_components::slider::SliderStateHandle;
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::units::IntoPixels;
-use warpui::{
+use riftui::ui_components::slider::SliderStateHandle;
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::units::IntoPixels;
+use riftui::{
     id, Action, AppContext, Entity, ModelHandle, SingletonEntity, TypedActionView, UpdateModel,
     View, ViewContext, ViewHandle, WindowId,
 };
@@ -1058,7 +1058,7 @@ impl AppearanceSettingsPageView {
             // `all_system_fonts` API doesn't exist.
             #[cfg(not(target_family = "wasm"))]
             {
-                let all_system_fonts = warpui::fonts::Cache::handle(ctx)
+                let all_system_fonts = riftui::fonts::Cache::handle(ctx)
                     .update(ctx, |font_cache, ctx| font_cache.all_system_fonts(ctx));
                 ctx.spawn(all_system_fonts, Self::set_system_fonts);
             }

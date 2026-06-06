@@ -12,8 +12,8 @@ use std::time::Duration;
 
 use futures::stream::AbortHandle;
 use lsp::LspManagerModel;
-use warpui::r#async::Timer;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use riftui::r#async::Timer;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use crate::code::local_code_editor::LocalCodeEditorView;
 use crate::terminal::TerminalView;

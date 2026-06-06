@@ -1,8 +1,8 @@
 use enum_iterator::Sequence;
+use rift_core::channel::{Channel, ChannelState};
+use rift_core::settings::macros::define_settings_group;
+use rift_core::settings::{SupportedPlatforms, SyncToCloud};
 use serde::{Deserialize, Serialize};
-use warp_core::channel::{Channel, ChannelState};
-use warp_core::settings::macros::define_settings_group;
-use warp_core::settings::{SupportedPlatforms, SyncToCloud};
 
 /// The app icon to use (mac-only).
 ///

@@ -19,18 +19,18 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 #[cfg(test)]
 use rand::prelude::*;
+use riftui::color::ColorU;
+use riftui::text::point::Point;
+use riftui::text::words::is_default_word_boundary;
+use riftui::text::{BufferIndex, TextBuffer};
+use riftui::text_layout::TextStyle;
+use riftui::{Entity, ModelContext};
 use serde::{Deserialize, Serialize};
 use string_offset::{ByteOffset, CharOffset};
 use sum_tree::{self, Cursor, FilterCursor, SeekBias, SumTree};
 use time::{Global, Lamport};
 use undo::{LocalUndoStack, UndoHistory};
 use vec1::{vec1, Vec1};
-use warpui::color::ColorU;
-use warpui::text::point::Point;
-use warpui::text::words::is_default_word_boundary;
-use warpui::text::{BufferIndex, TextBuffer};
-use warpui::text_layout::TextStyle;
-use warpui::{Entity, ModelContext};
 /// The public interfaces that we expose to the model.
 /// This should be a very limited set of APIs and should
 /// not expose the internal details of the buffer.
@@ -363,9 +363,9 @@ impl TextStyleOperation {
     ///
     /// # Example
     /// ```
-    /// use warpui::color::ColorU;
-    /// use warpui::text_layout::TextStyle;
-    /// use warp::editor::TextStyleOperation;
+    /// use riftui::color::ColorU;
+    /// use riftui::text_layout::TextStyle;
+    /// use rift::editor::TextStyleOperation;
     /// TextStyleOperation::apply_text_style_operation(
     ///     TextStyle::default(),
     ///     TextStyleOperation::default().set_error_underline_color(ColorU::black()),
@@ -1645,9 +1645,9 @@ impl Buffer {
     ///
     /// # Example
     /// ```ignore
-    /// use warpui::{color::ColorU, App, ModelHandle};
-    /// use warp::Assets;
-    /// use warp::editor::model::buffer::{Buffer, TextStyleOperation, EditOrigin};
+    /// use riftui::{color::ColorU, App, ModelHandle};
+    /// use rift::Assets;
+    /// use rift::editor::model::buffer::{Buffer, TextStyleOperation, EditOrigin};
     /// use string_offset::CharOffset;
     /// App::test((), |mut app| async move {
     ///     let buffer_model: &mut ModelHandle<Buffer> =

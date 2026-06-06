@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use ai::agent::action::{RunAgentsAgentRunConfig, RunAgentsExecutionMode};
 use ai::agent::action_result::StartAgentVersion;
 use ai::skills::SkillReference;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::{App, SingletonEntity};
 use settings::Setting;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::{App, SingletonEntity};
 
 use super::{
     default_collapsible_state_for_orchestration_action,

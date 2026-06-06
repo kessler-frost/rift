@@ -8,23 +8,23 @@ use chrono::{DateTime, Duration, Local};
 use instant::Instant;
 use parking_lot::RwLock;
 use pathfinder_color::ColorU;
-use warp_cli::agent::Harness;
-use warp_cli::skill::SkillSpec;
-use warp_core::channel::ChannelState;
-use warp_core::ui::color::coloru_with_opacity;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::new_scrollable::{NewScrollable, SingleAxisConfig};
-use warpui::elements::{
+use rift_cli::agent::Harness;
+use rift_cli::skill::SkillSpec;
+use rift_core::channel::ChannelState;
+use rift_core::ui::color::coloru_with_opacity;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::new_scrollable::{NewScrollable, SingleAxisConfig};
+use riftui::elements::{
     resizable_state_handle, Border, ChildView, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, DragBarSide, Empty, Expanded, Flex, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, ParentElement, Radius, Resizable, ResizableStateHandle,
     SelectableArea, SelectionHandle, Shrinkable, Text, Wrap,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
@@ -623,7 +623,7 @@ pub enum ConversationDetailsPanelAction {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::custom(
         CustomAction::Copy,
@@ -991,16 +991,16 @@ impl ConversationDetailsPanel {
             .unwrap_or_else(|| AvatarContent::DisplayName(creator.display_name.clone()));
         let avatar = Avatar::new(
             avatar_content,
-            warpui::ui_components::components::UiComponentStyles {
+            riftui::ui_components::components::UiComponentStyles {
                 width: Some(20.),
                 height: Some(20.),
-                border_radius: Some(warpui::elements::CornerRadius::with_all(
-                    warpui::elements::Radius::Percentage(50.),
+                border_radius: Some(riftui::elements::CornerRadius::with_all(
+                    riftui::elements::Radius::Percentage(50.),
                 )),
                 background: Some(blended_colors::accent(theme).into()),
                 font_color: Some(ColorU::black()),
                 font_family_id: Some(appearance.ui_font_family()),
-                font_weight: Some(warpui::fonts::Weight::Bold),
+                font_weight: Some(riftui::fonts::Weight::Bold),
                 font_size: Some(small_font_size),
                 ..Default::default()
             },
@@ -1734,7 +1734,7 @@ impl ConversationDetailsPanel {
         let duration = COPY_FEEDBACK_DURATION;
         ctx.spawn(
             async move {
-                warpui::r#async::Timer::after(duration).await;
+                riftui::r#async::Timer::after(duration).await;
             },
             |me, _, ctx| {
                 ctx.notify();
@@ -2072,7 +2072,7 @@ impl View for ConversationDetailsPanel {
             },
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .finish();
 
@@ -2105,7 +2105,7 @@ impl View for ConversationDetailsPanel {
 
         // On mobile, add background and skip Resizable
         #[cfg(target_family = "wasm")]
-        if warpui::platform::wasm::is_mobile_device() {
+        if riftui::platform::wasm::is_mobile_device() {
             return Container::new(panel_content)
                 .with_background(theme.surface_1())
                 .finish();

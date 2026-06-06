@@ -1,8 +1,8 @@
-use warp_core::ui::appearance::Appearance;
-use warpui_core::elements::{
+use rift_core::ui::appearance::Appearance;
+use riftui_core::elements::{
     Align, Container, CrossAxisAlignment, Empty, Flex, MainAxisSize, ParentElement, Shrinkable,
 };
-use warpui_core::Element;
+use riftui_core::Element;
 
 use crate::slides::progress_dots;
 

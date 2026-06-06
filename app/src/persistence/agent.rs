@@ -6,7 +6,7 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::SqliteConnection;
 use prost::Message;
-use warp_multi_agent_api as api;
+use rift_multi_agent_api as api;
 
 use super::model::{AgentConversation, AgentConversationData};
 use crate::persistence::model::{AgentConversationRecord, AgentTaskRecord};

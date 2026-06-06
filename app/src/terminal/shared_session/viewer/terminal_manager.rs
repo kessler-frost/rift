@@ -4,6 +4,9 @@ use std::sync::Arc;
 use async_broadcast::InactiveReceiver;
 use parking_lot::FairMutex;
 use pathfinder_geometry::vector::Vector2F;
+use riftui::{
+    AppContext, ModelContext, ModelHandle, SingletonEntity, ViewHandle, WeakViewHandle, WindowId,
+};
 use session_sharing_protocol::common::{
     ActivePrompt, AddGuestsResponse, CLIAgentSessionState, CommandExecutionFailureReason,
     LinkAccessLevelUpdateResponse, RemoveGuestResponse, SelectedAgentModel, SessionId,
@@ -13,9 +16,6 @@ use session_sharing_protocol::common::{
 use session_sharing_protocol::sharer::SessionSourceType;
 use session_sharing_protocol::viewer::SessionEndedReason;
 use settings::Setting as _;
-use warpui::{
-    AppContext, ModelContext, ModelHandle, SingletonEntity, ViewHandle, WeakViewHandle, WindowId,
-};
 
 use super::event_loop::SharedSessionInitialLoadMode;
 use super::network::{

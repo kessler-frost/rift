@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::{Vector2F, vec2f};
-use warp_core::ui::Icon;
-use warp_core::ui::appearance::Appearance;
-use warpui_core::assets::asset_cache::AssetSource;
-use warpui_core::elements::{
+use rift_core::ui::Icon;
+use rift_core::ui::appearance::Appearance;
+use riftui_core::assets::asset_cache::AssetSource;
+use riftui_core::elements::{
     CacheOption, Dismiss, DispatchEventResult, EventHandler, Image, Shrinkable,
 };
-use warpui_core::keymap::Keystroke;
-use warpui_core::prelude::stack::*;
-use warpui_core::prelude::*;
+use riftui_core::keymap::Keystroke;
+use riftui_core::prelude::stack::*;
+use riftui_core::prelude::*;
 
 use crate::{Component, Options as _, button};
 
@@ -308,17 +308,17 @@ impl button::Theme for ButtonTheme {
         &self,
         button_state: button::State,
         _appearance: &Appearance,
-    ) -> Option<warp_core::ui::theme::Fill> {
+    ) -> Option<rift_core::ui::theme::Fill> {
         match button_state {
             button::State::Default => None,
-            button::State::Hovered => Some(warp_core::ui::theme::Fill::white().with_opacity(10)),
-            button::State::Pressed => Some(warp_core::ui::theme::Fill::white().with_opacity(15)),
+            button::State::Hovered => Some(rift_core::ui::theme::Fill::white().with_opacity(10)),
+            button::State::Pressed => Some(rift_core::ui::theme::Fill::white().with_opacity(15)),
         }
     }
 
     fn text_color(
         &self,
-        _background: Option<warp_core::ui::theme::Fill>,
+        _background: Option<rift_core::ui::theme::Fill>,
         _appearance: &Appearance,
     ) -> ColorU {
         ColorU::new(255, 255, 255, 255)

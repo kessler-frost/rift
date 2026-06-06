@@ -2,21 +2,21 @@ use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
 use itertools::Itertools;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use ordered_float::OrderedFloat;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::icons::Icon;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::icons::Icon;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, FormattedTextElement, Highlight, HighlightedHyperlink,
     MouseStateHandle, Radius, Text,
 };
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::keymap::Keystroke;
-use warpui::platform::{Cursor, OperatingSystem};
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, EntityId, SingletonEntity as _};
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::keymap::Keystroke;
+use riftui::platform::{Cursor, OperatingSystem};
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, EntityId, SingletonEntity as _};
 
 use super::model_spec_scores::{
     render_model_spec_header, render_model_spec_scores, CostRow, CostRowTooltip,
@@ -342,8 +342,8 @@ impl SearchItem for ModelSearchItem {
         _highlight_state: ItemHighlightState,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        use warpui::elements::{Flex, ParentElement as _};
-        use warpui::prelude::CrossAxisAlignment;
+        use riftui::elements::{Flex, ParentElement as _};
+        use riftui::prelude::CrossAxisAlignment;
 
         let appearance = crate::appearance::Appearance::as_ref(app);
         let theme = appearance.theme();
@@ -466,7 +466,7 @@ impl SearchItem for ModelSearchItem {
     }
 
     fn render_details(&self, app: &AppContext) -> Option<Box<dyn Element>> {
-        use warpui::elements::{Flex, ParentElement as _};
+        use riftui::elements::{Flex, ParentElement as _};
 
         let appearance = crate::appearance::Appearance::as_ref(app);
         let theme = appearance.theme();
@@ -603,10 +603,10 @@ impl SearchItem for ModelSearchItem {
             .with_hyperlink_font_color(theme.accent().into_solid())
             .register_default_click_handlers_with_action_support(|hyperlink_lens, event, ctx| {
                 match hyperlink_lens {
-                    warpui::elements::HyperlinkLens::Url(url) => {
+                    riftui::elements::HyperlinkLens::Url(url) => {
                         ctx.open_url(url);
                     }
-                    warpui::elements::HyperlinkLens::Action(action_ref) => {
+                    riftui::elements::HyperlinkLens::Action(action_ref) => {
                         if let Some(action) = action_ref.as_any().downcast_ref::<WorkspaceAction>()
                         {
                             event.dispatch_typed_action(action.clone());

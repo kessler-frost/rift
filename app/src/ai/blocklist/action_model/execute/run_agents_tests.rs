@@ -4,9 +4,9 @@ use ai::agent::action::{RunAgentsAgentRunConfig, RunAgentsExecutionMode, RunAgen
 use ai::agent::orchestration_config::{
     OrchestrationConfig, OrchestrationConfigStatus, OrchestrationExecutionMode,
 };
+use rift_core::execution_mode::ExecutionMode;
+use riftui::{App, EntityId, ModelHandle};
 use settings::Setting;
-use warp_core::execution_mode::ExecutionMode;
-use warpui::{App, EntityId, ModelHandle};
 
 use super::*;
 use crate::ai::active_agent_views_model::ActiveAgentViewsModel;

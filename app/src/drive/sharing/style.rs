@@ -1,13 +1,13 @@
 use std::borrow::Cow;
 
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warpui::color::ColorU;
-use warpui::elements::{CornerRadius, Radius};
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui::ui_components::text::Span;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use riftui::color::ColorU;
+use riftui::elements::{CornerRadius, Radius};
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui::ui_components::text::Span;
 
 /// The padding around ACL items in the sharing dialog.
 pub const ACL_ITEM_PADDING: f32 = 16.;

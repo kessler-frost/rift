@@ -1,12 +1,12 @@
 use pathfinder_color::ColorU;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, ParentElement, Radius, Wrap, WrapFill,
 };
-use warpui::fonts::FamilyId;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::FamilyId;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

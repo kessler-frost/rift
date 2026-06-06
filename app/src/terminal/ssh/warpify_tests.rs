@@ -1,5 +1,5 @@
-use warpui::assets::asset_cache::AssetSource;
-use warpui::App;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::App;
 
 use super::*;
 use crate::terminal::ssh::util::convert_script_to_one_line;

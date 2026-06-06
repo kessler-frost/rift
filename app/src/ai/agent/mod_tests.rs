@@ -2,7 +2,7 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use warp_multi_agent_api::{FileContent, FileContentLineRange};
+use rift_multi_agent_api::{FileContent, FileContentLineRange};
 
 use crate::ai::agent::{
     AIAgentContext, AIAgentOutput, AIAgentOutputMessage, AIAgentOutputMessageType, AIAgentText,

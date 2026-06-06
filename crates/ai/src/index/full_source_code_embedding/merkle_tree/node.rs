@@ -7,10 +7,10 @@ use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use repo_metadata::entry::is_file_parsable;
+use rift_util::standardized_path::StandardizedPath;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use string_offset::ByteOffset;
-use warp_util::standardized_path::StandardizedPath;
 
 use super::hash::MerkleHash;
 use super::serialized_tree::{SerializedFilesystemInfo, SerializedMerkleNode};

@@ -7,8 +7,8 @@ use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 #[cfg(not(target_family = "wasm"))]
 use crc::{Crc, CRC_32_ISCSI};
+use rift_core::errors::{register_error, ErrorExt};
 use thiserror::Error;
-use warp_core::errors::{register_error, ErrorExt};
 
 #[cfg(feature = "local_fs")]
 use super::ai::FileArtifactUploadTargetInfo;

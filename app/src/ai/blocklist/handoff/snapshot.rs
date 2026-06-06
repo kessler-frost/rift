@@ -10,8 +10,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use remote_server::proto::UploadHandoffSnapshotResponse;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::{ModelHandle, SingletonEntity, ViewContext};
+use rift_util::standardized_path::StandardizedPath;
+use riftui::{ModelHandle, SingletonEntity, ViewContext};
 
 use crate::ai::agent_sdk::driver::upload_snapshot_for_handoff;
 use crate::ai::blocklist::handoff::touched_repos::{derive_touched_workspace, TouchedWorkspace};
@@ -218,7 +218,7 @@ pub(crate) fn resolve_upload_target(
 fn settle_handoff_snapshot_result(
     model: &mut AmbientAgentViewModel,
     result: Result<HandoffUploadResult, anyhow::Error>,
-    model_ctx: &mut warpui::ModelContext<AmbientAgentViewModel>,
+    model_ctx: &mut riftui::ModelContext<AmbientAgentViewModel>,
 ) {
     match result {
         Ok(HandoffUploadResult::Uploaded(token)) => {

@@ -10,8 +10,8 @@ use ai::index::locations::CodeContextLocation;
 use anyhow::anyhow;
 use futures_util::stream::AbortHandle;
 use instant::Instant;
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 #[cfg(not(target_family = "wasm"))]
 use crate::ai::agent::SearchCodebaseFailureReason;

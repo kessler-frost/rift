@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use warpui::integration::TestStep;
-use warpui::windowing::WindowManager;
-use warpui::{async_assert, SingletonEntity, WindowId};
+use riftui::integration::TestStep;
+use riftui::windowing::WindowManager;
+use riftui::{async_assert, SingletonEntity, WindowId};
 
 use crate::ai::facts::view::AIFactPage;
 use crate::ai::facts::AIMemory;

@@ -1,14 +1,14 @@
 use pathfinder_geometry::vector::vec2f;
-use warpui::elements::{
+use riftui::elements::{
     Align, ClippedScrollStateHandle, ClippedScrollable, Container, CornerRadius, Element, Empty,
     Fill, Flex, Hoverable, Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
     Radius, Shrinkable,
 };
-use warpui::platform::Cursor;
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::platform::Cursor;
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WindowId,
 };

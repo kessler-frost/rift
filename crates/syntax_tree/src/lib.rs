@@ -11,15 +11,15 @@ use queries::highlight_query::HighlightQuery;
 pub use queries::highlight_query::{ColorMap, TextSlice};
 use queries::indent_query::{indentation_delta, IndentDelta};
 use rangemap::{RangeMap, RangeSet};
+use rift_editor::content::buffer::{Buffer, BufferSnapshot};
+use rift_editor::content::edit::PreciseDelta;
+use rift_editor::content::text::IndentUnit;
+use rift_editor::content::version::BufferVersion;
+use rift_editor::decoration::DecorationLayer;
+use riftui_core::color::ColorU;
+use riftui_core::text::point::Point;
+use riftui_core::{AppContext, Entity, ModelContext, WeakModelHandle};
 use string_offset::{ByteOffset, CharOffset};
-use warp_editor::content::buffer::{Buffer, BufferSnapshot};
-use warp_editor::content::edit::PreciseDelta;
-use warp_editor::content::text::IndentUnit;
-use warp_editor::content::version::BufferVersion;
-use warp_editor::decoration::DecorationLayer;
-use warpui_core::color::ColorU;
-use warpui_core::text::point::Point;
-use warpui_core::{AppContext, Entity, ModelContext, WeakModelHandle};
 
 const MAX_SYNTAX_TREES: usize = 3;
 

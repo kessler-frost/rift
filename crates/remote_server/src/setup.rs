@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use anyhow::anyhow;
 pub use glibc::{GlibcVersion, RemoteLibc};
-use warp_core::channel::{Channel, ChannelState};
+use rift_core::channel::{Channel, ChannelState};
 pub const REMOTE_SERVER_ARTIFACT_VERSION_UNPINNED: &str = "unversioned";
 
 /// State machine for the remote server install → launch → initialize flow.
@@ -334,15 +334,15 @@ pub fn parse_uname_output(
 
 /// Returns the remote directory where the binary is installed, keyed by channel.
 ///
-/// - stable:      `~/.warp/remote-server`
-/// - preview:     `~/.warp-preview/remote-server`
-/// - dev:         `~/.warp-dev/remote-server`
-/// - local:       `~/.warp-local/remote-server`
-/// - integration: `~/.warp-dev/remote-server`
-/// - warp-oss:    `~/.warp-oss/remote-server`
+/// - stable:      `~/.rift/remote-server`
+/// - preview:     `~/.rift-preview/remote-server`
+/// - dev:         `~/.rift-dev/remote-server`
+/// - local:       `~/.rift-local/remote-server`
+/// - integration: `~/.rift-dev/remote-server`
+/// - warp-oss:    `~/.rift-oss/remote-server`
 pub fn remote_server_dir() -> String {
     let warp_dir = match ChannelState::channel() {
-        Channel::Stable => ".warp",
+        Channel::Stable => ".rift",
         Channel::Preview => ".warp-preview",
         Channel::Dev | Channel::Integration => ".warp-dev",
         Channel::Local => ".warp-local",

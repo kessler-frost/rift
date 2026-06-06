@@ -4,20 +4,20 @@ use std::fmt::Display;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use regex::Regex;
-use settings::{Setting, ToggleableSetting};
-use strum::IntoEnumIterator;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     Container, Flex, FormattedTextElement, HighlightedHyperlink, MouseStateHandle, ParentElement,
 };
-use warpui::keymap::ContextPredicate;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::keymap::ContextPredicate;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use settings::{Setting, ToggleableSetting};
+use strum::IntoEnumIterator;
 
 use super::settings_page::{
     add_setting, render_alternating_color_list, render_body_item, render_dropdown_item,

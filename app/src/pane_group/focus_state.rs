@@ -1,4 +1,4 @@
-use warpui::{AppContext, Entity, ModelContext, ModelHandle};
+use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::pane::{PaneId, TerminalPaneId};
 use super::{PaneState, SplitPaneState};

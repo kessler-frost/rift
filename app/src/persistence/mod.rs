@@ -27,15 +27,15 @@ use ai::workspace::WorkspaceMetadata as CodeWorkspaceMetadata;
 use chrono::{DateTime, Local, Utc};
 use instant::Instant;
 use lsp::supported_servers::LSPServerType;
+use rift_core::command::ExitCode;
+use rift_graphql::scalars::time::ServerTimestamp;
+use rift_multi_agent_api as api;
+use riftui::{AppContext, Entity, SingletonEntity};
 #[cfg(any(feature = "local_fs", feature = "integration_tests"))]
 pub use sqlite::database_file_path_for_scope;
 #[cfg(any(feature = "local_fs", feature = "integration_tests"))]
 pub use sqlite::establish_ro_connection;
 use uuid::Uuid;
-use warp_core::command::ExitCode;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warp_multi_agent_api as api;
-use warpui::{AppContext, Entity, SingletonEntity};
 
 use self::model::{AgentConversation, AgentConversationData, Project};
 use crate::ai::blocklist::PersistedAIInput;

@@ -1,23 +1,23 @@
 use pathfinder_color::ColorU;
-use ui_components::{button, Component as _, Options as _};
-use warp_core::features::FeatureFlag;
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::WarpTheme;
-use warpui_core::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::WarpTheme;
+use riftui_core::elements::{
     Border, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Empty, Flex, FormattedTextElement, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, Text,
 };
-use warpui_core::fonts::{Properties, Weight};
-use warpui_core::keymap::Keystroke;
-use warpui_core::platform::Cursor;
-use warpui_core::text_layout::TextAlignment;
-use warpui_core::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui_core::{
+use riftui_core::fonts::{Properties, Weight};
+use riftui_core::keymap::Keystroke;
+use riftui_core::platform::Cursor;
+use riftui_core::text_layout::TextAlignment;
+use riftui_core::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::{OnboardingStateEvent, OnboardingStateModel};

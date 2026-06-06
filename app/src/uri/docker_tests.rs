@@ -1,4 +1,4 @@
-use warpui::App;
+use riftui::App;
 
 use super::*;
 use crate::auth::auth_manager::AuthManager;

@@ -1,11 +1,11 @@
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use riftui::elements::{
     Axis, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, Hoverable, MouseState, ParentElement, Radius, Text, Wrap, WrapFillEntireRun,
 };
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::ai::agent::comment::ReviewComment;
 use crate::ai::agent::icons::addressed_comment_icon;

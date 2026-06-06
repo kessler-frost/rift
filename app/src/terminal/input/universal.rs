@@ -1,9 +1,9 @@
-use settings::Setting;
-use warpui::elements::{
+use riftui::elements::{
     Border, ChildView, Container, CornerRadius, DropTarget, Element, Flex, Hoverable,
     ParentElement, Radius, SavePosition, Stack,
 };
-use warpui::{AppContext, SingletonEntity};
+use riftui::{AppContext, SingletonEntity};
+use settings::Setting;
 
 use super::common::{
     add_command_xray_overlay, add_input_suggestions_overlays, add_vim_status_to_stack,

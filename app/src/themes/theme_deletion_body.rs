@@ -2,16 +2,16 @@ use std::default::Default;
 use std::fs;
 use std::fs::remove_file;
 
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{
     Container, CornerRadius, CrossAxisAlignment, Flex, MainAxisSize, MouseStateHandle,
     ParentElement, Radius, SavePosition, Shrinkable, Text,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
 use crate::server::telemetry::TelemetryEvent;

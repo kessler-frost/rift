@@ -1,6 +1,6 @@
-use warpui::elements::{ChildView, Container, Dismiss, Empty};
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::elements::{ChildView, Container, Dismiss, Empty};
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

@@ -1,15 +1,15 @@
 use chrono::{DateTime, Local};
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
-use warp_core::ui::color::coloru_with_opacity;
-use warp_core::ui::theme::Fill;
-use warp_core::ui::Icon;
-use warpui::elements::{ConstrainedBox, Container, Highlight, ParentElement, Shrinkable, Text};
-use warpui::fonts::{Properties, Weight};
-use warpui::prelude::{Align, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize};
-use warpui::scene::{CornerRadius, Radius};
-use warpui::text_layout::ClipConfig;
-use warpui::{AppContext, Element, SingletonEntity};
+use rift_core::ui::color::coloru_with_opacity;
+use rift_core::ui::theme::Fill;
+use rift_core::ui::Icon;
+use riftui::elements::{ConstrainedBox, Container, Highlight, ParentElement, Shrinkable, Text};
+use riftui::fonts::{Properties, Weight};
+use riftui::prelude::{Align, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize};
+use riftui::scene::{CornerRadius, Radius};
+use riftui::text_layout::ClipConfig;
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};
 use crate::ai::conversation_status_ui::{render_status_element, STATUS_ELEMENT_PADDING};

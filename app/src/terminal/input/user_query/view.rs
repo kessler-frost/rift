@@ -1,7 +1,7 @@
 //! View for the user query menu.
 
-use warpui::elements::ChildView;
-use warpui::{Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
+use riftui::elements::ChildView;
+use riftui::{Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::AIAgentExchangeId;
@@ -148,7 +148,7 @@ impl View for UserQueryMenuView {
         "UserQueryMenuView"
     }
 
-    fn render(&self, _app: &warpui::AppContext) -> Box<dyn Element> {
+    fn render(&self, _app: &riftui::AppContext) -> Box<dyn Element> {
         ChildView::new(&self.menu_view).finish()
     }
 }

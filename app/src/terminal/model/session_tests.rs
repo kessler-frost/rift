@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use warpui::elements::Empty;
-use warpui::platform::WindowStyle;
-use warpui::{App, AppContext, Element, Entity, ModelHandle, TypedActionView, View, ViewContext};
+use riftui::elements::Empty;
+use riftui::platform::WindowStyle;
+use riftui::{App, AppContext, Element, Entity, ModelHandle, TypedActionView, View, ViewContext};
 
 use super::{SessionId, Sessions, SessionsEvent};
 

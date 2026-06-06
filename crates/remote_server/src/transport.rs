@@ -16,8 +16,8 @@ use std::path::PathBuf;
 use std::pin::Pin;
 
 use async_channel::Receiver;
+use riftui_core::r#async::executor;
 use serde::Serialize;
-use warpui_core::r#async::executor;
 
 #[cfg(not(target_family = "wasm"))]
 use crate::client::RemoteServerLog;

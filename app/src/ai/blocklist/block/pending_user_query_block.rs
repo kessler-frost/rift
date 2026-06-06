@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use parking_lot::RwLock;
-use warp_core::features::FeatureFlag;
-use warp_core::semantic_selection::SemanticSelection;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::semantic_selection::SemanticSelection;
+use riftui::elements::{
     get_rich_content_position_id, ChildView, Container, CrossAxisAlignment, Expanded, Flex,
     ParentElement, SavePosition, SelectableArea, SelectionHandle, Text,
 };
-use warpui::fonts::{Properties, Style, Weight};
-use warpui::{
+use riftui::fonts::{Properties, Style, Weight};
+use riftui::{
     AppContext, Element, Entity, EntityId, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

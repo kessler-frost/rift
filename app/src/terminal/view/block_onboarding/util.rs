@@ -1,15 +1,15 @@
 use pathfinder_color::ColorU;
-use warp_core::ui::theme::Fill;
-use warpui::elements::{
+use rift_core::ui::theme::Fill;
+use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, MouseStateHandle,
     ParentElement, Radius, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::text_input::TextInput;
-use warpui::{Action, AppContext, Element, SingletonEntity, ViewHandle};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::text_input::TextInput;
+use riftui::{Action, AppContext, Element, SingletonEntity, ViewHandle};
 
 use crate::appearance::Appearance;
 use crate::editor::EditorView;

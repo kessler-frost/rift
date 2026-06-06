@@ -1,19 +1,19 @@
-use settings::Setting;
-use warp_core::report_if_error;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::report_if_error;
+use rift_core::ui::Icon;
+use riftui::elements::{
     ChildAnchor, Container, CrossAxisAlignment, Flex, MainAxisSize, OffsetPositioning,
     ParentAnchor, ParentElement, ParentOffsetBounds, Shrinkable, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::Keystroke;
-use warpui::prelude::{vec2f, ConstrainedBox, Cursor, Empty, Hoverable, MouseStateHandle};
-use warpui::scene::{Border, CornerRadius, Radius};
-use warpui::ui_components::checkbox::Checkbox;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::Keystroke;
+use riftui::prelude::{vec2f, ConstrainedBox, Cursor, Empty, Hoverable, MouseStateHandle};
+use riftui::scene::{Border, CornerRadius, Radius};
+use riftui::ui_components::checkbox::Checkbox;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
+use settings::Setting;
 
 use crate::ai::blocklist::agent_view::{
     AgentViewController, AgentViewControllerEvent, ENTER_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE,

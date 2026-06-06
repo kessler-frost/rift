@@ -1,6 +1,6 @@
 use chrono::Utc;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui::{App, SingletonEntity};
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui::{App, SingletonEntity};
 
 use super::*;
 use crate::ai::request_usage_model::{RequestLimitInfo, RequestLimitRefreshDuration};

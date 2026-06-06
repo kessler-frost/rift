@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use warp_core::report_error;
-use warp_graphql::scalars::Time;
-use warpui::{Entity, ModelContext, SingletonEntity};
+use rift_core::report_error;
+use rift_graphql::scalars::Time;
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 use crate::auth::AuthStateProvider;
 use crate::server::server_api::ai::AIClient;
@@ -12,7 +12,7 @@ const PAGE_SIZE: i32 = 20;
 
 pub struct UsageHistoryModel {
     ai_client: Arc<dyn AIClient>,
-    entries: Vec<warp_graphql::queries::get_conversation_usage::ConversationUsage>,
+    entries: Vec<rift_graphql::queries::get_conversation_usage::ConversationUsage>,
     is_loading: bool,
     // Whether the server indicated that there may be more entries to load.
     has_more_entries: bool,
@@ -35,7 +35,7 @@ impl UsageHistoryModel {
         }
     }
 
-    pub fn entries(&self) -> &[warp_graphql::queries::get_conversation_usage::ConversationUsage] {
+    pub fn entries(&self) -> &[rift_graphql::queries::get_conversation_usage::ConversationUsage] {
         &self.entries
     }
 

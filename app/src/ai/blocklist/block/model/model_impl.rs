@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use anyhow::{anyhow, Result};
 use chrono::{Local, TimeDelta};
 use history_model::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
+use riftui::{AppContext, SingletonEntity, View, ViewContext};
 use session_sharing_protocol::common::ParticipantId;
-use warpui::{AppContext, SingletonEntity, View, ViewContext};
 
 use super::{AIBlockModel, AIBlockOutputStatus, OutputStatusUpdateCallback};
 use crate::ai::agent::conversation::AIConversationId;

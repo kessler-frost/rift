@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::assets::asset_cache::AssetSource;
-use warpui::elements::{CacheOption, Icon, Image};
-use warpui::Element;
+use rift_core::ui::appearance::Appearance;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::elements::{CacheOption, Icon, Image};
+use riftui::Element;
 
 /// Returns a special icon for the given file path, if any.
 pub fn icon_from_file_path(path: &str, appearance: &Appearance) -> Option<Box<dyn Element>> {

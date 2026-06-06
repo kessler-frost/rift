@@ -1,8 +1,8 @@
 use ai::skills::SkillReference;
 use input_classifier::InputType;
+use rift_core::features::FeatureFlag;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
 use crate::ai::blocklist::{
     BlocklistAIInputEvent, BlocklistAIInputModel, InputTypeAutoDetectionSource,

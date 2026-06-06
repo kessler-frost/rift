@@ -3,11 +3,11 @@ use std::sync::Arc;
 use ai::api_keys::ApiKeyManager;
 use chrono::{DateTime, Local, Utc};
 use instant::Instant;
+use rift_core::user_preferences::GetUserPreferences as _;
+pub use rift_graphql::billing::BonusGrantType;
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warp_core::user_preferences::GetUserPreferences as _;
-pub use warp_graphql::billing::BonusGrantType;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::AIAgentExchangeId;

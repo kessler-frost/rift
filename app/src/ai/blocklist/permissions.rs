@@ -2,14 +2,14 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use anyhow::Result;
+use rift_completer::parsers::simple::decompose_command;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+use rift_core::settings::Setting;
+use rift_core::user_preferences::GetUserPreferences;
+use rift_util::path::EscapeChar;
+use riftui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warp_completer::parsers::simple::decompose_command;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-use warp_core::settings::Setting;
-use warp_core::user_preferences::GetUserPreferences;
-use warp_util::path::EscapeChar;
-use warpui::{AppContext, Entity, EntityId, ModelContext, SingletonEntity};
 
 use super::BlocklistAIHistoryModel;
 use crate::ai::agent::conversation::AIConversationId;

@@ -1,17 +1,17 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use regex_automata::hybrid::BuildError;
-use warp_editor::editor::NavigationKey;
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Dash, Dismiss, DropShadow, Empty, Flex, Hoverable, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Rect, Shrinkable,
     Stack, Text,
 };
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

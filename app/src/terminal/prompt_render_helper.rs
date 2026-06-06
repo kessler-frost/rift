@@ -1,16 +1,16 @@
 use std::fmt;
 use std::num::NonZeroUsize;
 
-use settings::Setting as _;
-use warp_core::semantic_selection::SemanticSelection;
-use warpui::elements::{
+use rift_core::semantic_selection::SemanticSelection;
+use riftui::elements::{
     Container, DispatchEventResult, Element, EventHandler, SavePosition, SelectableArea,
     SelectionHandle, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::presenter::ChildView;
-use warpui::units::Pixels;
-use warpui::{AppContext, EntityId, ModelAsRef, ModelHandle, SingletonEntity, ViewHandle};
+use riftui::fonts::{Properties, Weight};
+use riftui::presenter::ChildView;
+use riftui::units::Pixels;
+use riftui::{AppContext, EntityId, ModelAsRef, ModelHandle, SingletonEntity, ViewHandle};
+use settings::Setting as _;
 
 use super::input::InputRenderStateModel;
 use super::model::block::Block;

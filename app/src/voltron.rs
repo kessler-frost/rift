@@ -17,22 +17,22 @@ use std::path::PathBuf;
 
 use enclose::enclose;
 use pathfinder_geometry::vector::Vector2F;
-use vec1::Vec1;
-use warpui::accessibility::AccessibilityContent;
-use warpui::elements::{
+use riftui::accessibility::AccessibilityContent;
+use riftui::elements::{
     resizable_state_handle, Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult, Element, EventHandler, Flex,
     Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Radius, Resizable, ResizableStateHandle, Shrinkable, Stack,
 };
-use warpui::geometry::vector::vec2f;
-use warpui::keymap::{Context, FixedBinding};
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::geometry::vector::vec2f;
+use riftui::keymap::{Context, FixedBinding};
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use vec1::Vec1;
 
 use crate::appearance::Appearance;
 use crate::editor::{
@@ -55,7 +55,7 @@ const VOLTRON_RIGHT_PADDING: f32 = 15.;
 const EDITOR_PADDING_LEFT: f32 = 14.;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",
@@ -491,7 +491,7 @@ impl View for Voltron {
         }
     }
 
-    fn render(&self, app: &AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &AppContext) -> Box<dyn riftui::Element> {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
         let current_feature = self

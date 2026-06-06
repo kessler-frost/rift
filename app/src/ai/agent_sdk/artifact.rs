@@ -2,14 +2,14 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use serde::Serialize;
-use warp_cli::agent::OutputFormat;
-use warp_cli::artifact::{
+use rift_cli::agent::OutputFormat;
+use rift_cli::artifact::{
     ArtifactCommand, DownloadArtifactArgs, GetArtifactArgs, UploadArtifactArgs,
 };
-use warp_cli::GlobalOptions;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, ModelContext, SingletonEntity};
+use rift_cli::GlobalOptions;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, ModelContext, SingletonEntity};
+use serde::Serialize;
 
 use super::artifact_upload::{
     CompletedFileArtifactUpload, FileArtifactUploadRequest, FileArtifactUploader,
@@ -130,7 +130,7 @@ impl ArtifactCommandRunner {
     }
 }
 
-impl warpui::Entity for ArtifactCommandRunner {
+impl riftui::Entity for ArtifactCommandRunner {
     type Event = ();
 }
 

@@ -1,8 +1,8 @@
 use comfy_table::Cell;
+use rift_cli::agent::OutputFormat;
+use rift_cli::json_filter::parse_jq_filter;
 use serde::Serialize;
 use serde_json::json;
-use warp_cli::agent::OutputFormat;
-use warp_cli::json_filter::parse_jq_filter;
 
 use super::{
     run_jq_filter, write_filter_output, write_json, write_json_line, write_list, TableFormat,

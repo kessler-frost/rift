@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
+use rift_core::ui::appearance::Appearance;
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
 
 pub const MODAL_WIDTH: f32 = 460.;
 pub const MODAL_HEIGHT: f32 = 300.;

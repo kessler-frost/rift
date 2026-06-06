@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use warpui::{Entity, EntityId, ModelContext, SingletonEntity, ViewHandle, WindowId};
+use riftui::{Entity, EntityId, ModelContext, SingletonEntity, ViewHandle, WindowId};
 
 use super::SettingsView;
 use crate::pane_group::{PaneContent, PaneId, SettingsPane};

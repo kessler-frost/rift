@@ -2,8 +2,8 @@ use cloud_objects::cloud_object::{
     GenericCloudObject, GenericServerObject, GenericStringModel, JsonObjectType,
 };
 use cloud_objects::ids::GenericStringObjectId;
+use rift_util::path::ShellFamily;
 use serde::{Deserialize, Serialize};
-use warp_util::path::ShellFamily;
 
 use crate::{JsonModel, JsonSerializer};
 

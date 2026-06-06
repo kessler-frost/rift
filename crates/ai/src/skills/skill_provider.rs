@@ -7,12 +7,12 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use dirs::home_dir;
+use rift_core::ui::color::CLAUDE_ORANGE;
+use rift_core::ui::icons::Icon;
+use rift_core::ui::theme::Fill;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString, VariantNames};
-use warp_core::ui::color::CLAUDE_ORANGE;
-use warp_core::ui::icons::Icon;
-use warp_core::ui::theme::Fill;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
 
 /// Represents a skill provider/origin (Agents, Claude, Codex, or Warp).
 #[derive(
@@ -110,7 +110,7 @@ pub static SKILL_PROVIDER_DEFINITIONS: LazyLock<Vec<SkillProviderDefinition>> =
             },
             SkillProviderDefinition {
                 provider: SkillProvider::Warp,
-                skills_path: PathBuf::from(".warp").join("skills"),
+                skills_path: PathBuf::from(".rift").join("skills"),
             },
             SkillProviderDefinition {
                 provider: SkillProvider::Claude,
@@ -159,7 +159,7 @@ pub fn provider_rank(provider: SkillProvider) -> usize {
 
 pub fn home_skills_path(provider: SkillProvider) -> Option<PathBuf> {
     if provider == SkillProvider::Warp {
-        return warp_core::paths::warp_home_skills_dir();
+        return rift_core::paths::warp_home_skills_dir();
     }
     let definition = SKILL_PROVIDER_DEFINITIONS
         .iter()

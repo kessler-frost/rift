@@ -3,13 +3,13 @@
 //! This is the landing page for new tabs if session creation isn't supported (e.g. on the web).
 //! It's barebones at the moment, but may grow into a more full-featured admin experience.
 
-use warpui::ViewContext;
+use riftui::ViewContext;
 
 use super::view::Workspace;
 use crate::pane_group::{AnyPaneContent, FilePane};
 
-const WARP_HOME_TITLE: &str = "Welcome to Warp on Web";
-const WARP_HOME_CONTENT: &str = r#"
+const RIFT_HOME_TITLE: &str = "Welcome to Warp on Web";
+const RIFT_HOME_CONTENT: &str = r#"
 Welcome to Warp on Web - your browser-based home for Warp! 
 Use Warp on Web to:
 * Join Shared Sessions
@@ -28,7 +28,7 @@ pub fn create_home_pane(ctx: &mut ViewContext<Workspace>) -> Box<dyn AnyPaneCont
         ctx,
     );
     pane.file_view(ctx).update(ctx, |pane, ctx| {
-        pane.open_static(WARP_HOME_TITLE, WARP_HOME_CONTENT, ctx);
+        pane.open_static(RIFT_HOME_TITLE, RIFT_HOME_CONTENT, ctx);
     });
     Box::new(pane)
 }

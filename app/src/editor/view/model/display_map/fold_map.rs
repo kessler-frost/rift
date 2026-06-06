@@ -3,10 +3,10 @@ use std::iter::Take;
 use std::ops::Range;
 
 use anyhow::{anyhow, Result};
+use riftui::text_layout::TextStyle;
+use riftui::{AppContext, ModelHandle};
 use string_offset::CharOffset;
 use sum_tree::{self, Cursor, Dimension, SeekBias, SumTree};
-use warpui::text_layout::TextStyle;
-use warpui::{AppContext, ModelHandle};
 
 use super::super::buffer::{AnchorRangeExt, TextSummary};
 use super::buffer::StylizedChar;

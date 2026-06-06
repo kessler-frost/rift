@@ -1,10 +1,10 @@
-use warp_core::settings::Setting;
-use warpui::elements::{
+use rift_core::settings::Setting;
+use riftui::elements::{
     Border, Clipped, Container, DropTarget, Element, Flex, Hoverable, ParentElement, SavePosition,
     Stack,
 };
-use warpui::presenter::ChildView;
-use warpui::{AppContext, SingletonEntity};
+use riftui::presenter::ChildView;
+use riftui::{AppContext, SingletonEntity};
 
 use super::common::{
     add_command_xray_overlay, add_input_suggestions_overlays, add_voltron_overlay,
@@ -293,7 +293,7 @@ impl Input {
 
 pub mod styles {
     use pathfinder_color::ColorU;
-    use warp_core::ui::theme::WarpTheme;
+    use rift_core::ui::theme::WarpTheme;
 
     pub fn default_border_color(theme: &WarpTheme) -> ColorU {
         theme.outline().into()

@@ -8,27 +8,27 @@ use parking_lot::Mutex;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_editor::editor::EditorView;
-use warp_editor::render::element::lens_element::RichTextElementLens;
-use warp_editor::render::element::{RenderableBlock, RichTextElement, VerticalExpansionBehavior};
-use warp_editor::render::model::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_editor::editor::EditorView;
+use rift_editor::render::element::lens_element::RichTextElementLens;
+use rift_editor::render::element::{RenderableBlock, RichTextElement, VerticalExpansionBehavior};
+use rift_editor::render::model::{
     gutter_expansion_button_types, BlockLocation, ExpansionType, LineCount, RenderState,
 };
-use warpui::elements::new_scrollable::{NewScrollableElement, ScrollableAxis};
-use warpui::elements::{
+use riftui::elements::new_scrollable::{NewScrollableElement, ScrollableAxis};
+use riftui::elements::{
     Align, Axis, Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, Empty, F32Ext, Flex,
     Hoverable, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Point, Radius, ScrollData, Stack, Text, ZIndex,
 };
-use warpui::event::DispatchedEvent;
-use warpui::fonts::FamilyId;
-use warpui::ui_components::components::UiComponent;
-use warpui::units::{IntoPixels, Pixels};
-use warpui::{
+use riftui::event::DispatchedEvent;
+use riftui::fonts::FamilyId;
+use riftui::ui_components::components::UiComponent;
+use riftui::units::{IntoPixels, Pixels};
+use riftui::{
     AfterLayoutContext, AppContext, ClipBounds, Element, Event, EventContext, LayoutContext,
     ModelHandle, PaintContext, SingletonEntity, SizeConstraint,
 };
@@ -937,7 +937,7 @@ impl<V: EditorView> EditorWrapper<V> {
         };
 
         let icon = ConstrainedBox::new(
-            warpui::elements::Icon::new(
+            riftui::elements::Icon::new(
                 expansion_type.icon().into(),
                 line_number_config.text_color,
             )
@@ -993,7 +993,7 @@ impl<V: EditorView> EditorWrapper<V> {
 
             let container = Container::new(
                 ConstrainedBox::new(
-                    warpui::elements::Icon::new(gutter_button.icon().into(), icon_color).finish(),
+                    riftui::elements::Icon::new(gutter_button.icon().into(), icon_color).finish(),
                 )
                 .with_width(icon_size)
                 .with_height(icon_size)
@@ -1033,7 +1033,7 @@ impl<V: EditorView> EditorWrapper<V> {
         });
 
         if enabled {
-            button = button.with_cursor(warpui::platform::Cursor::PointingHand);
+            button = button.with_cursor(riftui::platform::Cursor::PointingHand);
 
             if let Some(on_click_action) = on_click_action {
                 let action = on_click_action.clone();

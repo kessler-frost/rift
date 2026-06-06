@@ -52,6 +52,16 @@ pub use request_file_edits::{
     EditAcceptAndContinueClickedEvent, EditAcceptClickedEvent, EditResolvedEvent, EditStats,
     RequestFileEditsExecutor, RequestFileEditsFormatKind, RequestFileEditsTelemetryEvent,
 };
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+#[cfg(feature = "local_fs")]
+use rift_files::{FileModel, TextFileReadResult};
+#[cfg(feature = "local_fs")]
+use rift_util::file::FileLoadError;
+#[cfg(feature = "local_fs")]
+use rift_util::file_type::is_buffer_binary;
+use riftui::r#async::{Spawnable, SpawnableOutput};
+use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 #[cfg(test)]
 pub use run_agents::{compose_run_agents_child_prompt, run_agents_to_start_agent_mode};
 pub use run_agents::{RunAgentsExecutor, RunAgentsExecutorEvent, RunAgentsSpawningSnapshot};
@@ -66,16 +76,6 @@ use suggest_new_conversation::SuggestNewConversationExecutor;
 pub use suggest_prompt::PromptSuggestionExecutor;
 use upload_artifact::UploadArtifactExecutor;
 use use_computer::UseComputerExecutor;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-#[cfg(feature = "local_fs")]
-use warp_files::{FileModel, TextFileReadResult};
-#[cfg(feature = "local_fs")]
-use warp_util::file::FileLoadError;
-#[cfg(feature = "local_fs")]
-use warp_util::file_type::is_buffer_binary;
-use warpui::r#async::{Spawnable, SpawnableOutput};
-use warpui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 use self::search_codebase::SearchCodebaseExecutor;
 use crate::ai::agent::conversation::AIConversationId;
@@ -1129,11 +1129,11 @@ async fn should_read_as_binary(path: &std::path::Path) -> bool {
     is_file_content_binary_async(path).await
 }
 
-/// Async sibling of [`warp_util::file_type::is_file_content_binary`]. Reads
+/// Async sibling of [`rift_util::file_type::is_file_content_binary`]. Reads
 /// the first 1 KiB of `path` asynchronously and returns `true` if the content
 /// looks binary according to [`is_buffer_binary`]. Returns `true` on any I/O
 /// error so callers default to the binary code path. Kept local to this
-/// module so `warp_util` doesn't need to grow an `async_fs` dependency.
+/// module so `rift_util` doesn't need to grow an `async_fs` dependency.
 #[cfg(feature = "local_fs")]
 async fn is_file_content_binary_async(path: &std::path::Path) -> bool {
     const CHUNK_SIZE: usize = 1024;

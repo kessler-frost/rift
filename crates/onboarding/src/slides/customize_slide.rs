@@ -1,20 +1,20 @@
-use ui_components::{button, Component as _, Options as _};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui_core::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui_core::elements::{
     ClippedScrollStateHandle, Container, CrossAxisAlignment, Flex, FormattedTextElement,
     MainAxisSize, MouseStateHandle, ParentElement,
 };
-use warpui_core::fonts::Weight;
-use warpui_core::keymap::Keystroke;
-use warpui_core::prelude::Align;
-use warpui_core::text_layout::TextAlignment;
-use warpui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui_core::{
+use riftui_core::fonts::Weight;
+use riftui_core::keymap::Keystroke;
+use riftui_core::prelude::Align;
+use riftui_core::text_layout::TextAlignment;
+use riftui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::toggle_card::{render_toggle_card, ChipSpec, ToggleCardSpec};
 use super::OnboardingSlide;

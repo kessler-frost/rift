@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use parking_lot::FairMutex;
-use warp_core::ui::appearance::Appearance;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::{AppContext, EntityId, SingletonEntity as _, ViewContext, ViewHandle};
+use rift_core::ui::appearance::Appearance;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::{AppContext, EntityId, SingletonEntity as _, ViewContext, ViewHandle};
 
 use super::success_block::WarpifySuccessBlock;
 use crate::terminal::model::ansi::SystemDetails;

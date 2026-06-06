@@ -1,5 +1,5 @@
-use warp_util::path::LineAndColumnArg;
-use warpui::{AppContext, ModelHandle, SingletonEntity, View, ViewContext, ViewHandle};
+use rift_util::path::LineAndColumnArg;
+use riftui::{AppContext, ModelHandle, SingletonEntity, View, ViewContext, ViewHandle};
 
 use super::{
     DetachType, PaneConfiguration, PaneContent, PaneId, PaneView, ShareableLink, ShareableLinkError,

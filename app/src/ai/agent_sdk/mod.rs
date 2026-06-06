@@ -12,32 +12,32 @@ use anyhow::Context;
 pub(crate) use driver::harness::{task_env_vars, validate_cli_installed, ClaudeHarness};
 pub use driver::AgentDriver;
 use driver::AgentDriverError;
-use telemetry::CliTelemetryEvent;
-use warp_cli::agent::{
+use rift_cli::agent::{
     AgentCommand, AgentProfileCommand, Harness, OutputFormat, Prompt, RunAgentArgs,
 };
-use warp_cli::api_key::ApiKeyCommand;
-use warp_cli::artifact::ArtifactCommand;
-use warp_cli::environment::{EnvironmentCommand, ImageCommand};
-use warp_cli::federate::FederateCommand;
-use warp_cli::harness_support::{HarnessSupportCommand, ReportArtifactCommand, TaskStatus};
-use warp_cli::integration::IntegrationCommand;
-use warp_cli::mcp::MCPCommand;
-use warp_cli::model::ModelCommand;
-use warp_cli::provider::ProviderCommand;
-use warp_cli::schedule::ScheduleSubcommand;
-use warp_cli::secret::SecretCommand;
-use warp_cli::share::ShareRequest;
-use warp_cli::task::{MessageCommand, TaskCommand};
-use warp_cli::{CliCommand, GlobalOptions, OZ_HARNESS_ENV};
-use warp_core::features::FeatureFlag;
-use warp_graphql::object_permissions::OwnerType;
-use warp_isolation_platform::IsolationPlatformError;
+use rift_cli::api_key::ApiKeyCommand;
+use rift_cli::artifact::ArtifactCommand;
+use rift_cli::environment::{EnvironmentCommand, ImageCommand};
+use rift_cli::federate::FederateCommand;
+use rift_cli::harness_support::{HarnessSupportCommand, ReportArtifactCommand, TaskStatus};
+use rift_cli::integration::IntegrationCommand;
+use rift_cli::mcp::MCPCommand;
+use rift_cli::model::ModelCommand;
+use rift_cli::provider::ProviderCommand;
+use rift_cli::schedule::ScheduleSubcommand;
+use rift_cli::secret::SecretCommand;
+use rift_cli::share::ShareRequest;
+use rift_cli::task::{MessageCommand, TaskCommand};
+use rift_cli::{CliCommand, GlobalOptions, OZ_HARNESS_ENV};
+use rift_core::features::FeatureFlag;
+use rift_graphql::object_permissions::OwnerType;
+use rift_isolation_platform::IsolationPlatformError;
 #[cfg(not(target_family = "wasm"))]
-use warp_logging::log_file_path;
-use warp_managed_secrets::ManagedSecretManager;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, ModelSpawner, SingletonEntity};
+use rift_logging::log_file_path;
+use rift_managed_secrets::ManagedSecretManager;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, ModelSpawner, SingletonEntity};
+use telemetry::CliTelemetryEvent;
 
 use crate::ai::agent::api::convert_conversation::{
     convert_conversation_data_to_ai_conversation, RestorationMode,
@@ -573,7 +573,7 @@ fn run_task(
                 ));
             }
             match conv_cmd {
-                warp_cli::task::ConversationCommand::Get(args) => {
+                rift_cli::task::ConversationCommand::Get(args) => {
                     ambient::get_conversation(ctx, args.conversation_id)
                 }
             }
@@ -587,11 +587,11 @@ fn run_task(
 /// requires spawning an async task, which requires a ModelContext.
 struct AgentDriverRunner;
 
-impl warpui::Entity for AgentDriverRunner {
+impl riftui::Entity for AgentDriverRunner {
     type Event = ();
 }
 
-impl warpui::SingletonEntity for AgentDriverRunner {}
+impl riftui::SingletonEntity for AgentDriverRunner {}
 
 impl AgentDriverRunner {
     async fn setup_and_run_driver(
@@ -1112,7 +1112,7 @@ impl AgentDriverRunner {
             if !FeatureFlag::GitCredentialRefresh.is_enabled() {
                 return Ok(vec![]);
             }
-            let workload_token = match warp_isolation_platform::issue_workload_token(Some(
+            let workload_token = match rift_isolation_platform::issue_workload_token(Some(
                 std::time::Duration::from_secs(5 * 60),
             ))
             .await
@@ -1482,7 +1482,7 @@ fn launch_command(
         return dispatch_command(ctx, command, global_options);
     }
 
-    let cli_name = warp_cli::binary_name().unwrap_or_else(|| "warp".to_string());
+    let cli_name = rift_cli::binary_name().unwrap_or_else(|| "warp".to_string());
 
     let auth_state = AuthStateProvider::handle(ctx).as_ref(ctx).get();
     if !auth_state.is_logged_in() {
@@ -1509,7 +1509,7 @@ fn launch_command(
                 dispatched = true;
                 let auth_state = AuthStateProvider::handle(ctx).as_ref(ctx).get();
                 let message = if auth_state.is_api_key_authenticated() {
-                    "Your API key is invalid. Please provide a valid key via '--api-key' or the WARP_API_KEY environment variable.".to_string()
+                    "Your API key is invalid. Please provide a valid key via '--api-key' or the RIFT_API_KEY environment variable.".to_string()
                 } else {
                     format!("Your credentials are invalid. Please log in again with `{cli_name} login`.")
                 };

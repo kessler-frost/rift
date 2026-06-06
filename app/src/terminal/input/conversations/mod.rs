@@ -5,10 +5,10 @@ mod search_item;
 mod view;
 
 use pathfinder_color::ColorU;
+use rift_core::ui::appearance::Appearance;
+use riftui::keymap::Keystroke;
+use riftui::SingletonEntity;
 pub use view::{InlineConversationMenuEvent, InlineConversationMenuView};
-use warp_core::ui::appearance::Appearance;
-use warpui::keymap::Keystroke;
-use warpui::SingletonEntity;
 
 use crate::ai::active_agent_views_model::{ActiveAgentViewsModel, ConversationOrTaskId};
 use crate::ai::agent_conversations_model::AgentConversationEntryId;

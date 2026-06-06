@@ -10,15 +10,15 @@ use mcp::oauth::{
 };
 use mcp::runtime::{error_to_user_message, spawn_server};
 use parking_lot::Mutex;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+use rift_core::safe_error;
+use rift_core::settings::Setting as _;
+use riftui::windowing::WindowManager;
+use riftui::{AppContext, ModelContext, SingletonEntity};
 use simple_logger::manager::LogManager;
 use url::Url;
 use uuid::Uuid;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-use warp_core::safe_error;
-use warp_core::settings::Setting as _;
-use warpui::windowing::WindowManager;
-use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use super::{
     MCPServerState, SpawnedServerInfo, TemplatableMCPServerInfo, TemplatableMCPServerManager,
@@ -163,7 +163,7 @@ impl TemplatableMCPServerManager {
             anyhow::bail!("No spawned server found for uuid={server_uuid}");
         };
 
-        warpui::r#async::block_on(server_info.oauth_result_tx.send(result)).map_err(|_| {
+        riftui::r#async::block_on(server_info.oauth_result_tx.send(result)).map_err(|_| {
             anyhow::anyhow!(
                 "Failed to send OAuth result to server {server_uuid} - receiver dropped"
             )
@@ -175,7 +175,7 @@ impl TemplatableMCPServerManager {
 
     fn save_credentials_to_secure_storage(
         &mut self,
-        app: &mut warpui::AppContext,
+        app: &mut riftui::AppContext,
         installation_uuid: Uuid,
         credentials: PersistedCredentials,
     ) {
@@ -206,7 +206,7 @@ impl TemplatableMCPServerManager {
     pub fn delete_credentials_from_secure_storage(
         &mut self,
         installation_uuid: Uuid,
-        app: &mut warpui::AppContext,
+        app: &mut riftui::AppContext,
     ) {
         if let Some(template_uuid) = self.get_template_uuid(installation_uuid) {
             self.server_credentials.remove(&template_uuid);
@@ -830,7 +830,7 @@ impl TemplatableMCPServerManager {
 
             // For file-based MCP installations without an explicit `working_directory`,
             // default the spawn cwd to the directory the config was discovered in
-            // (repo root for project-scoped configs, ~/.warp/ or ~ for globals). This
+            // (repo root for project-scoped configs, ~/.rift/ or ~ for globals). This
             // matches user expectations for repo-relative commands in `.mcp.json`.
             // Cloud-templated installations (lookup returns None) are unaffected and
             // continue to inherit Warp's process cwd.

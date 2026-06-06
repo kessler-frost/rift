@@ -5,21 +5,21 @@ use lazy_static::lazy_static;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
-use thiserror::Error;
-use validator::ValidateEmail;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Element, Fill,
     Flex, FormattedTextElement, HighlightedHyperlink, Icon, MainAxisSize, MouseStateHandle,
     ParentElement, Radius, Rect, Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Entity, EventContext, FocusContext, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use thiserror::Error;
+use validator::ValidateEmail;
 
 use super::settings_page::{
     MatchData, PageType, SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, PAGE_PADDING,

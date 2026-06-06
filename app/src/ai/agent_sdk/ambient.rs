@@ -6,20 +6,20 @@ use std::time::Duration;
 use anyhow::{anyhow, Context as _};
 use comfy_table::Cell;
 use futures::{future, StreamExt};
-use serde::Serialize;
-use warp_cli::agent::{Harness, OutputFormat, Prompt, RunCloudArgs};
-use warp_cli::json_filter::JsonOutput;
-use warp_cli::task::{
+use rift_cli::agent::{Harness, OutputFormat, Prompt, RunCloudArgs};
+use rift_cli::json_filter::JsonOutput;
+use rift_cli::task::{
     ArtifactTypeArg, ExecutionLocationArg, ListTasksArgs, MessageCommand, MessageDeliveredArgs,
     MessageListArgs, MessageReadArgs, MessageSendArgs, MessageWatchArgs, RunSortByArg,
     RunSourceArg, RunStateArg, TaskGetArgs,
 };
-use warp_cli::{GlobalOptions, SortOrderArg};
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warpui::platform::TerminationMode;
-use warpui::r#async::{Spawnable, Timer};
-use warpui::{AppContext, ModelContext, SingletonEntity};
+use rift_cli::{GlobalOptions, SortOrderArg};
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use riftui::platform::TerminationMode;
+use riftui::r#async::{Spawnable, Timer};
+use riftui::{AppContext, ModelContext, SingletonEntity};
+use serde::Serialize;
 
 use super::common::{parse_ambient_task_id, EnvironmentChoice, ResolveConfigurationError};
 use crate::ai::agent::{extract_user_query_mode, UserQueryMode};
@@ -1002,12 +1002,12 @@ fn task_id_from_run_id(run_id: &str) -> Option<AmbientAgentTaskId> {
 }
 
 fn task_id_from_oz_run_id_env() -> anyhow::Result<Option<AmbientAgentTaskId>> {
-    match std::env::var(warp_cli::OZ_RUN_ID_ENV) {
+    match std::env::var(rift_cli::OZ_RUN_ID_ENV) {
         Ok(run_id) => parse_ambient_task_id(&run_id, "Invalid OZ_RUN_ID").map(Some),
         Err(std::env::VarError::NotPresent) => Ok(None),
         Err(std::env::VarError::NotUnicode(_)) => Err(anyhow!(
             "{} is set but is not valid Unicode",
-            warp_cli::OZ_RUN_ID_ENV
+            rift_cli::OZ_RUN_ID_ENV
         )),
     }
 }
@@ -1405,7 +1405,7 @@ impl AmbientAgentRunner {
     }
 }
 
-impl warpui::Entity for AmbientAgentRunner {
+impl riftui::Entity for AmbientAgentRunner {
     type Event = ();
 }
 

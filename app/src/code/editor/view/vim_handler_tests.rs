@@ -1,21 +1,21 @@
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::Vector2F;
+use rift_core::features::FeatureFlag;
+use rift_core::settings::Setting;
+use rift_core::ui::appearance::Appearance;
+use rift_editor::content::buffer::{InitialBufferState, ToBufferCharOffset, ToBufferPoint};
+use rift_editor::model::CoreEditorModel;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use rift_editor::render::model::viewport::SizeInfo;
+use rift_util::user_input::UserInput;
+use riftui::keymap::Keystroke;
+use riftui::platform::WindowStyle;
+use riftui::text::point::Point;
+use riftui::units::IntoPixels;
+use riftui::{App, SingletonEntity, TypedActionView, UpdateModel, ViewHandle};
 use unindent::Unindent;
 use vim::vim::{MotionType, VimMode};
-use warp_core::features::FeatureFlag;
-use warp_core::settings::Setting;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::content::buffer::{InitialBufferState, ToBufferCharOffset, ToBufferPoint};
-use warp_editor::model::CoreEditorModel;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warp_editor::render::model::viewport::SizeInfo;
-use warp_util::user_input::UserInput;
-use warpui::keymap::Keystroke;
-use warpui::platform::WindowStyle;
-use warpui::text::point::Point;
-use warpui::units::IntoPixels;
-use warpui::{App, SingletonEntity, TypedActionView, UpdateModel, ViewHandle};
 
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::persistence::CloudModel;

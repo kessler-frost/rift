@@ -1,6 +1,6 @@
-use warp_core::semantic_selection::SemanticSelection;
-use warpui::text::SelectionType;
-use warpui::App;
+use rift_core::semantic_selection::SemanticSelection;
+use riftui::text::SelectionType;
+use riftui::App;
 
 use crate::terminal::block_filter::BlockFilterQuery;
 use crate::terminal::event_listener::ChannelEventListener;

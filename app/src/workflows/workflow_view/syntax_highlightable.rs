@@ -3,12 +3,12 @@ use std::ops::Range;
 use std::time::Duration;
 
 use async_channel::Sender;
+use rift_completer::completer::SuggestionTypeName;
+use rift_completer::signatures::CommandRegistry;
+use rift_core::ui::theme::AnsiColorIdentifier;
+use riftui::r#async::SpawnedFutureHandle;
+use riftui::{Entity, ModelContext, SingletonEntity, ViewHandle};
 use string_offset::ByteOffset;
-use warp_completer::completer::SuggestionTypeName;
-use warp_completer::signatures::CommandRegistry;
-use warp_core::ui::theme::AnsiColorIdentifier;
-use warpui::r#async::SpawnedFutureHandle;
-use warpui::{Entity, ModelContext, SingletonEntity, ViewHandle};
 
 use crate::appearance::Appearance;
 use crate::completer::SessionAgnosticContext;

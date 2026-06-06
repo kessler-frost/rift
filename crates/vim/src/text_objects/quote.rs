@@ -1,8 +1,8 @@
 use std::ops::Range;
 
 use itertools::Itertools;
+use riftui_core::text::TextBuffer;
 use string_offset::CharOffset;
-use warpui_core::text::TextBuffer;
 
 use crate::vim::QuoteType;
 

@@ -5,8 +5,8 @@ use std::sync::Arc;
 use anyhow::Result;
 use chrono::{OutOfRangeError, Utc};
 use futures::stream::AbortHandle;
-use warp_core::user_preferences::GetUserPreferences as _;
-use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
+use rift_core::user_preferences::GetUserPreferences as _;
+use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::execution_context::WarpAiExecutionContext;
 use super::utils::{markdown_segments_from_text, FormattedTranscriptMessage, TranscriptPart};

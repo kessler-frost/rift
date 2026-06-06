@@ -1,5 +1,5 @@
-use warp_core::send_telemetry_from_ctx;
-use warpui::ModelContext;
+use rift_core::send_telemetry_from_ctx;
+use riftui::ModelContext;
 use windows::Win32::System::Com::{
     CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_APARTMENTTHREADED,
 };

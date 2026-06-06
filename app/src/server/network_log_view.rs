@@ -8,13 +8,13 @@
 //! so the user can pick up items captured since the pane was opened. The
 //! pane header also exposes a refresh icon that reloads the snapshot in
 //! place.
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warp_util::path::LineAndColumnArg;
-use warpui::elements::{ChildView, MouseStateHandle};
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use rift_util::path::LineAndColumnArg;
+use riftui::elements::{ChildView, MouseStateHandle};
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };

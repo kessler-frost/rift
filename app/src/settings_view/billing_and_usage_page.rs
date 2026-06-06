@@ -7,28 +7,28 @@ use itertools::Itertools;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use settings::Setting;
-use thousands::Separable;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::Fill;
-use warp_graphql::billing::AddonCreditsOption;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::Fill;
+use rift_graphql::billing::AddonCreditsOption;
+use riftui::elements::{
     Align, Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Flex, FormattedTextElement, HighlightedHyperlink, Hoverable, HyperlinkUrl, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Radius, Shrinkable, Text, Wrap,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::prelude::ChildView;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::prelude::ChildView;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, UpdateView, View,
     ViewContext, ViewHandle,
 };
+use settings::Setting;
+use thousands::Separable;
 
 use super::admin_actions::AdminActions;
 use super::billing_and_usage::overage_limit_modal::{SpendingLimitModal, SpendingLimitModalEvent};
@@ -1563,10 +1563,10 @@ impl BillingAndUsagePageView {
                             fragment.text,
                             None,
                             maybe_action.map(|act| {
-                                Box::new(move |ctx: &mut warpui::EventContext| {
+                                Box::new(move |ctx: &mut riftui::EventContext| {
                                     ctx.dispatch_typed_action(act.clone());
                                 })
-                                    as Box<dyn Fn(&mut warpui::EventContext)>
+                                    as Box<dyn Fn(&mut riftui::EventContext)>
                             }),
                             self.exceed_limit_link_mouse_state.clone(),
                         )
@@ -1693,10 +1693,10 @@ impl BillingAndUsagePageView {
                     .with_hyperlink_font_color(theme.accent().into_solid())
                     .register_default_click_handlers_with_action_support(
                         |hyperlink_lens, event, ctx| match hyperlink_lens {
-                            warpui::elements::HyperlinkLens::Url(url) => {
+                            riftui::elements::HyperlinkLens::Url(url) => {
                                 ctx.open_url(url);
                             }
-                            warpui::elements::HyperlinkLens::Action(action_ref) => {
+                            riftui::elements::HyperlinkLens::Action(action_ref) => {
                                 if let Some(action) = action_ref
                                     .as_any()
                                     .downcast_ref::<BillingAndUsagePageAction>()
@@ -2241,7 +2241,7 @@ impl BillingAndUsagePageView {
         workspace_is_delinquent_due_to_payment_issue: bool,
         appearance: &Appearance,
         prorated_request_limits_info: Option<ProratedRequestLimitsInfo>,
-    ) -> Box<dyn warpui::Element> {
+    ) -> Box<dyn riftui::Element> {
         let mut row = Flex::row();
 
         let show_alert = workspace_is_delinquent_due_to_payment_issue
@@ -2335,7 +2335,7 @@ impl BillingAndUsagePageView {
         workspace_is_delinquent_due_to_payment_issue: bool,
         appearance: &Appearance,
         prorated_request_limits_info: Option<ProratedRequestLimitsInfo>,
-    ) -> Box<dyn warpui::Element> {
+    ) -> Box<dyn riftui::Element> {
         let request_usage_details = Flex::column()
             .with_cross_axis_alignment(CrossAxisAlignment::End)
             .with_child(self.render_request_usage_count(
@@ -3205,10 +3205,10 @@ impl BillingAndUsagePageView {
         } else {
             upgrade_cta = upgrade_cta.register_default_click_handlers_with_action_support(
                 |hyperlink_lens, event, ctx| match hyperlink_lens {
-                    warpui::elements::HyperlinkLens::Url(url) => {
+                    riftui::elements::HyperlinkLens::Url(url) => {
                         ctx.open_url(url);
                     }
-                    warpui::elements::HyperlinkLens::Action(action_ref) => {
+                    riftui::elements::HyperlinkLens::Action(action_ref) => {
                         if let Some(action) = action_ref
                             .as_any()
                             .downcast_ref::<BillingAndUsagePageAction>()

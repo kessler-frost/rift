@@ -1,4 +1,4 @@
-use warpui::{App, EntityId, ModelHandle};
+use riftui::{App, EntityId, ModelHandle};
 
 use super::*;
 use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};

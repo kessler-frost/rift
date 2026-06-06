@@ -1,6 +1,6 @@
+use riftui::{SingletonEntity, ViewContext, ViewHandle};
 use session_sharing_protocol::common::SessionId;
 use uuid::Uuid;
-use warpui::{SingletonEntity, ViewContext, ViewHandle};
 
 use crate::ai::agent::api::ServerConversationToken;
 use crate::ai::agent_conversations_model::{

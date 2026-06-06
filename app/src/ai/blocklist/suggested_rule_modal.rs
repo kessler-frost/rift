@@ -1,15 +1,15 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, ClippedScrollStateHandle, ClippedScrollable,
     ConstrainedBox, Container, CornerRadius, Flex, OffsetPositioning, ParentElement,
     PositionedElementAnchor, PositionedElementOffsetBounds, Radius, ScrollbarWidth,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -40,7 +40,7 @@ const HEADER_TEXT: &str = "Suggested rule";
 const MAX_EDITOR_HEIGHT: f32 = 240.;
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",
@@ -583,7 +583,7 @@ impl SuggestedRuleView {
                             ScrollbarWidth::Auto,
                             appearance.theme().nonactive_ui_detail().into(),
                             appearance.theme().active_ui_detail().into(),
-                            warpui::elements::Fill::None,
+                            riftui::elements::Fill::None,
                         )
                         .finish(),
                     )

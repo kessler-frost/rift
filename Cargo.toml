@@ -16,10 +16,10 @@ default-members = [
   "crates/graphql",
   "crates/markdown_parser",
   "crates/sum_tree",
-  "crates/warpui",
-  "crates/warp_completer",
-  "crates/warp_terminal",
-  "crates/warp_util",
+  "crates/riftui",
+  "crates/rift_completer",
+  "crates/rift_terminal",
+  "crates/rift_util",
 ]
 
 [workspace.package]
@@ -73,30 +73,30 @@ ui_components = { path = "crates/ui_components" }
 vim = { path = "crates/vim" }
 virtual-fs = { path = "crates/virtual_fs" }
 voice_input = { path = "crates/voice_input" }
-warp = { path = "app" }
-warp_assets = { path = "crates/warp_assets" }
-warp_cli = { path = "crates/warp_cli" }
-warp_completer = { path = "crates/warp_completer" }
-warp_core = { path = "crates/warp_core" }
-warp_editor = { path = "crates/editor" }
-warp_features = { path = "crates/warp_features" }
-warp_files = { path = "crates/warp_files" }
-warp_graphql = { path = "crates/graphql" }
-warp_graphql_schema = { path = "crates/warp_graphql_schema" }
-warp_isolation_platform = { path = "crates/isolation_platform" }
-warp_js = { path = "crates/warp_js" }
-warp_logging = { path = "crates/warp_logging" }
-warp_managed_secrets = { path = "crates/managed_secrets" }
-warp_ripgrep = { path = "crates/warp_ripgrep" }
-warp_search_core = { path = "crates/warp_search_core" }
-warp_server_auth = { path = "crates/warp_server_auth" }
-warp_server_client = { path = "crates/warp_server_client" }
-warp_terminal = { path = "crates/warp_terminal" }
-warp_util = { path = "crates/warp_util" }
-warp_web_event_bus = { path = "crates/warp_web_event_bus" }
-warpui = { path = "crates/warpui" }
-warpui_core = { path = "crates/warpui_core" }
-warpui_extras = { path = "crates/warpui_extras", default-features = false }
+rift = { path = "app" }
+rift_assets = { path = "crates/rift_assets" }
+rift_cli = { path = "crates/rift_cli" }
+rift_completer = { path = "crates/rift_completer" }
+rift_core = { path = "crates/rift_core" }
+rift_editor = { path = "crates/editor" }
+rift_features = { path = "crates/rift_features" }
+rift_files = { path = "crates/rift_files" }
+rift_graphql = { path = "crates/graphql" }
+rift_graphql_schema = { path = "crates/rift_graphql_schema" }
+rift_isolation_platform = { path = "crates/isolation_platform" }
+rift_js = { path = "crates/rift_js" }
+rift_logging = { path = "crates/rift_logging" }
+rift_managed_secrets = { path = "crates/managed_secrets" }
+rift_ripgrep = { path = "crates/rift_ripgrep" }
+rift_search_core = { path = "crates/rift_search_core" }
+rift_server_auth = { path = "crates/rift_server_auth" }
+rift_server_client = { path = "crates/rift_server_client" }
+rift_terminal = { path = "crates/rift_terminal" }
+rift_util = { path = "crates/rift_util" }
+rift_web_event_bus = { path = "crates/rift_web_event_bus" }
+riftui = { path = "crates/riftui" }
+riftui_core = { path = "crates/riftui_core" }
+riftui_extras = { path = "crates/riftui_extras", default-features = false }
 watcher = { path = "crates/watcher" }
 websocket = { path = "crates/websocket" }
 
@@ -318,7 +318,7 @@ version-compare = "0.1"
 vte = { git = "https://github.com/warpdotdev/vte.git", rev = "4b399c87b63ba88f45709edaa6383fc519f6c900", default-features = false }
 walkdir = "2"
 warp-workflows = { git = "https://github.com/warpdotdev/workflows", rev = "793a98ddda6ef19682aed66364faebd2829f0e01" }
-warp_multi_agent_api = { git = "https://github.com/warpdotdev/warp-proto-apis.git", rev = "c67de64fc4949f693a679552dc88cebc9f7d0180" }
+rift_multi_agent_api = { git = "https://github.com/warpdotdev/warp-proto-apis.git", rev = "c67de64fc4949f693a679552dc88cebc9f7d0180", package = "warp_multi_agent_api" }
 wasm-bindgen = "0.2.89"
 wasm-bindgen-futures = "0.4.42"
 web-sys = { version = "0.3.69", features = [
@@ -417,7 +417,7 @@ split-debuginfo = "unpacked"
 
 [profile.dev.package]
 # Improve the performance of core terminal logic.
-warp_terminal.opt-level = 3
+rift_terminal.opt-level = 3
 # Minimize the runtime overhead of CPU profiling at the cost of a small
 # increase in compile time for this crate.
 backtrace.opt-level = 3
@@ -530,4 +530,4 @@ tikv-jemalloc-sys = { git = "https://github.com/warpdotdev/jemallocator.git", re
 
 [patch."https://github.com/warpdotdev/warp-proto-apis.git"]
 # Uncomment for local development of warp-proto-apis
-# warp_multi_agent_api = { path = "../warp-proto-apis/apis/multi_agent/v1/gen/rust" }
+# rift_multi_agent_api = { path = "../warp-proto-apis/apis/multi_agent/v1/gen/rust" }

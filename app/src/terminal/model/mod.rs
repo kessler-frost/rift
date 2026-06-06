@@ -6,9 +6,9 @@ pub use terminal_model::TerminalModel;
 macro_rules! assert_lines_approx_eq {
     ($actual:expr, $expected:expr) => {{
         float_cmp::assert_approx_eq!(
-            warpui::units::Lines,
+            riftui::units::Lines,
             $actual,
-            warpui::units::IntoLines::into_lines($expected)
+            riftui::units::IntoLines::into_lines($expected)
         )
     }};
 }
@@ -38,9 +38,9 @@ pub mod terminal_model;
 #[cfg(test)]
 pub mod test_utils;
 
+pub use rift_terminal::model::grid::cell;
+pub use rift_terminal::model::{char_or_str, escape_sequences, mouse, BlockId};
 pub use secrets::{
     set_user_and_enterprise_secret_regexes, ObfuscateSecrets, RespectObfuscatedSecrets, Secret,
     SecretHandle,
 };
-pub use warp_terminal::model::grid::cell;
-pub use warp_terminal::model::{char_or_str, escape_sequences, mouse, BlockId};

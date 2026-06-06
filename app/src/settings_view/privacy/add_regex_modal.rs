@@ -1,12 +1,12 @@
 use regex::Regex;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     ChildView, Container, CrossAxisAlignment, Empty, Expanded, Flex, MainAxisSize,
     MouseStateHandle, ParentElement, Text,
 };
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

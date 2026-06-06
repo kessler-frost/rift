@@ -3,9 +3,9 @@ use std::time::Duration;
 
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
-use warpui::elements::Empty;
-use warpui::r#async::Timer;
-use warpui::{App, AppContext, Element};
+use riftui::elements::Empty;
+use riftui::r#async::Timer;
+use riftui::{App, AppContext, Element};
 
 use super::*;
 use crate::appearance::Appearance;

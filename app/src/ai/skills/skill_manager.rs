@@ -7,12 +7,12 @@ use ai::skills::{parse_bundled_skill, provider_rank, ParsedSkill, SkillProvider,
 pub use file_watchers::{
     extract_skill_parent_directory, read_skills_from_directories, SkillWatcher, SkillWatcherEvent,
 };
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::icons::Icon;
-use warp_core::{report_error, safe_warn};
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::icons::Icon;
+use rift_core::{report_error, safe_warn};
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
 use super::{SkillDescriptor, SkillPathQuery};
 use crate::ai::mcp::{McpIntegration, TemplatableMCPServerManager};
@@ -465,7 +465,7 @@ impl SkillManager {
 
     /// Load skill definitions bundled with Warp.
     async fn load_bundled_skills() -> HashMap<String, BundledSkill> {
-        let Some(resources_dir) = warp_core::paths::bundled_resources_dir() else {
+        let Some(resources_dir) = rift_core::paths::bundled_resources_dir() else {
             return HashMap::new();
         };
         let skills_dir = resources_dir.join("bundled").join("skills");
@@ -487,7 +487,7 @@ impl SkillManager {
 
     /// Load Figma-specific bundled skills from the `figma/` subdirectory.
     async fn load_figma_skills() -> HashMap<String, BundledSkill> {
-        let Some(resources_dir) = warp_core::paths::bundled_resources_dir() else {
+        let Some(resources_dir) = rift_core::paths::bundled_resources_dir() else {
             return HashMap::new();
         };
         let figma_skills_dir = resources_dir
@@ -621,7 +621,7 @@ fn build_bundled_skill_context() -> HashMap<String, String> {
     .collect();
 
     if let Some(schema_path) =
-        warp_core::paths::bundled_resources_dir().map(|dir| dir.join("settings_schema.json"))
+        rift_core::paths::bundled_resources_dir().map(|dir| dir.join("settings_schema.json"))
     {
         context.insert(
             "settings_schema_path".to_owned(),

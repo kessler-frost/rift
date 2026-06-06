@@ -17,11 +17,11 @@ use std::time::Duration;
 pub use codebase_index::{CodebaseIndex, RetrievalID, SyncProgress};
 pub use fragment_metadata::{FragmentLocation as FragmentMetadataLocation, FragmentMetadata};
 pub use merkle_tree::{ContentHash, NodeHash};
+use rift_graphql::queries::rerank_fragments::FragmentLocationInput;
 pub use snapshot::SnapshotStorage;
 use string_offset::ByteOffset;
 pub use sync_client::SyncTask;
 use thiserror::Error;
-use warp_graphql::queries::rerank_fragments::FragmentLocationInput;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -98,54 +98,54 @@ pub struct RepoMetadata {
     pub path: Option<String>,
 }
 
-impl From<RepoMetadata> for warp_graphql::full_source_code_embedding::RepoMetadata {
+impl From<RepoMetadata> for rift_graphql::full_source_code_embedding::RepoMetadata {
     fn from(val: RepoMetadata) -> Self {
         Self { path: val.path }
     }
 }
 
-impl From<EmbeddingConfig> for warp_graphql::full_source_code_embedding::EmbeddingConfig {
+impl From<EmbeddingConfig> for rift_graphql::full_source_code_embedding::EmbeddingConfig {
     fn from(val: EmbeddingConfig) -> Self {
         match val {
             EmbeddingConfig::OpenAiTextSmall3_256 => {
-                warp_graphql::full_source_code_embedding::EmbeddingConfig::OpenaiTextSmall3256
+                rift_graphql::full_source_code_embedding::EmbeddingConfig::OpenaiTextSmall3256
             }
             EmbeddingConfig::VoyageCode3_512 => {
-                warp_graphql::full_source_code_embedding::EmbeddingConfig::VoyageCode3512
+                rift_graphql::full_source_code_embedding::EmbeddingConfig::VoyageCode3512
             }
             EmbeddingConfig::Voyage3_5_512 => {
-                warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35512
+                rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35512
             }
             EmbeddingConfig::Voyage3_5_Lite_512 => {
-                warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35Lite512
+                rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35Lite512
             }
             EmbeddingConfig::Voyage4_512 => {
-                warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage4512
+                rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage4512
             }
         }
     }
 }
 
-impl TryFrom<warp_graphql::full_source_code_embedding::EmbeddingConfig> for EmbeddingConfig {
+impl TryFrom<rift_graphql::full_source_code_embedding::EmbeddingConfig> for EmbeddingConfig {
     type Error = Error;
 
     fn try_from(
-        value: warp_graphql::full_source_code_embedding::EmbeddingConfig,
+        value: rift_graphql::full_source_code_embedding::EmbeddingConfig,
     ) -> Result<Self, Self::Error> {
         match value {
-            warp_graphql::full_source_code_embedding::EmbeddingConfig::OpenaiTextSmall3256 => {
+            rift_graphql::full_source_code_embedding::EmbeddingConfig::OpenaiTextSmall3256 => {
                 Ok(Self::OpenAiTextSmall3_256)
             }
-            warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35Lite512 => {
+            rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35Lite512 => {
                 Ok(Self::Voyage3_5_Lite_512)
             }
-            warp_graphql::full_source_code_embedding::EmbeddingConfig::VoyageCode3512 => {
+            rift_graphql::full_source_code_embedding::EmbeddingConfig::VoyageCode3512 => {
                 Ok(Self::VoyageCode3_512)
             }
-            warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35512 => {
+            rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage35512 => {
                 Ok(Self::Voyage3_5_512)
             }
-            warp_graphql::full_source_code_embedding::EmbeddingConfig::Voyage4512 => {
+            rift_graphql::full_source_code_embedding::EmbeddingConfig::Voyage4512 => {
                 Ok(Self::Voyage4_512)
             }
         }
@@ -201,7 +201,7 @@ impl Fragment {
     }
 }
 
-impl From<Fragment> for warp_graphql::full_source_code_embedding::Fragment {
+impl From<Fragment> for rift_graphql::full_source_code_embedding::Fragment {
     fn from(val: Fragment) -> Self {
         Self {
             content: val.content,
@@ -210,7 +210,7 @@ impl From<Fragment> for warp_graphql::full_source_code_embedding::Fragment {
     }
 }
 
-impl From<Fragment> for warp_graphql::queries::rerank_fragments::RerankFragmentInput {
+impl From<Fragment> for rift_graphql::queries::rerank_fragments::RerankFragmentInput {
     fn from(val: Fragment) -> Self {
         Self {
             content: val.content,
@@ -224,11 +224,11 @@ impl From<Fragment> for warp_graphql::queries::rerank_fragments::RerankFragmentI
     }
 }
 
-impl TryFrom<warp_graphql::queries::rerank_fragments::RerankFragment> for Fragment {
+impl TryFrom<rift_graphql::queries::rerank_fragments::RerankFragment> for Fragment {
     type Error = Error;
 
     fn try_from(
-        val: warp_graphql::queries::rerank_fragments::RerankFragment,
+        val: rift_graphql::queries::rerank_fragments::RerankFragment,
     ) -> Result<Self, Self::Error> {
         Ok(Self {
             content: val.content,

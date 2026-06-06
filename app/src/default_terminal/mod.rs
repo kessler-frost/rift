@@ -1,5 +1,5 @@
-use warpui::windowing::{StateEvent, WindowManager};
-use warpui::{Entity, ModelContext, SingletonEntity};
+use riftui::windowing::{StateEvent, WindowManager};
+use riftui::{Entity, ModelContext, SingletonEntity};
 
 #[cfg(target_os = "macos")]
 mod mac;

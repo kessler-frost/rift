@@ -13,20 +13,20 @@ pub use entry::{
 use futures::stream::AbortHandle;
 use instant::Instant;
 use itertools::Itertools;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use warp_cli::agent::Harness;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-use warp_core::report_error;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::WarpTheme;
-use warpui::color::ColorU;
-use warpui::r#async::Timer;
-use warpui::windowing::{StateEvent, WindowManager};
-use warpui::{
+use rift_cli::agent::Harness;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+use rift_core::report_error;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::WarpTheme;
+use riftui::color::ColorU;
+use riftui::r#async::Timer;
+use riftui::windowing::{StateEvent, WindowManager};
+use riftui::{
     duration_with_jitter, AppContext, Entity, EntityId, ModelContext, RequestState,
     SingletonEntity, WindowId,
 };
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
 use crate::ai::agent::api::ServerConversationToken;

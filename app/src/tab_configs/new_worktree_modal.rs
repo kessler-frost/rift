@@ -1,21 +1,21 @@
 use std::path::PathBuf;
 
-use warpui::elements::{
+use riftui::elements::{
     Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Element,
     Fill as ElementFill, Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, Padding,
     ParentElement, Radius, Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::FixedBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::checkbox::Checkbox;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::FixedBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::checkbox::Checkbox;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
 
 /// Registers keybindings for the new-worktree modal (ESC to close).
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
     app.register_fixed_bindings(vec![FixedBinding::new(
         "escape",
         NewWorktreeModalAction::Escape,
@@ -23,7 +23,7 @@ pub fn init(app: &mut AppContext) {
     )]);
 }
 
-use warp_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::color::internal_colors;
 
 use crate::ai::persisted_workspace::PersistedWorkspace;
 use crate::appearance::Appearance;
@@ -356,7 +356,7 @@ impl View for NewWorktreeModal {
 
             // X close icon
             let close_icon = ConstrainedBox::new(
-                warp_core::ui::Icon::X
+                rift_core::ui::Icon::X
                     .to_warpui_icon(theme.sub_text_color(theme.background()))
                     .finish(),
             )
@@ -371,7 +371,7 @@ impl View for NewWorktreeModal {
                 .with_child(esc_badge)
                 .finish();
 
-            let close_hoverable = warpui::elements::Hoverable::new(
+            let close_hoverable = riftui::elements::Hoverable::new(
                 self.close_button_mouse_state.clone(),
                 move |_state| close_button,
             )

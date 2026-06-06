@@ -7,13 +7,13 @@ use std::path::{Path, PathBuf};
 
 #[cfg(not(target_family = "wasm"))]
 use diesel::{QueryDsl, RunQueryDsl, SqliteConnection};
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::Icon;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 #[cfg(not(target_family = "wasm"))]
 pub use templatable_manager::McpIntegration;
 pub use templatable_manager::TemplatableMCPServerManager;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::Icon;
 
 use crate::cloud_object::model::generic_string_model::StringModel;
 use crate::cloud_object::model::json_model::JsonModel;
@@ -485,7 +485,7 @@ pub enum MCPServerUpdate {
 
 pub(crate) fn home_config_file_path(provider: MCPProvider) -> Option<PathBuf> {
     match provider {
-        MCPProvider::Warp => warp_core::paths::warp_home_mcp_config_file_path(),
+        MCPProvider::Warp => rift_core::paths::warp_home_mcp_config_file_path(),
         _ => dirs::home_dir().map(|home_dir| home_dir.join(provider.home_config_path())),
     }
 }

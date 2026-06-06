@@ -1,12 +1,12 @@
-use settings::Setting as _;
-use warpui::elements::{
+use riftui::elements::{
     Align, CrossAxisAlignment, Flex, MainAxisSize, MouseStateHandle, ParentElement as _,
 };
-use warpui::fonts::Weight;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::fonts::Weight;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use settings::Setting as _;
 
 use crate::appearance::Appearance;
 use crate::report_if_error;
@@ -78,7 +78,7 @@ impl WasmNUXDialog {
     /// behavior: if Warp is installed, redirect to it; otherwise stay on the web.
     pub fn should_display(app: &AppContext) -> bool {
         // Don't show on mobile devices - they can't use the desktop app
-        if warpui::platform::wasm::is_mobile_device() {
+        if riftui::platform::wasm::is_mobile_device() {
             return false;
         }
 

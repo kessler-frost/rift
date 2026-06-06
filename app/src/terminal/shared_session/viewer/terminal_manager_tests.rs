@@ -11,7 +11,7 @@
 //! `HiddenForClose` (undo-close grace window) and `Moved`.
 
 use async_broadcast::broadcast;
-use warpui::App;
+use riftui::App;
 
 use super::*;
 use crate::ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer;

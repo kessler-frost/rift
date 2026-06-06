@@ -1,11 +1,11 @@
 use std::time::Duration;
 
+use rift_core::features::FeatureFlag;
+use rift_core::register_telemetry_event;
+use rift_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 use serde::Serialize;
 use serde_json::{json, Value};
 use strum_macros::{EnumDiscriminants, EnumIter};
-use warp_core::features::FeatureFlag;
-use warp_core::register_telemetry_event;
-use warp_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 
 #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
 #[derive(Clone, EnumDiscriminants)]
@@ -125,7 +125,7 @@ impl TelemetryEvent for AITelemetryEvent {
     }
 
     fn event_descs() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
-        warp_core::telemetry::enum_events::<Self>()
+        rift_core::telemetry::enum_events::<Self>()
     }
 }
 

@@ -1,8 +1,8 @@
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{CornerRadius, Radius};
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{CornerRadius, Radius};
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
 
 pub const HEADER_FONT_SIZE: f32 = 16.;
 pub const TEXT_FONT_SIZE: f32 = 14.;

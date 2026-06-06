@@ -1,13 +1,13 @@
 use chrono::{DateTime, Utc};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::{Cell, Table};
-use serde::Serialize;
-use serde_json::{Map, Value};
-use warp_cli::agent::OutputFormat;
-use warp_graphql::queries::get_simple_integrations::{
+use rift_cli::agent::OutputFormat;
+use rift_graphql::queries::get_simple_integrations::{
     ListedSimpleIntegrationConfig, SimpleIntegration, SimpleIntegrationConnectionStatus,
     SimpleIntegrationsOutput,
 };
+use serde::Serialize;
+use serde_json::{Map, Value};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
 use crate::util::time_format::format_approx_duration_from_now_utc;

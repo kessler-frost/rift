@@ -1,7 +1,7 @@
-use warpui::elements::{Flex, MouseStateHandle, ParentElement};
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element};
+use riftui::elements::{Flex, MouseStateHandle, ParentElement};
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element};
 
 use super::{WarpDriveItem, WarpDriveItemId};
 use crate::appearance::Appearance;

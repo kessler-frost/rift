@@ -1,4 +1,4 @@
-use warpui::AppContext;
+use riftui::AppContext;
 
 use super::{CloudObject, Space};
 use crate::drive::folders::CloudFolder;

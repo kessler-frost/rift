@@ -5,7 +5,7 @@
 //! Gemini CLI, Codex), it displays a specialized footer with additional functionality.
 
 use base64::Engine;
-use warpui::clipboard::{ClipboardContent, ImageData};
+use riftui::clipboard::{ClipboardContent, ImageData};
 
 use crate::ai::agent::ImageContext;
 use crate::ai::blocklist::agent_view::agent_input_footer::{
@@ -25,26 +25,26 @@ use std::time::Duration;
 use anyhow::anyhow;
 use parking_lot::FairMutex;
 use pathfinder_color::ColorU;
-use warp_core::features::FeatureFlag;
-use warp_core::settings::Setting;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::contrast::{
+use rift_core::features::FeatureFlag;
+use rift_core::settings::Setting;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::contrast::{
     high_enough_contrast, pick_best_foreground_color, MinimumAllowedContrast,
 };
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill as ThemeFill;
-use warp_core::{report_error, send_telemetry_from_ctx};
-use warp_terminal::model::escape_sequences::{BRACKETED_PASTE_END, BRACKETED_PASTE_START};
-use warpify_footer::{WarpifyFooterView, WarpifyFooterViewEvent};
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill as ThemeFill;
+use rift_core::{report_error, send_telemetry_from_ctx};
+use rift_terminal::model::escape_sequences::{BRACKETED_PASTE_END, BRACKETED_PASTE_START};
+use riftui::elements::{
     ChildView, Container, CrossAxisAlignment, Empty, Expanded, Flex, MainAxisSize, ParentElement,
 };
-use warpui::keymap::Keystroke;
-use warpui::r#async::Timer;
-use warpui::{
+use riftui::keymap::Keystroke;
+use riftui::r#async::Timer;
+use riftui::{
     AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use warpify_footer::{WarpifyFooterView, WarpifyFooterViewEvent};
 
 use super::{RichContentInsertionPosition, TerminalAction, TerminalView};
 use crate::ai::blocklist::agent_view::agent_view_bg_fill;

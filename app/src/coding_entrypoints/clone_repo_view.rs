@@ -1,6 +1,6 @@
-use warp_core::send_telemetry_from_ctx;
-use warpui::elements::{ChildView, Flex, ParentElement as _};
-use warpui::{
+use rift_core::send_telemetry_from_ctx;
+use riftui::elements::{ChildView, Flex, ParentElement as _};
+use riftui::{
     AppContext, Element, Entity, FocusContext, TypedActionView, View, ViewContext, ViewHandle,
 };
 

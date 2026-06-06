@@ -1,7 +1,7 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::Empty;
-use warpui::platform::WindowStyle;
-use warpui::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::Empty;
+use riftui::platform::WindowStyle;
+use riftui::{
     AddSingletonModel, App, AppContext, Element, Entity, TypedActionView, View, WindowId,
 };
 

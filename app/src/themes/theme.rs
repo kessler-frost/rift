@@ -3,17 +3,17 @@ use std::iter::FromIterator;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::Result;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-pub use warp_core::ui::color::blend::Blend;
-use warp_core::ui::color::pick_foreground_color;
-pub use warp_core::ui::theme::*;
-use warpui::assets::asset_cache::AssetSource;
-use warpui::color::ColorU;
-use warpui::elements::{
+pub use rift_core::ui::color::blend::Blend;
+use rift_core::ui::color::pick_foreground_color;
+pub use rift_core::ui::theme::*;
+use riftui::assets::asset_cache::AssetSource;
+use riftui::color::ColorU;
+use riftui::elements::{
     Align, Border, ConstrainedBox, Container, Element, Empty, Flex, ParentElement, Rect,
     Shrinkable, Stack, Text,
 };
-use warpui::fonts::FamilyId;
+use riftui::fonts::FamilyId;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::default_themes::*;
 use super::theme_creator::{pick_accent_color_from_options, top_colors_for_image};
@@ -687,9 +687,9 @@ pub fn render_preview(
         thumbnail.add_child(
             Shrinkable::new(
                 1.,
-                warpui::elements::Image::new(
+                riftui::elements::Image::new(
                     background_image.source(),
-                    warpui::elements::CacheOption::BySize,
+                    riftui::elements::CacheOption::BySize,
                 )
                 .cover()
                 .finish(),

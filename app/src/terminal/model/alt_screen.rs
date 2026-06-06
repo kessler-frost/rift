@@ -7,11 +7,11 @@ use itertools::Itertools;
 use num_traits::Float as _;
 use parking_lot::Mutex;
 use pathfinder_color::ColorU;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
+use riftui::text::SelectionType;
+use riftui::units::Lines;
 use vec1::Vec1;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use warpui::text::SelectionType;
-use warpui::units::Lines;
 
 use super::find::RegexDFAs;
 use super::grid::RespectDisplayedOutput;

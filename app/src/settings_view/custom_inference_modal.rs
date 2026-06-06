@@ -1,18 +1,18 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use ::ai::api_keys::CustomEndpoint;
-use url::Url;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Expanded, Flex, MainAxisSize, MouseStateHandle, ParentElement, Radius, Text,
 };
-use warpui::fonts::FamilyId;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::FamilyId;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
+use url::Url;
 
 use crate::appearance::Appearance;
 use crate::editor::{

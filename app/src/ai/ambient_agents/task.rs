@@ -6,13 +6,13 @@ use chrono::{DateTime, Duration as ChronoDuration, Utc};
 pub use cloud_object_models::HarnessModelConfig;
 pub use cloud_object_models::{AgentConfigSnapshot, HarnessAuthSecretsConfig, HarnessConfig};
 use iso8601_duration::Duration as Iso8601Duration;
+use rift_core::report_error;
+use rift_core::ui::theme::WarpTheme;
+use riftui::color::ColorU;
+use riftui::{SingletonEntity, View, ViewContext};
 use serde::{Deserialize, Serialize};
 use session_sharing_protocol::common::SessionId;
 use url::Url;
-use warp_core::report_error;
-use warp_core::ui::theme::WarpTheme;
-use warpui::color::ColorU;
-use warpui::{SingletonEntity, View, ViewContext};
 
 use super::AmbientAgentTaskId;
 use crate::ai::artifacts::{deserialize_artifacts, Artifact};

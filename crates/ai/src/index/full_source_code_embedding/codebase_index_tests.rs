@@ -7,10 +7,10 @@ use std::sync::Arc;
 use chrono::Utc;
 use futures::executor::block_on;
 use repo_metadata::DirectoryWatcher;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::{App, SingletonEntity};
 use string_offset::ByteOffset;
 use virtual_fs::{Stub, VirtualFS};
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::{App, SingletonEntity};
 
 use super::{
     CodebaseIndex, CodebaseIndexTimeStampMetadata, ServerSyncResult, TreeSourceSyncState,

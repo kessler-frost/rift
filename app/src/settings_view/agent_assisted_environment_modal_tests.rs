@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{ChildView, Empty};
-use warpui::platform::WindowStyle;
-use warpui::{App, AppContext, Element, Entity, TypedActionView, View, ViewContext, ViewHandle};
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{ChildView, Empty};
+use riftui::platform::WindowStyle;
+use riftui::{App, AppContext, Element, Entity, TypedActionView, View, ViewContext, ViewHandle};
 
 use super::*;
 use crate::server::server_api::ServerApiProvider;

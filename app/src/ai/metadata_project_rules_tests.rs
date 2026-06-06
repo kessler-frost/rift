@@ -1,8 +1,8 @@
 use remote_server::proto::{file_context_proto, FileContextProto};
-use warp_util::host_id::HostId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::remote_path::RemotePath;
-use warp_util::standardized_path::StandardizedPath;
+use rift_util::host_id::HostId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::remote_path::RemotePath;
+use rift_util::standardized_path::StandardizedPath;
 
 use super::{pair_remote_rule_paths_with_contents, remote_rule_read_request};
 

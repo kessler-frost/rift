@@ -9,27 +9,27 @@ use lazy_static::lazy_static;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
-use warp_core::features::FeatureFlag;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::theme::color::internal_colors;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::{
     Align, Border, ChildAnchor, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Element, Flex, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius,
     SavePosition, ScrollTarget, ScrollToPositionMode, Shrinkable, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::presenter::ChildView;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::SwitchStateHandle;
-use warpui::ui_components::text_input::TextInput;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::presenter::ChildView;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::SwitchStateHandle;
+use riftui::ui_components::text_input::TextInput;
+use riftui::{
     AppContext, Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use serde::{Deserialize, Serialize};
 
 use super::admin_actions::AdminActions;
 use super::settings_page::{

@@ -1,11 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::Error;
+use rift_core::define_settings_group;
+use rift_core::settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
+use riftui::{AppContext, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use settings_value::SettingsValue;
-use warp_core::define_settings_group;
-use warp_core::settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
-use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
 use crate::cloud_object::CloudObject as _;

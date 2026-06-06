@@ -12,12 +12,12 @@ use indexmap::IndexSet;
 use remote_server::manager::RemoteServerManager;
 #[cfg(feature = "local_fs")]
 use repo_metadata::repositories::DetectedRepositories;
-use warp_core::SessionId;
+use rift_core::SessionId;
 #[cfg(feature = "local_fs")]
-use warp_util::remote_path::RemotePath;
+use rift_util::remote_path::RemotePath;
 #[cfg(feature = "local_fs")]
-use warpui::{AppContext, SingletonEntity as _};
-use warpui::{Entity, EntityId, ModelContext, ModelHandle, ViewHandle};
+use riftui::{AppContext, SingletonEntity as _};
+use riftui::{Entity, EntityId, ModelContext, ModelHandle, ViewHandle};
 
 use crate::code::buffer_location::LocalOrRemotePath;
 #[cfg(feature = "local_fs")]

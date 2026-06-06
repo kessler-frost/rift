@@ -2,12 +2,12 @@ use std::cell::Cell;
 use std::sync::Arc;
 
 use pathfinder_color::ColorU;
+use riftui_core::assets::asset_cache::AssetSource;
+use riftui_core::fonts::FamilyId;
+use riftui_core::text_layout::{CaretPosition, TextFrame};
+use riftui_core::units::IntoPixels;
 use string_offset::CharOffset;
 use sum_tree::SumTree;
-use warpui_core::assets::asset_cache::AssetSource;
-use warpui_core::fonts::FamilyId;
-use warpui_core::text_layout::{CaretPosition, TextFrame};
-use warpui_core::units::IntoPixels;
 
 use crate::content::text::{
     BufferBlockStyle, CodeBlockType, FormattedTable, table_cell_offset_maps,

@@ -5,15 +5,15 @@ use onboarding::components::onboarding_callout::{
     Button as CalloutButton, OnboardingCallout, Options as CalloutOptions, Params as CalloutParams,
     StepStatus,
 };
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::{AnsiColor, AnsiColors, Details, Fill, TerminalColors, WarpTheme};
+use riftui_core::color::ColorU;
+use riftui_core::elements::{Rect, Stack};
+use riftui_core::fonts::{Cache, FamilyId, Weight};
+use riftui_core::prelude::*;
+use riftui_core::{platform, AddWindowOptions, AssetProvider, ModelContext};
 use rust_embed::RustEmbed;
 use ui_components::Component as _;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::{AnsiColor, AnsiColors, Details, Fill, TerminalColors, WarpTheme};
-use warpui_core::color::ColorU;
-use warpui_core::elements::{Rect, Stack};
-use warpui_core::fonts::{Cache, FamilyId, Weight};
-use warpui_core::prelude::*;
-use warpui_core::{platform, AddWindowOptions, AssetProvider, ModelContext};
 
 #[derive(Clone, Copy, RustEmbed)]
 #[folder = "../../app/assets"]
@@ -30,7 +30,7 @@ impl AssetProvider for Assets {
 }
 
 fn main() -> platform::app::TerminationResult {
-    let app_builder = warpui::platform::AppBuilder::new(
+    let app_builder = riftui::platform::AppBuilder::new(
         platform::AppCallbacks::default(),
         Box::new(ASSETS),
         None,

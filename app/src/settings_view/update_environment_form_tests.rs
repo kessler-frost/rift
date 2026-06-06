@@ -1,11 +1,11 @@
-use url::Url;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{Empty, MouseStateHandle};
-use warpui::platform::WindowStyle;
-use warpui::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{Empty, MouseStateHandle};
+use riftui::platform::WindowStyle;
+use riftui::{
     AddSingletonModel, App, AppContext, Element, Entity, SingletonEntity, TypedActionView, View,
     WindowId,
 };
+use url::Url;
 
 use super::{
     EnvironmentFormCopy, EnvironmentFormInitArgs, EnvironmentFormValues, SuggestImageState,

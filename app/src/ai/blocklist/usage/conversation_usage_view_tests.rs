@@ -24,9 +24,9 @@
 
 use std::collections::HashMap;
 
-use warp_core::ui::appearance::Appearance;
-use warpui::platform::WindowStyle;
-use warpui::App;
+use rift_core::ui::appearance::Appearance;
+use riftui::platform::WindowStyle;
+use riftui::App;
 
 use super::*;
 use crate::persistence::model::{ModelTokenUsage, PRIMARY_AGENT_CATEGORY};
@@ -53,7 +53,7 @@ fn initialize_test_app(app: &mut App) {
     app.add_singleton_model(|_| Appearance::mock());
 }
 
-fn build_view(_ctx: &mut warpui::ViewContext<ConversationUsageView>) -> ConversationUsageView {
+fn build_view(_ctx: &mut riftui::ViewContext<ConversationUsageView>) -> ConversationUsageView {
     ConversationUsageView::new(
         placeholder_usage_info(),
         DisplayMode::Footer,

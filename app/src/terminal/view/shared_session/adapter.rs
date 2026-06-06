@@ -5,11 +5,11 @@ use std::time::Duration;
 
 use chrono::{DateTime, Local};
 use markdown_parser::FormattedTextFragment;
+use rift_core::features::FeatureFlag;
+use riftui::elements::MouseStateHandle;
+use riftui::{AppContext, Element, ModelHandle, ViewContext, ViewHandle};
 use session_sharing_protocol::common::{ParticipantId, ParticipantList, Role, SessionId};
 use session_sharing_protocol::sharer::SessionSourceType;
-use warp_core::features::FeatureFlag;
-use warpui::elements::MouseStateHandle;
-use warpui::{AppContext, Element, ModelHandle, ViewContext, ViewHandle};
 
 use super::sharer::Sharer;
 use super::viewer::Viewer;

@@ -8,10 +8,10 @@ mod windows;
 
 use std::path::PathBuf;
 
+use rift_util::path::LineAndColumnArg;
+use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use settings::EditorChoice;
-use warp_util::path::LineAndColumnArg;
-use warpui::{AppContext, SingletonEntity};
 
 pub use self::settings::{EditorLayout, EditorSettings};
 

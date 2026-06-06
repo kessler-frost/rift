@@ -14,6 +14,9 @@ use futures_util::stream::AbortHandle;
 use futures_util::{SinkExt, StreamExt};
 use instant::Instant;
 use parking_lot::FairMutex;
+use rift_core::features::FeatureFlag;
+use riftui::r#async::Timer;
+use riftui::{Entity, ModelContext, ModelHandle, RequestState, RetryOption, SingletonEntity};
 use session_sharing_protocol::common::{
     ActivePrompt, ActivePromptUpdate, AgentPromptFailureReason, AgentPromptRequest,
     AgentPromptRequestId, CommandExecutionFailureReason, CommandExecutionRequestId, ControlAction,
@@ -35,9 +38,6 @@ use session_sharing_protocol::sharer::{
     SessionTerminatedReason, TeamAccessLevelUpdateResponse, UpdatePendingUserRoleResponse,
     UpstreamMessage,
 };
-use warp_core::features::FeatureFlag;
-use warpui::r#async::Timer;
-use warpui::{Entity, ModelContext, ModelHandle, RequestState, RetryOption, SingletonEntity};
 use websocket::{Message, Sink, Stream, WebSocket, WebsocketMessage as _};
 
 use crate::auth::{AuthStateProvider, UserUid};
@@ -373,7 +373,7 @@ impl Network {
         active_prompt: ActivePrompt,
         selection: Selection,
         input_replica_id: ReplicaId,
-        terminal_view_id: warpui::EntityId,
+        terminal_view_id: riftui::EntityId,
         universal_developer_input_context: UniversalDeveloperInputContext,
         lifetime: Lifetime,
         source: SharedSessionSource,

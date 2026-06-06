@@ -1,24 +1,24 @@
 use std::collections::HashMap;
 
-use serde::Serialize;
-use string_offset::CharCounter;
-use warp_completer::signatures::CommandRegistry;
-use warp_completer::util::parse_current_commands_and_tokens;
-use warp_completer::ParsedTokensSnapshot;
-use warp_core::report_error;
-use warp_core::ui::theme::{AnsiColorIdentifier, AnsiColors};
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::new_scrollable::{ClippedAxisConfiguration, DualAxisConfig, NewScrollable};
-use warpui::elements::{
+use rift_completer::signatures::CommandRegistry;
+use rift_completer::util::parse_current_commands_and_tokens;
+use rift_completer::ParsedTokensSnapshot;
+use rift_core::report_error;
+use rift_core::ui::theme::{AnsiColorIdentifier, AnsiColors};
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::new_scrollable::{ClippedAxisConfiguration, DualAxisConfig, NewScrollable};
+use riftui::elements::{
     Align, Border, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Element, Empty, Expanded, Flex, Highlight, HighlightedRange,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::prelude::ChildView;
-use warpui::text_layout::TextStyle;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::fonts::{Properties, Weight};
+use riftui::prelude::ChildView;
+use riftui::text_layout::TextStyle;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle};
+use serde::Serialize;
+use string_offset::CharCounter;
 
 use crate::ai::agent_management::telemetry::{AgentManagementTelemetryEvent, SetupGuideStep};
 use crate::ai::blocklist::code_block::{
@@ -620,7 +620,7 @@ impl View for CloudSetupGuideView {
             },
             theme.nonactive_ui_detail().into(),
             theme.active_ui_detail().into(),
-            warpui::elements::Fill::None,
+            riftui::elements::Fill::None,
         )
         .finish();
 

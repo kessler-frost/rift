@@ -1,5 +1,5 @@
+use riftui::{AppContext, SingletonEntity};
 use settings::Setting as _;
-use warpui::{AppContext, SingletonEntity};
 
 use super::alt_screen_reporting::AltScreenReporting;
 use super::model::grid::grid_handler::TermMode;

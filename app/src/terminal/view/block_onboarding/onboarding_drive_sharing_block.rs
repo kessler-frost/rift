@@ -1,13 +1,13 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Border, Container, Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
+use riftui::fonts::{Properties, Weight};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
 
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
 use crate::drive::CloudObjectTypeAndId;

@@ -6,13 +6,13 @@ use ai::skills::SkillReference;
 use command_corrections::Correction;
 pub use onboarding::OnboardingIntention;
 use pathfinder_geometry::vector::Vector2F;
+use rift_util::user_input::UserInput;
+use riftui::elements::HyperlinkUrl;
+use riftui::event::ModifiersState;
+use riftui::units::Lines;
+use riftui::EntityId;
 use session_sharing_protocol::common::Role;
 use session_sharing_protocol::sharer::RoleUpdateReason;
-use warp_util::user_input::UserInput;
-use warpui::elements::HyperlinkUrl;
-use warpui::event::ModifiersState;
-use warpui::units::Lines;
-use warpui::EntityId;
 
 use super::inline_banner::{
     AnonymousUserLoginBannerAction, AwsBedrockLoginBannerAction, AwsCliNotInstalledBannerAction,
@@ -273,7 +273,7 @@ pub enum TerminalAction {
     OpenCodeInWarp {
         path: PathBuf,
         layout: crate::util::file::external_editor::settings::EditorLayout,
-        line_col: Option<warp_util::path::LineAndColumnArg>,
+        line_col: Option<rift_util::path::LineAndColumnArg>,
     },
     OpenWorkflowModal,
     OpenWorkflowModalForAIWorkflow(Workflow),

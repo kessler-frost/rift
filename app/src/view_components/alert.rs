@@ -1,11 +1,11 @@
 use pathfinder_color::ColorU;
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Icon, MainAxisSize,
     ParentElement, Radius, Shrinkable,
 };
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::Element;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::Element;
 
 use crate::appearance::Appearance;
 use crate::themes::theme::Fill;

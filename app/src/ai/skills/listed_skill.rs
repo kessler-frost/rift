@@ -1,6 +1,6 @@
 use ai::skills::{ParsedSkill, SkillProvider, SkillReference, SkillScope};
+use rift_core::ui::icons::Icon;
 use serde::{Deserialize, Serialize};
-use warp_core::ui::icons::Icon;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct SkillDescriptor {

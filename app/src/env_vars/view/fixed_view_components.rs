@@ -1,14 +1,14 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     Align, ConstrainedBox, Container, CrossAxisAlignment, Empty, Flex, MainAxisAlignment,
     MainAxisSize, ParentElement, Rect, Shrinkable, Stack,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{Element, ViewContext};
+use riftui::fonts::Weight;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{Element, ViewContext};
 
 use crate::drive::sharing::{ContentEditability, SharingAccessLevel};
 use crate::env_vars::active_env_var_collection_data::TrashStatus;

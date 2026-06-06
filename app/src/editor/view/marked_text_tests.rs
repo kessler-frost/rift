@@ -1,8 +1,8 @@
+use rift_core::features::FeatureFlag;
+use riftui::keymap::Keystroke;
+use riftui::platform::WindowStyle;
+use riftui::App;
 use vim::vim::VimMode;
-use warp_core::features::FeatureFlag;
-use warpui::keymap::Keystroke;
-use warpui::platform::WindowStyle;
-use warpui::App;
 
 use super::initialize_app;
 use crate::editor::{DisplayPoint, EditorOptions, EditorView};

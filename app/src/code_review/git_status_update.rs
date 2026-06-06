@@ -2,10 +2,10 @@
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "local_fs")]
-use settings::Setting as _;
+use riftui::ModelContext;
+use riftui::{Entity, SingletonEntity};
 #[cfg(feature = "local_fs")]
-use warpui::ModelContext;
-use warpui::{Entity, SingletonEntity};
+use settings::Setting as _;
 #[cfg(feature = "local_fs")]
 use {
     crate::report_if_error,
@@ -21,11 +21,11 @@ use {
         repository::{RepositorySubscriber, SubscriberId},
         Repository, RepositoryUpdate,
     },
+    riftui::{r#async::SpawnedFutureHandle, EntityId, ModelHandle, WeakModelHandle},
     std::{
         collections::{HashMap, HashSet},
         time::Duration,
     },
-    warpui::{r#async::SpawnedFutureHandle, EntityId, ModelHandle, WeakModelHandle},
 };
 
 #[cfg(feature = "local_fs")]

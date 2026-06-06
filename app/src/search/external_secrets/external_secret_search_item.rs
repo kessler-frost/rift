@@ -1,7 +1,7 @@
 use ordered_float::OrderedFloat;
-use warpui::elements::{ConstrainedBox, Container, Highlight, Text};
-use warpui::fonts::{Properties, Weight};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::elements::{ConstrainedBox, Container, Highlight, Text};
+use riftui::fonts::{Properties, Weight};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::external_secret_fuzzy_match::FuzzyMatchExternalSecretResult;
 use super::searcher::ExternalSecretSearchItemAction;

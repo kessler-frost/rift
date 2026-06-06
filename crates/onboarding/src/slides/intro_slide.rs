@@ -1,25 +1,25 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use ui_components::{button, Component as _, Options as _};
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::Icon;
-use warpui_core::elements::shimmering_text::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::Icon;
+use riftui_core::elements::shimmering_text::{
     ShimmerConfig, ShimmeringTextElement, ShimmeringTextStateHandle,
 };
-use warpui_core::elements::{
+use riftui_core::elements::{
     Align, ChildAnchor, ConstrainedBox, Container, CrossAxisAlignment, Flex, FormattedTextElement,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, Stack,
 };
-use warpui_core::keymap::Keystroke;
-use warpui_core::text_layout::TextAlignment;
-use warpui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui_core::{
+use riftui_core::keymap::Keystroke;
+use riftui_core::text_layout::TextAlignment;
+use riftui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;

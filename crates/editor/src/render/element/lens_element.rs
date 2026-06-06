@@ -1,11 +1,11 @@
 use std::ops::Range;
 
-use warpui_core::elements::Point;
-use warpui_core::event::DispatchedEvent;
-use warpui_core::geometry::rect::RectF;
-use warpui_core::geometry::vector::Vector2F;
-use warpui_core::units::IntoPixels;
-use warpui_core::{
+use riftui_core::elements::Point;
+use riftui_core::event::DispatchedEvent;
+use riftui_core::geometry::rect::RectF;
+use riftui_core::geometry::vector::Vector2F;
+use riftui_core::units::IntoPixels;
+use riftui_core::{
     AfterLayoutContext, AppContext, Element, EventContext, LayoutContext, ModelHandle,
     PaintContext, SizeConstraint, WeakViewHandle,
 };

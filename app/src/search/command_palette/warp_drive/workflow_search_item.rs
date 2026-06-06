@@ -1,7 +1,7 @@
 use ordered_float::OrderedFloat;
-use warpui::elements::{Clipped, Container, Flex, Highlight, ParentElement, Shrinkable, Text};
-use warpui::fonts::{Properties, Weight};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::elements::{Clipped, Container, Flex, Highlight, ParentElement, Shrinkable, Text};
+use riftui::fonts::{Properties, Weight};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::cloud_object::CloudObject;

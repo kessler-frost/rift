@@ -5,14 +5,14 @@ use std::time::Duration;
 
 use cloud_object_models::JsonSerializer;
 use lazy_static::lazy_static;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::r#async::debounce;
+use rift_core::settings::ChangeEventReason;
+use rift_core::user_preferences::GetUserPreferences;
+use riftui::r#async::Timer;
+use riftui::{Entity, ModelContext, SingletonEntity};
+use riftui_extras::user_preferences::toml_backed::TomlBackedUserPreferences;
 use settings::{Setting as _, SyncToCloud};
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::r#async::debounce;
-use warp_core::settings::ChangeEventReason;
-use warp_core::user_preferences::GetUserPreferences;
-use warpui::r#async::Timer;
-use warpui::{Entity, ModelContext, SingletonEntity};
-use warpui_extras::user_preferences::toml_backed::TomlBackedUserPreferences;
 
 use super::cloud_preferences::{CloudPreferencesSettings, CloudPreferencesSettingsChangedEvent};
 use super::manager::SettingsEvent;

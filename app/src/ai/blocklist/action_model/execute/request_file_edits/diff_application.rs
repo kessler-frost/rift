@@ -11,8 +11,8 @@ use ai::diff_validation::{
     DiffType, ParsedDiff, SearchAndReplace, V4AHunk,
 };
 use itertools::Itertools;
+use riftui::r#async::executor::Background;
 use vec1::Vec1;
-use warpui::r#async::executor::Background;
 
 use super::telemetry::{
     DiffInvalidFileEvent, DiffMatchFailedEvent, MissingLineNumbersEvent,

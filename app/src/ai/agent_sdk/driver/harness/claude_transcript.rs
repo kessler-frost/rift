@@ -19,10 +19,10 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use rift_core::safe_warn;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
-use warp_core::safe_warn;
 
 use super::json_utils::entries_to_jsonl;
 use crate::ai::agent::conversation::AIConversationId;

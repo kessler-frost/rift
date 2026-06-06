@@ -13,11 +13,11 @@ use futures::future::Either;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::repositories::RepoDetectionSource;
-use warp_core::SessionId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
+use rift_core::SessionId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 #[cfg(not(target_family = "wasm"))]
-use warpui::SingletonEntity;
-use warpui::{View, ViewContext};
+use riftui::SingletonEntity;
+use riftui::{View, ViewContext};
 
 #[cfg(not(target_family = "wasm"))]
 use crate::remote_server::manager::RemoteServerManager;

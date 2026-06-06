@@ -3,10 +3,10 @@ use std::hash::{Hash, Hasher};
 
 use handlebars::{get_arguments, render_template};
 use lazy_static::lazy_static;
+use rift_managed_secrets::ManagedSecretValue;
 use serde::{Deserialize, Serialize};
 use siphasher::sip::SipHasher;
 use uuid::Uuid;
-use warp_managed_secrets::ManagedSecretValue;
 
 use crate::ai::mcp::{TemplatableMCPServer, TemplateVariable};
 

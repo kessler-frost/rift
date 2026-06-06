@@ -3,13 +3,13 @@ use std::fmt::Debug;
 use std::mem;
 use std::ops::RangeInclusive;
 
+use rift_core::semantic_selection::SemanticSelection;
+use rift_terminal::model::grid::CellType;
+use riftui::text::{IsRect, SelectionType};
+use riftui::units::{IntoLines as _, Lines};
+use riftui::{AppContext, EntityId, ViewAsRef as _};
 use sum_tree::SeekBias;
 use vec1::{vec1, Vec1};
-use warp_core::semantic_selection::SemanticSelection;
-use warp_terminal::model::grid::CellType;
-use warpui::text::{IsRect, SelectionType};
-use warpui::units::{IntoLines as _, Lines};
-use warpui::{AppContext, EntityId, ViewAsRef as _};
 
 use super::{
     BlockHeight, BlockHeightItem, BlockHeightSummary, BlockList, BlockListPoint, RichContentItem,

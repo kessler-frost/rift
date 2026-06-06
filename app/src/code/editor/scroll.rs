@@ -1,5 +1,5 @@
-use warp_editor::content::version::BufferVersion;
-use warp_util::path::LineAndColumnArg;
+use rift_editor::content::version::BufferVersion;
+use rift_util::path::LineAndColumnArg;
 
 #[derive(Debug, Clone, Copy)]
 pub enum ScrollWheelBehavior {

@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context as _, Result};
-use warp_cli::skill::SkillSpec;
+use rift_cli::skill::SkillSpec;
 
 use super::*;
 
@@ -22,7 +22,7 @@ fn write_skill_file(path: &Path, name: &str, description: &str, body: &str) -> R
 #[test]
 fn resolve_from_skill_dirs_by_directory_scan_resolves_home_skill_dir() -> Result<()> {
     let temp_dir = tempfile::TempDir::new().context("Failed to create temp dir")?;
-    let skill_dir = temp_dir.path().join(".warp").join("skills");
+    let skill_dir = temp_dir.path().join(".rift").join("skills");
     let skill_path = skill_dir.join("my-skill").join("SKILL.md");
 
     write_skill_file(

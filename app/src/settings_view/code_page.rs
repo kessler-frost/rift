@@ -14,25 +14,25 @@ use lsp::{LspManagerModel, LspManagerModelEvent, LspServerModel, LspState};
 use pathfinder_color::ColorU;
 #[cfg(not(target_family = "wasm"))]
 use remote_server::codebase_index_proto::{RemoteCodebaseIndexState, RemoteCodebaseIndexStatus};
-use warp_core::features::FeatureFlag;
-use warp_core::report_if_error;
-use warp_core::settings::ToggleableSetting as _;
-use warp_core::ui::theme::{AnsiColorIdentifier, Fill as ThemeFill};
-use warp_util::path::user_friendly_path;
+use rift_core::features::FeatureFlag;
+use rift_core::report_if_error;
+use rift_core::settings::ToggleableSetting as _;
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill as ThemeFill};
+use rift_util::path::user_friendly_path;
 #[cfg(not(target_family = "wasm"))]
-use warp_util::remote_path::RemotePath;
-use warpui::elements::{
+use rift_util::remote_path::RemotePath;
+use riftui::elements::{
     ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Element, Empty,
     Expanded, Fill, Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius,
     Shrinkable,
 };
-use warpui::fonts::Weight;
-use warpui::keymap::ContextPredicate;
-use warpui::platform::{Cursor, FilePickerConfiguration};
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::ContextPredicate;
+use riftui::platform::{Cursor, FilePickerConfiguration};
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
+use riftui::{
     id, Action, AppContext, Entity, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
@@ -81,7 +81,7 @@ const CODE_FEATURE_NAME: &str = "Code";
 const INITIALIZATION_SETTINGS_HEADER: &str = "Initialization Settings";
 const CODEBASE_INDEXING_LABEL: &str = "Codebase indexing";
 const CODEBASE_INDEX_DESCRIPTION: &str = "Warp can automatically index code repositories as you navigate them, helping agents quickly understand context and provide solutions. Code is never stored on the server. If a codebase is unable to be indexed, Warp can still navigate your codebase and gain insights via grep and find tool calling.";
-const WARP_INDEXING_IGNORE_DESCRIPTION: &str = "To exclude specific files or directories from indexing, add them to the .warpindexingignore file in your repository directory. These files will still be accessible to AI features, but they won't be included in codebase embeddings.";
+const RIFT_INDEXING_IGNORE_DESCRIPTION: &str = "To exclude specific files or directories from indexing, add them to the .warpindexingignore file in your repository directory. These files will still be accessible to AI features, but they won't be included in codebase embeddings.";
 const AUTO_INDEX_FEATURE_NAME: &str = "Index new folders by default";
 const AUTO_INDEX_DESCRIPTION: &str = "When set to true, Warp will automatically index code repositories as you navigate them - helping agents quickly understand context and provide targeted solutions.";
 const INDEXING_DISABLED_ADMIN_TEXT: &str = "Team admins have disabled codebase indexing.";
@@ -1023,7 +1023,7 @@ impl SettingsWidget for CodePageWidget {
         ));
         content.add_child(self.render_settings_subtext(
             global_ai_enabled,
-            WARP_INDEXING_IGNORE_DESCRIPTION,
+            RIFT_INDEXING_IGNORE_DESCRIPTION,
             appearance,
         ));
 
@@ -1505,15 +1505,15 @@ impl CodePageWidget {
                     ..Default::default()
                 })
                 .with_text_and_icon_label(
-                    warpui::ui_components::button::TextAndIcon::new(
-                        warpui::ui_components::button::TextAndIconAlignment::IconFirst,
+                    riftui::ui_components::button::TextAndIcon::new(
+                        riftui::ui_components::button::TextAndIconAlignment::IconFirst,
                         "Open project rules",
-                        warpui::elements::Icon::new(
+                        riftui::elements::Icon::new(
                             "bundled/svg/file-code-02.svg",
                             theme.foreground(),
                         ),
-                        warpui::elements::MainAxisSize::Min,
-                        warpui::elements::MainAxisAlignment::Center,
+                        riftui::elements::MainAxisSize::Min,
+                        riftui::elements::MainAxisAlignment::Center,
                         pathfinder_geometry::vector::vec2f(14., 14.),
                     )
                     .with_inner_padding(4.),
@@ -2205,7 +2205,7 @@ impl CodePageWidget {
         &self,
         workspace_path: &Path,
         server_type: LSPServerType,
-        server_model: Option<&warpui::ModelHandle<LspServerModel>>,
+        server_model: Option<&riftui::ModelHandle<LspServerModel>>,
         is_enabled: bool,
         mouse_states: LspServerRowMouseStates,
         appearance: &Appearance,
@@ -2394,9 +2394,9 @@ impl CodePageWidget {
     /// Gets the status color and text for an LSP server.
     fn get_lsp_status_info(
         &self,
-        server_model: Option<&warpui::ModelHandle<LspServerModel>>,
+        server_model: Option<&riftui::ModelHandle<LspServerModel>>,
         app: &AppContext,
-        theme: &warp_core::ui::theme::WarpTheme,
+        theme: &rift_core::ui::theme::WarpTheme,
     ) -> (ColorU, &'static str) {
         match server_model {
             Some(model) => {

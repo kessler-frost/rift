@@ -16,10 +16,10 @@ mod section_views;
 pub use section_views::{ChangelogSectionView, ContentSectionView, FeatureSectionView};
 pub mod sections;
 mod view;
+use riftui::keymap::Keystroke;
+use riftui::{AppContext, Entity, SingletonEntity};
 use serde::{Deserialize, Serialize};
 pub use view::{ResourceCenterAction, ResourceCenterEvent, ResourceCenterPage, ResourceCenterView};
-use warpui::keymap::Keystroke;
-use warpui::{AppContext, Entity, SingletonEntity};
 
 use self::section_views::feature_section::FeatureSection;
 

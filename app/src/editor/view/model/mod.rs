@@ -19,6 +19,12 @@ use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use num_traits::SaturatingSub;
+use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::text::point::Point;
+use riftui::text::word_boundaries::WordBoundariesPolicy;
+use riftui::text::TextBuffer;
+use riftui::text_layout::TextStyle;
+use riftui::{AppContext, Entity, ModelAsRef, ModelContext, ModelHandle, SingletonEntity};
 pub use selections::{
     DrawableSelection, LocalDrawableSelectionData, LocalPendingSelection, LocalSelection,
     LocalSelections, MarkedTextState, RemoteDrawableSelectionData, SelectAction, Selection,
@@ -35,12 +41,6 @@ use vim::{
     vim_a_quote, vim_a_word, vim_find_char_on_line, vim_find_matching_bracket, vim_inner_block,
     vim_inner_paragraph, vim_inner_quote, vim_inner_word, vim_word_iterator_from_offset,
 };
-use warpui::accessibility::{AccessibilityContent, WarpA11yRole};
-use warpui::text::point::Point;
-use warpui::text::word_boundaries::WordBoundariesPolicy;
-use warpui::text::TextBuffer;
-use warpui::text_layout::TextStyle;
-use warpui::{AppContext, Entity, ModelAsRef, ModelContext, ModelHandle, SingletonEntity};
 
 use self::buffer::Peer;
 use super::{movement, PlainTextEditorViewAction, SelectionInsertion, ValidInputType};

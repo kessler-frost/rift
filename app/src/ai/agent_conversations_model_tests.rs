@@ -6,9 +6,9 @@ use chrono::{DateTime, Duration, Utc};
 use instant::Instant;
 use parking_lot::Mutex;
 use persistence::model::{AgentConversationData, ConversationUsageMetadata};
-use warp_cli::agent::Harness;
-use warp_core::features::FeatureFlag;
-use warpui::{App, EntityId, ModelHandle, SingletonEntity};
+use rift_cli::agent::Harness;
+use rift_core::features::FeatureFlag;
+use riftui::{App, EntityId, ModelHandle, SingletonEntity};
 
 use super::entry::{
     AgentConversationEntryId, AgentConversationNavigationSubject, AgentConversationProvenance,

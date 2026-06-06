@@ -1,11 +1,11 @@
 use std::collections::BTreeSet;
 
 use comfy_table::Cell;
+use rift_cli::model::ModelCommand;
+use rift_cli::GlobalOptions;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, ModelContext, SingletonEntity};
 use serde::Serialize;
-use warp_cli::model::ModelCommand;
-use warp_cli::GlobalOptions;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
 use crate::ai::llms::LLMPreferences;
@@ -62,7 +62,7 @@ impl ModelCommandRunner {
     }
 }
 
-impl warpui::Entity for ModelCommandRunner {
+impl riftui::Entity for ModelCommandRunner {
     type Event = ();
 }
 

@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
+use rift_core::ui::appearance::Appearance;
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
 
 pub const ICON_MARGIN: f32 = 8.;
 pub const HEADER_FONT_SIZE: f32 = 18.;

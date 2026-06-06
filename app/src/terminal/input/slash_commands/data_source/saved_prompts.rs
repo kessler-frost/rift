@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use futures_lite::future::yield_now;
 use ordered_float::OrderedFloat;
-use warp_core::ui::appearance::Appearance;
-use warpui::fonts::FamilyId;
-use warpui::{AppContext, SingletonEntity};
+use rift_core::ui::appearance::Appearance;
+use riftui::fonts::FamilyId;
+use riftui::{AppContext, SingletonEntity};
 
 use super::{AcceptSlashCommandOrSavedPrompt, InlineItem};
 use crate::cloud_object::model::persistence::CloudModel;

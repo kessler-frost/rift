@@ -2,15 +2,15 @@ use std::path::PathBuf;
 
 use futures_util::stream::AbortHandle;
 use pathfinder_geometry::vector::vec2f;
-use warpui::elements::{
+use riftui::elements::{
     Align, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, MainAxisAlignment,
     MainAxisSize, MouseStateHandle, ParentElement, Radius,
 };
-use warpui::platform::file_picker::FilePickerError;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::platform::file_picker::FilePickerError;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
 

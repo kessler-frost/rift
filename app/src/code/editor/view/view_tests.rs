@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use warp_core::ui::appearance::Appearance;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warp_util::user_input::UserInput;
-use warpui::elements::new_scrollable::ScrollableAppearance;
-use warpui::elements::ScrollbarWidth;
-use warpui::platform::WindowStyle;
-use warpui::{App, TypedActionView, ViewHandle, WindowId};
+use rift_core::ui::appearance::Appearance;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use rift_util::user_input::UserInput;
+use riftui::elements::new_scrollable::ScrollableAppearance;
+use riftui::elements::ScrollbarWidth;
+use riftui::platform::WindowStyle;
+use riftui::{App, TypedActionView, ViewHandle, WindowId};
 
 use super::{CodeEditorRenderOptions, CodeEditorView, CodeEditorViewAction};
 use crate::cloud_object::model::persistence::CloudModel;

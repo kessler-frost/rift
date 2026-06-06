@@ -6,10 +6,10 @@ use ai::skills::{parse_skill, ParsedSkill, SkillProvider, SkillReference, SkillS
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::RepoMetadataModel;
+use rift_core::features::FeatureFlag;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use riftui::App;
 use tempfile::TempDir;
-use warp_core::features::FeatureFlag;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warpui::App;
 use watcher::HomeDirectoryWatcher;
 
 use super::*;

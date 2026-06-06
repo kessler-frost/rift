@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+use rift_core::features::FeatureFlag;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use warp_core::features::FeatureFlag;
 
 use super::Availability;
 use crate::search::slash_command_menu::static_commands::Argument;

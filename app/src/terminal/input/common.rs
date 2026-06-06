@@ -1,19 +1,19 @@
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::vec2f;
-use vim::vim::{VimMode, VimState};
-use warp_completer::completer::Description;
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_completer::completer::Description;
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     AnchorPair, Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, Element, EventHandler, Flex, OffsetPositioning, OffsetType, ParentAnchor,
     ParentElement, ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius,
     Shrinkable, Stack, Text, XAxisAnchor,
 };
-use warpui::fonts::Weight;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, EntityId, SingletonEntity, ViewHandle};
+use riftui::fonts::Weight;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, EntityId, SingletonEntity, ViewHandle};
+use vim::vim::{VimMode, VimState};
 
 use crate::ai::llms::{is_using_api_key_for_provider, LLMPreferences};
 use crate::ai::{AIRequestUsageModel, BuyCreditsBannerDisplayState};

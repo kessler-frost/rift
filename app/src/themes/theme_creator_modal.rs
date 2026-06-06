@@ -1,12 +1,12 @@
 use std::default::Default;
 use std::path::PathBuf;
 
-use warpui::fonts::Weight;
-use warpui::keymap::FixedBinding;
-use warpui::platform::{FilePickerConfiguration, FileType};
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::keymap::FixedBinding;
+use riftui::platform::{FilePickerConfiguration, FileType};
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, SingletonEntity as _, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -37,7 +37,7 @@ pub enum ThemeCreatorModalEvent {
 }
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_fixed_bindings([FixedBinding::new(
         "escape",

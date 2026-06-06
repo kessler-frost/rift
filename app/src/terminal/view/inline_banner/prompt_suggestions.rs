@@ -1,22 +1,22 @@
 use std::rc::Rc;
 
 use pathfinder_geometry::vector::vec2f;
-use serde::Serialize;
-use warp_core::channel::ChannelState;
-use warp_core::ui::theme::color::internal_colors::{neutral_2, neutral_3};
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::ui::theme::color::internal_colors::{neutral_2, neutral_3};
+use riftui::elements::{
     ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty,
     Fill, Flex, HighlightedHyperlink, Hoverable, Icon, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius,
     Shrinkable, Stack, Text,
 };
-use warpui::keymap::Keystroke;
-use warpui::platform::Cursor;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::Keystroke;
+use riftui::platform::Cursor;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, EventContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle,
 };
+use serde::Serialize;
 
 use crate::ai::agent::api::ServerConversationToken;
 use crate::ai::agent::conversation::AIConversationId;
@@ -409,7 +409,7 @@ impl View for PromptSuggestionsView {
                     0,
                     keybinding_name_to_keystroke(ACCEPT_PROMPT_SUGGESTION_KEYBINDING, app),
                     banner_state.accept_button_mouse_state.clone(),
-                    Rc::new(move |ctx: &mut warpui::EventContext<'_>| {
+                    Rc::new(move |ctx: &mut riftui::EventContext<'_>| {
                         ctx.dispatch_typed_action(TerminalAction::ResolvePromptSuggestion(
                             PromptSuggestionResolution::Accept {
                                 interaction_source: InteractionSource::Button,

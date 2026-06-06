@@ -1,6 +1,6 @@
 use itertools::Itertools;
+use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warpui::{AppContext, SingletonEntity};
 
 use super::current_prompt::CurrentPrompt;
 use super::prompt::Prompt;

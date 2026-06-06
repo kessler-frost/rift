@@ -9,12 +9,12 @@ use chrono::{Duration, Utc};
 use derivative::Derivative;
 use lazy_static::lazy_static;
 use regex::Regex;
+use rift_core::channel::Channel;
+use rift_core::features::FeatureFlag;
+use rift_graphql::queries::get_updated_cloud_objects::UpdatedObjectInput;
+use rift_graphql::scalars::time::ServerTimestamp;
+use riftui::{AppContext, SingletonEntity};
 use url::Url;
-use warp_core::channel::Channel;
-use warp_core::features::FeatureFlag;
-use warp_graphql::queries::get_updated_cloud_objects::UpdatedObjectInput;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warpui::{AppContext, SingletonEntity};
 
 use self::breadcrumbs::ContainingObject;
 use self::model::actions::ObjectActions;

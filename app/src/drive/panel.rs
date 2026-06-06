@@ -1,10 +1,10 @@
 use futures::Future;
-use warpui::elements::{
+use riftui::elements::{
     Align, Flex, Hoverable, MouseStateHandle, ParentElement, SavePosition, Shrinkable,
 };
-use warpui::presenter::ChildView;
-use warpui::windowing::{StateEvent, WindowManager};
-use warpui::{
+use riftui::presenter::ChildView;
+use riftui::windowing::{StateEvent, WindowManager};
+use riftui::{
     AppContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
@@ -38,7 +38,7 @@ use crate::workspaces::user_workspaces::UserWorkspaces;
 pub const MIN_SIDEBAR_WIDTH: f32 = 250.;
 pub const MAX_SIDEBAR_WIDTH_RATIO: f32 = 0.75;
 
-pub const WARP_DRIVE_POSITION_ID: &str = "warp_drive";
+pub const RIFT_DRIVE_POSITION_ID: &str = "warp_drive";
 
 /// The sidebar that houses Warp Drive.
 /// `DrivePanel` is different from `DriveIndex` in that it is responsible for
@@ -683,14 +683,14 @@ impl View for DrivePanel {
         }
     }
 
-    fn render(&self, _app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, _app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         let body = Hoverable::new(
             self.mouse_state_handles.focus_panel_mouse_state.clone(),
             |_| {
                 Align::new(
                     SavePosition::new(
                         ChildView::new(&self.index_view).finish(),
-                        WARP_DRIVE_POSITION_ID,
+                        RIFT_DRIVE_POSITION_ID,
                     )
                     .finish(),
                 )
@@ -705,7 +705,7 @@ impl View for DrivePanel {
 
         let mut col = Flex::column();
         col.add_child(Shrinkable::new(1., body).finish());
-        col.with_main_axis_size(warpui::elements::MainAxisSize::Max)
+        col.with_main_axis_size(riftui::elements::MainAxisSize::Max)
             .finish()
     }
 }

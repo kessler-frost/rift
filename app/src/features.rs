@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use warp_core::channel::ChannelState;
-pub use warp_core::features::*;
+use rift_core::channel::ChannelState;
+pub use rift_core::features::*;
 
 /// Mark all features which should be enabled on the current channel as enabled.
 /// This sets global feature flag state and should never be called in a unit test.
@@ -333,7 +333,7 @@ fn enabled_features() -> HashSet<FeatureFlag> {
         FeatureFlag::AgentView,
         #[cfg(feature = "agent_view_block_context")]
         FeatureFlag::AgentViewBlockContext,
-        #[cfg(feature = "warp_managed_secrets")]
+        #[cfg(feature = "rift_managed_secrets")]
         FeatureFlag::WarpManagedSecrets,
         #[cfg(feature = "v4a_file_diffs")]
         FeatureFlag::V4AFileDiffs,

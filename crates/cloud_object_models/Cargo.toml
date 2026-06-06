@@ -29,10 +29,10 @@ settings.workspace = true
 settings_value = { workspace = true, features = ["derive"] }
 uuid.workspace = true
 warp-workflows.workspace = true
-warp_cli.workspace = true
-warp_core.workspace = true
-warp_graphql.workspace = true
-warp_util.workspace = true
+rift_cli.workspace = true
+rift_core.workspace = true
+rift_graphql.workspace = true
+rift_util.workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 cloud_object_persistence.workspace = true

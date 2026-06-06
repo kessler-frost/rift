@@ -1,4 +1,4 @@
-use warpui::AppContext;
+use riftui::AppContext;
 
 use crate::channel::ChannelState;
 use crate::server::ids::ServerId;

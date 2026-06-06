@@ -1,14 +1,14 @@
 //! Renders the AI block "header", which includes a version of the AI "prompt" as it was rendered
 //! when the query was submitted.
-use warp_core::features::FeatureFlag;
-use warp_util::path::user_friendly_path;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_util::path::user_friendly_path;
+use riftui::elements::{
     ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable,
     Icon as ElementIcon, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius,
     SavePosition, Text,
 };
-use warpui::platform::Cursor;
-use warpui::{AppContext, Element, EntityId, SingletonEntity, ViewHandle};
+use riftui::platform::Cursor;
+use riftui::{AppContext, Element, EntityId, SingletonEntity, ViewHandle};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::AIAgentExchangeId;
@@ -18,7 +18,7 @@ use crate::ai::blocklist::{
 };
 use crate::appearance::Appearance;
 use crate::terminal::block_list_element::render_hoverable_block_button;
-use crate::terminal::view::{TerminalAction, WARP_PROMPT_HEIGHT_LINES};
+use crate::terminal::view::{TerminalAction, RIFT_PROMPT_HEIGHT_LINES};
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::ActionButton;
@@ -253,5 +253,5 @@ pub(super) fn render_overflow_menu_button(
 ///
 /// This matches the font size used for the warp prompt in completed command blocks.
 fn prompt_font_size(appearance: &Appearance) -> f32 {
-    appearance.monospace_font_size() * WARP_PROMPT_HEIGHT_LINES
+    appearance.monospace_font_size() * RIFT_PROMPT_HEIGHT_LINES
 }

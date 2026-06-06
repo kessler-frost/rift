@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use arborium::tree_sitter::Tree;
 use languages::{language_by_filename, Language};
-use warp_editor::content::buffer::{Buffer, BufferSnapshot};
-use warp_editor::content::selection_model::BufferSelectionModel;
-use warp_editor::content::text::IndentBehavior;
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::App;
+use rift_editor::content::buffer::{Buffer, BufferSnapshot};
+use rift_editor::content::selection_model::BufferSelectionModel;
+use rift_editor::content::text::IndentBehavior;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::App;
 
 use super::*;
 use crate::SyntaxTreeState;
@@ -15,7 +15,7 @@ use crate::SyntaxTreeState;
 fn mock_buffer_and_tree(text_content: &str, language: Arc<Language>) -> (Buffer, Tree) {
     // Create a tree by parsing the text
     let snapshot = BufferSnapshot::from_plain_text(text_content);
-    let tree = warpui_core::r#async::block_on(async {
+    let tree = riftui_core::r#async::block_on(async {
         SyntaxTreeState::parse_text(snapshot, None, &language).await
     });
 
@@ -59,7 +59,7 @@ fn test_indent_query() {
         });
 
         let buffer_snapshot = buffer_handle.read(&app, |buffer, _| buffer.buffer_snapshot());
-        let tree = warpui_core::r#async::block_on(async {
+        let tree = riftui_core::r#async::block_on(async {
             SyntaxTreeState::parse_text(buffer_snapshot, None, &language).await
         });
 
@@ -155,7 +155,7 @@ fn test_indent_query_on_go() {
         });
 
         let buffer_snapshot = buffer_handle.read(&app, |buffer, _| buffer.buffer_snapshot());
-        let tree = warpui_core::r#async::block_on(async {
+        let tree = riftui_core::r#async::block_on(async {
             SyntaxTreeState::parse_text(buffer_snapshot, None, &language).await
         });
 

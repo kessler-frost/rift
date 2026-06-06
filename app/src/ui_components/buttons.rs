@@ -1,6 +1,6 @@
-use warpui::elements::{CornerRadius, MouseStateHandle, Radius};
-use warpui::ui_components::button::Button;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::elements::{CornerRadius, MouseStateHandle, Radius};
+use riftui::ui_components::button::Button;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 
 use super::icons::{Icon, ICON_DIMENSIONS};
 use super::{blended_colors, BORDER_RADIUS};

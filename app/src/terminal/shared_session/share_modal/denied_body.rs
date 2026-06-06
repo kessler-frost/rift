@@ -1,8 +1,8 @@
-use warpui::elements::{Container, Flex, MainAxisSize, MouseStateHandle, ParentElement};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::UiComponent;
-use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use riftui::elements::{Container, Flex, MainAxisSize, MouseStateHandle, ParentElement};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::UiComponent;
+use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use super::style::{self, MODAL_PADDING};
 use crate::appearance::Appearance;

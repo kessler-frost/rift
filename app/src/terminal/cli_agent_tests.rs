@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::Local;
+use rift_editor::render::model::LineCount;
+use rift_util::path::EscapeChar;
+use riftui::App;
 use smol_str::SmolStr;
-use warp_editor::render::model::LineCount;
-use warp_util::path::EscapeChar;
-use warpui::App;
 
 use super::{
     build_diff_hunk_prompt, build_review_prompt, build_selection_line_range_prompt,

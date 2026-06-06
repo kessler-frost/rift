@@ -13,14 +13,14 @@ use futures::stream::AbortHandle;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use warp_core::features::FeatureFlag;
-use warp_core::report_error;
-use warp_graphql::mcp_gallery_template::MCPGalleryTemplate;
-use warp_graphql::object_permissions::AccessLevel;
-use warp_graphql::scalars::time::ServerTimestamp;
-use warp_util::sync::Condition;
-use warpui::r#async::{FutureId, Timer};
-use warpui::{
+use rift_core::features::FeatureFlag;
+use rift_core::report_error;
+use rift_graphql::mcp_gallery_template::MCPGalleryTemplate;
+use rift_graphql::object_permissions::AccessLevel;
+use rift_graphql::scalars::time::ServerTimestamp;
+use rift_util::sync::Condition;
+use riftui::r#async::{FutureId, Timer};
+use riftui::{
     duration_with_jitter, AppContext, Entity, ModelContext, RequestState, RetryOption,
     SingletonEntity,
 };
@@ -2707,8 +2707,8 @@ impl UpdateManager {
         ctx: &mut ModelContext<Self>,
     ) where
         P: 'static + FnMut(Arc<dyn ObjectClient>) -> S,
-        S: warpui::r#async::Spawnable + Future<Output = anyhow::Result<R>>,
-        <S as Future>::Output: warpui::r#async::SpawnableOutput,
+        S: riftui::r#async::Spawnable + Future<Output = anyhow::Result<R>>,
+        <S as Future>::Output: riftui::r#async::SpawnableOutput,
         F: 'static + FnMut(R, &mut AppContext) -> Option<ServerPermissions>,
     {
         let object_client = self.object_client.clone();
@@ -2769,8 +2769,8 @@ impl UpdateManager {
         mut on_success: impl FnMut(&mut Self, M, &mut ModelContext<Self>) + 'static,
     ) where
         P: 'static + FnMut(Arc<dyn ObjectClient>) -> S,
-        S: warpui::r#async::Spawnable + Future<Output = anyhow::Result<M>>,
-        <S as Future>::Output: warpui::r#async::SpawnableOutput,
+        S: riftui::r#async::Spawnable + Future<Output = anyhow::Result<M>>,
+        <S as Future>::Output: riftui::r#async::SpawnableOutput,
     {
         let cloud_model = CloudModel::handle(ctx);
         let uid = server_id.uid();

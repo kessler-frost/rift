@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use command::blocking::Command;
+use riftui::{Entity, ModelContext, SingletonEntity};
 use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl};
-use warpui::{Entity, ModelContext, SingletonEntity};
 
 use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
 
@@ -71,7 +71,7 @@ impl PluginHost {
         #[cfg(feature = "completions_v2")]
         let server_builder =
             server_builder.with_service(service_impl::RegisterCommandSignatureServiceImpl::new(
-                warp_completer::signatures::CommandRegistry::global_instance(),
+                rift_completer::signatures::CommandRegistry::global_instance(),
             ));
 
         let (server, plugin_host_process) =

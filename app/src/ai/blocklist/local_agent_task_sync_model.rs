@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use rift_graphql::ai::{AgentTaskState, PlatformErrorCode};
+use riftui::{Entity, EntityId, ModelContext, SingletonEntity};
 use session_sharing_protocol::common::SessionId;
-use warp_graphql::ai::{AgentTaskState, PlatformErrorCode};
-use warpui::{Entity, EntityId, ModelContext, SingletonEntity};
 
 use super::history_model::{
     BlocklistAIHistoryEvent, BlocklistAIHistoryModel, ConversationStatusUpdate,

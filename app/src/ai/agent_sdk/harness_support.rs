@@ -4,15 +4,15 @@
 //! - [`ping`] — fetches the current run by task ID and prints its info.
 //! - [`report_artifact`] — reports an artifact (e.g. a PR) back to the Oz platform.
 use anyhow::Result;
-use warp_cli::agent::OutputFormat;
-use warp_cli::harness_support::{
+use rift_cli::agent::OutputFormat;
+use rift_cli::harness_support::{
     FinishTaskArgs, HarnessSupportArgs, HarnessSupportCommand, NotifyUserArgs, ReportArtifactArgs,
     ReportArtifactCommand, ReportShutdownArgs, TaskStatus,
 };
-use warp_cli::GlobalOptions;
-use warp_core::features::FeatureFlag;
-use warpui::platform::TerminationMode;
-use warpui::{AppContext, ModelHandle, SingletonEntity};
+use rift_cli::GlobalOptions;
+use rift_core::features::FeatureFlag;
+use riftui::platform::TerminationMode;
+use riftui::{AppContext, ModelHandle, SingletonEntity};
 
 use super::common::set_ambient_task_context_from_run_id;
 use crate::ai::ambient_agents::AmbientAgentTaskId;
@@ -257,7 +257,7 @@ fn report_shutdown(
 /// Singleton model for running async harness-support operations.
 struct HarnessSupportRunner;
 
-impl warpui::Entity for HarnessSupportRunner {
+impl riftui::Entity for HarnessSupportRunner {
     type Event = ();
 }
 

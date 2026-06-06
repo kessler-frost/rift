@@ -16,8 +16,8 @@ use log::LevelFilter;
 use lsp::supported_servers::LSPServerType;
 use lsp::{spawn_lsp_service, LspServerConfig, LspService, LspServiceInitializationResult};
 use lsp_types::Position;
-use warpui_core::r#async::executor::Background;
-use warpui_core::r#async::Timer;
+use riftui_core::r#async::executor::Background;
+use riftui_core::r#async::Timer;
 
 fn init_logging() {
     let mut base_logger = env_logger::builder();
@@ -111,7 +111,7 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    warpui_core::r#async::block_on(task)?;
+    riftui_core::r#async::block_on(task)?;
     Ok(())
 }
 

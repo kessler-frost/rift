@@ -7,11 +7,11 @@ use itertools::Itertools;
 use parking_lot::Mutex;
 #[cfg(feature = "local_fs")]
 use repo_metadata::DirectoryWatcher;
+use rift_completer::completer::{CommandExitStatus, CommandOutput};
+use rift_core::command::ExitCode;
+use riftui::{App, SingletonEntity};
+use riftui_extras::user_preferences;
 use settings::Setting as _;
-use warp_completer::completer::{CommandExitStatus, CommandOutput};
-use warp_core::command::ExitCode;
-use warpui::{App, SingletonEntity};
-use warpui_extras::user_preferences;
 
 use super::{ChipUpdateStatus, CurrentPrompt, PromptContext};
 use crate::auth::auth_manager::AuthManager;
@@ -511,7 +511,7 @@ fn test_externally_driven_chip_skips_periodic_timer() {
         let repo_handle = watcher_handle.update(&mut app, |watcher, ctx| {
             watcher
                 .add_directory(
-                    warp_util::standardized_path::StandardizedPath::from_local_canonicalized(
+                    rift_util::standardized_path::StandardizedPath::from_local_canonicalized(
                         temp_dir.path(),
                     )
                     .unwrap(),
@@ -572,7 +572,7 @@ fn test_git_status_change_updates_chip_value() {
         let repo_handle = watcher_handle.update(&mut app, |watcher, ctx| {
             watcher
                 .add_directory(
-                    warp_util::standardized_path::StandardizedPath::from_local_canonicalized(
+                    rift_util::standardized_path::StandardizedPath::from_local_canonicalized(
                         temp_dir.path(),
                     )
                     .unwrap(),
@@ -655,7 +655,7 @@ fn test_git_status_pr_info_updates_github_pr_chip_value() {
         let repo_handle = watcher_handle.update(&mut app, |watcher, ctx| {
             watcher
                 .add_directory(
-                    warp_util::standardized_path::StandardizedPath::from_local_canonicalized(
+                    rift_util::standardized_path::StandardizedPath::from_local_canonicalized(
                         temp_dir.path(),
                     )
                     .unwrap(),

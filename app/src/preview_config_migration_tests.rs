@@ -13,7 +13,7 @@ fn is_symlink_to(link: &Path, expected_target: &Path) -> bool {
 #[test]
 fn creates_symlinks_for_top_level_entries() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     fs::create_dir(&old_dir).unwrap();
@@ -42,7 +42,7 @@ fn creates_symlinks_for_top_level_entries() {
 #[test]
 fn skips_when_new_dir_already_exists() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     fs::create_dir(&old_dir).unwrap();
@@ -58,7 +58,7 @@ fn skips_when_new_dir_already_exists() {
 #[test]
 fn skips_when_old_dir_does_not_exist() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     // old_dir intentionally not created.
@@ -70,7 +70,7 @@ fn skips_when_old_dir_does_not_exist() {
 #[test]
 fn skips_ds_store_and_dot_underscore_files() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     fs::create_dir(&old_dir).unwrap();
@@ -88,7 +88,7 @@ fn skips_ds_store_and_dot_underscore_files() {
 #[test]
 fn skips_excluded_files() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     fs::create_dir(&old_dir).unwrap();
@@ -104,7 +104,7 @@ fn skips_excluded_files() {
 #[test]
 fn is_idempotent() {
     let tmp = tempfile::tempdir().unwrap();
-    let old_dir = tmp.path().join(".warp");
+    let old_dir = tmp.path().join(".rift");
     let new_dir = tmp.path().join(".warp-preview");
 
     fs::create_dir(&old_dir).unwrap();

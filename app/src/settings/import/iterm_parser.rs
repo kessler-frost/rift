@@ -6,11 +6,11 @@ use itertools::Itertools;
 use palette::Srgba;
 use pathfinder_color::ColorU;
 use plist::{Dictionary, Value};
-use warp_core::ui::theme::{AnsiColors, TerminalColors, WarpTheme};
-use warpui::fonts::FontInfo;
-use warpui::keymap::Keystroke;
-use warpui::platform::mac::utils::unicode_char_to_key;
-use warpui::DisplayIdx;
+use rift_core::ui::theme::{AnsiColors, TerminalColors, WarpTheme};
+use riftui::fonts::FontInfo;
+use riftui::keymap::Keystroke;
+use riftui::platform::mac::utils::unicode_char_to_key;
+use riftui::DisplayIdx;
 
 use super::config::{
     calculate_accent_color, Config, ConfigError, GlobalHotkey, ImportableSetting, ImportedFont,
@@ -30,7 +30,7 @@ extern crate plist;
 const ITERM_DEFAULT_MONOSPACE_FONT_SIZE: &str = "12";
 const ITERM_DEFAULT_MONOSPACE_FONT_FAMILY: &str = "Monaco";
 
-const WARP_DEFAULT_WORKING_DIRECTORY: ITermWorkingDirectoryStrategy =
+const RIFT_DEFAULT_WORKING_DIRECTORY: ITermWorkingDirectoryStrategy =
     ITermWorkingDirectoryStrategy::Simple(ITermWorkingDirectory::ReuseLast);
 
 const PIN_TOP: i64 = 2;
@@ -821,7 +821,7 @@ impl ParseableConfig for ITermProfile {
         }
 
         if self.working_directory == default_profile.working_directory
-            || self.working_directory == Some(WARP_DEFAULT_WORKING_DIRECTORY)
+            || self.working_directory == Some(RIFT_DEFAULT_WORKING_DIRECTORY)
         {
             self.working_directory = None;
         }

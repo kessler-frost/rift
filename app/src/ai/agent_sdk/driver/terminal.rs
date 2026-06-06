@@ -8,17 +8,17 @@ use std::task::{Context, Poll};
 use std::time::Duration;
 
 use futures::channel::oneshot;
+use rift_cli::share::{ShareAccessLevel, ShareRequest, ShareSubject};
+use rift_completer::completer::CommandOutput;
+use rift_core::command::ExitCode;
+use rift_core::features::FeatureFlag;
+use rift_terminal::model::grid::Dimensions;
+use rift_util::path::ShellFamily;
+use rift_util::sync::Condition;
+use riftui::r#async::FutureExt;
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity as _, ViewHandle};
 use session_sharing_protocol::common::{Role, SessionId};
 use session_sharing_protocol::sharer::SessionRetentionReason;
-use warp_cli::share::{ShareAccessLevel, ShareRequest, ShareSubject};
-use warp_completer::completer::CommandOutput;
-use warp_core::command::ExitCode;
-use warp_core::features::FeatureFlag;
-use warp_terminal::model::grid::Dimensions;
-use warp_util::path::ShellFamily;
-use warp_util::sync::Condition;
-use warpui::r#async::FutureExt;
-use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity as _, ViewHandle};
 
 use super::AgentDriverError;
 use crate::ai::ambient_agents::AmbientAgentTaskId;
@@ -191,7 +191,7 @@ impl TerminalDriver {
         // When sharing is disabled (or running against ngrok), leave both halves
         // as None so that `wait_for_session_shared` returns immediately.
         let sharing_expected =
-            should_share && !warp_core::channel::ChannelState::server_root_url().contains("ngrok");
+            should_share && !rift_core::channel::ChannelState::server_root_url().contains("ngrok");
         let (mut session_share_tx, session_share_rx) = if sharing_expected {
             if !FeatureFlag::CreatingSharedSessions.is_enabled() {
                 // Session sharing was requested but the feature is not enabled for this
@@ -266,7 +266,7 @@ impl TerminalDriver {
     pub fn with_terminal_view(
         &self,
         ctx: &mut ModelContext<Self>,
-        f: impl FnOnce(&mut TerminalView, &mut warpui::ViewContext<TerminalView>),
+        f: impl FnOnce(&mut TerminalView, &mut riftui::ViewContext<TerminalView>),
     ) {
         self.terminal_view.update(ctx, f);
     }

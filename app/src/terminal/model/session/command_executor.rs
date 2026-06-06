@@ -30,9 +30,9 @@ pub use local_command_executor::LocalCommandExecutor;
 pub use noop_command_executor::NoOpCommandExecutor;
 #[cfg(feature = "local_tty")]
 pub use remote_command_executor::RemoteCommandExecutor;
+use rift_completer::completer::CommandOutput;
+use riftui::ModelContext;
 pub use shared::{shell_escape_single_quotes, ExecutorCommandEvent};
-use warp_completer::completer::CommandOutput;
-use warpui::ModelContext;
 
 use super::SessionInfo;
 use crate::terminal::event::ExecutedExecutorCommandEvent;
@@ -149,9 +149,9 @@ fn new_command_executor_for_local_tty_session(
 ) -> Arc<dyn CommandExecutor> {
     use msys2_command_executor::MSYS2CommandExecutor;
     use remote_server_executor::RemoteServerCommandExecutor;
+    use riftui::SingletonEntity as _;
     use settings::Setting as _;
     use tmux_executor::TmuxCommandExecutor;
-    use warpui::SingletonEntity as _;
     use wsl_command_executor::WslCommandExecutor;
 
     use super::IsLegacySSHSession;
@@ -366,7 +366,7 @@ fn new_command_executor_for_local_tty_session(
 pub mod testing {
     use anyhow::anyhow;
     use command::r#async::Command;
-    use warp_completer::completer::CommandOutput;
+    use rift_completer::completer::CommandOutput;
 
     use super::*;
     use crate::terminal::shell::ShellType;

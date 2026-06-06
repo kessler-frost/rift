@@ -1,8 +1,8 @@
+use riftui::elements::Empty;
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::{Coords, UiComponentStyles};
+use riftui::{AppContext, Element, Entity, View, ViewContext, ViewHandle};
 use session_sharing_protocol::common::{ParticipantId, Role, RoleRequestId};
-use warpui::elements::Empty;
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::{Coords, UiComponentStyles};
-use warpui::{AppContext, Element, Entity, View, ViewContext, ViewHandle};
 
 use crate::modal::Modal;
 use crate::pane_group::TerminalPaneId;

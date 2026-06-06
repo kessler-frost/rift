@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::Icon;
-use warpui::elements::ParentElement;
-use warpui::prelude::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::Icon;
+use riftui::elements::ParentElement;
+use riftui::prelude::{
     ConstrainedBox, Container, CrossAxisAlignment, Cursor, Flex, Hoverable, MouseStateHandle, Text,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
 

@@ -4,14 +4,14 @@ use std::borrow::Cow;
 
 pub use model::*;
 use pathfinder_color::ColorU;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{
     Border, Container, CrossAxisAlignment, Expanded, Flex, ParentElement, Text,
 };
-use warpui::keymap::Keystroke;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::keymap::Keystroke;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::ai::blocklist::agent_view::{
     ENTER_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE, ENTER_CLOUD_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE,
@@ -266,7 +266,7 @@ pub fn render_agent_shortcuts_view(
 }
 
 pub mod styles {
-    use warp_core::ui::appearance::Appearance;
+    use rift_core::ui::appearance::Appearance;
 
     pub fn keystroke_size(appearance: &Appearance) -> f32 {
         font_size(appearance) + 2.

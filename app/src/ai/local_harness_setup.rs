@@ -1,4 +1,4 @@
-use warp_cli::agent::Harness;
+use rift_cli::agent::Harness;
 
 #[cfg(not(target_family = "wasm"))]
 use crate::util::path::resolve_executable;

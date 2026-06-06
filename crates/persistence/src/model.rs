@@ -4,9 +4,9 @@ use std::collections::{HashMap, HashSet};
 
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use rift_multi_agent_api::response_event::stream_finished;
+use rift_multi_agent_api::{self as api};
 use serde::{Deserialize, Deserializer, Serialize};
-use warp_multi_agent_api::response_event::stream_finished;
-use warp_multi_agent_api::{self as api};
 
 use super::schema::{
     active_mcp_servers, agent_conversations, agent_tasks, ai_document_panes, ai_memory_panes,

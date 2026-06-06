@@ -6,23 +6,23 @@ use std::sync::Arc;
 use itertools::Itertools as _;
 use markdown_parser::{parse_markdown, FormattedText, FormattedTextFragment, FormattedTextLine};
 use parking_lot::FairMutex;
-use settings::Setting;
-use warp_core::features::FeatureFlag;
-use warp_core::report_if_error;
-use warp_core::ui::Icon;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use rift_core::report_if_error;
+use rift_core::ui::Icon;
+use riftui::elements::{
     Clipped, Container, CornerRadius, CrossAxisAlignment, Flex, FormattedTextElement,
     HighlightedHyperlink, MainAxisSize, MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::Keystroke;
-use warpui::prelude::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::Keystroke;
+use riftui::prelude::{
     Align, ConstrainedBox, Cursor, Empty, Hoverable, MainAxisAlignment, SavePosition,
 };
-use warpui::scene::Border;
-use warpui::{
+use riftui::scene::Border;
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
+use settings::Setting;
 
 use crate::ai::active_agent_views_model::{ActiveAgentViewsModel, ConversationOrTaskId};
 use crate::ai::agent::conversation::AIConversationId;
@@ -1239,7 +1239,7 @@ pub fn render_ambient_credits_banner(credits: i32, app: &AppContext) -> Box<dyn 
 }
 
 mod styles {
-    use warp_core::ui::appearance::Appearance;
+    use rift_core::ui::appearance::Appearance;
 
     pub const CONTAINER_VERTICAL_PADDING: f32 = 16.;
     pub const TITLE_MARGIN_BOTTOM: f32 = 8.;

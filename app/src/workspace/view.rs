@@ -53,35 +53,29 @@ use pathfinder_geometry::rect::RectF;
 use repo_metadata::repositories::DetectedRepositories;
 #[cfg(feature = "local_fs")]
 use repo_metadata::RemoteRepositoryIdentifier;
-#[cfg(all(target_os = "macos", feature = "crash_reporting"))]
-use sentry::protocol::{Attachment, AttachmentType};
-use serde_json;
-use session_sharing_protocol::common::SessionId as SharedSessionId;
-#[cfg(target_family = "wasm")]
-use url::Url;
-use warp_cli::agent::Harness;
-use warp_core::context_flag::ContextFlag;
-use warp_core::execution_mode::AppExecutionMode;
-use warp_core::features::FeatureFlag;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::ui::color::coloru_with_opacity;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::phenomenon::PhenomenonStyle;
-use warp_core::ui::theme::Fill;
-use warp_core::ui::Icon;
-use warp_core::user_preferences::GetUserPreferences as _;
-use warp_editor::editor::NavigationKey;
-use warp_server_client::auth::AuthEvent;
-use warp_util::path::{user_friendly_path, LineAndColumnArg};
+use rift_cli::agent::Harness;
+use rift_core::context_flag::ContextFlag;
+use rift_core::execution_mode::AppExecutionMode;
+use rift_core::features::FeatureFlag;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::color::coloru_with_opacity;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::phenomenon::PhenomenonStyle;
+use rift_core::ui::theme::Fill;
+use rift_core::ui::Icon;
+use rift_core::user_preferences::GetUserPreferences as _;
+use rift_editor::editor::NavigationKey;
+use rift_server_client::auth::AuthEvent;
+use rift_util::path::{user_friendly_path, LineAndColumnArg};
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use warp_util::standardized_path::StandardizedPath;
-use warpui::accessibility::{
+use rift_util::standardized_path::StandardizedPath;
+use riftui::accessibility::{
     AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, WarpA11yRole,
 };
-use warpui::clipboard::ClipboardContent;
+use riftui::clipboard::ClipboardContent;
 #[cfg(target_family = "wasm")]
-use warpui::elements::Percentage;
-use warpui::elements::{
+use riftui::elements::Percentage;
+use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult, DraggableState, DropTarget,
     Element, Empty, EventHandler, Expanded, Fill as ElementFill, Flex, Highlight, Hoverable,
@@ -89,23 +83,29 @@ use warpui::elements::{
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, PositionedElementAnchor,
     PositionedElementOffsetBounds, Radius, Rect, SavePosition, Shrinkable, Stack, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::geometry::vector::{vec2f, Vector2F};
-use warpui::keymap::Context;
-use warpui::modals::{AlertDialogWithCallbacks, AppModalCallback};
-use warpui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
-use warpui::platform::{
+use riftui::fonts::{Properties, Weight};
+use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::keymap::Context;
+use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
+use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
+use riftui::platform::{
     Cursor, FilePickerConfiguration, FullscreenState, SystemTheme, TerminationMode,
 };
-use warpui::text_layout::ClipConfig;
-use warpui::ui_components::button::{Button, ButtonVariant};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::windowing::state::ApplicationStage;
-use warpui::windowing::{StateEvent, WindowManager};
-use warpui::{
+use riftui::text_layout::ClipConfig;
+use riftui::ui_components::button::{Button, ButtonVariant};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::windowing::state::ApplicationStage;
+use riftui::windowing::{StateEvent, WindowManager};
+use riftui::{
     AppContext, Entity, EntityId, FocusContext, ModelHandle, SingletonEntity, TypedActionView,
     UpdateModel, UpdateView, View, ViewAsRef, ViewContext, ViewHandle, WeakViewHandle, WindowId,
 };
+#[cfg(all(target_os = "macos", feature = "crash_reporting"))]
+use sentry::protocol::{Attachment, AttachmentType};
+use serde_json;
+use session_sharing_protocol::common::SessionId as SharedSessionId;
+#[cfg(target_family = "wasm")]
+use url::Url;
 
 use self::vertical_tabs::telemetry::{VerticalTabsDisplayOption, VerticalTabsTelemetryEvent};
 use self::vertical_tabs::{
@@ -4234,7 +4234,7 @@ impl Workspace {
                 // Open the transcript details panel by default on WASM (unless on mobile)
                 #[cfg(target_family = "wasm")]
                 {
-                    if !warpui::platform::wasm::is_mobile_device() {
+                    if !riftui::platform::wasm::is_mobile_device() {
                         me.current_workspace_state.is_transcript_details_panel_open = true;
                         me.transcript_info_button.update(ctx, |button, ctx| {
                             button.set_active(true, ctx);
@@ -4353,7 +4353,7 @@ impl Workspace {
                             .ambient_agent_task_id();
                         if task_id.is_some() {
                             // Open the details panel for shared ambient agent sessions (unless on mobile)
-                            if !warpui::platform::wasm::is_mobile_device() {
+                            if !riftui::platform::wasm::is_mobile_device() {
                                 me.current_workspace_state.is_transcript_details_panel_open = true;
                                 me.transcript_info_button.update(ctx, |button, ctx| {
                                     button.set_active(true, ctx);
@@ -6252,7 +6252,7 @@ impl Workspace {
     #[cfg(not(target_family = "wasm"))]
     fn view_logs(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.spawn(
-            async { tokio::task::spawn_blocking(warp_logging::create_log_bundle_zip).await },
+            async { tokio::task::spawn_blocking(rift_logging::create_log_bundle_zip).await },
             |me, result, ctx| match result {
                 Ok(Ok(path)) => {
                     ctx.open_file_path_in_explorer(&path);
@@ -6670,7 +6670,7 @@ impl Workspace {
         }
     }
 
-    /// Writes the default tab config template to an unused path in `~/.warp/tab_configs/`
+    /// Writes the default tab config template to an unused path in `~/.rift/tab_configs/`
     /// and opens it respecting the user's configured editor setting.
     #[cfg(feature = "local_fs")]
     fn create_and_open_new_tab_config(&mut self, ctx: &mut ViewContext<Self>) {
@@ -6709,7 +6709,7 @@ impl Workspace {
     }
 
     /// Snapshots the given tab's pane layout and writes it as a new tab config
-    /// TOML to `~/.warp/tab_configs/`, then opens the file in the user's editor.
+    /// TOML to `~/.rift/tab_configs/`, then opens the file in the user's editor.
     #[cfg(feature = "local_fs")]
     fn save_current_tab_as_new_config(&mut self, tab_index: usize, ctx: &mut ViewContext<Self>) {
         use crate::tab_configs::session_config::{tab_config_from_pane_snapshot, write_tab_config};
@@ -8418,13 +8418,13 @@ impl Workspace {
     }
 
     /// Find an active session and pre-fill the input editor the Warp executable with the
-    /// [`warp_cli::Command::DumpDebugInfo`] subcommand.
+    /// [`rift_cli::Command::DumpDebugInfo`] subcommand.
     fn dump_debug_info(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(exec) = std::env::current_exe()
             .ok()
             .map(|path| path.to_string_lossy().into_owned())
         {
-            let command = format!("{exec} {}", warp_cli::dump_debug_info_flag());
+            let command = format!("{exec} {}", rift_cli::dump_debug_info_flag());
             // Get the active session for this tab if it exists.
             let mut active_session_handle = self
                 .active_tab_pane_group()
@@ -9737,7 +9737,7 @@ impl Workspace {
                     .finish()
                 })
                 .with_cursor(Cursor::PointingHand)
-                .on_click(|ctx: &mut warpui::elements::EventContext, _, _| {
+                .on_click(|ctx: &mut riftui::elements::EventContext, _, _| {
                     ctx.dispatch_typed_action(WorkspaceAction::OpenWorktreeAddRepoPicker);
                     ctx.dispatch_typed_action(crate::menu::MenuAction::Close(true));
                 })
@@ -10133,7 +10133,7 @@ impl Workspace {
                     });
                 });
             },
-            warpui::platform::FilePickerConfiguration::new().folders_only(),
+            riftui::platform::FilePickerConfiguration::new().folders_only(),
         );
     }
 
@@ -10207,12 +10207,12 @@ impl Workspace {
             .map(crate::util::git::list_local_branches_sync)
             .unwrap_or_default();
         let branch_refs: HashSet<&str> = branches.iter().map(|s| s.as_str()).collect();
-        Some(warp_util::worktree_names::generate_worktree_branch_name(
+        Some(rift_util::worktree_names::generate_worktree_branch_name(
             &branch_refs,
         ))
     }
 
-    /// Generates a worktree tab config TOML, writes it to `~/.warp/tab_configs/`,
+    /// Generates a worktree tab config TOML, writes it to `~/.rift/tab_configs/`,
     /// and opens the resulting config as a new tab.
     ///
     /// When `worktree_branch_name` is `None` (autogenerate), the TOML stores
@@ -10247,7 +10247,7 @@ impl Workspace {
         } else {
             let branches = crate::util::git::list_local_branches_sync(Path::new(repo));
             let branch_refs: HashSet<&str> = branches.iter().map(|s| s.as_str()).collect();
-            warp_util::worktree_names::generate_worktree_branch_name(&branch_refs)
+            rift_util::worktree_names::generate_worktree_branch_name(&branch_refs)
         };
 
         let toml_content = crate::tab_configs::build_worktree_config_toml(
@@ -10333,12 +10333,12 @@ impl Workspace {
                     });
                 });
             },
-            warpui::platform::FilePickerConfiguration::new().folders_only(),
+            riftui::platform::FilePickerConfiguration::new().folders_only(),
         );
     }
 
     /// Opens a worktree in the given repo using the default worktree tab config,
-    /// saving the materialized config to `~/.warp/tab_configs/` first.
+    /// saving the materialized config to `~/.rift/tab_configs/` first.
     /// The branch name is auto-generated.
     #[cfg(feature = "local_fs")]
     fn open_worktree_in_repo(&mut self, repo_path: String, ctx: &mut ViewContext<Self>) {
@@ -10354,7 +10354,7 @@ impl Workspace {
         };
         let branches = crate::util::git::list_local_branches_sync(Path::new(&repo_path));
         let branch_refs: HashSet<&str> = branches.iter().map(|s| s.as_str()).collect();
-        let branch_name = warp_util::worktree_names::generate_worktree_branch_name(&branch_refs);
+        let branch_name = rift_util::worktree_names::generate_worktree_branch_name(&branch_refs);
         let repo_display_name = Path::new(&repo_path)
             .file_name()
             .map(|name| name.to_string_lossy().to_string())
@@ -10434,7 +10434,7 @@ impl Workspace {
                     persisted.user_added_workspace(path_buf, ctx);
                 });
             },
-            warpui::platform::FilePickerConfiguration::new().folders_only(),
+            riftui::platform::FilePickerConfiguration::new().folders_only(),
         );
     }
 
@@ -13266,7 +13266,7 @@ impl Workspace {
 
     #[cfg(target_os = "macos")]
     pub fn sync_window_button_visibility(&self, ctx: &mut ViewContext<Self>) {
-        use warpui::platform::mac::WindowExt;
+        use riftui::platform::mac::WindowExt;
         let show = if FeatureFlag::FullScreenZenMode.is_enabled()
             && TabSettings::as_ref(ctx)
                 .workspace_decoration_visibility
@@ -13786,12 +13786,12 @@ impl Workspace {
                             .and_then(|wd| match wd {
                                 LocalOrRemotePath::Remote(remote) => {
                                     let std_path =
-                                        warp_util::standardized_path::StandardizedPath::try_new(
+                                        rift_util::standardized_path::StandardizedPath::try_new(
                                             path,
                                         )
                                         .ok()?;
                                     Some(LocalOrRemotePath::Remote(
-                                        warp_util::remote_path::RemotePath::new(
+                                        rift_util::remote_path::RemotePath::new(
                                             remote.host_id.clone(),
                                             std_path,
                                         ),
@@ -18678,7 +18678,7 @@ impl Workspace {
             .with_child(
                 Text::new_inline(AI_ASSISTANT_FEATURE_NAME, appearance.ui_font_family(), 14.)
                     .with_style(Properties {
-                        weight: warpui::fonts::Weight::Bold,
+                        weight: riftui::fonts::Weight::Bold,
                         ..Default::default()
                     })
                     .finish(),
@@ -19266,7 +19266,7 @@ impl Workspace {
             // Left: Warp logo - clickable to link to warp.dev
             let warp_logo = Hoverable::new(self.mouse_states.warp_logo.clone(), |_state| {
                 ConstrainedBox::new(
-                    warp_core::ui::Icon::Warp
+                    rift_core::ui::Icon::Warp
                         .to_warpui_icon(appearance.theme().foreground())
                         .finish(),
                 )
@@ -19322,7 +19322,7 @@ impl Workspace {
             }
 
             // Hide "Open in Warp" button on mobile devices
-            if !warpui::platform::wasm::is_mobile_device() {
+            if !riftui::platform::wasm::is_mobile_device() {
                 right_row.add_child(ChildView::new(&self.open_in_warp_button).finish());
             }
             tab_bar.add_child(right_row.finish());
@@ -21193,7 +21193,7 @@ impl Workspace {
         }
 
         #[cfg(target_family = "wasm")]
-        if !warpui::platform::wasm::is_mobile_device()
+        if !riftui::platform::wasm::is_mobile_device()
             && self
                 .current_workspace_state
                 .is_transcript_details_panel_open
@@ -21274,7 +21274,7 @@ impl Workspace {
                 )
             }
             HeaderToolbarItemKind::ToolsPanel => {
-                if !pane_group.left_panel_open || warpui::platform::is_mobile_device() {
+                if !pane_group.left_panel_open || riftui::platform::is_mobile_device() {
                     return None;
                 }
                 Some(ChildView::new(&self.left_panel_view).finish())
@@ -21425,7 +21425,7 @@ impl Workspace {
             .value()
             .same_line_prompt_enabled()
         {
-            context.set.insert(flags::WARP_SAME_LINE_PROMPT_FLAG);
+            context.set.insert(flags::RIFT_SAME_LINE_PROMPT_FLAG);
         }
 
         if *ssh_settings.enable_legacy_ssh_wrapper.value() {
@@ -21790,13 +21790,13 @@ impl Workspace {
             context.set.insert(flags::SUGGESTED_RULES_FLAG);
         }
         if *ai_settings.warp_drive_context_enabled.value() {
-            context.set.insert(flags::WARP_DRIVE_CONTEXT_FLAG);
+            context.set.insert(flags::RIFT_DRIVE_CONTEXT_FLAG);
         }
         if *ai_settings.file_based_mcp_enabled.value() {
             context.set.insert(flags::FILE_BASED_MCP_FLAG);
         }
         if *ai_settings.can_use_warp_credits_for_fallback.value() {
-            context.set.insert(flags::WARP_CREDIT_FALLBACK_FLAG);
+            context.set.insert(flags::RIFT_CREDIT_FALLBACK_FLAG);
         }
         if *session_settings.show_model_selectors_in_prompt.value() {
             context
@@ -23284,7 +23284,7 @@ impl TypedActionView for Workspace {
                 // Blocking is ok here only because this action is only registered in dev and local
                 // builds to aid in debugging and development.
                 let access_token =
-                    warpui::r#async::block_on(self.server_api.get_or_refresh_access_token());
+                    riftui::r#async::block_on(self.server_api.get_or_refresh_access_token());
                 if let Ok(token) = access_token {
                     if let Some(bearer) = token.bearer_token() {
                         ctx.clipboard().write(ClipboardContent::plain_text(bearer));
@@ -24386,7 +24386,7 @@ impl View for Workspace {
         self.sync_window_button_visibility(ctx);
     }
 
-    fn keymap_context(&self, app: &AppContext) -> warpui::keymap::Context {
+    fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut context = Self::default_keymap_context();
 
         if NetworkStatus::as_ref(app).is_online() {
@@ -24506,7 +24506,7 @@ impl View for Workspace {
 
         let default_terminal = DefaultTerminal::as_ref(app);
         if default_terminal.is_warp_default() {
-            context.set.insert(flags::WARP_IS_DEFAULT_TERMINAL);
+            context.set.insert(flags::RIFT_IS_DEFAULT_TERMINAL);
         }
 
         if FeatureFlag::DebugMode.is_enabled() {
@@ -24621,7 +24621,7 @@ impl View for Workspace {
         #[cfg(target_family = "wasm")]
         {
             let pane_group = self.active_tab_pane_group().as_ref(app);
-            if warpui::platform::wasm::is_mobile_device() && pane_group.left_panel_open {
+            if riftui::platform::wasm::is_mobile_device() && pane_group.left_panel_open {
                 let scrim = Rect::new()
                     .with_background(Fill::Solid(ColorU::new(
                         0,
@@ -24725,7 +24725,7 @@ impl View for Workspace {
 
         // Transcript details panel overlay (right side, mobile only)
         #[cfg(target_family = "wasm")]
-        if warpui::platform::wasm::is_mobile_device()
+        if riftui::platform::wasm::is_mobile_device()
             && self
                 .current_workspace_state
                 .is_transcript_details_panel_open
@@ -26744,7 +26744,7 @@ fn render_cross_window_ghost_chip(
     appearance: &Appearance,
     app: &AppContext,
 ) -> Box<dyn Element> {
-    use warpui::elements::DropShadow;
+    use riftui::elements::DropShadow;
 
     let theme = appearance.theme();
 

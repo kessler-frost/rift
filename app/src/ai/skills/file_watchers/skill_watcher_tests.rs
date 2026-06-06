@@ -11,12 +11,12 @@ use repo_metadata::{
     DirectoryWatcher, RepoMetadataModel, RepositoryIdentifier, RepositoryUpdate,
     StandingQueryContent, StandingQueryResults, StandingQueryResultsDelta, TargetFile,
 };
+use rift_util::host_id::HostId;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
+use rift_util::remote_path::RemotePath;
+use rift_util::standardized_path::StandardizedPath;
+use riftui::App;
 use tempfile::TempDir;
-use warp_util::host_id::HostId;
-use warp_util::local_or_remote_path::LocalOrRemotePath;
-use warp_util::remote_path::RemotePath;
-use warp_util::standardized_path::StandardizedPath;
-use warpui::App;
 
 use super::super::subscribers::SkillRepositoryMessage;
 use super::{

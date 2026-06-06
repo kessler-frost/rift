@@ -1,4 +1,4 @@
-use warpui::App;
+use riftui::App;
 
 use super::*;
 use crate::terminal::model::session::ExecuteCommandOptions;

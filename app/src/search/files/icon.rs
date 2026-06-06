@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::Icon;
-use warpui::Element;
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::Icon;
+use riftui::Element;
 
 use crate::search::result_renderer::ItemHighlightState;
 

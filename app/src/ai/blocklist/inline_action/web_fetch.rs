@@ -1,6 +1,6 @@
-use warp_core::ui::appearance::Appearance;
-use warpui::elements::{Container, CrossAxisAlignment, Element, Flex, ParentElement, Text};
-use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
+use rift_core::ui::appearance::Appearance;
+use riftui::elements::{Container, CrossAxisAlignment, Element, Flex, ParentElement, Text};
+use riftui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use super::search_results_common::{
     render_collapsible_search_results, CollapsibleSearchResultsState,

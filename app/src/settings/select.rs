@@ -1,9 +1,9 @@
 use std::ops::Not;
 
+use riftui::clipboard::ClipboardContent;
+use riftui::AppContext;
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
-use warpui::clipboard::ClipboardContent;
-use warpui::AppContext;
 
 define_settings_group!(SelectionSettings, settings: [
     copy_on_select: CopyOnSelect {

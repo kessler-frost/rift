@@ -1,14 +1,14 @@
-use warp_cli::agent::Harness;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_editor::editor::NavigationKey;
-use warpui::elements::{
+use rift_cli::agent::Harness;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_editor::editor::NavigationKey;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Empty, Expanded, Flex, Hoverable, MainAxisSize, MouseStateHandle, OffsetPositioning,
     ParentAnchor, ParentElement as _, ParentOffsetBounds, Radius, Stack, Text,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
@@ -481,7 +481,7 @@ impl AuthSecretFtuxDropdown {
 
         if self.display_label.is_some() {
             Hoverable::new(self.label_mouse_state.clone(), move |_| container)
-                .with_cursor(warpui::platform::Cursor::PointingHand)
+                .with_cursor(riftui::platform::Cursor::PointingHand)
                 .on_click(|ctx, _, _| {
                     ctx.dispatch_typed_action(FtuxDropdownAction::ClearDisplayLabel);
                 })
@@ -511,7 +511,7 @@ impl AuthSecretFtuxDropdown {
 
     fn menu_positioning(&self) -> OffsetPositioning {
         OffsetPositioning::offset_from_parent(
-            warpui::geometry::vector::vec2f(0., 0.),
+            riftui::geometry::vector::vec2f(0., 0.),
             ParentOffsetBounds::WindowByPosition,
             ParentAnchor::BottomLeft,
             ChildAnchor::TopLeft,

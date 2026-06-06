@@ -1,8 +1,8 @@
 use ai::skills::{SkillProvider, SkillReference, SkillScope};
+use rift_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use strum_macros::{EnumDiscriminants, EnumIter};
-use warp_core::telemetry::{EnablementState, TelemetryEvent, TelemetryEventDesc};
 
 use crate::features::FeatureFlag;
 
@@ -94,7 +94,7 @@ impl TelemetryEvent for SkillTelemetryEvent {
     }
 
     fn event_descs() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
-        warp_core::telemetry::enum_events::<Self>()
+        rift_core::telemetry::enum_events::<Self>()
     }
 }
 
@@ -118,4 +118,4 @@ impl TelemetryEventDesc for SkillTelemetryEventDiscriminants {
     }
 }
 
-warp_core::register_telemetry_event!(SkillTelemetryEvent);
+rift_core::register_telemetry_event!(SkillTelemetryEvent);

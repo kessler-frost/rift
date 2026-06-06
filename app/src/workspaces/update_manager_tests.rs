@@ -1,7 +1,7 @@
 use chrono::Utc;
 use cloud_object_client::MockObjectClient;
 use itertools::Itertools;
-use warpui::{AddSingletonModel, App};
+use riftui::{AddSingletonModel, App};
 
 use super::*;
 use crate::auth::AuthManager;

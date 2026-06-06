@@ -1,5 +1,5 @@
-use warpui::platform::WindowStyle;
-use warpui::App;
+use riftui::platform::WindowStyle;
+use riftui::App;
 
 use super::*;
 use crate::cloud_object::model::persistence::CloudModel;

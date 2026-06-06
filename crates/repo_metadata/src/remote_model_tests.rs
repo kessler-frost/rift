@@ -1,5 +1,5 @@
-use warp_util::standardized_path::StandardizedPath;
-use warpui_core::App;
+use rift_util::standardized_path::StandardizedPath;
+use riftui_core::App;
 
 use super::*;
 use crate::StandingQueryContent;

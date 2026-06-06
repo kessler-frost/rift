@@ -1,9 +1,9 @@
 use itertools::Itertools;
-use warp_core::context_flag::ContextFlag;
-use warpui::elements::{Clipped, Container, Flex, MouseStateHandle, ParentElement};
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use rift_core::context_flag::ContextFlag;
+use riftui::elements::{Clipped, Container, Flex, MouseStateHandle, ParentElement};
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::{WarpDriveItem, WarpDriveItemId};
 use crate::appearance::Appearance;

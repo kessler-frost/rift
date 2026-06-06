@@ -10,9 +10,9 @@ use async_channel::Receiver;
 use enclose::enclose;
 use futures::StreamExt;
 use rand::prelude::StdRng;
+use riftui::color::ColorU;
+use riftui::{App, ModelHandle};
 use test::Network;
-use warpui::color::ColorU;
-use warpui::{App, ModelHandle};
 
 use super::*;
 use crate::editor::soft_wrap::ClampDirection;

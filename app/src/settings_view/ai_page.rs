@@ -3,33 +3,33 @@ use enum_iterator::all;
 use itertools::Itertools;
 use pathfinder_geometry::vector::vec2f;
 use regex::Regex;
-use settings::{Setting, ToggleableSetting};
-use strum::IntoEnumIterator;
-use warp_core::channel::ChannelState;
-use warp_core::context_flag::ContextFlag;
-use warp_core::features::FeatureFlag;
-use warp_core::ui::color::contrast::MinimumAllowedContrast;
-use warp_core::ui::color::ContrastingColor;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill as ThemeFill;
-use warpui::elements::{
+use rift_core::channel::ChannelState;
+use rift_core::context_flag::ContextFlag;
+use rift_core::features::FeatureFlag;
+use rift_core::ui::color::contrast::MinimumAllowedContrast;
+use rift_core::ui::color::ContrastingColor;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill as ThemeFill;
+use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Dismiss, Empty, Expanded, Fill, Flex, FormattedTextElement, HighlightedHyperlink, Hoverable,
     HyperlinkLens, HyperlinkUrl, MainAxisAlignment, MainAxisSize, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Shrinkable, Stack,
     Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::keymap::{ContextPredicate, Keystroke};
-use warpui::platform::Cursor;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::ui_components::slider::SliderStateHandle;
-use warpui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::keymap::{ContextPredicate, Keystroke};
+use riftui::platform::Cursor;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::slider::SliderStateHandle;
+use riftui::ui_components::switch::{SwitchStateHandle, TooltipConfig};
+use riftui::{
     id, Action, AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,
 };
+use settings::{Setting, ToggleableSetting};
+use strum::IntoEnumIterator;
 
 use super::custom_inference_modal::{
     CustomEndpointModal, CustomEndpointModalEvent, CustomEndpointModalViewState,
@@ -309,7 +309,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         app,
     );
     {
-        use warpui::keymap::FixedBinding;
+        use riftui::keymap::FixedBinding;
 
         use crate::settings::ThinkingDisplayMode;
 
@@ -336,7 +336,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         app.register_fixed_bindings(mode_bindings);
     }
     {
-        use warpui::keymap::FixedBinding;
+        use riftui::keymap::FixedBinding;
 
         let ai_context = context.clone() & id!(flags::IS_ANY_AI_ENABLED);
         let mode_bindings: Vec<FixedBinding> = OrchestrationMessageDisplayMode::iter()
@@ -365,7 +365,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         app.register_fixed_bindings(mode_bindings);
     }
     if FeatureFlag::QueueSlashCommand.is_enabled() {
-        use warpui::keymap::FixedBinding;
+        use riftui::keymap::FixedBinding;
 
         let ai_context = context.clone() & id!(flags::IS_ANY_AI_ENABLED);
         let mode_bindings: Vec<FixedBinding> = PromptSubmissionMode::iter()
@@ -530,7 +530,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
                     AISettingsPageAction::ToggleWarpDriveContext,
                 )),
                 &(context.clone() & id!(flags::IS_ANY_AI_ENABLED)),
-                flags::WARP_DRIVE_CONTEXT_FLAG,
+                flags::RIFT_DRIVE_CONTEXT_FLAG,
             )
             .with_group(bindings::BindingGroup::WarpAi)
             .with_enabled(|| FeatureFlag::AIRules.is_enabled()),
@@ -557,7 +557,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
                     AISettingsPageAction::ToggleCanUseWarpCreditsForFallback,
                 )),
                 &(context.clone() & id!(flags::IS_ANY_AI_ENABLED)),
-                flags::WARP_CREDIT_FALLBACK_FLAG,
+                flags::RIFT_CREDIT_FALLBACK_FLAG,
             )
             .with_group(bindings::BindingGroup::WarpAi)
             .is_supported_on_current_platform(
@@ -2847,7 +2847,7 @@ impl View for AISettingsPageView {
         "AISettingsPage"
     }
 
-    fn render(&self, app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         self.page.render(self, app)
     }
 }
@@ -4116,7 +4116,7 @@ impl UsageWidget {
         is_unlimited: bool,
         workspace_is_delinquent_due_to_payment_issue: bool,
         appearance: &Appearance,
-    ) -> Box<dyn warpui::Element> {
+    ) -> Box<dyn riftui::Element> {
         let mut row = Flex::row();
         if used >= limit || workspace_is_delinquent_due_to_payment_issue {
             row.add_child(
@@ -4181,7 +4181,7 @@ impl UsageWidget {
         is_unlimited: bool,
         workspace_is_delinquent_due_to_payment_issue: bool,
         appearance: &Appearance,
-    ) -> Box<dyn warpui::Element> {
+    ) -> Box<dyn riftui::Element> {
         let request_usage_details = Flex::column()
             .with_cross_axis_alignment(CrossAxisAlignment::End)
             .with_child(self.render_request_usage_count(
@@ -4459,8 +4459,8 @@ impl ActiveAIWidget {
     fn render_next_command_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
 
@@ -4487,8 +4487,8 @@ impl ActiveAIWidget {
     fn render_prompt_suggestions_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
         Flex::column()
@@ -4514,8 +4514,8 @@ impl ActiveAIWidget {
     fn render_suggested_code_banners_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
         Flex::column()
@@ -4541,8 +4541,8 @@ impl ActiveAIWidget {
     fn render_natural_language_autosuggestions_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
         Flex::column()
@@ -4568,8 +4568,8 @@ impl ActiveAIWidget {
     fn render_shared_block_title_generation_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
         Flex::column()
@@ -4595,8 +4595,8 @@ impl ActiveAIWidget {
     fn render_git_operations_autogen_section(
         &self,
         view: &AISettingsPageView,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_active_ai_enabled(app);
         Flex::column()
@@ -5165,7 +5165,7 @@ impl AgentsWidget {
         dropdown_menu: &ViewHandle<Dropdown<AISettingsPageAction>>,
         ai_settings: &AISettings,
         appearance: &Appearance,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Box<dyn Element> {
         let header = Container::new(render_body_item_label_with_icon::<AISettingsPageAction>(
             header_text.into(),
@@ -5416,7 +5416,7 @@ impl AgentsWidget {
         view: &AISettingsPageView,
         ai_settings: &AISettings,
         appearance: &Appearance,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Box<dyn Element> {
         let code_settings = CodeSettings::as_ref(app);
         let toggle = render_ai_setting_toggle::<CodebaseContextEnabled>(
@@ -5801,8 +5801,8 @@ impl AIInputWidget {
         view: &AISettingsPageView,
         ai_settings: &AISettings,
         appearance: &Appearance,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let is_toggleable = ai_settings.is_any_ai_enabled(app);
         let is_nld_enabled = *ai_settings.ai_autodetection_enabled_internal.value();
 
@@ -6113,7 +6113,7 @@ impl AIFactWidget {
         view: &AISettingsPageView,
         ai_settings: &AISettings,
         appearance: &Appearance,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Box<dyn Element> {
         let toggle = render_ai_setting_toggle::<MemoryEnabled>(
             "Rules",
@@ -6164,7 +6164,7 @@ impl AIFactWidget {
         &self,
         view: &AISettingsPageView,
         ai_settings: &AISettings,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Box<dyn Element> {
         let toggle = render_ai_setting_toggle::<RuleSuggestionsEnabled>(
             "Suggested Rules",
@@ -6192,7 +6192,7 @@ impl AIFactWidget {
         &self,
         view: &AISettingsPageView,
         ai_settings: &AISettings,
-        app: &warpui::AppContext,
+        app: &riftui::AppContext,
     ) -> Box<dyn Element> {
         let toggle = render_ai_setting_toggle::<WarpDriveContextEnabled>(
             "Warp Drive as agent context",
@@ -6279,8 +6279,8 @@ impl VoiceWidget {
         &self,
         view: &AISettingsPageView,
         appearance: &Appearance,
-        app: &warpui::AppContext,
-    ) -> Box<dyn warpui::Element> {
+        app: &riftui::AppContext,
+    ) -> Box<dyn riftui::Element> {
         let ai_settings = AISettings::as_ref(app);
         let is_toggleable = ai_settings.is_any_ai_enabled(app);
         let mut column = Flex::column().with_child(render_ai_setting_toggle::<VoiceInputEnabled>(
@@ -8311,9 +8311,9 @@ impl SettingsWidget for AwsBedrockWidget {
 }
 
 mod styles {
-    use warp_core::ui::appearance::Appearance;
-    use warp_core::ui::theme::Fill;
-    use warpui::{AppContext, SingletonEntity};
+    use rift_core::ui::appearance::Appearance;
+    use rift_core::ui::theme::Fill;
+    use riftui::{AppContext, SingletonEntity};
 
     // Apply a negative margin to the description text so it appears closer to the main
     // settings option text.

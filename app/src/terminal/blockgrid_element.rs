@@ -1,10 +1,10 @@
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use warpui::elements::{
+use riftui::elements::{
     AfterLayoutContext, AppContext, Element, EventContext, LayoutContext, PaintContext, Point,
     SizeConstraint,
 };
-use warpui::event::DispatchedEvent;
-use warpui::geometry::rect::RectF;
+use riftui::event::DispatchedEvent;
+use riftui::geometry::rect::RectF;
 
 use super::blockgrid_renderer::GridRenderParams;
 use crate::appearance::Appearance;

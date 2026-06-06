@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 use std::ops::Sub;
 
-use warpui::elements::{
+use riftui::elements::{
     Align, ConstrainedBox, Container, CrossAxisAlignment, Flex, Icon, ParentElement, Shrinkable,
 };
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{AppContext, Element, SingletonEntity};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{AppContext, Element, SingletonEntity};
 
 use super::HistoryEntry;
 use crate::appearance::Appearance;

@@ -1,9 +1,9 @@
 use pathfinder_geometry::vector::vec2f;
+use rift_core::ui::appearance::Appearance;
+use rift_editor::model::CoreEditorModel;
+use riftui::platform::WindowStyle;
+use riftui::App;
 use string_offset::ByteOffset;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::model::CoreEditorModel;
-use warpui::platform::WindowStyle;
-use warpui::App;
 
 use super::MenuSource;
 use crate::auth::AuthStateProvider;

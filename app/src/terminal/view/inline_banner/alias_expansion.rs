@@ -1,5 +1,5 @@
-use warpui::elements::{MouseStateHandle, Text};
-use warpui::Element;
+use riftui::elements::{MouseStateHandle, Text};
+use riftui::Element;
 
 use super::{
     render_inline_block_list_banner, InlineBannerButtonState, InlineBannerCloseButton,

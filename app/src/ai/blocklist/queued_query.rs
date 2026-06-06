@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
+use riftui::{Entity, ModelContext, SingletonEntity};
 use uuid::Uuid;
-use warpui::{Entity, ModelContext, SingletonEntity};
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};

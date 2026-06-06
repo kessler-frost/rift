@@ -1,6 +1,6 @@
 use anyhow::anyhow;
-use warp_terminal::model::grid::Dimensions;
-use warp_terminal::model::Point;
+use rift_terminal::model::grid::Dimensions;
+use rift_terminal::model::Point;
 
 use super::{Block, SerializedAIMetadata};
 use crate::ai::agent::conversation::AIConversationId;

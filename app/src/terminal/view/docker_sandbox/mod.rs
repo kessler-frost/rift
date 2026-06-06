@@ -2,21 +2,21 @@
 use std::sync::mpsc::SyncSender;
 
 #[cfg(not(target_family = "wasm"))]
-use warp_cli::agent::Harness;
+use rift_cli::agent::Harness;
 #[cfg(feature = "local_tty")]
-use warpui::geometry::vector::Vector2F;
+use riftui::geometry::vector::Vector2F;
 #[cfg(not(target_family = "wasm"))]
-use warpui::r#async::FutureExt;
+use riftui::r#async::FutureExt;
 #[cfg(feature = "local_tty")]
-use warpui::ModelHandle;
-use warpui::ViewContext;
+use riftui::ModelHandle;
+use riftui::ViewContext;
 #[cfg(not(target_family = "wasm"))]
-use warpui::{SingletonEntity, View, ViewHandle};
+use riftui::{SingletonEntity, View, ViewHandle};
 
 use super::TerminalView;
 #[cfg(not(target_family = "wasm"))]
 use crate::ai::agent_sdk::driver::{
-    environment::prepare_environment, terminal::TerminalDriver, WARP_DRIVE_SYNC_TIMEOUT,
+    environment::prepare_environment, terminal::TerminalDriver, RIFT_DRIVE_SYNC_TIMEOUT,
 };
 #[cfg(not(target_family = "wasm"))]
 use crate::ai::agent_sdk::setup_observability::SetupClientEventReporter;
@@ -219,7 +219,7 @@ impl TerminalView {
                 // Wait for Warp Drive initial sync so environment lookup succeeds.
 
                 if sync_future
-                    .with_timeout(WARP_DRIVE_SYNC_TIMEOUT)
+                    .with_timeout(RIFT_DRIVE_SYNC_TIMEOUT)
                     .await
                     .is_err()
                 {

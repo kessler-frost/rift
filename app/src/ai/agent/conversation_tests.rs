@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use ai::api_keys::ApiKeyManager;
-use warp_core::features::FeatureFlag;
-use warp_multi_agent_api as api;
-use warpui::{App, SingletonEntity};
+use rift_core::features::FeatureFlag;
+use rift_multi_agent_api as api;
+use riftui::{App, SingletonEntity};
 
 use super::{
     artifact_from_fork_proto, footer_model_token_usage, AIConversation,

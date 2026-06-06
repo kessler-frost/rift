@@ -1,24 +1,24 @@
-use ui_components::{button, Component as _, Options as _};
-use warp_core::send_telemetry_from_ctx;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::theme::color::internal_colors;
-use warp_core::ui::theme::Fill;
-use warp_core::ui::Icon;
-use warpui_core::elements::{
+use rift_core::send_telemetry_from_ctx;
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::theme::color::internal_colors;
+use rift_core::ui::theme::Fill;
+use rift_core::ui::Icon;
+use riftui_core::elements::{
     Border, ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DropShadow, Flex, FormattedTextElement, Hoverable, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, SizeConstraintCondition, SizeConstraintSwitch,
 };
-use warpui_core::fonts::Weight;
-use warpui_core::keymap::Keystroke;
-use warpui_core::platform::Cursor;
-use warpui_core::prelude::Align;
-use warpui_core::text_layout::TextAlignment;
-use warpui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
-use warpui_core::{
+use riftui_core::fonts::Weight;
+use riftui_core::keymap::Keystroke;
+use riftui_core::platform::Cursor;
+use riftui_core::prelude::Align;
+use riftui_core::text_layout::TextAlignment;
+use riftui_core::ui_components::components::{UiComponent as _, UiComponentStyles};
+use riftui_core::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext,
 };
+use ui_components::{button, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;
@@ -164,7 +164,7 @@ impl FreeUserNoAiSlide {
         &self,
         appearance: &Appearance,
         text: String,
-        text_color: warpui_core::color::ColorU,
+        text_color: riftui_core::color::ColorU,
         border_color: Fill,
     ) -> Box<dyn Element> {
         let label = appearance
@@ -417,15 +417,15 @@ impl FreeUserNoAiSlide {
                     .with_main_axis_alignment(MainAxisAlignment::Center)
                     .with_cross_axis_alignment(CrossAxisAlignment::Center)
                     .with_child(
-                        warpui_core::elements::Text::new_inline(
+                        riftui_core::elements::Text::new_inline(
                             "Subscribe",
                             appearance.ui_font_family(),
                             14.,
                         )
                         .with_color(fg_color)
-                        .with_style(warpui_core::fonts::Properties {
+                        .with_style(riftui_core::fonts::Properties {
                             weight: Weight::Semibold,
-                            style: warpui_core::fonts::Style::Normal,
+                            style: riftui_core::fonts::Style::Normal,
                         })
                         .with_selectable(false)
                         .finish(),

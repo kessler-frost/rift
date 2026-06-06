@@ -3,9 +3,9 @@ pub mod llm_generate;
 use anyhow::Result;
 use llm_generate::LLMGenerateRequest;
 use reqwest::blocking::Client;
+use rift_multi_agent_api::apply_file_diffs_result::success::UpdatedFileContent;
+use rift_multi_agent_api::{message, Message};
 use serde::Deserialize;
-use warp_multi_agent_api::apply_file_diffs_result::success::UpdatedFileContent;
-use warp_multi_agent_api::{message, Message};
 
 use crate::ai::agent::conversation::AIConversation;
 
@@ -70,7 +70,7 @@ impl LLMJudge {
 /// Filter out tool call result contents while preserving structure and success/error status
 pub fn filter_tool_call_result(result: &message::ToolCallResult) -> message::ToolCallResult {
     use message::tool_call_result::Result as ToolResult;
-    use warp_multi_agent_api::*;
+    use rift_multi_agent_api::*;
 
     let filtered_result = match &result.result {
         Some(ToolResult::RunShellCommand(cmd_result)) =>
@@ -81,8 +81,8 @@ pub fn filter_tool_call_result(result: &message::ToolCallResult) -> message::Too
                 output: Default::default(),
                 exit_code: Default::default(),
                 result: Some(
-                    warp_multi_agent_api::run_shell_command_result::Result::CommandFinished(
-                        warp_multi_agent_api::ShellCommandFinished {
+                    rift_multi_agent_api::run_shell_command_result::Result::CommandFinished(
+                        rift_multi_agent_api::ShellCommandFinished {
                             command_id: "command_id".to_string(),
                             output: "[OUTPUT OMITTED]".to_string(),
                             exit_code: cmd_result.exit_code,
@@ -123,7 +123,7 @@ pub fn filter_tool_call_result(result: &message::ToolCallResult) -> message::Too
                             Some(any_file_content::Content::TextContent(text_content)) => {
                                 AnyFileContent {
                                     content: Some(any_file_content::Content::TextContent(
-                                        warp_multi_agent_api::FileContent {
+                                        rift_multi_agent_api::FileContent {
                                             file_path: text_content.file_path.clone(),
                                             content: "[CONTENT OMITTED]".to_string(),
                                             line_range: text_content.line_range,
@@ -134,7 +134,7 @@ pub fn filter_tool_call_result(result: &message::ToolCallResult) -> message::Too
                             Some(any_file_content::Content::BinaryContent(binary_content)) => {
                                 AnyFileContent {
                                     content: Some(any_file_content::Content::BinaryContent(
-                                        warp_multi_agent_api::BinaryFileContent {
+                                        rift_multi_agent_api::BinaryFileContent {
                                             file_path: binary_content.file_path.clone(),
                                             data: vec![],
                                         },
@@ -240,7 +240,7 @@ pub fn filter_tool_call_result(result: &message::ToolCallResult) -> message::Too
                 Some(GrepResult::Error(err)) => Some(GrepResult::Error(err.clone())),
                 None => None,
             };
-            Some(ToolResult::Grep(warp_multi_agent_api::GrepResult {
+            Some(ToolResult::Grep(rift_multi_agent_api::GrepResult {
                 result: filtered_grep_result,
             }))
         }

@@ -1,6 +1,6 @@
-use warpui::elements::{ChildView, Empty, SavePosition};
-use warpui::platform::WindowStyle;
-use warpui::{App, ViewHandle};
+use riftui::elements::{ChildView, Empty, SavePosition};
+use riftui::platform::WindowStyle;
+use riftui::{App, ViewHandle};
 
 use super::*;
 

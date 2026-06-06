@@ -2,13 +2,13 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use repo_metadata::repositories::DetectedRepositories;
+use rift_core::ui::appearance::Appearance;
+use rift_editor::content::buffer::InitialBufferState;
+use rift_editor::render::element::VerticalExpansionBehavior;
+use riftui::elements::Empty;
+use riftui::platform::WindowStyle;
+use riftui::{App, Element as _, ModelHandle, ViewHandle};
 use string_offset::CharOffset;
-use warp_core::ui::appearance::Appearance;
-use warp_editor::content::buffer::InitialBufferState;
-use warp_editor::render::element::VerticalExpansionBehavior;
-use warpui::elements::Empty;
-use warpui::platform::WindowStyle;
-use warpui::{App, Element as _, ModelHandle, ViewHandle};
 
 use super::*;
 use crate::auth::AuthStateProvider;
@@ -34,12 +34,12 @@ use crate::NotebookKeybindings;
 #[derive(Default)]
 struct TestView;
 
-impl warpui::Entity for TestView {
+impl riftui::Entity for TestView {
     type Event = ();
 }
 
-impl warpui::View for TestView {
-    fn render(&self, _: &warpui::AppContext) -> Box<dyn warpui::Element> {
+impl riftui::View for TestView {
+    fn render(&self, _: &riftui::AppContext) -> Box<dyn riftui::Element> {
         Empty::new().finish()
     }
 
@@ -48,7 +48,7 @@ impl warpui::View for TestView {
     }
 }
 
-impl warpui::TypedActionView for TestView {
+impl riftui::TypedActionView for TestView {
     type Action = ();
 }
 

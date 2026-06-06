@@ -1,5 +1,5 @@
+use riftui::App;
 use tests::buffer::RangesWhenEditing;
-use warpui::App;
 
 use super::*;
 use crate::editor::tests::{sample_text, RandomCharIter};

@@ -6,12 +6,12 @@ use std::sync::Arc;
 use chrono::{DateTime, Local};
 use itertools::Itertools;
 use prost::Message;
+use rift_core::channel::ChannelState;
+use rift_core::features::FeatureFlag;
+use rift_multi_agent_api as api;
+use riftui::units::IntoPixels;
+use riftui::{EntityId, ModelHandle, SingletonEntity, ViewContext};
 use vec1::Vec1;
-use warp_core::channel::ChannelState;
-use warp_core::features::FeatureFlag;
-use warp_multi_agent_api as api;
-use warpui::units::IntoPixels;
-use warpui::{EntityId, ModelHandle, SingletonEntity, ViewContext};
 
 use super::blocklist_filter::exchanges_for_blocklist;
 use super::DEFAULT_AI_BLOCK_HEIGHT;

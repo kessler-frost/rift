@@ -10,24 +10,24 @@ use markdown_parser::{
     parse_markdown, CodeBlockText, FormattedText, FormattedTextFragment, FormattedTextLine,
 };
 use pathfinder_geometry::vector::Vector2F;
-use string_offset::CharOffset;
-use vec1::vec1;
-use warp_core::features::FeatureFlag;
-use warp_editor::content::buffer::{AutoScrollBehavior, BufferSelectAction, SelectionOffsets};
-use warp_editor::content::text::{BlockType, BufferBlockStyle, CodeBlockType, TextStyles};
-use warp_editor::model::{CoreEditorModel, RichTextEditorModel};
-use warp_editor::render::model::viewport::SizeInfo;
-use warp_editor::render::model::{BlockItem, RenderEvent};
-use warp_editor::selection::{TextDirection, TextUnit};
-use warpui::elements::ListIndentLevel;
-use warpui::platform::WindowStyle;
-use warpui::presenter::ChildView;
-use warpui::r#async::{block_on, FutureId, Timer};
-use warpui::text::word_boundaries::WordBoundariesPolicy;
-use warpui::{
+use rift_core::features::FeatureFlag;
+use rift_editor::content::buffer::{AutoScrollBehavior, BufferSelectAction, SelectionOffsets};
+use rift_editor::content::text::{BlockType, BufferBlockStyle, CodeBlockType, TextStyles};
+use rift_editor::model::{CoreEditorModel, RichTextEditorModel};
+use rift_editor::render::model::viewport::SizeInfo;
+use rift_editor::render::model::{BlockItem, RenderEvent};
+use rift_editor::selection::{TextDirection, TextUnit};
+use riftui::elements::ListIndentLevel;
+use riftui::platform::WindowStyle;
+use riftui::presenter::ChildView;
+use riftui::r#async::{block_on, FutureId, Timer};
+use riftui::text::word_boundaries::WordBoundariesPolicy;
+use riftui::{
     AddSingletonModel, App, AppContext, Element, Entity, ModelHandle, SingletonEntity,
     TypedActionView, View, ViewHandle,
 };
+use string_offset::CharOffset;
+use vec1::vec1;
 
 use super::super::rich_text_styles;
 use super::NotebooksEditorModel;
@@ -69,7 +69,7 @@ impl View for TestView {
         "TestView"
     }
 
-    fn render(&self, _app: &warpui::AppContext) -> Box<dyn warpui::Element> {
+    fn render(&self, _app: &riftui::AppContext) -> Box<dyn riftui::Element> {
         ChildView::new(&self.editor).finish()
     }
 }

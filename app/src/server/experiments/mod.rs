@@ -11,11 +11,11 @@
 //! See [here](https://www.notion.so/warpdev/Server-side-experiments-dynamic-feature-enablement-c0fb9aed695d4178a19b8830e3269094)
 //! for a full guide on the server-side experiment framework.
 
-use warpui::AppContext;
+use riftui::AppContext;
 #[cfg(not(test))]
-use warpui::SingletonEntity as _;
+use riftui::SingletonEntity as _;
 #[cfg(test)]
-use warpui::SingletonEntity;
+use riftui::SingletonEntity;
 
 use crate::features::FeatureFlag;
 use crate::workspaces::user_workspaces::UserWorkspaces;

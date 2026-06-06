@@ -1,14 +1,14 @@
 use instant::Instant;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
-use warp_core::features::FeatureFlag;
-use warpui::elements::{
+use rift_core::features::FeatureFlag;
+use riftui::elements::{
     Border, CacheOption, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Element,
     Flex, FormattedTextElement, HighlightedHyperlink, Icon, Image, MouseStateHandle, ParentElement,
     Radius,
 };
-use warpui::fonts::Weight;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::fonts::Weight;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Entity, ModelAsRef, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext,
 };

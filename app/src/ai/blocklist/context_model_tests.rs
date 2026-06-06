@@ -12,9 +12,9 @@ use parking_lot::FairMutex;
 #[cfg(feature = "local_fs")]
 use repo_metadata::DirectoryWatcher;
 #[cfg(feature = "local_fs")]
-use warp_util::standardized_path::StandardizedPath;
-use warpui::r#async::executor::Background;
-use warpui::{App, EntityId, ModelHandle};
+use rift_util::standardized_path::StandardizedPath;
+use riftui::r#async::executor::Background;
+use riftui::{App, EntityId, ModelHandle};
 
 use super::{BlocklistAIContextModel, PendingAttachment, PendingFile};
 use crate::ai::agent::{AIAgentContext, ImageContext};

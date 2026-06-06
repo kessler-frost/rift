@@ -1,16 +1,16 @@
 use pathfinder_geometry::vector::vec2f;
-use warp_core::ui::appearance::Appearance;
-use warp_core::ui::color::blend::Blend as _;
-use warp_core::ui::{self};
-use warpui::elements::{
+use rift_core::ui::appearance::Appearance;
+use rift_core::ui::color::blend::Blend as _;
+use rift_core::ui::{self};
+use riftui::elements::{
     Align, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Icon,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement as _, Radius,
 };
-use warpui::keymap::EditableBinding;
-use warpui::platform::Cursor;
-use warpui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
-use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use warpui::{
+use riftui::keymap::EditableBinding;
+use riftui::platform::Cursor;
+use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlignment};
+use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity as _, TypedActionView, View,
     ViewContext, ViewHandle,
 };
@@ -28,7 +28,7 @@ use crate::workspace::{ToastStack, Workspace, WorkspaceAction};
 use crate::{send_telemetry_from_ctx, TelemetryEvent};
 
 pub fn init(app: &mut AppContext) {
-    use warpui::keymap::macros::*;
+    use riftui::keymap::macros::*;
 
     app.register_editable_bindings([EditableBinding::new(
         "workspace:new_tab",

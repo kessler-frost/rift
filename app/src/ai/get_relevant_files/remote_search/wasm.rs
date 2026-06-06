@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use warpui::{AppContext, ModelContext};
+use riftui::{AppContext, ModelContext};
 
 use crate::ai::agent::{AIAgentActionId, SearchCodebaseFailureReason, SearchCodebaseResult};
 use crate::ai::blocklist::SessionContext;

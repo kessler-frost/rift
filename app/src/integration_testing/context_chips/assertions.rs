@@ -1,5 +1,5 @@
-use warpui::async_assert;
-use warpui::integration::AssertionCallback;
+use riftui::async_assert;
+use riftui::integration::AssertionCallback;
 
 use crate::context_chips::ContextChipKind;
 use crate::integration_testing::view_getters::single_terminal_view_for_tab;

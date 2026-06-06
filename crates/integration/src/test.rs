@@ -65,58 +65,40 @@ use pathfinder_geometry::vector::Vector2F;
 pub use preview_config_migration::*;
 pub use remote_server::*;
 pub use rich_input_ctrl_enter::*;
-pub use rules::*;
-use rust_embed::RustEmbed;
-pub use secrets::*;
-pub use session_restoration::*;
-use settings::Setting as _;
-pub use settings_file_errors::*;
-pub use settings_file_hot_reload::*;
-pub use settings_file_migration::*;
-pub use settings_private::*;
-use shell::ShellType;
-pub use ssh::*;
-pub use subshell::*;
-use sum_tree::SeekBias;
-pub use sync_inputs::*;
-use sysinfo::{Pid, ProcessesToUpdate, System};
-pub use typeahead::*;
-use version_compare::Cmp;
-pub use video_recording::*;
-use warp::appearance::Appearance;
-use warp::features::FeatureFlag;
-use warp::integration_testing::assertions::{
+use rift::appearance::Appearance;
+use rift::features::FeatureFlag;
+use rift::integration_testing::assertions::{
     assert_binding_display_string, go_offline, go_online, join_a_workspace,
 };
-use warp::integration_testing::block::{
+use rift::integration_testing::block::{
     assert_block_visible, assert_bottom_of_block_approx_at, assert_num_blocks_in_model,
     BlockPosition, LinePosition,
 };
-use warp::integration_testing::clipboard::assert_clipboard_contains_string;
-use warp::integration_testing::command_palette::{
+use rift::integration_testing::clipboard::assert_clipboard_contains_string;
+use rift::integration_testing::command_palette::{
     close_command_palette, open_command_palette, open_command_palette_and_run_action, TestStepsExt,
 };
-use warp::integration_testing::context_chips::assert_working_dir_is_present;
-use warp::integration_testing::find::{Find, FindWithinBlockState};
-use warp::integration_testing::input::{
+use rift::integration_testing::context_chips::assert_working_dir_is_present;
+use rift::integration_testing::find::{Find, FindWithinBlockState};
+use rift::integration_testing::input::{
     input_contains_string, input_is_empty, open_input_context_menu,
 };
-use warp::integration_testing::navigation_palette::{
+use rift::integration_testing::navigation_palette::{
     check_recency, navigate_to_other_session_step, open_navigation_palette_step, RecentSession,
 };
-use warp::integration_testing::pane_group::assert_focused_pane_index;
-use warp::integration_testing::settings::{
+use rift::integration_testing::pane_group::assert_focused_pane_index;
+use rift::integration_testing::settings::{
     assert_theme_chooser_contains, set_window_custom_size, toggle_setting,
 };
-use warp::integration_testing::step::{
+use rift::integration_testing::step::{
     assert_no_pending_model_events, new_step_with_default_assertions,
     new_step_with_default_assertions_for_pane,
 };
-use warp::integration_testing::tab::{assert_pane_title, assert_tab_title, tab_title_step};
-use warp::integration_testing::terminal::util::{
+use rift::integration_testing::tab::{assert_pane_title, assert_tab_title, tab_title_step};
+use rift::integration_testing::terminal::util::{
     current_shell_starter_and_version, ExactLine, ExpectedExitStatus,
 };
-use warp::integration_testing::terminal::{
+use rift::integration_testing::terminal::{
     assert_active_block_output, assert_active_block_output_for_single_terminal_in_tab,
     assert_active_block_received_precmd, assert_alt_grid_active, assert_alt_screen_output,
     assert_command_executed_for_single_terminal_in_tab, assert_context_menu_is_open,
@@ -135,58 +117,76 @@ use warp::integration_testing::terminal::{
     open_context_menu_for_selected_block, performance_test, run_alt_grid_program, run_completer,
     validate_git_branch, wait_until_bootstrapped_pane, wait_until_bootstrapped_single_pane_for_tab,
 };
-use warp::integration_testing::view_getters::{
+use rift::integration_testing::view_getters::{
     pane_group_view, single_input_suggestions_view_for_tab, single_input_view_for_tab,
     single_terminal_pane_view_for_tab, single_terminal_view, single_terminal_view_for_tab,
     workspace_view,
 };
-use warp::integration_testing::warp_drive::{
+use rift::integration_testing::warp_drive::{
     assert_is_left_panel_open, assert_warp_drive_is_closed, assert_warp_drive_is_open,
 };
-use warp::integration_testing::window::{
+use rift::integration_testing::window::{
     add_and_save_window, add_window, add_window_and_check_bounds, close_window,
     save_active_window_id,
 };
-use warp::integration_testing::workspace::assert_tab_count;
-use warp::integration_testing::{self, view_of_type};
-use warp::pane_group::AGENT_MODE_PANE_DEFAULT_MINIMUM_WIDTH;
-use warp::settings::{
+use rift::integration_testing::workspace::assert_tab_count;
+use rift::integration_testing::{self, view_of_type};
+use rift::pane_group::AGENT_MODE_PANE_DEFAULT_MINIMUM_WIDTH;
+use rift::settings::{
     CompletionsOpenWhileTyping, CtrlTabBehavior, MonospaceFontSize, TabBehavior, INPUT_MODE,
 };
-use warp::settings_view::keybindings::KeybindingsView;
-use warp::settings_view::{FeaturesPageAction, SettingsAction, SettingsSection, SettingsView};
-use warp::terminal::alt_screen_reporting::MouseReportingEnabled;
-use warp::terminal::available_shells::AvailableShells;
-use warp::terminal::block_list_viewport::{InputMode, ScrollLines, ScrollPosition};
-use warp::terminal::find::TerminalFindModel;
-use warp::terminal::input::{Input, InputSuggestionsMode};
-use warp::terminal::keys_settings::KeysSettings;
-use warp::terminal::model::ansi::{Handler, InitShellValue};
-use warp::terminal::model::blocks::{BlockHeightItem, BlockHeightSummary, TotalIndex};
-use warp::terminal::model::grid::grid_handler::TermMode;
-use warp::terminal::model::grid::Dimensions;
-use warp::terminal::model::terminal_model::BlockIndex;
-use warp::terminal::session_settings::{HonorPS1, SessionSettings, StartupShellOverride};
-use warp::terminal::view::{
+use rift::settings_view::keybindings::KeybindingsView;
+use rift::settings_view::{FeaturesPageAction, SettingsAction, SettingsSection, SettingsView};
+use rift::terminal::alt_screen_reporting::MouseReportingEnabled;
+use rift::terminal::available_shells::AvailableShells;
+use rift::terminal::block_list_viewport::{InputMode, ScrollLines, ScrollPosition};
+use rift::terminal::find::TerminalFindModel;
+use rift::terminal::input::{Input, InputSuggestionsMode};
+use rift::terminal::keys_settings::KeysSettings;
+use rift::terminal::model::ansi::{Handler, InitShellValue};
+use rift::terminal::model::blocks::{BlockHeightItem, BlockHeightSummary, TotalIndex};
+use rift::terminal::model::grid::grid_handler::TermMode;
+use rift::terminal::model::grid::Dimensions;
+use rift::terminal::model::terminal_model::BlockIndex;
+use rift::terminal::session_settings::{HonorPS1, SessionSettings, StartupShellOverride};
+use rift::terminal::view::{
     BlockVisibilityMode, TerminalAction, TerminalViewState, ALIAS_EXPANSION_BANNER_SEEN_KEY,
 };
-use warp::terminal::{shell, TerminalView};
-use warp::util::bindings::CustomAction;
-use warp::workflows::categories::CategoriesView;
-use warp::workspace::{
+use rift::terminal::{shell, TerminalView};
+use rift::util::bindings::CustomAction;
+use rift::workflows::categories::CategoriesView;
+use rift::workspace::{
     Workspace, WorkspaceAction, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID,
 };
-use warp::{cmd_or_ctrl_shift, AgentModeEntrypoint};
-use warpui_core::event::KeyState;
-use warpui_core::integration::{AssertionOutcome, StepData, TestStep};
-use warpui_core::keymap::{Keystroke, PerPlatformKeystroke, Trigger};
-use warpui_core::platform::keyboard::KeyCode;
-use warpui_core::platform::{OperatingSystem, TerminationMode};
-use warpui_core::units::Lines;
-use warpui_core::windowing::WindowManager;
-use warpui_core::{
+use rift::{cmd_or_ctrl_shift, AgentModeEntrypoint};
+use riftui_core::event::KeyState;
+use riftui_core::integration::{AssertionOutcome, StepData, TestStep};
+use riftui_core::keymap::{Keystroke, PerPlatformKeystroke, Trigger};
+use riftui_core::platform::keyboard::KeyCode;
+use riftui_core::platform::{OperatingSystem, TerminationMode};
+use riftui_core::units::Lines;
+use riftui_core::windowing::WindowManager;
+use riftui_core::{
     async_assert, async_assert_eq, AssetProvider, Event, SingletonEntity, UpdateView, ViewHandle,
 };
+pub use rules::*;
+use rust_embed::RustEmbed;
+pub use secrets::*;
+pub use session_restoration::*;
+use settings::Setting as _;
+pub use settings_file_errors::*;
+pub use settings_file_hot_reload::*;
+pub use settings_file_migration::*;
+pub use settings_private::*;
+use shell::ShellType;
+pub use ssh::*;
+pub use subshell::*;
+use sum_tree::SeekBias;
+pub use sync_inputs::*;
+use sysinfo::{Pid, ProcessesToUpdate, System};
+pub use typeahead::*;
+use version_compare::Cmp;
+pub use video_recording::*;
 pub use websockets::*;
 pub use workflows::*;
 pub use workspace::*;
@@ -222,7 +222,7 @@ fn new_builder() -> Builder {
 pub fn test_add_workflows_to_warp_config() -> Builder {
     new_builder()
         .with_setup(move |utils| {
-            utils.set_env("WARP_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
+            utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
 
             std::fs::create_dir_all(integration_testing::workflow::workflows_dir())
                 .expect("Should be able to create workflows dir");
@@ -276,7 +276,7 @@ pub fn test_add_workflows_to_warp_config() -> Builder {
 pub fn test_launch_warp_with_theme_in_warp_config() -> Builder {
     new_builder()
         .with_setup(move |utils| {
-            utils.set_env("WARP_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
+            utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
 
             integration_testing::create_file_from_assets(
                 TEST_ONLY_ASSETS,
@@ -292,7 +292,7 @@ pub fn test_launch_warp_with_theme_in_warp_config() -> Builder {
 pub fn test_add_theme_to_warp_config() -> Builder {
     new_builder()
         .with_setup(move |utils| {
-            utils.set_env("WARP_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
+            utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
 
             std::fs::create_dir_all(integration_testing::themes::themes_dir())
                 .expect("Should be able to create themes dir");
@@ -2005,7 +2005,7 @@ pub fn test_add_and_close_session() -> Builder {
                                     .expect("pane at index 0 is a terminal pane")
                                     .as_ref(ctx)
                                     .as_any()
-                                    .downcast_ref::<warp::terminal::local_tty::TerminalManager>()
+                                    .downcast_ref::<rift::terminal::local_tty::TerminalManager>()
                                     .expect("terminal pane at index 0 contains a local session")
                                     .pid()
                                     .expect("shell should be spawned")
@@ -3373,14 +3373,14 @@ pub fn test_warp_auto_title_disabled() -> Builder {
             write_rc_files_for_test(
                 &dir,
                 r#"
-WARP_DISABLE_AUTO_TITLE="1"
+RIFT_DISABLE_AUTO_TITLE="1"
 "#,
                 [ShellRcType::Bash],
             );
             write_rc_files_for_test(
                 &dir,
                 r#"
-WARP_DISABLE_AUTO_TITLE="true"
+RIFT_DISABLE_AUTO_TITLE="true"
 "#,
                 [ShellRcType::Zsh],
             );

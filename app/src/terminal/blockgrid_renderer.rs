@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::ops::{Neg, RangeInclusive};
 
 use pathfinder_color::ColorU;
-use warpui::fonts::{FamilyId, Properties, Weight};
-use warpui::geometry::rect::RectF;
-use warpui::geometry::vector::{vec2f, Vector2F};
-use warpui::{AppContext, Element, EntityId, PaintContext};
+use riftui::fonts::{FamilyId, Properties, Weight};
+use riftui::geometry::rect::RectF;
+use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::{AppContext, Element, EntityId, PaintContext};
 
 use super::model::ansi::{CursorShape, CursorStyle};
 use super::model::grid::RespectDisplayedOutput;

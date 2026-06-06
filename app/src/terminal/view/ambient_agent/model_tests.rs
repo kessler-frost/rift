@@ -1,5 +1,5 @@
+use riftui::{App, EntityId};
 use url::Url;
-use warpui::{App, EntityId};
 
 use super::*;
 use crate::ai::blocklist::handoff::HandoffLaunchAttachments;
@@ -96,7 +96,7 @@ fn touched_workspace_with_orphan_file() -> TouchedWorkspace {
     }
 }
 
-fn add_model(app: &mut App) -> warpui::ModelHandle<AmbientAgentViewModel> {
+fn add_model(app: &mut App) -> riftui::ModelHandle<AmbientAgentViewModel> {
     app.add_model(|ctx| AmbientAgentViewModel::new(EntityId::new(), ctx))
 }
 

@@ -7,11 +7,11 @@ use aws_credential_types::provider::error::CredentialsError;
 use aws_credential_types::provider::ProvideCredentials;
 use futures::channel::oneshot::channel;
 use futures::future::BoxFuture;
+use rift_managed_secrets::client::IdentityTokenOptions;
+use rift_managed_secrets::ManagedSecretManager;
+use riftui::{ModelContext, ModelHandle, SingletonEntity};
 use tokio::sync::Mutex;
 use vec1::vec1;
-use warp_managed_secrets::client::IdentityTokenOptions;
-use warp_managed_secrets::ManagedSecretManager;
-use warpui::{ModelContext, ModelHandle, SingletonEntity};
 
 use crate::settings::{AISettings, AISettingsChangedEvent};
 use crate::terminal::event::{AfterBlockCompletedEvent, BlockType, UserBlockCompleted};

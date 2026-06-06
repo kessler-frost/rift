@@ -2,6 +2,17 @@
 
 use chrono::{DateTime, Local};
 use itertools::Itertools;
+use rift_core::features::FeatureFlag;
+use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::appearance::Appearance;
+use riftui::clipboard::ClipboardContent;
+use riftui::elements::MouseStateHandle;
+use riftui::platform::Cursor;
+use riftui::r#async::Timer;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::UiComponent;
+use riftui::units::IntoLines;
+use riftui::{AppContext, Element, ModelHandle, SingletonEntity, ViewContext};
 use session_sharing_protocol::common::{
     ParticipantId, ParticipantList, ParticipantPresenceUpdate, Role, RoleRequestId,
     RoleRequestResponse, SessionId, WindowSize,
@@ -9,17 +20,6 @@ use session_sharing_protocol::common::{
 use session_sharing_protocol::sharer::{RoleUpdateReason, SessionEndedReason, SessionSourceType};
 use session_sharing_protocol::viewer::RoleUpdatedReason;
 use settings::Setting as _;
-use warp_core::features::FeatureFlag;
-use warp_core::semantic_selection::SemanticSelection;
-use warp_core::ui::appearance::Appearance;
-use warpui::clipboard::ClipboardContent;
-use warpui::elements::MouseStateHandle;
-use warpui::platform::Cursor;
-use warpui::r#async::Timer;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::UiComponent;
-use warpui::units::IntoLines;
-use warpui::{AppContext, Element, ModelHandle, SingletonEntity, ViewContext};
 
 use super::adapter::{Adapter, Kind, Participant};
 use super::cloud_conversation_continuation::{

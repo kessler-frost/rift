@@ -1,6 +1,6 @@
 use anyhow::anyhow;
-use warpui::ui_components::components::UiComponent as _;
-use warpui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
+use riftui::ui_components::components::UiComponent as _;
+use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
 use wasm_bindgen::prelude::*;
 
 use super::auth_manager::{AuthManager, AuthManagerEvent};

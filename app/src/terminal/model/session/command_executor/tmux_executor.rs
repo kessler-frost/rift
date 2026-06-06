@@ -7,8 +7,8 @@ use anyhow::Result;
 use async_channel::{self, Receiver, Sender};
 use async_trait::async_trait;
 use parking_lot::Mutex;
-use warp_completer::completer::{CommandExitStatus, CommandOutput};
-use warp_core::command::ExitCode;
+use rift_completer::completer::{CommandExitStatus, CommandOutput};
+use rift_core::command::ExitCode;
 
 use super::{CommandExecutor, ExecuteCommandOptions, ExecutorCommandEvent};
 use crate::terminal::event::ExecutedExecutorCommandEvent;

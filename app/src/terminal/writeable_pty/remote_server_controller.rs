@@ -7,9 +7,9 @@ use remote_server::setup::{
     PreinstallCheckResult, PreinstallStatus, RemoteLibc, RemotePlatform, UnsupportedReason,
 };
 use remote_server::transport::Error;
+use rift_core::SessionId;
+use riftui::{Entity, ModelContext, ModelHandle, SingletonEntity, WeakModelHandle};
 use settings::Setting;
-use warp_core::SessionId;
-use warpui::{Entity, ModelContext, ModelHandle, SingletonEntity, WeakModelHandle};
 
 use super::pty_controller::{EventLoopSender, PtyController};
 use crate::auth::auth_state::AuthStateProvider;

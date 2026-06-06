@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
-use warpui::elements::MouseStateHandle;
-use warpui::ui_components::button::ButtonVariant;
-use warpui::ui_components::components::{UiComponent, UiComponentStyles};
-use warpui::Element;
+use riftui::elements::MouseStateHandle;
+use riftui::ui_components::button::ButtonVariant;
+use riftui::ui_components::components::{UiComponent, UiComponentStyles};
+use riftui::Element;
 
 use super::teams_page::TeamsPageAction;
 use crate::cloud_object::model::persistence::CloudModel;

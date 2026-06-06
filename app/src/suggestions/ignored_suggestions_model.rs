@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
+use riftui::{Entity, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use warpui::{Entity, ModelContext, SingletonEntity};
 
 use crate::persistence::ModelEvent;
 use crate::GlobalResourceHandlesProvider;

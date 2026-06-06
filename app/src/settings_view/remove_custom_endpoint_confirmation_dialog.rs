@@ -1,10 +1,10 @@
-use warp_core::ui::theme::color::internal_colors;
-use warpui::elements::{
+use rift_core::ui::theme::color::internal_colors;
+use riftui::elements::{
     Border, ChildView, Container, CornerRadius, Dismiss, Empty, Flex, ParentElement, Radius, Text,
 };
-use warpui::fonts::{Properties, Weight};
-use warpui::ui_components::components::UiComponent;
-use warpui::{
+use riftui::fonts::{Properties, Weight};
+use riftui::ui_components::components::UiComponent;
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 

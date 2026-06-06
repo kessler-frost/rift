@@ -1,10 +1,10 @@
-use warpui::elements::{CornerRadius, Fill as UiFill, Radius};
-use warpui::presenter::ChildView;
-use warpui::ui_components::components::UiComponentStyles;
-use warpui::ui_components::segmented_control::{
+use riftui::elements::{CornerRadius, Fill as UiFill, Radius};
+use riftui::presenter::ChildView;
+use riftui::ui_components::components::UiComponentStyles;
+use riftui::ui_components::segmented_control::{
     LabelConfig, RenderableOptionConfig, SegmentedControl, SegmentedControlEvent,
 };
-use warpui::{
+use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
@@ -114,8 +114,8 @@ fn markdown_toggle_styles(app: &AppContext) -> UiComponentStyles {
         border_color: Some(UiFill::Solid(theme.surface_3().into())),
         background: Some(UiFill::Solid(theme.background().into())),
         height: Some(20.0),
-        padding: Some(warpui::ui_components::components::Coords::uniform(0.0)),
-        margin: Some(warpui::ui_components::components::Coords {
+        padding: Some(riftui::ui_components::components::Coords::uniform(0.0)),
+        margin: Some(riftui::ui_components::components::Coords {
             top: 0.0,
             bottom: 0.0,
             left: 0.0,
