@@ -72,7 +72,7 @@ Targets in `app/src/`:
 `connected_self_hosted_workers*`, `external_secrets/`,
 `warp_managed_paths_watcher*`, `voltron.rs`, and Warp's cloud AI endpoint calls.
 
-Kept untouched: `crates/warpui/` (→ renamed, see below), `crates/warp_core/`,
+Kept (logic unchanged, renamed per below): `crates/warpui/`, `crates/warp_core/`,
 terminal emulation, shell management, blocks, editor input, local settings.
 
 ### `rift_ai` crate
@@ -85,10 +85,13 @@ crates/rift_ai/
   context.rs   — CommandContext, ContextMessageInput,
                  HistoryContext, NextCommandContext (adapted from Warp)
   complete.rs  — complete(ctx: &NextCommandContext, cfg: &RiftAiConfig) -> Vec<String>
-  translate.rs — translate(nl: &str, ctx: &ShellContext, cfg: &RiftAiConfig) -> String
+  translate.rs — translate(nl: &str, ctx: &NextCommandContext, cfg: &RiftAiConfig) -> String
 ```
 
-Both `complete` and `translate` POST to `{endpoint}/v1/messages` (omlx's
+Both `complete` and `translate` take the same `NextCommandContext` — translate
+benefits from the same pwd/git/history signals as completion (e.g. "deploy it"
+resolves better with recent commands in view), and a single context type keeps
+the crate simple. Both POST to `{endpoint}/v1/messages` (omlx's
 Anthropic-compatible endpoint). `complete` streams for responsiveness;
 `translate` is a single completion constrained by system prompt to emit only a
 shell command.
@@ -102,7 +105,7 @@ Single flat TOML at `~/.config/rift/config.toml`:
 
 ```toml
 [ai]
-endpoint = "http://localhost:1234"
+endpoint = "http://localhost:8000"
 model = "your-model-here"
 api_key = "omlx-local"
 timeout_ms = 3000
