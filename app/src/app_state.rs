@@ -7,15 +7,9 @@ use riftui::platform::FullscreenState;
 use riftui::{AppContext, SingletonEntity as _};
 use serde::{Deserialize, Serialize};
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent_conversations_model::AgentManagementFilters;
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::blocklist::{InputConfig, SerializedBlockListItem};
 use crate::code::editor_management::CodeSource;
-use crate::drive::OpenWarpDriveObjectSettings;
 use crate::root_view::quake_mode_window_id;
 use crate::server::ids::SyncId;
-use crate::settings_view::environments_page::EnvironmentsPage;
 use crate::settings_view::SettingsSection;
 use crate::tab::SelectedTabColor;
 use crate::terminal::ShellLaunchData;

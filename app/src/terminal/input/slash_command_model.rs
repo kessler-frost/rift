@@ -4,10 +4,6 @@ use rift_core::features::FeatureFlag;
 use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 use settings::Setting as _;
 
-use crate::ai::blocklist::{
-    BlocklistAIInputEvent, BlocklistAIInputModel, InputTypeAutoDetectionSource,
-};
-use crate::ai::skills::SkillManager;
 use crate::search::slash_command_menu::StaticCommand;
 use crate::settings::InputSettings;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};

@@ -59,7 +59,6 @@ use rift_graphql::queries::get_workspaces_metadata_for_user::{
 
 use super::ServerApi;
 use crate::auth::UserUid;
-use crate::cloud_object::CloudObjectEventEntrypoint;
 use crate::server::graphql::{get_request_context, get_user_facing_error_message};
 use crate::server::ids::ServerId;
 use crate::workspaces::team::{DiscoverableTeam, MembershipRole};

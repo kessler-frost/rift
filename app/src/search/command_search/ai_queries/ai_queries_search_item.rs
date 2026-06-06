@@ -9,7 +9,6 @@ use riftui::fonts::{Properties, Weight};
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, SingletonEntity};
 
-use crate::ai::blocklist::AIQueryHistoryOutputStatus;
 use crate::appearance::Appearance;
 use crate::search::ai_queries::fuzzy_match::FuzzyMatchAIQueryResults;
 use crate::search::command_search::searcher::CommandSearchItemAction;

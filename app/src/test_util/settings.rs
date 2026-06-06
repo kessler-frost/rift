@@ -26,8 +26,6 @@ pub fn initialize_settings_for_tests_with_mode(
     use rift_core::execution_mode::AppExecutionMode;
     use rift_core::semantic_selection::SemanticSelection;
 
-    use crate::ai::cloud_agent_settings::CloudAgentSettings;
-    use crate::drive::settings::WarpDriveSettings;
     use crate::search::command_search::settings::CommandSearchSettings;
     use crate::settings::app_icon::AppIconSettings;
     use crate::settings::manager::SettingsManager;
@@ -45,7 +43,6 @@ pub fn initialize_settings_for_tests_with_mode(
     use crate::terminal::safe_mode_settings::SafeModeSettings;
     use crate::terminal::session_settings::SessionSettings;
     use crate::terminal::settings::TerminalSettings;
-    use crate::terminal::shared_session::settings::SharedSessionSettings;
     use crate::terminal::warpify::settings::WarpifySettings;
     use crate::terminal::BlockListSettings;
     use crate::undo_close::UndoCloseSettings;

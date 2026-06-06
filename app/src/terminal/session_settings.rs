@@ -11,7 +11,6 @@ use serde::{Deserialize, Serialize};
 pub use startup_shell::*;
 pub use working_directory_config::*;
 
-use crate::ai::blocklist::agent_view::toolbar_item::AgentToolbarItemKind;
 use crate::context_chips::prompt::PromptSelection;
 use crate::context_chips::ContextChipKind;
 

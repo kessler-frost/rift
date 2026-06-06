@@ -2,8 +2,6 @@ use fuzzy_match::match_indices_case_insensitive;
 use ordered_float::OrderedFloat;
 use riftui::{AppContext, Entity, EntityId, SingletonEntity};
 
-use crate::ai::execution_profiles::profiles::{AIExecutionProfilesModel, ClientProfileId};
-use crate::cloud_object::model::generic_string_model::StringModel;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::SyncDataSource;

@@ -25,7 +25,6 @@ use super::generate_ai_input_suggestions::{
     GenerateAIInputSuggestionsRequest, GenerateAIInputSuggestionsResponseV2, NextCommandContext,
 };
 use crate::ai::block_context::BlockContext;
-use crate::ai_assistant::execution_context::WarpAiExecutionContext;
 use crate::completer::SessionContext;
 #[cfg(feature = "local_fs")]
 use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};

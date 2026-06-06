@@ -8,7 +8,6 @@ use riftui::prelude::CrossAxisAlignment;
 use riftui::text_layout::ClipConfig;
 use riftui::{AppContext, Element, SingletonEntity as _};
 
-use crate::ai::execution_profiles::profiles::ClientProfileId;
 use crate::appearance::Appearance;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::input::inline_menu::styles as inline_styles;

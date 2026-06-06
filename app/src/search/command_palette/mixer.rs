@@ -5,8 +5,6 @@ use riftui::keymap::BindingId;
 use riftui::{EntityId, WindowId};
 use strum_macros::IntoStaticStr;
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::drive::CloudObjectTypeAndId;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::search::command_palette::new_session::{NewSessionOption, NewSessionOptionId};
 use crate::search::mixer::SearchMixer;

@@ -25,7 +25,6 @@ pub fn init(app: &mut AppContext) {
 
 use rift_core::ui::theme::color::internal_colors;
 
-use crate::ai::persisted_workspace::PersistedWorkspace;
 use crate::appearance::Appearance;
 use crate::editor::{EditorView, Event as EditorEvent, SingleLineEditorOptions};
 use crate::modal::ModalAction;

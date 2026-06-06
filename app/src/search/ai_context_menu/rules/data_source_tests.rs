@@ -5,24 +5,14 @@ use cloud_object_client::MockObjectClient;
 use riftui::{App, SingletonEntity};
 use settings::manager::SettingsManager;
 
-use crate::ai::facts::{AIFact, AIMemory, CloudAIFactModel};
 use crate::auth::AuthStateProvider;
-use crate::cloud_object::model::generic_string_model::GenericStringModel;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::model::view::CloudViewModel;
-use crate::cloud_object::{
-    GenericServerObject, Owner, Revision, ServerMetadata, ServerPermissions,
-};
-use crate::notebooks::manager::NotebookManager;
 use crate::search::ai_context_menu::rules::data_source::RulesDataSource;
 use crate::search::data_source::Query;
 use crate::search::mixer::SyncDataSource;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::{ServerId, SyncId};
 use crate::server::server_api::team::MockTeamClient;
 use crate::server::server_api::workspace::MockWorkspaceClient;
 use crate::server::server_api::ServerApiProvider;
-use crate::server::sync_queue::SyncQueue;
 use crate::settings::AISettings;
 use crate::system::SystemStats;
 use crate::workspaces::team_tester::TeamTesterStatus;

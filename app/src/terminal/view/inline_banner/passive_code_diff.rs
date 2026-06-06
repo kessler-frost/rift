@@ -1,8 +1,6 @@
 use riftui::elements::{Border, ChildView, Container};
 use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewHandle};
 
-use crate::ai::blocklist::inline_action::code_diff_view::CodeDiffView;
-use crate::ai::blocklist::inline_action::inline_action_header::INLINE_ACTION_HORIZONTAL_PADDING;
 use crate::appearance::Appearance;
 use crate::ui_components::blended_colors;
 

@@ -22,19 +22,8 @@ use riftui::{
     ViewHandle, WeakViewHandle,
 };
 
-use crate::ai::agent::AgentReviewCommentBatch;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::code::buffer_location::LocalOrRemotePath;
-use crate::code_review::code_review_header::HEADER_BUTTON_PADDING;
-#[cfg(feature = "local_fs")]
-use crate::code_review::code_review_view::CodeReviewAction;
-use crate::code_review::code_review_view::{
-    render_file_navigation_button, CodeReviewCommentDebugState, CodeReviewView,
-    CodeReviewViewEvent, CONTENT_LEFT_MARGIN, CONTENT_RIGHT_MARGIN,
-};
-use crate::code_review::diff_state::DiffStateModel;
-use crate::code_review::telemetry_event::CodeReviewContextDestination;
-use crate::drive::panel::{MAX_SIDEBAR_WIDTH_RATIO, MIN_SIDEBAR_WIDTH};
 use crate::pane_group::pane::view::header::components::HEADER_EDGE_PADDING;
 use crate::pane_group::pane::view::header::PANE_HEADER_HEIGHT;
 use crate::pane_group::{

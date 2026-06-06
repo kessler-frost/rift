@@ -9,8 +9,6 @@ use super::event_listener::ChannelEventListener;
 use super::model::session::Sessions;
 use super::model_events::ModelEventDispatcher;
 use super::{ShellLaunchState, TerminalManager, TerminalModel, TerminalView};
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::blocklist::SerializedBlockListItem;
 use crate::context_chips::prompt_type::PromptType;
 use crate::pane_group::TerminalViewResources;
 use crate::terminal::view::ConversationRestorationInNewPaneType;

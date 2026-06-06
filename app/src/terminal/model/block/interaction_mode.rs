@@ -3,12 +3,6 @@ use rift_terminal::model::grid::Dimensions;
 use rift_terminal::model::Point;
 
 use super::{Block, SerializedAIMetadata};
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent::task::TaskId;
-use crate::ai::agent::AIAgentActionId;
-use crate::ai::blocklist::block::cli_controller::{
-    LongRunningCommandControlState, UserTakeOverReason,
-};
 use crate::terminal::event::Event;
 use crate::terminal::model::grid::grid_handler::GridHandler;
 use crate::terminal::model::grid::RespectDisplayedOutput;

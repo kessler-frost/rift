@@ -8,7 +8,6 @@ use command::r#async::Command;
 use itertools::Itertools as _;
 
 use super::{CommandExecutor, CommandOutput, ExecuteCommandOptions};
-use crate::env_vars::{serialize_variables_for_shell, EnvVarValue};
 use crate::terminal::shell::Shell;
 
 /// `CommandExecutor` implementation that executes the given `command` in a forked process

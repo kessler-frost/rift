@@ -15,7 +15,6 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, EntityId, SingletonEntity, ViewHandle};
 use vim::vim::{VimMode, VimState};
 
-use crate::ai::llms::{is_using_api_key_for_provider, LLMPreferences};
 use crate::ai::{AIRequestUsageModel, BuyCreditsBannerDisplayState};
 use crate::appearance::Appearance;
 use crate::settings::{AISettings, InputSettings};

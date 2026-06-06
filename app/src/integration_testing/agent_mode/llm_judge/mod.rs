@@ -7,7 +7,6 @@ use rift_multi_agent_api::apply_file_diffs_result::success::UpdatedFileContent;
 use rift_multi_agent_api::{message, Message};
 use serde::Deserialize;
 
-use crate::ai::agent::conversation::AIConversation;
 
 #[derive(Clone, Debug)]
 pub struct LLMJudgeConfig {

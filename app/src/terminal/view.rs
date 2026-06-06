@@ -1,42 +1,21 @@
 mod action;
-mod agent_view;
-pub mod ambient_agent;
 mod block_banner;
 pub mod block_onboarding;
-pub(crate) mod blocklist_filter;
 mod bookmarks;
 mod context_menu;
 pub mod init;
 pub mod inline_banner;
-pub mod load_ai_conversation;
-pub(crate) mod queued_prompts_panel;
-#[cfg(test)]
-#[path = "view/queued_prompts_tests.rs"]
-mod queued_prompts_tests;
-use ai::agent::action::InsertReviewComment;
-pub use load_ai_conversation::ConversationRestorationInNewPaneType;
-// TODO(advait): if we align on prompt suggestions banner in Input, move code out of inline_banner mod.
-pub(crate) mod init_environment;
-mod init_project;
-pub use init_project::{
-    InitActionResult, InitProjectModel, InitProjectModelEvent, InitStepBlock, InitStepKind,
-    ProjectScopedRulesResult,
-};
 use onboarding::callout::{FinalState, OnboardingCalloutViewEvent, OnboardingQuery};
 use onboarding::{OnboardingCalloutView, OnboardingKeybindings};
 
 use crate::ai::block_context::BlockContext;
 use crate::global_resource_handles::GlobalResourceHandlesProvider;
-pub(crate) mod docker_sandbox;
 mod link_detection;
 mod open_in_warp;
 mod pane_impl;
-mod passive_suggestions;
-mod pending_user_query;
 #[cfg(not(target_family = "wasm"))]
 pub(crate) mod plugin_instructions_block;
 pub mod rich_content;
-mod shared_session;
 mod shell_terminated_banner;
 pub mod ssh_file_upload;
 pub(crate) mod ssh_remote_server_choice_view;
@@ -45,7 +24,6 @@ mod tab_metadata;
 #[cfg(any(test, feature = "integration_tests"))]
 mod testing;
 mod tooltips;
-pub mod use_agent_footer;
 mod zero_state_block;
 
 use std::any::Any;
@@ -212,85 +190,6 @@ use super::warpify::success_block::{WarpifySuccessBlock, WarpifySuccessBlockEven
 use super::warpify::trigger_state::{SshBlockState, WarpifyState};
 use super::warpify::WarpificationSource;
 use super::{cli_agent, CLIAgent, GridType, HistoryEvent};
-use crate::ai::agent::api::ServerConversationToken;
-use crate::ai::agent::conversation::{AIConversation, AIConversationId, ConversationStatus};
-use crate::ai::agent::redaction::redact_secrets;
-use crate::ai::agent::todos::popup::{AgentTodosPopupEvent, AgentTodosPopupView};
-#[cfg(any(test, feature = "integration_tests"))]
-use crate::ai::agent::UserQueryMode;
-use crate::ai::agent::{
-    AIAgentActionId, AIAgentActionType, AIAgentCitation, AIAgentContext, AIAgentExchangeId,
-    AIAgentInput, AIAgentOutputStatus, AIAgentPtyWriteMode, AIAgentTextSection,
-    AgentReviewCommentBatch, CancellationReason, EntrypointType, FileLocations,
-    FinishedAIAgentOutput, PassiveCodeDiffEntry, PassiveSuggestionResultType,
-    PassiveSuggestionTrigger, RenderableAIError, ServerOutputId, ShellCommandCompletedTrigger,
-    StaticQueryType,
-};
-#[cfg(feature = "local_fs")]
-use crate::ai::agent::{CurrentHead, DiffBase};
-use crate::ai::agent_conversations_model::{AgentConversationsModel, AgentConversationsModelEvent};
-use crate::ai::ambient_agents::{
-    conversation_output_status_from_conversation, AmbientAgentTaskId, AmbientConversationStatus,
-};
-use crate::ai::blocklist::agent_view::agent_input_footer::toolbar_item::AgentToolbarItemKind;
-use crate::ai::blocklist::agent_view::{
-    agent_view_bg_fill, fork_from_last_known_good_state_exchange_id,
-    get_agent_view_entry_block_position_id, is_in_cloud_context, AgentViewController,
-    AgentViewControllerEvent, AgentViewDisplayMode, AgentViewEntryBlockParams,
-    AgentViewEntryOrigin, AgentViewHeaderDisabledTheme, AgentViewHeaderTheme,
-    AgentViewZeroStateBlock, AgentViewZeroStateEvent, EphemeralMessageModel,
-    ExitConfirmationTrigger, InlineAgentViewHeader, OrchestrationPillBar,
-    ENTER_OR_EXIT_CONFIRMATION_WINDOW,
-};
-use crate::ai::blocklist::block::cli::{CLISubagentView, CLISubagentViewEvent};
-use crate::ai::blocklist::block::cli_controller::{
-    CLISubagentController, CLISubagentEvent, UserTakeOverReason,
-};
-use crate::ai::blocklist::block::status_bar::BlocklistAIStatusBarEvent;
-use crate::ai::blocklist::block::{AIBlockAction, FinishReason};
-use crate::ai::blocklist::codebase_index_speedbump_banner::{
-    CodebaseIndexSpeedbumpBannerAction, CodebaseIndexSpeedbumpBannerState, VisibilityState,
-};
-use crate::ai::blocklist::inline_action::code_diff_view::{CodeDiffView, FileDiff};
-use crate::ai::blocklist::model::{
-    AIBlockModel, AIBlockModelHelper, AIBlockModelImpl, AIBlockOutputStatus,
-};
-use crate::ai::blocklist::suggested_agent_mode_workflow_modal::SuggestedAgentModeWorkflowAndId;
-use crate::ai::blocklist::suggested_rule_modal::SuggestedRuleAndId;
-use crate::ai::blocklist::summarization_cancel_dialog::SummarizationCancelDialog;
-use crate::ai::blocklist::telemetry_banner::{should_collect_ai_ugc_telemetry, TelemetryBanner};
-use crate::ai::blocklist::usage::conversation_usage_view::{
-    ConversationUsageInfo, ConversationUsageView, TimingInfo,
-};
-use crate::ai::blocklist::{
-    ai_brand_color, block_context_from_terminal_model,
-    get_ai_block_overflow_menu_element_position_id, get_attached_blocks_chip_element_position_id,
-    AIBlock, AIBlockEvent, AutofireAction, BlocklistAIActionEvent, BlocklistAIActionModel,
-    BlocklistAIContextEvent, BlocklistAIContextModel, BlocklistAIController,
-    BlocklistAIControllerEvent, BlocklistAIHistoryEvent, BlocklistAIHistoryModel,
-    BlocklistAIInputEvent, BlocklistAIInputModel, ClientIdentifiers, ConversationStatusUpdate,
-    InputConfig, InputType, InputTypeAutoDetectionSource, LegacyPassiveSuggestionsEvent,
-    LegacyPassiveSuggestionsModel, MaaPassiveSuggestionsEvent, MaaPassiveSuggestionsModel,
-    PassiveSuggestionsModels, PendingAttachment, PendingQueryState, QueuedQuery, QueuedQueryId,
-    QueuedQueryModel, QueuedQueryOrigin, RequestFileEditsFormatKind, ShellCommandExecutor,
-    ShellCommandExecutorEvent, SlashCommandRequest, StartAgentExecutor, StartAgentExecutorEvent,
-    StartAgentRequest, ATTACH_AS_AGENT_MODE_CONTEXT_TEXT, PRE_REWIND_PREFIX,
-};
-use crate::ai::conversation_details_panel::ConversationDetailsPanelEvent;
-use crate::ai::conversation_utils;
-use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentModel, AIDocumentVersion};
-use crate::ai::execution_profiles::profiles::{AIExecutionProfilesModel, ClientProfileId};
-use crate::ai::get_relevant_files::controller::GetRelevantFilesController;
-use crate::ai::llms::{LLMId, LLMModelHost, LLMPreferences};
-use crate::ai::loading::shimmering_warp_loading_text;
-#[cfg(feature = "local_fs")]
-use crate::ai::persisted_workspace::PersistedWorkspace;
-use crate::ai::predict::prompt_suggestions::{
-    has_pending_code_or_unit_test_prompt_suggestion,
-    is_accept_prompt_suggestion_bound_to_cmd_enter,
-    is_accept_prompt_suggestion_bound_to_ctrl_enter,
-};
-use crate::ai_assistant::{AskAIType, ASK_AI_ASSISTANT_TEXT};
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::auth::auth_manager::AuthManager;
@@ -302,42 +201,14 @@ use crate::banner::{
     Banner, BannerAction, BannerEvent, BannerState, BannerTextButton, BannerTextContent,
     DismissalType,
 };
-use crate::cloud_object::model::actions::ObjectActionType;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::{CloudObject, GenericStringObjectFormat, JsonObjectType};
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
-use crate::code_review::comments::{
-    convert_insert_review_comments, AttachedReviewComment, PendingImportedReviewComment,
-};
-#[cfg(feature = "local_fs")]
-use crate::code_review::context::{
-    convert_file_diffs_to_diffset_hunks, create_attachment_reference_and_key,
-    register_diffset_attachment,
-};
-#[cfg(feature = "local_fs")]
-use crate::code_review::diff_state::LocalDiffStateModel;
-use crate::code_review::diff_state::{DiffMode, GitDeltaPreference};
-#[cfg(feature = "local_fs")]
-use crate::code_review::git_status_update::{
-    GitRepoStatusModel, GitStatusMetadata, GitStatusUpdateModel,
-};
-use crate::code_review::telemetry_event::CodeReviewPaneEntrypoint;
-#[cfg(feature = "local_fs")]
-use crate::code_review::DiffSetScope;
 use crate::context_chips::prompt::Prompt;
 #[cfg(feature = "local_fs")]
 use crate::context_chips::prompt::PromptSelection;
 use crate::context_chips::prompt_type::PromptType;
 use crate::context_chips::ContextChipKind;
-use crate::drive::settings::WarpDriveSettings;
-use crate::drive::sharing::ShareableObject;
-use crate::drive::CloudObjectTypeAndId;
 use crate::editor::{AutosuggestionType, CrdtOperation, EditorAction};
-use crate::env_vars::env_var_collection_block::{
-    EnvVarCollectionBlock, EnvVarCollectionBlockEvent,
-};
-use crate::env_vars::{CloudEnvVarCollection, EnvVar, EnvVarExt};
 use crate::features::FeatureFlag;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::PaneFocusHandle;
@@ -354,7 +225,6 @@ use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
 use crate::search::slash_command_menu::static_commands::commands;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::{ObjectUid, SyncId};
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
@@ -379,7 +249,6 @@ use crate::settings::{
     PrivacySettingsSnapshot, SelectionSettings, VimBannerSettings,
 };
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
-use crate::settings_view::mcp_servers_page::MCPServersSettingsPage;
 use crate::settings_view::{flags, SettingsSection};
 use crate::shell_indicator::ShellIndicatorType;
 use crate::terminal::alias::{check_for_alias_async, AliasedCommand};
@@ -465,26 +334,14 @@ use crate::terminal::session_settings::{
     ToolbarChipSelection, DEFAULT_THRESHOLD_FOR_LONG_RUNNING_NOTIFICATION,
 };
 use crate::terminal::settings::{TerminalSettings, TerminalSettingsChangedEvent};
-use crate::terminal::shared_session::role_change_modal::{
-    RoleChangeCloseSource, RoleChangeOpenSource,
-};
-use crate::terminal::shared_session::{
-    SharedSessionActionSource, SharedSessionScrollbackType, SharedSessionSource,
-    SharedSessionStatus,
-};
 use crate::terminal::ssh::ssh_detection::SshInteractiveSessionDetected;
 use crate::terminal::view::block_onboarding::onboarding_prompt_block::OnboardingPromptBlock;
-use crate::terminal::view::init_environment::mode_selector::{
-    EnvironmentSetupMode, EnvironmentSetupModeSelector, EnvironmentSetupModeSelectorEvent,
-};
-use crate::terminal::view::init_environment::{InitEnvironmentBlock, InitEnvironmentBlockEvent};
 use crate::terminal::view::inline_banner::{
     render_agent_mode_setup_banner, AgentModeSetupSpeedbumpBannerAction,
     AgentModeSetupSpeedbumpBannerState, AliasExpansionBannerState,
     NotificationsDiscoveryBannerState, NotificationsErrorBannerState, PromptSuggestionBannerState,
     VimModeBannerState,
 };
-use crate::terminal::view::passive_suggestions::PromptSuggestionResolution;
 pub use crate::terminal::view::rich_content::{
     AIBlockMetadata, AgentViewEntryMetadata, RichContent, RichContentInsertionPosition,
     RichContentMetadata,
@@ -535,8 +392,6 @@ use crate::util::truncation::truncate_from_end;
 use crate::view_components::action_button::{ActionButton, ButtonSize, KeystrokeSource};
 use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
 use crate::view_components::{DismissibleToast, ToastFlavor};
-use crate::workflows::workflow::Workflow;
-use crate::workflows::WorkflowSelectionSource;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::view::cloud_agent_capacity_modal::CloudAgentCapacityModalVariant;
 use crate::workspace::{
@@ -15231,8 +15086,6 @@ impl TerminalView {
         ctx: &mut ViewContext<Self>,
     ) {
         let action_id = AIAgentActionId::from(uuid::Uuid::new_v4().to_string());
-        use crate::ai::agent::AIIdentifiers;
-        use crate::ai::blocklist::inline_action::code_diff_view::CodeDiffViewEvent;
 
         let identifiers = AIIdentifiers::default();
         let title_for_result = title.clone();
@@ -22352,11 +22205,6 @@ impl TerminalView {
     ) -> ViewHandle<AIBlock> {
         use rand::distributions::{Alphanumeric, DistString};
 
-        use crate::ai::agent::{
-            AIAgentInput, AIAgentOutput, AIAgentOutputMessage, AIAgentText, AIAgentTextSection,
-            MessageId, ServerOutputId,
-        };
-        use crate::ai::blocklist::FakeAIBlockModel;
 
         let inputs = vec![AIAgentInput::UserQuery {
             query,
@@ -25579,7 +25427,6 @@ impl TerminalView {
     /// Starts all enabled LSP servers for the current working directory.
     #[cfg(feature = "local_fs")]
     fn start_lsp_server_in_active_pwd(&self, ctx: &mut ViewContext<Self>) {
-        use crate::ai::persisted_workspace::LspTask;
 
         let Some(cwd) = self
             .pwd_if_local(ctx)

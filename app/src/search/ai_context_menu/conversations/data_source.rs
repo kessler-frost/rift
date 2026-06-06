@@ -5,8 +5,6 @@ use riftui::{AppContext, Entity, SingletonEntity};
 
 use super::search_item::ConversationSearchItem;
 use super::ConversationContextItem;
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::conversation_navigation::ConversationNavigationData;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};

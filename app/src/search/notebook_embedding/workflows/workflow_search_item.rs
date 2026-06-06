@@ -8,9 +8,6 @@ use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
-use crate::cloud_object::CloudObject;
-use crate::drive::cloud_object_styling::warp_drive_icon_color;
-use crate::drive::DriveObjectType;
 use crate::search::item::{IconLocation, SearchItem};
 use crate::search::notebook_embedding::embedded_fuzzy_match::FuzzyMatchEmbeddedObjectResult;
 use crate::search::notebook_embedding::searcher::EmbeddingSearchItemAction;
@@ -18,7 +15,6 @@ use crate::search::notebook_embedding::view::styles;
 use crate::search::result_renderer::ItemHighlightState;
 use crate::themes::theme::Fill;
 use crate::ui_components::icons::Icon;
-use crate::workflows::CloudWorkflow;
 
 /// The size of the object type icons, in pixels.
 const ICON_SIZE: f32 = 16.;

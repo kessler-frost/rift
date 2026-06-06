@@ -24,8 +24,6 @@ use riftui::{
 
 use super::super::palette_styles as styles;
 use crate::appearance::Appearance;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::drive::CloudObjectTypeAndId;
 use crate::palette::PaletteMode;
 use crate::pane_group::pane::welcome_view::WelcomeViewAction;
 use crate::search::action::search_item::MatchedBinding;
@@ -51,7 +49,6 @@ use crate::settings::AISettings;
 use crate::terminal::History;
 use crate::themes::theme::WarpTheme;
 use crate::ui_components::icons::Icon;
-use crate::workflows::{WorkflowSelectionSource, WorkflowSource, WorkflowType};
 use crate::workspace::WorkspaceAction;
 
 /// Position ID for the command palette list.

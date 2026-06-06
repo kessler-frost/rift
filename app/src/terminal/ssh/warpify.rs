@@ -9,7 +9,6 @@ use riftui::elements::{
 use riftui::keymap::FixedBinding;
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
-use crate::ai::blocklist::inline_action::requested_action::RenderableAction;
 use crate::appearance::Appearance;
 use crate::terminal::shell::ShellType;
 use crate::terminal::warpify;

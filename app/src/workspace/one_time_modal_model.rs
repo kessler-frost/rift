@@ -3,7 +3,6 @@ use riftui::{Entity, ModelContext, SingletonEntity, WindowId};
 use settings::Setting as _;
 
 use super::hoa_onboarding;
-use crate::ai::blocklist::agent_view::toolbar_item::AgentToolbarItemKind;
 use crate::auth::auth_manager::AuthManagerEvent;
 use crate::auth::AuthManager;
 use crate::channel::{Channel, ChannelState};

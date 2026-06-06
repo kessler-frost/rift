@@ -8,13 +8,6 @@ use riftui::integration::{AssertionCallback, AssertionOutcome};
 use riftui::{integration_assert, EntityId, SingletonEntity};
 
 use super::llm_judge::{LLMJudge, LLMJudgeConfig};
-use crate::ai::agent::conversation::{AIConversation, AIConversationId, ConversationStatus};
-use crate::ai::agent::todos::AIAgentTodoList;
-use crate::ai::agent::{
-    AIAgentActionResultType, AIAgentActionType, AIAgentExchange, AIAgentInput,
-    AIAgentOutputMessageType, AIAgentOutputStatus, AIAgentTextSection, FileEdit,
-    FinishedAIAgentOutput, ReadFilesRequest, TodoOperation,
-};
 use crate::integration_testing::view_getters::terminal_view;
 use crate::BlocklistAIHistoryModel;
 

@@ -11,8 +11,6 @@ use riftui::scene::{CornerRadius, Radius};
 use riftui::text_layout::ClipConfig;
 use riftui::{AppContext, Element, SingletonEntity};
 
-use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};
-use crate::ai::conversation_status_ui::{render_status_element, STATUS_ELEMENT_PADDING};
 use crate::appearance::Appearance;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::history::LinkedWorkflowData;

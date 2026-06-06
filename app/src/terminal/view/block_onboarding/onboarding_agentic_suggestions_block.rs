@@ -18,10 +18,6 @@ use riftui::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::ai::blocklist::{
-    ai_brand_color, BlocklistAIActionEvent, BlocklistAIActionModel, BlocklistAIHistoryEvent,
-    BlocklistAIHistoryModel,
-};
 use crate::terminal::event::BlockType;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::model_events::{ModelEvent, ModelEventDispatcher};

@@ -7,8 +7,6 @@ use uuid::Uuid;
 
 use super::settings::UndoCloseSettingsChangedEvent;
 use super::UndoCloseSettings;
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::pane_group::{PaneGroup, PaneId};
 use crate::send_telemetry_from_app_ctx;
 use crate::server::telemetry::{TelemetryEvent, UndoCloseItemType};

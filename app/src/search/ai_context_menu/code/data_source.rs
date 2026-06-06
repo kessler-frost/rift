@@ -26,8 +26,6 @@ use riftui::SingletonEntity;
 #[cfg(not(target_family = "wasm"))]
 use super::search_item::CodeSearchItem;
 #[cfg(not(target_family = "wasm"))]
-use crate::ai::outline::{OutlineStatus, RepoOutlines, RepoOutlinesEvent};
-#[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 #[cfg(not(target_family = "wasm"))]
 use crate::search::data_source::{Query, QueryResult};

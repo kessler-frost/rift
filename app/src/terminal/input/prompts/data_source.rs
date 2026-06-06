@@ -7,8 +7,6 @@ use riftui::text_layout::ClipConfig;
 use riftui::{AppContext, Element, Entity, ModelContext, ModelHandle, SingletonEntity as _};
 
 use crate::appearance::Appearance;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::search::command_palette::warp_drive;
 use crate::search::data_source::{DataSourceSearchError, Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::result_renderer::ItemHighlightState;
@@ -19,7 +17,6 @@ use crate::terminal::input::inline_menu::{
     InlineMenuMessageArgs, InlineMenuType,
 };
 use crate::terminal::input::message_bar::Message;
-use crate::workflows::CloudWorkflow;
 
 #[derive(Clone, Debug)]
 pub struct AcceptPrompt {

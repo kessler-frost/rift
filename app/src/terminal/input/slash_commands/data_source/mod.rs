@@ -18,11 +18,6 @@ pub(crate) use saved_prompts::*;
 pub use zero_state::*;
 
 use super::AcceptSlashCommandOrSavedPrompt;
-use crate::ai::agent_conversations_model::{AgentConversationsModel, AgentConversationsModelEvent};
-use crate::ai::blocklist::agent_view::{AgentViewController, AgentViewControllerEvent};
-use crate::ai::blocklist::block::cli_controller::{CLISubagentController, CLISubagentEvent};
-use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
-use crate::ai::skills::{SkillDescriptor, SkillManager};
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::slash_command_menu::fuzzy_match::SlashCommandFuzzyMatchResult;
@@ -39,7 +34,6 @@ use crate::terminal::cli_agent_sessions::{
 };
 use crate::terminal::model::session::active_session::{ActiveSession, ActiveSessionEvent};
 use crate::terminal::model::session::SessionType;
-use crate::terminal::view::ambient_agent::AmbientAgentViewModel;
 use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 
 pub struct DataSourceArgs {

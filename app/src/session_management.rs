@@ -6,7 +6,6 @@ use riftui::{AppContext, Entity, EntityId, WindowId};
 use crate::context_chips::prompt_snapshot::PromptSnapshot;
 use crate::pane_group::{PaneGroup, PaneId};
 use crate::terminal::model::blockgrid::BlockGrid;
-use crate::terminal::shared_session::SharedSessionStatus;
 use crate::workspace::{PaneViewLocator, Workspace};
 
 /// Contains session metadata, including a prompt and running command (if there is one).

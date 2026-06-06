@@ -4,8 +4,6 @@ use ordered_float::OrderedFloat;
 
 use super::{fuzzy_match_saved_prompts, SavedPromptCandidate, SavedPromptsSnapshot};
 use crate::server::ids::{ClientId, SyncId};
-use crate::workflows::workflow::Workflow;
-use crate::workflows::CloudWorkflowModel;
 
 const TEST_FONT_FAMILY: riftui::fonts::FamilyId = riftui::fonts::FamilyId(0);
 

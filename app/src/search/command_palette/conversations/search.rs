@@ -1,7 +1,6 @@
 use fuzzy_match::match_indices_case_insensitive;
 use riftui::AppContext;
 
-use crate::ai::conversation_navigation::ConversationNavigationData;
 use crate::search::command_palette::conversations::search_item::{
     ConversationAction, ConversationSearchItem,
 };

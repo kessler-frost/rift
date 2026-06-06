@@ -7,7 +7,6 @@ use ai::document::AIDocumentId;
 use riftui::keymap::Keystroke;
 pub use view::{InlinePlanMenuEvent, InlinePlanMenuView};
 
-use crate::ai::document::ai_document_model::AIDocumentVersion;
 use crate::terminal::input::inline_menu::{
     default_navigation_message_items, InlineMenuAction, InlineMenuMessageArgs, InlineMenuRowAction,
     InlineMenuType,

@@ -48,9 +48,6 @@ use super::{
     flags, LocalOnlyIconState, SettingsAction, SettingsSection, ToggleSettingActionPair,
     ToggleState,
 };
-use crate::ai::persisted_workspace::{
-    EnablementState, LspRepoStatus, PersistedWorkspace, PersistedWorkspaceEvent,
-};
 use crate::appearance::Appearance;
 use crate::code::buffer_location::LocalOrRemotePath;
 use crate::code::lsp_telemetry::{LspControlActionType, LspEnablementSource, LspTelemetryEvent};

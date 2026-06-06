@@ -64,11 +64,6 @@ use super::{
     schema, BlockCompleted, FinishedCommandMetadata, ModelEvent, PersistedData, PersistenceScope,
     StartedCommandMetadata, WriterHandles,
 };
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::mcp::templatable_installation::VariableValue;
-use crate::ai::mcp::{TemplatableMCPServer, TemplatableMCPServerInstallation};
-use crate::ai::persisted_workspace::EnablementState;
 use crate::app_state::{
     AIFactPaneSnapshot, AmbientAgentPaneSnapshot, AppState, BranchSnapshot, CodePaneSnapShot,
     CodePaneTabSnapshot, CodeReviewPaneSnapshot, EnvVarCollectionPaneSnapshot, LeafContents,
@@ -79,14 +74,7 @@ use crate::app_state::{
 use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::auth_state::AuthStateProvider;
 use crate::auth::UserUid;
-use crate::cloud_object::model::actions::{
-    object_action_from_persisted, ObjectAction, ObjectActionSubtype,
-};
-use crate::cloud_object::model::generic_string_model::{CloudStringObject, GenericStringObjectId};
-use crate::cloud_object::{CloudObject, ObjectIdType};
 use crate::code::editor_management::CodeSource;
-use crate::drive::OpenWarpDriveObjectSettings;
-use crate::notebooks::NotebookId;
 use crate::persistence::agent::read_agent_conversations;
 use crate::persistence::block_list::{get_all_restored_blocks, read_ai_queries};
 use crate::persistence::model::{
@@ -102,7 +90,6 @@ use crate::tab::SelectedTabColor;
 use crate::terminal::history::PersistedCommand;
 use crate::terminal::ShellLaunchData;
 use crate::themes::theme::AnsiColorIdentifier;
-use crate::workflows::WorkflowId;
 use crate::workspaces::team::Team as TeamMetadata;
 use crate::workspaces::user_profiles::{user_profile_from_persistence, UserProfileWithUID};
 use crate::workspaces::workspace::{Workspace as WorkspaceMetadata, WorkspaceUid};

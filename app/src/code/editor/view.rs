@@ -74,10 +74,8 @@ use crate::code::{
     DiffResult, NoopCommentEditorProvider, NoopFindReferencesCardProvider,
     ShowCommentEditorProvider, ShowFindReferencesCardProvider,
 };
-use crate::code_review::comments::{CommentId, CommentOrigin};
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;
-use crate::notebooks::editor::rich_text_styles;
 use crate::settings::{AppEditorSettings, CodeEditorLineNumberMode, FontSettings};
 use crate::view_components::find::FindDirection;
 

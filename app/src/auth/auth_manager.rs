@@ -22,12 +22,8 @@ use super::credentials::{Credentials, FirebaseToken, LoginToken};
 use super::user::User;
 use super::user_properties::UserProperties;
 use super::{AuthStateProvider, UserUid};
-use crate::ai::llms::LLMPreferences;
-use crate::ai::persisted_workspace::PersistedWorkspace;
-use crate::ai::AIRequestUsageModel;
 use crate::autoupdate::AutoupdateState;
 use crate::persistence::ModelEvent;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::graphql::get_user_facing_error_message;
 use crate::server::server_api::auth::{
     AnonymousUserCreationError, AuthClient, FetchUserResult, MintCustomTokenError,
@@ -35,11 +31,9 @@ use crate::server::server_api::auth::{
 };
 use crate::server::server_api::{ServerApi, ServerApiProvider};
 use crate::server::telemetry::AnonymousUserSignupEntrypoint;
-use crate::settings::cloud_preferences_syncer::CloudPreferencesSyncer;
 use crate::settings::initializer::SettingsInitializer;
 use crate::settings::PrivacySettings;
 use crate::terminal::general_settings::GeneralSettings;
-use crate::terminal::shared_session::manager::Manager as SharedSessionManager;
 #[cfg(target_family = "wasm")]
 use crate::uri::browser_url_handler::{parse_current_url, update_browser_url};
 use crate::workspaces::team_tester::TeamTesterStatus;

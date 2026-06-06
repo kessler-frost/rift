@@ -43,7 +43,6 @@ use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::terminal::input::MenuPositioning;
 use crate::terminal::resizable_data::{ModalType, ResizableData, DEFAULT_VOLTRON_WIDTH};
 use crate::util::bindings::{self, CustomAction};
-use crate::workflows::categories::CategoriesView;
 
 const DROPDOWN_BUTTON_WIDTH: f32 = 200.;
 const DROPDOWN_PADDING: f32 = 6.;

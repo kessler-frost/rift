@@ -4,7 +4,6 @@ use std::path::PathBuf;
 
 use riftui::{AppContext, Entity, SingletonEntity};
 
-use crate::ai::persisted_workspace::PersistedWorkspace;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{AsyncDataSource, BoxFuture, DataSourceRunErrorWrapper};
 use crate::terminal::input::repos::AcceptRepo;

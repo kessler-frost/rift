@@ -5,10 +5,8 @@ use super::{
     DetachType, PaneConfiguration, PaneContent, PaneEvent, PaneGroup, PaneId, ShareableLink,
     ShareableLinkError,
 };
-use crate::ai::ambient_agents::github_auth_url::GithubAuthRedirectTarget;
 use crate::app_state::{EnvironmentManagementPaneSnapshot, LeafContents};
 use crate::pane_group::focus_state::PaneFocusHandle;
-use crate::settings_view::environments_page::{EnvironmentsPage, EnvironmentsPageView};
 use crate::settings_view::settings_page::{PaneEventWrapper, SettingsPageEvent};
 
 pub struct EnvironmentManagementPane {

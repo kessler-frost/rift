@@ -4,7 +4,6 @@ use riftui::prelude::Container;
 use riftui::scene::Border;
 use riftui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
 
-use crate::ai::blocklist::agent_view::{AgentViewController, AgentViewControllerEvent};
 use crate::terminal::input::inline_menu::model::InlineMenuModel;
 use crate::terminal::input::inline_menu::{
     InlineMenuAction, InlineMenuMessageProvider, InlineMenuPositioner,

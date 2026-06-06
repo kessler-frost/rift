@@ -2,10 +2,6 @@ use fuzzy_match::FuzzyMatchResult;
 use riftui::{AppContext, Entity, SingletonEntity};
 
 use super::search_item::RuleSearchItem;
-use crate::ai::facts::{AIFact, CloudAIFactModel};
-use crate::cloud_object::model::generic_string_model::GenericStringObjectId;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::CloudObject;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};

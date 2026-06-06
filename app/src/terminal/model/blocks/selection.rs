@@ -14,9 +14,6 @@ use vec1::{vec1, Vec1};
 use super::{
     BlockHeight, BlockHeightItem, BlockHeightSummary, BlockList, BlockListPoint, RichContentItem,
 };
-use crate::ai::blocklist::block::PendingUserQueryBlock;
-use crate::ai::blocklist::AIBlock;
-use crate::env_vars::env_var_collection_block::EnvVarCollectionBlock;
 use crate::terminal::event::Event as TerminalEvent;
 use crate::terminal::model::block::BlockSection;
 use crate::terminal::model::index::{Direction, Point, Side};

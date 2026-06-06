@@ -5,10 +5,6 @@ use riftui::units::IntoLines;
 use riftui::App;
 
 use super::*;
-use crate::ai::agent::AIAgentActionId;
-use crate::ai::blocklist::agent_view::{
-    AgentViewDisplayMode, AgentViewEntryOrigin, AgentViewState,
-};
 use crate::settings::TerminalSpacing;
 use crate::terminal::event::Event;
 use crate::terminal::model::ansi::Handler;

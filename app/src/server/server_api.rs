@@ -1,11 +1,9 @@
-pub mod ai;
 pub mod auth;
 mod base_client;
 pub mod block;
 pub mod harness_support;
 pub mod integrations;
 pub mod managed_secrets;
-pub mod object;
 pub(crate) mod presigned_upload;
 pub mod team;
 pub mod workspace;
@@ -44,13 +42,8 @@ use url::Url;
 use workspace::WorkspaceClient;
 
 use super::experiments::{ServerExperiment, ServerExperiments};
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::get_relevant_files::api::{GetRelevantFiles, GetRelevantFilesResponse};
 use crate::ai::predict::generate_ai_input_suggestions::GenerateAIInputSuggestionsRequest;
-use crate::ai::predict::generate_am_query_suggestions::GenerateAMQuerySuggestionsRequest;
-use crate::ai::predict::predict_am_queries::{PredictAMQueriesRequest, PredictAMQueriesResponse};
 use crate::ai::predict::{generate_ai_input_suggestions, generate_am_query_suggestions};
-use crate::ai::voice::transcribe::{TranscribeRequest, TranscribeResponse};
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
 use crate::auth::UserUid;

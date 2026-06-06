@@ -21,25 +21,6 @@ use riftui::clipboard::ClipboardContent;
 use riftui::{AppContext, SingletonEntity, ViewContext};
 pub use view::{CloseReason, InlineSlashCommandView, SlashCommandsEvent};
 
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::agent::conversation::AIConversationId;
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::agent_management::telemetry::AgentManagementTelemetryEvent;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::ambient_agents::telemetry::HandoffEntryPoint;
-use crate::ai::blocklist::agent_view::{
-    AgentViewEntryOrigin, DismissalStrategy, EphemeralMessage, ENTER_OR_EXIT_CONFIRMATION_WINDOW,
-};
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::blocklist::handoff::PendingCloudLaunch;
-use crate::ai::blocklist::{
-    BlocklistAIHistoryModel, InputTypeAutoDetectionSource, QueuedQuery, QueuedQueryModel,
-    QueuedQueryOrigin, SlashCommandRequest,
-};
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::code_review::telemetry_event::CodeReviewPaneEntrypoint;
 use crate::search::slash_command_menu::static_commands::commands::{self, COMMAND_REGISTRY};
 use crate::search::slash_command_menu::static_commands::Availability;
 use crate::search::slash_command_menu::{SlashCommandId, StaticCommand};
@@ -62,7 +43,6 @@ use crate::terminal::model::session::Session;
 use crate::terminal::view::TerminalAction;
 use crate::ui_components::color_dot;
 use crate::view_components::DismissibleToast;
-use crate::workflows::{WorkflowSelectionSource, WorkflowSource, WorkflowType};
 use crate::workspace::{ForkedConversationDestination, ToastStack, WorkspaceAction};
 use crate::TelemetryEvent;
 

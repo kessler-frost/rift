@@ -10,7 +10,6 @@ mod notifications_discovery;
 mod notifications_error;
 mod open_in_warp;
 mod passive_code_diff;
-pub(crate) mod prompt_suggestions;
 mod session_state;
 mod shared_sessions;
 mod shell_process_terminated;

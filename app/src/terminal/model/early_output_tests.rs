@@ -1,5 +1,4 @@
 use super::TypeaheadMode;
-use crate::ai::blocklist::agent_view::AgentViewState;
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::model::ansi::{self, Handler};
 use crate::terminal::model::blocks::BlockList;

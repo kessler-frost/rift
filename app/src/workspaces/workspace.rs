@@ -11,10 +11,6 @@ pub use rift_graphql::billing::{
 use serde::{Deserialize, Serialize};
 
 use super::team::{MembershipRole, Team};
-use crate::ai::execution_profiles::{
-    ActionPermission, ComputerUsePermission, WriteToPtyPermission,
-};
-use crate::ai::llms::LLMModelHost;
 use crate::auth::UserUid;
 use crate::server::ids::ServerId;
 use crate::settings::AgentModeCommandExecutionPredicate;

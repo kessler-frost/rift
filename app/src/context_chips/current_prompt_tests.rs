@@ -16,10 +16,6 @@ use settings::Setting as _;
 use super::{ChipUpdateStatus, CurrentPrompt, PromptContext};
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
-#[cfg(feature = "local_fs")]
-use crate::code_review::diff_state::DiffStats;
-#[cfg(feature = "local_fs")]
-use crate::code_review::git_status_update::{GitRepoStatusModel, GitStatusMetadata};
 use crate::context_chips::context_chip::{Environment, PromptGenerator};
 use crate::context_chips::prompt::Prompt;
 use crate::context_chips::{ChipAvailability, ChipDisabledReason, ContextChipKind};

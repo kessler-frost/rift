@@ -11,7 +11,6 @@ use riftui::platform::WindowStyle;
 use riftui::App;
 
 use super::{HistoryInputSuggestion, InputSuggestions, TabCompletionsPreselectOption};
-use crate::ai::blocklist::AIQueryHistory;
 use crate::input_suggestions::{filter_tab_suggestions, HistoryOrder};
 use crate::terminal::model::session::SessionId;
 use crate::terminal::HistoryEntry;

@@ -1,5 +1,4 @@
 use super::DiffSetSearchItem;
-use crate::code_review::diff_state::DiffMode;
 use crate::search::item::SearchItem;
 
 #[test]

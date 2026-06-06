@@ -6,7 +6,6 @@ use super::{
     comment_embedded_item_conversion, EmbeddedCommentSpace, EmbeddedItem as _,
     COMMENT_ID_MAPPING_KEY, ENTITY_ID_MAPPING_KEY, WINDOW_ID_MAPPING_KEY,
 };
-use crate::code_review::comments::CommentId;
 
 #[test]
 fn test_comment_embedded_item_conversion_valid_input() {

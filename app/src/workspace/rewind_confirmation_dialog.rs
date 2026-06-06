@@ -15,8 +15,6 @@ use riftui::{
     AppContext, Element, Entity, EntityId, SingletonEntity, TypedActionView, View, ViewContext,
 };
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent::AIAgentExchangeId;
 use crate::appearance::Appearance;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::ui_components::icons::Icon;

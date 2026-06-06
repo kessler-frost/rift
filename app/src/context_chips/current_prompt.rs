@@ -24,8 +24,6 @@ use super::logging::{ChipCommandLogEntry, PromptChipExecutionPhase, PromptChipLo
 use super::prompt::Prompt;
 use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
 #[cfg(feature = "local_fs")]
-use crate::code_review::git_status_update::{GitRepoStatusEvent, GitRepoStatusModel};
-#[cfg(feature = "local_fs")]
 use crate::context_chips::display_chip::GitLineChanges;
 use crate::editor::EditorView;
 use crate::features::FeatureFlag;

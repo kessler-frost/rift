@@ -35,10 +35,6 @@ pub use super::billing_and_usage_page::BillingAndUsagePageEvent;
 use super::billing_and_usage_page::{BillingAndUsagePageAction, BillingUsageTab};
 use super::settings_page::{render_customer_type_badge, render_info_icon, AdditionalInfo};
 use super::SettingsSection;
-use crate::ai::request_usage_model::{
-    BonusGrant, BonusGrantScope, BonusGrantType, AMBIENT_AGENT_TRIAL_CREDIT_THRESHOLD,
-};
-use crate::ai::AIRequestUsageModel;
 use crate::auth::auth_state::AuthState;
 use crate::auth::auth_view_modal::AuthViewVariant;
 use crate::auth::{AuthManager, AuthStateProvider};

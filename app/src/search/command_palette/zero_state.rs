@@ -11,7 +11,6 @@ use riftui::{
 };
 
 use crate::appearance::Appearance;
-use crate::drive::settings::WarpDriveSettings;
 use crate::search::command_palette::FilterChipRenderer;
 use crate::search::QueryFilter;
 use crate::settings::AISettings;

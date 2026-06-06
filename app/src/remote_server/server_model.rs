@@ -55,7 +55,6 @@ use super::proto::{
 };
 use super::server_buffer_tracker::{PendingBufferRequestKind, ServerBufferTracker};
 use crate::code::global_buffer_model::{GlobalBufferModel, GlobalBufferModelEvent};
-use crate::code_review::diff_state::{DiffMode, FileStatusInfo};
 use crate::terminal::shell::ShellType;
 
 /// How long the daemon waits with no connections before exiting.
@@ -69,9 +68,6 @@ const MAX_BRANCH_COUNT_CAP: usize = 500;
 /// Unique identifier for a connected proxy session in daemon mode.
 pub type ConnectionId = uuid::Uuid;
 use super::protocol::RequestId;
-use crate::ai::agent::FileLocations;
-use crate::ai::blocklist::handoff::snapshot::upload_result_to_proto;
-use crate::ai::blocklist::{read_local_file_context, ReadFileContextResult};
 use crate::auth::auth_state::{AuthState, AuthStateProvider};
 use crate::features::FeatureFlag;
 use crate::server::server_api::ServerApiProvider;
@@ -2926,7 +2922,6 @@ fn fragment_metadata_to_proto(
 
 /// Converts a [`ReadFileContextResult`] into its protobuf equivalent.
 fn file_context_result_to_proto(result: ReadFileContextResult) -> ReadFileContextResponse {
-    use crate::ai::agent::AnyFileContent;
 
     let file_contexts = result
         .file_contexts

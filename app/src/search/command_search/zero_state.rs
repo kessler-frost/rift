@@ -10,7 +10,6 @@ use riftui::platform::Cursor;
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
-use crate::drive::settings::{WarpDriveSettings, WarpDriveSettingsChangedEvent};
 use crate::search::{FilterChipRenderer, QueryFilter};
 use crate::settings::{AISettings, AISettingsChangedEvent};
 

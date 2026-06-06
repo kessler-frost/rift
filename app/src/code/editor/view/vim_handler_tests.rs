@@ -18,9 +18,7 @@ use unindent::Unindent;
 use vim::vim::{MotionType, VimMode};
 
 use crate::auth::AuthStateProvider;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::code::editor::view::{CodeEditorRenderOptions, CodeEditorView, CodeEditorViewAction};
-use crate::notebooks::editor::keys::NotebookKeybindings;
 use crate::server::server_api::team::MockTeamClient;
 use crate::server::server_api::workspace::MockWorkspaceClient;
 use crate::settings::AppEditorSettings;

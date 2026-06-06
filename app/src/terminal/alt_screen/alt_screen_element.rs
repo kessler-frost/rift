@@ -41,9 +41,6 @@ use crate::terminal::model::selection::{SelectAction, SelectionPoint};
 use crate::terminal::model::terminal_model::WithinModel;
 use crate::terminal::model::SecretHandle;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
-use crate::terminal::shared_session::presence_manager::{
-    text_selection_color, PresenceManager, MUTED_PARTICIPANT_COLOR,
-};
 use crate::terminal::view::{
     ActiveSessionState, TerminalAction, TerminalEditor, TerminalViewRenderContext,
 };

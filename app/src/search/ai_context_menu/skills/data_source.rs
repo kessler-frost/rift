@@ -3,7 +3,6 @@ use rift_util::local_or_remote_path::LocalOrRemotePath;
 use riftui::{AppContext, Entity, SingletonEntity};
 
 use super::search_item::SkillSearchItem;
-use crate::ai::skills::SkillManager;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};

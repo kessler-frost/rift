@@ -11,12 +11,6 @@ use std::sync::Arc;
 use rift_util::standardized_path::StandardizedPath;
 
 use super::proto;
-use crate::code_review::diff_size_limits::DiffSize;
-use crate::code_review::diff_state::{
-    DiffHunk, DiffLine, DiffLineType, DiffMetadata, DiffMetadataAgainstBase, DiffMode, DiffState,
-    DiffStats, FileDiff, FileDiffAndContent, FileStatusInfo, GitDiffData, GitDiffWithBaseContent,
-    GitFileStatus,
-};
 use crate::util::git::{Commit, PrInfo};
 
 // ── Proto → Rust (for incoming client messages) ────────────────────

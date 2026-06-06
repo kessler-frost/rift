@@ -29,33 +29,16 @@ use watcher::HomeDirectoryWatcher;
 use workflows::workflow::{Argument, ArgumentType, Workflow};
 
 use super::*;
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::blocklist::{AIQueryHistory, BlocklistAIPermissions};
-use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use crate::ai::harness_availability::HarnessAvailabilityModel;
-use crate::ai::llms::LLMPreferences;
-use crate::ai::mcp::gallery::MCPGalleryManager;
-use crate::ai::mcp::templatable_manager::TemplatableMCPServerManager;
-use crate::ai::outline::RepoOutlines;
-use crate::ai::persisted_workspace::PersistedWorkspace;
-use crate::ai::restored_conversations::RestoredAgentConversations;
-use crate::ai::skills::SkillManager;
-use crate::ai::AIRequestUsageModel;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
 use crate::changelog_model::ChangelogModel;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::context_chips::prompt::Prompt;
 use crate::editor::{DisplayPoint, EditorAction, Point, TextStyleOperation};
 use crate::input_suggestions::{HistoryOrder, Item};
 use crate::network::NetworkStatus;
 use crate::pricing::PricingInfoModel;
 use crate::search::files::model::FileSearchModel;
-use crate::server::cloud_objects::listener::Listener;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::server_api::ServerApiProvider;
-use crate::server::sync_queue::SyncQueue;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::{AliasExpansionSettings, AppEditorSettings, InputBoxType, PrivacySettings};
@@ -85,9 +68,7 @@ use crate::terminal::model::session::{BootstrapSessionType, SessionInfo};
 use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::model_events::ModelEvent;
 use crate::terminal::resizable_data::ResizableData;
-use crate::terminal::shared_session::permissions_manager::SessionPermissionsManager;
 use crate::terminal::shell::ShellType;
-use crate::terminal::universal_developer_input::UniversalDeveloperInputButtonBarEvent;
 use crate::terminal::view::inline_banner::ByoLlmAuthBannerSessionState;
 use crate::terminal::writeable_pty::command_history::update_command_history;
 use crate::terminal::TerminalView;
@@ -6833,8 +6814,6 @@ fn test_agent_view_terminal_only_initial_input_config_unlocked_when_autodetectio
 
 #[test]
 fn test_terminal_only_ai_enter_enters_agent_view_and_clears_buffer() {
-    use crate::ai::blocklist::agent_view::AgentViewState;
-    use crate::ai::blocklist::InputConfig;
 
     App::test((), |mut app| async move {
         let _am_flag = FeatureFlag::AgentMode.override_enabled(true);
@@ -6894,7 +6873,6 @@ fn test_terminal_only_ai_enter_enters_agent_view_and_clears_buffer() {
 
 #[test]
 fn test_terminal_only_escape_locks_shell_mode() {
-    use crate::ai::blocklist::InputConfig;
 
     App::test((), |mut app| async move {
         let _am_flag = FeatureFlag::AgentMode.override_enabled(true);

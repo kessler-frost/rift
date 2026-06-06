@@ -15,36 +15,16 @@ use session_sharing_protocol::common::{ParticipantId, Role, SessionId as SharedS
 use session_sharing_protocol::sharer::{SessionEndedReason, SessionSourceType};
 use strum_macros::{EnumDiscriminants, EnumIter};
 
-use crate::ai::agent::api::ServerConversationToken;
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent::{
-    AIAgentActionId, AIAgentExchangeId, AIAgentInput as FullAIAgentInput, AIIdentifiers,
-    EntrypointType, PassiveSuggestionTrigger, ServerOutputId, SuggestedLoggingId,
-};
-use crate::ai::agent_management::notifications::NotificationSourceAgent;
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::blocklist::agent_view::AgentViewEntryOrigin;
-use crate::ai::blocklist::{
-    AIBlockResponseRating, CommandExecutionPermissionAllowedReason, InputType,
-    InputTypeAutoDetectionSource, QueuedQueryOrigin,
-};
-use crate::ai::execution_profiles::AskUserQuestionPermission;
-use crate::ai::mcp::TemplateVariable;
 use crate::ai::predict::generate_ai_input_suggestions::{
     GenerateAIInputSuggestionsRequest, GenerateAIInputSuggestionsResponseV2,
 };
 use crate::ai::predict::next_command_model::HistoryBasedAutosuggestionState;
 use crate::auth::auth_manager::LoginGatedFeature;
 use crate::channel::Channel;
-use crate::cloud_object::model::generic_string_model::GenericStringObjectId;
-use crate::cloud_object::{GenericStringObjectFormat, ObjectType, Space};
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
-use crate::drive::{CloudObjectTypeAndId, DriveSortOrder};
 use crate::features::FeatureFlag;
 use crate::launch_configs::save_modal::SaveState;
-use crate::notebooks::telemetry::NotebookTelemetryAction;
-use crate::notebooks::{NotebookId, NotebookLocation};
 use crate::palette::PaletteMode;
 use crate::pane_group::PaneDragDropLocation;
 use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
@@ -65,7 +45,6 @@ use crate::terminal::model::block::BlockId;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::model::terminal_model::{BlockSelectionCardinality, TmuxInstallationState};
 use crate::terminal::settings::AltScreenPaddingMode;
-use crate::terminal::shared_session::SharedSessionActionSource;
 use crate::terminal::shell::ShellType;
 use crate::terminal::ssh::ssh_detection::SshInteractiveSessionDetected;
 use crate::terminal::view::block_onboarding::onboarding_agentic_suggestions_block::OnboardingChipType;
@@ -83,7 +62,6 @@ use crate::tips::WelcomeTipFeature;
 use crate::util::file::external_editor::settings::EditorLayout;
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
-use crate::workflows::{WorkflowId, WorkflowSelectionSource, WorkflowSource};
 use crate::workspace::tab_settings::{TabCloseButtonPosition, WorkspaceDecorationVisibility};
 use crate::workspace::TabMovement;
 

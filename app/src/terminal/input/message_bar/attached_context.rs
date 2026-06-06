@@ -3,8 +3,6 @@
 use rift_core::features::FeatureFlag;
 use riftui::keymap::Keystroke;
 
-use crate::ai::blocklist::agent_view::{AgentMessageBarMouseStates, AgentViewController};
-use crate::ai::blocklist::{BlocklistAIContextModel, BlocklistAIInputModel};
 use crate::terminal::input::buffer_model::InputBufferModel;
 use crate::terminal::input::message_bar::{
     truncated_command_for_block, Message, MessageItem, MessageProvider,

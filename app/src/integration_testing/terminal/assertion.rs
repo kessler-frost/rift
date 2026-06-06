@@ -8,7 +8,6 @@ use riftui::{async_assert, async_assert_eq, App, SingletonEntity, ViewHandle, Wi
 use settings::Setting as _;
 
 use super::util::ExpectedOutput;
-use crate::ai::blocklist::agent_view::AgentViewState;
 use crate::integration_testing::view_getters::{
     single_input_view_for_tab, single_terminal_view, single_terminal_view_for_tab, terminal_view,
 };

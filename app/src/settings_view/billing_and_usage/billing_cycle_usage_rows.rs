@@ -15,7 +15,6 @@ use riftui::platform::Cursor;
 use riftui::ui_components::components::UiComponent;
 use riftui::{AppContext, Element, EventContext, SingletonEntity};
 
-use crate::ai::AIRequestUsageModel;
 use crate::auth::AuthStateProvider;
 use crate::settings_view::billing_and_usage::billing_cycle_usage_common::{
     aggregate_segments, cost_type_color, format_cost_cents, format_credits,

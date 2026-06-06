@@ -13,7 +13,6 @@ use super::super::protocol::RequestId;
 use super::super::server_buffer_tracker::ServerBufferTracker;
 use super::{ConnectionId, PendingFileOps, ServerModel};
 use crate::auth::auth_state::AuthState;
-use crate::code_review::diff_state::DiffMode;
 use crate::remote_server::diff_state_tracker::DiffModelKey;
 
 fn test_model(app: &mut App) -> ServerModel {

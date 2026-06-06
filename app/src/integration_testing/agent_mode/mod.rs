@@ -15,8 +15,6 @@ pub use step::*;
 pub use user_defaults::*;
 pub use util::*;
 
-use crate::ai::agent::{AIAgentActionType, AIAgentOutputStatus, FinishedAIAgentOutput};
-pub use crate::ai::blocklist::agent_view::AgentViewState;
 use crate::integration_testing::view_getters::terminal_view;
 use crate::BlocklistAIHistoryModel;
 

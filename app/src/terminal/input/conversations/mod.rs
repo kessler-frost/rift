@@ -10,8 +10,6 @@ use riftui::keymap::Keystroke;
 use riftui::SingletonEntity;
 pub use view::{InlineConversationMenuEvent, InlineConversationMenuView};
 
-use crate::ai::active_agent_views_model::{ActiveAgentViewsModel, ConversationOrTaskId};
-use crate::ai::agent_conversations_model::AgentConversationEntryId;
 use crate::terminal::input::inline_menu::{
     default_navigation_message_items, InlineMenuAction, InlineMenuMessageArgs, InlineMenuRowAction,
     InlineMenuType,

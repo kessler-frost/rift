@@ -42,27 +42,6 @@ use typed_path::TypedPath;
 use url::Url;
 use uuid::Uuid;
 
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::agent::conversation::{AIAgentHarness, AIConversation, AIConversationId};
-use crate::ai::agent_conversations_model::{
-    AgentConversationEntryId, AgentConversationNavigationSubject, AgentConversationsModel,
-    AgentConversationsModelEvent,
-};
-use crate::ai::ai_document_view::AIDocumentView;
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::blocklist::agent_view::AgentViewEntryOrigin;
-use crate::ai::blocklist::history_model::CloudConversationData;
-use crate::ai::blocklist::inline_action::code_diff_view::CodeDiffView;
-use crate::ai::blocklist::suggested_agent_mode_workflow_modal::SuggestedAgentModeWorkflowAndId;
-use crate::ai::blocklist::suggested_rule_modal::SuggestedRuleAndId;
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::blocklist::BlocklistAIHistoryEvent;
-use crate::ai::blocklist::{BlocklistAIHistoryModel, InputConfig, SerializedBlockListItem};
-use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentModel, AIDocumentVersion};
-use crate::ai::execution_profiles::profiles::{AIExecutionProfilesModel, ClientProfileId};
-use crate::ai::llms::LLMId;
-use crate::ai::restored_conversations::RestoredAgentConversations;
-use crate::ai_assistant::AskAIType;
 #[cfg(feature = "local_fs")]
 use crate::app_state::CodePaneSnapShot;
 use crate::app_state::{
@@ -76,20 +55,13 @@ use crate::auth::auth_view_modal::AuthViewVariant;
 use crate::auth::AuthStateProvider;
 use crate::banner::{Banner, BannerEvent, BannerState, BannerTextContent, DismissalType};
 use crate::channel::{Channel, ChannelState};
-use crate::cloud_object::Space;
 use crate::code::active_file::ActiveFileModel;
 use crate::code::buffer_location::LocalOrRemotePath;
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
 use crate::code::view::{CodeView, CodeViewAction};
-use crate::code_review::comments::{AttachedReviewComment, PendingImportedReviewComment};
-use crate::code_review::diff_state::DiffMode;
-use crate::drive::items::WarpDriveItemId;
-use crate::drive::{CloudObjectTypeAndId, OpenWarpDriveObjectArgs};
-use crate::env_vars::EnvVarCollectionType;
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::{self, PaneMode, PaneTemplateType};
-use crate::notebooks::file::FileNotebookView;
 use crate::palette::PaletteMode;
 use crate::pane_group::focus_state::PaneGroupFocusEvent;
 use crate::pane_group::pane::get_started_pane::GetStartedPane;
@@ -104,8 +76,6 @@ use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
 };
-#[cfg(target_family = "wasm")]
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::{ObjectUid, SyncId};
 use crate::server::server_api::{ServerApi, ServerApiProvider};
 use crate::server::telemetry::{
@@ -113,7 +83,6 @@ use crate::server::telemetry::{
 };
 use crate::session_management::SessionNavigationData;
 use crate::settings::{AISettings, DefaultSessionMode, PaneSettings};
-use crate::settings_view::mcp_servers_page::MCPServersSettingsPage;
 use crate::settings_view::SettingsSection;
 use crate::shell_indicator::ShellIndicatorType;
 use crate::terminal::available_shells::{AvailableShell, AvailableShells};
@@ -126,19 +95,8 @@ use crate::terminal::local_tty;
 use crate::terminal::model::session::Session;
 use crate::terminal::model::terminal_model::ConversationTranscriptViewerStatus;
 use crate::terminal::session_settings::{NewSessionSource, SessionSettings};
-use crate::terminal::shared_session::render_util::ParticipantAvatarParams;
-use crate::terminal::shared_session::role_change_modal::{
-    RoleChangeCloseSource, RoleChangeModal, RoleChangeModalEvent,
-};
-use crate::terminal::shared_session::share_modal::{ShareSessionModal, ShareSessionModalEvent};
-use crate::terminal::shared_session::{
-    self, IsSharedSessionCreator, SharedSessionActionSource, SharedSessionSource,
-};
 use crate::terminal::view::inline_banner::{
     ZeroStatePromptSuggestionTriggeredFrom, ZeroStatePromptSuggestionType,
-};
-use crate::terminal::view::load_ai_conversation::{
-    RestoreConversationEntryBehavior, RestoredAIConversation,
 };
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{
@@ -156,15 +114,12 @@ use crate::util::bindings::{is_binding_pty_compliant, CustomAction};
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
 use crate::view_components::ToastFlavor;
-use crate::workflows::workflow::Workflow;
-use crate::workflows::{WorkflowSelectionSource, WorkflowSource, WorkflowType};
 use crate::workspace::{
     self, CommandSearchOptions, PaneViewLocator, TabBarLocation, WorkspaceAction,
 };
 use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
 mod ambient_pane_restoration;
-mod child_agent;
 pub mod focus_state;
 pub mod pane;
 pub mod tree;
@@ -197,7 +152,6 @@ pub use tree::{Direction, PaneData, PaneFlex, PaneNode, SplitDirection};
 pub use working_directories::{WorkingDirectoriesEvent, WorkingDirectoriesModel};
 
 use self::pane::{DetachType, PaneViewEvent};
-pub use crate::code_review::CodeReviewPanelArg;
 
 lazy_static! {
     // The value to use as the initial window bounds if we are unable to

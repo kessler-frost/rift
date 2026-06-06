@@ -13,22 +13,18 @@ pub(super) mod ai_fact_pane;
 pub(super) mod code_diff_pane;
 pub(super) mod code_diff_pane_model;
 pub(super) mod code_pane;
-pub(super) mod env_var_collection_pane;
 pub(crate) mod environment_management_pane;
 pub(super) mod execution_profile_editor_pane;
 pub(super) mod file_pane;
 pub(super) mod get_started_pane;
 pub(super) mod get_started_view;
 #[cfg(not(target_family = "wasm"))]
-pub(super) mod local_harness_launch;
 pub(super) mod network_log_pane;
-pub(super) mod notebook_pane;
 pub(super) mod settings_pane;
 pub(super) mod terminal_pane;
 pub mod view;
 pub(super) mod welcome_pane;
 pub(crate) mod welcome_view;
-pub mod workflow_pane;
 
 use std::any::Any;
 use std::fmt::Display;
@@ -46,29 +42,19 @@ use welcome_view::WelcomeView;
 
 pub use self::view::{PaneHeaderAction, PaneHeaderCustomAction, PaneView, PaneViewEvent};
 use super::{ActivationReason, LeafContents, PaneGroup, PaneGroupAction};
-use crate::ai::ai_document_view::AIDocumentView;
-use crate::ai::blocklist::inline_action::code_diff_view::CodeDiffView;
-use crate::ai::execution_profiles::editor::ExecutionProfileEditorView;
-use crate::ai::facts::AIFactView;
 #[cfg(feature = "local_fs")]
 use crate::code::buffer_location::LocalOrRemotePath;
 use crate::code::view::CodeView;
-use crate::drive::sharing::ShareableObject;
-use crate::env_vars::view::env_var_collection::EnvVarCollectionView;
 use crate::menu::MenuItem;
-use crate::notebooks::file::FileNotebookView;
-use crate::notebooks::notebook::NotebookView;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::get_started_view::GetStartedView;
 use crate::server::network_log_view::NetworkLogView;
 use crate::server::telemetry::SharingDialogSource;
 use crate::settings::PaneSettings;
-use crate::settings_view::environments_page::EnvironmentsPageView;
 use crate::settings_view::SettingsView;
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::TerminalView;
 use crate::view_components::action_button::ActionButton;
-use crate::workflows::workflow_view::WorkflowView;
 
 pub(super) fn init(app: &mut AppContext) {
     self::view::init(app);

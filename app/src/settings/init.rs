@@ -19,9 +19,7 @@ use super::{
     InputSettings, PaneSettings, SameLinePromptBlockSettings, ScrollSettings, SelectionSettings,
     SshSettings, ThemeSettings, VimBannerSettings, WarpDrivePrivacySettings,
 };
-use crate::ai::cloud_agent_settings::CloudAgentSettings;
 use crate::banner::BannerState;
-use crate::drive::settings::WarpDriveSettings;
 use crate::resource_center::TipsCompleted;
 use crate::search::command_search::settings::CommandSearchSettings;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
@@ -31,12 +29,10 @@ use crate::terminal::ligature_settings::LigatureSettings;
 use crate::terminal::safe_mode_settings::SafeModeSettings;
 use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use crate::terminal::settings::TerminalSettings;
-use crate::terminal::shared_session::settings::SharedSessionSettings;
 use crate::terminal::warpify::settings::WarpifySettings;
 use crate::terminal::BlockListSettings;
 use crate::undo_close::UndoCloseSettings;
 use crate::window_settings::WindowSettings;
-use crate::workflows::aliases::WorkflowAliases;
 use crate::workspace::tab_settings::TabSettings;
 use crate::{appearance, report_if_error};
 

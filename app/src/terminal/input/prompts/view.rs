@@ -1,7 +1,6 @@
 use riftui::elements::ChildView;
 use riftui::{Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
 
-use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::search::data_source::Query;
 use crate::search::mixer::SearchMixer;
 use crate::server::ids::SyncId;

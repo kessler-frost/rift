@@ -3,7 +3,6 @@
 
 use riftui::{Entity, ModelContext};
 
-use crate::ai::ambient_agents::telemetry::HandoffEntryPoint;
 use crate::server::ids::SyncId;
 
 #[derive(Clone)]

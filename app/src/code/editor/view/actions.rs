@@ -26,10 +26,8 @@ use crate::cmd_or_ctrl_shift;
 use crate::code::editor::line::EditorLineLocation;
 use crate::code::editor::model::CodeEditorModel;
 use crate::code::editor::view::{CodeEditorEvent, CodeEditorView, VimMode};
-use crate::code_review::comments::CommentId;
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;
-use crate::notebooks::editor::model::word_unit;
 use crate::util::bindings::CustomAction;
 
 /// Limit the keybindings that conflict with the Agent Mode embedded editor.

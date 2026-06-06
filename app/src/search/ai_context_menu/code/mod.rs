@@ -10,8 +10,6 @@ use riftui::AppContext;
 use riftui::SingletonEntity;
 
 #[cfg(not(target_family = "wasm"))]
-use crate::ai::outline::{OutlineStatus, RepoOutlines};
-#[cfg(not(target_family = "wasm"))]
 use crate::workspace::ActiveSession;
 
 /// Checks if the code symbols (outline) are currently being indexed for the active directory.

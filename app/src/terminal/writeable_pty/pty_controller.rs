@@ -9,7 +9,6 @@ use riftui::{Entity, ModelContext, ModelHandle, SingletonEntity};
 use thiserror::Error;
 
 use super::Message;
-use crate::ai::agent::AIAgentPtyWriteMode;
 use crate::terminal::input::CommandExecutionSource;
 use crate::terminal::line_editor_status::{LineEditorStatus, LineEditorStatusEvent};
 use crate::terminal::model::ansi::Handler;

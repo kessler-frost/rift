@@ -12,10 +12,6 @@ use riftui::{
     ViewHandle,
 };
 
-use crate::ai::blocklist::agent_view::AgentViewController;
-use crate::ai::blocklist::block::cli_controller::{CLISubagentController, CLISubagentEvent};
-use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
-use crate::ai::llms::{LLMId, LLMPreferences, LLMPreferencesEvent};
 use crate::features::FeatureFlag;
 use crate::search::data_source::{Query, QueryFilter};
 use crate::search::mixer::{SearchMixer, SearchMixerEvent};

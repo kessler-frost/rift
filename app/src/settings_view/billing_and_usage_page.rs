@@ -39,7 +39,6 @@ use super::settings_page::{
     AdditionalInfo, HEADER_PADDING,
 };
 use super::SettingsSection;
-use crate::ai::AIRequestUsageModel;
 use crate::auth::auth_manager::LoginGatedFeature;
 use crate::auth::auth_state::AuthState;
 use crate::auth::auth_view_modal::AuthViewVariant;
@@ -104,7 +103,6 @@ const ADDITIONAL_ADDON_CREDITS_DESCRIPTION_FOR_TEAM: &str =
 // Cloud agent trial widget constants.
 const AMBIENT_AGENT_TRIAL_TITLE: &str = "Cloud agent trial";
 /// The threshold below which we only show the "Buy more" button (not "New agent").
-use crate::ai::request_usage_model::AMBIENT_AGENT_TRIAL_CREDIT_THRESHOLD;
 
 pub fn create_discount_badge(discount: u32, appearance: &Appearance) -> Box<dyn Element> {
     if discount == 0 {

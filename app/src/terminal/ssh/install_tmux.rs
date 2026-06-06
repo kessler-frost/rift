@@ -13,10 +13,6 @@ use riftui::{
     ViewContext,
 };
 
-use crate::ai::blocklist::inline_action::requested_action::{ENTER_KEYSTROKE, ESCAPE_KEYSTROKE};
-use crate::ai::blocklist::inline_action::requested_script::{
-    self, RequestedScriptMouseStates, RequestedScriptStatus, TitledScript,
-};
 use crate::appearance::Appearance;
 use crate::terminal::model::ansi::SystemDetails;
 use crate::terminal::model::escape_sequences;

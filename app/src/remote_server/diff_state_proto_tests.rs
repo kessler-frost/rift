@@ -3,11 +3,6 @@ use std::sync::Arc;
 use rift_util::standardized_path::StandardizedPath;
 
 use super::super::proto;
-use crate::code_review::diff_size_limits::DiffSize;
-use crate::code_review::diff_state::{
-    DiffMetadata, DiffMetadataAgainstBase, DiffMode, DiffState, DiffStats, FileDiff,
-    FileDiffAndContent, FileStatusInfo, GitDiffWithBaseContent, GitFileStatus,
-};
 use crate::util::git::PrInfo;
 
 // ── FileStatusInfo path validation (TryFrom) ────────────────────

@@ -2,8 +2,6 @@ use itertools::Itertools;
 use rift_core::features::FeatureFlag;
 use riftui::{Entity, ModelHandle, SingletonEntity};
 
-use crate::ai::skills::SkillManager;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::slash_command_menu::static_commands::commands;

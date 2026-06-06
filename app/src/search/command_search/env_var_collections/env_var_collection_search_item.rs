@@ -9,7 +9,6 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
-use crate::env_vars::CloudEnvVarCollection;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::env_var_collections::fuzzy_match::FuzzyMatchEnvVarCollectionResult;
 use crate::search::item::SearchItem;

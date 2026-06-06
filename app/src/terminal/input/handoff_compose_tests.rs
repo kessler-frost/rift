@@ -1,7 +1,6 @@
 use riftui::App;
 
 use super::HandoffComposeState;
-use crate::ai::ambient_agents::telemetry::HandoffEntryPoint;
 use crate::server::ids::{ClientId, SyncId};
 
 #[test]

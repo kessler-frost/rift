@@ -15,8 +15,6 @@ use riftui::ui_components::button::ButtonTooltipPosition;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Gradient, SingletonEntity};
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::blocklist::history_model::BlocklistAIHistoryModel;
 use crate::appearance::Appearance;
 use crate::search::command_palette::conversations::search::MatchedConversation;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;

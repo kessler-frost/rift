@@ -17,7 +17,6 @@ use super::editor::view::CodeEditorView;
 use super::ImmediateSaveError;
 use crate::code::buffer_location::LocalOrRemotePath as BufferFileLocation;
 use crate::code::editor::EditorReviewComment;
-use crate::code_review::comments::CommentId;
 use crate::terminal::TerminalView;
 
 #[derive(Debug)]

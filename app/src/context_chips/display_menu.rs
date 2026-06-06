@@ -31,9 +31,6 @@ use riftui::{
     ViewContext, ViewHandle, WindowId,
 };
 
-use crate::ai::cloud_environments::CloudAmbientAgentEnvironment;
-use crate::cloud_object::model::generic_string_model::StringModel;
-use crate::cloud_object::CloudObjectLookup as _;
 use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, TextOptions,
 };

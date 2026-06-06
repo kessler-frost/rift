@@ -6,8 +6,6 @@ use rift_graphql::mutations::create_anonymous_user::AnonymousUserType;
 use riftui::windowing::WindowManager;
 use riftui::{AppContext, SingletonEntity, TypedActionView};
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent::AIAgentExchangeId;
 use crate::app_state::get_app_state;
 use crate::network::NetworkStatus;
 use crate::persistence::ModelEvent;

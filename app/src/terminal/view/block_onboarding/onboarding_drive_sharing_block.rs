@@ -9,8 +9,6 @@ use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlign
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
 
-use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
-use crate::drive::CloudObjectTypeAndId;
 use crate::terminal::view::telemetry::SharingDialogSource;
 use crate::ui_components::icons::Icon;
 use crate::workspace::WorkspaceAction;

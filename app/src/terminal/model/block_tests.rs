@@ -7,7 +7,6 @@ use float_cmp::assert_approx_eq;
 use futures_lite::stream::StreamExt;
 
 use super::*;
-use crate::ai::blocklist::agent_view::AgentViewState;
 use crate::terminal::model::ansi::{Attr, Handler};
 use crate::terminal::model::cell::Flags;
 use crate::terminal::model::header_grid::PromptEndPoint;

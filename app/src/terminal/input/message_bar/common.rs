@@ -12,8 +12,6 @@ use riftui::prelude::{Align, ConstrainedBox, CrossAxisAlignment, Flex, MainAxisS
 use riftui::ui_components::keyboard_shortcut::keystroke_to_keys;
 use riftui::{AppContext, SingletonEntity};
 
-use crate::ai::blocklist::agent_view::agent_view_bg_color;
-use crate::ai::blocklist::agent_view::shortcuts::render_keystroke_with_color_overrides;
 use crate::terminal;
 use crate::terminal::input::message_bar::{ChipHorizontalAlignment, Message, MessageItem};
 use crate::ui_components::blended_colors;

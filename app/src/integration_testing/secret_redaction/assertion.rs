@@ -1,8 +1,6 @@
 use riftui::async_assert_eq;
 use riftui::integration::{AssertionCallback, AssertionOutcome};
 
-use crate::ai::agent::redaction::redact_secrets;
-use crate::ai::blocklist::block::secret_redaction::find_secrets_in_text;
 use crate::integration_testing::view_getters::single_terminal_view;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 

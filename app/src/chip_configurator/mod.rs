@@ -22,7 +22,6 @@ use riftui::platform::Cursor;
 use riftui::ui_components::components::UiComponent;
 use riftui::{Action, View, ViewContext};
 
-use crate::ai::blocklist::agent_view::toolbar_item::AgentToolbarItemKind;
 use crate::appearance::Appearance;
 use crate::context_chips::display_chip::{chip_container, udi_font_size};
 use crate::context_chips::renderer::{ChipDragState, Renderer as ContextChipRenderer};

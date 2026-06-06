@@ -10,13 +10,11 @@ pub mod external_secrets;
 pub mod files;
 mod filter_chip_renderer;
 pub mod notebook_embedding;
-mod notebooks;
 mod palette_styles;
 mod search_bar;
 pub mod search_results_menu;
 pub mod slash_command_menu;
 pub mod welcome_palette;
-mod workflows;
 
 pub use data_source::QueryFilter;
 use filter_chip_renderer::FilterChipRenderer;

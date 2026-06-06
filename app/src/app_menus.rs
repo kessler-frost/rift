@@ -18,7 +18,6 @@ use riftui::{AppContext, SingletonEntity};
 use settings::manager::SettingsManager;
 use settings::Setting as _;
 
-use crate::ai::persisted_workspace::PersistedWorkspace;
 use crate::auth::AuthStateProvider;
 use crate::default_terminal::DefaultTerminal;
 use crate::features::{runtime_flags_menu_items, FeatureFlag};

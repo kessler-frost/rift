@@ -16,27 +16,6 @@ use riftui::{App, Presenter, ReadModel, WindowInvalidation};
 use session_sharing_protocol::common::CLIAgentSessionState;
 
 use super::*;
-use crate::ai::agent::conversation::ConversationStatus;
-use crate::ai::agent::task::TaskId;
-use crate::ai::agent::{
-    AIAgentExchange, AIAgentExchangeId, AIAgentInput, AIAgentOutputStatus, UserQueryMode,
-};
-use crate::ai::ambient_agents::AmbientAgentTaskId;
-use crate::ai::blocklist::agent_view::toolbar_item::AgentToolbarItemKind;
-use crate::ai::blocklist::agent_view::{
-    AgentViewEntryBlock, AgentViewEntryOrigin, AgentViewState, EnterAgentBlockAction,
-    ExitAgentViewError,
-};
-use crate::ai::blocklist::block::cli_controller::UserTakeOverReason;
-use crate::ai::blocklist::{
-    BlocklistAIHistoryEvent, BlocklistAIHistoryModel, InputConfig, InputType, ResponseStreamId,
-};
-use crate::ai::cloud_environments::{
-    AmbientAgentEnvironment, CloudAmbientAgentEnvironment, CloudAmbientAgentEnvironmentModel,
-};
-use crate::ai::llms::LLMId;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::{CloudObjectMetadata, CloudObjectPermissions};
 use crate::context_chips::prompt::Prompt;
 use crate::editor::{AutosuggestionLocation, AutosuggestionType, CrdtOperation};
 use crate::features::FeatureFlag;
@@ -44,7 +23,6 @@ use crate::pane_group::focus_state::PaneGroupFocusState;
 use crate::pane_group::pane::PaneStack;
 use crate::pane_group::{BackingView, TerminalPaneId};
 use crate::server::ids::{ClientId, SyncId};
-use crate::server::server_api::ai::SpawnAgentRequest;
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::{AISettings, AppEditorSettings, WarpPromptSeparator};
 use crate::terminal::alt_screen::should_intercept_mouse;
@@ -64,15 +42,6 @@ use crate::terminal::model::blocks::{insert_block, TotalIndex};
 use crate::terminal::model::grid::Dimensions as _;
 use crate::terminal::model::terminal_model::WithinBlock;
 use crate::terminal::session_settings::AgentToolbarChipSelection;
-use crate::terminal::shared_session::shared_handlers::{
-    apply_cli_agent_state_update, RemoteUpdateGuard,
-};
-use crate::terminal::shared_session::{SharedSessionSource, SharedSessionStatus};
-use crate::terminal::view::ambient_agent::AmbientAgentViewModelEvent;
-use crate::terminal::view::load_ai_conversation::{
-    RestoreConversationEntryBehavior, RestoredAIConversation,
-};
-use crate::terminal::view::shared_session::ConversationEndedTombstoneView;
 use crate::terminal::{CLIAgent, MockTerminalManager, TerminalManager, TerminalModel};
 use crate::test_util::terminal::{
     add_window_with_id_and_terminal, initialize_app_for_terminal_view,
@@ -2141,7 +2110,6 @@ fn pending_cloud_mode_query_clears_when_streaming_exchange_becomes_renderable() 
 fn test_clear_session_flag_state() {
     use rift_terminal::shell::ShellType;
 
-    use crate::ai::blocklist::SerializedBlockListItem;
     use crate::terminal::model::block::SerializedBlock;
     use crate::terminal::ShellHost;
 

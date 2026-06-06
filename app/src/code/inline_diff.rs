@@ -17,8 +17,6 @@ use super::editor::scroll::{ScrollPosition, ScrollTrigger};
 use super::editor::view::{CodeEditorEvent, CodeEditorView};
 use super::editor::NavBarBehavior;
 use super::DiffResult;
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::blocklist::inline_action::code_diff_view::DiffSessionType;
 use crate::editor::InteractionState;
 
 pub enum InlineDiffViewEvent {

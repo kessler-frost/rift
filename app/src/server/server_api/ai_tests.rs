@@ -11,7 +11,6 @@ use super::{
     ReadAgentMessageResponse, RunFollowupRequest, RunSortBy, RunSortOrder, SpawnAgentRequest,
     TaskListFilter, UserQueryMode, CONNECTED_SELF_HOSTED_WORKERS_PATH,
 };
-use crate::notebooks::NotebookId;
 
 #[test]
 fn ambient_agent_headers_for_task_overrides_existing_cloud_agent_header() {

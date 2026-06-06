@@ -15,7 +15,6 @@ use riftui::{
     AppContext, Element, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity as _,
 };
 
-use crate::ai::skills::SkillManager;
 use crate::appearance::Appearance;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;

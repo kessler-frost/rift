@@ -5,7 +5,6 @@ use rift_graphql::scalars::Time;
 use riftui::{Entity, ModelContext, SingletonEntity};
 
 use crate::auth::AuthStateProvider;
-use crate::server::server_api::ai::AIClient;
 use crate::server::server_api::ServerApiProvider;
 
 const PAGE_SIZE: i32 = 20;

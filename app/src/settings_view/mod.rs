@@ -47,7 +47,6 @@ use teams_page::{TeamsPageView, TeamsPageViewEvent};
 use warpify_page::{WarpifyPageAction, WarpifyPageView};
 
 use self::telemetry::SettingsTelemetryEvent;
-use crate::ai::execution_profiles::profiles::ClientProfileId;
 use crate::appearance::Appearance;
 use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
@@ -60,7 +59,6 @@ use crate::pane_group::{BackingView, Direction, PaneConfiguration, PaneEvent, Sp
 use crate::server::server_api::ServerApiProvider;
 use crate::server::telemetry::MCPServerCollectionPaneEntrypoint;
 use crate::settings::{AISettings, BlockVisibilitySettings, SettingsFileError};
-use crate::settings_view::mcp_servers_page::{MCPServersSettingsPage, MCPServersSettingsPageEvent};
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::SizeInfo;
 use crate::ui_components::icons;
@@ -72,7 +70,6 @@ use crate::{GlobalResourceHandlesProvider, TelemetryEvent};
 mod about_page;
 mod admin_actions;
 mod agent_assisted_environment_modal;
-mod ai_page;
 mod appearance_page;
 mod billing_and_usage;
 mod billing_and_usage_dispatch;
@@ -82,15 +79,11 @@ mod code_page;
 mod custom_inference_modal;
 mod delete_environment_confirmation_dialog;
 mod directory_color_add_picker;
-pub(crate) mod environments_page;
-mod execution_profile_view;
 mod features;
 mod features_page;
 pub(crate) mod handoff_environment_creation_modal;
 pub mod keybindings;
 mod main_page;
-pub mod mcp_servers;
-pub mod mcp_servers_page;
 mod nav;
 pub mod pane_manager;
 mod platform;
@@ -105,7 +98,6 @@ mod tab_menu;
 mod teams_page;
 mod telemetry;
 mod transfer_ownership_confirmation_modal;
-pub mod update_environment_form;
 mod warp_drive_page;
 mod warpify_page;
 

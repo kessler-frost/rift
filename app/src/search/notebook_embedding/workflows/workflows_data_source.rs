@@ -2,14 +2,11 @@ use itertools::Itertools;
 use riftui::{AppContext, SingletonEntity};
 
 use super::workflow_search_item::WorkflowSearchItem;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::{CloudObject, Space};
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};
 use crate::search::notebook_embedding::embedded_fuzzy_match::FuzzyMatchEmbeddedObjectResult;
 use crate::search::notebook_embedding::is_embed_accessible;
 use crate::search::notebook_embedding::searcher::EmbeddingSearchItemAction;
-use crate::workflows::CloudWorkflow;
 
 pub struct CloudWorkflowsDataSource {
     /// The space containing the object we are embedding into.

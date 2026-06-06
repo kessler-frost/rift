@@ -5,10 +5,6 @@ use riftui::elements::{ChildView, Element};
 use riftui::{AppContext, SingletonEntity, ViewContext, ViewHandle};
 
 use super::PanelPosition;
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::conversation_details_panel::{
-    ConversationDetailsData, ConversationDetailsPanel, ConversationDetailsPanelEvent,
-};
 use crate::terminal::TerminalView;
 use crate::ui_components::icons;
 use crate::uri::browser_url_handler::parse_current_url;

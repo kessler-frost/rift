@@ -18,7 +18,6 @@ use super::blocks::BlockList;
 use super::bootstrap::BootstrapStage;
 use super::terminal_model::BlockIndex;
 use super::{ObfuscateSecrets, TerminalModel};
-use crate::ai::blocklist::SerializedBlockListItem;
 use crate::terminal::color::{self, Colors};
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::{BlockPadding, SizeInfo};

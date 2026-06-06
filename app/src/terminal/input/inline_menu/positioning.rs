@@ -6,7 +6,6 @@ use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity, Win
 use settings::Setting as _;
 
 use super::styles::{HEADER_BORDER, HEADER_ROW_HEIGHT};
-use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::appearance::Appearance;
 use crate::settings::{InputModeSettings, InputSettings};
 use crate::terminal::block_list_viewport::InputMode;

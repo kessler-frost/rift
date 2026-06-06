@@ -19,12 +19,7 @@ use riftui::{
 
 use crate::code::editor::comments::{EditorCommentsModel, PendingCommentEvent};
 use crate::code::editor::line::EditorLineLocation;
-use crate::code_review::comments::{CommentId, CommentOrigin};
 use crate::editor::InteractionState;
-use crate::notebooks::editor::model::NotebooksEditorModel;
-use crate::notebooks::editor::rich_text_styles;
-use crate::notebooks::editor::view::{EditorViewEvent, RichTextEditorConfig, RichTextEditorView};
-use crate::notebooks::link::{NotebookLinks, SessionSource};
 use crate::settings::FontSettings;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;

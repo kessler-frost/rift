@@ -10,7 +10,6 @@ use riftui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 
 use self::listener::CLIAgentSessionListener;
 use super::CLIAgent;
-use crate::ai::blocklist::InputConfig;
 
 /// Status of a tracked CLI agent session.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,7 +21,6 @@ pub enum CLIAgentSessionStatus {
 
 impl CLIAgentSessionStatus {
     pub fn to_conversation_status(&self) -> crate::ai::agent::conversation::ConversationStatus {
-        use crate::ai::agent::conversation::ConversationStatus;
         match self {
             CLIAgentSessionStatus::InProgress => ConversationStatus::InProgress,
             CLIAgentSessionStatus::Success => ConversationStatus::Success,

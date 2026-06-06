@@ -9,9 +9,7 @@ use riftui::platform::WindowStyle;
 use riftui::{App, TypedActionView, ViewHandle, WindowId};
 
 use super::{CodeEditorRenderOptions, CodeEditorView, CodeEditorViewAction};
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::editor::InteractionState;
-use crate::notebooks::editor::keys::NotebookKeybindings;
 use crate::server::server_api::team::MockTeamClient;
 use crate::server::server_api::workspace::MockWorkspaceClient;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;

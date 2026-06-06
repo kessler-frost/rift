@@ -3,7 +3,6 @@ use rift_util::standardized_path::StandardizedPath;
 use super::super::protocol::RequestId;
 use super::super::server_model::ConnectionId;
 use super::{DiffModelKey, RemoteDiffStateManager};
-use crate::code_review::diff_state::{BackendOrigin, DiffMode, LocalDiffStateModel};
 
 /// Uses `try_new` instead of `try_from_local` so that Unix-style paths
 /// like `/repo` are recognised as absolute on all platforms (including Windows).

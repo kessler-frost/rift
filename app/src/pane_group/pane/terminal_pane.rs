@@ -21,41 +21,18 @@ use super::{
     DetachType, PaneConfiguration, PaneContent, PaneId, PaneStackEvent, PaneView, ShareableLink,
     ShareableLinkError, TerminalPaneId,
 };
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};
-use crate::ai::agent::StartAgentExecutionMode;
-use crate::ai::ambient_agents::task::{normalize_orchestrator_agent_name, HarnessConfig};
-use crate::ai::ambient_agents::{AgentConfigSnapshot, AmbientAgentTaskId};
-use crate::ai::blocklist::agent_view::{AgentViewControllerEvent, AgentViewEntryOrigin};
-use crate::ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer;
-#[cfg(feature = "local_fs")]
-use crate::ai::blocklist::BlocklistAIHistoryEvent;
-use crate::ai::blocklist::{BlocklistAIHistoryModel, StartAgentRequest};
-use crate::ai::conversation_utils;
-use crate::ai::llms::LLMPreferences;
-use crate::ai::skills::SkillManager;
 use crate::app_state::{AmbientAgentPaneSnapshot, LeafContents, TerminalPaneSnapshot};
 use crate::code::buffer_location::LocalOrRemotePath;
-use crate::pane_group::child_agent::{
-    create_error_child_agent_conversation, ErrorChildAgentConversationRequest,
-};
 #[cfg(feature = "local_fs")]
 use crate::pane_group::CodeSource;
 use crate::pane_group::Event::OpenConversationHistory;
 use crate::pane_group::{self, Direction, PaneGroup};
 use crate::persistence::{BlockCompleted, ModelEvent};
-use crate::server::server_api::ai::{SpawnAgentRequest, UserQueryMode};
 #[cfg(not(target_family = "wasm"))]
 use crate::server::server_api::ServerApiProvider;
 use crate::session_management::SessionNavigationData;
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::general_settings::GeneralSettings;
-use crate::terminal::shared_session::manager::{Manager, ManagerEvent};
-use crate::terminal::shared_session::role_change_modal::RoleChangeOpenSource;
-#[cfg(not(target_family = "wasm"))]
-use crate::terminal::shared_session::SharedSessionSource;
-use crate::terminal::shared_session::{join_link, SharedSessionStatus};
-use crate::terminal::view::ambient_agent::should_disable_snapshot;
 use crate::terminal::view::Event;
 use crate::terminal::{TerminalManager, TerminalView};
 use crate::view_components::ToastFlavor;
@@ -2125,9 +2102,6 @@ fn handle_ai_history_event(
 ) {
     use std::sync::Arc;
 
-    use crate::ai::blocklist::{
-        AIQueryHistoryOutputStatus, PersistedAIInput, PersistedAIInputType,
-    };
 
     if event
         .terminal_view_id()

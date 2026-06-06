@@ -11,7 +11,6 @@ use rift_core::command::ExitCode;
 use riftui::{App, ModelHandle};
 
 use super::{HistoryEntry, HistoryEvent, PersistedCommand, ShellHost};
-use crate::ai::agent::conversation::AIConversationId;
 use crate::terminal::model::block::{
     AgentInteractionMetadata, SerializedAIMetadata, SerializedBlock,
 };

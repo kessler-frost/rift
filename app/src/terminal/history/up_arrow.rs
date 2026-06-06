@@ -4,7 +4,6 @@ use rift_core::features::FeatureFlag;
 use riftui::{AppContext, EntityId, SingletonEntity};
 
 use super::History;
-use crate::ai::blocklist::{BlocklistAIHistoryModel, InputConfig};
 use crate::input_suggestions::HistoryInputSuggestion;
 use crate::settings::AISettings;
 use crate::suggestions::ignored_suggestions_model::{IgnoredSuggestionsModel, SuggestionType};

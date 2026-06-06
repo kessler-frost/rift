@@ -21,9 +21,6 @@ use riftui::ui_components::button::ButtonVariant;
 use riftui::ui_components::components::{Coords, UiComponent as _, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity as _, View, ViewContext, ViewHandle};
 
-use crate::ai::request_usage_model::{
-    AIRequestUsageModel, AIRequestUsageModelEvent, BuyCreditsBannerDisplayState,
-};
 use crate::auth::AuthStateProvider;
 use crate::features::FeatureFlag;
 use crate::menu::MenuItemFields;

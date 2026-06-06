@@ -1,4 +1,3 @@
-mod agent;
 pub mod buffer_model;
 mod classic;
 mod cli_agent;
@@ -143,71 +142,15 @@ use super::view::{
 };
 use super::warpify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent::{AIAgentContext, AIAgentExchangeId, CancellationReason, EntrypointType};
-use crate::ai::agent_conversations_model::{
-    AgentConversationNavigationSubject, AgentConversationsModel,
-};
-use crate::ai::ambient_agents::telemetry::HandoffEntryPoint;
-use crate::ai::attachment_utils::MAX_ATTACHMENT_SIZE_BYTES;
 use crate::ai::block_context::BlockContext;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::blocklist::agent_view::agent_input_footer::sort_environments_by_recency;
-use crate::ai::blocklist::agent_view::shortcuts::AgentShortcutViewModel;
-use crate::ai::blocklist::agent_view::{
-    is_in_cloud_context, AgentInputFooter, AgentInputFooterEvent, AgentViewController,
-    AgentViewEntryOrigin, EphemeralMessageModel,
-};
-use crate::ai::blocklist::block::cli_controller::CLISubagentController;
-use crate::ai::blocklist::block::status_bar::BlocklistAIStatusBar;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::blocklist::handoff::touched_repos::{
-    pick_handoff_overlap_env, resolve_repo_for_path, TouchedWorkspace,
-};
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::blocklist::handoff::{HandoffLaunchAttachments, PendingCloudLaunch};
-use crate::ai::blocklist::prompt::prompt_alert::{PromptAlertEvent, PromptAlertView};
-use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::ai::blocklist::PendingAttachment;
-use crate::ai::blocklist::{
-    ai_brand_color, ai_indicator_height, render_ai_agent_mode_icon, render_ai_follow_up_icon,
-    AttachmentType, BlocklistAIActionModel, BlocklistAIContextEvent, BlocklistAIContextModel,
-    BlocklistAIController, BlocklistAIControllerEvent, BlocklistAIHistoryEvent,
-    BlocklistAIHistoryModel, BlocklistAIInputEvent, BlocklistAIInputModel, InputConfig, InputType,
-    InputTypeAutoDetectionSource, QueuedQuery, QueuedQueryModel, QueuedQueryOrigin,
-    SlashCommandRequest, BLOCK_CONTEXT_ATTACHMENT_REGEX, DIFF_HUNK_ATTACHMENT_REGEX,
-    DRIVE_OBJECT_ATTACHMENT_REGEX,
-};
-use crate::ai::cloud_agent_settings::CloudAgentSettings;
-use crate::ai::cloud_environments::CloudAmbientAgentEnvironment;
-use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentVersion};
-use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use crate::ai::harness_availability::HarnessAvailabilityModel;
-use crate::ai::llms::{LLMPreferences, LLMPreferencesEvent};
-use crate::ai::mcp::TemplatableMCPServerManager;
 use crate::ai::predict::next_command_model::{
     is_command_valid, is_next_command_enabled, NextCommandModel, NextCommandModelEvent,
     NextCommandSuggestionState, ZeroStateSuggestionInfo,
 };
-use crate::ai::predict::predict_am_queries::PredictAMQueriesRequest;
-use crate::ai::predict::prompt_suggestions::{
-    has_pending_code_or_unit_test_prompt_suggestion,
-    is_accept_prompt_suggestion_bound_to_ctrl_enter,
-};
-use crate::ai::skills::{SkillManager, SkillOpenOrigin, SkillTelemetryEvent};
-use crate::ai::AIRequestUsageModel;
-use crate::ai_assistant::execution_context::WarpAiExecutionContext;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::channel::{Channel, ChannelState};
-use crate::cloud_object::model::actions::ObjectActionType;
-use crate::cloud_object::model::generic_string_model::StringModel;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::model::view::CloudViewModel;
-use crate::cloud_object::{CloudObject, CloudObjectLookup as _, Space};
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
-use crate::code_review::diff_state::DiffMode;
 use crate::completer::SessionContext;
 use crate::context_chips::display::{PromptDisplay, PromptDisplayEvent};
 use crate::context_chips::display_chip::DisplayChipConfig;
@@ -223,7 +166,6 @@ use crate::editor::{
     PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, ReplicaId, TextColors,
     TextRun, MAX_IMAGES_PER_CONVERSATION,
 };
-use crate::env_vars::EnvVarCollectionExt;
 use crate::features::FeatureFlag;
 use crate::input_suggestions::{
     Event as InputSuggestionsEvent, HistoryInputSuggestion, InputSuggestions,
@@ -244,11 +186,7 @@ use crate::search::ai_context_menu::search::is_valid_search_query;
 use crate::search::ai_context_menu::view::AIContextMenuAction;
 use crate::search::slash_command_menu::static_commands::commands::{self, COMMAND_REGISTRY};
 use crate::search::QueryFilter;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::SyncId;
-use crate::server::server_api::ai::AttachmentFileInfo;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use crate::server::server_api::ai::AttachmentInput;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
     AICommandSearchEntrypoint, AgentModeAutoDetectionFalsePositivePayload,
@@ -301,11 +239,6 @@ use crate::terminal::input::user_query::{UserQueryMenuEvent, UserQueryMenuView};
 use crate::terminal::model::session::active_session::ActiveSession;
 use crate::terminal::package_installers::command_at_cursor_has_common_package_installer_prefix;
 use crate::terminal::prompt_render_helper::should_render_ps1_prompt;
-use crate::terminal::universal_developer_input::AtContextMenuDisabledReason;
-use crate::terminal::view::ambient_agent::{
-    AuthSecretFtuxView, AuthSecretFtuxViewEvent, AuthSecretSelector, AuthSecretSelectorEvent,
-    HarnessSelector, HarnessSelectorEvent, HostSelector, HostSelectorEvent, NakedHeaderButtonTheme,
-};
 use crate::terminal::view::inline_banner::{PromptSuggestionsEvent, PromptSuggestionsView};
 use crate::terminal::view::CodeDiffAction;
 use crate::terminal::CLIAgent;
@@ -322,17 +255,6 @@ use crate::voltron::{
     Voltron, VoltronEvent, VoltronFeatureView, VoltronFeatureViewHandle, VoltronFeatureViewMeta,
     VoltronItem, VoltronMetadata,
 };
-use crate::workflows::aliases::WorkflowAliases;
-use crate::workflows::command_parser::{
-    compute_workflow_display_data, compute_workflow_display_data_for_history_command,
-    compute_workflow_display_data_with_overrides, WorkflowArgumentIndex, WorkflowDisplayData,
-};
-use crate::workflows::info_box::{
-    WorkflowsInfoBoxViewEvent, WorkflowsMoreInfoView, WORKFLOW_PARAMETER_HIGHLIGHT_COLOR,
-};
-use crate::workflows::local_workflows::LocalWorkflows;
-use crate::workflows::workflow_enum::EnumVariants;
-use crate::workflows::{self, WorkflowSelectionSource, WorkflowSource, WorkflowType};
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
     CommandSearchOptions, ForkFromExchange, ForkedConversationDestination, InitContent,
@@ -2154,7 +2076,6 @@ impl Input {
             }
         });
         ctx.subscribe_to_model(&agent_view_controller, |me, _, event, ctx| {
-            use crate::ai::blocklist::agent_view::AgentViewControllerEvent;
             if let AgentViewControllerEvent::EnteredAgentView { origin, .. } = event {
                 me.close_suggestion_modes_for_new_conversation(ctx);
                 // Entering Agent View can remove multiline same-line prompt decorator content in a
@@ -3870,7 +3791,6 @@ impl Input {
                     .flatten()
             },
             move |_input, touched_repo, ctx| {
-                use crate::cloud_object::CloudObjectLookup as _;
 
                 let Some(touched_repo) = touched_repo else {
                     return;
@@ -4089,7 +4009,6 @@ impl Input {
 
     #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
     fn maybe_launch_cloud_handoff_request(&mut self, ctx: &mut ViewContext<Self>) -> bool {
-        use crate::cloud_object::CloudObjectLookup as _;
 
         if !FeatureFlag::OzHandoff.is_enabled()
             || !FeatureFlag::HandoffLocalCloud.is_enabled()

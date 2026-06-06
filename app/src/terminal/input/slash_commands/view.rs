@@ -5,7 +5,6 @@ use lazy_static::lazy_static;
 use riftui::elements::ChildView;
 use riftui::{AppContext, Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
 
-use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::search::data_source::{Query, QueryFilter};
 use crate::search::mixer::{AddAsyncSourceOptions, SearchMixer};
 use crate::search::slash_command_menu::SlashCommandId;

@@ -16,10 +16,6 @@ use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::protocol::RequestId;
 use super::server_model::ConnectionId;
-use crate::code_review::diff_state::{
-    BackendOrigin, DiffMetadata, DiffMode, DiffState, DiffStateModelEvent, FileDiffAndContent,
-    GitDiffWithBaseContent, LocalDiffStateModel,
-};
 
 // ── Key type ────────────────────────────────────────────────────────
 

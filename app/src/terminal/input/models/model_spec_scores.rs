@@ -11,7 +11,6 @@ use riftui::text_layout::ClipConfig;
 use riftui::ui_components::components::UiComponent;
 use riftui::{AppContext, Element, SingletonEntity as _};
 
-use crate::ai::llms::LLMSpec;
 use crate::appearance::Appearance;
 use crate::terminal::input::inline_menu::styles as inline_styles;
 

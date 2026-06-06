@@ -31,9 +31,6 @@ use riftui::{
     ViewContext, ViewHandle, WeakViewHandle,
 };
 
-use crate::ai::blocklist::agent_view::{
-    agent_view_bg_color, AgentViewController, AgentViewControllerEvent,
-};
 use crate::search::item::IconLocation;
 use crate::search::mixer::{SearchMixer, SearchMixerEvent};
 use crate::search::result_renderer::{

@@ -2,7 +2,6 @@ use ai::skills::SkillReference;
 use riftui::elements::ChildView;
 use riftui::{Element, Entity, EntityId, ModelHandle, View, ViewContext, ViewHandle};
 
-use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::search::data_source::Query;
 use crate::search::mixer::{SearchMixer, SearchMixerEvent};
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};

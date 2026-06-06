@@ -17,17 +17,12 @@ use riftui::{
     ViewContext, ViewHandle, WeakViewHandle,
 };
 
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::agent_conversations_model::AgentConversationsModel;
 use crate::appearance::Appearance;
 use crate::code::buffer_location::LocalOrRemotePath;
 #[cfg(feature = "local_fs")]
 use crate::code::file_tree::FileTreeEvent;
 use crate::code::file_tree::FileTreeView;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
-use crate::drive::panel::{
-    DrivePanel, DrivePanelEvent, MAX_SIDEBAR_WIDTH_RATIO, MIN_SIDEBAR_WIDTH,
-};
 use crate::pane_group::pane::view::header::components::HEADER_EDGE_PADDING;
 use crate::pane_group::pane::view::header::PANE_HEADER_HEIGHT;
 use crate::pane_group::working_directories::WorkingDirectory;

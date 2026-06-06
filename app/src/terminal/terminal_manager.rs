@@ -14,8 +14,6 @@ use super::session_settings::SessionSettings;
 use super::settings::TerminalSettings;
 use super::view::{create_size_info_for_blocklist, RIFT_PROMPT_HEIGHT_LINES};
 use super::{color, ShellLaunchState, SizeInfo, TerminalModel, TerminalView};
-use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;
-use crate::ai::blocklist::SerializedBlockListItem;
 use crate::appearance::Appearance;
 use crate::pane_group::pane::DetachType;
 use crate::settings::{BlockVisibilitySettings, DebugSettings, InputModeSettings};

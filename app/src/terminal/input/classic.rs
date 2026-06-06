@@ -8,7 +8,6 @@ use riftui::{AppContext, SingletonEntity};
 use settings::Setting;
 
 use super::{should_render_prompt_using_editor_decorator_elements, Input, SubshellRenderState};
-use crate::ai::blocklist::InputType;
 use crate::appearance::Appearance;
 use crate::context_chips::spacing;
 use crate::features::FeatureFlag;

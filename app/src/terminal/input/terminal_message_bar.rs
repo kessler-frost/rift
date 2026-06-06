@@ -10,9 +10,6 @@ use riftui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext
 use super::buffer_model::InputBufferModel;
 use super::message_bar::common::render_terminal_message;
 use super::message_bar::{truncated_command_for_block, Message, MessageItem, MessageProvider};
-use crate::ai::blocklist::{
-    BlocklistAIContextEvent, BlocklistAIContextModel, BlocklistAIInputModel,
-};
 use crate::appearance::Appearance;
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::terminal::input::inline_history::{AcceptHistoryItem, HistoryTab};

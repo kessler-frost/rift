@@ -1,7 +1,6 @@
 use riftui::AppContext;
 
 use super::search_item::DiffSetSearchItem;
-use crate::code_review::diff_state::DiffMode;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};

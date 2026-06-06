@@ -10,7 +10,6 @@ use riftui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
-use crate::ai::agent::conversation::AIConversationId;
 use crate::appearance::Appearance;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::view_components::action_button::{

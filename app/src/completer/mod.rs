@@ -23,7 +23,6 @@ use typed_path::{TypedPath, TypedPathBuf};
 use crate::safe_warn;
 use crate::terminal::model::session::{ExecuteCommandOptions, Session, SessionType};
 use crate::util::AsciiDebug;
-use crate::workflows::aliases::WorkflowAliases;
 
 lazy_static! {
     pub static ref CURR_DIRECTORY_ENTRY: EngineDirEntry = EngineDirEntry {

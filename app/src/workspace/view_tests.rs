@@ -20,45 +20,18 @@ use terminal::view::ActiveSessionState;
 use watcher::HomeDirectoryWatcher;
 
 use super::*;
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::agent_tips::AITipModel;
-use crate::ai::ambient_agents::github_auth_notifier::GitHubAuthNotifier;
-use crate::ai::blocklist::agent_view::orchestration_pill_bar_model::OrchestrationPillBarModel;
-use crate::ai::blocklist::{BlocklistAIHistoryModel, BlocklistAIPermissions};
-use crate::ai::document::ai_document_model::AIDocumentModel;
-use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use crate::ai::facts::manager::AIFactManager;
-use crate::ai::harness_availability::HarnessAvailabilityModel;
-use crate::ai::llms::LLMPreferences;
-use crate::ai::mcp::gallery::MCPGalleryManager;
-use crate::ai::mcp::templatable_manager::TemplatableMCPServerManager;
-use crate::ai::mcp::{FileBasedMCPManager, FileMCPWatcher};
-use crate::ai::outline::RepoOutlines;
-use crate::ai::persisted_workspace::PersistedWorkspace;
-use crate::ai::restored_conversations::RestoredAgentConversations;
-use crate::ai::skills::SkillManager;
-use crate::ai::AIRequestUsageModel;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::model::view::CloudViewModel;
 use crate::context_chips::prompt::Prompt;
 use crate::editor::Event;
 use crate::gpu_state::GPUState;
 use crate::network::NetworkStatus;
-use crate::notebooks::editor::keys::NotebookKeybindings;
-use crate::notebooks::notebook::NotebookView;
 use crate::pane_group::{Direction, PaneGroupAction, PaneId};
 use crate::pricing::PricingInfoModel;
 #[cfg(not(target_family = "wasm"))]
 use crate::remote_server::codebase_index_model::RemoteCodebaseIndexModel;
 use crate::resource_center::Tip;
-use crate::server::cloud_objects::listener::Listener;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::experiments::ServerExperiments;
 use crate::server::server_api::ServerApiProvider;
-use crate::server::sync_queue::SyncQueue;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
-use crate::settings::cloud_preferences_syncer::CloudPreferencesSyncer;
 use crate::settings::PrivacySettings;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::DisplayCount;
@@ -69,9 +42,6 @@ use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::history::History;
 use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::local_tty::spawner::PtySpawner;
-use crate::terminal::shared_session::{
-    SharedSessionScrollbackType, SharedSessionSource, SharedSessionStatus,
-};
 use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseSettings;
 #[cfg(feature = "local_fs")]
@@ -79,7 +49,6 @@ use crate::user_config::tab_configs_dir;
 #[cfg(windows)]
 use crate::util::traffic_lights::windows::RendererState;
 use crate::warp_managed_paths_watcher::WarpManagedPathsWatcher;
-use crate::workflows::local_workflows::LocalWorkflows;
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_profiles::UserProfiles;
@@ -588,7 +557,6 @@ impl Drop for TabConfigCleanupGuard {
 
 /// Creates a workspace with a single, shared session.
 fn mock_workspace_with_shared_session(app: &mut App) -> ViewHandle<Workspace> {
-    use crate::terminal::shared_session::manager::Manager;
 
     // Create the workspace as a session-sharing sharer.
     let global_resource_handles = GlobalResourceHandles::mock(app);
@@ -1719,7 +1687,6 @@ fn test_open_or_toggle_warp_drive() {
 
 #[test]
 fn test_stop_sharing_session() {
-    use crate::terminal::shared_session::manager::Manager;
     let _guard = FeatureFlag::CreatingSharedSessions.override_enabled(true);
 
     App::test((), |mut app| async move {
@@ -1756,7 +1723,6 @@ fn test_stop_sharing_session() {
 
 #[test]
 fn test_stop_sharing_all_sessions_in_tab() {
-    use crate::terminal::shared_session::manager::Manager;
     let _guard = FeatureFlag::CreatingSharedSessions.override_enabled(true);
 
     App::test((), |mut app| async move {

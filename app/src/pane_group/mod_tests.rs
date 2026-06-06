@@ -29,55 +29,17 @@ use super::child_agent::{
     HiddenChildAgentTaskContext,
 };
 use super::*;
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-use crate::ai::agent::api::ServerConversationToken;
-use crate::ai::agent::conversation::{
-    AIAgentHarness, AIConversation, AIConversationId, ServerAIConversationMetadata,
-};
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::ambient_agents::github_auth_notifier::GitHubAuthNotifier;
-use crate::ai::ambient_agents::task::TaskPrincipalInfo;
-use crate::ai::ambient_agents::{
-    AgentSource, AmbientAgentLiveSessionState, AmbientAgentTask, AmbientAgentTaskId,
-    AmbientAgentTaskState,
-};
-use crate::ai::blocklist::agent_view::AgentViewEntryOrigin;
-use crate::ai::blocklist::history_model::CloudConversationData;
-use crate::ai::blocklist::local_agent_task_sync_model::LocalAgentTaskSyncModel;
-use crate::ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer;
-use crate::ai::blocklist::orchestration_events::OrchestrationEventService;
-use crate::ai::blocklist::orchestration_topology::descendant_conversation_ids_in_spawn_order;
-use crate::ai::blocklist::{BlocklistAIHistoryModel, QueuedQueryModel};
-use crate::ai::document::ai_document_model::AIDocumentModel;
-use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use crate::ai::harness_availability::HarnessAvailabilityModel;
-use crate::ai::llms::LLMPreferences;
-use crate::ai::mcp::templatable_manager::TemplatableMCPServerManager;
-use crate::ai::mcp::{FileBasedMCPManager, FileMCPWatcher};
-use crate::ai::outline::RepoOutlines;
-use crate::ai::persisted_workspace::PersistedWorkspace;
-use crate::ai::restored_conversations::RestoredAgentConversations;
-use crate::ai::skills::SkillManager;
-use crate::ai::AIRequestUsageModel;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::user::TEST_USER_UID;
 use crate::changelog_model::ChangelogModel;
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::{Owner, Revision, ServerMetadata, ServerPermissions};
 use crate::context_chips::prompt::Prompt;
 use crate::network::NetworkStatus;
-use crate::notebooks::editor::keys::NotebookKeybindings;
-use crate::notebooks::manager::NotebookManager;
-use crate::notebooks::notebook::NotebookView;
 use crate::pricing::PricingInfoModel;
 use crate::resource_center::TipsCompleted;
 use crate::search::files::model::FileSearchModel;
-use crate::server::cloud_objects::listener::Listener;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::iap::IapManager;
 use crate::server::ids::ServerId;
 use crate::server::server_api::ServerApiProvider;
-use crate::server::sync_queue::SyncQueue;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::PrivacySettings;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
@@ -91,14 +53,9 @@ use crate::terminal::local_tty::spawner::PtySpawner;
 use crate::terminal::local_tty::TerminalManager;
 use crate::terminal::model::terminal_model::ConversationTranscriptViewerStatus;
 use crate::terminal::resizable_data::ResizableData;
-use crate::terminal::shared_session::{
-    IsSharedSessionCreator, SharedSessionActionSource, SharedSessionScrollbackType,
-    SharedSessionSource, SharedSessionStatus,
-};
 use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseStack;
 use crate::warp_managed_paths_watcher::WarpManagedPathsWatcher;
-use crate::workflows::local_workflows::LocalWorkflows;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{ActiveSession, OneTimeModalModel, WorkspaceRegistry};
 use crate::workspaces::team_tester::TeamTesterStatus;

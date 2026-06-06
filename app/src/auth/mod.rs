@@ -25,18 +25,8 @@ use riftui::modals::{AlertDialogWithCallbacks, ModalButton};
 use riftui::{AppContext, SingletonEntity};
 pub use user_uid::UserUid;
 
-use crate::ai::agent_conversations_model::AgentConversationsModel;
-use crate::ai::blocklist::agent_view::orchestration_pill_bar_model::OrchestrationPillBarModel;
-use crate::ai::blocklist::BlocklistAIHistoryModel;
-use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use crate::ai_assistant::requests::REQUEST_LIMIT_INFO_CACHE_KEY;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::code::editor_management::{CodeEditorStatus, CodeEditorSummary};
-use crate::env_vars::manager::EnvVarCollectionManager;
-use crate::notebooks::manager::NotebookManager;
 use crate::palette::PaletteMode;
-use crate::server::cloud_objects::update_manager::UpdateManager;
-use crate::server::sync_queue::SyncQueue;
 use crate::server::telemetry::{PaletteSource, TelemetryEvent};
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::settings::{
@@ -44,8 +34,6 @@ use crate::settings::{
     TELEMETRY_ENABLED_DEFAULTS_KEY,
 };
 use crate::terminal::general_settings::GeneralSettings;
-use crate::terminal::shared_session::manager::Manager as SharedSessionManager;
-use crate::workflows::manager::WorkflowManager;
 use crate::workspace::{Workspace, WorkspaceAction};
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::{

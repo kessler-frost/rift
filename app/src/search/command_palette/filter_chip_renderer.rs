@@ -7,8 +7,6 @@ use riftui::platform::Cursor;
 use riftui::{Element, EventContext};
 
 use crate::appearance::Appearance;
-use crate::drive::cloud_object_styling::warp_drive_icon_color;
-use crate::drive::DriveObjectType;
 use crate::search::{FilterChipRenderer as CommonFilterChipRenderer, QueryFilter};
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
 

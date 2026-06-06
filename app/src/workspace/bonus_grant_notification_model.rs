@@ -4,9 +4,6 @@ use chrono::{Duration, Utc};
 use rift_core::settings::Setting;
 use riftui::{Entity, ModelContext, SingletonEntity};
 
-use crate::ai::request_usage_model::{
-    AIRequestUsageModel, AIRequestUsageModelEvent, BonusGrant, BonusGrantScope,
-};
 use crate::terminal::general_settings::GeneralSettings;
 
 pub struct BonusGrantNotificationModel {

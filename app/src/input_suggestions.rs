@@ -30,7 +30,6 @@ use riftui::{
 };
 use warp_command_signatures::IconType;
 
-use crate::ai::blocklist::{render_ai_agent_mode_icon, AIQueryHistory, AIQueryHistoryOutputStatus};
 use crate::appearance::Appearance;
 use crate::terminal::history::LinkedWorkflowData;
 use crate::terminal::model::session::SessionId;

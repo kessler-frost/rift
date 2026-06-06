@@ -1,5 +1,3 @@
-use crate::cloud_object::ObjectType;
-use crate::code_review::diff_state::DiffMode;
 use crate::search::mixer::SearchMixer;
 
 pub type AIContextMenuMixer = SearchMixer<AIContextMenuSearchableAction>;

@@ -13,9 +13,7 @@ mod autoupdate;
 mod banner;
 mod changelog_model;
 mod chip_configurator;
-mod cloud_object;
 mod code;
-mod code_review;
 mod coding_entrypoints;
 mod coding_panel_enablement_state;
 mod command_palette;
@@ -29,10 +27,8 @@ mod crash_reporting;
 mod debug_dump;
 mod default_terminal;
 mod download_method;
-mod drive;
 #[cfg(windows)]
 mod dynamic_libraries;
-mod env_vars;
 mod experiments;
 mod external_secrets;
 #[cfg(target_family = "wasm")]
@@ -47,7 +43,6 @@ mod login_item;
 mod menu;
 mod modal;
 mod network;
-mod notebooks;
 mod notification;
 mod palette;
 mod persistence;
@@ -106,7 +101,6 @@ mod workspaces;
 // in the rift::integration_testing::assertions module (or a sub-module).  These
 // functions will allow us to keep types internal to this crate and expose a
 // simpler API for integration tests to consume.
-pub mod ai_assistant;
 pub mod appearance;
 pub mod channel;
 pub mod editor;
@@ -128,26 +122,10 @@ pub mod themes;
 use ::ai::index::full_source_code_embedding::manager::{
     CodebaseIndexManager, CodebaseIndexManagerConfig,
 };
-#[cfg(feature = "local_fs")]
-use ::ai::index::full_source_code_embedding::SnapshotStorage;
-use ::ai::index::full_source_code_embedding::SyncTask;
-use ::ai::index::DEFAULT_SYNC_REQUESTS_PER_MIN;
-use ::ai::project_context::model::ProjectContextModel;
-pub use ai::agent::todos::AIAgentTodoList;
-pub use ai::agent::{AIAgentActionResultType, FileEdit, TodoOperation};
-use ai::agent_conversations_model::AgentConversationsModel;
-use ai::agent_management::AgentNotificationsModel;
-use ai::ambient_agents::scheduled::ScheduledAgentManager;
-use ai::blocklist::{BlocklistAIHistoryModel, BlocklistAIPermissions};
-use ai::execution_profiles::editor::ExecutionProfileEditorManager;
-use ai::execution_profiles::profiles::AIExecutionProfilesModel;
-use ai::metadata_project_rules::read_project_rule_contents;
-use ai::persisted_workspace::PersistedWorkspace;
 use auth::auth_manager::AuthManager;
 use auth::auth_state::{AuthState, AuthStateProvider};
 use code::editor_management::CodeManager;
 use code::opened_files::OpenedFilesModel;
-use code_review::GlobalCodeReviewModel;
 use quit_warning::UnsavedStateSummary;
 #[cfg(feature = "local_fs")]
 use repo_metadata::{
@@ -171,16 +149,10 @@ use voice::transcriber::VoiceTranscriber;
 #[cfg(feature = "local_fs")]
 use watcher::HomeDirectoryWatcher;
 
-use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
-#[cfg(not(target_family = "wasm"))]
-use crate::ai::aws_credentials::AwsCredentialRefresher as _;
-use crate::ai::mcp::{FileBasedMCPManager, FileMCPWatcher};
 use crate::uri::web_intent_parser::maybe_rewrite_web_url_to_intent;
-pub mod workflows;
 pub mod workspace;
 
 use std::borrow::Cow;
-use std::collections::HashSet;
 use std::ops::Deref;
 #[cfg(feature = "local_fs")]
 use std::path::PathBuf;
@@ -226,70 +198,42 @@ use riftui::platform::TerminationMode;
 use riftui::windowing::state::ApplicationStage;
 use riftui::{App, AppContext, Event, SingletonEntity, WindowId};
 use window_settings::WindowSettings;
-use workflows::manager::WorkflowManager;
 use workspace::sync_inputs::SyncedInputState;
 
 use self::features::FeatureFlag;
-use crate::ai::agent::conversation::AIConversationId;
-use crate::ai::ambient_agents::github_auth_notifier::GitHubAuthNotifier;
-use crate::ai::connected_self_hosted_workers::ConnectedSelfHostedWorkersModel;
-use crate::ai::document::ai_document_model::AIDocumentModel;
-use crate::ai::facts::manager::AIFactManager;
-use crate::ai::harness_availability::HarnessAvailabilityModel;
-use crate::ai::llms::LLMPreferences;
-use crate::ai::mcp::{MCPGalleryManager, TemplatableMCPServerManager};
-use crate::ai::outline::RepoOutlines;
-use crate::ai::restored_conversations::RestoredAgentConversations;
-use crate::ai::skills::SkillManager;
-use crate::ai::AIRequestUsageModel;
 use crate::antivirus::AntivirusInfo;
 use crate::app_state::AppState;
 use crate::autoupdate::{AutoupdateState, RelaunchModel};
 use crate::changelog_model::ChangelogModel;
-use crate::cloud_object::model::actions::{ObjectAction, ObjectActions};
-use crate::cloud_object::model::persistence::CloudModel;
-use crate::cloud_object::model::view::CloudViewModel;
 use crate::code::global_buffer_model::GlobalBufferModel;
 #[cfg(feature = "local_fs")]
 use crate::code::language_server_shutdown_manager::LanguageServerShutdownManager;
 use crate::context_chips::prompt::Prompt;
 use crate::default_terminal::DefaultTerminal;
-use crate::drive::export::ExportManager;
-use crate::drive::CloudObjectTypeAndId;
-use crate::env_vars::manager::EnvVarCollectionManager;
 use crate::experiments::ImprovedPaletteSearch;
 pub use crate::global_resource_handles::{GlobalResourceHandles, GlobalResourceHandlesProvider};
 use crate::gpu_state::GPUState;
 use crate::network::NetworkStatus;
-use crate::notebooks::editor::keys::NotebookKeybindings;
-use crate::notebooks::manager::NotebookManager;
-use crate::notebooks::CloudNotebook;
 use crate::notification::NotificationContext;
 use crate::palette::PaletteMode;
-use crate::persistence::model::AgentConversationData;
 use crate::persistence::PersistenceWriter;
 use crate::projects::ProjectManagementModel;
 use crate::root_view::{
     quake_mode_window_id, quake_mode_window_is_open, OpenFromRestoredArg, OpenPath,
 };
-use crate::server::cloud_objects::listener::Listener;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::experiments::ServerExperiments;
 use crate::server::iap::IapManager;
-use crate::server::sync_queue::{QueueItem, SyncQueue};
 pub use crate::server::telemetry::{
     AgentModeEntrypoint, AgentModeEntrypointSelectionType, TelemetryEvent,
 };
 use crate::server::telemetry::{AppStartupInfo, CloseTarget, PaletteSource, TelemetryCollector};
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
-use crate::settings::cloud_preferences_syncer::initialize_cloud_preferences_syncer;
 use crate::settings::manager::SettingsManager;
 use crate::settings::{AISettings, AccessibilitySettings, ScrollSettings, SelectionSettings};
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::DisplayCount;
 use crate::suggestions::ignored_suggestions_model::IgnoredSuggestionsModel;
 use crate::system::SystemStats;
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::resizable_data::ResizableData;
 use crate::terminal::view::inline_banner::ByoLlmAuthBannerSessionState;
@@ -299,8 +243,6 @@ use crate::user_config::WarpConfig;
 use crate::util::bindings::is_binding_cross_platform;
 use crate::vim_registers::VimRegisters;
 use crate::warp_managed_paths_watcher::{ensure_warp_watch_roots_exist, WarpManagedPathsWatcher};
-use crate::workflows::aliases::WorkflowAliases;
-use crate::workflows::local_workflows::LocalWorkflows;
 use crate::workspace::{
     ActiveSession, OneTimeModalModel, PaneViewLocator, ToastStack, Workspace, WorkspaceAction,
 };
@@ -1305,7 +1247,6 @@ pub(crate) fn initialize_app(
     // be initialized after it.
     ctx.add_singleton_model(|ctx| ServerExperiments::new_from_cache(experiments, ctx));
 
-    ctx.add_singleton_model(|ctx| AIRequestUsageModel::new(ai_client, ctx));
 
     ctx.add_singleton_model(|ctx| {
         UserWorkspaces::new(
@@ -1366,8 +1307,6 @@ pub(crate) fn initialize_app(
     App::record_last_active_timestamp();
 
     ctx.add_singleton_model(|_| SettingsPaneManager::new());
-    ctx.add_singleton_model(|_| AIFactManager::new());
-    ctx.add_singleton_model(|_| ExecutionProfileEditorManager::default());
     ctx.add_singleton_model(|_| NetworkLogPaneManager::default());
     ctx.add_singleton_model(|_| pricing::PricingInfoModel::new());
     ctx.add_singleton_model(|ctx| {
@@ -1578,11 +1517,6 @@ pub(crate) fn initialize_app(
         });
     }
 
-    {
-        use code_review::git_status_update::GitStatusUpdateModel;
-        ctx.add_singleton_model(|_| GitStatusUpdateModel::new());
-    }
-
     ctx.add_singleton_model(|ctx| {
         ProjectManagementModel::new(persisted_projects, persistence_writer.sender(), ctx)
     });
@@ -1642,18 +1576,13 @@ pub(crate) fn initialize_app(
     context_chips::node_version_popup::init(ctx);
     env_vars::view::env_var_collection::init(ctx);
     ai::agent::todos::popup::init(ctx);
-    terminal::view::init_environment::mode_selector::init(ctx);
     coding_entrypoints::project_buttons::init(ctx);
-    if FeatureFlag::CodeReviewSaveChanges.is_enabled() {
-        code_review::init(ctx);
-    }
 
     let display_count = ctx.windows().display_count();
     ctx.add_singleton_model(|_| DisplayCount(display_count));
 
     ctx.add_singleton_model(|_| RelaunchModel::new());
     ctx.add_singleton_model(|_| ChangelogModel::new(server_api.clone()));
-    ctx.add_singleton_model(|_| GitHubAuthNotifier::new());
     ctx.add_singleton_model(|_| NetworkStatus::new());
     ctx.add_singleton_model(|_| SystemStats::new());
     workspace::auto_handoff::init(ctx);
@@ -1663,7 +1592,6 @@ pub(crate) fn initialize_app(
     ctx.add_singleton_model(|_| VimRegisters::new());
     ctx.add_singleton_model(UndoCloseStack::new);
     ctx.add_singleton_model(|_| ToastStack);
-    ctx.add_singleton_model(|_| GlobalCodeReviewModel);
     ctx.add_singleton_model(workspace::OneTimeModalModel::new);
     ctx.add_singleton_model(
         workspace::bonus_grant_notification_model::BonusGrantNotificationModel::new,
@@ -1682,116 +1610,8 @@ pub(crate) fn initialize_app(
         VoiceTranscriber::new(Arc::new(ServerVoiceTranscriber::new(server_api.clone())))
     });
 
-    let notebooks = cloud_objects
-        .iter()
-        .filter_map(|object| {
-            let notebook: Option<&CloudNotebook> = object.into();
-            notebook
-        })
-        .cloned()
-        .collect::<Vec<_>>();
-
-    let mut all_queue_items = Vec::new();
-    let objects_with_pending_changes = cloud_objects
-        .iter()
-        .filter(|object| object.metadata().has_pending_content_changes())
-        .cloned()
-        .collect::<Vec<_>>();
-    all_queue_items.extend(QueueItem::from_cached_objects(
-        objects_with_pending_changes.into_iter(),
-    ));
-
-    let cloud_model = ctx.add_singleton_model(|_ctx| {
-        CloudModel::new(
-            persistence_writer.sender(),
-            cloud_objects,
-            time_of_next_force_object_refresh,
-        )
-    });
-
-    let unsynced_actions: Vec<(CloudObjectTypeAndId, ObjectAction)> = object_actions
-        .iter()
-        .filter(|action| action.is_pending())
-        .filter_map(|action| {
-            cloud_model.read(ctx, |model, _| {
-                let object = model.get_by_uid(&action.uid);
-                object.map(|o| (o.cloud_object_type_and_id(), action.clone()))
-            })
-        })
-        .collect::<Vec<_>>();
-
-    all_queue_items.extend(QueueItem::from_unsynced_actions(
-        unsynced_actions.into_iter(),
-    ));
-
-    ctx.add_singleton_model(|ctx| {
-        SyncQueue::new(
-            all_queue_items,
-            server_api_provider.as_ref(ctx).get_cloud_objects_client(),
-            ctx,
-        )
-    });
-
-    // Seed the orchestration pin set from persisted conversation data
-    // before the conversations vec is consumed by the singletons below.
-    // Each conversation's `AgentConversationData.pinned` is the source of
-    // truth; the singleton mirrors them in memory for fast cross-pane lookups.
-    let initial_pinned_conversations: HashSet<AIConversationId> = multi_agent_conversations
-        .iter()
-        .filter_map(|conv| {
-            let data =
-                serde_json::from_str::<AgentConversationData>(&conv.conversation.conversation_data)
-                    .ok()?;
-            if !data.pinned {
-                return None;
-            }
-            AIConversationId::try_from(conv.conversation.conversation_id.clone()).ok()
-        })
-        .collect();
-    {
-        let conversations = &multi_agent_conversations;
-        ctx.add_singleton_model(move |_| BlocklistAIHistoryModel::new(ai_queries, conversations));
-    }
-    // Per-conversation queued prompts. Registered after the history model
-    // since it subscribes to history events for cleanup.
-    ctx.add_singleton_model(ai::blocklist::QueuedQueryModel::new);
-    // Cross-pane UI state for the orchestration pill bar. Registered
-    // after the history model since it subscribes to history events.
-    ctx.add_singleton_model(move |ctx| {
-        ai::blocklist::agent_view::orchestration_pill_bar_model::OrchestrationPillBarModel::new(
-            initial_pinned_conversations,
-            ctx,
-        )
-    });
-    ctx.add_singleton_model(move |_| RestoredAgentConversations::new(multi_agent_conversations));
-    ctx.add_singleton_model(|_| CLIAgentSessionsModel::new());
-    // ActiveAgentViewsModel is used to track active agent conversations and notify listeners when they change.
-    ctx.add_singleton_model(|_| ActiveAgentViewsModel::new());
-    ctx.add_singleton_model(AgentNotificationsModel::new);
-    ctx.add_singleton_model(BlocklistAIPermissions::new);
-    ctx.add_singleton_model(ai::blocklist::orchestration_events::OrchestrationEventService::new);
-    ctx.add_singleton_model(
-        ai::blocklist::local_agent_task_sync_model::LocalAgentTaskSyncModel::new,
-    );
-    ctx.add_singleton_model(
-        ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer::new,
-    );
-
-    if launch_mode.supports_indexing() {
-        ctx.add_singleton_model(RepoOutlines::new);
-    } else {
-        ctx.add_singleton_model(|ctx| RepoOutlines::new_with_indexing_enabled(false, ctx));
-    }
-    ctx.add_singleton_model(|ctx| {
-        rift_core::sync_queue::SyncQueue::<SyncTask>::new_with_rate_limit(
-            &ctx.background_executor(),
-            Some(DEFAULT_SYNC_REQUESTS_PER_MIN),
-        )
-    });
-
     ctx.add_singleton_model(|_| UserProfiles::new(restored_user_profiles));
 
-    ctx.add_singleton_model(|_| ObjectActions::new(object_actions));
 
     ctx.add_singleton_model(|_| AudibleBell::new());
 
@@ -1807,22 +1627,7 @@ pub(crate) fn initialize_app(
         )
     });
 
-    ctx.add_singleton_model(|ctx| {
-        UpdateManager::new(
-            persistence_writer.sender(),
-            server_api_provider.as_ref(ctx).get_cloud_objects_client(),
-            ctx,
-        )
-    });
 
-    let toml_file_path = settings::user_preferences_toml_file_path();
-    ctx.add_singleton_model(move |ctx| {
-        initialize_cloud_preferences_syncer(
-            toml_file_path,
-            startup_toml_parse_error_for_syncer.as_deref(),
-            ctx,
-        )
-    });
 
     // LogManager must be registered before any subsystem (e.g. MCP, LSP) that creates file-based loggers.
     ctx.add_singleton_model(|_| simple_logger::manager::LogManager::new());
@@ -1832,54 +1637,20 @@ pub(crate) fn initialize_app(
         .map(|app_state| app_state.running_mcp_servers.as_slice())
         .unwrap_or(&[]);
 
-    // FileMCPWatcher must be registered before FileBasedMCPManager, which subscribes to it.
-    ctx.add_singleton_model(FileMCPWatcher::new);
-    ctx.add_singleton_model(FileBasedMCPManager::new);
 
-    // TemplatableMCPServerManager must be registered after UpdateManager and MCPServerManager so it can migrate legacy MCPs on start up
-    // It should also be registered after FileBasedMCPManager so it can receive file-based server updates.
-    ctx.add_singleton_model(|ctx| {
-        TemplatableMCPServerManager::new(
-            persisted_mcp_server_installations,
-            mcp_servers_to_restore,
-            running_mcp_servers,
-            ctx,
-        )
-    });
 
-    // MCPGalleryManager subscribes to UpdateManager so that it can be notified when gallery items are updated.
-    // The registration of this singleton must be after UpdateManager is registered.
-    ctx.add_singleton_model(MCPGalleryManager::new);
 
-    // SkillManager is used to cache SKILL.md files for all active terminal views and their working directories
-    ctx.add_singleton_model(SkillManager::new);
 
-    // CloudViewModel subscribes to UpdateManager so that it can be notified when objects are
-    // created on the server.
-    ctx.add_singleton_model(CloudViewModel::new);
 
-    // AIDocumentModel subscribes to UpdateManager so that it can be notified when notebooks are created on the server.
-    ctx.add_singleton_model(AIDocumentModel::new);
 
-    // AgentConversationsModel subscribes to UpdateManager for RTC task updates.
-    ctx.add_singleton_model(AgentConversationsModel::new);
 
     // ByoLlmAuthBannerSessionState tracks dismissal of the BYO LLM auth banner (e.g., AWS Bedrock login).
     ctx.add_singleton_model(ByoLlmAuthBannerSessionState::new);
 
-    ctx.add_singleton_model(ExportManager::new);
-    ctx.add_singleton_model(|ctx| NotebookManager::new(notebooks, ctx));
     ctx.add_singleton_model(|_| CodeManager::default());
     ctx.add_singleton_model(|_| OpenedFilesModel::new());
-    ctx.add_singleton_model(NotebookKeybindings::new);
     ctx.add_singleton_model(TerminalKeybindings::new);
     ctx.add_singleton_model(|_| ActiveSession::default());
-    ctx.add_singleton_model(|ctx| {
-        Listener::new(
-            server_api_provider.as_ref(ctx).get_cloud_objects_client(),
-            ctx,
-        )
-    });
 
     #[cfg(all(not(target_family = "wasm"), feature = "local_tty"))]
     {

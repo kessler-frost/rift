@@ -23,7 +23,6 @@ use crate::warp_managed_paths_watcher::{
     repository_update_touches_path, repository_update_touches_prefix, WarpManagedPathsWatcher,
     WarpManagedPathsWatcherEvent,
 };
-use crate::workflows::workflow::Workflow;
 
 impl super::WarpConfig {
     pub fn new(ctx: &mut ModelContext<Self>) -> Self {

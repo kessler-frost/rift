@@ -31,14 +31,8 @@ use super::{
     agent_view_chip_color, github_pr_display_text_from_url, render_text_from_kind, ChipResult,
     ContextChipKind,
 };
-use crate::ai::blocklist::agent_view::AgentViewController;
-use crate::ai::blocklist::prompt::plan_and_todo_list::{PlanAndTodoListEvent, PlanAndTodoListView};
-use crate::ai::blocklist::{BlocklistAIContextModel, BlocklistAIInputModel};
-use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentVersion};
 use crate::appearance::Appearance;
 use crate::code::editor::{add_color, remove_color};
-use crate::code_review::code_review_view::CODE_REVIEW_TOOLTIP_TEXT;
-use crate::code_review::diff_state::DiffStats;
 use crate::completer::SessionContext;
 use crate::context_chips::git_branch_on_click::{
     is_plausible_new_branch_name, GitBranchOnClickValue,
@@ -51,7 +45,6 @@ use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::model::session::SessionType;
 use crate::terminal::model_events::ModelEventDispatcher;
-use crate::terminal::view::ambient_agent::AmbientAgentViewModel;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 use crate::util::bindings::keybinding_name_to_display_string;

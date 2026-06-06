@@ -19,15 +19,7 @@ use settings::Setting as _;
 use super::ambient_agent::is_cloud_agent_pre_first_exchange;
 use super::shared_session::adapter::Kind as SharedSessionKind;
 use super::{Event, PaneConfiguration, TerminalAction, TerminalViewState, Viewer};
-use crate::ai::agent::conversation::{
-    AIConversation, ConversationStatus, ServerAIConversationMetadata,
-};
-use crate::ai::blocklist::agent_view::agent_view_bg_fill;
-use crate::ai::blocklist::agent_view::orchestration_conversation_links::parent_conversation_navigation_card;
-use crate::ai::blocklist::orchestration_topology::orchestration_aware_conversation_status;
-use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::appearance::Appearance;
-use crate::drive::sharing::ShareableObject;
 use crate::features::FeatureFlag;
 use crate::menu::{MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::{PaneFocusHandle, PaneGroupFocusEvent, PaneGroupFocusState};
@@ -43,9 +35,6 @@ use crate::settings::app_installation_detection::{
     UserAppInstallDetectionSettings, UserAppInstallStatus,
 };
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
-use crate::terminal::shared_session::participant_avatar_view::render_participants_and_role_elements;
-use crate::terminal::shared_session::render_util::shared_session_indicator_color;
-use crate::terminal::shared_session::SharedSessionActionSource;
 use crate::terminal::{TerminalManager, TerminalView};
 use crate::ui_components::agent_icon::terminal_view_agent_icon_variant;
 use crate::ui_components::buttons::icon_button_with_color;

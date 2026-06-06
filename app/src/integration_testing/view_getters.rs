@@ -8,9 +8,7 @@
 use riftui::integration::AssertionCallback;
 use riftui::{async_assert, App, Entity, View, ViewHandle, WindowId};
 
-use crate::ai_assistant::panel::AIAssistantPanelView;
 use crate::input_suggestions::InputSuggestions;
-use crate::notebooks::notebook::NotebookView;
 use crate::pane_group::{PaneGroup, PaneView};
 use crate::root_view::RootView;
 use crate::search::command_palette::{self};
@@ -20,8 +18,6 @@ use crate::terminal::input::Input;
 use crate::terminal::TerminalView;
 use crate::themes::theme_chooser::ThemeChooser;
 use crate::view_components::find::{Find, FindEvent, FindModel};
-use crate::workflows::workflow_view::WorkflowView;
-use crate::workflows::CategoriesView;
 use crate::workspace::Workspace;
 
 /// This identifier is useful when you'd like to weakly identify a terminal view

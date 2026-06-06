@@ -1,4 +1,3 @@
-use crate::ai::artifacts::Artifact;
 
 #[test]
 fn upload_target_deserializes_null_fields_as_empty() {

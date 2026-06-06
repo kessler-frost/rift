@@ -11,7 +11,6 @@ use settings::Setting as _;
 use voice_input::{StartListeningError, VoiceInput, VoiceSessionResult};
 
 use super::{EditorAction, EditorView, VoiceTranscriber, VoiceTranscriptionOptions};
-use crate::ai::blocklist::InputType;
 use crate::appearance::Appearance;
 use crate::editor::EditorElement;
 use crate::server::server_api::TranscribeError;

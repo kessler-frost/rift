@@ -92,8 +92,6 @@ pub use {
 use self::model::{LocalSelections, Selection, UpdateBufferOption};
 use super::soft_wrap::{ClampDirection, DisplayPointAndClampDirection};
 use super::Point;
-use crate::ai::agent::ImageContext;
-use crate::ai::blocklist::{BlocklistAIContextModel, InputType, PendingAttachment, PendingFile};
 use crate::ai::predict::next_command_model::{NextCommandModel, NextCommandSuggestionState};
 use crate::appearance::Appearance;
 use crate::channel::{Channel, ChannelState};

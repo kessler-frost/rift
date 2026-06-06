@@ -6,7 +6,6 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::Element;
 
 use super::teams_page::TeamsPageAction;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::workspaces::team::Team;
 use crate::Appearance;
 

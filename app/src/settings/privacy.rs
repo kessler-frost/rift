@@ -12,12 +12,9 @@ use settings::macros::{define_settings_group, maybe_define_setting, register_set
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
 
 use super::cloud_preferences_syncer::CloudPreferencesSyncer;
-use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;
 use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
-use crate::cloud_object::model::persistence::CloudModel;
 use crate::report_error;
-use crate::server::cloud_objects::update_manager::UpdateManager;
 #[cfg(test)]
 use crate::server::server_api::auth::MockAuthClient;
 use crate::server::server_api::auth::{AuthClient, SyncedUserSettings};

@@ -1,6 +1,4 @@
 use super::{ClientId, ServerId, SyncId};
-use crate::notebooks::NotebookId;
-use crate::workflows::WorkflowId;
 
 #[test]
 pub fn test_client_sync_id_serialization() {
