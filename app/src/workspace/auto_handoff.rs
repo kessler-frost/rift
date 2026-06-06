@@ -9,7 +9,6 @@ use super::{AutoCloudHandoffTrigger, Workspace, WorkspaceAction, WorkspaceRegist
 use crate::settings::AISettings;
 use crate::system::{SystemStats, SystemStatsEvent};
 use crate::terminal::view::TerminalView;
-use crate::BlocklistAIHistoryModel;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum AutoCloudHandoffSkipReason {

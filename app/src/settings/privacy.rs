@@ -11,7 +11,6 @@ use serde::{Deserialize, Serialize};
 use settings::macros::{define_settings_group, maybe_define_setting, register_settings_events};
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
 
-use super::cloud_preferences_syncer::CloudPreferencesSyncer;
 use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
 use crate::report_error;

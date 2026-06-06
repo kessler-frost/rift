@@ -128,7 +128,6 @@ use crate::view_components::DismissibleToast;
 use crate::view_components::FeaturePopup;
 use crate::vim_registers::{RegisterContent, VimRegisters};
 use crate::workspace::{ToastStack, Workspace};
-use crate::BlocklistAIHistoryModel;
 
 const CURSOR_BLINK_INTERVAL: Duration = Duration::from_millis(500);
 const DEFAULT_TAB_SIZE: usize = 4;

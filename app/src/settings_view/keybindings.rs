@@ -29,7 +29,6 @@ use crate::editor::{
 };
 use crate::keyboard::{write_custom_keybinding, UserDefinedKeybinding};
 use crate::search_bar::SearchBar;
-use crate::settings::CloudPreferencesSettings;
 use crate::util::bindings::{
     filter_bindings_including_keystroke, reset_keybinding_to_default, set_custom_keybinding,
     CommandBinding,

@@ -41,7 +41,6 @@ pub use shell_process_terminated::*;
 pub use ssh::*;
 pub use vim_mode::*;
 
-pub use self::prompt_suggestions::*;
 use crate::appearance::Appearance;
 use crate::terminal::view::TerminalAction;
 use crate::themes::theme::Blend;

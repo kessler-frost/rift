@@ -49,7 +49,6 @@ use crate::workspace::tab_settings::{
 use crate::workspace::{
     PaneViewLocator, TabBarDropTargetData, TabBarLocation, TabContextMenuAnchor, WorkspaceAction,
 };
-use crate::BlocklistAIHistoryModel;
 
 pub const TAB_BAR_BORDER_HEIGHT: f32 = 1.0;
 const TAB_INDICATOR_HEIGHT: f32 = 14.0;

@@ -16,8 +16,6 @@ use riftui::{
 };
 use settings::Setting as _;
 
-use super::ambient_agent::is_cloud_agent_pre_first_exchange;
-use super::shared_session::adapter::Kind as SharedSessionKind;
 use super::{Event, PaneConfiguration, TerminalAction, TerminalViewState, Viewer};
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;

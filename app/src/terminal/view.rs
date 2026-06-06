@@ -145,11 +145,8 @@ use session_sharing_protocol::sharer::{
     RoleUpdateReason, SessionEndedReason, SessionRetentionReason,
 };
 use settings::{Setting, ToggleableSetting};
-use shared_session::cloud_conversation_continuation::CloudConversationContinuationUiState;
-use shared_session::{SharedSessionAdapter, Viewer};
 use ssh_file_upload::{FileUpload, FileUploadEvent};
 use sum_tree::SeekBias;
-use use_agent_footer::UseAgentToolbar;
 use uuid::Uuid;
 use vec1::vec1;
 

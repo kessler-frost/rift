@@ -3,17 +3,14 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use about_page::AboutPageView;
-use ai_page::{AISettingsPageAction, AISettingsPageEvent, AISettingsPageView, AISubpage};
 use appearance_page::{AppearancePageAction, AppearanceSettingsPageView};
 use billing_and_usage_dispatch::BillingAndUsageDispatchView;
 use billing_and_usage_page::BillingAndUsagePageEvent;
 use code_page::{CodeSettingsPageAction, CodeSettingsPageEvent, CodeSubpage};
-use environments_page::EnvironmentsPageView;
 use features_page::{FeaturesPageView, FeaturesSettingsPageEvent};
 use itertools::Itertools as _;
 use keybindings::KeybindingsView;
 use main_page::{MainPageAction, MainSettingsPageEvent, MainSettingsPageView};
-use mcp_servers_page::MCPServersSettingsPageView;
 use nav::{SettingsNavItem, SettingsUmbrella};
 use pathfinder_geometry::vector::Vector2F;
 use privacy_page::{PrivacyPageView, PrivacyPageViewEvent};
@@ -102,7 +99,6 @@ mod warp_drive_page;
 mod warpify_page;
 
 #[cfg(not(target_family = "wasm"))]
-pub(crate) use ai_page::cli_agent_settings_widget_id;
 pub use billing_and_usage_page::create_discount_badge;
 pub use code_page::CodeSettingsPageView;
 pub use features_page::FeaturesPageAction;

@@ -135,15 +135,12 @@ pub use pane::ai_document_pane::AIDocumentPane;
 pub use pane::ai_fact_pane::AIFactPane;
 pub use pane::code_diff_pane::CodeDiffPane;
 pub use pane::code_pane::CodePane;
-pub use pane::env_var_collection_pane::EnvVarCollectionPane;
 pub use pane::environment_management_pane::EnvironmentManagementPane;
 pub use pane::execution_profile_editor_pane::ExecutionProfileEditorPane;
 pub use pane::file_pane::FilePane;
 pub use pane::network_log_pane::NetworkLogPane;
-pub use pane::notebook_pane::NotebookPane;
 pub use pane::settings_pane::SettingsPane;
 pub use pane::terminal_pane::TerminalPane;
-pub use pane::workflow_pane::WorkflowPane;
 pub use pane::{
     AnyPaneContent, BackingView, PaneConfiguration, PaneConfigurationEvent, PaneContent, PaneEvent,
     PaneHeaderAction, PaneHeaderCustomAction, PaneId, PaneView, TerminalPaneId,

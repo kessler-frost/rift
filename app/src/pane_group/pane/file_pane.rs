@@ -3,7 +3,6 @@ use std::sync::Arc;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use riftui::{AppContext, ModelHandle, View, ViewContext, ViewHandle};
 
-use super::notebook_pane::subscribe_to_link_model;
 use super::view::PaneView;
 use super::{
     DetachType, PaneConfiguration, PaneContent, PaneGroup, PaneId, ShareableLink,

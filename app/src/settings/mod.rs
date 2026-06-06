@@ -40,7 +40,6 @@ pub use ai::*;
 pub use alias_expansion::*;
 pub use block_visibility::*;
 pub use changelog::*;
-pub use cloud_preferences::*;
 pub use code::*;
 pub use debug::*;
 pub use editor::*;

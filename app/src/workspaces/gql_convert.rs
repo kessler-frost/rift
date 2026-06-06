@@ -56,7 +56,6 @@ use super::workspace::{
     WorkspaceInviteCode, WorkspaceMember, WorkspaceMemberUsageInfo, WorkspaceSettings,
     WorkspaceSizePolicy,
 };
-use crate::ai::{BonusGrant, BonusGrantScope};
 use crate::auth::UserUid;
 use crate::server::experiments::ServerExperiment;
 use crate::server::graphql::schema::object_action_history_from_gql;

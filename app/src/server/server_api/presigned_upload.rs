@@ -11,7 +11,6 @@ use rift_core::errors::{register_error, ErrorExt};
 use thiserror::Error;
 
 #[cfg(feature = "local_fs")]
-use super::ai::FileArtifactUploadTargetInfo;
 use super::harness_support::{UploadFieldValue, UploadTarget};
 
 /// Typed error for HTTP-backed operations so downstream classifiers (e.g. the agent-SDK

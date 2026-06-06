@@ -122,9 +122,6 @@ use super::safe_mode_settings::{
 };
 use super::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use super::settings::{SpacingMode, TerminalSettings, TerminalSettingsChangedEvent};
-use super::shared_session::presence_manager::PresenceManager;
-use super::shared_session::viewer::history_model::SharedSessionHistoryModel;
-use super::shared_session::SharedSessionStatus;
 use super::shell::ShellType;
 use super::universal_developer_input::{
     UniversalDeveloperInputButtonBar, UniversalDeveloperInputButtonBarEvent,
@@ -239,7 +236,6 @@ use crate::terminal::input::user_query::{UserQueryMenuEvent, UserQueryMenuView};
 use crate::terminal::model::session::active_session::ActiveSession;
 use crate::terminal::package_installers::command_at_cursor_has_common_package_installer_prefix;
 use crate::terminal::prompt_render_helper::should_render_ps1_prompt;
-use crate::terminal::view::inline_banner::{PromptSuggestionsEvent, PromptSuggestionsView};
 use crate::terminal::view::CodeDiffAction;
 use crate::terminal::CLIAgent;
 use crate::ui_components::blended_colors;

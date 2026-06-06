@@ -9,7 +9,6 @@ use rift_server_client::auth::AuthEvent;
 use riftui::SingletonEntity as _;
 
 #[cfg(not(target_family = "wasm"))]
-use crate::ai::{AIRequestUsageModel, AIRequestUsageModelEvent};
 #[cfg(not(target_family = "wasm"))]
 use crate::server::server_api::ServerApiProvider;
 

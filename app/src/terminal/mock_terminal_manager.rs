@@ -11,7 +11,6 @@ use super::model_events::ModelEventDispatcher;
 use super::{ShellLaunchState, TerminalManager, TerminalModel, TerminalView};
 use crate::context_chips::prompt_type::PromptType;
 use crate::pane_group::TerminalViewResources;
-use crate::terminal::view::ConversationRestorationInNewPaneType;
 
 pub struct MockTerminalManager {
     model: Arc<FairMutex<TerminalModel>>,

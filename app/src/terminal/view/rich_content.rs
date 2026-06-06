@@ -1,7 +1,6 @@
 use riftui::prelude::ChildView;
 use riftui::{Element, EntityId, View, ViewContext, ViewHandle};
 
-use super::{InitStepBlock, InitStepKind};
 use crate::terminal::block_list_viewport::ScrollPositionUpdate;
 use crate::terminal::model::blocks::{RemovableBlocklistItem, RichContentItem};
 use crate::terminal::model::rich_content::RichContentType;

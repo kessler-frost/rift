@@ -20,7 +20,6 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 use thousands::Separable;
 
-use crate::ai::{AIRequestUsageModel, AIRequestUsageModelEvent};
 use crate::auth::AuthStateProvider;
 use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
 use crate::ui_components::blended_colors;

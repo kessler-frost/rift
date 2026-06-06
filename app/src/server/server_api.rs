@@ -13,7 +13,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use ::http::header::CONTENT_LENGTH;
-use ai::AIClient;
 use anyhow::{anyhow, Context, Result};
 use auth::AuthClient;
 use base64::prelude::BASE64_URL_SAFE;
@@ -24,7 +23,6 @@ use channel_versions::ChannelVersions;
 use chrono::{DateTime, FixedOffset};
 use futures::StreamExt;
 use instant::Instant;
-use object::ObjectClient;
 use parking_lot::{Mutex, RwLock};
 use prost::Message;
 use reqwest::StatusCode;

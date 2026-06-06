@@ -9,7 +9,6 @@ use settings::{Setting as _, SettingsManager};
 
 use super::app_icon::AppIconSettings;
 use super::app_installation_detection::UserAppInstallDetectionSettings;
-use super::cloud_preferences::CloudPreferencesSettings;
 use super::initializer::SettingsInitializer;
 use super::native_preference::NativePreferenceSettings;
 use super::{
