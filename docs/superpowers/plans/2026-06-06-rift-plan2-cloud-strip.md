@@ -12,6 +12,27 @@
 
 ---
 
+## ⛳ EXECUTION STATUS & RESUME NOTES (updated 2026-06-06, mid-execution — READ FIRST)
+
+**Branch:** `plan2-strip`. **Resume from clean HEAD `f2034746`** (`cargo build --bin rift-oss` is green here).
+
+**Done & committed:**
+- ✅ **Phase 0 / Task 1** — disable cloud feature flags (commit `3821be1a`). Used a new `ChannelState::with_disabled_features()` in `crates/rift_core/src/channel/state.rs`; OSS channel disables 12 cloud flags in `app/src/bin/oss.rs`.
+- ✅ **Phase 1 / Task 2** — deleted usage/billing/reward/referral leaf modules + GlobalResourceHandles surgery (commit `f2034746`).
+
+**Remaining:** Tasks 3–11 (Phases 2–7 + acceptance).
+
+**🚨 MACRO GUARDRAIL — this killed 3 subagent attempts at Phase 2. Non-negotiable:**
+Telemetry/logging macros live in **`crates/rift_core`** (KEEP code): `send_telemetry_from_ctx`/`send_telemetry_sync_from_app_ctx`/`send_telemetry_from_app_ctx` (`telemetry.rs`), `report_error`/`report_if_error` (`errors.rs`), `safe_warn`/`safe_info` (`safe_log.rs`). They reach app files via `use rift_core::{...}` imports.
+- When fixing dangling refs, remove ONLY drive/cloud_object/server **type** imports. **NEVER** remove a `use rift_core::…` macro import, and never reorder `lib.rs` `mod` declarations.
+- If the build ever says `cannot find macro send_telemetry_* / report_* / safe_*`, you deleted a macro import — `git diff` and revert that specific edit immediately. Do NOT "fix" it by deleting the macro call sites.
+
+**⚠️ PHASE 2 ENTANGLEMENT (Task 3) — bigger than the spike implied:** Drive is NOT separable. Deleting `app/src/drive/` ALONE yields **165 errors** cascading into `workflows/`, `notebooks/`, `env_vars/`, `ai/`, `cloud_object/`. Drive + cloud_object + workflows + notebooks + env_vars + the `ai/` cloud-object usages are ONE feature web that must be removed together; there is **no smaller green checkpoint** (the build is all-or-nothing across the cluster). Budget for a **300+-error compiler-driven grind** in one sitting.
+
+**EXECUTION MODE CHANGE:** subagent-driven execution FAILED for the tangled phases (they scope-crept into the rift_core macros and stalled). **Do the tangled phases (2, 5, 8) INLINE with full context**, compiler-driven, in a session with plenty of headroom — not via subagents. Phases 4, 6, 7, 9 are smaller and may still be delegated.
+
+---
+
 ## Method: compiler-driven deletion (read once)
 
 For class-C deletions, exact call-site fixes cannot be pre-listed (hundreds of files). The reliable, honest method per deletion is:
