@@ -10,7 +10,7 @@
 
 **Scope note:** This is Plan 1 of 2. Plan 2 (the strip) is written separately after an investigation spike maps auth/cloud coupling — that work cannot be honestly pre-written as exact-code steps until the dependency graph is probed.
 
-**Parallelization:** Tasks 0→1 are strictly sequential (each gates the next on a clean build). Within `rift_ai`, Task 3 (config) and Task 4 (context types) are independent and can run as parallel subagents; Task 5 (messages) depends on neither and can also run in parallel; Tasks 6–7 (`complete`/`translate`) both depend on 4+5+6-client and can run in parallel with each other once the client exists. Task 2 (scaffold) must precede all rift_ai work; Task 9 (wiring) must come last. Recommended parallel batch: {3, 4, 5} together, then {6}, then {7, 8} together.
+**Parallelization:** Tasks 0→1 are strictly sequential (each gates the next on a clean build). Task 2 (scaffold) must precede all `rift_ai` work. Within `rift_ai`, Tasks 3 (config), 4 (context), and 5 (messages) are independent and can run as a parallel subagent batch; Task 6 (client) depends on 3+5; Tasks 7 (`complete`) and 8 (`translate`) both depend on 4+5+6 and can run in parallel with each other. Tasks 9 (wiring) then 10 (`# ` prefix) are sequential and must come after 7+8 — both edit `app/` and 10 depends on 9's bridge. Task 11 is the final acceptance gate. Recommended order: 0 → 1 → 2 → {3, 4, 5} → 6 → {7, 8} → 9 → 10 → 11.
 
 ---
 
@@ -1168,11 +1168,143 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
-## Task 10: Plan-1 acceptance checkpoint
+## Task 10: NL→command via `# ` prefix
 
-- [ ] **Step 1: Full workspace test of the new crate + bridge**
+**Goal:** When the user submits input that begins with `# ` (hash + space), treat the remainder as a natural-language request: call `rift_ai::translate()` and **replace the input buffer with the resulting command for the user to review** — do NOT auto-execute (safety default; the user presses Enter again to run it).
 
-Run: `cargo test -p rift_ai && cargo test -p rift rift_bridge::`
+**Files:**
+- Create: `app/src/ai/predict/rift_nl_prefix.rs` (prefix detection — pure, unit-testable)
+- Modify: `app/src/ai/predict/mod.rs` (declare module)
+- Modify: `app/src/terminal/input.rs` (hook the submission path)
+
+**Depends on:** Tasks 8 (`translate`), 9 (bridge + `rift_ai` dep already on the app).
+
+- [ ] **Step 1: Write the failing test for prefix detection**
+
+Create `app/src/ai/predict/rift_nl_prefix.rs`:
+
+```rust
+//! Detects the `# ` natural-language prefix on terminal input.
+
+/// If `input` begins with `# ` (hash + space), return the trimmed NL request.
+/// Returns `None` for ordinary commands (including a bare `#` comment with no space).
+pub fn nl_request(input: &str) -> Option<&str> {
+    let rest = input.strip_prefix("# ")?;
+    let rest = rest.trim();
+    (!rest.is_empty()).then_some(rest)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_hash_space_prefix() {
+        assert_eq!(nl_request("# files changed today"), Some("files changed today"));
+    }
+
+    #[test]
+    fn ignores_plain_commands() {
+        assert_eq!(nl_request("ls -la"), None);
+        assert_eq!(nl_request("#nospace"), None);
+        assert_eq!(nl_request("echo # mid-line"), None);
+    }
+
+    #[test]
+    fn ignores_empty_request() {
+        assert_eq!(nl_request("#  "), None);
+    }
+}
+```
+
+- [ ] **Step 2: Declare the module**
+
+In `app/src/ai/predict/mod.rs`, add:
+
+```rust
+pub(crate) mod rift_nl_prefix;
+```
+
+- [ ] **Step 3: Run the detection test**
+
+Run: `cargo test -p rift rift_nl_prefix::`
+Expected: 3 passed.
+
+- [ ] **Step 4: Hook the submission path in `input.rs`**
+
+In `app/src/terminal/input.rs`, intercept before a command is executed. The cleanest seam is `get_expanded_command_on_execute(&mut self, ctx) -> Option<String>` (≈line 9279), which already returns the final command string just before execution. At the **top** of that function, capture the current buffer text and short-circuit on the NL prefix:
+
+```rust
+// Rift: a `# `-prefixed line is a natural-language request, not a command.
+// Translate it locally and replace the input for review (never auto-run).
+let __rift_input = self.buffer_text(ctx);
+if let Some(nl) = crate::ai::predict::rift_nl_prefix::nl_request(&__rift_input) {
+    self.rift_translate_into_input(nl.to_string(), ctx);
+    return None; // nothing to execute this turn; user reviews the filled command
+}
+```
+
+> Verify at execution time: confirm `buffer_text(&self, ctx)` is the accessor in scope (it is used elsewhere in this file, e.g. ≈lines 5802 and 8799). If `get_expanded_command_on_execute` is not the sole execution chokepoint for typed input, also guard `execute_pending_command` (≈line 6738) the same way. Trace one real Enter-keypress path before finalizing the hook location.
+
+- [ ] **Step 5: Implement the async translate-and-fill helper**
+
+Add a method on the same input type in `app/src/terminal/input.rs` (near `execute_pending_command`). It runs the async `translate()` off the UI path via `ctx.spawn` (the codebase's established pattern) and writes the result back into the buffer:
+
+```rust
+/// Translate a natural-language request via local AI and replace the input buffer
+/// with the resulting command (for user review). No-op on error / missing config.
+fn rift_translate_into_input(&mut self, nl: String, ctx: &mut ViewContext<Self>) {
+    let Some(cfg) = rift_ai::config::RiftAiConfig::load_from(
+        &rift_ai::config::RiftAiConfig::default_path(),
+    )
+    .ok() else {
+        return; // no local AI configured
+    };
+    let rctx = crate::ai::predict::rift_bridge::to_rift_context(&[], &nl, None);
+    ctx.spawn(
+        async move { rift_ai::translate::translate(&nl, &rctx, &cfg).await.ok() },
+        move |this, cmd: Option<String>, ctx| {
+            if let Some(cmd) = cmd.filter(|c| !c.is_empty()) {
+                this.set_buffer_text(&cmd, ctx); // replace input with translated command
+            }
+        },
+    );
+}
+```
+
+> Verify at execution time: the exact buffer-write API. This file edits the input buffer in several places — locate the existing setter (candidates: `set_buffer_text`, `replace_input`, `set_input_text`, or the editor handle's `set_text`) and use it. The `ctx.spawn(future, callback)` shape matches the pattern in `crates/ai/src/api_keys.rs`; adjust the closure signature to this codebase's `ViewContext` spawn API if it differs.
+
+- [ ] **Step 6: Build the app**
+
+Run: `cargo build --bin rift-oss 2>&1 | tail -20`
+Expected: `Finished`. Resolve any borrow/lifetime issues (clone `nl`/`cfg` into the async block as shown).
+
+- [ ] **Step 7: Smoke-test the prefix end-to-end**
+
+```bash
+omlx start   # serving on :8000 with a model loaded; ~/.config/rift/config.toml present
+cargo run --bin rift-oss
+```
+
+In the running terminal, type `# list files changed in the last day` and press Enter.
+Expected: the input is replaced by a concrete command (e.g. `find . -type f -mtime -1`); it is NOT executed. Pressing Enter again runs it. With omlx stopped, the line is left as-is (no crash, no hang).
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add app/src/ai/predict/rift_nl_prefix.rs app/src/ai/predict/mod.rs app/src/terminal/input.rs
+git commit -m "feat: NL->command via '# ' input prefix (review-before-run)
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
+```
+
+---
+
+## Task 11: Plan-1 acceptance checkpoint
+
+- [ ] **Step 1: Full workspace test of the new crate + bridge + prefix**
+
+Run: `cargo test -p rift_ai && cargo test -p rift rift_bridge:: && cargo test -p rift rift_nl_prefix::`
 Expected: all green.
 
 - [ ] **Step 2: Clippy on the new code**
@@ -1201,4 +1333,3 @@ git tag rift-plan1-complete
 - Map what depends on `auth`/cloud before deleting (the spike).
 - Remove cloud AI server calls now that `rift_ai` serves suggestions.
 - Strip `auth/`, `drive/`, `workspace(s)/`, `billing/`, `pricing/`, telemetry, autoupdate, cloud-agent modules, and their call sites.
-- `translate()` is implemented in `rift_ai` (Task 8) but not yet surfaced in the UI; Plan 2 (or a small follow-up) wires the NL→command entry point. Tracked so it isn't forgotten.
