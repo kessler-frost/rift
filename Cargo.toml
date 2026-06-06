@@ -74,6 +74,7 @@ vim = { path = "crates/vim" }
 virtual-fs = { path = "crates/virtual_fs" }
 voice_input = { path = "crates/voice_input" }
 rift = { path = "app" }
+rift_ai = { path = "crates/rift_ai" }
 rift_assets = { path = "crates/rift_assets" }
 rift_cli = { path = "crates/rift_cli" }
 rift_completer = { path = "crates/rift_completer" }
