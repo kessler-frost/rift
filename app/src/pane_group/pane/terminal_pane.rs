@@ -299,94 +299,6 @@ impl PaneContent for TerminalPane {
             }
         }
 
-        let terminal_view_id = self.terminal_view(ctx).id();
-        let manager_model = Manager::handle(ctx);
-        ctx.subscribe_to_model(&manager_model, move |group, model_handle, event, ctx| {
-            if let ManagerEvent::JoinedSession {
-                session_id: _,
-                view_id,
-            } = event
-            {
-                // only take action if the view id is ours
-                if *view_id == terminal_view_id {
-                    let url = retrieve_shared_session_link(model_handle.as_ref(ctx), view_id);
-                    group.handle_pane_link_updated(terminal_pane_id.into(), url, ctx);
-                }
-            }
-        });
-
-        #[cfg(feature = "local_fs")]
-        {
-            ctx.subscribe_to_model(
-                &BlocklistAIHistoryModel::handle(ctx),
-                move |group, _, event, ctx| {
-                    let Some(model_event_sender) = group.model_event_sender.clone() else {
-                        return;
-                    };
-
-                    let is_shared_ambient_agent_session = group
-                        .terminal_view_from_pane_id(terminal_pane_id, ctx)
-                        .map(|view| {
-                            view.as_ref(ctx)
-                                .model
-                                .lock()
-                                .is_shared_ambient_agent_session()
-                        })
-                        .unwrap_or(false);
-
-                    handle_ai_history_event(
-                        event,
-                        terminal_view_id,
-                        terminal_pane_id,
-                        model_event_sender,
-                        is_shared_ambient_agent_session,
-                        ctx,
-                    );
-                },
-            );
-        }
-
-        // Store the pane group entity ID on the agent view controller so the
-        // message bar can perform pane-group-scoped visibility checks.
-        let pane_group_id = ctx.view_id();
-        let terminal_view = self.terminal_view(ctx);
-        let agent_view_controller = terminal_view.as_ref(ctx).agent_view_controller().clone();
-        agent_view_controller.update(ctx, |controller, _ctx| {
-            controller.set_pane_group_id(pane_group_id);
-        });
-        ctx.subscribe_to_model(&agent_view_controller, move |group, _, event, ctx| {
-            if let AgentViewControllerEvent::EnteredAgentView {
-                conversation_id,
-                display_mode,
-                ..
-            } = event
-            {
-                if display_mode.is_fullscreen() {
-                    group.restore_missing_child_agent_panes_for_parent(
-                        *conversation_id,
-                        terminal_pane_id.into(),
-                        ctx,
-                    );
-                }
-            }
-        });
-        let active_session = terminal_view.as_ref(ctx).active_session().clone();
-        let active_stack_view = pane_stack.as_ref(ctx).active_view().clone();
-        let active_ambient_session_registration = active_stack_view
-            .as_ref(ctx)
-            .ambient_agent_task_id_for_details_panel(ctx)
-            .map(|task_id| (active_stack_view.id(), task_id));
-        ActiveAgentViewsModel::handle(ctx).update(ctx, |model, ctx| {
-            model.register_agent_view_controller(
-                &agent_view_controller,
-                &active_session,
-                terminal_view_id,
-                ctx,
-            );
-            if let Some((terminal_view_id, task_id)) = active_ambient_session_registration {
-                model.register_ambient_session(terminal_view_id, task_id, ctx);
-            }
-        });
     }
 
     fn detach(
@@ -396,43 +308,21 @@ impl PaneContent for TerminalPane {
         ctx: &mut ViewContext<PaneGroup>,
     ) {
         if matches!(detach_type, DetachType::Closed) {
-            // Only immediately clear conversations and delete blocks if the session is being
-            // permanently closed.
-            BlocklistAIHistoryModel::handle(ctx).update(ctx, |history_model, ctx| {
-                history_model
-                    .clear_conversations_in_terminal_view(self.terminal_view(ctx).id(), ctx);
-            });
             self.delete_blocks(ctx);
         }
 
         // Unsubscribe from all views in the pane stack.
         let pane_stack = self.view.as_ref(ctx).pane_stack().clone();
         let contents = pane_stack.as_ref(ctx).entries().to_vec();
-        let terminal_view_ids = contents
-            .iter()
-            .map(|(_, view)| view.id())
-            .collect::<Vec<_>>();
         for (manager, view) in contents {
-            // Notify the view that it's being detached so it can react appropriately
-            // (e.g. the shared-session viewer tears down its network only when the detach
-            // is not reversible).
+            // Notify the view that it's being detached so it can react appropriately.
             manager.update(ctx, |terminal_manager, ctx| {
                 terminal_manager.on_view_detached(detach_type, ctx);
             });
             ctx.unsubscribe_to_view(&view);
         }
 
-        // Notify the active agent views model that the terminal view has been closed
-        // (and that any active views are no longer active). On a `HiddenForClose` detach,
-        // `attach` will re-register via `register_agent_view_controller` when the tab is
-        // restored, so this is safe to run unconditionally.
         let terminal_view_id = self.terminal_view(ctx).id();
-        ActiveAgentViewsModel::handle(ctx).update(ctx, |model, ctx| {
-            for terminal_view_id in terminal_view_ids {
-                model.unregister_agent_view_controller(terminal_view_id, ctx);
-                model.unregister_ambient_session(terminal_view_id, ctx);
-            }
-        });
 
         // Clean up any active CLI agent session so its notification is removed.
         // Skip this for moves — the session is still running and will re-register in the new tab.
@@ -443,22 +333,7 @@ impl PaneContent for TerminalPane {
         }
 
         ctx.unsubscribe_to_model(&pane_stack);
-
         ctx.unsubscribe_to_view(&self.view);
-        ctx.unsubscribe_to_model(
-            &self
-                .terminal_view(ctx)
-                .as_ref(ctx)
-                .agent_view_controller()
-                .clone(),
-        );
-
-        ctx.unsubscribe_to_model(&Manager::handle(ctx));
-
-        #[cfg(feature = "local_fs")]
-        {
-            ctx.unsubscribe_to_model(&BlocklistAIHistoryModel::handle(ctx));
-        }
     }
 
     fn snapshot(&self, app: &AppContext) -> LeafContents {
