@@ -796,9 +796,6 @@ pub struct PromptSuggestion {
     /// The prompt that is used as the input to Agent Mode.
     pub prompt: String,
 
-    /// If this is some, we eagerly pre-fetch the Agent Mode response for this query.
-    pub coding_query_context: Option<Vec<FileLocations>>,
-
     /// If this is a static prompt suggestion, we store the name of the suggestion type here.
     pub static_prompt_suggestion_name: Option<String>,
 
@@ -809,10 +806,6 @@ pub struct PromptSuggestion {
 }
 
 impl PromptSuggestion {
-    pub fn is_coding_query(&self) -> bool {
-        self.coding_query_context.is_some()
-    }
-
     /// Returns specified label for Prompt Suggestion if it exists, otherwise returns the query
     /// (which is considered to be the "default" label).
     pub fn label(&self) -> &String {
@@ -5757,7 +5750,6 @@ impl TerminalView {
     ) {
         if let Some(banner) = &mut self.inline_banners_state.prompt_suggestions_banner {
             banner.should_hide = false;
-            banner.prompt_suggestion.coding_query_context = None;
             self.input.update(ctx, |input, ctx| {
                 input.maybe_set_prompt_suggestions_banner_state_should_hide(false);
                 input.notify_and_notify_children(ctx);
