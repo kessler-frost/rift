@@ -99,7 +99,6 @@ impl InlineSlashCommandView {
         );
         let zero_state_source =
             ctx.add_model(|_| ZeroStateDataSource::new(&slash_commands_source, false));
-        let saved_prompts_source = super::saved_prompts_data_source();
 
         let mixer = ctx.add_model(|ctx| {
             let mut mixer = SearchMixer::<AcceptSlashCommandOrSavedPrompt>::new();
@@ -108,17 +107,6 @@ impl InlineSlashCommandView {
             mixer.add_sync_source(
                 slash_commands_source.clone(),
                 [QueryFilter::StaticSlashCommands],
-            );
-            mixer.add_async_source(
-                saved_prompts_source,
-                [QueryFilter::StaticSlashCommands],
-                AddAsyncSourceOptions {
-                    // Any debounce makes the loading state flicker longer.
-                    debounce_interval: None,
-                    run_in_zero_state: false,
-                    run_when_unfiltered: false,
-                },
-                ctx,
             );
             mixer.add_sync_source(
                 zero_state_source.clone(),

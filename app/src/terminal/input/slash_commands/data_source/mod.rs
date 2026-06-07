@@ -1,4 +1,3 @@
-mod saved_prompts;
 mod zero_state;
 
 use std::collections::HashMap;
@@ -14,7 +13,6 @@ use rift_core::ui::appearance::Appearance;
 use rift_core::ui::Icon as WarpIcon;
 use riftui::fonts::FamilyId;
 use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
-pub(crate) use saved_prompts::*;
 pub use zero_state::*;
 
 use super::AcceptSlashCommandOrSavedPrompt;

@@ -26,8 +26,8 @@ use crate::terminal::input::inline_menu::{styles as inline_styles, QueryResultRe
 use crate::terminal::input::slash_command_model::{SlashCommandEntryState, SlashCommandModel};
 use crate::terminal::input::slash_commands::view::{slash_command_query, CloseReason};
 use crate::terminal::input::slash_commands::{
-    saved_prompts_data_source, AcceptSlashCommandOrSavedPrompt, SlashCommandDataSource,
-    SlashCommandsEvent, UpdatedActiveCommands, ZeroStateDataSource,
+    AcceptSlashCommandOrSavedPrompt, SlashCommandDataSource, SlashCommandsEvent,
+    UpdatedActiveCommands, ZeroStateDataSource,
 };
 use crate::terminal::input::suggestions_mode_model::{
     InputSuggestionsModeEvent, InputSuggestionsModeModel,
@@ -219,23 +219,12 @@ impl CloudModeV2SlashCommandView {
 
         let zero_state_source =
             ctx.add_model(|_| ZeroStateDataSource::new(&slash_commands_source, true));
-        let saved_prompts_source = saved_prompts_data_source();
 
         let mixer = ctx.add_model(|ctx| {
             let mut mixer = SearchMixer::<AcceptSlashCommandOrSavedPrompt>::new();
             mixer.add_sync_source(
                 slash_commands_source.clone(),
                 [QueryFilter::StaticSlashCommands],
-            );
-            mixer.add_async_source(
-                saved_prompts_source,
-                [QueryFilter::StaticSlashCommands],
-                AddAsyncSourceOptions {
-                    debounce_interval: None,
-                    run_in_zero_state: false,
-                    run_when_unfiltered: false,
-                },
-                ctx,
             );
             mixer.add_sync_source(
                 zero_state_source.clone(),
