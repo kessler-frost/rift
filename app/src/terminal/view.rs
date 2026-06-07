@@ -4727,14 +4727,7 @@ impl TerminalView {
             self.horizontal_clipped_scroll_state.clone(),
             content_element_size,
             self.input_size_at_last_frame(app).unwrap_or_default(),
-            if BlocklistAIHistoryModel::as_ref(app)
-                .active_conversation(self.view_id)
-                .is_some()
-            {
-                AutoscrollBehavior::WhenScrolledToEnd
-            } else {
-                AutoscrollBehavior::Always
-            },
+            AutoscrollBehavior::Always,
             self.inline_menu_positioner.clone(),
         )
     }
@@ -12110,12 +12103,6 @@ impl TerminalView {
             }
         }
 
-        // When we clear the blocklist, the user can't see past AI exchanges anymore, so these conversations should no longer
-        // appear active for the terminal view anymore.
-        BlocklistAIHistoryModel::handle(ctx).update(ctx, |ai_history_model, ctx| {
-            ai_history_model.clear_conversations_in_terminal_view(self.view_id, ctx)
-        });
-
         // No more restored blocks, since we just cleared the buffer
         log::info!("Clearing buffer.  resetting any_session_contains_restored_remote_blocks");
         self.any_session_contains_restored_remote_blocks = false;
@@ -12200,44 +12187,6 @@ impl TerminalView {
         let model = self.model.lock();
         let block_list = model.block_list();
 
-        let ai_history_model = BlocklistAIHistoryModel::as_ref(app);
-
-        // Check if the active block is a rich content block.
-        if let Some(ai_block_handle) = self.active_ai_block(app) {
-            let ai_block = ai_block_handle.as_ref(app);
-            if let Some(prompt) = ai_history_model
-                .conversation(&ai_block.conversation_id())
-                .and_then(|conversation| conversation.latest_user_query())
-            {
-                return CommandContext::RunningAIBlock {
-                    prompt: prompt.to_owned(),
-                };
-            }
-        }
-
-        // Check if the last non-hidden block is a rich content block.
-        let block_index = block_list.last_non_hidden_block_by_index();
-        if let Some((_, content)) =
-            block_list.last_non_hidden_rich_content_block_after_block(block_index)
-        {
-            if let Some(rich_content) = self.rich_content_views.last() {
-                if rich_content.view_id() == content.view_id {
-                    if let Some(ai_metadata) = rich_content.ai_block_metadata() {
-                        let ai_block = ai_metadata.ai_block_handle.as_ref(app);
-                        if let Some(prompt) = ai_history_model
-                            .conversation(&ai_block.conversation_id())
-                            .and_then(|conversation| conversation.latest_user_query())
-                        {
-                            return CommandContext::LastRunAIBlock {
-                                prompt: prompt.to_owned(),
-                            };
-                        }
-                    }
-                }
-            }
-        }
-
-        // Fall back to existing command context logic for terminal blocks
         let active_block = block_list.active_block();
         let last_block = block_list.last_non_hidden_block();
 
@@ -14392,107 +14341,6 @@ impl TerminalView {
             .last()
             .map(|range| range.pivot())
     }
-
-    /// Inserts a dummy AI block with the given query and output strings.
-    /// The directory is set to ~.
-    #[cfg(any(test, feature = "integration_tests"))]
-    pub fn insert_dummy_ai_block(
-        &mut self,
-        query: String,
-        output: String,
-        ctx: &mut ViewContext<Self>,
-    ) -> ViewHandle<AIBlock> {
-        use rand::distributions::{Alphanumeric, DistString};
-
-
-        let inputs = vec![AIAgentInput::UserQuery {
-            query,
-            context: vec![AIAgentContext::Directory {
-                pwd: Some("~".to_owned()),
-                home_dir: None,
-                are_file_symbols_indexed: false,
-            }]
-            .into(),
-            static_query_type: None,
-            referenced_attachments: Default::default(),
-            user_query_mode: UserQueryMode::default(),
-            running_command: None,
-            intended_agent: None,
-        }];
-
-        let output = AIAgentOutput {
-            messages: vec![AIAgentOutputMessage::text(
-                MessageId::new("fake-id".to_owned()),
-                AIAgentText {
-                    sections: vec![AIAgentTextSection::PlainText {
-                        text: output.into(),
-                    }],
-                },
-            )],
-            server_output_id: Some(ServerOutputId::new(format!(
-                "test_output_id_{}",
-                Alphanumeric.sample_string(&mut rand::thread_rng(), 24)
-            ))),
-            ..Default::default()
-        };
-
-        // Create a real conversation in the history model for this dummy block so it renders.
-        let terminal_view_id = ctx.view_id();
-        let mut new_conversation_id = None;
-        BlocklistAIHistoryModel::handle(ctx).update(ctx, |history, model_ctx| {
-            let id =
-                history.start_new_conversation(terminal_view_id, false, false, false, model_ctx);
-            // Mark it active for good measure (not strictly required for rendering).
-            history.set_active_conversation_id(id, terminal_view_id, model_ctx);
-            new_conversation_id = Some(id);
-        });
-        let conversation_id = new_conversation_id.expect("conversation created for dummy AI block");
-
-        let ai_block_model = Rc::new(FakeAIBlockModel::new(inputs, output));
-        let ai_block = ctx.add_typed_action_view(|ctx| {
-            AIBlock::new(
-                ai_block_model,
-                self.model.clone(),
-                ClientIdentifiers {
-                    client_exchange_id: Default::default(),
-                    conversation_id,
-                    response_stream_id: None,
-                },
-                self.ai_controller.clone(),
-                self.get_relevant_files_controller.clone(),
-                None,
-                None,
-                self.ai_action_model.clone(),
-                self.ai_context_model.clone(),
-                self.find_model.clone(),
-                self.active_session.clone(),
-                &self.cli_subagent_controller,
-                &self.model_events_handle,
-                self.agent_view_controller.clone(),
-                self.ambient_agent_view_model.clone(),
-                self.view_handle.clone(),
-                ctx.view_id(),
-                ctx,
-            )
-        });
-
-        self.insert_rich_content(
-            Some(RichContentType::AIBlock),
-            ai_block.clone(),
-            Some(RichContentMetadata::AIBlock(AIBlockMetadata {
-                exchange_id: Default::default(),
-                conversation_id,
-                ai_block_handle: ai_block.clone(),
-            })),
-            RichContentInsertionPosition::Append {
-                insert_below_long_running_block: false,
-            },
-            ctx,
-        );
-        ai_block
-    }
-
-
 
     pub fn auth_secret_delete_confirmation_dialog_element(
         &self,
@@ -18207,39 +18055,6 @@ impl View for TerminalView {
         #[cfg(not(target_arch = "wasm32"))]
         if self.can_show_conversation_details_ui_from_model(&model_lock, app) {
             context.set.insert(init::CAN_SHOW_CONVERSATION_DETAILS_KEY);
-        }
-
-        let active_conversation = if FeatureFlag::AgentView.is_enabled() {
-            self.agent_view_controller
-                .as_ref(app)
-                .agent_view_state()
-                .active_conversation_id()
-                .and_then(|id| BlocklistAIHistoryModel::as_ref(app).conversation(&id))
-        } else {
-            BlocklistAIHistoryModel::as_ref(app).active_conversation(self.id())
-        };
-        // Set CanResumeConversation flag if the latest exchange (across all tasks,
-        // including subtasks) was manually cancelled or finished with an error.
-        if FeatureFlag::AIResumeButton.is_enabled() {
-            let latest_exchange = active_conversation.and_then(|c| c.latest_exchange());
-            let was_manually_cancelled = latest_exchange
-                .and_then(|e| e.output_status.cancel_reason())
-                .is_some_and(|reason| reason.is_manually_cancelled());
-            let has_error = active_conversation.is_some_and(|c| c.status().is_error());
-            if was_manually_cancelled || has_error {
-                context.set.insert(init::CAN_RESUME_CONVERSATION_KEY);
-            }
-        }
-        if active_conversation
-            .as_ref()
-            .and_then(|conversation| {
-                fork_from_last_known_good_state_exchange_id(conversation, &model_lock)
-            })
-            .is_some()
-        {
-            context
-                .set
-                .insert(init::CAN_FORK_FROM_LAST_KNOWN_GOOD_STATE_KEY);
         }
 
         #[cfg(feature = "local_fs")]
