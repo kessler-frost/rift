@@ -453,12 +453,6 @@ impl AltScreenElement {
             delta.y().into_lines()
         };
 
-        // The alt screen can be vertically scrollable iff we're a shared session reader
-        // and our window is smaller than the sharer's.
-        if self.model.lock().shared_session_status().is_reader() {
-            ScrollableElement::scroll(self, delta.to_pixels(cell_height), ctx);
-        }
-
         ctx.dispatch_typed_action(TerminalAction::MaybeDismissToolTip {
             from_keybinding: false,
         });

@@ -199,7 +199,6 @@ impl TabData {
 
         for section_items in [
             self.tab_group_menu_items(index, tab_groups),
-            self.session_sharing_menu_items(index, ctx),
             self.copy_metadata_menu_items(pane_name_target, ctx),
             self.modify_tab_menu_items(index, tabs_len, pane_name_target, ctx),
             self.close_tab_menu_items(index, tabs_len, ctx),
@@ -214,84 +213,6 @@ impl TabData {
             }
             menu_items.extend(section_items);
         }
-        menu_items
-    }
-
-    fn session_sharing_menu_items(
-        &self,
-        index: usize,
-        ctx: &AppContext,
-    ) -> Vec<MenuItem<WorkspaceAction>> {
-        let mut menu_items = vec![];
-
-        if FeatureFlag::CreatingSharedSessions.is_enabled()
-            && ContextFlag::CreateSharedSession.is_enabled()
-        {
-            let shared_session_view_ids = self.pane_group.as_ref(ctx).shared_session_view_ids(ctx);
-            let focused_session_view = self.pane_group.as_ref(ctx).focused_session_view(ctx);
-
-            // If the focused pane is one of the shared sessions, add an option to stop it specifically,
-            // otherwise add an option to share it.
-            if let Some(focused_session_view) = focused_session_view {
-                if focused_session_view
-                    .as_ref(ctx)
-                    .model
-                    .lock()
-                    .shared_session_status()
-                    .is_active_sharer()
-                {
-                    menu_items.push(
-                        MenuItemFields::new("Stop sharing")
-                            .with_on_select_action(WorkspaceAction::StopSharingSessionFromTabMenu {
-                                terminal_view_id: focused_session_view.id(),
-                            })
-                            .into_item(),
-                    );
-                } else {
-                    menu_items.push(
-                        MenuItemFields::new("Share session")
-                            .with_on_select_action(WorkspaceAction::OpenShareSessionModal(index))
-                            .into_item(),
-                    );
-                }
-            }
-
-            // Always show an option to stop sharing all when there's at least 1 shared session in the tab.
-            if !shared_session_view_ids.is_empty() {
-                menu_items.push(
-                    MenuItemFields::new("Stop sharing all")
-                        .with_on_select_action(WorkspaceAction::StopSharingAllSessionsInTab {
-                            pane_group: self.pane_group.downgrade(),
-                        })
-                        .into_item(),
-                );
-            }
-        }
-
-        // Add "Copy link" option if the focused session in this tab is being shared or viewed
-        let is_shared_or_viewed = self
-            .pane_group
-            .as_ref(ctx)
-            .focused_session_view(ctx)
-            .map(|view| {
-                view.as_ref(ctx)
-                    .model
-                    .lock()
-                    .shared_session_status()
-                    .is_sharer_or_viewer()
-            })
-            .unwrap_or(false);
-
-        if is_shared_or_viewed {
-            menu_items.push(
-                MenuItemFields::new("Copy link")
-                    .with_on_select_action(WorkspaceAction::CopySharedSessionLinkFromTab {
-                        tab_index: index,
-                    })
-                    .into_item(),
-            );
-        }
-
         menu_items
     }
 

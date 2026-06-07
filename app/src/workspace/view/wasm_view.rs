@@ -127,13 +127,6 @@ impl Workspace {
         if model.is_conversation_transcript_viewer() {
             return true;
         }
-        // For shared sessions, show if there's an active conversation.
-        if model.shared_session_status().is_sharer_or_viewer() {
-            drop(model); // Release lock before accessing BlocklistAIHistoryModel
-            return BlocklistAIHistoryModel::as_ref(ctx)
-                .active_conversation(focused_terminal_view.id())
-                .is_some();
-        }
 
         false
     }
