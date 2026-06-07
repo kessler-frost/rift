@@ -10801,7 +10801,7 @@ impl TerminalView {
                 .with_on_select_action(TerminalAction::ContextMenu(
                     ContextMenuAction::EditPrompt,
                 ))
-                .with_disabled(self.model.lock().shared_session_status().is_active_viewer())
+                .with_disabled(false)
                 .into_item(),
         );
 
@@ -10857,7 +10857,7 @@ impl TerminalView {
 
         // Input editor is not available for read-only viewers in a shared session,
         // so certain menu items are disabled/removed
-        let is_editor_disabled = model.shared_session_status().is_reader();
+        let is_editor_disabled = false;
 
         // Section 1: Cut, Copy, Copy All, Paste, Share Session
         let (all_current_input_text, selected_input_text) = self.input.read(ctx, |input, ctx| {
@@ -15476,16 +15476,8 @@ impl TerminalView {
             + 2. * self.size_info.padding_x_px().as_f32();
         let pane_width = self.content_element_width_px(app);
 
-        // If this is a shared session viewer and the height required to display the entire
-        // terminal is larger than the height of the pane, we should make it vertically scrollable.
-        let should_be_vertical_scrollable = model.shared_session_status().is_active_viewer()
-            && required_terminal_height > pane_height;
-
-        // If this is a shared session viewer and the width required to display the entire
-        // terminal is larger than the width of the pane, we should make it horizontally scrollable.
-        let should_be_horizontal_scrollable = FeatureFlag::ViewingSharedSessions.is_enabled()
-            && model.shared_session_status().is_active_viewer()
-            && required_terminal_width > pane_width;
+        let should_be_vertical_scrollable = false;
+        let should_be_horizontal_scrollable = false;
 
         let theme = appearance.theme();
         let element = maybe_wrap_terminal_element_in_scrollable(
@@ -15800,19 +15792,7 @@ impl TerminalView {
         let should_be_vertical_scrollable =
             heights_approx_gt(total_height, visible_rows) && is_scrollable;
 
-        // If this is a shared session viewer and the width required to display the entire
-        // terminal is larger than the width of the pane, we should make it horizontally scrollable.
-        // If there aren't any visible blocks, we should not show a horizontally-scrollable view.
-        let should_be_horizontal_scrollable = FeatureFlag::ViewingSharedSessions.is_enabled()
-            && model.shared_session_status().is_active_viewer()
-            && model
-                .block_list()
-                .blocks()
-                .iter()
-                .filter(|b| b.is_visible())
-                .count()
-                > 0
-            && required_terminal_width > pane_width;
+        let should_be_horizontal_scrollable = false;
 
         let block_list = maybe_wrap_terminal_element_in_scrollable(
             should_be_vertical_scrollable,
@@ -16975,11 +16955,8 @@ impl TerminalView {
     fn show_warpify_footer(&mut self, mode: WarpificationMode, ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
 
-        // Shared session viewers can't initiate warpification currently.
-        // Don't show the warpify footer when an agent is monitoring the command either.
-        if model.shared_session_status().is_viewer()
-            || model.block_list().active_block().is_agent_monitoring()
-        {
+        // Don't show the warpify footer when an agent is monitoring the command.
+        if model.block_list().active_block().is_agent_monitoring() {
             return;
         }
         drop(model);
@@ -17710,10 +17687,7 @@ impl View for TerminalView {
                         .with_constrain_absolute_children()
                         .with_child(column.finish())
                 } else {
-                    let is_view_pending_clause = model.shared_session_status().is_view_pending()
-                        && !self.is_ambient_agent_session(app);
-                    let is_loading_transcript = model.is_loading_conversation_transcript();
-                    let should_show_loading = is_view_pending_clause || is_loading_transcript;
+                    let should_show_loading = model.is_loading_conversation_transcript();
                     let output_area = if should_show_loading {
                         self.render_viewer_loading(app)
                     } else if is_alt_screen_active {
@@ -17762,67 +17736,6 @@ impl View for TerminalView {
 
         if self.is_any_tooltip_open() {
             self.render_grid_tooltip(&mut stack, &model, appearance, app);
-        }
-
-        // Show progress steps while waiting for an ambient agent to start. CloudModeSetupV2 uses
-        // the agent status bar for setup/follow-up progress.
-        if self.ambient_agent_view_model.as_ref().is_some_and(|model| {
-            let model = model.as_ref(app);
-            model.agent_progress().is_some() && !FeatureFlag::CloudModeSetupV2.is_enabled()
-        }) {
-            stack.add_child(self.render_ambient_agent_progress(appearance, app));
-        }
-
-        // For shared session viewers, we want to show a "Request edit access"
-        // button near the input if the input (or the button) are being hovered.
-        // This is disabled when the viewer is offline.
-        if let Some(Viewer {
-            input_request_edit_access_button_handle,
-            pending_role_request,
-            is_reconnecting,
-            ..
-        }) = self.shared_session_viewer()
-        {
-            if model.shared_session_status().is_reader()
-                && !*is_reconnecting
-                && !pending_role_request
-                && self.context_menu_state.is_none()
-                && self.is_input_box_visible(&model, app)
-                && (self
-                    .input_hoverable_handle
-                    .lock()
-                    .is_ok_and(|handle| handle.is_hovered())
-                    || input_request_edit_access_button_handle
-                        .lock()
-                        .is_ok_and(|handle| handle.is_hovered()))
-            {
-                // Position the button above / below the input depending
-                // on the input model.
-                let input_anchor = match input_mode {
-                    InputMode::PinnedToBottom => PositionedElementAnchor::TopMiddle,
-                    InputMode::PinnedToTop => PositionedElementAnchor::BottomMiddle,
-                    InputMode::Waterfall => {
-                        if model.block_list().active_gap().is_some() {
-                            PositionedElementAnchor::BottomMiddle
-                        } else {
-                            PositionedElementAnchor::TopMiddle
-                        }
-                    }
-                };
-                stack.add_positioned_overlay_child(
-                    self.render_input_request_edit_access_button(
-                        input_request_edit_access_button_handle.clone(),
-                        appearance,
-                    ),
-                    OffsetPositioning::offset_from_save_position_element(
-                        self.input.as_ref(app).status_free_input_save_position_id(),
-                        Vector2F::zero(),
-                        PositionedElementOffsetBounds::WindowByPosition,
-                        input_anchor,
-                        ChildAnchor::Center,
-                    ),
-                );
-            }
         }
 
         self.maybe_render_onboarding_callout(
@@ -17981,28 +17894,18 @@ impl View for TerminalView {
             );
         }
 
-        if let Some(reconnecting_banner) = self
-            .shared_session
-            .as_ref()
-            .and_then(|s| s.reconnecting_banner())
+        // Only show one of these banners at a time, to avoid them visually
+        // stacking on top of each other.
+        if self.is_slow_bootstrap_banner_open
+            && ContextFlag::ShowSlowShellStartupBanner.is_enabled()
         {
-            stack.add_child(ChildView::new(reconnecting_banner).finish());
-        } else if !model.shared_session_status().is_viewer() {
-            // We don't care about these banners for shared session viewers.
-
-            // Only show one of these banners at a time, to avoid them visually
-            // stacking on top of each other.
-            if self.is_slow_bootstrap_banner_open
-                && ContextFlag::ShowSlowShellStartupBanner.is_enabled()
-            {
-                stack.add_child(ChildView::new(&self.slow_bootstrap_banner).finish());
-            } else if self.control_master_error_banner_state.is_open {
-                stack.add_child(ChildView::new(&self.control_master_error_banner).finish());
-            } else if self.is_incompatible_configuration_banner_open {
-                stack.add_child(ChildView::new(&self.incompatible_configuration_banner).finish());
-            } else if self.is_emacs_bindings_banner_open {
-                stack.add_child(ChildView::new(&self.emacs_bindings_banner).finish());
-            }
+            stack.add_child(ChildView::new(&self.slow_bootstrap_banner).finish());
+        } else if self.control_master_error_banner_state.is_open {
+            stack.add_child(ChildView::new(&self.control_master_error_banner).finish());
+        } else if self.is_incompatible_configuration_banner_open {
+            stack.add_child(ChildView::new(&self.incompatible_configuration_banner).finish());
+        } else if self.is_emacs_bindings_banner_open {
+            stack.add_child(ChildView::new(&self.emacs_bindings_banner).finish());
         }
 
         let block_list_settings = BlockListSettings::handle(app);
@@ -18389,10 +18292,6 @@ impl View for TerminalView {
                 .set
                 .insert(init::CAN_FORK_FROM_LAST_KNOWN_GOOD_STATE_KEY);
         }
-
-        context
-            .set
-            .insert(model_lock.shared_session_status().as_keymap_context());
 
         #[cfg(feature = "local_fs")]
         {
