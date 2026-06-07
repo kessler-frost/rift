@@ -14,10 +14,90 @@ the AI agent product + cloud. See `docs/superpowers/plans/2026-06-06-rift-plan2-
 - REQUIRED once per fresh container: `apt-get install -y protobuf-compiler` (build needs `protoc`).
 - Never `cargo clean` (40-min dep rebuild). App-crate incremental rebuild ≈ a few minutes.
 
-## Error trajectory (this session)
-4173 (baseline) → 3081 → 2505 → 2427 → 2398 → 2412 → **2254** (HEAD a2e8b90c).
-~46% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
-mid-Phase-A, matching prior windows). Re-baseline each window: rebuild → `/tmp/rb.log`.
+## Error trajectory
+4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → **2081** (window 4).
+~50% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
+mid-Phase-A). Re-baseline each window: rebuild → `/tmp/rb.log` (use
+`cargo build --bin rift-oss > /tmp/rb.log 2>&1` — NOTE: `>/tmp/rb.log` ordering after
+`2>&1` truncates the log; use the form here).
+
+## WINDOW 4 — what's DONE (the pane_group contract sub-cluster is now GREEN)
+- **`pane_group/pane/mod.rs`**: IPaneType trimmed to Terminal/Settings/GetStarted/
+  NetworkLog/Welcome/DeferredPlaceholder/Dummy; removed all `from_*_pane_*`/`is_*_pane`/
+  render arms for deleted panes; PaneEvent lost NewPaneInAIMode/ReplaceWith{Code,File}Pane;
+  `LocalOrRemotePath` repointed to `rift_util::local_or_remote_path`.
+- **Sharing subsystem GUTTED** (cloud `ShareableObject`/`SharingDialog`/`ContentEditability`
+  were deleted types): `pane_group/pane/view/header/sharing.rs` rewritten to no-op shims
+  (SharedPaneContent + no-op header methods); removed `set_shareable_object`/
+  `ShareableObjectChanged` from PaneConfiguration + view/mod.rs + header add_overlays arm.
+- **`pane_group/mod.rs`** (was 139 prim errors → ~0): removed `pub use` of 8 deleted panes,
+  AmbientAgentViewModelHandle alias+trait, dead imports; trimmed the `Event` enum (~30
+  agent/cloud variants), `NewTerminalOptions` (is_shared_session_creator/
+  conversation_restoration), `PanesLayout::AmbientAgent`, and ~12 agent PaneGroup struct
+  fields (share_session_modal, role_change_modal, active_file_model, child_agent_*,
+  pending_ambient_*, transitively_shared_*); deleted ~64 pure-agent methods via the
+  name-based brace-matcher (`/tmp/delbyname.py`); SURGICALLY simplified the CORE methods:
+  `restore_pane_leaf`/`restore_pane_tree` (now only Terminal/Settings/NetworkLog/Welcome/
+  GetStarted arms; dropped block_lists/conversation_restoration/pending_ambient params),
+  `create_session` (dropped is_shared_session/restored_blocks/conversation_restoration/
+  initial_input_config), `new_with_panes_layout` (dropped block_lists + deferred/ambient
+  machinery), `add_session`/`add_session_with_default_session_mode_behavior`/
+  `create_terminal_pane_data`/`add_session_in_directory` (dropped conversation_restoration +
+  IsSharedSessionCreator + agent-view entry), `new_internal` ctor (removed agent
+  subscriptions + Self{} fields), `selected_text_from_focused_pane`/`discard_pane`/
+  `close_active_pane_with_confirmation`/`close_overlays`/`render` (terminal-only),
+  `pane_tree_from_template_recursive` (dropped PaneMode::Cloud/Agent branches —
+  launch_config::PaneMode STILL has Agent/Cloud variants, treated as Terminal here).
+- **`app_state.rs`**: removed `use crate::ai::blocklist::{InputConfig, SerializedBlockListItem}`,
+  AppState.block_lists/running_mcp_servers fields, TerminalPaneSnapshot.input_config field.
+  (`std::sync::Arc`/`HashMap` imports now unused → warnings only, leave for warning-sweep.)
+- **`terminal/view.rs`**: `TerminalView::new` signature lost initial_input_config/
+  conversation_restoration/is_cloud_mode params (BODY de-wire NOT done — see linchpin below).
+
+## LINCHPIN remaining (THE thing blocking the rest; do it as ONE coordinated change)
+`TerminalView::new` + `Input::new` + `local_tty::TerminalManager::create_model` (+ the
+`remote_tty`/`MockTerminalManager` create_model variants behind cfg) form a single
+signature contract that I simplified at the `create_session` CALL site (window 4) but NOT at
+the DEFINITIONS. They all still take/thread the deleted agent params and have huge agent
+bodies. Required joint change:
+- `terminal/local_tty/terminal_manager.rs` `create_model` (lines ~187–832, ~645 lines, 91
+  errors): drop params is_shared_session_creator/restored_blocks/conversation_restoration/
+  initial_input_config; DELETE the entire session-sharing tail (session_sharer Network,
+  LLMPreferences agent-mode subs, agent_view_controller subs, BlocklistAIHistory subs,
+  ai_context/ai_controller sharer-update subs, ActiveAgentViewsModel.register). KEEP:
+  channels, Sessions, ModelEventDispatcher, ApiKeyManager.register, preferred_shell/
+  ShellStarter, create_terminal_model (drop restored_blocks arg → None), pty_controller,
+  remote_server_controller, current_prompt/prompt_type, the simplified `TerminalView::new`
+  call, wire_up_pty_controller_with_view, wire_up_remote_server_controller_with_view.
+  The `#[cfg(test)] attempt_to_share_session` block + restoration-separator block go.
+- `terminal/view.rs` `TerminalView::new` BODY (ctor ~2876–3835 before `let mut terminal_view
+  = Self {`): the agent let-bindings were removed in window 3, leaving SUBSCRIPTION
+  STRAGGLERS that reference now-undefined vars (agent_view_controller, ai_controller,
+  ai_context_model, ai_input_model, ai_action_model, suggestions_mode_model,
+  ambient_agent_view_model, ephemeral_message_model, cli_subagent_controller). Delete those
+  subscription blocks (2883 agent_view_controller block is ~430 lines; 3313 ai_controller;
+  3327 AgentConversationsModel; 3424 ai_status_bar; 3434 ambient; 3441/3446/3447 ai_*;
+  3448 CLIAgentSessions stop_sharing; 3463/3468 ai_action_model executors). KEEP the
+  legit terminal subs (model_events_handle→handle_terminal_event, inline_menu_positioner,
+  input→handle_input_event, find_bar, block_filter_editor, context_menu, sessions,
+  windowing_state_handle, ligature_handle, block_list_settings_handle, UserWorkspaces,
+  cli_subagent_controller IFF kept). **`Input::new` (3385) is the crux**: it takes 8 agent
+  params (ai_controller, ai_context_model, ai_input_model, ai_action_model,
+  agent_view_controller, ambient_agent_view_model, ephemeral_message_model,
+  cli_subagent_controller) — must simplify `Input::new` signature (in `terminal/input.rs`,
+  278 errors) in the same pass, which is itself a large agent-strip.
+- Then the Event/action enums + handle_action/handle_input_event/handle_terminal_event arms
+  in view.rs, and workspace/view.rs handle_action arms + workspace/action.rs WorkspaceAction
+  variants + left_panel/right_panel/vertical_tabs enum-definers — all must drop the same
+  agent variants TOGETHER (removing a variant requires removing all its arms across the
+  cluster at once). workspace/action.rs WorkspaceAction agent variants are at lines ~398–700.
+
+## Tooling note (reuse)
+`/tmp/delbyname.py <file> <comma,sep,method,names>` — deletes whole methods by name (brace-
+matched, incl. preceding doc/attr lines). SAFE for pure-agent methods; do NOT use on core
+methods that merely *reference* a deleted token incidentally (edit those by hand). The
+generic body-token matcher (`/tmp/delmethods.py`) is TOO BLUNT for pane_group-style files
+(it nuked core restore/create/render methods) — prefer name-based.
 
 ## Precise cross-scope emit/consume sites to fix (from persistence de-wire)
 When finishing the contract cluster, these now-dangling producers of removed persistence
@@ -97,11 +177,18 @@ keep `use rift_core::...`), `crate::editor` (terminal input editor, distinct fro
 PromptDisplay/PromptType/ContextChipKind) — de-wire agent chips only, don't delete subtree.
 
 ## NEXT STEPS (in order)
-1. Finish the contract cluster (single agent, compiler-driven): view.rs Event+action enums +
-   handle_action/handle_input_event/handle_terminal_event arms; pane_group/mod.rs IPaneType +
-   pane re-exports + pane/mod.rs; workspace/view.rs dispatchers; workspace/action.rs
-   WorkspaceAction; left_panel/right_panel/vertical_tabs enum defs; input.rs ctor/dispatchers.
-   Also terminal/local_tty/terminal_manager.rs (91), terminal/view/pane_impl.rs (27).
+0. DONE (window 4): pane_group/pane/mod.rs + pane_group/mod.rs + sharing subsystem +
+   app_state.rs are GREEN. See "WINDOW 4" + "LINKPIN remaining" sections above.
+1. Finish the contract cluster (single agent, compiler-driven) — START with the LINCHPIN
+   (see dedicated section above): the joint `TerminalView::new` + `Input::new` +
+   `create_model` signature/body simplification. THEN: view.rs Event+action enums +
+   handle_action/handle_input_event/handle_terminal_event arms; workspace/view.rs
+   dispatchers; workspace/action.rs WorkspaceAction; left_panel/right_panel/vertical_tabs
+   enum defs; input.rs dispatchers. Also terminal/view/pane_impl.rs (27),
+   pane_group/pane/terminal_pane.rs (119 — many will clear once create_model/TerminalView::new
+   land since terminal_pane constructs/snapshots TerminalPaneSnapshot — note its snapshot()
+   must match the trimmed TerminalPaneSnapshot fields: uuid/cwd/shell_launch_data/is_active/
+   is_read_only/active_profile_id ONLY).
 2. Finish remaining leaf de-wiring (root_view 50, util/link_detection 28, slash_commands,
    session_settings, persistence/sqlite cloud tables + ModelEvent arms, lib.rs inits).
    NB lib.rs init lines to drop: ai::blocklist*, drive::*, ai_assistant::panel,
