@@ -21,6 +21,17 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 397 resolution errors. PRIMARY-CLEAN: input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs +
+zero_state.rs, view/rich_content.rs (RichContentMetadata AI variants + accessors deleted; cascade done). NEXT just
+UNMASKED: terminal/block_list_element.rs (10, the block renderer god-file) — shared-session presence/avatar render
+(`super::shared_session::presence_manager` import GONE: PresenceManager field@720, text_selection_color@2178/2258/
+2309/2334/4366, MUTED_PARTICIPANT_COLOR@2163/3912, SHARED_SESSION_AVATAR_DIAMETER@3951+ — collapse to default theme
+text_selection_color, drop avatar rendering) + AI render (AI_ASSISTANT_SVG_PATH/ATTACH_AS_AGENT_MODE_CONTEXT_TEXT/
+ASK_AI_ASSISTANT_TEXT consts@1142/1164/1170, AgentViewState@2352/2469, WarpDriveSettings@1196, agent_view_bg_fill@2375,
+ai_brand_color@2719). THEN: workspace/view.rs (100), right_panel (34), PHASE-F cloud (server/graphql+harness_support+
+gql_convert+remote_server ≈78, try wholesale delete), root_view 16, pane_group 16, left_panel 15, install_tmux 14,
+lib.rs 14. (552→397 this run, ~48 commits.)
+
 ### STATE: 412 resolution errors (window 19, latest). PRIMARY-CLEAN now: terminal/input.rs, terminal/view.rs,
 slash_commands/mod.rs, slash_commands/data_source/mod.rs + zero_state.rs. (552→412 this run, ~45 commits.)
 NEXT: terminal/view/rich_content.rs (15) — `RichContentMetadata` enum has ~10 AI variants carrying deleted types
