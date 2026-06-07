@@ -1425,8 +1425,6 @@ pub struct Input {
     input_render_state_model_handle: ModelHandle<InputRenderStateModel>,
     workflows_state: WorkflowsState,
     env_var_collection_state: EnvVarCollectionState,
-    voltron_view: ViewHandle<Voltron>,
-    is_voltron_open: bool,
     command_x_ray_description: Option<Arc<Description>>,
     last_parsed_tokens: Option<decorations::ParsedTokensSnapshot>,
     debounce_input_background_tx: Sender<InputBackgroundJobOptions>,
@@ -2048,42 +2046,10 @@ impl Input {
         }
         let inline_history_model = inline_history_menu_view.as_ref(ctx).model().clone();
 
-        let cloud_mode_v2_history_menu_view = if FeatureFlag::CloudModeInputV2.is_enabled() {
-            let view = ctx.add_view({
-                let active_session = active_session.clone();
-                let buffer_model = buffer_model.clone();
-                let agent_view_controller = agent_view_controller.clone();
-                |ctx| {
-                    CloudModeV2HistoryMenuView::new(
-                        terminal_view_id,
-                        active_session,
-                        &suggestions_mode_model,
-                        agent_view_controller,
-                        &inline_terminal_menu_positioner,
-                        buffer_model,
-                        ctx,
-                    )
-                }
-            });
-            if FeatureFlag::InlineHistoryMenu.is_enabled() {
-                ctx.subscribe_to_view(&view, |me, _, event, ctx| {
-                    if !me.is_cloud_mode_input_v2_composing(ctx) {
-                        return;
-                    }
-                    me.handle_inline_history_menu_event(event, ctx);
-                });
-            }
-            Some(view)
-        } else {
-            None
-        };
-
         let terminal_input_message_bar = ctx.add_view(|ctx| {
             TerminalInputMessageBar::new(
                 model.clone(),
-                ai_input_model.clone(),
                 buffer_model.clone(),
-                ai_context_model.clone(),
                 suggestions_mode_model.clone(),
                 inline_history_model,
                 ctx,
@@ -2105,19 +2071,6 @@ impl Input {
         let input_suggestions = ctx.add_typed_action_view(InputSuggestions::new);
         ctx.subscribe_to_view(&input_suggestions, move |me, _, event, ctx| {
             me.handle_suggestions_event(event, ctx);
-        });
-
-        let app_workflows = LocalWorkflows::as_ref(ctx)
-            .app_workflows()
-            .cloned()
-            .collect_vec();
-        let local_user_workflows = WarpConfig::as_ref(ctx).local_user_workflows().clone();
-
-        let workflows_search_view = ctx.add_typed_action_view(|ctx| {
-            workflows::CategoriesView::new(local_user_workflows, app_workflows, ctx)
-        });
-        ctx.subscribe_to_view(&workflows_search_view, move |me, _, event, ctx| {
-            me.handle_workflows_event(event, ctx);
         });
 
         let safe_mode_settings = SafeModeSettings::handle(ctx);
@@ -2150,15 +2103,6 @@ impl Input {
             |me, _, ctx| me.predict_am_query(ctx),
             |_me, _ctx| {},
         );
-
-        let voltron_features = Vec1::new(VoltronFeatureView::new(
-            VoltronItem::Workflows,
-            VoltronFeatureViewHandle::Workflows(workflows_search_view.clone()),
-        ));
-        let voltron_view = { ctx.add_typed_action_view(|ctx| Voltron::new(voltron_features, ctx)) };
-        ctx.subscribe_to_view(&voltron_view, move |me, _, event, ctx| {
-            me.handle_voltron_event(event, ctx);
-        });
 
         ctx.subscribe_to_model(&SessionSettings::handle(ctx), move |me, _, evt, ctx| {
             me.handle_session_settings_event(evt, ctx);
@@ -2236,8 +2180,6 @@ impl Input {
             input_render_state_model_handle,
             workflows_state,
             env_var_collection_state,
-            voltron_view,
-            is_voltron_open: false,
             command_x_ray_description: None,
             last_parsed_tokens: None,
             debounce_input_background_tx,
