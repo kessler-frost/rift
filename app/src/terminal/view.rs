@@ -334,8 +334,7 @@ use crate::terminal::view::inline_banner::{
     VimModeBannerState,
 };
 pub use crate::terminal::view::rich_content::{
-    AIBlockMetadata, AgentViewEntryMetadata, RichContent, RichContentInsertionPosition,
-    RichContentMetadata,
+    RichContent, RichContentInsertionPosition, RichContentMetadata,
 };
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::ssh_remote_server_choice_view::{
@@ -3811,11 +3810,6 @@ impl TerminalView {
         self.is_ssh_file_uploader = is_uploader;
     }
 
-    /// Whether or not this terminal view is actively sharing its session.
-    pub fn is_sharing_session(&self) -> bool {
-        self.model.lock().shared_session_status().is_active_sharer()
-    }
-
     pub fn is_shared_ambient_agent_session(&self) -> bool {
         self.model.lock().is_shared_ambient_agent_session()
     }
@@ -3928,34 +3922,12 @@ impl TerminalView {
         if self.conversation_ended_tombstone_view_id.is_some() {
             return false;
         }
-        if self.blocks_cloud_followups_for_ambient_agent_session_from_model(model, app) {
-            return false;
-        }
         if self.has_active_cli_agent_input_session(app) {
             return true;
         }
         if model.is_alt_screen_active()
             && !model.block_list().active_block().is_agent_in_control()
             && !model.block_list().active_block().is_agent_tagged_in()
-        {
-            return false;
-        }
-
-        if model.shared_session_status().is_view_pending() && !self.is_ambient_agent_session(app) {
-            return false;
-        }
-
-        // In cloud agent conversations, once the shared session is ready but before the first
-        // agent exchange arrives, we hide the interactive input view. A non-interactive footer is
-        // rendered instead (see `TerminalView::render`).
-        if !FeatureFlag::CloudModeSetupV2.is_enabled()
-            && !FeatureFlag::HandoffCloudCloud.is_enabled()
-            && ambient_agent::is_cloud_agent_pre_first_exchange(
-                self.ambient_agent_view_model.as_ref(),
-                &self.agent_view_controller,
-                model,
-                app,
-            )
         {
             return false;
         }
@@ -4481,13 +4453,9 @@ impl TerminalView {
         // Make sure we don't write any text to the pty until we've echoed out
         // the bootstrap script, otherwise the user could accidentally interfere
         // with bootstrap script execution.
-        let was_bootstrap_script_echoed = self
-            .sessions
+        self.sessions
             .as_ref(ctx)
-            .has_pending_or_bootstrapped_session();
-        let is_shared_session_executor = model.shared_session_status().is_executor();
-
-        was_bootstrap_script_echoed || is_shared_session_executor
+            .has_pending_or_bootstrapped_session()
     }
     /// Receiving a riftui::Event::TypedCharacters event from a child element.
     /// We can assume `characters` consists of all printable characters, and therefore,
@@ -5176,11 +5144,6 @@ impl TerminalView {
 
     /// This method assumes the active block in the blocklist is a long-running SSH command.
     fn add_ssh_warpifying_block(&mut self, ctx: &mut ViewContext<Self>) {
-        // Shared session viewers can't initiate warpification currently.
-        if self.model.lock().shared_session_status().is_viewer() {
-            return;
-        }
-
         self.clear_ssh_blocks(ctx);
 
         let show_ssh_block_debug = BlockVisibilitySettings::as_ref(ctx)
@@ -5580,11 +5543,8 @@ impl TerminalView {
 
         let mut model = self.model.lock();
 
-        // Shared session viewers can't initiate warpification currently.
-        // Don't show the warpify banner when an agent is monitoring the command either.
-        if model.shared_session_status().is_viewer()
-            || model.block_list().active_block().is_agent_monitoring()
-        {
+        // Don't show the warpify banner when an agent is monitoring the command.
+        if model.block_list().active_block().is_agent_monitoring() {
             return;
         }
 
@@ -9708,11 +9668,9 @@ impl TerminalView {
 
     #[cfg(not(target_family = "wasm"))]
     pub(super) fn on_shell_determined(&self, ctx: &mut ViewContext<Self>) {
-        if !self.model.lock().shared_session_status().is_viewer() {
-            // Start a timer for the initial session bootstrapping, so that we can log and show a
-            // banner to the user if the bootstrapping takes too long
-            self.start_bootstrap_timer(BOOTSTRAP_FAILED_DURATION, ctx);
-        }
+        // Start a timer for the initial session bootstrapping, so that we can log and show a
+        // banner to the user if the bootstrapping takes too long
+        self.start_bootstrap_timer(BOOTSTRAP_FAILED_DURATION, ctx);
     }
 
     pub fn is_login_shell_bootstrapped(&self) -> bool {
@@ -9876,12 +9834,6 @@ impl TerminalView {
     }
 
     fn resize_internal(&mut self, size_update: SizeUpdate, ctx: &mut ViewContext<Self>) {
-        // Viewer-driven sizing: report the viewer's natural size to the sharer.
-        // This runs before the early-return so the initial report on viewer join
-        // fires even when the pane size hasn't changed yet.
-        // The resize-reason check prevents loops (SharerSizeChanged is never re-reported).
-        self.maybe_report_viewer_terminal_size(&size_update, ctx);
-
         // If this isn't an actionable resize, there's nothing to do.
         if !(size_update.anything_changed() || size_update.is_refresh()) {
             return;
@@ -9922,39 +9874,6 @@ impl TerminalView {
     /// If we're a viewer eligible for viewer-driven sizing, report our natural
     /// terminal size to the sharer — but only when the resize was NOT caused by
     /// the sharer (which would create a loop).
-    fn maybe_report_viewer_terminal_size(
-        &mut self,
-        size_update: &SizeUpdate,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if size_update.is_sharer_size_change() {
-            return;
-        }
-        if !self.model.lock().shared_session_status().is_active_viewer() {
-            return;
-        }
-        let eligible = self.is_viewer_driven_sizing_eligible(false, ctx);
-        if eligible {
-            let new_natural = (size_update.natural_rows(), size_update.natural_cols());
-            let last_reported = self
-                .shared_session_viewer()
-                .and_then(|v| v.last_reported_natural_size);
-            if last_reported != Some(new_natural) {
-                if let Some(viewer) = self.shared_session_viewer_mut() {
-                    viewer.last_reported_natural_size = Some(new_natural);
-                }
-                ctx.emit(Event::ReportViewerTerminalSize {
-                    window_size: SessionSharingWindowSize {
-                        num_rows: new_natural.0,
-                        num_cols: new_natural.1,
-                    },
-                });
-            }
-        } else if let Some(viewer) = self.shared_session_viewer_mut() {
-            viewer.last_reported_natural_size = None;
-        }
-    }
-
     /// This handler is called after *every* terminal view layout with the
     /// size of the entire terminal (block_list + input OR alt-grid OR shared session viewer loading) as its
     /// argument.

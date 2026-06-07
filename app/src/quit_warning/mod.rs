@@ -94,15 +94,7 @@ impl QuitScope<'_> {
     /// Count of shared sessions in this scope.
     fn shared_sessions(&self, ctx: &AppContext) -> usize {
         match self {
-            Self::Pane {
-                pane_group,
-                pane_id,
-                ..
-            } => pane_group
-                .terminal_view_from_pane_id(*pane_id, ctx)
-                .filter(|view| view.as_ref(ctx).is_sharing_session())
-                .into_iter()
-                .count(),
+            Self::Pane { .. } => 0,
             Self::Tabs(ref tabs) => tabs
                 .iter()
                 .filter_map(|tab| tab.upgrade(ctx))
