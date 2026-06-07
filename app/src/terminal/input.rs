@@ -116,8 +116,6 @@ use super::warpify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::channel::{Channel, ChannelState};
-#[cfg(feature = "local_fs")]
-use crate::code::editor_management::CodeSource;
 use crate::completer::SessionContext;
 use crate::context_chips::display::{PromptDisplay, PromptDisplayEvent};
 use crate::context_chips::display_chip::DisplayChipConfig;
@@ -566,21 +564,16 @@ pub enum InputSuggestionsMode {
     /// User query menu mode for selecting a query point (e.g., fork-from, rewind).
     UserQueryMenu {
         action: UserQueryMenuAction,
-        conversation_id: AIConversationId,
     },
 
     /// Inline history menu mode for selecting commands and conversations from history.
-    InlineHistoryMenu {
-        original_input_config: Option<InputConfig>,
-    },
+    InlineHistoryMenu {},
 
     /// Indexed repos switcher menu mode.
     IndexedReposMenu,
 
     /// Plan menu mode for selecting among multiple AI document plans.
-    PlanMenu {
-        conversation_id: AIConversationId,
-    },
+    PlanMenu {},
 
     /// Mode indicating that no suggestion UI is being shown.
     Closed,
@@ -2248,50 +2241,6 @@ impl Input {
 
 
 
-    fn open_file_in_code_editor(
-        &mut self,
-        _file_name: &str,
-        ctx: &mut ViewContext<Self>,
-    ) -> Result<(), String> {
-        let Some(session_id) = self.active_block_session_id() else {
-            return Err("Tried to open file in code editor without a session id".to_string());
-        };
-
-        let Some(session) = self.sessions.as_ref(ctx).get(session_id) else {
-            return Err("Tried to open file in code editor without a session".to_string());
-        };
-
-        if !session.is_local() {
-            return Err("Tried to open file in code editor for a remote session".to_string());
-        }
-
-        #[cfg(feature = "local_fs")]
-        {
-            // Get the current working directory from the active terminal session
-            let current_dir = self
-                .active_block_metadata
-                .as_ref()
-                .and_then(|metadata| metadata.current_working_directory())
-                .map(std::path::PathBuf::from)
-                .ok_or("Failed to get current working directory".to_string())?;
-            let file_path = current_dir.join(_file_name);
-            // Create a CodeSource for the file
-            let code_source = CodeSource::Link {
-                path: file_path,
-                range_start: None,
-                range_end: None,
-            };
-            // Emit an event to create a new code pane
-            ctx.emit(Event::OpenCodeInWarp {
-                source: code_source,
-                layout: *external_editor::EditorSettings::as_ref(ctx)
-                    .open_file_layout
-                    .value(),
-            });
-        }
-
-        Ok(())
-    }
 
     fn handle_theme_change(&mut self, ctx: &mut ViewContext<Self>) {
         if self.should_apply_decorations(ctx) {
