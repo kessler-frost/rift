@@ -1,4 +1,98 @@
-# Plan 2 Strip — RESUME NOTE (window 6, 2026-06-07)
+# Plan 2 Strip — RESUME NOTE (window 7, 2026-06-07)
+
+## WINDOW 7 — what's DONE (inline_history + workflows-structs + editor AI-menu + context_chips; 1815 → 1736, −79)
+All committed + pushed on `plan2-strip`, each step a verified net error reduction.
+1. **inline_history 3-file cluster (DONE)** `terminal/input/inline_history/{data_source,search_item,view}.rs`
+   + `input/inline_menu/{view,message_bar}.rs`: dropped `agent_view_controller` field/param +
+   subscriptions from InlineMenuView::new/new_with_tabs/new_inner + InlineMenuMessageBar(+Args);
+   removed `AcceptHistoryItem::Conversation`/`AIConversationId`/`ConversationStatus` thread
+   (the Conversation variant, conversation()/build_conversation_entries/interleave_conversations/
+   build_agent_view_results, MenuItem::Conversation, render_status_element, name_match_result, the
+   Conversations QueryFilter source, NavigateToConversation/SelectConversation events,
+   HistoryItemIdentity::Conversation). Defined a local `STATUS_ELEMENT_PADDING` const (was from
+   deleted ai::conversation_status_ui). Also fixed pre-existing `agent_view_bg_color` ref in
+   `input/message_bar/common.rs`.
+2. **Dropped-workflows structs in input.rs (DONE)**: removed `WorkflowsState`/`SelectedWorkflowState`/
+   `CommandMatchesWorkflowTemplate`/`EnvVarCollectionState` + the `workflows_state`/
+   `env_var_collection_state` fields + ctor bindings + all usages. Deleted the pure-workflow helper
+   methods `get_text_style_ranges_for_workflow`/`build_text_run_ranges_for_workflows`/
+   `get_current_argument`; hand-edited `input_shift_tab` (dropped workflow-arg branch),
+   `input_enter`/`handle_editor_event`/key-context (dropped workflow blocks), and the
+   `start_block_and_write_command_to_pty` telemetry block (now emits ExecuteCommandEvent with
+   workflow_id/command = None). NOTE `crate::server::ids::SyncId` import in input.rs now unused
+   (warning only — clean in import sweep). `input_enter` STILL has a `WorkflowAliases`/`CloudModel`/
+   `insert_workflow_into_input`/`WorkflowSelectionSource::Alias` block (the `# WorkflowAliases` flag
+   path) + `submit_ai_query`/`ai_input_model`/`ai_controller` agent bits — deferred to the
+   input.rs core-method pass (task below).
+3. **editor AI-context-menu de-wire (DONE)** `editor/view/mod.rs`: removed `with_context_model`
+   (deleted BlocklistAIContextModel), `ai_context_menu()`, `render_ai_context_menu()`,
+   `render_at_context_menu_button()`, `set_is_ai_input`, the `include_ai_context_menu` EditorOption
+   (+2 default setters), the `AIContextMenuState` struct, the `context_model`/`ai_context_menu_state`/
+   `is_ai_input` EditorView fields + Self entries + ctor block, the EditorAction::SetAIContextMenuOpen
+   variant+arm, the Event::{SetAIContextMenuOpen,AcceptAIContextMenuItem,SelectAIContextMenuCategory}
+   variants, the search::ai_context_menu imports, the at-context-menu render. ALSO de-agented (these
+   were among the editor's ~13 pre-existing errors, all genuine agent code not the KEEP autosuggestion
+   path): `handle_ctrl_c` (dropped is_agent_responding/is_pending_passive_ai_block/BlocklistAIHistoryModel
+   checks), `process_and_attach_images_as_ai_context` future (dropped ImageContext construction →
+   counts only), `process_non_image_files` (no-op), `is_ai_input` keymap flag. **Re-homed
+   `InputType` import to `input_classifier::InputType`** (was from deleted ai::blocklist) — keeps the
+   KEEP autosuggestion path (matches_input_type / maybe_populate_intelligent_autosuggestion) working.
+   NOTE: input.rs has MANY now-dangling callers of the removed editor methods (`editor.ai_context_menu()`
+   ~10 sites, EditorEvent::SetAIContextMenuOpen/SelectAIContextMenuCategory/AcceptAIContextMenuItem
+   handlers, set_is_ai_input) + input/common.rs:302 `render_ai_context_menu` — these are agent code,
+   clean them in the input.rs core-method pass.
+4. **context_chips de-wire (DONE)** `context_chips/{display,display_chip}.rs`: dropped agent params/
+   fields from `PromptDisplay::new` (ai_input_model/ai_context_model/agent_view_controller/
+   is_shared_session_viewer→now default false) and `DisplayChipConfig` (ai_input_model/ai_context_model/
+   agent_view_controller/ambient_agent_view_model). Removed `DisplayChip::new_for_agent_view`, the
+   `AgentPlanAndTodoList` DisplayChipKind variant + all arms (PlanAndTodoListView is deleted), the
+   code-review chip click (ToggleCodeReview action + supports_code_review branch → diff-stats chip now
+   non-interactive), the ambient-agent directory-chip gating, and the agent
+   PromptDisplay(Chip)Event variants (OpenCodeReview/OpenConversationHistory/RunAgentQuery/
+   OpenAIDocument). Kept prompt rendering: cwd/git-branch/git-diff-stats/node-version/ssh/subshell/
+   venv chips. NodeVersion InstallNvm now runs the nvm curl-install command directly (was RunAgentQuery).
+   `is_in_agent_view`/`is_shared_session_viewer` kept as plain bool fields = false (not agent types,
+   read by ~40 render branches — keeping them avoids a render refactor). Removed
+   `GitLineChanges::from_diff_stats` (deleted DiffStats) + fixed its caller
+   `terminal/view/tab_metadata.rs:current_diff_line_changes` (from_model path → None; the
+   git_status_metadata/GitStatusMetadata/stats_against_head/DiffStats cluster is STILL broken —
+   GitRepoStatusModel re-homing, separate task).
+
+## WINDOW 7 — REMAINING (the big Event/action-enum cascade — task 5, NOT started)
+This is the multi-thousand-line interlocked agent web. Error distribution (of 1736): terminal/view.rs
+307, workspace/view.rs 252, terminal/input.rs 128, pane_group/pane/terminal_pane.rs 119, root_view.rs
+50, lib.rs 46, workspace/view/right_panel.rs 34, vertical_tabs.rs 33, input/slash_commands 28+25,
+view/pane_impl.rs 27, session_settings.rs 27, workspace/action.rs 26, view/action.rs 24,
+view/rich_content.rs 21, pane_group/working_directories.rs 21, pane_group/mod.rs 18,
+model/terminal_model.rs 17. **Top error TYPES** (deleted tokens referenced pervasively in METHOD
+BODIES, not just enum variants): AIConversationId(93), AgentViewEntryOrigin(69),
+BlocklistAIHistoryModel(51), AgentToolbarItemKind(30), BlocklistAIHistoryEvent(26),
+AmbientAgentTaskId(25), Space(24), DriveObjectType(21), AIAgentExchangeId(20), SharedSessionStatus(19),
+CloudModel(19), InputTypeAutoDetectionSource(18), FullAIAgentInput(18), ConversationStatus(15),
+ServerOutputId(14), InputType(13), WarpDriveItemId(12). DO THIS AS ONE COORDINATED PASS:
+- `terminal/view/action.rs` `TerminalAction` enum (~93-460): drop agent variants (JumpToLatestAgentMessage,
+  OpenAIBlock*Menu, Rewind*AIConversation, ExecuteRewind*, SelectAIAttachedBlock, OpenWorkflowModal*,
+  AskAIAssistant, SetInputMode{Agent,Terminal}, StopSharing*/OpenSharedSession*/CopySharedSession*/
+  MakeAllParticipantsReaders/Request*Role, Generate/WriteCodebaseIndex, LoadAgentModeConversation,
+  Toggle{Autoexecute,QueueNextPrompt,AIDocumentPane,Todo,CodeReviewPane,ConversationDetailsPanel,
+  UsageFooter,LongRunning,HideCliResponses,SessionRecording,CLIAgentRichInput}, Resume/Summarize/Fork/
+  Init/IndexProject*/AddProject/Open{Project,View/Add}MCP/Open*Pane/OpenConversationsPalette/Setup*Cloud*/
+  TriggerEnvironment*/Enter/Exit/StartNew*AgentView/Cancel/Reveal/Switch/Open/Stop/KillAgent*/
+  ResolvePromptSuggestion/Anonymous*/Aws*Banner/CodebaseIndex*/AgentModeSetup* etc.) AND their
+  `impl Debug` arms (same file) AND every `handle_action` arm in `terminal/view.rs`. KEEP terminal
+  variants (Scroll/Block*/Copy*/Split*/Paste/Find/Vim/SSH/Subshell/Warpify/etc.).
+- `terminal/view.rs` Event enum + 31 agent struct fields/Self + handle_action/handle_input_event/
+  handle_terminal_event agent arms (the `## ⚠️ CORRECTION` window-5 section below still applies —
+  the struct + ctor are still agent-laden).
+- `workspace/view.rs` handle_action arms + `workspace/action.rs` WorkspaceAction agent variants
+  (~398-700) + `workspace/view/{left_panel,right_panel,vertical_tabs}.rs` enum-definers
+  (ToolPanelView/LeftPanelEvent/RightPanelEvent) — remove each variant + ALL arms across the cluster
+  TOGETHER. `pane_group/pane/terminal_pane.rs` snapshot must match trimmed TerminalPaneSnapshot.
+- TIP: many AIConversationId/AIAgentExchangeId/ConversationStatus refs live in enum-variant payloads
+  AND method bodies; removing the variant clears the body arms. Re-home `InputType` to
+  `input_classifier::InputType` wherever it appears (precedent set in editor/view/mod.rs this window).
+- DO NOT touch server/auth/workspaces(plural)/pricing/autoupdate — their errors (events.rs 176,
+  user_workspaces 37, gql_convert 26, server_api 19, graphql 23, auth 16, ~290 total) are Phase C/F.
 
 ## WINDOW 6 — what's DONE (Input ctor/struct de-agented; 1987 → 1815, −172)
 The window-5 note claimed `terminal/view.rs` ctor was already de-fielded but framed the
@@ -105,8 +199,8 @@ the AI agent product + cloud. See `docs/superpowers/plans/2026-06-06-rift-plan2-
 - Never `cargo clean` (40-min dep rebuild). App-crate incremental rebuild ≈ a few minutes.
 
 ## Error trajectory
-4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → 2081 (window 4) → 1987 (window 5) → **1815** (window 6).
-~52% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
+4173 (baseline) → ... → 2254 (window 3) → 2081 (window 4) → 1987 (window 5) → 1815 (window 6) → **1736** (window 7).
+~58% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
 mid-Phase-A). Re-baseline each window: rebuild → `/tmp/rb.log` (use
 `cargo build --bin rift-oss > /tmp/rb.log 2>&1` — NOTE: `>/tmp/rb.log` ordering after
 `2>&1` truncates the log; use the form here).
