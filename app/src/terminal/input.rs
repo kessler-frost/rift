@@ -1101,9 +1101,6 @@ impl MenuPositioning {
         self.y_anchor()
     }
 
-    fn workflows_info_y_anchor(&self) -> AnchorPair<YAxisAnchor> {
-        self.y_anchor()
-    }
 
     fn voltron_parent_anchor(&self) -> ParentAnchor {
         match *self {
@@ -2819,11 +2816,6 @@ impl Input {
         harness_selector.update(ctx, |selector, ctx| selector.open_menu(ctx));
     }
 
-    pub(super) fn open_v2_environment_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        self.agent_input_footer
-            .clone()
-            .update(ctx, |footer, ctx| footer.open_v2_environment_selector(ctx));
-    }
 
 
     fn prefix_mode(&self, ctx: &AppContext) -> InputPrefixMode {
@@ -2852,20 +2844,6 @@ impl Input {
 
 
 
-    /// Update the at button's disabled state based on whether AI context menu should render
-    pub fn check_and_update_ai_context_menu_disabled_state(&mut self, ctx: &mut ViewContext<Self>) {
-        let disable_reason = AtContextMenuDisabledReason::get_disable_reason(
-            self.active_block_metadata.as_ref(),
-            self.sessions.as_ref(ctx),
-            &self.ai_input_model.as_ref(ctx).input_config(),
-            ctx,
-        );
-
-        self.universal_developer_input_button_bar
-            .update(ctx, |button_bar, ctx| {
-                button_bar.set_at_button_disabled(disable_reason, ctx);
-            });
-    }
 
     fn check_slash_menu_disabled_state(&mut self, ctx: &mut ViewContext<Self>) {
         let should_disable =
@@ -2930,40 +2908,6 @@ impl Input {
         }
     }
 
-    fn render_ai_context_menu(
-        &self,
-        stack: &mut Stack,
-        menu_positioning: &MenuPositioning,
-        app: &AppContext,
-    ) {
-        if let Some(ai_context_menu) = self.editor.as_ref(app).render_ai_context_menu() {
-            let position = position_id_for_cursor(self.editor.id());
-
-            let y_anchor = if self.is_cloud_mode_input_v2_composing(app) {
-                AnchorPair::new(YAxisAnchor::Bottom, YAxisAnchor::Top)
-            } else {
-                menu_positioning.completion_suggestions_y_anchor()
-            };
-
-            stack.add_positioned_overlay_child(
-                ai_context_menu,
-                OffsetPositioning::from_axes(
-                    PositioningAxis::relative_to_stack_child(
-                        &position,
-                        PositionedElementOffsetBounds::WindowByPosition,
-                        OffsetType::Pixel(0.),
-                        AnchorPair::new(XAxisAnchor::Left, XAxisAnchor::Left),
-                    ),
-                    PositioningAxis::relative_to_stack_child(
-                        &position,
-                        PositionedElementOffsetBounds::Unbounded,
-                        OffsetType::Pixel(0.),
-                        y_anchor,
-                    ),
-                ),
-            );
-        }
-    }
 
     fn close_ai_context_menu(&mut self, ctx: &mut ViewContext<Self>) {
         if !self.suggestions_mode_model.as_ref(ctx).is_ai_context_menu() {
@@ -3062,37 +3006,6 @@ impl Input {
 
 
 
-    /// Opens the inline model selector, parking any pre-existing prompt so the
-    /// input can be used to search models. The parked prompt is restored when the
-    /// selector closes (on model selection or dismissal). Shared by the model
-    /// chip, the `/model` keybinding, and the OpenModelSelector action.
-    fn open_model_selector_and_snapshot_prompt(
-        &mut self,
-        initial_tab: InlineModelSelectorTab,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.close_overlays(false, ctx);
-        let has_input = !self.editor.as_ref(ctx).buffer_text(ctx).is_empty();
-        let should_clear_prompt_for_search =
-            has_input && FeatureFlag::RestorePromptOnInlineModelSelectorSearch.is_enabled();
-        self.inline_model_selector_view.update(ctx, |view, ctx| {
-            if has_input && !should_clear_prompt_for_search {
-                view.set_filter_results_by_input(false);
-            }
-            view.set_prompt_parked_for_search(should_clear_prompt_for_search);
-            view.set_active_tab(initial_tab, ctx);
-        });
-        self.suggestions_mode_model.update(ctx, |model, ctx| {
-            model.set_mode(InputSuggestionsMode::ModelSelector, ctx);
-        });
-        ctx.notify();
-        if should_clear_prompt_for_search {
-            self.editor.update(ctx, |editor, ctx| {
-                editor.system_clear_buffer(false, ctx);
-            });
-        }
-        self.focus_input_box(ctx);
-    }
 
     fn open_profile_selector(&mut self, ctx: &mut ViewContext<Self>) {
         if !FeatureFlag::InlineProfileSelector.is_enabled() {
@@ -3114,21 +3027,6 @@ impl Input {
         ctx.notify();
     }
 
-    fn open_skill_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        if !FeatureFlag::ListSkills.is_enabled() {
-            return;
-        }
-
-        self.skill_selector_should_invoke = false;
-        self.inline_skill_selector_view.update(ctx, |view, ctx| {
-            view.set_include_bundled(false, ctx);
-        });
-        self.suggestions_mode_model.update(ctx, |model, ctx| {
-            model.set_mode(InputSuggestionsMode::SkillMenu, ctx);
-        });
-
-        ctx.notify();
-    }
 
     fn open_invoke_skill_selector(&mut self, ctx: &mut ViewContext<Self>) {
         if !FeatureFlag::ListSkills.is_enabled() {
@@ -3242,19 +3140,8 @@ impl Input {
     }
 
 
-    pub fn set_shared_session_presence_manager(
-        &mut self,
-        presence_manager: ModelHandle<PresenceManager>,
-    ) {
-        self.shared_session_presence_manager = Some(presence_manager);
-    }
 
 
-    pub fn maybe_set_prompt_suggestions_banner_state_should_hide(&mut self, should_hide: bool) {
-        if let Some(banner_state) = &mut self.prompt_suggestions_banner_state {
-            banner_state.should_hide = should_hide;
-        }
-    }
 
     // Auto-attach the last block for this query.
     fn auto_attach_last_block_for_query(&mut self, ctx: &mut ViewContext<Self>) {
@@ -3647,22 +3534,6 @@ impl Input {
     /// Clear the cached hint text to generate a new one on next render
     pub fn clear_cached_hint_text(&mut self) {
         self.cached_agent_mode_hint_text = None;
-    }
-    fn cli_agent_rich_input_hint_text(&self, ctx: &ViewContext<Self>) -> Cow<'static, str> {
-        if self.is_locked_in_shell_mode(ctx) {
-            return Cow::Borrowed(AGENT_MODE_AI_DISABLED_AUTODETECTION_DISABLED_HINT_TEXT);
-        }
-
-        CLIAgentSessionsModel::as_ref(ctx)
-            .session(self.terminal_view_id)
-            .map(|session| match session.agent {
-                CLIAgent::Unknown => Cow::Borrowed(CLI_AGENT_RICH_INPUT_HINT_TEXT),
-                _ => Cow::Owned(format!(
-                    "Enter prompt for {}...",
-                    session.agent.display_name()
-                )),
-            })
-            .unwrap_or(Cow::Borrowed(CLI_AGENT_RICH_INPUT_HINT_TEXT))
     }
 
 
@@ -4178,72 +4049,13 @@ impl Input {
 
 
 
-    // Whether a workflow info box is open or not
-    pub fn is_workflows_info_box_open(&self) -> bool {
-        self.workflows_state.selected_workflow_state.is_some()
-    }
 
 
 
 
-    /// Helper function to see if the selected history command matches the template of the workflow.
-    fn command_matches_workflow_template(
-        &self,
-        history_command: &str,
-        workflow_type: WorkflowType,
-    ) -> CommandMatchesWorkflowTemplate {
-        // if let Some(history_command) = history_command {
-        if let Some(display_data) = compute_workflow_display_data_for_history_command(
-            history_command,
-            workflow_type.as_workflow(),
-        ) {
-            CommandMatchesWorkflowTemplate::Yes(display_data)
-        } else {
-            // In this case, the workflow comes from a history command but the command has been edited so
-            // it no longer matches the original workflow template (e.g., a flag was added). We want
-            // to treat this command as a workflow but without the argument parsing and shift-tab UX.
-            CommandMatchesWorkflowTemplate::No
-        }
-    }
-
-
-    /// Builds a prefix for applying env vars to a command in the current session.
-    fn env_vars_command_prefix(&self, env_vars_id: &SyncId, ctx: &AppContext) -> Option<String> {
-        let shell_type = self.active_session(ctx)?.shell().shell_type();
-        let env_vars = &CloudModel::as_ref(ctx)
-            .get_env_var_collection(env_vars_id)?
-            .model()
-            .string_model;
-
-        if shell_type == ShellType::Fish {
-            // Warp currently doesn't support newlines in Fish, just prepend the vars
-            let mut command = env_vars.export_variables_for_shell(ShellType::Fish);
-            command.push(' ');
-            Some(command)
-        } else {
-            // Add newlines at the end to separate the vars from the comment/command
-            Some(format!(
-                "# Environment variables\n{}\n\n",
-                env_vars.export_variables(" ", shell_type.into())
-            ))
-        }
-    }
 
 
 
-    /// Returns the a11y text for a workflow that is selected. `None`, if there is no workflow
-    /// selected.
-    fn selected_workflow_a11y_text(&self, ctx: &mut ViewContext<Self>) -> Option<String> {
-        self.workflows_state
-            .selected_workflow_state
-            .as_ref()
-            .and_then(|selected_workflow_state| {
-                selected_workflow_state.more_info_view.read(ctx, |view, _| {
-                    view.selected_argument()
-                        .map(|argument| format!("Selected Workflow argument {}", argument.name()))
-                })
-            })
-    }
 
     fn workflow_arg_was_deleted(
         &self,
@@ -4318,63 +4130,6 @@ impl Input {
         )
     }
 
-    /// Highlight the currently selected workflow argument and open the enum suggestions menu if applicable.
-    /// Takes in `text_style_ranges`, which contains ByteOffset Ranges of arguments in the input editor.
-    fn highlight_selected_workflow_argument(
-        &mut self,
-        text_style_ranges: Vec<Range<ByteOffset>>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let mut variants = None;
-        let mut selected_ranges = Vec::new();
-
-        if let Some(active_workflow_state) = self.workflows_state.selected_workflow_state.as_ref() {
-            active_workflow_state
-                .more_info_view
-                .update(ctx, |workflows_info_view, ctx| {
-                    let selected_workflow_state = &mut workflows_info_view.selected_workflow_state;
-                    // Update the editor given what the currently selected argument index is
-                    self.editor.update(ctx, |editor, ctx| {
-                        // If an argument has been completely deleted - pause the shift-tab cycling
-                        if self.workflow_arg_was_deleted(
-                            text_style_ranges.len(),
-                            &active_workflow_state.argument_index_to_highlight_index,
-                        ) {
-                            selected_workflow_state.set_argument_cycling_enabled(false);
-                        } else {
-                            variants = active_workflow_state
-                                .argument_index_to_enum_variants
-                                .get(&selected_workflow_state.currently_selected_argument());
-
-                            selected_workflow_state.set_argument_cycling_enabled(true);
-                            // Get all of the highlighted ranges for the currently selected argument.
-                            let byte_ranges = active_workflow_state
-                                .argument_index_to_highlight_index
-                                .get(&selected_workflow_state.currently_selected_argument())
-                                .map(|indices| {
-                                    indices
-                                        .iter()
-                                        .filter_map(|index| text_style_ranges.get(*index).cloned())
-                                });
-
-                            if let Some(byte_ranges) = byte_ranges {
-                                selected_ranges = byte_ranges.clone().collect();
-                                editor.select_ranges_by_byte_offset(byte_ranges, ctx);
-                            }
-                        }
-                    });
-                });
-        }
-
-        if let Some(enum_variants) = variants {
-            self.populate_enum_suggestions_menu(enum_variants.clone(), selected_ranges, ctx);
-        } else {
-            self.suggestions_mode_model.update(ctx, |m, ctx| {
-                m.set_mode(InputSuggestionsMode::Closed, ctx);
-            });
-        }
-        ctx.notify();
-    }
 
     fn populate_enum_suggestions_menu(
         &mut self,
@@ -4436,27 +4191,6 @@ impl Input {
     }
 
 
-    /// Resets the SelectedWorkflowState back to the original workflow, with its original arguments. This
-    /// is useful when the command does not match the original workflow.
-    fn reset_workflow_state(&mut self, env_vars: Option<SyncId>, ctx: &mut ViewContext<Input>) {
-        // We want to also initially clear the stored selected env var.
-        self.clear_selected_env_var_collection();
-
-        if let Some(state) = self.workflows_state.selected_workflow_state.take() {
-            self.insert_workflow_into_input(
-                state.workflow_type,
-                state.workflow_source,
-                state.workflow_selection_source,
-                None,
-                None,
-                env_vars,
-                true,
-                ctx,
-            )
-        }
-
-        ctx.notify();
-    }
 
     fn confirm_suggestion(&mut self, suggestion: &str, ctx: &mut ViewContext<Input>) -> bool {
         self.confirm_suggestion_internal(suggestion, Executing::No, ctx)
@@ -5078,36 +4812,7 @@ impl Input {
     }
 
 
-    /// Takes the current collpased/expanded state of the info box and saves it to the user's settings so that last value can be
-    /// reused the next time the user opens a workflow.
-    fn update_workflows_info_box_expanded_setting(
-        &mut self,
-        ctx: &mut ViewContext<Self>,
-        selected_workflow_state: &SelectedWorkflowState,
-    ) {
-        let info_box_expanded = selected_workflow_state
-            .more_info_view
-            .as_ref(ctx)
-            .info_box_expanded;
 
-        InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
-            report_if_error!(input_settings
-                .workflows_box_expanded
-                .set_value(info_box_expanded, ctx));
-        });
-    }
-
-    fn clear_current_workflow(&mut self, ctx: &mut ViewContext<Input>) {
-        // Whenever we clear the workflow we also want to clear the env vars
-        self.clear_selected_env_var_collection();
-
-        if let Some(state) = self.workflows_state.selected_workflow_state.take() {
-            self.update_workflows_info_box_expanded_setting(ctx, &state);
-        }
-        self.editor
-            .update(ctx, |editor, ctx| editor.clear_text_style_runs(ctx));
-        ctx.notify();
-    }
 
     fn editor_down(&mut self, ctx: &mut ViewContext<Self>) {
         // For some input suggestion modes, the menu handles its own actions.
@@ -7490,28 +7195,6 @@ impl Input {
     }
 
 
-    /// Returns a collection of history entries that are shell commands from
-    /// the shared session (run on the sharer's machine).
-    fn shared_session_history<'b>(
-        &'b self,
-        ctx: &'b ViewContext<Self>,
-    ) -> Vec<HistoryInputSuggestion<'b>> {
-        let Some(history_model) = self
-            .shared_session_input_state
-            .as_ref()
-            .map(|state| state.history_model.clone())
-        else {
-            return Vec::new();
-        };
-
-        let commands = history_model
-            .as_ref(ctx)
-            .entries()
-            .map(|entry| HistoryInputSuggestion::Command { entry })
-            .collect();
-        // TODO: append viewer's local shell history
-        commands
-    }
 
     /// Returns a collection of history entries that are user AI queries or shell commands in order
     /// from oldest to most recent.
@@ -8781,40 +8464,7 @@ impl Input {
         })
     }
 
-    pub(crate) fn initiate_create_new_project(
-        &mut self,
-        ai_query: String,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if FeatureFlag::AgentView.is_enabled()
-            && !self.agent_view_controller.as_ref(ctx).is_active()
-        {
-            self.agent_view_controller.update(ctx, |controller, ctx| {
-                let _ =
-                    controller.try_enter_agent_view(None, AgentViewEntryOrigin::ProjectEntry, ctx);
-            });
-        }
-        self.ai_controller.update(ctx, move |controller, ctx| {
-            controller.send_slash_command_request(
-                SlashCommandRequest::CreateNewProject { query: ai_query },
-                ctx,
-            )
-        });
-    }
 
-    pub(crate) fn initiate_clone_repository(&mut self, url: String, ctx: &mut ViewContext<Self>) {
-        if FeatureFlag::AgentView.is_enabled()
-            && !self.agent_view_controller.as_ref(ctx).is_active()
-        {
-            self.agent_view_controller.update(ctx, |controller, ctx| {
-                let _ =
-                    controller.try_enter_agent_view(None, AgentViewEntryOrigin::ProjectEntry, ctx);
-            });
-        }
-        self.ai_controller.update(ctx, move |controller, ctx| {
-            controller.send_slash_command_request(SlashCommandRequest::CloneRepository { url }, ctx)
-        });
-    }
 
     /// Handles the user's 'Enter' keypress.
     ///
@@ -10371,52 +10021,6 @@ impl Input {
         .finish()
     }
 
-    // TODO remove voltron from the code given we are not using it anymore, and we have universal search instead.
-    fn select_and_refresh_voltron(
-        &mut self,
-        feature_item: VoltronItem,
-        ctx: &mut ViewContext<Input>,
-    ) {
-        // View-only sessions should not show workflows menu
-        if self.model.lock().shared_session_status().is_reader() {
-            return;
-        }
-
-        let welcome_tip_feature = match feature_item {
-            VoltronItem::AiCommands => Some(Tip::Action(TipAction::AiCommandSearch)),
-            VoltronItem::History => Some(Tip::Action(TipAction::HistorySearch)),
-            VoltronItem::Workflows => None,
-        };
-
-        if let Some(welcome_tip_feature) = welcome_tip_feature {
-            self.tips_completed.update(ctx, |tips_completed, ctx| {
-                mark_feature_used_and_write_to_user_defaults(
-                    welcome_tip_feature,
-                    tips_completed,
-                    ctx,
-                );
-                ctx.notify();
-            });
-        }
-        // If input suggestions are opened we should close them when opening voltron
-        if self.suggestions_mode_model.as_ref(ctx).is_visible() {
-            self.close_input_suggestions_and_restore_buffer(true, true, ctx);
-        }
-        let active_session_path_if_local = self.active_session_path_if_local(ctx);
-        let menu_positioning = self.menu_positioning(ctx);
-        let metadata = VoltronMetadata {
-            active_session_path_if_local: active_session_path_if_local.map(|path| path.into()),
-            starting_editor_text: Some(self.editor.as_ref(ctx).buffer_text(ctx)),
-            keymap_context: Self::keymap_context(self, ctx),
-            menu_positioning,
-        };
-
-        self.voltron_view.update(ctx, |voltron, ctx| {
-            voltron.select_and_refresh_by_name(feature_item, metadata, ctx);
-            self.is_voltron_open = true;
-        });
-        ctx.notify();
-    }
 
     /// Returns whether AI command search should be displayed for the given
     /// editor contents.
