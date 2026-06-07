@@ -142,9 +142,6 @@ impl Input {
         .finish();
 
         let hoverable_input = Hoverable::new(self.hoverable_handle.clone(), |_| drop_target)
-            .on_hover(|is_hovered, ctx, _app, _position| {
-                ctx.dispatch_typed_action(InputAction::SetUDIHovered(is_hovered));
-            })
             .on_middle_click(|ctx, _app, _position| {
                 ctx.dispatch_typed_action(TerminalAction::MiddleClickOnInput)
             })

@@ -744,7 +744,6 @@ pub enum InputAction {
     PageDown,
     ClearScreen,
     SelectAndRefreshVoltron(VoltronItem),
-    ShowAiCommandSearch,
     /// Open the completions menu if the cursor is in a valid position to generate completion
     /// suggestions.
     MaybeOpenCompletionSuggestions,
@@ -756,41 +755,11 @@ pub enum InputAction {
 
     ToggleClassicCompletionsMode,
 
-    /// Toggles the inline conversation menu for selecting AI conversations.
-    ToggleConversationsMenu,
-
-    StartNewAgentConversation,
-
-    /// This is for toggling whether autodetection is enabled/disabled at the app-level,
-    /// not for whether its enabled/disabled for the current input
-    ToggleInputAutoDetection,
-
-    /// Triggers the lightbulb button click behavior to enable/toggle auto-detection
-    EnableAutoDetection,
-
-    /// Generate a new Next Command suggestion.
-    CycleNextCommandSuggestion,
-
-    /// Inserts a zero state prompt suggestion into the input buffer and executes the query for Agent Mode.
-    InsertZeroStatePromptSuggestion(ZeroStatePromptSuggestionType),
-
-    /// A passive code diff action.
-    TryHandlePassiveCodeDiff(CodeDiffAction),
-
-    /// Clears the AI context menu search query back to the @ character and resets menu state.
-    ClearAndResetAIContextMenuQuery,
-
-    /// Sets the hover state of the Universal Developer Input
-    SetUDIHovered(bool),
-
     /// Persist the completions menu width when the user resizes it.
     UpdateCompletionsMenuWidth(f32),
 
     /// Persist the completions menu height when the user resizes it.
     UpdateCompletionsMenuHeight(f32),
-
-    /// Toggles the '?' shortcuts UI in the agent view.
-    ToggleAgentViewShortcuts,
 
     /// Toggles the '/' slash commands menu in the agent view.
     ToggleSlashCommandsMenu,
@@ -798,25 +767,8 @@ pub enum InputAction {
     /// Opens the inline history menu for cycling through past commands and conversations.
     OpenInlineHistoryMenu,
 
-    DismissCloudModeV2SlashCommandsMenu,
-
-    /// Opens the model selector menu.
-    OpenModelSelector,
-
     /// Triggers a slash command from a custom keybinding. The string is the command name.
     TriggerSlashCommandFromKeybinding(&'static str),
-
-    /// Clears attached blocks and text selection context.
-    ClearAttachedContext,
-
-    /// Fired when the "Get Figma MCP" contextual button is clicked.
-    FigmaAddButtonClicked,
-
-    /// Fired when the "Enable Figma MCP" contextual button is clicked.
-    FigmaEnableButtonClicked,
-
-    /// Activates `&` cloud handoff compose mode from the message bar hint.
-    ActivateCloudHandoff,
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -7532,7 +7484,6 @@ impl TypedActionView for Input {
             InputAction::SelectAndRefreshVoltron(feature_name) => {
                 self.select_and_refresh_voltron(*feature_name, ctx);
             }
-            InputAction::ShowAiCommandSearch => self.show_ai_command_search(ctx),
             InputAction::MaybeOpenCompletionSuggestions => {
                 self.maybe_open_completion_suggestions(ctx);
             }
@@ -7546,72 +7497,6 @@ impl TypedActionView for Input {
                         )
                     }
                 });
-            }
-            InputAction::ToggleConversationsMenu => {
-                if self
-                    .suggestions_mode_model
-                    .as_ref(ctx)
-                    .is_conversation_menu()
-                {
-                    self.suggestions_mode_model.update(ctx, |model, ctx| {
-                        model.close_and_restore_buffer(ctx);
-                    });
-                    ctx.notify();
-                } else {
-                    self.open_conversation_menu(ctx);
-                }
-            }
-            InputAction::ToggleInputAutoDetection => {
-                if let Ok(new_value) =
-                    AISettings::handle(ctx).update(ctx, |ai_settings, model_ctx| {
-                        ai_settings
-                            .ai_autodetection_enabled_internal
-                            .toggle_and_save_value(model_ctx)
-                    })
-                {
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::AgentModeToggleAutoDetectionSetting {
-                            is_autodetection_enabled: new_value,
-                            origin: AgentModeAutoDetectionSettingOrigin::Banner
-                        },
-                        ctx
-                    );
-                }
-            }
-            InputAction::InsertZeroStatePromptSuggestion(suggestion_type) => {
-                self.insert_zero_state_prompt_suggestion(
-                    *suggestion_type,
-                    ZeroStatePromptSuggestionTriggeredFrom::InputBar,
-                    ctx,
-                );
-            }
-            InputAction::EnableAutoDetection => {
-                // Call the same logic that clicking the lightbulb icon triggers
-                self.handle_universal_developer_input_button_bar_event(
-                    &UniversalDeveloperInputButtonBarEvent::EnableAutoDetection,
-                    ctx,
-                );
-            }
-            InputAction::TryHandlePassiveCodeDiff(action) => {
-                ctx.emit(Event::TryHandlePassiveCodeDiff(action.clone()));
-            }
-            InputAction::ToggleAgentViewShortcuts => {
-                self.agent_shortcut_view_model.update(ctx, |model, ctx| {
-                    if model.is_shortcut_view_open() {
-                        model.hide_shortcut_view(ctx);
-                    } else {
-                        model.open_shortcut_view(ctx);
-                    }
-                });
-            }
-            InputAction::ClearAndResetAIContextMenuQuery => {
-                self.clear_and_reset_ai_context_menu_query(ctx);
-            }
-            InputAction::SetUDIHovered(is_hovered) => {
-                self.universal_developer_input_button_bar
-                    .update(ctx, |button_bar, ctx| {
-                        button_bar.set_udi_hovered(*is_hovered, ctx);
-                    });
             }
             InputAction::UpdateCompletionsMenuWidth(width) => {
                 InputSettings::handle(ctx).update(ctx, |settings, ctx| {
@@ -7632,86 +7517,8 @@ impl TypedActionView for Input {
                 };
                 self.select_slash_command(command, SlashCommandTrigger::keybinding(), ctx);
             }
-            InputAction::StartNewAgentConversation => {
-                // Block starting a new conversation if the agent is in control of a long-running command
-                if !self
-                    .ai_context_model
-                    .as_ref(ctx)
-                    .can_start_new_conversation()
-                {
-                    let window_id = ctx.window_id();
-                    ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                        toast_stack.add_ephemeral_toast(
-                            DismissibleToast::error(
-                                "Cannot start a new conversation while agent is monitoring a command.".to_string()
-                            ),
-                            window_id,
-                            ctx,
-                        );
-                    });
-                    return;
-                }
-
-                if FeatureFlag::AgentView.is_enabled() {
-                    if let Err(e) = self.agent_view_controller.update(ctx, |controller, ctx| {
-                        controller.try_enter_agent_view(
-                            None,
-                            AgentViewEntryOrigin::Input {
-                                was_prompt_autodetected: false,
-                            },
-                            ctx,
-                        )
-                    }) {
-                        log::warn!("Failed to start new agent conversation from zero-state: {e:?}");
-                    }
-                } else if self.should_show_universal_developer_input(ctx) {
-                    // Clear follow-up state (start a fresh conversation)
-                    self.ai_context_model.update(ctx, |ai_context_model, ctx| {
-                        ai_context_model.set_pending_query_state_for_new_conversation(
-                            // This is a placeholder origin, this codepath is dead when AgentView is enabled.
-                            AgentViewEntryOrigin::Input {
-                                was_prompt_autodetected: false,
-                            },
-                            ctx,
-                        );
-                    });
-                    self.enter_ai_mode(
-                        Some(InputTypeAutoDetectionSource::StartNewConversation),
-                        ctx,
-                    );
-                }
-            }
             InputAction::OpenInlineHistoryMenu => {
                 self.open_inline_history_menu(ctx);
-            }
-            InputAction::DismissCloudModeV2SlashCommandsMenu => {
-                if self.suggestions_mode_model.as_ref(ctx).is_slash_commands() {
-                    self.slash_command_model
-                        .update(ctx, |model, ctx| model.disable(ctx));
-                    self.close_slash_commands_menu(ctx);
-                }
-            }
-            InputAction::OpenModelSelector => {
-                self.open_model_selector_and_snapshot_prompt(
-                    InlineModelSelectorTab::BaseAgent,
-                    ctx,
-                );
-            }
-            InputAction::FigmaAddButtonClicked => {
-                TemplatableMCPServerManager::handle(ctx).update(ctx, |manager, ctx| {
-                    manager.install_figma_from_gallery(ctx);
-                });
-            }
-            InputAction::FigmaEnableButtonClicked => {
-                TemplatableMCPServerManager::handle(ctx).update(ctx, |manager, ctx| {
-                    manager.enable_figma_mcp(ctx);
-                });
-            }
-            InputAction::ClearAttachedContext => {
-                self.clear_attached_context(ctx);
-            }
-            InputAction::ActivateCloudHandoff => {
-                self.activate_cloud_handoff_compose(HandoffEntryPoint::Ampersand, ctx);
             }
         }
     }

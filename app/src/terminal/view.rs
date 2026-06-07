@@ -12367,13 +12367,6 @@ impl TerminalView {
         ctx.emit(Event::ShowCommandSearch(Default::default()))
     }
 
-    fn ai_command_search_from_input(&mut self, ctx: &mut ViewContext<Self>) {
-        self.input.update(ctx, |input, ctx| {
-            input.handle_action(&InputAction::ShowAiCommandSearch, ctx)
-        });
-        send_telemetry_from_ctx!(TelemetryEvent::InputAICommandSearch, ctx);
-    }
-
     fn save_as_workflow_from_input(&mut self, ctx: &mut ViewContext<Self>) {
         let (all_current_input_text, selected_input_text) = self.input.read(ctx, |input, ctx| {
             input.editor().read(ctx, |editor, ctx| {
