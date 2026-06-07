@@ -35,7 +35,7 @@ use super::ansi::{
 };
 use super::block::{
     AgentInteractionMetadata, Block, BlockId, BlockMetadata, BlockSize, BlockState,
-    BlocklistEnvVarMetadata, SerializedBlock,
+    BlocklistEnvVarMetadata, SerializedBlock, SerializedBlockListItem,
 };
 use super::blockgrid::BlockGrid;
 use super::grid::grid_handler::{

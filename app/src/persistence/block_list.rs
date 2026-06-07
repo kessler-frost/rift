@@ -9,7 +9,7 @@ use diesel::sqlite::SqliteConnection;
 use super::model::Block;
 use super::{model, schema};
 use crate::app_state::PaneUuid;
-use crate::terminal::model::block::SerializedBlock;
+use crate::terminal::model::block::{SerializedBlock, SerializedBlockListItem};
 
 const MAX_TERMINAL_BLOCKS_TO_PERSIST_PER_SESSION: i64 = 100;
 

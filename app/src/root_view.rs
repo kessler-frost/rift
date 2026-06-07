@@ -67,6 +67,7 @@ use crate::server::telemetry::{LaunchConfigUiLocation, TelemetryEvent};
 use crate::settings::{apply_onboarding_settings, AISettings, QuakeModeSettings, ThemeSettings};
 use crate::settings_view::{flags, SettingsSection};
 use crate::terminal::available_shells::AvailableShell;
+use crate::terminal::model::block::SerializedBlockListItem;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
 use crate::terminal::shell::ShellType;

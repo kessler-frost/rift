@@ -15,6 +15,7 @@ use super::settings::TerminalSettings;
 use super::view::{create_size_info_for_blocklist, RIFT_PROMPT_HEIGHT_LINES};
 use super::{color, ShellLaunchState, SizeInfo, TerminalModel, TerminalView};
 use crate::appearance::Appearance;
+use crate::terminal::model::block::SerializedBlockListItem;
 use crate::pane_group::pane::DetachType;
 use crate::settings::{BlockVisibilitySettings, DebugSettings, InputModeSettings};
 use crate::PrivacySettings;

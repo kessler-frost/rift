@@ -301,6 +301,7 @@ use crate::terminal::view::{
 };
 use crate::terminal::warpify::settings::WarpifySettings;
 use crate::terminal::{self, BlockListSettings, SizeInfo, TerminalModel, TerminalView};
+use crate::terminal::model::block::SerializedBlockListItem;
 use crate::themes::theme::{AnsiColorIdentifier, RespectSystemTheme, ThemeKind};
 use crate::themes::theme_chooser::{ThemeChooser, ThemeChooserEvent, ThemeChooserMode};
 use crate::themes::theme_creator_modal::{ThemeCreatorModal, ThemeCreatorModalEvent};

@@ -41,7 +41,7 @@ use crate::terminal::model::ansi::{
     CursorStyle, LineClearMode, Mode, PrecmdValue, PreexecValue, Processor, StandardCharset,
     TabulationClearMode,
 };
-use crate::terminal::model::block::{Block, SerializedBlock};
+use crate::terminal::model::block::{Block, SerializedBlock, SerializedBlockListItem};
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::model::bootstrap::BootstrapStage;
 use crate::terminal::model::grid::Dimensions;

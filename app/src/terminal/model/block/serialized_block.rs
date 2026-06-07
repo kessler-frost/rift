@@ -75,6 +75,14 @@ pub struct SerializedBlock {
 
 }
 
+/// A persisted block-list entry. With AI agent blocks removed, only completed
+/// command blocks are persisted, so this is effectively a single-variant wrapper
+/// kept for the restore pipeline's shape.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum SerializedBlockListItem {
+    Command { block: SerializedBlock },
+}
+
 impl SerializedBlock {
     /// Sets the command & output and `did_execute` to true.
     /// Everything else is a default value.
