@@ -233,30 +233,6 @@ impl From<GqlUgcCollectionEnablementSetting> for UgcCollectionEnablementSetting 
     }
 }
 
-impl From<&gql_usage::ConversationUsage> for ConversationUsageInfo {
-    fn from(gql: &gql_usage::ConversationUsage) -> Self {
-        let persistence::model::ConversationUsageMetadata {
-            credits_spent,
-            platform_credits_spent,
-            token_usage: models,
-            tool_usage_metadata: tool,
-            context_window_usage,
-            ..
-        } = (&gql.usage_metadata).into();
-        ConversationUsageInfo {
-            credits_spent,
-            platform_credits_spent,
-            credits_spent_for_last_block: None,
-            tool_calls: tool.total_tool_calls(),
-            models,
-            context_window_usage,
-            files_changed: tool.apply_file_diff_stats.files_changed,
-            lines_added: tool.apply_file_diff_stats.lines_added,
-            lines_removed: tool.apply_file_diff_stats.lines_removed,
-            commands_executed: tool.run_command_stats.commands_executed,
-        }
-    }
-}
 
 impl From<GqlAdminEnablementSetting> for AdminEnablementSetting {
     fn from(gql_admin_enablement_setting: GqlAdminEnablementSetting) -> AdminEnablementSetting {
@@ -485,34 +461,6 @@ impl From<GqlUsageVisibilityPolicy> for UsageVisibilityPolicy {
     }
 }
 
-fn convert_billing_cycle_usage(history: GqlBillingCycleUsageHistory) -> BillingCycleUsageData {
-    BillingCycleUsageData {
-        current_period_start: history.current_period_start.utc(),
-        current_period_end: history.current_period_end.utc(),
-        summaries: history
-            .summaries
-            .into_iter()
-            .map(|summary| BillingCycleUsageSummary {
-                period_start: summary.period_start.utc(),
-                period_end: summary.period_end.utc(),
-                entries: summary
-                    .entries
-                    .into_iter()
-                    .map(|entry| BillingCycleUsageEntry {
-                        subject_type: entry.subject_type,
-                        subject_uid: entry.subject_uid,
-                        subject_display_name: entry.subject_display_name,
-                        cost_type: entry.cost_type,
-                        usage_bucket: entry.usage_bucket,
-                        usage_source: entry.usage_source,
-                        credits_used: entry.credits_used,
-                        cost_cents: entry.cost_cents,
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
-}
 
 impl From<GqlTier> for Tier {
     fn from(gql_tier: GqlTier) -> Tier {
@@ -578,21 +526,6 @@ impl From<GqlDelinquencyStatus> for DelinquencyStatus {
     }
 }
 
-impl BonusGrant {
-    pub fn from_gql_bonus_grant(bonus_grant: GqlBonusGrant, scope: BonusGrantScope) -> Self {
-        Self {
-            created_at: bonus_grant.created_at.utc(),
-            cost_cents: bonus_grant.cost_cents,
-            expiration: bonus_grant.expiration.map(|exp| exp.utc()),
-            grant_type: bonus_grant.grant_type,
-            reason: bonus_grant.reason,
-            user_facing_message: bonus_grant.user_facing_message,
-            request_credits_granted: bonus_grant.request_credits_granted,
-            request_credits_remaining: bonus_grant.request_credits_remaining,
-            scope,
-        }
-    }
-}
 
 impl From<GqlBillingMetadata> for BillingMetadata {
     fn from(gql_billing_metadata: GqlBillingMetadata) -> BillingMetadata {
@@ -644,65 +577,8 @@ impl TryFrom<&BillingMetadata> for StripeSubscriptionPlan {
     }
 }
 
-fn convert_gql_ai_autonomy_value_to_action_permission(
-    gql_ai_autonomy_value: GqlAiAutonomyValue,
-) -> Option<ActionPermission> {
-    match gql_ai_autonomy_value {
-        GqlAiAutonomyValue::AgentDecides => Some(ActionPermission::AgentDecides),
-        GqlAiAutonomyValue::AlwaysAllow => Some(ActionPermission::AlwaysAllow),
-        GqlAiAutonomyValue::AlwaysAsk => Some(ActionPermission::AlwaysAsk),
-        GqlAiAutonomyValue::RespectUserSetting => None,
-        GqlAiAutonomyValue::Other(value) => {
-            report_error!(
-                anyhow!(
-                    "Invalid AiAutonomyValue '{value}'. Make sure to update client GraphQL types!"
-                ),
-                rift_core::errors::ReportErrorLogMode::OncePerRun
-            );
-            None
-        }
-    }
-}
 
-fn convert_gql_write_to_pty_autonomy_value_to_write_to_pty_permission(
-    gql_write_to_pty_autonomy_value: GqlWriteToPtyAutonomyValue,
-) -> Option<WriteToPtyPermission> {
-    match gql_write_to_pty_autonomy_value {
-        GqlWriteToPtyAutonomyValue::AlwaysAllow => Some(WriteToPtyPermission::AlwaysAllow),
-        GqlWriteToPtyAutonomyValue::AlwaysAsk => Some(WriteToPtyPermission::AlwaysAsk),
-        GqlWriteToPtyAutonomyValue::AskOnFirstWrite => Some(WriteToPtyPermission::AskOnFirstWrite),
-        GqlWriteToPtyAutonomyValue::RespectUserSetting => None,
-        GqlWriteToPtyAutonomyValue::Other(value) => {
-            report_error!(
-                anyhow!(
-                    "Invalid WriteToPtyAutonomyValue '{value}'. Make sure to update client GraphQL types!"
-                ),
-                rift_core::errors::ReportErrorLogMode::OncePerRun
-            );
-            None
-        }
-    }
-}
 
-fn convert_gql_computer_use_autonomy_value_to_computer_use_permission(
-    gql_computer_use_autonomy_value: GqlComputerUseAutonomyValue,
-) -> Option<ComputerUsePermission> {
-    match gql_computer_use_autonomy_value {
-        GqlComputerUseAutonomyValue::Never => Some(ComputerUsePermission::Never),
-        GqlComputerUseAutonomyValue::AlwaysAsk => Some(ComputerUsePermission::AlwaysAsk),
-        GqlComputerUseAutonomyValue::AlwaysAllow => Some(ComputerUsePermission::AlwaysAllow),
-        GqlComputerUseAutonomyValue::RespectUserSetting => None,
-        GqlComputerUseAutonomyValue::Other(value) => {
-            report_error!(
-                anyhow!(
-                    "Invalid ComputerUseAutonomyValue '{value}'. Make sure to update client GraphQL types!"
-                ),
-                rift_core::errors::ReportErrorLogMode::OncePerRun
-            );
-            None
-        }
-    }
-}
 
 trait ToAgentModeCommandExecutionPredicates {
     fn to_predicates(self) -> Vec<AgentModeCommandExecutionPredicate>;
@@ -735,25 +611,6 @@ impl ToPathBufs for Vec<String> {
         self.into_iter().map(PathBuf::from).collect()
     }
 }
-impl From<rift_graphql::workspace::LlmModelHost> for crate::ai::llms::LLMModelHost {
-    fn from(gql_host: rift_graphql::workspace::LlmModelHost) -> Self {
-        use rift_graphql::workspace::LlmModelHost as GqlLlmModelHost;
-        match gql_host {
-            GqlLlmModelHost::DirectApi => Self::DirectApi,
-            GqlLlmModelHost::AwsBedrock => Self::AwsBedrock,
-            GqlLlmModelHost::CustomEndpoint => Self::CustomEndpoint,
-            GqlLlmModelHost::Other(value) => {
-                report_error!(
-                    anyhow!(
-                        "Unknown LlmModelHost '{value}'. Make sure to update client GraphQL types!"
-                    ),
-                    rift_core::errors::ReportErrorLogMode::OncePerRun
-                );
-                Self::Unknown
-            }
-        }
-    }
-}
 
 impl From<rift_graphql::workspace::LlmHostSettings> for super::workspace::LlmHostSettings {
     fn from(gql_settings: rift_graphql::workspace::LlmHostSettings) -> Self {
@@ -767,27 +624,6 @@ impl From<rift_graphql::workspace::LlmHostSettings> for super::workspace::LlmHos
     }
 }
 
-impl From<rift_graphql::workspace::LlmSettings> for LlmSettings {
-    fn from(gql_settings: rift_graphql::workspace::LlmSettings) -> Self {
-        let mut host_configs = std::collections::HashMap::new();
-        for entry in gql_settings.host_configs {
-            let host: crate::ai::llms::LLMModelHost = entry.host.into();
-            if host_configs
-                .insert(host.clone(), entry.settings.into())
-                .is_some()
-            {
-                log::warn!(
-                    "Duplicate LLMModelHost entry for {:?}, using latest value",
-                    host
-                );
-            }
-        }
-        Self {
-            enabled: gql_settings.enabled,
-            host_configs,
-        }
-    }
-}
 
 impl From<GqlWorkspaceSettings> for WorkspaceSettings {
     fn from(gql_workspace_settings: GqlWorkspaceSettings) -> WorkspaceSettings {
@@ -1074,53 +910,6 @@ impl From<GqlUser> for WorkspacesMetadataResponse {
     }
 }
 
-pub fn object_update_message_from_gql(value: WarpDriveUpdate) -> Result<ObjectUpdateMessage> {
-    match value {
-        WarpDriveUpdate::ObjectActionOccurred(message) => {
-            Ok(ObjectUpdateMessage::ObjectActionOccurred {
-                history: object_action_history_from_gql(message.history)?,
-            })
-        }
-        WarpDriveUpdate::ObjectContentUpdated(message) => {
-            let server_object = message.object.try_into()?;
-            let last_editor = message.last_editor.map(|e| e.into());
-            Ok(ObjectUpdateMessage::ObjectContentChanged {
-                server_object: Box::new(server_object),
-                last_editor,
-            })
-        }
-        WarpDriveUpdate::ObjectDeleted(message) => Ok(ObjectUpdateMessage::ObjectDeleted {
-            object_uid: ServerId::from_string_lossy(message.object_uid.inner()),
-        }),
-        WarpDriveUpdate::ObjectMetadataUpdated(message) => {
-            Ok(ObjectUpdateMessage::ObjectMetadataChanged {
-                metadata: message.metadata.try_into()?,
-            })
-        }
-        WarpDriveUpdate::ObjectPermissionsUpdated(message) => {
-            Ok(ObjectUpdateMessage::ObjectPermissionsChangedV2 {
-                object_uid: ServerId::from_string_lossy(message.object_uid.inner()),
-                user_profiles: message
-                    .user_profiles
-                    .into_iter()
-                    .flatten()
-                    .map(Into::into)
-                    .collect(),
-                permissions: message.permissions.try_into()?,
-            })
-        }
-        WarpDriveUpdate::TeamMembershipsChanged(_) => {
-            Ok(ObjectUpdateMessage::TeamMembershipsChanged)
-        }
-        WarpDriveUpdate::AmbientTaskUpdated(message) => {
-            Ok(ObjectUpdateMessage::AmbientTaskUpdated {
-                task_id: message.task_id.inner().to_string(),
-                timestamp: message.task_updated_ts.utc(),
-            })
-        }
-        WarpDriveUpdate::Unknown => bail!("Unexpected WarpDriveUpdate variant"),
-    }
-}
 
 impl From<GqlDiscoverableTeamData> for DiscoverableTeam {
     fn from(gql_discoverable_team: GqlDiscoverableTeamData) -> DiscoverableTeam {
