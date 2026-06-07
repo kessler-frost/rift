@@ -8,7 +8,6 @@ use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::ssh::error::SshErrorBlock;
 use crate::terminal::ssh::install_tmux::SshInstallTmuxBlock;
 use crate::terminal::ssh::warpify::SshWarpifyBlock;
-use crate::terminal::view::block_onboarding::onboarding_agentic_suggestions_block::OnboardingAgenticSuggestionsBlock;
 use crate::terminal::view::ssh_remote_server_choice_view::SshRemoteServerChoiceView;
 use crate::terminal::view::ssh_remote_server_failed_banner::SshRemoteServerFailedBanner;
 use crate::terminal::warpify::success_block::WarpifySuccessBlock;
@@ -33,25 +32,6 @@ pub enum RichContentInsertionPosition {
     PinToBottom,
 }
 
-/// Metadata for an AI block rich content.
-#[derive(Clone, Debug)]
-pub struct AIBlockMetadata {
-    /// The ID corresponding to the `AIAgentExchange` represented in this block.
-    pub exchange_id: AIAgentExchangeId,
-    /// The ID of the conversation to which this block belongs.
-    pub conversation_id: AIConversationId,
-    /// The ViewHandle for the AI block.
-    pub ai_block_handle: ViewHandle<AIBlock>,
-}
-
-/// Metadata for an agent view entry rich content.
-#[derive(Clone, Debug)]
-pub struct AgentViewEntryMetadata {
-    pub conversation_id: AIConversationId,
-    /// The origin when this block was created (not the current session origin).
-    pub origin: AgentViewEntryOrigin,
-}
-
 /// Wrapper type to hold rich content views and allow generating typed `ChildView` instances
 /// on-demand. The `ChildView`s are then passed to the `BlockListElement` to be used when
 /// displaying rich content.
@@ -62,12 +42,6 @@ pub struct RichContent {
     /// Optional rich content view-specific metadata to be passed to the `BlocklistElement` for
     /// rendering.
     metadata: Option<RichContentMetadata>,
-
-    /// The conversation ID of the active agent view when this rich content was created, if any.
-    /// This is used to determine visibility when switching between agent view conversations.
-    /// Rich content created within an agent view should only be visible when that conversation
-    /// is active.
-    agent_view_conversation_id: Option<AIConversationId>,
 }
 
 impl RichContent {
@@ -76,10 +50,7 @@ impl RichContent {
     ///
     /// `ai_conversation_id` should be the active agent view conversation ID if this content is
     /// being created within an agent view, or `None` if created in terminal mode.
-    pub fn new<V: View>(
-        handle: ViewHandle<V>,
-        agent_view_conversation_id: Option<AIConversationId>,
-    ) -> Self {
+    pub fn new<V: View>(handle: ViewHandle<V>) -> Self {
         let view_id = handle.id();
         // By `move`ing the handle into the closure, the closure will own the handle and keep it
         // alive for the duration. This also allows us to generate any number of necessary
@@ -90,34 +61,12 @@ impl RichContent {
             view_id,
             element_builder,
             metadata: None,
-            agent_view_conversation_id,
         }
     }
 
     pub fn with_metadata(mut self, metadata: RichContentMetadata) -> Self {
         self.metadata = Some(metadata);
         self
-    }
-
-    /// Returns the conversation ID of the agent view this content was created in, if any.
-    pub fn agent_view_conversation_id(&self) -> Option<AIConversationId> {
-        self.agent_view_conversation_id
-    }
-
-    /// Updates the associated agent view conversation id with this rich content item.
-    pub fn update_agent_view_conversation_id(
-        &mut self,
-        new_agent_view_conversation_id: AIConversationId,
-    ) {
-        self.agent_view_conversation_id = Some(new_agent_view_conversation_id);
-    }
-
-    /// Sets the associated agent view conversation id for this rich content item.
-    pub fn set_agent_view_conversation_id(
-        &mut self,
-        agent_view_conversation_id: Option<AIConversationId>,
-    ) {
-        self.agent_view_conversation_id = agent_view_conversation_id;
     }
 
     /// Build a new `ChildView` element for this rich content
