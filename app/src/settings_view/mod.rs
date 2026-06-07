@@ -4,7 +4,6 @@ use std::str::FromStr;
 
 use about_page::AboutPageView;
 use appearance_page::{AppearancePageAction, AppearanceSettingsPageView};
-use code_page::{CodeSettingsPageAction, CodeSettingsPageEvent, CodeSubpage};
 use features_page::{FeaturesPageView, FeaturesSettingsPageEvent};
 use itertools::Itertools as _;
 use keybindings::KeybindingsView;
@@ -60,7 +59,6 @@ use crate::GlobalResourceHandlesProvider;
 
 mod about_page;
 mod appearance_page;
-mod code_page;
 mod directory_color_add_picker;
 mod features;
 mod features_page;
@@ -78,7 +76,6 @@ mod show_blocks_view;
 mod telemetry;
 mod warpify_page;
 
-pub use code_page::CodeSettingsPageView;
 pub use features_page::FeaturesPageAction;
 pub use main_page::handle_experiment_change;
 pub use privacy_page::PrivacyPageAction;
@@ -204,14 +201,6 @@ pub enum SettingsSection {
     Privacy,
     SharedBlocks,
     Warpify,
-    /// Internal backing-page identifier for CodeSettingsPageView. Multiple subpages
-    /// (CodeIndexing, EditorAndCodeReview) share this single backing page,
-    /// so this variant is needed as the key in `settings_pages`.
-    /// External callers should navigate to a specific subpage instead.
-    Code,
-    // ── Code umbrella subpages ──
-    CodeIndexing,
-    EditorAndCodeReview,
     // ── Cloud platform umbrella subpages ──
     OzCloudAPIKeys,
 }
@@ -225,8 +214,6 @@ impl Display for SettingsSection {
         match self {
             SettingsSection::Keybindings => write!(f, "Keyboard shortcuts"),
             SettingsSection::SharedBlocks => write!(f, "Shared blocks"),
-            SettingsSection::CodeIndexing => write!(f, "Indexing and projects"),
-            SettingsSection::EditorAndCodeReview => write!(f, "Editor and Code Review"),
             SettingsSection::OzCloudAPIKeys => write!(f, "Oz Cloud API Keys"),
             _ => write!(f, "{self:?}"),
         }
@@ -236,12 +223,7 @@ impl Display for SettingsSection {
 impl SettingsSection {
     /// Returns true if this section is a subpage under any umbrella.
     pub fn is_subpage(&self) -> bool {
-        self.is_code_subpage() || self.is_cloud_platform_subpage()
-    }
-
-    /// Returns true if this section is a subpage under the "Code" umbrella.
-    pub fn is_code_subpage(&self) -> bool {
-        matches!(self, Self::CodeIndexing | Self::EditorAndCodeReview)
+        self.is_cloud_platform_subpage()
     }
 
     /// Returns true if this section is a subpage under the "Cloud platform" umbrella.
@@ -252,18 +234,9 @@ impl SettingsSection {
     /// Maps subpage sections back to their parent page section for page lookup.
     /// Non-subpage sections return themselves.
     pub fn parent_page_section(&self) -> Self {
-        match self {
-            // Code subpages render within the Code page.
-            s if s.is_code_subpage() => Self::Code,
-            // OzCloudAPIKeys IS its own backing page (1:1 mapping), so it
-            // returns itself.
-            other => *other,
-        }
-    }
-
-    /// The ordered list of Code subpage sections shown under the Code umbrella.
-    pub fn code_subpages() -> &'static [Self] {
-        &[Self::CodeIndexing, Self::EditorAndCodeReview]
+        // OzCloudAPIKeys IS its own backing page (1:1 mapping), so every
+        // section returns itself.
+        *self
     }
 
     /// The ordered list of Cloud platform subpage sections.
@@ -280,14 +253,11 @@ impl FromStr for SettingsSection {
             "About" => Ok(Self::About),
             "Account" => Ok(Self::Account),
             "Appearance" => Ok(Self::Appearance),
-            "Code" => Ok(Self::Code),
             "Features" => Ok(Self::Features),
             "Keyboard shortcuts" => Ok(Self::Keybindings),
             "Privacy" => Ok(Self::Privacy),
             "Shared blocks" => Ok(Self::SharedBlocks),
             "Warpify" => Ok(Self::Warpify),
-            "Indexing and projects" | "CodeIndexing" => Ok(Self::CodeIndexing),
-            "Editor and Code Review" | "EditorAndCodeReview" => Ok(Self::EditorAndCodeReview),
             "Oz Cloud API Keys" | "OzCloudAPIKeys" => Ok(Self::OzCloudAPIKeys),
             _ => Err(()),
         }
@@ -500,7 +470,6 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
     features_page::init_actions_from_parent_view(app, context, builder);
     warpify_page::init_actions_from_parent_view(app, context, builder);
     privacy_page::init_actions_from_parent_view(app, context, builder);
-    code_page::init_actions_from_parent_view(app, context, builder);
 
     if ChannelState::enable_debug_features() || cfg!(windows) {
         ToggleSettingActionPair::add_toggle_setting_action_pairs_as_bindings(
@@ -802,7 +771,6 @@ pub enum SettingsAction {
     AppearancePageToggle(AppearancePageAction),
     FeaturesPageToggle(FeaturesPageAction),
     PrivacyPageToggle(PrivacyPageAction),
-    Code(CodeSettingsPageAction),
     WarpifyPageToggle(WarpifyPageAction),
     Tab,
     Split(Direction),
@@ -952,7 +920,6 @@ macro_rules! update_page {
             SettingsPageViewHandle::OzCloudAPIKeys(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Privacy(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::About(handle) => $ctx.update_view(handle, $update),
-            SettingsPageViewHandle::Code(handle) => $ctx.update_view(handle, $update),
         }
     };
 }
@@ -969,8 +936,6 @@ pub struct SettingsView {
     context_menu_state: Option<Vector2F>,
     /// Sidebar navigation items (pages + umbrellas).
     nav_items: Vec<SettingsNavItem>,
-    /// Handle to the Code settings page, used to switch subpage modes.
-    code_page_handle: ViewHandle<CodeSettingsPageView>,
     /// Per-subpage search match results. Populated during search so that
     /// subpages sharing the same backing page can be filtered independently.
     subpage_filter: HashMap<SettingsSection, MatchData>,
@@ -1033,13 +998,6 @@ impl SettingsView {
         // Keybindings page
         let keybindings_handle = ctx.add_typed_action_view(KeybindingsView::new);
 
-        // Code page
-        let code_page_handle = ctx.add_typed_action_view(CodeSettingsPageView::new);
-        let code_page_handle_for_nav = code_page_handle.clone();
-        ctx.subscribe_to_view(&code_page_handle, |me, _, event, ctx| {
-            me.handle_code_page_event(event, ctx);
-        });
-
         let warpify_page_handle = ctx.add_typed_action_view(WarpifyPageView::new);
         ctx.subscribe_to_view(&warpify_page_handle, |me, _, event, ctx| {
             me.handle_warpify_page_event(event, ctx);
@@ -1086,7 +1044,6 @@ impl SettingsView {
 
         let settings_pages = vec![
             SettingsPage::new(main_page_handle),
-            SettingsPage::new(code_page_handle),
             SettingsPage::new(appearance_page_handle),
             SettingsPage::new(features_page_handle),
             SettingsPage::new(keybindings_handle),
@@ -1100,13 +1057,6 @@ impl SettingsView {
         // Build sidebar nav items.
         let mut nav_items = vec![
             SettingsNavItem::Page(SettingsSection::Account),
-            SettingsNavItem::Umbrella(SettingsUmbrella::new(
-                "Code",
-                vec![
-                    SettingsSection::CodeIndexing,
-                    SettingsSection::EditorAndCodeReview,
-                ],
-            )),
             SettingsNavItem::Umbrella(SettingsUmbrella::new(
                 "Cloud platform",
                 vec![SettingsSection::OzCloudAPIKeys],
@@ -1122,7 +1072,6 @@ impl SettingsView {
 
         // Resolve the initial page: map internal backing-page sections to their default subpage.
         let initial_page = match page {
-            Some(SettingsSection::Code) => SettingsSection::CodeIndexing,
             Some(section) if section.is_subpage() => section,
             other => other.unwrap_or_default(),
         };
@@ -1152,7 +1101,6 @@ impl SettingsView {
             context_menu,
             context_menu_state: Default::default(),
             nav_items,
-            code_page_handle: code_page_handle_for_nav,
             subpage_filter: HashMap::new(),
             settings_file_error: None,
             settings_error_banner_dismissed: false,
@@ -1223,21 +1171,9 @@ impl SettingsView {
                         }
                     }
 
-                    // Run per-subpage filtering for pages with multiple subpages.
+                    // No multi-subpage backing pages remain, so there is no
+                    // per-subpage filtering to run.
                     self.subpage_filter.clear();
-                    // For each Code subpage, temporarily switch to that subpage's
-                    // widget set and run the filter to get a subpage-specific result.
-                    for &subpage_section in SettingsSection::code_subpages() {
-                        if let Some(subpage) = CodeSubpage::from_section(subpage_section) {
-                            self.code_page_handle.update(ctx, |view, ctx| {
-                                view.set_active_subpage(Some(subpage), ctx);
-                            });
-                            let match_data = self
-                                .code_page_handle
-                                .update(ctx, |view, ctx| view.update_filter(&search_query, ctx));
-                            self.subpage_filter.insert(subpage_section, match_data);
-                        }
-                    }
                 } else {
                     // Search cleared: restore umbrella expanded state.
                     for item in &mut self.nav_items {
@@ -1252,14 +1188,6 @@ impl SettingsView {
 
                 // Run the standard page-level filter (needed for non-subpage pages
                 // and for subpages with their own backing page).
-                // Switch Code to all-widgets mode so standalone backing page
-                // filter is correct for pages_filter.
-                if is_search_active {
-                    self.code_page_handle.update(ctx, |view, ctx| {
-                        view.set_active_subpage(None, ctx);
-                    });
-                }
-
                 for (i, page) in self.settings_pages.iter().enumerate() {
                     self.pages_filter[i] = update_page!(
                         &page.view_handle,
@@ -1270,18 +1198,6 @@ impl SettingsView {
                         },
                         ctx
                     );
-                }
-
-                // Restore the active subpage after filtering.
-                if is_search_active {
-                    let current = self.current_settings_page;
-                    if current.is_code_subpage() {
-                        if let Some(subpage) = CodeSubpage::from_section(current) {
-                            self.code_page_handle.update(ctx, |view, ctx| {
-                                view.set_active_subpage(Some(subpage), ctx);
-                            });
-                        }
-                    }
                 }
 
                 // Auto-expand umbrellas that have matching subpages during search.
@@ -1565,34 +1481,11 @@ impl SettingsView {
         }
     }
 
-    fn handle_code_page_event(
-        &mut self,
-        event: &CodeSettingsPageEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            CodeSettingsPageEvent::SignupAnonymousUser => {
-                ctx.emit(SettingsViewEvent::SignupAnonymousUser)
-            }
-            CodeSettingsPageEvent::OpenLspLogs { log_path } => {
-                ctx.emit(SettingsViewEvent::OpenLspLogs {
-                    log_path: log_path.clone(),
-                });
-            }
-            CodeSettingsPageEvent::OpenProjectRules { rule_paths } => {
-                ctx.emit(SettingsViewEvent::OpenProjectRulesPane {
-                    rule_paths: rule_paths.clone(),
-                });
-            }
-        }
-    }
-
     pub fn current_settings_section(&self) -> SettingsSection {
         self.current_settings_page
     }
 
     fn current_settings_page(&self) -> Option<&SettingsPage> {
-        // For AI subpages, the backing SettingsPage has section == AI.
         let lookup_section = self.current_settings_page.parent_page_section();
         self.settings_pages
             .iter()
@@ -1617,13 +1510,6 @@ impl SettingsView {
         allow_steal_focus: bool,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Map internal backing-page sections to their default subpage.
-        // External callers should use subpage variants directly.
-        let section = match section {
-            SettingsSection::Code => SettingsSection::CodeIndexing,
-            other => other,
-        };
-
         // Check the backing page for this section exists.
         let page_section = section.parent_page_section();
         if self.settings_page(page_section).is_none() {
@@ -1648,16 +1534,8 @@ impl SettingsView {
         }
         self.current_settings_page = section;
 
-        // When navigating to a subpage, update the backing page's active subpage mode
-        // and auto-expand the umbrella containing it.
+        // When navigating to a subpage, auto-expand the umbrella containing it.
         if section.is_subpage() {
-            // Code subpages: update the Code page's subpage mode.
-            if section.is_code_subpage() {
-                let subpage = CodeSubpage::from_section(section);
-                self.code_page_handle.update(ctx, |view, ctx| {
-                    view.set_active_subpage(subpage, ctx);
-                });
-            }
             // Cloud platform subpages render their backing pages directly
             // (no subpage mode switch needed — the full page is shown).
 
@@ -1713,7 +1591,6 @@ impl SettingsView {
             SettingsPageViewHandle::OzCloudAPIKeys(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Privacy(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Warpify(v) => v.as_ref(app).should_render(app),
-            SettingsPageViewHandle::Code(v) => v.as_ref(app).should_render(app),
         }
     }
 
@@ -1825,9 +1702,6 @@ impl SettingsView {
         if let Some(current_page) = self.current_settings_page() {
             match &current_page.view_handle {
                 SettingsPageViewHandle::Keybindings(view_handle) => {
-                    view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
-                }
-                SettingsPageViewHandle::Teams(view_handle) => {
                     view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
                 }
                 _ => (),
@@ -2243,15 +2117,6 @@ impl TypedActionView for SettingsView {
                     }
                 }
             }
-            SettingsAction::Code(code_action) => {
-                if let Some(code_page) = self.settings_page(SettingsSection::Code) {
-                    if let SettingsPageViewHandle::Code(view) = &code_page.view_handle {
-                        view.update(ctx, |view, ctx| {
-                            view.handle_action(code_action, ctx);
-                        })
-                    }
-                }
-            }
             SettingsAction::WarpifyPageToggle(warpify_action) => {
                 if let Some(warpify_page) = self.settings_page(SettingsSection::Warpify) {
                     if let SettingsPageViewHandle::Warpify(view) = &warpify_page.view_handle {
@@ -2325,7 +2190,3 @@ impl BackingView for SettingsView {
         self.focus_handle = Some(focus_handle);
     }
 }
-
-#[cfg(test)]
-#[path = "mod_tests.rs"]
-mod tests;

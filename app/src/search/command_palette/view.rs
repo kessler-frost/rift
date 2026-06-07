@@ -870,6 +870,16 @@ impl View {
                     line_and_column_arg: None,
                 });
             }
+            CommandPaletteItemAction::NewConversationInProject {
+                path: _,
+                project_name,
+            } => {
+                // Opening a project is handled by the welcome palette, not the regular command
+                // palette. This case should not normally be reached in the command palette context.
+                log::warn!(
+                    "Open project action unexpectedly handled in command palette for project: {project_name}"
+                );
+            }
             CommandPaletteItemAction::NoOp => {
                 // No-op action (used for non-interactable separator items that don't do anything on click).
             }

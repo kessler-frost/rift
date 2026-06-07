@@ -13,7 +13,6 @@ use riftui::{
 use crate::appearance::Appearance;
 use crate::search::command_palette::FilterChipRenderer;
 use crate::search::QueryFilter;
-use crate::settings::AISettings;
 use crate::workspace::Workspace;
 
 /// A zero-state view for the command palette.

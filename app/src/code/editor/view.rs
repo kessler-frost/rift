@@ -54,12 +54,10 @@ use vec1::{vec1, Vec1};
 use vim::vim::{Direction, InsertPosition, VimMode, VimModel, VimState, VimSubscriber};
 
 use crate::appearance::Appearance;
-use crate::code::editor::comment_editor::{CommentEditor, CommentEditorEvent};
-use crate::code::editor::comments::PendingComment;
 use crate::code::editor::diff::DiffStatus;
 use crate::code::editor::element::{
-    AddAsContextButton, CommentButton, EditorWrapper, EditorWrapperStateHandle, GutterHoverTarget,
-    GutterRange, InnerEditor, LineNumberConfig, RevertHunkButton,
+    EditorWrapper, EditorWrapperStateHandle, GutterHoverTarget, GutterRange, InnerEditor,
+    LineNumberConfig, RevertHunkButton,
 };
 use crate::code::editor::find::view::{CodeEditorFind as Find, Event as FindViewEvent};
 use crate::code::editor::goto_line::view::{Event as GoToLineEvent, GoToLineView};
@@ -69,10 +67,8 @@ use crate::code::editor::model::{
 };
 use crate::code::editor::nav_bar::{NavBar, NavBarBehavior, NavBarEvent};
 use crate::code::editor::scroll::{ScrollPosition, ScrollTrigger, ScrollWheelBehavior};
-use crate::code::editor::EditorReviewComment;
 use crate::code::{
-    DiffResult, NoopCommentEditorProvider, NoopFindReferencesCardProvider,
-    ShowCommentEditorProvider, ShowFindReferencesCardProvider,
+    DiffResult, NoopFindReferencesCardProvider, ShowFindReferencesCardProvider,
 };
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;
@@ -111,22 +107,9 @@ pub enum CodeEditorEvent {
     EscapePressed,
     /// Emitted when diff decorations are updated (line highlights, removed lines, etc.)
     DiffUpdated,
-    /// Emitted when the plus icon is clicked to add diff hunk context
-    DiffHunkContextAdded {
-        #[allow(dead_code)]
-        line_range: Range<LineCount>,
-    },
     /// Emitted when a diff hunk is reverted
     DiffReverted,
-    /// Emitted when the inline comment editor is opened.
-    CommentEditorOpened,
     HiddenSectionExpanded,
-    /// Emitted when a comment is saved. This gets propagated up so that it
-    /// can be augmented with the file and repo paths and saved to the comment model.
-    CommentSaved {
-        comment: EditorReviewComment,
-    },
-    RequestOpenComment(CommentId),
     /// Emitted when the viewport is updated after layout
     ViewportUpdated,
     DelayedRenderingFlushed,
@@ -143,9 +126,6 @@ pub enum CodeEditorEvent {
         clamped: bool,
         /// Whether the mouse move event was covered by an element above the editor.
         is_covered: bool,
-    },
-    DeleteComment {
-        id: CommentId,
     },
     VimGotoDefinition,
     VimFindReferences,
@@ -172,12 +152,8 @@ struct CodeEditorViewDisplayOptions {
     horizontal_scrollbar_appearance: ScrollableAppearance,
     vertical_scrollbar_appearance: ScrollableAppearance,
     show_nav_bar: bool,
-    /// The add as context button, or `None` if it is not currently visible.
-    diff_hunk_as_context: Option<AddAsContextButton>,
     /// The revert diff button, or `None` if it is not currently visible.
     revert_diff_hunk: Option<RevertHunkButton>,
-    /// The add comment button, or `None` if it is not currently visible.
-    comment_button: Option<CommentButton>,
     /// Whether to expand the width of the diff indicator in the gutter on hover.
     expand_diff_indicator_width_on_hover: bool,
     // Provides a starting line number for markdown code blocks.
@@ -186,33 +162,11 @@ struct CodeEditorViewDisplayOptions {
     line_height_override: Option<f32>,
 }
 
-#[derive(Clone, Debug)]
-pub(super) struct SavedComment {
-    uuid: CommentId,
-    location: EditorLineLocation,
-    mouse_state: MouseStateHandle,
-}
-
-impl SavedComment {
-    pub fn location(&self) -> &EditorLineLocation {
-        &self.location
-    }
-
-    pub fn mouse_state(&self) -> &MouseStateHandle {
-        &self.mouse_state
-    }
-
-    pub fn uuid(&self) -> CommentId {
-        self.uuid
-    }
-}
-
 #[derive(Debug)]
 pub struct CodeEditorRenderOptions {
     vertical_expansion_behavior: VerticalExpansionBehavior,
     line_height_override: Option<f32>,
     lazy_layout: bool,
-    show_comment_editor_provider: Box<dyn ShowCommentEditorProvider>,
     show_find_references_provider: Box<dyn ShowFindReferencesCardProvider>,
 }
 
@@ -222,7 +176,6 @@ impl CodeEditorRenderOptions {
             vertical_expansion_behavior,
             line_height_override: None,
             lazy_layout: false,
-            show_comment_editor_provider: Box::new(NoopCommentEditorProvider),
             show_find_references_provider: Box::new(NoopFindReferencesCardProvider),
         }
     }
@@ -234,14 +187,6 @@ impl CodeEditorRenderOptions {
 
     pub fn line_height_override(mut self, line_height: f32) -> Self {
         self.line_height_override = Some(line_height);
-        self
-    }
-
-    pub fn with_show_comment_editor_provider(
-        mut self,
-        comment_editor_provider: impl ShowCommentEditorProvider,
-    ) -> Self {
-        self.show_comment_editor_provider = Box::new(comment_editor_provider);
         self
     }
 
@@ -269,12 +214,6 @@ pub struct CodeEditorView {
     vim_model: ModelHandle<VimModel>,
     // Track the most recent Vim search direction to determine how to cycle (n/N) thereafter.
     last_search_direction: Direction,
-    active_comment_editor: ViewHandle<CommentEditor>,
-    /// TODO: maybe turn into a map for fast UUID or range lookup
-    comment_locations: Vec<SavedComment>,
-    /// Save position of the comment button rendered within this code editor view.
-    comment_save_position_id: String,
-    show_comment_editor_provider: Box<dyn ShowCommentEditorProvider>,
     /// Save position of the anchor point for find references card.
     find_references_save_position_id: String,
     show_find_references_provider: Box<dyn ShowFindReferencesCardProvider>,
@@ -370,13 +309,6 @@ impl CodeEditorView {
             ctx.notify();
         });
 
-        let comment_model = model.as_ref(ctx).comments().clone();
-        let comment_editor =
-            ctx.add_typed_action_view(|ctx| CommentEditor::new(ctx, comment_model));
-        ctx.subscribe_to_view(&comment_editor, |me, _, event, ctx| {
-            me.handle_comment_editor_event(event, ctx);
-        });
-
         Self {
             searcher,
             find_bar: Some(find_bar),
@@ -386,7 +318,6 @@ impl CodeEditorView {
             is_selecting: false,
             self_handle: ctx.handle(),
             nav_bar,
-            comment_locations: Vec::new(),
             display_options: CodeEditorViewDisplayOptions {
                 vertical_expansion_behavior: render_options.vertical_expansion_behavior,
                 can_show_diff_ui: true,
@@ -394,9 +325,7 @@ impl CodeEditorView {
                 show_line_numbers: true,
                 starting_line_number: None,
                 show_nav_bar: true,
-                diff_hunk_as_context: Default::default(),
                 revert_diff_hunk: Default::default(),
-                comment_button: Default::default(),
                 // By default expand diff indicators on hover.
                 expand_diff_indicator_width_on_hover: true,
                 scroll_wheel_behavior: ScrollWheelBehavior::AlwaysHandle,
@@ -418,9 +347,6 @@ impl CodeEditorView {
             supports_vim_mode,
             vim_model,
             last_search_direction: Direction::Forward,
-            active_comment_editor: comment_editor,
-            comment_save_position_id: format!("code_editor_comment_{}", ctx.view_id()),
-            show_comment_editor_provider: render_options.show_comment_editor_provider,
             find_references_save_position_id: format!(
                 "code_editor_find_references_{}",
                 ctx.view_id()
@@ -447,32 +373,10 @@ impl CodeEditorView {
         self.window_id
     }
 
-    pub fn set_add_diff_hunk_as_context_button(
-        &mut self,
-        enabled: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.display_options.diff_hunk_as_context = Some(AddAsContextButton::new(enabled));
-        ctx.notify();
-    }
-
-    /// Enables the add context button (plus icon) in diff hunks. Only enable this for code review views.
-    pub fn with_add_context_button(mut self) -> Self {
-        self.display_options.diff_hunk_as_context =
-            Some(AddAsContextButton::new(true /* enabled */));
-        self
-    }
-
     /// Enables the "revert" button on diff hunks. Only enable this for code review views.
     pub fn with_revert_diff_hunk_button(mut self) -> Self {
         self.display_options.revert_diff_hunk =
             Some(RevertHunkButton::new(true /* is_enabled */));
-        self
-    }
-
-    /// Enables the "comment" button on diff hunks. Only enable this for code review views.
-    pub fn with_comment_button(mut self) -> Self {
-        self.display_options.comment_button = Some(CommentButton::default());
         self
     }
 
@@ -619,12 +523,8 @@ impl CodeEditorView {
             self.model.as_ref(ctx).diff_navigation_state().clone(),
             None,
             Default::default(),
-            Default::default(),
-            Default::default(),
-            vec![],
             false,
             self.display_options.gutter_hover_target,
-            self.comment_save_position_id.clone(),
             self.find_references_save_position_id.clone(),
         )
         .finish()
@@ -1107,98 +1007,6 @@ impl CodeEditorView {
                 }
             }
         }
-    }
-
-    fn handle_comment_editor_event(
-        &mut self,
-        event: &CommentEditorEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            CommentEditorEvent::ContentChanged => {
-                // Handle comment content changes if needed
-                ctx.notify();
-            }
-            CommentEditorEvent::CommentSaved {
-                id,
-                comment_text,
-                line,
-            } => {
-                let Some(line) = line else {
-                    debug_assert!(false, "Comment saved event missing line information");
-                    return;
-                };
-                self.save_comment(*id, comment_text, line, ctx);
-            }
-            CommentEditorEvent::CloseEditor => {
-                // Close the comment editor by updating the pending comment state to Closed
-                self.model.update(ctx, |model, ctx| {
-                    model.comments().update(ctx, |comments, _| {
-                        comments.pending_comment = PendingComment::Closed;
-                    });
-                });
-                ctx.notify();
-            }
-            CommentEditorEvent::DeleteComment { id } => {
-                ctx.emit(CodeEditorEvent::DeleteComment { id: *id });
-            }
-        }
-    }
-
-    fn save_comment(
-        &mut self,
-        id: Option<CommentId>,
-        comment_text: &str,
-        line: &EditorLineLocation,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let line_content = self.model.as_ref(ctx).get_diff_content_for_line(line, ctx);
-
-        let review_comment = match id {
-            Some(id) => EditorReviewComment::new_with_id(
-                id,
-                line.to_owned(),
-                line_content,
-                comment_text.to_owned(),
-            ),
-            None => {
-                EditorReviewComment::new(line.to_owned(), line_content, comment_text.to_owned())
-            }
-        };
-
-        self.comment_locations.push(SavedComment {
-            uuid: review_comment.id,
-            location: line.to_owned(),
-            mouse_state: MouseStateHandle::default(),
-        });
-
-        ctx.emit(CodeEditorEvent::CommentSaved {
-            comment: review_comment,
-        });
-        ctx.notify();
-    }
-
-    /// Update all comment locations in this editor.
-    pub fn set_comment_locations(
-        &mut self,
-        comments: impl Iterator<Item = EditorReviewComment>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.comment_locations.clear();
-        for comment in comments {
-            self.comment_locations.push(SavedComment {
-                uuid: comment.id,
-                location: comment.line.clone(),
-                mouse_state: MouseStateHandle::default(),
-            });
-        }
-        ctx.notify();
-    }
-
-    /// Clear all comment locations in this editor.
-    pub fn clear_comment_locations(&mut self, ctx: &mut ViewContext<Self>) {
-        self.comment_locations.clear();
-        ctx.notify();
     }
 
     fn line_number_config(&self, ctx: &AppContext) -> Option<LineNumberConfig> {
@@ -2099,45 +1907,6 @@ impl CodeEditorView {
         });
     }
 
-    pub fn open_existing_comment(
-        &mut self,
-        id: &CommentId,
-        location: &EditorLineLocation,
-        comment_text: &str,
-        origin: &CommentOrigin,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let comment_exists = self
-            .comment_locations
-            .iter()
-            .any(|saved_comment| saved_comment.uuid == *id);
-
-        if !comment_exists {
-            log::warn!(
-                "open_existing_comment: no saved comment found for id {:?}",
-                id
-            );
-            return;
-        }
-
-        self.active_comment_editor
-            .update(ctx, |comment_editor, ctx| {
-                comment_editor.reopen_saved_comment(
-                    id,
-                    Some(location.clone()),
-                    comment_text,
-                    origin,
-                    ctx,
-                );
-            });
-
-        self.model.update(ctx, |editor_model, ctx| {
-            editor_model.reopen_comment_line(id, location, comment_text, origin, ctx);
-        });
-        ctx.emit(CodeEditorEvent::CommentEditorOpened);
-
-        ctx.notify();
-    }
 }
 
 impl Entity for CodeEditorView {
@@ -2239,26 +2008,11 @@ impl View for CodeEditorView {
             } else {
                 None
             },
-            self.display_options.diff_hunk_as_context,
             self.display_options.revert_diff_hunk,
-            self.display_options.comment_button,
-            self.comment_locations.clone(),
             self.display_options.expand_diff_indicator_width_on_hover,
             self.display_options.gutter_hover_target,
-            self.comment_save_position_id.clone(),
             self.find_references_save_position_id.clone(),
         );
-
-        let pending_comment = &self
-            .model
-            .as_ref(app)
-            .comments()
-            .as_ref(app)
-            .pending_comment;
-        // Check if there's an open comment in the model and set the comment box
-        if let PendingComment::Open { line, .. } = pending_comment {
-            code_editor.set_comment_box(line.clone(), app);
-        }
 
         // Set find references anchor if there's an active request
         if let Some(offset) = &self.find_references_anchor_offset {
@@ -2322,40 +2076,6 @@ impl View for CodeEditorView {
             stack.add_overlay_child(dialog);
         }
 
-        if !FeatureFlag::EmbeddedCodeReviewComments.is_enabled() {
-            // Render the open comment editor.
-            if let PendingComment::Open { line, .. } = pending_comment {
-                let render_state_ref = render_state.as_ref(app);
-                let vertical_offset = render_state_ref
-                    .vertical_offset_at_render_location(line.clone().into_render_line_location())
-                    .unwrap_or_default()
-                    + render_state_ref.styles().base_line_height();
-
-                let line_location = app.element_position_by_id_at_last_frame(
-                    self.window_id,
-                    &self.comment_save_position_id,
-                );
-
-                let should_render_comment_editor = match line_location {
-                    Some(line_location) => self
-                        .show_comment_editor_provider
-                        .should_show_comment_editor(line_location, app),
-                    None => true,
-                };
-
-                if should_render_comment_editor {
-                    stack.add_positioned_child(
-                        ChildView::new(&self.active_comment_editor).finish(),
-                        OffsetPositioning::offset_from_parent(
-                            vec2f(0., vertical_offset.as_f32()),
-                            ParentOffsetBounds::ParentByPosition,
-                            ParentAnchor::TopLeft,
-                            ChildAnchor::TopLeft,
-                        ),
-                    );
-                }
-            }
-        }
         stack.finish()
     }
 

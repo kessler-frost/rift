@@ -957,9 +957,7 @@ fn trigger_keybinding_notifier(
 }
 
 #[derive(Default)]
-struct KeybindingsWidget {
-    local_only_icon_mouse_state: MouseStateHandle,
-}
+struct KeybindingsWidget;
 
 impl KeybindingsWidget {
     fn render_description(
@@ -1098,17 +1096,11 @@ impl SettingsWidget for KeybindingsWidget {
         &self,
         view: &Self::View,
         appearance: &Appearance,
-        app: &AppContext,
+        _app: &AppContext,
     ) -> Box<dyn Element> {
-        let local_only_icon_state = if *CloudPreferencesSettings::as_ref(app).settings_sync_enabled
-        {
-            Some(LocalOnlyIconState::Visible {
-                mouse_state: self.local_only_icon_mouse_state.clone(),
-                custom_tooltip: Some("Keyboard shortcuts are not synced to the cloud".to_string()),
-            })
-        } else {
-            None
-        };
+        // Cloud settings sync has been removed; keyboard shortcuts are always
+        // local-only, so the "not synced to cloud" indicator is never shown.
+        let local_only_icon_state: Option<LocalOnlyIconState> = None;
 
         let subheader = render_sub_header(
             appearance,

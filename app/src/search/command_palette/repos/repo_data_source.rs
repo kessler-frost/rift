@@ -1,7 +1,6 @@
-use ai::workspace::WorkspaceMetadata;
 use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
 use itertools::Itertools;
-use riftui::{AppContext, Entity, SingletonEntity};
+use riftui::{AppContext, Entity};
 
 use super::RepoSearchItem;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
@@ -23,13 +22,10 @@ impl RepoDataSource {
         Self {}
     }
 
-    pub fn top_n(&self, limit: usize, app: &AppContext) -> impl Iterator<Item = RepoSearchItem> {
-        PersistedWorkspace::as_ref(app)
-            .workspaces()
-            .filter(|cbm| cbm.path.is_dir())
-            .sorted_by(WorkspaceMetadata::most_recently_navigated)
-            .take(limit)
-            .map(RepoSearchItem::new)
+    pub fn top_n(&self, _limit: usize, _app: &AppContext) -> impl Iterator<Item = RepoSearchItem> {
+        // The recent-workspaces list was backed by a cloud-synced model that has been
+        // removed; there is no local source of recent repos yet.
+        std::iter::empty()
     }
 }
 

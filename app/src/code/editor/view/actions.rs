@@ -640,20 +640,9 @@ pub enum CodeEditorViewAction {
         line_range: Range<LineCount>,
         expansion_type: ExpansionType,
     },
-    /// Add diff hunk content as context (when clicking plus icon)
-    AddDiffHunkContext {
-        line_range: Range<LineCount>,
-    },
     /// Revert diff hunk changes (when clicking revert icon)
     RevertDiffHunk {
         line_range: Range<LineCount>,
-    },
-    /// Open comment line (when opening a comment on a specific line)
-    NewCommentOnLine {
-        line: EditorLineLocation,
-    },
-    RequestOpenSavedComment {
-        uuid: CommentId,
     },
     DeleteLineLeft,
     DeleteLineRight,
@@ -795,10 +784,7 @@ impl CodeEditorViewAction {
             | Self::ShowGoToLine
             | Self::Escape
             | Self::HiddenSectionExpansion { .. }
-            | Self::AddDiffHunkContext { .. }
             | Self::RevertDiffHunk { .. }
-            | Self::NewCommentOnLine { .. }
-            | Self::RequestOpenSavedComment { .. }
             | Self::MouseHovered { .. }
             | Self::MaybeClickOnHoveredLink(_)
             | Self::RightMouseDown { .. } => true,
@@ -1047,20 +1033,6 @@ impl TypedActionView for CodeEditorView {
             } => {
                 self.expand_hidden_section(line_range.clone(), expansion_type, ctx);
             }
-            AddDiffHunkContext { line_range } => {
-                // Record this range as clicked so the button disappears
-                self.display_states
-                    .wrapper_state_handle
-                    .record_clicked_range(line_range.clone());
-
-                // Emit event for parent to handle adding context
-                ctx.emit(CodeEditorEvent::DiffHunkContextAdded {
-                    line_range: line_range.clone(),
-                });
-
-                // Notify to re-render and hide the button
-                ctx.notify();
-            }
             RevertDiffHunk { line_range } => {
                 if FeatureFlag::RevertDiffHunk.is_enabled() {
                     // Convert line range to diff hunk index and revert it
@@ -1080,22 +1052,6 @@ impl TypedActionView for CodeEditorView {
 
                     // Notify to re-render
                     ctx.notify();
-                }
-            }
-            NewCommentOnLine { line: line_info } => {
-                if FeatureFlag::InlineCodeReview.is_enabled() {
-                    self.model.update(ctx, |model: &mut CodeEditorModel, ctx| {
-                        model.open_comment_line(line_info, ctx);
-                    });
-                    ctx.emit(CodeEditorEvent::CommentEditorOpened);
-
-                    ctx.focus(&self.active_comment_editor);
-                    ctx.notify();
-                }
-            }
-            RequestOpenSavedComment { uuid } => {
-                if FeatureFlag::InlineCodeReview.is_enabled() {
-                    ctx.emit(CodeEditorEvent::RequestOpenComment(*uuid))
                 }
             }
             MouseHovered {

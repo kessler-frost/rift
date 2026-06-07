@@ -50,6 +50,11 @@ pub enum CommandPaletteItemAction {
         file_name: String,
         current_directory: String,
     },
+    /// Open the project at `path` in a new session.
+    NewConversationInProject {
+        path: String,
+        project_name: String,
+    },
     /// No-op action (used for non-interactable separator items that don't do anything on click).
     NoOp,
 }
@@ -93,6 +98,9 @@ impl CommandPaletteItemAction {
             CommandPaletteItemAction::CreateFile { .. } => {
                 // CreateFile actions should not show up in recent items
                 ItemSummary::NoOp
+            }
+            CommandPaletteItemAction::NewConversationInProject { path, .. } => {
+                ItemSummary::Project { path: path.clone() }
             }
             CommandPaletteItemAction::NoOp => ItemSummary::NoOp,
         }

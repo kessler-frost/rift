@@ -756,6 +756,12 @@ impl WelcomePalette {
                     self.dispatch_typed_action_on_view(action, ctx);
                 };
             }
+            CommandPaletteItemAction::NewConversationInProject {
+                path,
+                project_name: _,
+            } => {
+                ctx.emit(Event::NewConversationInProject { path: path.clone() });
+            }
             CommandPaletteItemAction::NewSession { source } => {
                 self.dispatch_typed_action_on_view(source.action().deref(), ctx);
                 self.close(ctx, Some(result_action.result_type()));
