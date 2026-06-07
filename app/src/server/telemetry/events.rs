@@ -15,14 +15,8 @@ use session_sharing_protocol::common::{ParticipantId, Role, SessionId as SharedS
 use session_sharing_protocol::sharer::{SessionEndedReason, SessionSourceType};
 use strum_macros::{EnumDiscriminants, EnumIter};
 
-use crate::ai::predict::generate_ai_input_suggestions::{
-    GenerateAIInputSuggestionsRequest, GenerateAIInputSuggestionsResponseV2,
-};
-use crate::ai::predict::next_command_model::HistoryBasedAutosuggestionState;
 use crate::auth::auth_manager::LoginGatedFeature;
 use crate::channel::Channel;
-#[cfg(feature = "local_fs")]
-use crate::code::editor_management::CodeSource;
 use crate::features::FeatureFlag;
 use crate::launch_configs::save_modal::SaveState;
 use crate::palette::PaletteMode;
@@ -35,7 +29,6 @@ use crate::server::ids::{ObjectUid, ServerId};
 use crate::settings::import::config::{ParsedTerminalSetting, SettingType};
 use crate::settings::import::model::TerminalType;
 use crate::settings::AgentModeCodingPermissionsType;
-use crate::settings_view::TeamsInviteOption;
 use crate::tab::TabTelemetryAction;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::cli_agent_sessions::{CLIAgentInputEntrypoint, CLIAgentRichInputCloseReason};
@@ -47,10 +40,6 @@ use crate::terminal::model::terminal_model::{BlockSelectionCardinality, TmuxInst
 use crate::terminal::settings::AltScreenPaddingMode;
 use crate::terminal::shell::ShellType;
 use crate::terminal::ssh::ssh_detection::SshInteractiveSessionDetected;
-use crate::terminal::view::block_onboarding::onboarding_agentic_suggestions_block::OnboardingChipType;
-use crate::terminal::view::inline_banner::{
-    ZeroStatePromptSuggestionTriggeredFrom, ZeroStatePromptSuggestionType,
-};
 use crate::terminal::view::{
     BlockEntity, BlockSelectionDetails, ContextMenuInfo, GridHighlightedLink,
     NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction, NotificationsTrigger,
@@ -127,147 +116,16 @@ pub struct BlockLatencyInfo {
     pub execution_ms: u64,
 }
 
-// For use when recording what type of cloud object a particular telemetry is for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TelemetryCloudObjectType {
-    Workflow,
-    Notebook,
-    Folder,
-    GenericStringObject(GenericStringObjectFormat),
-}
 
-impl From<&CloudObjectTypeAndId> for TelemetryCloudObjectType {
-    fn from(cloud_object_type_and_id: &CloudObjectTypeAndId) -> Self {
-        match cloud_object_type_and_id {
-            CloudObjectTypeAndId::Notebook(_) => Self::Notebook,
-            CloudObjectTypeAndId::Workflow(_) => Self::Workflow,
-            CloudObjectTypeAndId::Folder(_) => Self::Folder,
-            CloudObjectTypeAndId::GenericStringObject { object_type, .. } => {
-                Self::GenericStringObject(*object_type)
-            }
-        }
-    }
-}
 
-/// For use when recording how a user has access to a cloud object.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum TelemetrySpace {
-    /// The object is owned by the current user.
-    Personal,
-    /// The object is owned by a team the user is on.
-    Team,
-    /// The object was shared with the user.
-    Shared,
-}
 
-impl From<Space> for TelemetrySpace {
-    fn from(space: Space) -> Self {
-        match space {
-            Space::Personal => Self::Personal,
-            Space::Team { .. } => Self::Team,
-            Space::Shared => Self::Shared,
-        }
-    }
-}
 
-/// Common metadata to include in all Warp Drive telemetry events that act on a specific object.
-/// Events that only apply to a single object type may use specific metadata like [`WorkflowTelemetryMetadata`],
-/// [`NotebookTelemetryMetadata`], or [`EnvVarTelemetryMetadata`] instead.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CloudObjectTelemetryMetadata {
-    pub object_type: TelemetryCloudObjectType,
-    /// The server UID of the object. This only exists for objects that have been synced to the
-    /// server.
-    pub object_uid: Option<ServerId>,
-    /// The space through which the user has access to the object.
-    pub space: Option<TelemetrySpace>,
-    /// If the object is owned by a team, this is the owning team's UID. For shared objects, the
-    /// user might not be on the team.
-    pub team_uid: Option<ServerId>,
-}
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct WorkflowTelemetryMetadata {
-    pub workflow_categories: Option<Vec<String>>,
-    pub workflow_source: WorkflowSource,
-    pub workflow_space: Option<TelemetrySpace>,
-    pub workflow_selection_source: WorkflowSelectionSource,
-    // This field is only populated for cloud workflows that have been synced to the server
-    pub workflow_id: Option<WorkflowId>,
-    // Any referenced workflow enums that have been synced to the cloud
-    pub enum_ids: Vec<GenericStringObjectId>,
-}
 
-/// Metadata to include in all notebook telemetry events.
-///
-/// There are 4 expected configurations:
-/// * Personal cloud notebooks: `notebook_id` is `Some`, `team_uid` is `None`, and location is `PersonalCloud`
-/// * Team cloud notebooks: `notebook_id` is `Some`, `team_uid` is `Some`, and location is `Team`
-/// * Local file-based notebooks: `notebook_id` and `team_uid` are `None`, and location is `LocalFile`
-/// * Remote file-based notebooks: `notebook_id` and `team_uid` are `None`, and location is `RemoteFile`
-///
-/// This representation allows for invalid combinations, but makes querying the data easier (for
-/// example, to find all notebook events for a given team).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct NotebookTelemetryMetadata {
-    /// The notebook ID, only available for cloud notebooks that have been synced to the server.
-    pub notebook_id: Option<NotebookId>,
-    /// The team UID, only available for cloud notebooks in a shared team.
-    pub team_uid: Option<ServerId>,
-    pub space: Option<TelemetrySpace>,
-    /// Where the notebook is canonically located.
-    pub location: NotebookLocation,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub markdown_table_count: Option<usize>,
-}
 
-impl NotebookTelemetryMetadata {
-    pub fn new(
-        notebook_id: impl Into<Option<NotebookId>>,
-        team_uid: impl Into<Option<ServerId>>,
-        location: impl Into<NotebookLocation>,
-        space: Option<TelemetrySpace>,
-    ) -> Self {
-        Self {
-            notebook_id: notebook_id.into(),
-            team_uid: team_uid.into(),
-            location: location.into(),
-            space,
-            markdown_table_count: None,
-        }
-    }
 
-    pub fn with_markdown_table_count(mut self, markdown_table_count: usize) -> Self {
-        self.markdown_table_count = Some(markdown_table_count);
-        self
-    }
-}
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NotebookActionEvent {
-    #[serde(flatten)]
-    pub action: NotebookTelemetryAction,
-    #[serde(flatten)]
-    pub metadata: NotebookTelemetryMetadata,
-}
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct EnvVarTelemetryMetadata {
-    /// The object ID, only available for cloud env vars that have been synced to the server.
-    pub object_id: Option<GenericStringObjectId>,
-    /// The team UID, only available for cloud env vars in a shared team.
-    pub team_uid: Option<ServerId>,
-    pub space: TelemetrySpace,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct MCPServerTelemetryMetadata {
-    pub object_id: GenericStringObjectId,
-    pub name: String,
-    pub transport_type: MCPServerTelemetryTransportType,
-    /// The MCP server string extracted from '@modelcontextprotocol/<...>'.
-    pub mcp_server: Option<String>,
-}
 
 #[derive(Clone, Debug, Copy, Serialize, Deserialize)]
 pub enum MCPTemplateCreationSource {
@@ -338,17 +196,6 @@ impl From<rmcp::RmcpError> for MCPServerTelemetryError {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpenedSharingDialogEvent {
-    pub source: SharingDialogSource,
-
-    /// Metadata for the object being shared, if it's a Warp Drive object.
-    #[serde(flatten)]
-    pub object_metadata: Option<CloudObjectTelemetryMetadata>,
-
-    /// Metadata for the session being shared, if there is one.
-    pub session_id: Option<SharedSessionId>,
-}
 
 /// How the user opened the Warp Drive sharing dialog.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -472,24 +319,7 @@ pub enum PluginChipTelemetryKind {
     Update,
 }
 
-/// Identifies the agent variant that triggered a notification (for telemetry purposes).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum NotificationAgentVariant {
-    /// Warp's built-in agent (Oz).
-    Oz,
-    /// A CLI agent (e.g., Claude Code, Gemini CLI, etc.).
-    CLIAgent(CLIAgentType),
-}
 
-impl From<NotificationSourceAgent> for NotificationAgentVariant {
-    fn from(agent: NotificationSourceAgent) -> Self {
-        match agent {
-            NotificationSourceAgent::Oz { .. } => Self::Oz,
-            NotificationSourceAgent::CLI { agent, .. } => Self::CLIAgent(agent.into()),
-        }
-    }
-}
 
 /// The action taken on a plugin chip (for telemetry purposes).
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -956,21 +786,6 @@ pub enum CodeContextDestination {
     RichInput,
 }
 
-#[derive(Clone, Debug, Serialize)]
-pub enum AgentModeCitation {
-    WarpDriveObject {
-        object_type: ObjectType,
-        uid: ObjectUid,
-    },
-    WarpDocs {
-        page: String,
-    },
-    WebPage {
-        // Don't serialize the URL to avoid leaking sensitive information.
-        #[serde(skip_serializing)]
-        url: String,
-    },
-}
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub enum ImageProtocol {
@@ -986,169 +801,9 @@ pub enum InputUXChangeOrigin {
     ADELaunchModal,
 }
 
-#[derive(Clone, Debug, Serialize)]
-pub enum AIAgentInput {
-    UserQuery { query: String },
-    AutoCodeDiffQuery { query: String },
-    ResumeConversation,
-    InitProjectRules { display_query: Option<String> },
-    CreateEnvironment { display_query: Option<String> },
-    TriggerSuggestPrompt { trigger: PassiveSuggestionTrigger },
-    ActionResult { action_id: AIAgentActionId },
-    CreateNewProject { query: String },
-    CloneRepository { url: String },
-    CodeReview,
-    FetchReviewComments,
-    SummarizeConversation,
-    InvokeSkill { skill_name: String },
-    StartFromAmbientRunPrompt,
-    MessagesReceivedFromAgents { message_count: usize },
-    EventsFromAgents { event_count: usize },
-    PassiveSuggestionResult,
-    OrchestrationConfigUpdate,
-}
 
-impl From<FullAIAgentInput> for AIAgentInput {
-    fn from(input: FullAIAgentInput) -> Self {
-        match input {
-            FullAIAgentInput::UserQuery { query, .. } => Self::UserQuery { query },
-            FullAIAgentInput::AutoCodeDiffQuery { query, .. } => Self::AutoCodeDiffQuery { query },
-            FullAIAgentInput::ResumeConversation { .. } => Self::ResumeConversation,
-            FullAIAgentInput::InitProjectRules { display_query, .. } => {
-                Self::InitProjectRules { display_query }
-            }
-            FullAIAgentInput::CreateEnvironment { display_query, .. } => {
-                Self::CreateEnvironment { display_query }
-            }
-            FullAIAgentInput::TriggerPassiveSuggestion { trigger, .. } => {
-                Self::TriggerSuggestPrompt { trigger }
-            }
-            FullAIAgentInput::ActionResult { result, .. } => Self::ActionResult {
-                action_id: result.id,
-            },
-            FullAIAgentInput::CreateNewProject { query, .. } => Self::CreateNewProject { query },
-            FullAIAgentInput::CloneRepository { clone_repo_url, .. } => Self::CloneRepository {
-                url: clone_repo_url.into_url(),
-            },
-            FullAIAgentInput::CodeReview { .. } => Self::CodeReview,
-            FullAIAgentInput::FetchReviewComments { .. } => Self::FetchReviewComments,
-            FullAIAgentInput::SummarizeConversation { .. } => Self::SummarizeConversation,
-            FullAIAgentInput::InvokeSkill { skill, .. } => Self::InvokeSkill {
-                skill_name: skill.name.clone(),
-            },
-            FullAIAgentInput::StartFromAmbientRunPrompt { .. } => Self::StartFromAmbientRunPrompt,
-            FullAIAgentInput::MessagesReceivedFromAgents { messages } => {
-                Self::MessagesReceivedFromAgents {
-                    message_count: messages.len(),
-                }
-            }
-            FullAIAgentInput::EventsFromAgents { events } => Self::EventsFromAgents {
-                event_count: events.len(),
-            },
-            FullAIAgentInput::PassiveSuggestionResult { .. } => Self::PassiveSuggestionResult,
-            FullAIAgentInput::OrchestrationConfigUpdate { .. } => Self::OrchestrationConfigUpdate,
-        }
-    }
-}
 
-/// The origin of an agent view entry, for telemetry purposes.
-#[derive(Clone, Copy, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TelemetryAgentViewEntryOrigin {
-    Input { was_prompt_autodetected: bool },
-    ConversationSelector,
-    AgentModeHomepage,
-    AgentViewBlock,
-    AIDocument,
-    AutoFollowUp,
-    RestoreExistingConversation,
-    SharedSessionSelection,
-    AgentRequestedNewConversation,
-    AcceptedPromptSuggestion,
-    AcceptedUnitTestSuggestion,
-    AcceptedPassiveCodeDiff,
-    InlineCodeReview,
-    AmbientAgent,
-    Cli,
-    ImageAdded,
-    SlashCommand,
-    CodeReviewContext,
-    ContinueConversationButton,
-    ViewPassiveCodeDiffDetails,
-    ResumeConversationButton,
-    CodexModal,
-    LongRunningCommand,
-    HistoryMenu,
-    InlineConversationMenu,
-    PromptChip,
-    OnboardingCallout,
-    ConversationListView,
-    Onboarding,
-    Keybinding,
-    SlashInit,
-    CreateEnvironment,
-    ProjectEntry,
-    ClearBuffer,
-    DefaultSessionMode,
-    ChildAgent,
-    LinearDeepLink,
-    ThirdPartyCloudAgent,
-    OrchestrationPillBar,
-    JumpToLatestAgentMessage,
-}
 
-impl From<AgentViewEntryOrigin> for TelemetryAgentViewEntryOrigin {
-    fn from(origin: AgentViewEntryOrigin) -> Self {
-        match origin {
-            AgentViewEntryOrigin::Input {
-                was_prompt_autodetected,
-            } => Self::Input {
-                was_prompt_autodetected,
-            },
-            AgentViewEntryOrigin::ConversationSelector => Self::ConversationSelector,
-            AgentViewEntryOrigin::AgentModeHomepage => Self::AgentModeHomepage,
-            AgentViewEntryOrigin::AgentViewBlock => Self::AgentViewBlock,
-            AgentViewEntryOrigin::AIDocument => Self::AIDocument,
-            AgentViewEntryOrigin::AutoFollowUp => Self::AutoFollowUp,
-            AgentViewEntryOrigin::RestoreExistingConversation => Self::RestoreExistingConversation,
-            AgentViewEntryOrigin::SharedSessionSelection => Self::SharedSessionSelection,
-            AgentViewEntryOrigin::AgentRequestedNewConversation => {
-                Self::AgentRequestedNewConversation
-            }
-            AgentViewEntryOrigin::AcceptedPromptSuggestion => Self::AcceptedPromptSuggestion,
-            AgentViewEntryOrigin::AcceptedUnitTestSuggestion => Self::AcceptedUnitTestSuggestion,
-            AgentViewEntryOrigin::AcceptedPassiveCodeDiff => Self::AcceptedPassiveCodeDiff,
-            AgentViewEntryOrigin::InlineCodeReview => Self::InlineCodeReview,
-            AgentViewEntryOrigin::CloudAgent => Self::AmbientAgent,
-            AgentViewEntryOrigin::ThirdPartyCloudAgent => Self::ThirdPartyCloudAgent,
-            AgentViewEntryOrigin::Cli => Self::Cli,
-            AgentViewEntryOrigin::ImageAdded => Self::ImageAdded,
-            AgentViewEntryOrigin::SlashCommand { .. } => Self::SlashCommand,
-            AgentViewEntryOrigin::CodeReviewContext => Self::CodeReviewContext,
-            AgentViewEntryOrigin::LongRunningCommand => Self::LongRunningCommand,
-            AgentViewEntryOrigin::ContinueConversationButton => Self::ContinueConversationButton,
-            AgentViewEntryOrigin::ViewPassiveCodeDiffDetails => Self::ViewPassiveCodeDiffDetails,
-            AgentViewEntryOrigin::ResumeConversationButton => Self::ResumeConversationButton,
-            AgentViewEntryOrigin::CodexModal => Self::CodexModal,
-            AgentViewEntryOrigin::InlineHistoryMenu => Self::HistoryMenu,
-            AgentViewEntryOrigin::InlineConversationMenu => Self::InlineConversationMenu,
-            AgentViewEntryOrigin::PromptChip => Self::PromptChip,
-            AgentViewEntryOrigin::OnboardingCallout => Self::OnboardingCallout,
-            AgentViewEntryOrigin::ConversationListView => Self::ConversationListView,
-            AgentViewEntryOrigin::Onboarding => Self::Onboarding,
-            AgentViewEntryOrigin::Keybinding => Self::Keybinding,
-            AgentViewEntryOrigin::SlashInit => Self::SlashInit,
-            AgentViewEntryOrigin::CreateEnvironment => Self::CreateEnvironment,
-            AgentViewEntryOrigin::ProjectEntry => Self::ProjectEntry,
-            AgentViewEntryOrigin::ClearBuffer => Self::ClearBuffer,
-            AgentViewEntryOrigin::DefaultSessionMode => Self::DefaultSessionMode,
-            AgentViewEntryOrigin::ChildAgent => Self::ChildAgent,
-            AgentViewEntryOrigin::LinearDeepLink => Self::LinearDeepLink,
-            AgentViewEntryOrigin::OrchestrationPillBar => Self::OrchestrationPillBar,
-            AgentViewEntryOrigin::JumpToLatestAgentMessage => Self::JumpToLatestAgentMessage,
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub enum SlashMenuSource {
