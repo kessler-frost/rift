@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **759 real compile errors (honest count)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **697 real compile errors (honest count)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,21 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 15: honest grind 759->697 (859 honest baseline). DONE this window: AgentToolbarItemKind recreate
+(toolbar cluster), rich_content.rs partial (agent structs/field/accessors), vertical_tabs.rs 35->0
+(TypedPane keep-only Terminal/Settings/Other + resolve_pane_type + drive-object icon colors gutted +
+ConversationStatus summary sub-cluster + AgentNotifications/cloud-env/status-pill), working_directories.rs
+22->0 (removed DiffStateModelMap + comment/code_review/file_tree fields + storage/cleanup methods).
+PANE_IMPL CAUTION: /tmp/delfns.py CORRUPTED pane_impl.rs (left orphan braces — likely a method with a
+complex closure). pane_impl needs EDIT-based work, not scripts. Its agent chrome is ENTANGLED: keep method
+update_pane_configuration -> selected_conversation_display_title -> selected_conversation_for_user_facing_chrome
+-> chrome helpers + default_agent_conversation_title; gut the conversation-title logic in update_pane_configuration
+first, then delete the chain. pane_impl also: agent_view_shareable_object(ShareableObject/BlocklistAIHistoryModel),
+render_shared_session_header_content(SharedSessionKind), render_parent_conversation_header_card, the
+selected_conversation_* accessors, is_in_cloud_agent_setup_phase, super::Viewer import.
+Remaining top files: view.rs 73, input.rs 51, terminal/view.rs 44, right_panel 34, pane_impl 27,
+slash_commands mod 26 + data_source 25, graphql/schema 22, server_api 21, auth 16, rich_content 15.
+
 WINDOW 14: honest grind continues 859->759. Validated RECREATE-MINIMAL pattern again: AgentToolbarItemKind
 recreated as enum{ContextChip(ContextChipKind),RichInput} in terminal/session_settings.rs + imports wired in
 chip_configurator/view (resolved toolbar cluster ~43 errs). chip_configurator match had `control=>` catch-all so
