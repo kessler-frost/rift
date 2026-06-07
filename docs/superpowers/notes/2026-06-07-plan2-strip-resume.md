@@ -1,8 +1,8 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1663 compile errors** (down from 4173 baseline,
-~60%), all committed + pushed (latest `a3d400ce` + the window-8 enum-cascade commits).
+State at handoff: branch `plan2-strip`, **1479 compile errors** (down from 4173 baseline,
+~65%), all committed + pushed (latest `3f16a99c`).
 To pick up locally:
 `cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
 (needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
@@ -19,6 +19,64 @@ compile away (tokens discarded, not type-checked). Phase E's REMAINING work is o
 `AuthState` shim, and (b) Phase F deletion of `server/telemetry/events.rs` (the `TelemetryEvent`
 enum DEFINITION — 176 errors there are its variant payloads referencing deleted types; leave
 until the server delete). Do NOT delete the 67 call sites.
+
+## WINDOW 8b — what's DONE (TerminalView struct/ctor/Event-enum/agent-methods linchpin; 1663 → 1479, −184)
+The window-5 "linchpin" is now largely DONE. All committed + pushed, each a verified drop.
+- **Struct + ctor de-agent (`0fcbfca1`, 1647→1612)**: removed remaining agent fields from the
+  `TerminalView` struct def + `Self {}` block (scroll_position_before_entering_agent_view,
+  pending_user_query*/queued_prompt_callback/usage_footer_view_ids/onboarding_agentic*/
+  auto_stop_sharing/conversation_ended_tombstone/is_todo_popup_visible/conversation_completed_callbacks/
+  agent_view_back_button/orchestration/conversation_details_panel[the broken-type field that was
+  tainting the struct + suppressing E0560]/ambient_agent_cancel/env-setup/cloud-mode-start/aws-login/
+  viewer-driven-size + Self-only extras ai_*/agent_view_controller/ambient/cli_subagent/use_agent_footer/
+  agent_todos/ephemeral). Deleted the orphaned ctor agent subscriptions (the 310-line
+  `agent_view_controller` block, ai_controller, ai_status_bar, ai_context/input/action, CLIAgentSessions,
+  executors, ambient) + agent let-bindings. NOTE the ctor takes NO agent params (trimmed earlier) — the
+  agent vars were all undefined (E0425), so the subscriptions were orphaned.
+- **Event enum (`4cf70ce7`, 1612→1580)**: trimmed view.rs `Event` to terminal-only (dropped
+  AskAIAssistant/OpenWorkflowModal*/Drive/AI-doc/agent-toolbar/code-review/sharing/role/MCP/
+  agent-profile/cloud-capacity/StartAgentConversation/child-agents/ShareModalOpened/AnonymousUserSignup);
+  deleted `ExecuteAIRequestedCommandEvent` struct.
+- **Agent accessor/helper methods (`1546`+`1509`)**: deleted ~60 pure-agent methods via
+  `/tmp/delbyname.py` (ai_controller/ai_context_model/ai_input_model/agent_view_controller/ambient
+  accessors; rewind-dialog/fork/cloud-mode callbacks; codebase-index/cloud-env-setup/agent-mode-setup/
+  code-diff/ai-block/init-environment/env-var-collection/exchange-scroll helpers; git-status cluster;
+  telemetry-banner/onboarding-callout/lsp/file-tree/input-config).
+- **More ctor residuals (`1493`)**: fixed the ctor `Input::new` CALL (dropped 8 agent args to match the
+  de-agented `Input::new` signature in input.rs L1798 — current params: model, tips_completed, server_api,
+  sessions, size_info, menu_positioning_provider, current_prompt, terminal_view_id, current_repo_path,
+  model_events, active_session, ctx); removed AgentConversationsModel/cli_subagent_controller/
+  maa_passive_suggestions/legacy_passive_suggestions subscriptions.
+- **Caller fixups (`3f16a99c`, 1479)**: dropped calls to deleted update_git_status_subscription/
+  hide_telemetry_banner_permanently; `HideTelemetryBannerPermanently` handle_action arm → `{}`.
+
+## WINDOW 8b — REMAINING view.rs (95 errors, the long tail + 3 dispatch matches)
+- **`handle_input_event` (15)** — the **InputEvent cascade**: `terminal/input.rs` `pub enum Event`
+  (L846-980) has agent variants (ExecuteAIQuery/SendAgentPrompt/SubmitCloudFollowup/
+  CancelSharedSessionConversation/UnhandledCmdEnter/CtrlEnter/SignupAnonymousUser/OpenCodeInWarp/
+  OpenCodeReviewPane/AttachDiffSetContext/OpenConversationHistory/OpenViewMCPPane/OpenAddMCPPane/
+  OpenProjectRulesPane/OpenEnvironmentManagementPane/OpenFilesPalette/TryHandlePassiveCodeDiff/
+  ToggleAIDocumentPane/SubmitCLIAgentInput/OpenAIDocumentPane/OpenAutoReloadModal/AuthSecretDelete/
+  EnterAgentView/EnterCloudAgentView/CreateDockerSandbox/ExitCloudMode/ScrollToExchange/
+  TriggerEnvironmentSetup/RegisterPluginListener/OpenPluginInstructionsPane/OpenShareSessionModal/
+  StartRemoteControl/OpenHandoff*/OpenCloudModeV2*). KEEP terminal Events (Autosuggestion/Clear*/Page*/
+  SelectRecentBlocks/Copy/UnhandledModifierKey/ClearSelectionsWhenShellMode/InputStateChanged/
+  InputEmptyStateChanged/Escape/SyncInput/ShowCommandSearch/CtrlD/CtrlC/Enter/ExecuteCommand/
+  EmacsBindingUsed/InputFocusedFromMiddleClick/EditorFocused/OpenSettings/ShowToast). Trim the enum +
+  remove the matching `handle_input_event` arms in view.rs TOGETHER. Also `InputAction` (L988+) has
+  agent variants. This unblocks a big chunk of input.rs's 128 errors too.
+- **`handle_terminal_event` (9)** — the **ModelEvent cascade** (`terminal/model_events.rs`): agent
+  ModelEvent variants (AgentViewEntryOrigin etc.). Trim ModelEvent + remove arms together.
+- **`render` (7)** + **`keymap_context` (4)**: agent render branches / keymap flags — edit in place
+  (drop agent_view_controller.is_fullscreen / use_agent_footer / ambient branches; agent keymap flags).
+- Mixed 1-ref methods (edit in place, drop the agent branch): handle_ctrl_c_input_event,
+  on_user_block_completed, handle_session_bootstrapped, context_menu_items, ctrl_c_to_active_block,
+  is_input_box_visible, viewport_state, apply_block_metadata_update, render_remote_server_loading_footer
+  (missing fn `shimmering_warp_loading_text` — renamed?), begin_block_text_selection, clear_buffer,
+  session_command_context, render_alt_screen_element (`Viewer` struct), drop.
+- Dead IMPORTS (top of file, lines ~53/56/213/306/339/402: block_onboarding::onboarding_agentic*/
+  drive_sharing, CodeReviewPanelArg, AgentInteractionMetadata, PromptSuggestionBannerState,
+  AIAgentActionResultType/AIRequestUsageModel) — remove LAST, after their use-sites are gone.
 
 ## WINDOW 8 — what's DONE (ContextMenuAction + TerminalAction enum cascade; 1736 → 1663, −73)
 All committed + pushed on `plan2-strip`, each a verified net error drop.
