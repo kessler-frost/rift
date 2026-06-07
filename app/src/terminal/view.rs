@@ -1699,8 +1699,8 @@ impl BlocklistAIRenderContext {
 
     /// The context color to use for a block, given its conversation phase.
     /// This assumes the block is part of the active conversation.
-    fn context_color(&self, theme: &WarpTheme) -> Option<ColorU> {
-        (self.is_ai_input_enabled && self.should_highlight_context).then(|| ai_brand_color(theme))
+    fn context_color(&self, _theme: &WarpTheme) -> Option<ColorU> {
+        None
     }
 }
 
@@ -6286,55 +6286,7 @@ impl TerminalView {
                 .clear_pending_warp_initiated_control_mode();
         }
         self.model.lock().end_notify_on_ssh_login_complete();
-
-        // If the block that just ended was an agent-requested long running command for which the user took over control,
-        // and the user exited the command, we should resume the conversation.
-        let conversation_id_to_resume = {
-            let model = self.model.lock();
-            let ai_metadata = model
-                .block_list()
-                .block_with_id(block_id)
-                .and_then(|block| block.agent_interaction_metadata());
-
-            match ai_metadata {
-                Some(ai_metadata)
-                    if ai_metadata.requested_command_action_id().is_some()
-                        && ai_metadata
-                            .long_running_control_state()
-                            .is_some_and(|state| {
-                                state
-                                    .user_take_over_reason()
-                                    .is_some_and(|reason| !reason.is_stop())
-                            }) =>
-                {
-                    Some(*ai_metadata.conversation_id())
-                }
-                _ => None,
-            }
-        };
-
-        if let Some(conversation_id) = conversation_id_to_resume {
-            // Include the context of the block that just completed in the resume context.
-            // This is so that we correctly exit from LRC subagents attached to completed commands.
-            let resume_context = {
-                let terminal_model = self.model.lock();
-                block_context_from_terminal_model(&terminal_model, block_id, false)
-                    .map(Box::new)
-                    .map(AIAgentContext::Block)
-                    .into_iter()
-                    .collect()
-            };
-
-            self.ai_controller.update(ctx, |controller, ctx| {
-                controller.resume_conversation(
-                    conversation_id,
-                    /*can_attempt_resume_on_error*/ true,
-                    /*is_auto_resume_after_error*/ false,
-                    resume_context,
-                    ctx,
-                );
-            });
-        }
+        let _ = block_id;
     }
 
     fn active_block_is_considered_remote(&self, app: &AppContext) -> bool {
@@ -7975,12 +7927,13 @@ impl TerminalView {
             })
             .unwrap_or_else(|| "Starting shell...".to_string());
 
-        let shimmer_element = shimmering_warp_loading_text(
+        let shimmer_element = Text::new(
             message,
+            appearance.monospace_font_family(),
             appearance.monospace_font_size() - 2.,
-            self.remote_server_shimmer_handle.clone(),
-            app,
-        );
+        )
+        .with_color(appearance.theme().sub_text_color(appearance.theme().background()))
+        .finish();
 
         Container::new(shimmer_element)
             .with_padding_left(*PADDING_LEFT)
@@ -17521,41 +17474,9 @@ impl View for TerminalView {
                     }
                 },
             ),
-            Some(ContextMenuType::AIBlockAttachedContext { ai_block_view_id }) => stack
-                .add_positioned_overlay_child(
-                    ChildView::new(&self.context_menu).finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        get_attached_blocks_chip_element_position_id(*ai_block_view_id),
-                        vec2f(10., -10.),
-                        PositionedElementOffsetBounds::WindowByPosition,
-                        PositionedElementAnchor::TopLeft,
-                        ChildAnchor::BottomLeft,
-                    ),
-                ),
-            Some(ContextMenuType::AIBlockOverflowMenu { ai_block_view_id }) => stack
-                .add_positioned_overlay_child(
-                    ChildView::new(&self.context_menu).finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        get_ai_block_overflow_menu_element_position_id(*ai_block_view_id),
-                        vec2f(OVERFLOW_BUTTON_OFFSET_X, 0.),
-                        PositionedElementOffsetBounds::WindowByPosition,
-                        PositionedElementAnchor::TopLeft,
-                        ChildAnchor::TopRight,
-                    ),
-                ),
-            Some(ContextMenuType::AgentViewEntryConversation {
-                agent_view_entry_block_id,
-                position,
-            }) => stack.add_positioned_overlay_child(
-                ChildView::new(&self.context_menu).finish(),
-                OffsetPositioning::offset_from_save_position_element(
-                    get_agent_view_entry_block_position_id(*agent_view_entry_block_id),
-                    *position,
-                    PositionedElementOffsetBounds::WindowByPosition,
-                    PositionedElementAnchor::TopLeft,
-                    ChildAnchor::TopLeft,
-                ),
-            ),
+            Some(ContextMenuType::AIBlockAttachedContext { .. }) => {}
+            Some(ContextMenuType::AIBlockOverflowMenu { .. }) => {}
+            Some(ContextMenuType::AgentViewEntryConversation { .. }) => {}
             None => {}
         }
 
