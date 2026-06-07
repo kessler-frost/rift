@@ -355,16 +355,6 @@ const AI_INPUT_PREFIX: &str = "* ";
 
 /// If the editor buffer matches this prefix, terminal input is enabled and locked.
 const TERMINAL_INPUT_PREFIX: &str = "!";
-/// If the editor buffer matches this prefix, local agent input enters cloud handoff compose mode.
-const CLOUD_HANDOFF_INPUT_PREFIX: &str = "&";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum InputPrefixMode {
-    None,
-    Shell,
-    CloudHandoff,
-}
-
 const VIM_STATUS_BAR_BOTTOM_PADDING: f32 = 20.;
 
 const DYNAMIC_ENUM_GENERATE_MESSAGE: &str = "Run the following command to generate variants:";
@@ -479,10 +469,6 @@ pub enum InputSuggestionsMode {
         /// TODO: eventually, we should support saving/resetting _many_ cursors rather than a single one.
         original_cursor_point: Option<BufferPoint>,
         search_mode: HistorySearchMode,
-        /// The AI input mode when arrow-up is pressed.
-        original_input_type: InputType,
-        /// The AI input's lock status when the arrow-up is pressed.
-        original_input_was_locked: bool,
     },
     CompletionSuggestions {
         /// Stores the byte index of the beginning of the text we are replacing
@@ -651,22 +637,6 @@ impl InputSuggestionsMode {
         }
     }
 
-}
-
-struct SharedSessionInputState {
-    /// History model for viewers in a shared session.
-    // TODO: With this current approach, the shared session history crosses
-    // subshell boundaries, we'll need to make it work with our current history model
-    // to ensure we show the right shell history.
-    history_model: ModelHandle<SharedSessionHistoryModel>,
-
-    // Is [`Some`] iff a command execution was requested by a shared session executor.
-    pending_command_execution_request: Option<ViewerCommandExecutionRequest>,
-}
-
-struct ViewerCommandExecutionRequest {
-    /// Text in buffer when command execution was requested.
-    original_buffer: String,
 }
 
 /// Where a command execution request originates from.
@@ -1955,20 +1925,6 @@ impl Input {
 
 
 
-    fn prefix_mode(&self, ctx: &AppContext) -> InputPrefixMode {
-        let is_handoff_active = self.handoff_compose_state.as_ref(ctx).is_active();
-        let ai_input_model = self.ai_input_model.as_ref(ctx);
-        let is_shell_active =
-            ai_input_model.is_input_type_locked() && !ai_input_model.input_type().is_ai();
-
-        if is_handoff_active {
-            InputPrefixMode::CloudHandoff
-        } else if is_shell_active {
-            InputPrefixMode::Shell
-        } else {
-            InputPrefixMode::None
-        }
-    }
 
 
 
@@ -2590,41 +2546,7 @@ impl Input {
     }
 
     pub fn try_execute_command(&mut self, command: &str, ctx: &mut ViewContext<Self>) -> bool {
-        let shared_session_status = self.model.lock().shared_session_status().clone();
-        if shared_session_status.is_sharer_or_viewer() {
-            // If this is a viewer who isn't also an executor, they should not
-            // be allowed to execute commands.
-            if shared_session_status.is_reader() {
-                // TODO: consider showing a toast in this scenario. It should be unlikely
-                // that a viewer can get here without being an executor because the main
-                // caller of this API is the `enter` handler.
-                log::warn!("Viewer tried to execute a command as a reader");
-                return false;
-            } else if shared_session_status.is_executor() {
-                let original_buffer = self.freeze_input_in_loading_state(ctx);
-
-                if let Some(shared_session_input_state) = self.shared_session_input_state.as_mut() {
-                    shared_session_input_state.pending_command_execution_request =
-                        Some(ViewerCommandExecutionRequest { original_buffer });
-                }
-            }
-
-            // Get our own shared session participant ID.
-            let Some(participant_id) = self
-                .shared_session_presence_manager
-                .as_ref()
-                .map(|m| m.as_ref(ctx).id())
-            else {
-                return false;
-            };
-            self.try_execute_command_on_behalf_of_shared_session_participant(
-                command,
-                participant_id,
-                ctx,
-            )
-        } else {
-            self.try_execute_command_from_source(command, CommandExecutionSource::User, ctx)
-        }
+        self.try_execute_command_from_source(command, CommandExecutionSource::User, ctx)
     }
 
     /// Executes the given command if the terminal session is in a valid state to accept and
@@ -3025,30 +2947,11 @@ impl Input {
             if let InputSuggestionsMode::HistoryUp {
                 original_buffer,
                 original_cursor_point,
-                original_input_was_locked,
-                original_input_type,
                 ..
             } = self.suggestions_mode_model.as_ref(ctx).mode()
             {
                 let original_buffer = original_buffer.clone();
                 let original_cursor_point = *original_cursor_point;
-                let original_input_was_locked = *original_input_was_locked;
-                let original_input_type = *original_input_type;
-                // If the user closes the input suggestions menu, we want to reset the AI input mode
-                // to the exact same state it was originally, which includes the mode itself and
-                // whether it was locked to that mode.
-                self.ai_input_model.update(ctx, |ai_input_model, ctx| {
-                    ai_input_model.set_input_config(
-                        InputConfig {
-                            input_type: original_input_type,
-                            is_locked: original_input_was_locked,
-                        },
-                        original_buffer.is_empty(),
-                        Some(InputTypeAutoDetectionSource::RestoreSavedConfig),
-                        ctx,
-                    );
-                });
-
                 self.editor.update(ctx, |editor, ctx| {
                     editor.set_buffer_text_ignoring_undo(&original_buffer, ctx);
                     if let Some(original_cursor_point) = original_cursor_point {
@@ -3095,7 +2998,6 @@ impl Input {
 
     pub fn clear_buffer_and_reset_undo_stack(&mut self, ctx: &mut ViewContext<Self>) {
         self.clear_cached_hint_text();
-        self.exit_cloud_handoff_compose(ctx);
         self.editor.update(ctx, |view, ctx| {
             view.clear_buffer_and_reset_undo_stack(ctx);
         });
@@ -3382,16 +3284,12 @@ impl Input {
                 });
 
             let original_cursor_point = self.editor.as_ref(ctx).single_cursor_to_point(ctx);
-            let original_input_type = self.ai_input_model.as_ref(ctx).input_type();
-            let original_input_was_locked = self.ai_input_model.as_ref(ctx).is_input_type_locked();
             self.suggestions_mode_model.update(ctx, |m, ctx| {
                 m.set_mode(
                     InputSuggestionsMode::HistoryUp {
                         original_buffer,
                         original_cursor_point,
                         search_mode: HistorySearchMode::Prefix,
-                        original_input_type,
-                        original_input_was_locked,
                     },
                     ctx,
                 );
@@ -5041,14 +4939,6 @@ impl Input {
         image: ImageData,
         ctx: &mut ViewContext<Self>,
     ) {
-        self.maybe_enter_agent_view_for_image_add(ctx);
-
-        // Switch to AI mode with block-level lock, unless already AI-mode-locked
-        if !self.is_locked_in_ai_mode(ctx) {
-            self.set_input_mode_agent(true, ctx);
-            self.update_image_context_options(ctx);
-        }
-
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
@@ -5263,16 +5153,12 @@ impl Input {
         // we still close the input suggestion menu before opening the Voltron modal,
         // which involves resetting the cursor point.
         let original_buffer = editor.buffer_text(ctx);
-        let original_input_type = self.ai_input_model.as_ref(ctx).input_type();
-        let original_input_was_locked = self.ai_input_model.as_ref(ctx).is_input_type_locked();
         self.suggestions_mode_model.update(ctx, |m, ctx| {
             m.set_mode(
                 InputSuggestionsMode::HistoryUp {
                     original_buffer,
                     original_cursor_point,
                     search_mode: HistorySearchMode::Fuzzy,
-                    original_input_type,
-                    original_input_was_locked,
                 },
                 ctx,
             );
@@ -5444,8 +5330,8 @@ impl Input {
         // even though the active block is a long-running command.
         // However, completions are disabled on warpified remote hosts because
         // in-band generators don't work in this context (with CLI agent).
-        let is_cli_agent_shell_mode = self.is_locked_in_shell_mode(ctx)
-            && CLIAgentSessionsModel::as_ref(ctx).is_input_open(self.terminal_view_id)
+        let is_cli_agent_shell_mode = CLIAgentSessionsModel::as_ref(ctx)
+            .is_input_open(self.terminal_view_id)
             && !self
                 .active_session(ctx)
                 .is_some_and(|s| matches!(s.session_type(), SessionType::WarpifiedRemote { .. }));
@@ -6834,14 +6720,7 @@ impl Input {
     /// Shared submit path for Enter (default mode) and Ctrl+Enter (`submit_on_ctrl_enter` mode);
     /// callers must have already handled menu-intercept cases.
     fn emit_submit_cli_agent_input(&mut self, ctx: &mut ViewContext<Self>) {
-        // When the `!` prefix was stripped (shell mode in CLI agent input),
-        // prepend it back so the CLI agent receives the mode-switch prefix,
-        // then exit shell mode so the next prompt starts in AI mode.
-        let mut text = self.editor.as_ref(ctx).buffer_text(ctx);
-        if self.is_locked_in_shell_mode(ctx) {
-            text = format!("{TERMINAL_INPUT_PREFIX}{text}");
-            self.exit_shell_mode_to_ai(ctx);
-        }
+        let text = self.editor.as_ref(ctx).buffer_text(ctx);
         ctx.emit(Event::SubmitCLIAgentInput { text });
     }
 
@@ -6958,35 +6837,6 @@ impl Input {
 
 
 
-    /// Returns true if toggling the input mode is disabled.
-    fn is_input_mode_toggle_disabled(&self, ctx: &ViewContext<Self>) -> bool {
-        // Don't allow input mode changes for:
-        // - read-only viewers in shared sessions.
-        // - long-running commands with an agent tagged in or in control.
-        // - local -> cloud handoff prompts (these must be agent mode prompts)
-        let terminal_model = self.model.lock();
-        let active_block = terminal_model.block_list().active_block();
-        terminal_model.shared_session_status().is_reader()
-            || active_block.is_agent_in_control_or_tagged_in()
-            || self.prefix_mode(ctx) == InputPrefixMode::CloudHandoff
-    }
-
-
-
-
-
-    /// Returns true if the input is locked in shell mode
-    fn is_locked_in_shell_mode(&self, ctx: &ViewContext<Self>) -> bool {
-        let ai_input_model = self.ai_input_model.as_ref(ctx);
-        ai_input_model.is_input_type_locked() && !ai_input_model.input_type().is_ai()
-    }
-
-
-    /// Returns true if the input is locked in AI mode
-    fn is_locked_in_ai_mode(&self, ctx: &ViewContext<Self>) -> bool {
-        let ai_input_model = self.ai_input_model.as_ref(ctx);
-        ai_input_model.is_input_type_locked() && ai_input_model.input_type().is_ai()
-    }
 
     fn get_command(&mut self, ctx: &mut ViewContext<Self>) -> String {
         // Expand valid abbreviations or aliases, if any
