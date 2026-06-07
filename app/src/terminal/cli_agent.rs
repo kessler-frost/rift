@@ -6,20 +6,15 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use ai::skills::SkillProvider;
 use enum_iterator::Sequence;
-use markdown_parser::parse_markdown;
 use pathfinder_color::ColorU;
 use rift_cli::agent::Harness;
 use rift_completer::parsers::simple::top_level_command;
-use rift_editor::content::buffer::Buffer;
-use rift_editor::content::markdown::MarkdownStyle;
 use rift_util::path::EscapeChar;
 use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 
-use crate::code::editor::line::EditorLineLocation;
 use crate::server::telemetry::CLIAgentType;
 use crate::ui_components::icons::Icon;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -235,36 +230,6 @@ impl CLIAgent {
         }
     }
 
-    /// Returns the skill providers whose skills this CLI agent can natively interpret.
-    /// When the CLI agent rich input is open, only skills from these providers are shown
-    /// in the slash menu. Returns an empty slice for agents with no known skills support.
-    pub fn supported_skill_providers(&self) -> &'static [SkillProvider] {
-        match self {
-            CLIAgent::Claude => &[SkillProvider::Claude],
-            CLIAgent::Codex => &[
-                SkillProvider::Agents,
-                SkillProvider::Claude,
-                SkillProvider::Codex,
-            ],
-            CLIAgent::OpenCode => &[
-                SkillProvider::OpenCode,
-                SkillProvider::Agents,
-                SkillProvider::Claude,
-            ],
-            CLIAgent::Gemini => &[SkillProvider::Agents, SkillProvider::Gemini],
-            CLIAgent::Amp => &[SkillProvider::Agents],
-            CLIAgent::Copilot => &[SkillProvider::Agents, SkillProvider::Copilot],
-            CLIAgent::Droid => &[SkillProvider::Droid, SkillProvider::Agents],
-            CLIAgent::Pi => &[SkillProvider::Agents],
-            CLIAgent::Auggie => &[SkillProvider::Agents],
-            CLIAgent::CursorCli => &[SkillProvider::Agents],
-            CLIAgent::Goose => &[SkillProvider::Agents],
-            CLIAgent::Hermes => &[SkillProvider::Agents],
-            CLIAgent::Vibe => &[SkillProvider::Agents],
-            CLIAgent::Unknown => &[],
-        }
-    }
-
     /// Returns the prefix character used for skill invocations by this CLI agent.
     /// Most agents use `/` (e.g. `/skill-name`), but Codex uses `$` (e.g. `$skill-name`).
     pub fn skill_command_prefix(&self) -> &'static str {
@@ -394,91 +359,6 @@ impl CLIAgent {
     }
 }
 
-/// Builds a prompt string from a batch of code review comments suitable for
-/// writing to a CLI agent's PTY.
-///
-/// # Location format
-/// Locations use `L<line>` notation (1-indexed).
-/// Line ranges are written `L<start>-L<end>` where both ends are **inclusive**.
-/// Instructs the agent to run `git diff` for deleted-line context rather than
-/// inlining the full diff.
-pub fn build_review_prompt(review: &AgentReviewCommentBatch) -> String {
-    let mut text = String::from(
-        "Please address the following code review comments. \
-         Run `git diff` (or `git diff HEAD`) to see the full context of any changes, \
-         especially for deleted lines.\n",
-    );
-
-    for comment in &review.comments {
-        if comment.outdated {
-            continue;
-        }
-        let body = export_review_comment_for_cli_prompt(&comment.content);
-        let location = match &comment.target {
-            AttachedReviewCommentTarget::Line {
-                absolute_file_path,
-                line,
-                ..
-            } => {
-                let path = absolute_file_path.display_path();
-                match line {
-                    EditorLineLocation::Current { line_number, .. } => {
-                        let n = line_number.as_usize() + 1;
-                        format!("{path} L{n}")
-                    }
-                    EditorLineLocation::Removed { line_number, .. } => {
-                        let n = line_number.as_usize() + 1;
-                        format!("{path} (deleted, was L{n} — see `git diff`)")
-                    }
-                    EditorLineLocation::Collapsed { line_range } => {
-                        // line_range is [start, end) 0-indexed; convert to L<start>-L<end>
-                        // where both start and end are 1-indexed inclusive.
-                        let start = line_range.start.as_usize() + 1;
-                        let end = line_range.end.as_usize();
-                        format!("{path} (collapsed hunk, L{start}-L{end} — see `git diff`)")
-                    }
-                }
-            }
-            AttachedReviewCommentTarget::File { absolute_file_path } => {
-                let path = absolute_file_path.display_path();
-                let is_deleted = review.diff_set.iter().any(|(file_key, hunks)| {
-                    path.ends_with(file_key.as_str())
-                        && !hunks.is_empty()
-                        && hunks
-                            .iter()
-                            .all(|h| h.lines_added == 0 && h.lines_removed > 0)
-                });
-                if is_deleted {
-                    format!("{path} (deleted file — see `git diff`)")
-                } else {
-                    path
-                }
-            }
-            AttachedReviewCommentTarget::General => "General".to_string(),
-        };
-        text.push_str(&format!("\n- {location}: {body}"));
-    }
-
-    text
-}
-
-fn export_review_comment_for_cli_prompt(comment: &str) -> String {
-    let mut result = parse_markdown(comment)
-        .map(|parsed| {
-            Buffer::export_to_markdown(
-                parsed,
-                None,
-                MarkdownStyle::Export {
-                    app_context: None,
-                    should_not_escape_markdown_punctuation: true,
-                },
-            )
-        })
-        .unwrap_or_else(|_| comment.to_string());
-    result.truncate(result.trim_end().len());
-    result
-}
-
 /// Builds a prompt string for a single diff hunk location suitable for writing
 /// to a CLI agent's PTY. Includes change stats (+N -N) and instructs the agent
 /// to run `git diff` for full context.
@@ -497,35 +377,6 @@ pub fn build_diff_hunk_prompt(
         "{file_path} L{start_line}-L{end_line} (+{lines_added} -{lines_removed}) \
          -- run `git diff` to see the full context."
     )
-}
-
-/// Builds a prompt string for a set of diff file context hunks suitable for
-/// writing to a CLI agent's PTY.
-///
-/// # Location format
-/// Each line is `<path> L<start>-L<end> (+N -N)` where `start` and `end` are
-/// 1-indexed and both ends are **inclusive**.
-pub fn build_diff_context_prompt(file_diffs: &HashMap<String, Vec<DiffSetHunk>>) -> String {
-    let mut text = String::new();
-    let mut sorted_keys: Vec<&String> = file_diffs.keys().collect();
-    sorted_keys.sort();
-    for file_key in sorted_keys {
-        let hunks = &file_diffs[file_key];
-        for hunk in hunks {
-            // hunk.line_range is [start, end) 0-indexed; convert to L<start>-L<end>
-            // where both start and end are 1-indexed inclusive.
-            let start = hunk.line_range.start.as_usize() + 1;
-            let end = hunk.line_range.end.as_usize();
-            text.push_str(&format!(
-                "{file_key} L{start}-L{end} (+{} -{})",
-                hunk.lines_added, hunk.lines_removed,
-            ));
-            text.push('\n');
-        }
-    }
-    // Remove trailing newline.
-    text.truncate(text.trim_end().len());
-    text
 }
 
 /// Builds a prompt for a single-line text selection suitable for writing to a CLI agent's PTY.

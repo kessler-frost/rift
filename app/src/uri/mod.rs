@@ -78,8 +78,6 @@ pub enum UriHost {
     /// A host prefix for a general-purpose home/landing page. Unlike other intent URIs, the home
     /// page behavior may change over time and vary from platform to platform.
     Home,
-    /// Actions related to MCP servers (e.g.: oauth callbacks).
-    Mcp,
     /// Opens a new tab with the Codex model and starts a conversation.
     Codex,
     /// Actions triggered from Linear integrations (e.g. work on issue).
@@ -106,7 +104,6 @@ impl FromStr for UriHost {
             "drive" => Ok(Self::Drive),
             "settings" => Ok(Self::Settings),
             "home" => Ok(Self::Home),
-            "mcp" => Ok(Self::Mcp),
             "codex" => Ok(Self::Codex),
             "linear" => Ok(Self::Linear),
             "tab_config" if FeatureFlag::TabConfigs.is_enabled() => Ok(Self::TabConfig),
@@ -431,16 +428,6 @@ impl UriHost {
             UriHost::Home => {
                 ctx.dispatch_global_action("root_view::open_new", &());
             }
-            UriHost::Mcp => {
-                #[cfg(not(target_family = "wasm"))]
-                {
-                    let result = crate::ai::mcp::TemplatableMCPServerManager::handle(ctx)
-                        .update(ctx, |manager, _ctx| manager.handle_oauth_callback(url));
-                    if let Err(e) = result {
-                        log::error!("Failed to handle MCP OAuth callback: {e:?}");
-                    }
-                }
-            }
             UriHost::Codex => {
                 dispatch_action_in_new_or_existing_window(
                     primary_window_id,
@@ -529,8 +516,6 @@ impl UriHost {
             Self::Launch | Self::SharedSession | Self::Conversation | Self::Home => W::Nothing,
             // This will actually be handled by [`Action::window_behavior_hint`].
             Self::Action => W::Nothing,
-            // TODO(vorporeal): probably want to focus the window with the MCP pane open
-            Self::Mcp => W::Nothing,
             // Codex opens a new tab with AI mode, use default behavior
             Self::Codex => W::default(),
             // Linear deeplink opens a new tab with agent view
@@ -1608,7 +1593,6 @@ fn validate_custom_uri(url: &Url) -> Result<UriHost> {
         | UriHost::Drive
         | UriHost::Team
         | UriHost::Settings
-        | UriHost::Mcp
         | UriHost::Codex
         | UriHost::Linear
         | UriHost::TabConfig

@@ -32,7 +32,6 @@ use super::{
     ContextChipKind,
 };
 use crate::appearance::Appearance;
-use crate::code::editor::{add_color, remove_color};
 use crate::completer::SessionContext;
 use crate::context_chips::git_branch_on_click::{
     is_plausible_new_branch_name, GitBranchOnClickValue,
@@ -53,6 +52,20 @@ use crate::view_components::action_button::{ActionButtonTheme, NakedTheme};
 use crate::view_components::{FeaturePopup, NewFeaturePopupEvent, NewFeaturePopupLabel};
 use crate::workspace::view::TOGGLE_RIGHT_PANEL_BINDING_NAME;
 use crate::{send_telemetry_from_ctx, TelemetryEvent};
+
+/// Get the theme-appropriate add (green) color for git diff stats.
+fn add_color(appearance: &Appearance) -> ColorU {
+    rift_core::ui::theme::AnsiColorIdentifier::Green
+        .to_ansi_color(&appearance.theme().terminal_colors().normal)
+        .into()
+}
+
+/// Get the theme-appropriate remove (red) color for git diff stats.
+fn remove_color(appearance: &Appearance) -> ColorU {
+    rift_core::ui::theme::AnsiColorIdentifier::Red
+        .to_ansi_color(&appearance.theme().terminal_colors().normal)
+        .into()
+}
 
 /// Helper function to render git diff stats content (file icon or +- icons, file count, bullet, +/- counts)
 /// Used by both the context chips and the AI control panel

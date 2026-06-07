@@ -15,8 +15,6 @@ use riftui::{SingletonEntity, ViewContext};
 use settings::Setting as _;
 
 use super::{Event, InlineBannerItem, InlineBannerType, TerminalView};
-#[cfg(feature = "local_fs")]
-use crate::code::editor_management::CodeSource;
 use crate::report_if_error;
 use crate::terminal::event::UserBlockCompleted;
 use crate::terminal::general_settings::GeneralSettings;
@@ -74,10 +72,7 @@ impl TerminalView {
                 },
                 move |view, maybe_match, ctx| {
                     if let Some(openable_path) = maybe_match {
-                        if matches!(
-                            openable_path.file_type,
-                            OpenableFileType::Markdown | OpenableFileType::Code
-                        ) {
+                        if matches!(openable_path.file_type, OpenableFileType::Markdown) {
                             view.suggest_open_in_warp(openable_path, session, ctx);
                         }
                     }
