@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **38 compile errors** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **~859 real compile errors (was masked as 20 by a failing glob import)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,31 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 12 — ⚠️ CRITICAL DISCOVERY: THE ERROR COUNT WAS MASKED.
+A FAILING GLOB IMPORT (`use CommandSearchEvent::*;` at workspace/view.rs ~L11903, inside
+handle_command_search_event; CommandSearchEvent/CommandSearchView are FULLY DELETED — no `view`
+module under search/command_search/) POISONS name resolution and SUPPRESSES E0433/E0412 for ALL
+unresolved names crate-wide. PROOF: view.rs uses `CodeSource` 14x with NO import yet shows 0 errors
+for it; baseline shows "20 errors" but removing the masking glob surfaces the TRUE count ≈ 859.
+So the "813->38->20" drops were LARGELY ILLUSORY — clearing module-level broken imports flipped
+rustc into suppression mode. REAL remaining ≈ 859, distributed: view.rs ~75, terminal/input.rs ~51,
+terminal/view.rs ~44, workspaces/user_workspaces ~37, view/vertical_tabs ~35, view/right_panel ~34,
+view/pane_impl ~27, terminal/session_settings ~27, + long tail. GENUINELY DONE (real, verified):
+events.rs 178->0 (Phase E telemetry nuke), terminal_pane.rs 119->0, root_view.rs 49->0,
+SerializedBlockListItem recreated, WorkspaceAction cascade, Workspace struct field linchpin.
+TO RE-BASELINE HONESTLY (next session, PENDING USER OK on the never-commit-higher rule):
+complete the command_search-view removal in view.rs (delete fns show_command_search +
+handle_command_search_event by BRACE-MATCHED range [verified: count braces only AFTER first '{',
+skip sig parens; delbyname's multi-name pass shifts line numbers & leaves orphan '}' — use a
+single-pass reverse-order range deleter], remove field `command_search_view: ViewHandle<CommandSearchView>`,
+its ctor let+subscribe block, the `command_search_view,` Self line, and the
+`if self.current_workspace_state.is_command_search_open {...}` render block). That compiles cleanly
+to ~859 REAL errors -> then grind file-by-file (Edits NOT scripts on the fragile view.rs hub).
+HARD-RULE CONFLICT: unmasking 20->859 violates "never commit higher than prior" — the masked 20 was
+never a real floor. Recommend re-baselining to the honest count and applying strict-decrease FORWARD.
+TOOLING: /tmp/delbyname.py is UNSAFE for multiple names at once (line-shift bug) and can leave orphan
+braces — prefer single-pass reverse-range deletion with the brace-after-first-'{' matcher.
+
 WINDOW 11 done (MASSIVE drop 1179->38). Cleared terminal_pane.rs (119->0: agent free-fns + attach/detach
 subscription gut + snapshot rewrite + recreated SerializedBlockListItem enum Command-only), root_view.rs
 (49->0: agent free-fns/action-registrations/NewWorkspaceSource agent variants/CloudPreferencesSyncer),
