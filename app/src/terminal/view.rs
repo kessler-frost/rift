@@ -4087,42 +4087,9 @@ impl TerminalView {
 
     fn handle_ctrl_c_input_event(
         &mut self,
-        cleared_buffer_len: usize,
+        _cleared_buffer_len: usize,
         ctx: &mut ViewContext<Self>,
     ) {
-        let did_resolve_prompt_suggestion = self
-            .resolve_passive_suggestion(PromptSuggestionResolution::Reject { ctrl_c: true }, ctx);
-        if did_resolve_prompt_suggestion {
-            if FeatureFlag::AgentView.is_enabled()
-                && self.agent_view_controller.as_ref(ctx).is_active()
-            {
-                self.agent_view_controller.update(ctx, |controller, ctx| {
-                    controller.clear_pending_exit_confirmation(ctx);
-                });
-            }
-            return;
-        }
-
-        if FeatureFlag::AgentView.is_enabled() && self.agent_view_controller.as_ref(ctx).is_active()
-        {
-            if cleared_buffer_len > 0 {
-                self.agent_view_controller.update(ctx, |controller, ctx| {
-                    controller.clear_pending_exit_confirmation(ctx);
-                });
-                return;
-            }
-
-            if self.should_ctrl_c_exit_agent_view(ctx) {
-                self.agent_view_controller.update(ctx, |controller, ctx| {
-                    controller.exit_agent_view_with_required_confirmation(
-                        ExitConfirmationTrigger::CtrlC,
-                        ctx,
-                    );
-                });
-                return;
-            }
-        }
-
         self.ctrl_c(ctx);
     }
 
@@ -4229,14 +4196,10 @@ impl TerminalView {
     fn ctrl_c_to_active_block(
         &mut self,
         is_long_running: bool,
-        is_agent_in_control_of_command: bool,
+        _is_agent_in_control_of_command: bool,
         ctx: &mut ViewContext<Self>,
     ) {
-        if is_agent_in_control_of_command {
-            self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                controller.switch_control_to_user(UserTakeOverReason::Stop, ctx);
-            });
-        } else if is_long_running {
+        if is_long_running {
             self.user_write_ctrl_c_to_pty(ctx);
         } else {
             self.maybe_handle_ctrl_c_in_rich_content_block(ctx);
@@ -9417,54 +9380,6 @@ impl TerminalView {
         }
     }
 
-
-    /// Shared logic for sending a desktop notification (or showing a discovery banner)
-    /// for any agent status change (both Warp's agent and any CLI agent).
-    fn send_agent_desktop_notification_or_show_banner(
-        &mut self,
-        trigger: NotificationsTrigger,
-        title: String,
-        description: String,
-        agent_variant: Option<NotificationAgentVariant>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let notification_settings = SessionSettings::as_ref(ctx).notifications.value().clone();
-
-        match notification_settings.mode {
-            NotificationsMode::Unset => {
-                if let NotificationsDiscoveryBanner::Triggered(trigger) =
-                    self.inline_banners_state.notifications_discovery_banner
-                {
-                    // if the banner is not yet open, but there is some trigger,
-                    // we were likely waiting on the block to finish so insert it now
-                    self.insert_notifications_discovery_banner(trigger, ctx);
-                } else {
-                    // otherwise, insert a discovery banner for the current trigger
-                    self.insert_notifications_discovery_banner(trigger, ctx);
-                }
-            }
-            NotificationsMode::Enabled => {
-                let success = matches!(trigger, NotificationsTrigger::AgentTaskCompleted(true));
-                if success {
-                    if !notification_settings.is_agent_task_completed_enabled {
-                        return;
-                    }
-                } else if !notification_settings.is_needs_attention_enabled {
-                    return;
-                }
-                let notification_content = trigger.create_notification_content(title, description);
-                ctx.emit(Event::SendNotification(notification_content));
-                send_telemetry_from_ctx!(
-                    TelemetryEvent::NotificationSent {
-                        trigger,
-                        agent_variant,
-                    },
-                    ctx
-                );
-            }
-            _ => {}
-        }
-    }
 
     /// Executes a command that was submitted by the user and not yet sent to the shell.
     pub fn execute_pending_command(&mut self, _: (), ctx: &mut ViewContext<Self>) {
