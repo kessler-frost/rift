@@ -81,17 +81,8 @@ impl ZeroState {
     ) -> impl Iterator<Item = QueryFilter> {
         let mut valid_filters = vec![];
 
-        // Don't show Files filter if the user is a viewer of a shared session
         if FeatureFlag::CommandPaletteFileSearch.is_enabled() {
-            let is_shared_session_viewer_focused = app
-                .views_of_type::<Workspace>(window_id)
-                .and_then(|workspaces| workspaces.first().cloned())
-                .is_some_and(|workspace| {
-                    workspace.as_ref(app).is_shared_session_viewer_focused(app)
-                });
-            if !is_shared_session_viewer_focused {
-                valid_filters.push(QueryFilter::Files);
-            }
+            valid_filters.push(QueryFilter::Files);
         }
 
         valid_filters.extend([QueryFilter::Actions, QueryFilter::Sessions]);
