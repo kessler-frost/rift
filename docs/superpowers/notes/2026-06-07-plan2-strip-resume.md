@@ -21,6 +21,20 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 496 resolution errors (window 19 end). All masking cleared, all work committed+pushed on plan2-strip.
+TOP FILES: workspace/view.rs 100, terminal/view.rs ~30, right_panel 34, slash_commands/mod 27, data_source/mod 25,
+server/graphql/schema 23, harness_support 16, root_view 16, pane_group/mod 16, left_panel 15, rich_content 15,
+install_tmux 14, remote_server/server_model 14, lib.rs 14, gql_convert 13.
+NEXT IN terminal/view.rs (each a 1-line "cannot find type/fn" — delete the use-site/block): struct-field type defs
+FileLocations(800)/PromptSuggestionBannerState(905)/CodebaseIndexSpeedbumpBannerState(920)/AIConversationId+
+AIAgentExchangeId(1633/1636)/FinishReason(1851)/GitDeltaPreference(2183)/NotificationAgentVariant(9591); free-fn
+sites agent_view_bg_fill(17841/17860)/shimmering_warp_loading_text(8033)/ai_brand_color(1714)/block_context_from_
+terminal_model(6372)/get_*_position_id(17643/17654/17667)/has_pending_code_or_unit_test_prompt_suggestion(18027);
+Viewer struct(1066/15210)+SharedSessionViewerAltScroll(17063) = shared-session render leftovers; ambient_agent
+module(17515)/CodeSource(11677/17281)/AIBlock(11900)/PersistedWorkspace(6696)/OnboardingAgenticSuggestionsBlock(8562).
+BIG-DROP CANDIDATE: Phase F cloud layer (server/graphql/schema 23+util 12, harness_support 16, gql_convert 13,
+remote_server/server_model 14) may be wholesale-deletable as a coordinated unit — check before piecemeal.
+
 ### ⚠️ TWO-PHASE FINISH (KEY INSIGHT, window 19): The error count is ONLY name-RESOLUTION errors
 (E0412 cannot-find-type, E0433 undeclared-module/type, E0425 cannot-find-value/fn, E0422, E0405). rustc does NOT
 run type-checking (typeck) until resolution is 100% clean, so EVERY field/method error (E0609 "no field
