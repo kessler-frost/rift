@@ -6,20 +6,39 @@
 > shape (almost pure deletion)**: remove the entire AI agent product too, and drop
 > workflows/notebooks/env-vars. Read the "DECISIONS" and "SCOPE" sections first.
 
-**Goal:** A local-only terminal. The ONLY AI feature is **context-aware inline command
-autocomplete** (via `rift_ai` → omlx). Everything else cloud/account/agent is removed.
+**Goal:** A local-only terminal with **NO AI features whatsoever**. Everything
+cloud/account/agent/AI is removed. (User may re-add a local AI integration later as a clean
+greenfield feature; nothing AI is preserved now.)
 
 **Branch:** `plan2-strip`. Resume baseline was clean `f2034746` (green). Tasks 1–2 of the
 original plan (Phase 0 flag-disable `3821be1a`, Phase 1 leaf modules `f2034746`) are DONE.
 
 ---
 
-## DECISIONS (2026-06-06, user-confirmed — firm)
+## ⚠️ SCOPE UPDATE (2026-06-07, user-confirmed): REMOVE ALL AI — no keep-path
 
-1. **AI = autocomplete ONLY.** Keep context-aware inline completion (`rift_ai::complete` +
-   `app/src/ai/predict` completion seam). Context (recent cmd history: input/output/pwd/
-   git_branch/exit_code + current input + shell) is ALREADY sent — verified in `rift_bridge.rs`/
-   `complete.rs`/`context.rs`. Nothing to build; just preserve the seam.
+The earlier plan preserved a single AI feature (context-aware inline command autocomplete via
+`rift_ai`→omlx). **That carve-out is CANCELLED.** Delete ALL AI, including the former keep-path:
+- DELETE `crates/rift_ai` entirely (complete/context/client/config/messages — all of it).
+- DELETE all of `app/src/ai/` with NO exceptions (including the former keep-path
+  `predict/{mod,generate_ai_input_suggestions*,next_command_model,rift_bridge}` and `block_context`).
+- The editor's AI inline-autosuggestion integration is removed too (`maybe_populate_intelligent_
+  autosuggestion`, AI input decorator/indicator, the AI cursor colors). The editor's NON-AI
+  autosuggestion (fish-style history + `command_corrections` rule-based corrections) STAYS — those
+  are terminal features, not AI.
+- `InputType` (Shell vs AI classifier) collapses: input is always Shell now. Delete
+  `InputType`/`InputTypeAutoDetectionSource` usage rather than re-homing it.
+- The keep-path small fixes (rift_bridge/next_command_model `AIApiError`) are MOOT — those files
+  are deleted.
+- Phase H acceptance no longer includes any omlx / autocomplete test.
+This makes the whole strip uniform — no AI seam to tiptoe around.
+
+---
+
+## DECISIONS (2026-06-06, superseded by the SCOPE UPDATE above for #1/#3)
+
+1. ~~**AI = autocomplete ONLY.**~~ **SUPERSEDED 2026-06-07: remove ALL AI** (see SCOPE UPDATE).
+   `crates/rift_ai` + all of `app/src/ai/` (incl. predict + block_context) are deleted.
 2. **DELETE the entire AI agent product** ("Blocklist AI" = `ai/blocklist`, plus `ai/agent*`,
    conversations, ambient agents, `ai_assistant/`, artifacts, skills, facts, execution_profiles,
    code-review, command-error explanations, agent-mode workflows, MCP). Full excision, not facade.
@@ -43,16 +62,16 @@ original plan (Phase 0 flag-disable `3821be1a`, Phase 1 leaf modules `f2034746`)
 ### KEEP (must stay compiling/working)
 - Terminal core: `app/src/terminal/` (minus agent/workflow/env-var/notebook wiring), blocks UI,
   `app/src/workspace/` (singular = window/tabs), `pane_group/` (minus cloud/agent/feature panes).
-- Editor/input: `app/src/editor*`, `crates/rift_editor`, input.
+- Editor/input: `app/src/editor*`, `crates/rift_editor`, input (minus the AI autosuggestion hook).
 - Settings/themes, local persistence (`app/src/persistence/` minus cloud tables), `crates/rift_core`.
-- **AI autocomplete seam:** `crates/rift_ai` (keep `complete`, `context`, `client`, `config`,
-  `messages`; **drop `translate`**) and `app/src/ai/predict/{mod.rs, generate_ai_input_suggestions*,
-  next_command_model.rs, rift_bridge.rs}`.
+- NON-AI autosuggestion: fish-style history completion + `command_corrections` rule-based
+  corrections (terminal features — NOT AI; keep).
 
 ### DELETE (features → infra order)
-- **AI agent product:** all of `app/src/ai/` EXCEPT the keep-path above; `app/src/ai_assistant/`;
-  `app/src/code_review/` (AI). The deleted `predict` siblings: `predict_am_queries*`,
-  `generate_am_query_suggestions*`, `prompt_suggestions*`, `rift_nl_prefix.rs`.
+- **ALL AI:** the WHOLE of `app/src/ai/` (no exceptions — incl. former keep-path `predict/**` and
+  `block_context`) + `crates/rift_ai`; `app/src/ai_assistant/`; `app/src/code_review/`. The editor's
+  AI inline-autosuggestion hook (`maybe_populate_intelligent_autosuggestion` + AI decorator/indicator/
+  cursor colors) and `InputType`/`InputTypeAutoDetectionSource` usage.
 - **Cloud objects / Drive:** `app/src/drive/`, `app/src/cloud_object/`, `app/src/server/cloud_objects/`,
   `app/src/settings/cloud_preferences*.rs`; crates `cloud_object_client/models/persistence/objects`.
 - **Dropped features:** `app/src/workflows/`, `app/src/notebooks/`, `app/src/env_vars/`,
@@ -82,32 +101,25 @@ dead code by removal not `#[allow]`) → commit.
 - **NEVER `cargo clean`** (40-min rebuild). Use Bash timeouts ≥600000 ms for builds.
 - **Tangled phases inline**, compiler-driven, with full context (subagents failed here before).
   Read-only recon/mapping MAY be delegated. Smaller leaf deletions may be delegated.
-- Do NOT touch `app/src/workspace/` (singular), the rift_ai crate, or the predict completion seam
-  except the noted small fixes.
-- Each phase ends GREEN + commit. Never commit a red build. If a phase won't converge, STOP and report.
+- Do NOT touch `app/src/workspace/` (singular). The former "NEVER TOUCH rift_ai/predict/block_context"
+  guard is CANCELLED (2026-06-07) — those are now DELETED like everything else AI.
+- Each phase ends GREEN + commit (RED intermediate commits OK mid-phase as long as the error count
+  strictly drops). If a phase won't converge, STOP and report.
 
-### Keep-path small fixes (do when the relevant infra is deleted)
-- `ai/predict/rift_bridge.rs:11` imports `crate::server::server_api::AIApiError`; `local_suggestions`
-  returns `Result<_, AIApiError>`. When `server/` is deleted (Phase F), replace `AIApiError` with a
-  local error (or make the fn infallible `-> GenerateAIInputSuggestionsResponseV2`).
-- `ai/predict/next_command_model.rs:33` imports `server_api::{AIApiError, ServerApi}` (the Plan-1
-  dead-code seam) — remove with server. Also drop the `#[allow(dead_code)] server_api` field +
-  ctor param + call sites.
-- `ai/predict/generate_am_query_suggestions/api/response.rs:10` uses `crate::ai::agent::FileLocations`
-  — that whole subdir is deleted (am-query path), so this goes away.
+### Keep-path small fixes — CANCELLED (2026-06-07)
+The `ai/predict/{rift_bridge,next_command_model}` `AIApiError` fixes are MOOT: those files (and all
+of `app/src/ai/` + `crates/rift_ai`) are deleted, not preserved.
 
 ---
 
 ## PHASES (each ends GREEN + commit)
 
-### Phase A — Excise the AI agent product
-Delete all of `app/src/ai/` except the keep-path; delete `ai_assistant/`, AI `code_review/`; drop
-`rift_ai::translate` + `rift_nl_prefix` + `predict_am_queries`/`generate_am_query_suggestions`/
-`prompt_suggestions`. De-wire terminal (AI panel, agent blocks, inline actions, conversation history,
-suggestion chips, AI input footer), `pane_group` agent panes, `settings_view` AI pages, `root_view`,
-command palette agent commands, and `lib.rs` agent-model boot inits. Use the de-wiring map (read-only
-agent output) as the checklist. **Biggest phase; removes ~56 of 122 ServerApi consumers + most
-cloud_object/auth consumers.**
+### Phase A — Excise ALL AI (agent product + the former autocomplete keep-path)
+Delete the WHOLE of `app/src/ai/` (no keep-path) + `crates/rift_ai`; delete `ai_assistant/`, AI
+`code_review/`. De-wire terminal (AI panel, agent blocks, inline actions, conversation history,
+suggestion chips, AI input footer, the editor's AI inline-autosuggestion hook + `InputType`),
+`pane_group` agent panes, `settings_view` AI pages, `root_view`, command palette agent commands, and
+`lib.rs` agent-model + AI-predict boot inits. Drop `rift_ai` from `app/Cargo.toml`. **Biggest phase.**
 
 ### Phase B — Drive + cloud objects + dropped features
 Delete Drive, `cloud_object/`, `server/cloud_objects/`, `cloud_preferences*`; delete `workflows/`,
@@ -142,18 +154,19 @@ Phase F.
 ### Phase F — Delete server/ + auth/ + their crates
 Replace `lib.rs` boot inits (`AuthState::initialize`→shim; delete ServerApiProvider/AuthManager/
 telemetry providers/ManagedSecretManager/NetworkLogModel/ServerExperiments/AIRequestUsageModel). Delete
-`app/src/server/`, `app/src/auth/`. Apply the keep-path small fixes (rift_bridge/next_command_model
-error type). Drop crates `rift_server_auth`, `rift_server_client`, `firebase`, `managed_secrets`.
+`app/src/server/`, `app/src/auth/`. Drop crates `rift_server_auth`, `rift_server_client`, `firebase`,
+`managed_secrets`. (No keep-path error-type fixes needed — `ai/predict` is deleted.)
 
 ### Phase G — Detangle + delete graphql crates
 Stub/remove `crates/ai` rerank graphql usage if `crates/ai` still exists; handle `crates/websocket`
 graphql dep; delete `crates/graphql` + `crates/rift_graphql_schema`; remove from workspace Cargo.toml.
 
 ### Phase H — Acceptance
-`cargo build --bin rift-oss` 0 warnings; `cargo test -p rift_ai` (drop translate tests) + pure-logic
-crates; sweep `rg`/`fd` to confirm cloud/agent gone; record binary-size delta vs Plan-1 (~721 MB);
-`git tag rift-plan2-complete`; hand off GUI smoke test to user (launch, run cmds, blocks render,
-settings/themes, inline autocomplete via omlx, no crashes from removed paths).
+`cargo build --bin rift-oss` 0 warnings; `cargo test` pure-logic crates; sweep `rg`/`fd` to confirm
+cloud/agent/AI gone (`rg -i 'rift_ai|BlocklistAI|AgentView' app/src` should be empty); record
+binary-size delta vs Plan-1 (~721 MB); `git tag rift-plan2-complete`; hand off GUI smoke test to user
+(launch, run cmds, blocks render, splits, SSH/warpify, settings/themes, history autosuggestion +
+command corrections work, no crashes from removed paths). No AI/omlx test — AI is gone.
 
 ---
 

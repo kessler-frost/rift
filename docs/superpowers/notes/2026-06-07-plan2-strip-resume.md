@@ -3,14 +3,22 @@
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
 State at handoff: branch `plan2-strip`, **1456 compile errors** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
-view.rs is down to 82 errors; the next cluster is **input.rs (124)** — same shape as the
-view.rs cleanup BUT it runs through the KEEP autosuggestion path (`InputType` =
-`input_classifier::InputType` must be RE-HOMED, not deleted; `InputTypeAutoDetectionSource`
-IS agent). Dead imports at input.rs top (L96 handoff_compose, L115 universal_developer_input,
-L118 ambient_agent, L125 queued_prompts_panel, L193 buy_credits_banner, L201-224
-conversations/models/plans/profiles/prompts/rewind/skills/user_query) + emit sites for the
-now-removed InputEvent variants + agent methods. Then workspace/view.rs (252), pane_group/
-pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale deletes.
+
+⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
+"keep inline autocomplete via rift_ai→omlx" carve-out is CANCELLED. DELETE `crates/rift_ai` +
+ALL of `app/src/ai/` (incl. former keep-path `predict/**` + `block_context`) + the editor's AI
+inline-autosuggestion hook (`maybe_populate_intelligent_autosuggestion` / AI decorator / AI cursor
+colors) + `InputType`/`InputTypeAutoDetectionSource` (input is always Shell now — DELETE, do NOT
+re-home). KEEP only the NON-AI autosuggestion (fish-style history + `command_corrections`
+rule-based). The strip is now uniform — no AI seam to preserve. See updated plan DECISIONS/SCOPE.
+
+view.rs is down to 82 errors; the next cluster is **input.rs (124)** — same shape as the view.rs
+cleanup, now SIMPLER (delete the AI autosuggestion path too, no InputType re-homing). Dead imports
+at input.rs top (L96 handoff_compose, L115 universal_developer_input, L118 ambient_agent, L125
+queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/plans/profiles/prompts/
+rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
+workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
+deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
 To pick up locally:
 `cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
 (needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
@@ -625,19 +633,22 @@ defining ToolPanelView/LeftPanelEvent/RightPanelEvent + `workspace/action.rs` Wo
 Removing an enum variant requires removing ALL its match arms across this cluster at once.
 `LocalOrRemotePath` re-points from `crate::code::buffer_location` → `rift_util::local_or_remote_path`.
 
-## DELETED vs KEEP reference (for de-wiring)
-DELETED (remove all refs): `crate::ai::*` EXCEPT `block_context`+`predict`; `crate::code`
-(whole IDE); `crate::{drive,workflows,notebooks,env_vars,cloud_object,ai_assistant}`;
+## DELETED vs KEEP reference (for de-wiring) — UPDATED 2026-06-07 (all AI deleted)
+DELETED (remove all refs): **`crate::ai::*` ENTIRELY** (no exceptions — `predict` + `block_context`
+are NO LONGER kept) + **`rift_ai` crate**; `crate::code` (whole IDE);
+`crate::{drive,workflows,notebooks,env_vars,cloud_object,ai_assistant}`;
 agent block types (AgentViewVisibility, SerializedAgentViewVisibility, SerializedAIMetadata,
 AgentInteractionMetadata); `terminal::shared_session`; `terminal::view::{ambient_agent,
 conversation_list,queued_prompts_panel}`; inline_banner ZeroStatePromptSuggestion*/
 PromptSuggestionBannerState; cloud-object id types (ObjectIdType/NotebookId/WorkflowId/…);
-`remote_server::{codebase_index_model,diff_state_proto,diff_state_tracker}`.
+`remote_server::{codebase_index_model,diff_state_proto,diff_state_tracker}`;
+the editor AI-autosuggestion hook + `InputType`/`InputTypeAutoDetectionSource`.
 STILL EXISTS — DO NOT remove yet (deleted in later phases): `crate::server`, `crate::auth`,
 `crate::workspaces` (plural=cloud teams), `crate::pricing`, `crate::autoupdate`.
-NEVER TOUCH: `crates/rift_ai`, `app/src/ai/predict/**`, `app/src/ai/block_context`,
-`rift_core` macros (send_telemetry_*, report_error/report_if_error, safe_warn/info/error —
-keep `use rift_core::...`), `crate::editor` (terminal input editor, distinct from deleted code/).
+NEVER TOUCH: `rift_core` macros (send_telemetry_*, report_error/report_if_error,
+safe_warn/info/error — keep `use rift_core::...`); `crate::editor` (terminal input editor, distinct
+from deleted code/) EXCEPT removing its AI-autosuggestion hook; the NON-AI autosuggestion
+(fish-style history + `command_corrections`) is a KEEP terminal feature.
 `context_chips/` is MIXED-KEEP (prompt rendering: PromptSnapshot/CurrentPrompt/GitLineChanges/
 PromptDisplay/PromptType/ContextChipKind) — de-wire agent chips only, don't delete subtree.
 
