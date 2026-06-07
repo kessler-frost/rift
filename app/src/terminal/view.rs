@@ -8,7 +8,6 @@ pub mod inline_banner;
 use onboarding::callout::{FinalState, OnboardingCalloutViewEvent, OnboardingQuery};
 use onboarding::{OnboardingCalloutView, OnboardingKeybindings};
 
-use crate::ai::block_context::BlockContext;
 use crate::global_resource_handles::GlobalResourceHandlesProvider;
 mod link_detection;
 mod open_in_warp;
@@ -50,10 +49,6 @@ use async_channel::{Receiver, Sender};
 use base64::Engine as _;
 use block_banner::{render_warpification_banner, WarpificationMode, WarpifyBannerState};
 pub use block_banner::{WithinBlockBanner, BLOCK_BANNER_HEIGHT};
-use block_onboarding::onboarding_agentic_suggestions_block::{
-    OnboardingAgenticSuggestionsBlock, OnboardingAgenticSuggestionsBlockEvent, OnboardingChipType,
-};
-use block_onboarding::onboarding_drive_sharing_block::OnboardingDriveSharingBlock;
 use bookmarks::render_floating_block_snapshot;
 use chrono::{DateTime, Local, NaiveDateTime};
 use command_corrections::rules::generic::history::History as CommandCorrectionsHistoryRule;
@@ -198,8 +193,6 @@ use crate::banner::{
     Banner, BannerAction, BannerEvent, BannerState, BannerTextButton, BannerTextContent,
     DismissalType,
 };
-#[cfg(feature = "local_fs")]
-use crate::code::editor_management::CodeSource;
 use crate::context_chips::prompt::Prompt;
 #[cfg(feature = "local_fs")]
 use crate::context_chips::prompt::PromptSelection;
@@ -210,7 +203,7 @@ use crate::features::FeatureFlag;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::{
-    CodeReviewPanelArg, PaneConfiguration, PaneEvent, PaneGroupAction, PaneHeaderAction,
+    PaneConfiguration, PaneEvent, PaneGroupAction, PaneHeaderAction,
     SplitPaneState, TerminalViewResources,
 };
 use crate::persistence::{self, FinishedCommandMetadata};
@@ -303,7 +296,7 @@ use crate::terminal::local_tty::shell::ShellStarter;
 use crate::terminal::local_tty::windows::get_user_and_system_env_variable;
 use crate::terminal::model::ansi::{ClearMode, Handler};
 use crate::terminal::model::block::{
-    AgentInteractionMetadata, Block, BlockId, BlockMetadata, LONG_RUNNING_BOTTOM_PADDING_LINES,
+    Block, BlockId, BlockMetadata, LONG_RUNNING_BOTTOM_PADDING_LINES,
 };
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::model::blocks::{
@@ -336,7 +329,7 @@ use crate::terminal::view::block_onboarding::onboarding_prompt_block::Onboarding
 use crate::terminal::view::inline_banner::{
     render_agent_mode_setup_banner, AgentModeSetupSpeedbumpBannerAction,
     AgentModeSetupSpeedbumpBannerState, AliasExpansionBannerState,
-    NotificationsDiscoveryBannerState, NotificationsErrorBannerState, PromptSuggestionBannerState,
+    NotificationsDiscoveryBannerState, NotificationsErrorBannerState,
     VimModeBannerState,
 };
 pub use crate::terminal::view::rich_content::{
@@ -399,7 +392,7 @@ use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 use crate::workspaces::workspace::CustomerType;
 use crate::{
     report_if_error, safe_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
-    send_telemetry_sync_from_ctx, AIAgentActionResultType, AIRequestUsageModel,
+    send_telemetry_sync_from_ctx,
     ActiveSession as WindowActiveSession,
 };
 
