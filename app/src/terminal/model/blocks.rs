@@ -1577,47 +1577,6 @@ impl BlockList {
         }
     }
 
-    pub fn agent_view_state(&self) -> &AgentViewState {
-        &self.agent_view_state
-    }
-
-    /// Sets the agent view state for this blocklist.
-    ///
-    /// With `FeatureFlag::AgentView` enabled, if the state is active, only blocks corresponding to
-    /// the active state's conversation ID are rendered. If inactive, only blocks with no conversation
-    /// ID (i.e. those executed in the top-level terminal context) are rendered.
-    ///
-    /// Do not call this method directly. Instead, use the `AgentViewController` to enter/exit the
-    /// agent view.
-    pub fn set_agent_view_state(&mut self, state: AgentViewState) {
-        self.agent_view_state = state;
-        if !self.active_block().finished() {
-            if let Some(id) = self.agent_view_state.active_conversation_id() {
-                // For inline agent views, add the conversation ID to Terminal variant
-                // instead of replacing with Agent variant
-                if self.agent_view_state.is_inline() {
-                    self.active_block_mut().add_attached_conversation_id(id);
-                } else {
-                    self.active_block_mut().set_conversation_id(id);
-                }
-            } else {
-                // Only clear conversation ID for blocks that were created inside agent view.
-                // Terminal blocks with conversation associations should keep them.
-                if matches!(
-                    self.active_block().agent_view_visibility(),
-                    &AgentViewVisibility::Agent { .. }
-                ) {
-                    self.active_block_mut().clear_conversation_id();
-                }
-            }
-        }
-
-        // AI blocks render with height 0 when hidden for the current agent view state, so mark
-        // them dirty to force a re-measure.
-        self.mark_agent_view_rich_content_dirty();
-
-        self.update_blocks_and_sumtree(None, None, |_| {}, |_| {});
-    }
 
     /// Marks AI / agent-view rich content as dirty so heights get re-laid out. Call this after
     /// any change that affects which rich content is visible for the current agent view state.
