@@ -22,55 +22,7 @@ use riftui::{Entity, EntityId, ModelContext, ModelHandle, ViewHandle};
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::workspace::view::global_search::view::GlobalSearchView;
 
-/// Type-safe wrapper around the map of `LocalOrRemotePath` → `DiffStateModel`.
-///
-/// Enforces that local keys are always paired with local-backend models and
-/// remote keys with remote-backend models via dedicated insertion methods.
-#[cfg(feature = "local_fs")]
-#[derive(Default)]
-struct DiffStateModelMap {
-    models: HashMap<LocalOrRemotePath, ModelHandle<DiffStateModel>>,
-}
 
-#[cfg(feature = "local_fs")]
-impl DiffStateModelMap {
-    fn get(&self, key: &LocalOrRemotePath) -> Option<&ModelHandle<DiffStateModel>> {
-        self.models.get(key)
-    }
-
-    /// Insert a model that was created from a `LocalOrRemotePath::Local` key.
-    fn insert_local(
-        &mut self,
-        path: PathBuf,
-        model: ModelHandle<DiffStateModel>,
-        ctx: &AppContext,
-    ) {
-        debug_assert!(
-            matches!(model.as_ref(ctx), DiffStateModel::Local(_)),
-            "insert_local called with a remote-backend DiffStateModel",
-        );
-        self.models.insert(LocalOrRemotePath::Local(path), model);
-    }
-
-    /// Insert a model that was created from a `LocalOrRemotePath::Remote` key.
-    fn insert_remote(
-        &mut self,
-        remote_id: RemotePath,
-        model: ModelHandle<DiffStateModel>,
-        ctx: &AppContext,
-    ) {
-        debug_assert!(
-            matches!(model.as_ref(ctx), DiffStateModel::Remote(_)),
-            "insert_remote called with a local-backend DiffStateModel",
-        );
-        self.models
-            .insert(LocalOrRemotePath::Remote(remote_id), model);
-    }
-
-    fn remove(&mut self, key: &LocalOrRemotePath) -> Option<ModelHandle<DiffStateModel>> {
-        self.models.remove(key)
-    }
-}
 
 /// Bidirectional map of pane groups to the repository roots they reference.
 ///
@@ -271,26 +223,9 @@ pub struct WorkingDirectoriesModel {
     /// Note, a single root path can be associated with multiple terminals.
     /// we're just storing an arbitrary terminal ID for each root path.
     directory_to_terminal: HashMap<EntityId, HashMap<LocalOrRemotePath, EntityId>>,
-    /// Global mapping from repository keys to their DiffStateModel.
-    /// Since git state is inherently tied to a repository (not a pane group),
-    /// this is stored globally and shared across all pane groups viewing the same repo.
-    diff_state_models: DiffStateModelMap,
-    /// Global mapping from repository locations to their CommentBatch.
-    /// Like the DiffStateModel mapping, comments are inherently tied to git diffs
-    /// and are shared across all pane groups viewing the same repo.
-    comment_models: HashMap<LocalOrRemotePath, ModelHandle<ReviewCommentBatch>>,
-    /// Per-pane-group mapping from repository root locations to their CodeReviewView.
-    /// This allows reusing code review views across multiple requests for the same repo.
-    code_review_views: HashMap<EntityId, HashMap<LocalOrRemotePath, ViewHandle<CodeReviewView>>>,
     /// Per-pane-group tracking of the focused repository root path.
     focused_repo: HashMap<EntityId, Option<LocalOrRemotePath>>,
-    /// Per-pane-group tracking of the repository the user has manually selected for the
-    /// code review (right) panel. This is the repo that should be restored when the user
-    /// leaves the pane group's session and returns to it later, even if the auto-selection
-    /// logic would otherwise pick a different default.
-    selected_review_repo: HashMap<EntityId, LocalOrRemotePath>,
     global_search_views: HashMap<EntityId, ViewHandle<GlobalSearchView>>,
-    file_tree_views: HashMap<EntityId, ViewHandle<FileTreeView>>,
 }
 
 #[derive(Default)]
@@ -367,125 +302,11 @@ impl WorkingDirectoriesModel {
             .and_then(|roots| roots.get(root_path).copied())
     }
 
-    /// Get or create a DiffStateModel for a specific repository.
-    ///
-    /// If the model doesn't exist, it will be created. For remote
-    /// repositories we require a connected session for the host; returns
-    /// `None` when none exists so callers treat the panel as unavailable
-    /// for that repo rather than producing a model that cannot subscribe.
-    pub fn get_or_create_diff_state_model(
-        &mut self,
-        key: LocalOrRemotePath,
-        preferred_session: Option<SessionId>,
-        ctx: &mut ModelContext<Self>,
-    ) -> Option<ModelHandle<DiffStateModel>> {
-        if let Some(model) = self.diff_state_models.get(&key) {
-            return Some(model.clone());
-        }
 
-        let diff_state_model = match &key {
-            LocalOrRemotePath::Local(path) => {
-                let path = path.clone();
-                ctx.add_model(|ctx| DiffStateModel::new_local(path, ctx))
-            }
-            LocalOrRemotePath::Remote(remote_path) => {
-                let mgr_handle = RemoteServerManager::handle(ctx);
-                mgr_handle
-                    .as_ref(ctx)
-                    .client_for_host(&remote_path.host_id)?;
-                let remote_path = remote_path.clone();
-                ctx.add_model(|ctx| DiffStateModel::new_remote(remote_path, preferred_session, ctx))
-            }
-        };
 
-        match key {
-            LocalOrRemotePath::Local(path) => {
-                self.diff_state_models
-                    .insert_local(path, diff_state_model.clone(), ctx);
-            }
-            LocalOrRemotePath::Remote(remote_id) => {
-                self.diff_state_models
-                    .insert_remote(remote_id, diff_state_model.clone(), ctx);
-            }
-        }
 
-        Some(diff_state_model)
-    }
 
-    /// Drops diff state models for repos that are no longer referenced by any
-    /// pane group. The input must already be pre-filtered to orphans, so this
-    /// method stops the watcher and removes stale model and view cache entries.
-    fn drop_unused_diff_state_models(
-        &mut self,
-        orphaned_repos: impl IntoIterator<Item = LocalOrRemotePath>,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        for repo_key in orphaned_repos {
-            if let Some(model) = self.diff_state_models.remove(&repo_key) {
-                model.update(ctx, |model, ctx| {
-                    model.stop_active_watcher(ctx);
-                });
-            }
-            for views in self.code_review_views.values_mut() {
-                views.remove(&repo_key);
-            }
-        }
-    }
 
-    /// Get or create a ReviewCommentBatch for a specific repository.
-    /// If the model doesn't exist, it will be created.
-    pub fn get_or_create_code_review_comments(
-        &mut self,
-        repo_path: &LocalOrRemotePath,
-        ctx: &mut ModelContext<Self>,
-    ) -> Option<ModelHandle<ReviewCommentBatch>> {
-        if let Some(existing) = self.comment_models.get(repo_path) {
-            return Some(existing.clone());
-        }
-        let model = ctx.add_model(|_ctx| ReviewCommentBatch::default());
-        self.comment_models.insert(repo_path.clone(), model.clone());
-        Some(model)
-    }
-
-    /// Store a CodeReviewView for a specific repository in a pane group.
-    pub fn store_code_review_view(
-        &mut self,
-        pane_group_id: EntityId,
-        repo_path: LocalOrRemotePath,
-        view: ViewHandle<CodeReviewView>,
-    ) {
-        let pane_group_views = self.code_review_views.entry(pane_group_id).or_default();
-        pane_group_views.insert(repo_path, view);
-
-        // Remove any inactive code reviews here. This allows these to be garbage collected.
-        self.remove_inactive_code_reviews(pane_group_id);
-    }
-
-    /// Remove any code review view state that is not active in any of the terminal views that belong to this pane group.
-    fn remove_inactive_code_reviews(&mut self, pane_group_id: EntityId) {
-        let Some(code_review_views) = self.code_review_views.get_mut(&pane_group_id) else {
-            return;
-        };
-
-        let Some(terminal_mapping) = self.directory_to_terminal.get(&pane_group_id) else {
-            return;
-        };
-
-        code_review_views.retain(|path, _| terminal_mapping.contains_key(path));
-    }
-
-    /// Get an existing CodeReviewView for a specific repository in a pane group.
-    /// Returns None if no view exists for this combination.
-    pub fn get_code_review_view(
-        &self,
-        pane_group_id: EntityId,
-        repo_path: &LocalOrRemotePath,
-    ) -> Option<ViewHandle<CodeReviewView>> {
-        self.code_review_views
-            .get(&pane_group_id)
-            .and_then(|pane_group_views| pane_group_views.get(repo_path))
-            .cloned()
-    }
 
     /// Get the repository path the user has manually selected for the code review
     /// panel in a given pane group, if any. Used to restore the selection when the
@@ -525,17 +346,7 @@ impl WorkingDirectoriesModel {
         self.global_search_views.get(&pane_group_id).cloned()
     }
 
-    pub fn store_file_tree_view(
-        &mut self,
-        pane_group_id: EntityId,
-        view: ViewHandle<FileTreeView>,
-    ) {
-        self.file_tree_views.insert(pane_group_id, view);
-    }
 
-    pub fn get_file_tree_view(&self, pane_group_id: EntityId) -> Option<ViewHandle<FileTreeView>> {
-        self.file_tree_views.get(&pane_group_id).cloned()
-    }
 
     /// Permanently removes all state associated with a pane group.
     /// This should be called when a tab is closed (pane group is destroyed),
@@ -928,50 +739,7 @@ impl WorkingDirectoriesModel {
         });
     }
 
-    pub(crate) fn insert_code_review_comments(
-        &mut self,
-        pane_group_id: EntityId,
-        repo_path: &LocalOrRemotePath,
-        comments: &Vec<PendingImportedReviewComment>,
-        diff_mode: &DiffMode,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        if let Some(code_review_view) = self.get_code_review_view(pane_group_id, repo_path) {
-            code_review_view.update(ctx, |code_review_view, ctx| {
-                code_review_view.set_diff_base(diff_mode.to_owned(), ctx);
-                code_review_view.expand_comment_list(ctx);
-            })
-        } else {
-            log::error!(
-                "WorkingDirectoriesModel did not find CodeReviewView for repo path {:?}",
-                repo_path
-            );
-        }
 
-        if let Some(comment_batch) = self.get_or_create_code_review_comments(repo_path, ctx) {
-            let comments = comments.to_owned();
-            comment_batch.update(ctx, |comment_batch, ctx| {
-                comment_batch.add_pending_imported_comments(comments, diff_mode.to_owned(), ctx);
-            })
-        }
-    }
-
-    /// Inserts pre-flattened (already attached) review comments into the comment batch for the
-    /// given repository, creating the batch if needed. Unlike `insert_code_review_comments`, these
-    /// comments have already been thread-flattened and converted to `AttachedReviewComment`, so
-    /// they are ready to be repositioned onto diff editors immediately.
-    pub(crate) fn upsert_flattened_code_review_comments(
-        &mut self,
-        repo_path: &LocalOrRemotePath,
-        comments: Vec<AttachedReviewComment>,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        if let Some(comment_batch) = self.get_or_create_code_review_comments(repo_path, ctx) {
-            comment_batch.update(ctx, |comment_batch, ctx| {
-                comment_batch.upsert_imported_comments(comments, ctx);
-            });
-        }
-    }
 }
 
 #[cfg(not(feature = "local_fs"))]
