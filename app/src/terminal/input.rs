@@ -97,9 +97,7 @@ use super::alias::is_expandable_alias;
 use super::block_list_viewport::InputMode;
 use super::event::{BlockCompletedEvent, BlockType, UserBlockCompleted};
 use super::ligature_settings::LigatureSettings;
-use super::model::block::{
-    AgentInteractionMetadata, BlockId, BlockMetadata, BlocklistEnvVarMetadata,
-};
+use super::model::block::{BlockId, BlockMetadata, BlocklistEnvVarMetadata};
 use super::model::session::{Session, SessionId, SessionType, Sessions};
 use super::prompt_render_helper::{
     should_render_prompt_on_same_line, should_render_prompt_using_editor_decorator_elements,
