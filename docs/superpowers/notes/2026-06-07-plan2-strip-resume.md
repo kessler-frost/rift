@@ -21,6 +21,20 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 464 resolution errors (window 19, later). MILESTONE: both `terminal/input.rs` AND `terminal/view.rs`
+are now PRIMARY-ERROR-CLEAN (their log mentions are secondary `-->` refs from other files). All masking cleared,
+everything committed+pushed. TOP FILES NOW: workspace/view.rs 100 (next big god-file: code pane / code-review /
+cloud-workspace — CodeSource ~14 sites, ForkAIConversation, PersistedWorkspace), workspace/view/right_panel 34
+(code-review panel), slash_commands/mod 27 (heavily AI: export/index/init/fork/queue/cost/move_to_cloud/pr_comments
+arms + ai_context_model/ai_controller/agent_view_controller — gut the AI command arms; match is name-guarded so arms
+delete cleanly), slash_commands/data_source/mod 25 (AI prompt/cloud-object data sources), server/graphql/schema 23 +
+util 12 + harness_support 16 + gql_convert 13 + remote_server/server_model 14 = PHASE-F CLOUD LAYER (check wholesale
+delete), root_view 16, pane_group/mod 16, left_panel 15, rich_content 15 (AIBlockMetadata/AgentViewEntryMetadata),
+install_tmux 14 (requested_script UI), lib.rs 14 (ai_client wiring). Cleared this stretch: InputAction enum,
+context_menu.rs gut, saved_prompts, prompt-suggestion+codebase-index banners, all view.rs AI render (block-context,
+conversation-resume, ctrl-c AI, agent-view-bg, shimmer, Viewer sizing, OpenCodeInWarp/CodeSource code-editor open,
+onboarding-agentic block, ambient_agent footer, AIBlock selection, PersistedWorkspace nav).
+
 ### STATE: 496 resolution errors (window 19 end). All masking cleared, all work committed+pushed on plan2-strip.
 TOP FILES: workspace/view.rs 100, terminal/view.rs ~30, right_panel 34, slash_commands/mod 27, data_source/mod 25,
 server/graphql/schema 23, harness_support 16, root_view 16, pane_group/mod 16, left_panel 15, rich_content 15,
