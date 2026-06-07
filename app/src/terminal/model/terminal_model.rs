@@ -557,11 +557,7 @@ pub struct TerminalModel {
     /// Whether or not to respect secrets that are obfuscated, respecting the Safe Mode/Secret Redaction setting.
     obfuscate_secrets: ObfuscateSecrets,
 
-    shared_session_status: SharedSessionStatus,
 
-    /// `SessionSourceType` paired with `source_task_id`, or `None` when
-    /// this is not a shared session.
-    shared_session_source: Option<SharedSessionSource>,
 
     /// Whether this terminal model was created as a cloud mode dummy session
     /// (no local shell process, deferred shared-session viewer backing).
@@ -571,20 +567,7 @@ pub struct TerminalModel {
     /// Tracks both the loading state and the type of conversation being viewed.
     conversation_transcript_viewer_status: Option<ConversationTranscriptViewerStatus>,
 
-    /// A sender for terminal-state updates that must be ordered against each other.
-    /// This goes through the [`TerminalModel`] because the [`TerminalModel`] is exposed as
-    /// a synchronized data structure (i.e. [`FairMutex<TerminalModel>`]) and thus multiple
-    /// `send`s via the [`TerminalModel`] will be synchronized.
-    ///
-    /// This field is only [`Some`] if this session is shared.
-    /// TODO: consider combining this with `shared_session_status` because
-    /// the state can technically diverge.
-    ordered_terminal_events_for_shared_session_tx: Option<Sender<OrderedTerminalEventType>>,
 
-    /// A sender for write to pty events for a shared session viewer.
-    ///
-    /// This field is only [`Some`] if this session is shared.
-    write_to_pty_events_for_shared_session_tx: Option<Sender<Vec<u8>>>,
 
     /// Whether this viewer is currently receiving historical agent conversation replay.
     /// Used to suppress live-conversation-specific actions (e.g. tombstone insertion)
@@ -1096,7 +1079,6 @@ impl TerminalModel {
         is_ai_ugc_telemetry_enabled: bool,
         session_startup_path: Option<PathBuf>,
         shell_state: ShellLaunchState,
-        shared_session_status: SharedSessionStatus,
         is_dummy_cloud_mode_session: bool,
     ) -> Self {
         let alt_screen = AltScreen::new(
@@ -1148,12 +1130,8 @@ impl TerminalModel {
             env_var_collection_name: None,
             shell_launch_state: shell_state,
             obfuscate_secrets,
-            shared_session_status,
-            shared_session_source: None,
             is_dummy_cloud_mode_session,
             conversation_transcript_viewer_status: None,
-            ordered_terminal_events_for_shared_session_tx: None,
-            write_to_pty_events_for_shared_session_tx: None,
             is_receiving_agent_conversation_replay: false,
             tmux_background_outputs: HashMap::new(),
             tmux_control_mode_context: None,
@@ -1204,181 +1182,18 @@ impl TerminalModel {
         )
     }
 
-    /// Creates a terminal model for a cloud mode pane before it has connected to a shared session.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new_for_cloud_mode_shared_session_viewer(
-        sizes: BlockSize,
-        colors: color::List,
-        event_proxy: ChannelEventListener,
-        background_executor: Arc<Background>,
-        show_memory_stats: bool,
-        honor_ps1: bool,
-        is_inverted: bool,
-        obfuscate_secrets: ObfuscateSecrets,
-    ) -> Self {
-        Self::new_internal(
-            None,
-            sizes,
-            colors,
-            event_proxy,
-            background_executor,
-            false,
-            false,
-            show_memory_stats,
-            honor_ps1,
-            is_inverted,
-            obfuscate_secrets,
-            false,
-            None,
-            // TODO: use the same shell type as the sharer
-            ShellLaunchState::ShellSpawned {
-                available_shell: None,
-                display_name: ShellName::blank(),
-                shell_type: ShellType::Zsh,
-            },
-            SharedSessionStatus::ViewPending,
-            true,
-        )
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn new_for_shared_session_viewer_internal(
-        sizes: BlockSize,
-        colors: color::List,
-        event_proxy: ChannelEventListener,
-        background_executor: Arc<Background>,
-        show_memory_stats: bool,
-        honor_ps1: bool,
-        is_inverted: bool,
-        obfuscate_secrets: ObfuscateSecrets,
-    ) -> Self {
-        Self::new_internal(
-            None,
-            sizes,
-            colors,
-            event_proxy,
-            background_executor,
-            false,
-            false,
-            show_memory_stats,
-            honor_ps1,
-            is_inverted,
-            obfuscate_secrets,
-            false,
-            None,
-            // TODO: use the same shell type as the sharer
-            ShellLaunchState::ShellSpawned {
-                available_shell: None,
-                display_name: ShellName::blank(),
-                shell_type: ShellType::Zsh,
-            },
-            SharedSessionStatus::ViewPending,
-            false,
-        )
-    }
-
-    /// Creates a terminal model for a terminal session that is being viewed.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new_for_shared_session_viewer(
-        sizes: BlockSize,
-        colors: color::List,
-        event_proxy: ChannelEventListener,
-        background_executor: Arc<Background>,
-        show_memory_stats: bool,
-        honor_ps1: bool,
-        is_inverted: bool,
-        obfuscate_secrets: ObfuscateSecrets,
-    ) -> Self {
-        Self::new_for_shared_session_viewer_internal(
-            sizes,
-            colors,
-            event_proxy,
-            background_executor,
-            show_memory_stats,
-            honor_ps1,
-            is_inverted,
-            obfuscate_secrets,
-        )
-    }
-
-    pub fn set_ordered_terminal_events_for_shared_session_tx(
-        &mut self,
-        tx: Sender<OrderedTerminalEventType>,
-    ) {
-        self.ordered_terminal_events_for_shared_session_tx = Some(tx);
-    }
-
-    pub fn clear_ordered_terminal_events_for_shared_session_tx(&mut self) {
-        self.ordered_terminal_events_for_shared_session_tx = None;
-    }
 
 
-    pub fn set_write_to_pty_events_for_shared_session_tx(&mut self, tx: Sender<Vec<u8>>) {
-        self.write_to_pty_events_for_shared_session_tx = Some(tx);
-    }
-
-    pub fn send_write_to_pty_events_for_shared_session(&mut self, bytes: Vec<u8>) {
-        if !FeatureFlag::SharedSessionWriteToLongRunningCommands.is_enabled()
-            || !self.shared_session_status().is_executor()
-        {
-            return;
-        }
-
-        if let Some(tx) = &self.write_to_pty_events_for_shared_session_tx {
-            if let Err(e) = tx.try_send(bytes) {
-                log::warn!("Failed to send write to pty events: {e}");
-            }
-        }
-    }
-
-    pub fn clear_write_to_pty_events_for_shared_session_tx(&mut self) {
-        self.write_to_pty_events_for_shared_session_tx = None;
-    }
 
 
-    pub fn send_agent_conversation_replay_started_for_shared_session(&mut self) {
-        if self.shared_session_status().is_sharer() {
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                if let Err(e) =
-                    tx.try_send(OrderedTerminalEventType::AgentConversationReplayStarted)
-                {
-                    log::warn!(
-                        "Failed to send OrderedTerminalEventType::AgentConversationReplayStarted: {e}"
-                    );
-                }
-            }
-        }
-    }
 
-    pub fn send_agent_conversation_replay_ended_for_shared_session(&mut self) {
-        if self.shared_session_status().is_sharer() {
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                if let Err(e) = tx.try_send(OrderedTerminalEventType::AgentConversationReplayEnded)
-                {
-                    log::warn!(
-                        "Failed to send OrderedTerminalEventType::AgentConversationReplayEnded: {e}"
-                    );
-                }
-            }
-        }
-    }
 
-    /// Signal to viewers that the Cloud Mode Setup V2 phase is complete and no
-    /// follow-up `AppendedExchange` is coming (e.g. because the AgentDriver is
-    /// short-circuiting an empty-prompt handoff via `skip_initial_turn`).
-    /// Viewers use this to clear `BlockList::is_executing_oz_environment_startup_commands`
-    /// and tear down the "Running setup commands…" chip.
-    pub fn send_cloud_mode_setup_phase_ended_for_shared_session(&mut self) {
-        if self.shared_session_status().is_sharer() {
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                if let Err(e) = tx.try_send(OrderedTerminalEventType::CloudModeSetupPhaseEnded) {
-                    log::warn!(
-                        "Failed to send OrderedTerminalEventType::CloudModeSetupPhaseEnded: {e}"
-                    );
-                }
-            }
-        }
-    }
+
+
+
+
+
+
 
     /// Whether the session sharing server is currently replaying
     /// conversation events (for conversation reconstruction).
@@ -1390,25 +1205,9 @@ impl TerminalModel {
         self.is_receiving_agent_conversation_replay = value;
     }
 
-    pub fn set_shared_session_source(&mut self, source: SharedSessionSource) {
-        self.shared_session_source = Some(source);
-    }
 
-    pub fn shared_session_source(&self) -> Option<&SharedSessionSource> {
-        self.shared_session_source.as_ref()
-    }
 
-    pub fn shared_session_source_type(&self) -> Option<SessionSourceType> {
-        self.shared_session_source
-            .as_ref()
-            .map(|s| s.source_type.clone())
-    }
 
-    pub fn set_shared_session_source_task_id(&mut self, task_id: Option<String>) {
-        if let Some(source) = self.shared_session_source.as_mut() {
-            source.source_task_id = task_id;
-        }
-    }
 
     pub fn is_dummy_cloud_mode_session(&self) -> bool {
         self.is_dummy_cloud_mode_session
@@ -1438,28 +1237,7 @@ impl TerminalModel {
             .and_then(|s| s.parse().ok())
     }
 
-    /// Loads the provided scrollback into the model.
-    // TODO: we should be doing this in the constructor of the
-    // terminal model for the viewers so that we're guaranteed that
-    // loading scrollback is the first thing that we do.
-    pub fn load_shared_session_scrollback(&mut self, scrollback: &[SerializedBlock]) {
-        debug_assert!(self.shared_session_status().is_viewer());
 
-        self.block_list_mut()
-            .load_shared_session_scrollback(scrollback);
-
-        // The scrollback contains the prompt for the active block, and the terminal view needs to be notified to render it.
-        self.event_proxy.send_wakeup_event();
-    }
-
-    pub fn append_followup_shared_session_scrollback(&mut self, scrollback: &[SerializedBlock]) {
-        debug_assert!(self.shared_session_status().is_viewer());
-
-        self.block_list_mut()
-            .append_followup_shared_session_scrollback(scrollback);
-
-        self.event_proxy.send_wakeup_event();
-    }
 
     pub fn obfuscate_secrets(&self) -> ObfuscateSecrets {
         self.obfuscate_secrets
@@ -1881,18 +1659,8 @@ impl TerminalModel {
         }
     }
 
-    pub fn shared_session_status(&self) -> &SharedSessionStatus {
-        &self.shared_session_status
-    }
 
-    pub fn set_shared_session_status(&mut self, shared_session_status: SharedSessionStatus) {
-        self.shared_session_status = shared_session_status;
-    }
 
-    /// Returns whether this terminal is viewing a shared session.
-    pub fn is_shared_session_viewer(&self) -> bool {
-        self.shared_session_status.is_viewer()
-    }
 
     /// Resize terminal to new dimensions.
     /// The block sort direction is needed to update the state of the find dialog.
