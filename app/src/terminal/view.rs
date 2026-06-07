@@ -7354,19 +7354,6 @@ impl TerminalView {
                                 self.pending_command_queue.clear();
                             }
                             ctx.emit(Event::PendingCommandCompleted);
-
-                            // If agent view entry was deferred until setup commands
-                            // finished, enter it now (unless suppressed by onboarding).
-                            if self.enter_agent_view_after_pending_commands {
-                                self.enter_agent_view_after_pending_commands = false;
-                                self.enter_agent_view_for_new_conversation(
-                                    None,
-                                    AgentViewEntryOrigin::Input {
-                                        was_prompt_autodetected: false,
-                                    },
-                                    ctx,
-                                );
-                            }
                         }
                     }
                 }
@@ -7492,49 +7479,6 @@ impl TerminalView {
                     };
                     self.did_notify_long_running = false;
                     self.set_current_state(terminal_view_state, ctx);
-
-                    // Update agent view back button state when command completes
-                    if FeatureFlag::AgentView.is_enabled()
-                        && self.agent_view_controller.as_ref(ctx).is_fullscreen()
-                    {
-                        self.update_agent_view_back_button_state(ctx);
-                        self.update_agent_view_pane_header(ctx);
-                    }
-
-                    let exit_code_data =
-                        &json!({"exit_code": block_completed.serialized_block.as_ref().exit_code})
-                            .to_string();
-
-                    // If the block was a cloud workflow, record the workflow execution as an object action.
-                    if let Some(cloud_workflow_id) = cloud_workflow_id {
-                        let id_and_type = CloudObjectTypeAndId::Workflow(*cloud_workflow_id);
-                        UpdateManager::handle(ctx).update(ctx, move |update_manager, ctx| {
-                            update_manager.record_object_action(
-                                id_and_type,
-                                ObjectActionType::Execute,
-                                Some(exit_code_data.clone()),
-                                ctx,
-                            )
-                        });
-                    }
-
-                    if let Some(cloud_env_var_collection_id) = cloud_env_var_collection_id {
-                        let id_and_type = CloudObjectTypeAndId::GenericStringObject {
-                            object_type: GenericStringObjectFormat::Json(
-                                JsonObjectType::EnvVarCollection,
-                            ),
-
-                            id: *cloud_env_var_collection_id,
-                        };
-                        UpdateManager::handle(ctx).update(ctx, move |update_manager, ctx| {
-                            update_manager.record_object_action(
-                                id_and_type,
-                                ObjectActionType::Execute,
-                                Some(exit_code_data.clone()),
-                                ctx,
-                            )
-                        });
-                    }
 
                     if let (
                         Some(active_session_id),
