@@ -15,21 +15,14 @@ use riftui::{
 use session_sharing_protocol::sharer::SessionSourceType;
 use url::Url;
 
-#[cfg(not(target_family = "wasm"))]
-use super::local_harness_launch::{prepare_local_harness_child_launch, PreparedLocalHarnessLaunch};
 use super::{
     DetachType, PaneConfiguration, PaneContent, PaneId, PaneStackEvent, PaneView, ShareableLink,
     ShareableLinkError, TerminalPaneId,
 };
-use crate::app_state::{AmbientAgentPaneSnapshot, LeafContents, TerminalPaneSnapshot};
-use crate::code::buffer_location::LocalOrRemotePath;
-#[cfg(feature = "local_fs")]
-use crate::pane_group::CodeSource;
-use crate::pane_group::Event::OpenConversationHistory;
+use crate::app_state::{LeafContents, TerminalPaneSnapshot};
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::pane_group::{self, Direction, PaneGroup};
 use crate::persistence::{BlockCompleted, ModelEvent};
-#[cfg(not(target_family = "wasm"))]
-use crate::server::server_api::ServerApiProvider;
 use crate::session_management::SessionNavigationData;
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::general_settings::GeneralSettings;
@@ -38,16 +31,6 @@ use crate::terminal::{TerminalManager, TerminalView};
 use crate::view_components::ToastFlavor;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{PaneViewLocator, WorkspaceRegistry};
-// Imports below are only consumed by the non-wasm `launch_local_*_child`
-// dispatch helpers; gating them keeps the wasm build warning-clean.
-#[cfg(not(target_family = "wasm"))]
-use crate::{
-    pane_group::child_agent::{
-        create_hidden_child_agent_conversation, HiddenChildAgentConversation,
-        HiddenChildAgentConversationRequest, HiddenChildAgentTaskContext,
-    },
-    terminal::shared_session::IsSharedSessionCreator,
-};
 
 pub type TerminalPaneView = PaneView<TerminalView>;
 
@@ -68,95 +51,13 @@ pub struct TerminalPane {
     view: ViewHandle<TerminalPaneView>,
 }
 
-fn resolve_runtime_skills(
-    skill_references: &[ai::skills::SkillReference],
-    ctx: &AppContext,
-) -> Result<Vec<String>, Vec<String>> {
-    let skill_manager = SkillManager::as_ref(ctx);
-    let mut runtime_skills = Vec::with_capacity(skill_references.len());
-    let mut unresolved_references = Vec::new();
-
-    for reference in skill_references {
-        let Some(skill) = skill_manager.active_skill_by_reference(reference, ctx) else {
-            unresolved_references.push(reference.to_string());
-            continue;
-        };
-        runtime_skills.push(serialize_proto_to_base64(&multi_agent_api::Skill::from(
-            skill.clone(),
-        )));
-    }
-
-    if unresolved_references.is_empty() {
-        Ok(runtime_skills)
-    } else {
-        Err(unresolved_references)
-    }
-}
 
 fn serialize_proto_to_base64<M: prost::Message>(message: &M) -> String {
     BASE64_STANDARD.encode(message.encode_to_vec())
 }
 
-/// Overrides the child's preferred agent-mode LLM. `None` is a no-op
-/// (inherits the parent's LLM via `propagate_parent_agent_settings`).
-#[cfg(not(target_family = "wasm"))]
-fn apply_child_model_id_override(
-    child_terminal_view_id: EntityId,
-    model_id: Option<&str>,
-    ctx: &mut ViewContext<PaneGroup>,
-) {
-    let Some(model_id) = model_id.map(str::trim).filter(|m| !m.is_empty()) else {
-        return;
-    };
-    let llm_id: ai::LLMId = model_id.into();
-    LLMPreferences::handle(ctx).update(ctx, |llm_prefs, ctx| {
-        llm_prefs.update_preferred_agent_mode_llm(&llm_id, child_terminal_view_id, ctx);
-    });
-}
 
-/// Returns the host terminal's `SharedSessionSource`, or `None` if it is
-/// not currently a shared-session creator. Reads the underlying
-/// `TerminalModel` directly via the host's `TerminalView`.
-#[cfg(not(target_family = "wasm"))]
-pub(in crate::pane_group) fn host_terminal_shared_session_source_type(
-    parent_terminal_view: &ViewHandle<TerminalView>,
-    ctx: &AppContext,
-) -> Option<SharedSessionSource> {
-    let model = parent_terminal_view.as_ref(ctx).model.lock();
-    if let Some(source) = model.shared_session_source() {
-        return Some(source.clone());
-    }
-    if let SharedSessionStatus::SharePendingPreBootstrap { source } = model.shared_session_status()
-    {
-        return Some(source.clone());
-    }
-    None
-}
 
-/// Builds the `IsSharedSessionCreator` for a child pane spawned by
-/// `run_agents(local)`. Returns `Yes` (stamped with the child's `task_id`)
-/// when the host carries an orchestrator `task_id`. The host's variant kind
-/// is preserved so cloud-only UI stays gated on `AmbientAgent`.
-#[cfg(not(target_family = "wasm"))]
-pub(in crate::pane_group) fn inherit_share_for_local_child(
-    host_source: Option<&SharedSessionSource>,
-    child_task_id: AmbientAgentTaskId,
-) -> IsSharedSessionCreator {
-    let Some(host_source) = host_source else {
-        return IsSharedSessionCreator::No;
-    };
-    if host_source.orchestrator_task_id().is_none() {
-        return IsSharedSessionCreator::No;
-    }
-    let child_task_id_str = child_task_id.to_string();
-    let source = match &host_source.source_type {
-        SessionSourceType::User => SharedSessionSource::user(Some(child_task_id_str)),
-        SessionSourceType::AmbientAgent { .. } => {
-            SharedSessionSource::ambient_agent(Some(child_task_id_str))
-        }
-    };
-    IsSharedSessionCreator::Yes { source }
-}
 
 impl TerminalPane {
     pub(in crate::pane_group) fn new(
@@ -339,107 +240,14 @@ impl PaneContent for TerminalPane {
     fn snapshot(&self, app: &AppContext) -> LeafContents {
         let view = self.terminal_view(app).as_ref(app);
         let is_active = view.is_active_session(app);
-
-        // Capture the current input_config from the AI input model
-        let current_input_config = view.input_config(app.as_ref());
-
-        if view.model.lock().shared_session_status().is_viewer() {
-            // We save and restore ambient agent sessions
-            // (restoring the shared session if it's still open and the conversation transcript otherwise).
-            if let Some(ambient_model) = view.ambient_agent_view_model() {
-                let ambient_model = ambient_model.as_ref(app);
-                let task_id = ambient_model.task_id();
-
-                return LeafContents::AmbientAgent(AmbientAgentPaneSnapshot {
-                    uuid: self.uuid.clone(),
-                    task_id,
-                });
-            }
-
-            LeafContents::Terminal(TerminalPaneSnapshot {
-                uuid: self.uuid.clone(),
-                cwd: None,
-                is_active,
-                is_read_only: false,
-                shell_launch_data: None,
-                input_config: None,
-                llm_model_override: None,
-                active_profile_id: None,
-                conversation_ids_to_restore: vec![],
-                active_conversation_id: None,
-            })
-        } else if let Some(task_id) = view
-            .ambient_agent_view_model()
-            .and_then(|ambient_model| ambient_model.as_ref(app).task_id())
-        {
-            LeafContents::AmbientAgent(AmbientAgentPaneSnapshot {
-                uuid: self.uuid.clone(),
-                task_id: Some(task_id),
-            })
-        } else if view.model.lock().is_conversation_transcript_viewer() {
-            // Conversation transcript viewers (opened from the conversation list)
-            // can be restored via the ambient agent task if one exists.
-            let task_id = view.model.lock().ambient_agent_task_id();
-            if task_id.is_some() {
-                LeafContents::AmbientAgent(AmbientAgentPaneSnapshot {
-                    uuid: self.uuid.clone(),
-                    task_id,
-                })
-            } else {
-                LeafContents::Terminal(TerminalPaneSnapshot {
-                    uuid: self.uuid.clone(),
-                    cwd: None,
-                    is_active,
-                    is_read_only: false,
-                    shell_launch_data: None,
-                    input_config: None,
-                    llm_model_override: None,
-                    active_profile_id: None,
-                    conversation_ids_to_restore: vec![],
-                    active_conversation_id: None,
-                })
-            }
-        } else {
-            let llm_model_override =
-                LLMPreferences::as_ref(app).get_base_llm_override(self.terminal_view(app).id());
-
-            let active_profile_id = AIExecutionProfilesModel::as_ref(app)
-                .active_profile(Some(self.terminal_view(app).id()), app)
-                .sync_id();
-
-            // Collect all conversation IDs for this terminal view
-            let conversation_ids_to_restore = BlocklistAIHistoryModel::as_ref(app)
-                .all_live_conversations_for_terminal_view(self.terminal_view(app).id())
-                .map(|conversation| conversation.id())
-                .collect();
-
-            // Capture agent view state: if fullscreen, store the active conversation ID
-            let active_conversation_id = view
-                .agent_view_controller()
-                .as_ref(app)
-                .agent_view_state()
-                .display_mode()
-                .filter(|mode| mode.is_fullscreen())
-                .and_then(|_| {
-                    view.agent_view_controller()
-                        .as_ref(app)
-                        .agent_view_state()
-                        .active_conversation_id()
-                });
-
-            LeafContents::Terminal(TerminalPaneSnapshot {
-                uuid: self.uuid.clone(),
-                cwd: view.pwd_if_local(app),
-                is_active,
-                is_read_only: view.model.lock().is_read_only(),
-                shell_launch_data: view.shell_launch_data_if_local(app),
-                input_config: Some(current_input_config),
-                llm_model_override,
-                active_profile_id,
-                conversation_ids_to_restore,
-                active_conversation_id,
-            })
-        }
+        LeafContents::Terminal(TerminalPaneSnapshot {
+            uuid: self.uuid.clone(),
+            cwd: view.pwd_if_local(app),
+            is_active,
+            is_read_only: view.model.lock().is_read_only(),
+            shell_launch_data: view.shell_launch_data_if_local(app),
+            active_profile_id: None,
+        })
     }
 
     fn has_application_focus(&self, ctx: &mut ViewContext<PaneGroup>) -> bool {
@@ -469,13 +277,6 @@ impl PaneContent for TerminalPane {
 }
 
 
-#[derive(Clone, Copy)]
-struct AgentConversationActionState {
-    owner_terminal_view_id: EntityId,
-    task_id: Option<AmbientAgentTaskId>,
-    is_in_progress: bool,
-    is_cloud_cancel_candidate: bool,
-}
 
 
 fn terminal_view_for_owner_in_group(
