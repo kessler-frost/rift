@@ -2733,7 +2733,6 @@ impl TerminalView {
         // Re-evaluate git status subscription when the prompt configuration
         // changes (e.g. chips added/removed, input type toggled).
         ctx.subscribe_to_model(&Prompt::handle(ctx), |me, _, _, ctx| {
-            me.update_git_status_subscription(ctx);
         });
 
         ctx.subscribe_to_model(&AltScreenReporting::handle(ctx), move |me, _, evt, ctx| {
@@ -3499,7 +3498,6 @@ impl TerminalView {
         // suppression is active so the default chip can recover, so this
         // is a no-op when already subscribed and creates a fresh
         // subscription when one is needed.
-        self.update_git_status_subscription(ctx);
 
         let Some(handle) = self.git_repo_status.clone() else {
             return;
@@ -6441,15 +6439,6 @@ impl TerminalView {
                 );
             });
         }
-
-        // Hide telemetry banner forever after first block user executes.
-        if FeatureFlag::GlobalAIAnalyticsBanner.is_enabled()
-            && !GeneralSettings::as_ref(ctx)
-                .telemetry_banner_dismissed
-                .value()
-        {
-            self.hide_telemetry_banner_permanently(ctx);
-        }
     }
 
     fn active_block_is_considered_remote(&self, app: &AppContext) -> bool {
@@ -6772,7 +6761,6 @@ impl TerminalView {
                                             != Some(repo_path.as_path())
                                         {
                                                 me.clear_git_repo_status_subscription(ctx);
-                                            me.update_git_status_subscription(ctx);
                                         }
 
                                         me.input.update(ctx, |input, ctx| {
@@ -15207,7 +15195,6 @@ impl TerminalView {
 
                 // honor_ps1 affects whether the Warp prompt is active, which
                 // determines if we need git status updates.
-                self.update_git_status_subscription(ctx);
             }
             SessionSettingsChangedEvent::CLIAgentToolbarChipSelectionSetting { .. } => {
                 // Force-close rich input when the Rich Input chip is removed so
@@ -15215,11 +15202,9 @@ impl TerminalView {
                 if !is_rich_input_chip_in_cli_toolbar(ctx) {
                     self.close_cli_agent_rich_input(CLIAgentRichInputCloseReason::Other, ctx);
                 }
-                self.update_git_status_subscription(ctx);
             }
             SessionSettingsChangedEvent::AgentToolbarChipSelectionSetting { .. }
             | SessionSettingsChangedEvent::GithubPrChipDefaultValidation { .. } => {
-                self.update_git_status_subscription(ctx);
             }
             _ => {}
         }
@@ -18180,7 +18165,7 @@ impl TypedActionView for TerminalView {
                 selected_range,
             } => self.set_marked_text_on_terminal(marked_text, selected_range, ctx),
             ClearMarkedText => self.clear_marked_text_on_terminal(ctx),
-            HideTelemetryBannerPermanently => self.hide_telemetry_banner_permanently(ctx),
+            HideTelemetryBannerPermanently => {}
             ShowWarpifySettings => ctx.emit(Event::OpenSettings(SettingsSection::Warpify)),
             OpenInlineHistoryMenu => {
                 self.input.update(ctx, |input, ctx| {
