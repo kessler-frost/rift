@@ -104,12 +104,10 @@ use crate::workspace::{
 };
 use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
-mod ambient_pane_restoration;
 pub mod focus_state;
 pub mod pane;
 pub mod tree;
 pub mod working_directories;
-use ambient_pane_restoration::AmbientRestoreKind;
 use focus_state::PaneGroupFocusState;
 
 #[cfg(test)]
