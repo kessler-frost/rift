@@ -18091,10 +18091,6 @@ impl View for Workspace {
             stack.add_child(ChildView::new(&self.theme_creator_modal).finish());
         }
 
-        if self.current_workspace_state.is_import_modal_open {
-            stack.add_child(ChildView::new(&self.import_modal).finish());
-        }
-
         if self.current_workspace_state.is_theme_deletion_modal_open {
             stack.add_child(ChildView::new(&self.theme_deletion_modal).finish());
         }
@@ -18151,33 +18147,12 @@ impl View for Workspace {
             stack.add_child(self.new_worktree_modal.render());
         }
 
-        if self.workflow_modal.as_ref(app).is_open() {
-            stack.add_child(ChildView::new(&self.workflow_modal).finish());
-        }
-
         if self.current_workspace_state.is_prompt_editor_open {
             stack.add_child(ChildView::new(&self.prompt_editor_modal).finish());
         }
 
-        if FeatureFlag::AgentToolbarEditor.is_enabled()
-            && self.current_workspace_state.is_agent_toolbar_editor_open
-        {
-            stack.add_child(ChildView::new(&self.agent_toolbar_editor_modal).finish());
-        }
-
         if self.current_workspace_state.is_header_toolbar_editor_open {
             stack.add_child(ChildView::new(&self.header_toolbar_editor_modal).finish());
-        }
-
-        if self
-            .current_workspace_state
-            .is_suggested_agent_mode_workflow_modal_open
-        {
-            stack.add_child(ChildView::new(&self.suggested_agent_mode_workflow_modal).finish());
-        }
-
-        if self.current_workspace_state.is_suggested_rule_modal_open {
-            stack.add_child(ChildView::new(&self.suggested_rule_modal).finish());
         }
 
         let one_time_modal_model = OneTimeModalModel::as_ref(app);
@@ -18345,14 +18320,6 @@ impl View for Workspace {
             stack.add_child(ChildView::new(lightbox_view).finish());
         }
 
-        if let Some(handoff_modal) = &self.handoff_environment_creation_modal {
-            stack.add_child(ChildView::new(handoff_modal).finish());
-        }
-
-        if let Some(create_auth_secret_modal) = &self.create_auth_secret_modal {
-            stack.add_child(ChildView::new(create_auth_secret_modal).finish());
-        }
-
         if FeatureFlag::CreatingSharedSessions.is_enabled()
             && ContextFlag::CreateSharedSession.is_enabled()
             && self
@@ -18361,36 +18328,6 @@ impl View for Workspace {
         {
             stack.add_positioned_overlay_child(
                 ChildView::new(&self.close_session_confirmation_dialog).finish(),
-                OffsetPositioning::offset_from_parent(
-                    Vector2F::zero(),
-                    ParentOffsetBounds::WindowByPosition,
-                    ParentAnchor::Center,
-                    ChildAnchor::Center,
-                ),
-            );
-        }
-
-        if self
-            .current_workspace_state
-            .is_rewind_confirmation_dialog_open
-        {
-            stack.add_positioned_overlay_child(
-                ChildView::new(&self.rewind_confirmation_dialog).finish(),
-                OffsetPositioning::offset_from_parent(
-                    Vector2F::zero(),
-                    ParentOffsetBounds::WindowByPosition,
-                    ParentAnchor::Center,
-                    ChildAnchor::Center,
-                ),
-            );
-        }
-
-        if self
-            .current_workspace_state
-            .is_delete_conversation_confirmation_dialog_open
-        {
-            stack.add_positioned_overlay_child(
-                ChildView::new(&self.delete_conversation_confirmation_dialog).finish(),
                 OffsetPositioning::offset_from_parent(
                     Vector2F::zero(),
                     ParentOffsetBounds::WindowByPosition,
