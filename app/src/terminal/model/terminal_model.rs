@@ -1262,9 +1262,7 @@ impl TerminalModel {
     }
 
     pub fn is_read_only(&self) -> bool {
-        self.handled_exit
-            || self.is_conversation_transcript_viewer()
-            || self.shared_session_status().is_finished_viewer()
+        self.handled_exit || self.is_conversation_transcript_viewer()
     }
 
     pub fn is_conversation_transcript_viewer(&self) -> bool {
@@ -1664,32 +1662,16 @@ impl TerminalModel {
             //   (viewers can still reflow via their own pane/font resizes).
             // - Sharers skip reflow when honoring a viewer's reported size
             //   (the viewer's smaller size is transient and shouldn't reshape history).
-            let update_old_blocks = match size_update.update_reason {
-                SizeUpdateReason::SharerSizeChanged { .. }
-                    if self.shared_session_status().is_viewer() =>
-                {
-                    false
-                }
-                SizeUpdateReason::ViewerSizeReported { .. } => false,
-                _ => true,
-            };
+            let update_old_blocks = !matches!(
+                size_update.update_reason,
+                SizeUpdateReason::ViewerSizeReported { .. }
+            );
             self.block_list.resize(&size_update, update_old_blocks);
         }
 
         if size_update.rows_or_columns_changed() {
             let num_rows = size_update.new_size.rows();
             let num_cols = size_update.new_size.columns();
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                if let Err(e) = tx.try_send(OrderedTerminalEventType::Resize {
-                    window_size: session_sharing_protocol::common::WindowSize {
-                        num_rows,
-                        num_cols,
-                    },
-                }) {
-                    log::warn!("Failed to send OrderedTerminalEventType::Resize: {e}");
-                }
-            }
-
             if self.tmux_control_mode_context.is_some() {
                 self.emit_handler_event(HandlerEvent::RunTmuxCommand(
                     TmuxCommand::UpdateClientSize { num_rows, num_cols },
@@ -1790,48 +1772,9 @@ impl TerminalModel {
 
     /// Sets whether any content within a grid that is "secret-like" should be obfuscated.
     pub fn set_obfuscate_secrets(&mut self, obfuscate_secrets: ObfuscateSecrets) {
-        // Secret obfuscation is forced off in shared sessions so changing
-        // the setting during a shared session should be a no-op (for this session).
-        if self.shared_session_status.is_sharer_or_viewer() {
-            return;
-        }
-
         self.obfuscate_secrets = obfuscate_secrets;
         self.alt_screen.set_obfuscate_secrets(obfuscate_secrets);
         self.block_list.set_obfuscate_secrets(obfuscate_secrets);
-    }
-
-    /// Disables secret obfuscation for shared session creators only.
-    ///
-    /// Specifically, secret obfuscation is disabled starting
-    /// from the `first_scrollback_block_index` onwards.
-    pub fn disable_secret_obfuscation_for_shared_sesson_creator(
-        &mut self,
-        first_scrollback_block_index: BlockIndex,
-    ) {
-        if !self.shared_session_status.is_sharer() {
-            log::warn!(
-                "Tried to disable secret obfuscation without being a shared session creator."
-            );
-            return;
-        }
-
-        let setting = ObfuscateSecrets::No;
-        self.obfuscate_secrets = setting;
-
-        // Disable obfuscation in the alt-screen.
-        self.alt_screen.set_obfuscate_secrets(setting);
-
-        // Ensure that all scrollback blocks and any subsequent blocks don't have their secrets obfuscated.
-        let active_block_index = self.block_list.active_block_index();
-        for block_index in
-            BlockIndex::range_as_iter(first_scrollback_block_index..active_block_index)
-        {
-            self.block_list
-                .set_obfuscate_secrets_for_block(block_index, setting);
-        }
-        self.block_list
-            .set_obfuscate_secrets_for_subsequent_blocks(setting);
     }
 
     fn restored_block_commands(&self) -> Vec<HistoryEntry> {
@@ -2485,18 +2428,9 @@ impl ansi::Handler for TerminalModel {
         // the blocklist (for the local shell).
         self.exit_alt_screen(true);
 
-        let block_id = data.next_block_id.to_string();
         let is_for_in_band_command = self.block_list().active_block().is_in_band_command_block();
         let finished_block_bootstrap_stage = self.block_list().active_block().bootstrap_stage();
         delegate!(self.command_finished(data));
-
-        if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-            if let Err(e) = tx.try_send(OrderedTerminalEventType::CommandExecutionFinished {
-                next_block_id: block_id.into(),
-            }) {
-                log::warn!("Failed to send OrderedTerminalEventType::CommandFinished: {e}");
-            }
-        }
 
         self.emit_handler_event(HandlerEvent::CommandFinished {
             command_type: if is_for_in_band_command {
@@ -2837,21 +2771,6 @@ impl ansi::Handler for TerminalModel {
 
         // Send a copy of the bytes to subscribers.
         self.event_proxy.send_pty_read_event(bytes);
-
-        // Send a copy of the bytes for the active shared session, if applicable.
-        // When processing a synchronized output frame, `on_finish_byte_processing` is called
-        // both when the frame is flushed and when we initially process the raw bytes (the ordering of the two
-        // depends on whether we receive the start and end markers in the same batch of bytes). We only want to send
-        // the raw bytes to viewers, not the flushed frame - they'll handle the synchronized output framing themselves.
-        if !input.is_synchronized_output_frame() && self.shared_session_status().is_sharer() {
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                if let Err(e) = tx.try_send(OrderedTerminalEventType::PtyBytesRead {
-                    bytes: bytes.to_owned(),
-                }) {
-                    log::warn!("Failed to send OrderedTerminalEventType::PtyBytesRead: {e}");
-                }
-            }
-        }
 
         delegate!(self.on_finish_byte_processing(input))
     }
