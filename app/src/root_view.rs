@@ -64,11 +64,8 @@ use crate::server::ids::SyncId;
 use crate::server::server_api::auth::UserAuthenticationError;
 use crate::server::server_api::{ServerApi, ServerApiProvider, ServerTime};
 use crate::server::telemetry::{LaunchConfigUiLocation, TelemetryEvent};
-use crate::settings::cloud_preferences_syncer::{
-    CloudPreferencesSyncer, CloudPreferencesSyncerEvent,
-};
 use crate::settings::{apply_onboarding_settings, AISettings, QuakeModeSettings, ThemeSettings};
-use crate::settings_view::{flags, OpenTeamsSettingsModalArgs, SettingsSection};
+use crate::settings_view::{flags, SettingsSection};
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
@@ -300,15 +297,6 @@ pub fn init(app: &mut AppContext) {
         );
     }
 
-    app.add_global_action(
-        "root_view:open_conversation_viewer",
-        open_conversation_viewer,
-    );
-    app.add_action(
-        "root_view:open_cloud_conversation_in_existing_window",
-        RootView::open_cloud_conversation_in_existing_window,
-    );
-
     app.add_global_action("root_view:create_environment", create_environment);
     app.add_global_action(
         "root_view:create_environment_and_run",
@@ -323,57 +311,12 @@ pub fn init(app: &mut AppContext) {
         RootView::create_environment_in_existing_window_and_run,
     );
     app.add_global_action(
-        "root_view:open_drive_object_new_window",
-        open_warp_drive_object,
-    );
-    app.add_action(
-        "root_view:open_drive_object_existing_window",
-        RootView::open_warp_drive_object_in_existing_window,
-    );
-
-    app.add_global_action(
-        "root_view:open_team_settings_with_email_invite_in_new_window",
-        open_team_settings_with_email_invite_in_new_window,
-    );
-    app.add_action(
-        "root_view:open_team_settings_with_email_invite_in_existing_window",
-        RootView::open_team_settings_with_email_invite_in_existing_window,
-    );
-
-    app.add_global_action(
         "root_view:open_settings_page_in_new_window",
         open_settings_page_in_new_window,
     );
     app.add_action(
         "root_view:open_settings_page_in_existing_window",
         RootView::open_settings_page_in_existing_window,
-    );
-
-    app.add_global_action(
-        "root_view:open_mcp_settings_in_new_window",
-        open_mcp_settings_in_new_window,
-    );
-    app.add_action(
-        "root_view:open_mcp_settings_in_existing_window",
-        RootView::open_mcp_settings_in_existing_window,
-    );
-
-    app.add_global_action(
-        "root_view:open_codex_in_new_window",
-        open_codex_in_new_window,
-    );
-    app.add_action(
-        "root_view:open_codex_in_existing_window",
-        RootView::open_codex_in_existing_window,
-    );
-
-    app.add_global_action(
-        "root_view:open_linear_issue_work_in_new_window",
-        open_linear_issue_work_in_new_window,
-    );
-    app.add_action(
-        "root_view:open_linear_issue_work_in_existing_window",
-        RootView::open_linear_issue_work_in_existing_window,
     );
 
     app.add_action("root_view:add_file_pane", RootView::add_file_pane);
@@ -828,18 +771,6 @@ fn open_shared_session_as_viewer(session_id: &SessionId, ctx: &mut AppContext) {
     );
 }
 
-/// Opens a new window to view a persisted view-only cloud conversation.
-/// The conversation data is loaded via GraphQL API.
-fn open_conversation_viewer(conversation_id: &ServerConversationToken, ctx: &mut AppContext) {
-    // Trigger the workspace loading mechanism by dispatching the LoadConversationData event
-    // This will open a new window with a loading state, fetch data via GraphQL, and display it
-    open_new_with_workspace_source(
-        NewWorkspaceSource::FromCloudConversationId {
-            conversation_id: conversation_id.clone(),
-        },
-        ctx,
-    );
-}
 
 /// Opens a new window and starts the guided `/create-environment` setup flow.
 fn create_environment(arg: &CreateEnvironmentArg, ctx: &mut AppContext) {
@@ -906,25 +837,6 @@ fn create_environment_and_run(arg: &CreateEnvironmentArg, ctx: &mut AppContext) 
 
     ctx.windows().show_window_and_focus_app(window_id);
 }
-fn open_team_settings_with_email_invite_in_new_window(
-    arg: &OpenTeamsSettingsModalArgs,
-    ctx: &mut AppContext,
-) {
-    let root_handle = open_new_window_get_handles(None, ctx).1;
-    root_handle.update(ctx, |root_view, ctx| {
-        if let AuthOnboardingState::Terminal(workspace_view_handle) =
-            &root_view.auth_onboarding_state
-        {
-            let initial_load_complete = UpdateManager::as_ref(ctx).initial_load_complete();
-            let email_invite = arg.invite_email.clone();
-            workspace_view_handle.update(ctx, |_, ctx| {
-                let _ = ctx.spawn(initial_load_complete, move |workspace, _, ctx| {
-                    workspace.show_team_settings_page_with_email_invite(email_invite.as_ref(), ctx)
-                });
-            });
-        }
-    });
-}
 
 fn open_settings_page_in_new_window(section: &SettingsSection, ctx: &mut AppContext) {
     let root_handle = open_new_window_get_handles(None, ctx).1;
@@ -942,76 +854,9 @@ fn open_settings_page_in_new_window(section: &SettingsSection, ctx: &mut AppCont
     });
 }
 
-/// MCP servers need to wait for initial load to complete, so we have this action in addition
-/// to the general-purpose [`open_settings_page_in_new_window`].
-fn open_mcp_settings_in_new_window(args: &OpenMCPSettingsArgs, ctx: &mut AppContext) {
-    let autoinstall = args.autoinstall.clone();
-    let root_handle = open_new_window_get_handles(None, ctx).1;
-    root_handle.update(ctx, |root_view, ctx| {
-        if let AuthOnboardingState::Terminal(workspace_view_handle) =
-            &root_view.auth_onboarding_state
-        {
-            let initial_load_complete = UpdateManager::as_ref(ctx).initial_load_complete();
-            workspace_view_handle.update(ctx, |_, ctx| {
-                let _ = ctx.spawn(initial_load_complete, move |workspace, _, ctx| {
-                    workspace.open_mcp_servers_page(
-                        MCPServersSettingsPage::List,
-                        autoinstall.as_deref(),
-                        ctx,
-                    )
-                });
-            });
-        }
-    });
-}
 
-/// Opens a new window and shows the Codex modal.
-fn open_codex_in_new_window(_: &(), ctx: &mut AppContext) {
-    let root_handle = open_new_window_get_handles(None, ctx).1;
-    root_handle.update(ctx, |root_view, ctx| {
-        if let AuthOnboardingState::Terminal(workspace_view_handle) =
-            &root_view.auth_onboarding_state
-        {
-            let initial_load_complete = UpdateManager::as_ref(ctx).initial_load_complete();
-            workspace_view_handle.update(ctx, |_, ctx| {
-                let _ = ctx.spawn(initial_load_complete, move |workspace, _, ctx| {
-                    workspace.open_codex_modal(ctx)
-                });
-            });
-        }
-    });
-}
 
-/// Opens a new window and enters agent view with the Linear issue work prompt.
-fn open_linear_issue_work_in_new_window(args: &LinearIssueWork, ctx: &mut AppContext) {
-    let (_, root_handle) = open_new_window_get_handles(None, ctx);
-    let args = args.clone();
-    root_handle.update(ctx, |root_view, ctx| {
-        if let AuthOnboardingState::Terminal(workspace_view_handle) =
-            &root_view.auth_onboarding_state
-        {
-            workspace_view_handle.update(ctx, |workspace, ctx| {
-                workspace.open_linear_issue_work(&args, ctx);
-            });
-        }
-    });
-}
 
-fn open_warp_drive_object(arg: &OpenWarpDriveObjectArgs, ctx: &mut AppContext) {
-    match arg.object_type {
-        ObjectType::Notebook => open_new_workspace_with_notebook_open(
-            SyncId::ServerId(arg.server_id),
-            arg.settings.clone(),
-            ctx,
-        ),
-        ObjectType::Workflow => open_new_workspace_with_workflow_open(
-            SyncId::ServerId(arg.server_id),
-            arg.settings.clone(),
-            ctx,
-        ),
-        _ => log::info!("Open object type {:?} not yet supported", arg.object_type),
-    }
-}
 
 fn display_object_missing_error_in_window(window_id: WindowId, ctx: &mut AppContext) {
     crate::workspace::ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -1020,33 +865,7 @@ fn display_object_missing_error_in_window(window_id: WindowId, ctx: &mut AppCont
     });
 }
 
-fn open_new_workspace_with_notebook_open(
-    notebook_id: SyncId,
-    settings: OpenWarpDriveObjectSettings,
-    ctx: &mut AppContext,
-) {
-    open_new_with_workspace_source(
-        NewWorkspaceSource::NotebookById {
-            id: notebook_id,
-            settings,
-        },
-        ctx,
-    );
-}
 
-fn open_new_workspace_with_workflow_open(
-    workflow_id: SyncId,
-    settings: OpenWarpDriveObjectSettings,
-    ctx: &mut AppContext,
-) {
-    open_new_with_workspace_source(
-        NewWorkspaceSource::WorkflowById {
-            id: workflow_id,
-            settings,
-        },
-        ctx,
-    );
-}
 
 /// Opens a new window with a file-based notebook open.
 fn open_new_with_file_notebook(arg: &PathBuf, ctx: &mut AppContext) {
@@ -1439,26 +1258,9 @@ pub enum NewWorkspaceSource {
     SharedSessionAsViewer {
         session_id: SessionId,
     },
-    FromCloudConversationId {
-        conversation_id: ServerConversationToken,
-    },
     NotebookFromFilePath {
         file_path: Option<PathBuf>,
     },
-    NotebookById {
-        id: SyncId,
-        settings: OpenWarpDriveObjectSettings,
-    },
-    WorkflowById {
-        id: SyncId,
-        settings: OpenWarpDriveObjectSettings,
-    },
-    AgentSession {
-        options: Box<NewTerminalOptions>,
-        initial_query: Option<String>,
-    },
-    /// Starts the workspace with the Cloud Agent setup tab.
-    AmbientAgent,
     /// A tab is being transferred from another window via the transferable views framework.
     /// The workspace will create a placeholder tab, which will be replaced by the transferred
     /// PaneGroup after window creation.
