@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1179 compile errors** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **38 compile errors** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,24 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 11 done (MASSIVE drop 1179->38). Cleared terminal_pane.rs (119->0: agent free-fns + attach/detach
+subscription gut + snapshot rewrite + recreated SerializedBlockListItem enum Command-only), root_view.rs
+(49->0: agent free-fns/action-registrations/NewWorkspaceSource agent variants/CloudPreferencesSyncer),
+recreated SerializedBlockListItem (block-restore pipeline KEEP type, was deleted) in serialized_block.rs +
+wired imports. PHASE E DONE: events.rs 178->0 — TelemetryEvent macros are FULLY no-op (=>{{}}, args
+discarded/never type-checked) so removed 77 agent variants + agent metadata structs/enums/impls
+(CloudObject/Space/Workflow/Notebook/EnvVar/MCP/NotificationAgentVariant/AIAgentInput/QueuedQueryOrigin)
+with ZERO call-site breakage. BREAKTHROUGH: workspace/view.rs hub had dead imports (crate::ai, crate::code::*,
+pane_group agent-panes, command_search::view, handoff) POISONING crate-wide symbol resolution — clearing them
+collapsed 813->38. Remaining 38 = scattered dead imports, mostly the `code::` IDE-strip cluster
+(code::editor/global_buffer_model/buffer_location/editor_management/file_tree refs in auth/mod, lib.rs,
+server/server_api+network_log_view, remote_server/*, pane_group/working_directories) + leftover agent type
+imports (AgentInteractionMetadata, EnvVar/WorkflowTelemetryMetadata, Viewer, InputConfig, command_search::view
+CommandSearchEvent/View which is FULLY DELETED so workspace command_search_view field+handler+show must go,
+conversation_list view, onboarding_agentic_suggestions_block). NOTE: CommandSearchView/Event no longer exist
+(search/command_search has no view module). LocalOrRemotePath re-homed crate::code->rift_util::local_or_remote_path.
+Next: clear the 38 import errors (watch for use-site exposure), then 0 errors, then 256 warnings.
+
 WINDOW 10 done (WorkspaceAction cascade + workspace/view.rs + Workspace struct linchpin, 1387->1179):
 excised 102 agent variants from WorkspaceAction enum (action.rs) + rewrote From/blocked_for_anonymous_user/
 should_save_app_state_on_action keep-only + deleted ~1200 lines of handle_action arms in workspace/view.rs;
