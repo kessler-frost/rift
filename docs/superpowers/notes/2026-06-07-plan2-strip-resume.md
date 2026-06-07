@@ -1,3 +1,93 @@
+# Plan 2 Strip — RESUME NOTE (window 6, 2026-06-07)
+
+## WINDOW 6 — what's DONE (Input ctor/struct de-agented; 1987 → 1815, −172)
+The window-5 note claimed `terminal/view.rs` ctor was already de-fielded but framed the
+`Input::new` work as a "straggler trim." **CORRECTION: it was NOT a straggler trim — it was a
+~1450-line full ctor rewrite plus a multi-file contract cluster.** What I did this window
+(all committed + pushed on `plan2-strip`, each step a net error reduction):
+- **`terminal/input.rs` `Input` struct**: removed agent fields (ai_controller/ai_context_model/
+  ai_input_model/ai_action_model/ai_follow_up_icon_mouse_state, shared_session_input_state/
+  presence_manager, latest_buffer_operations, deferred_remote_operations, prompt_suggestions_*,
+  has_prompt_suggestion_banner, predict_am_queries_future_handle, debounce_ai_query_prediction_tx,
+  cached_agent_mode_hint_text, universal_developer_input_button_bar [UDI struct is DELETED],
+  agent_input_footer, prompt_suggestions_view, handoff_compose_state, all inline_* agent menus
+  [conversation/plan/repos/model/profile/skill/prompts/user_query/rewind/history-as-cloud],
+  slash_command_data_source/model, cloud_mode_v2_*, buy_credits_banner, agent_status_view,
+  queued_prompts_panel, agent_view_controller, agent_shortcut_view_model, ambient_agent_view_state,
+  ephemeral_message_model, voltron_view/is_voltron_open). Deleted the `AmbientAgentViewState`
+  struct+impl.
+- **`Input::new` signature**: dropped 8 agent params (ai_controller/ai_context_model/ai_input_model/
+  ai_action_model/cli_subagent_controller/agent_view_controller/ambient_agent_view_model/
+  ephemeral_message_model). REWROTE the ctor body: de-agented the `editor` EditorOptions block
+  (dropped AI cursor colors → default_cursor_colors, AI decorator/ai_input_indicator, agent
+  keymap flags [AGENT_VIEW_ENABLED/CTRL_ENTER_ENTERS_AGENT_VIEW/CLI_AGENT_RICH_INPUT_OPEN/
+  CTRL_ENTER_ACCEPTS_PROMPT_SUGGESTION], `with_context_model`, set `include_ai_context_menu:false`);
+  deleted all agent subscription blocks (agent_view_controller, ambient, ai_controller,
+  ai_input_model, BlocklistAIHistoryModel, ai_context_model, LLMPreferences, CLIAgentSessionsModel)
+  and all inline-menu/slash-command/prompt-suggestions/agent-status-bar/queued-prompts/buy-credits/
+  ai-req-usage let-bindings; removed the workflows/voltron/predict_am_queries machinery.
+- **Deleted ~70 pure-agent methods** from input.rs via `/tmp/delbyname.py` (handoff/conversation/
+  queued-prompts/shared-session/ambient/inline-menu accessors/workflow/env-var/voltron-event/
+  predict_am_query). NOTE: delbyname.py's brace matcher MISCOUNTS when a method body has a `{`
+  inside a `//` comment (it nuked the rest of the file twice on `command_matches_workflow_template`
+  which has `// if let ... {`). I hand-deleted that one. ALWAYS check the printed line ranges; if
+  any range is absurdly large, `git checkout` and hand-delete that method.
+- **Helper files de-wired (part of the cluster, all done)**: `prompt_render_helper.rs` (dropped
+  ai_input_model field/param + simplified should_render_prompt_using_editor_decorator_elements);
+  `input/inline_menu/positioning.rs` (dropped agent_view_controller from InlineMenuPositioner::new
+  +field+the is_active branches); `input/terminal_message_bar.rs` (dropped ai_input_model/
+  context_model; gutted the agent message producers + transformers + TerminalMessageArgs +
+  message_magenta; render now shows ONLY the inline-history hint, else Empty).
+
+## WHAT REMAINS in the Input cluster (next window — these are why input.rs still has ~137 errs)
+The Input STRUCT/ctor/Self are now de-agented, but residual errors are in CORE methods that
+still reference deleted tokens, PLUS a few helper-view ctors I could not finish (they're each
+their own deep agent subtree). In priority order:
+1. **`input/inline_history/` cluster** (BLOCKS the ctor's `inline_history_menu_view` call which
+   still passes `agent_view_controller`): strip agent_view_controller from
+   `inline_history/view.rs` (InlineHistoryMenuView::new/new_with_tab_configs/new_inner — pass
+   `false` to build_tab_configs, drop the agent_view_controller subscription),
+   `inline_history/data_source.rs` (drop agent_view_controller field/param AND the
+   `AcceptHistoryItem::Conversation { conversation_id: AIConversationId }` variant + its arms +
+   the Conversations QueryFilter source), and `input/inline_menu/view.rs` InlineMenuView::
+   new_with_tabs (drop agent_view_controller field/param + its subscription). This is a coupled
+   3-file change; `AcceptHistoryItem::Conversation`/`AIConversationId` thread through all three.
+2. **`crate::editor` de-wire** (the note's "NEVER touch editor" means don't RESTRUCTURE — but
+   editor ALREADY has ~13 errors from deleted AI types): `editor/view/mod.rs` `with_context_model`
+   (takes deleted BlocklistAIContextModel), `ai_context_menu()`, `set_is_ai_input`,
+   `include_ai_context_menu` option, `maybe_populate_intelligent_autosuggestion` (takes InputType).
+   These are referenced by the (now-removed) input ctor; clean them out of the editor.
+3. **Dropped-workflows de-wire in input.rs**: `WorkflowsState`/`SelectedWorkflowState`/
+   `CommandMatchesWorkflowTemplate`/`EnvVarCollectionState` structs (lines ~1144-1187) reference
+   deleted workflow types (WorkflowsMoreInfoView/WorkflowArgumentIndex/WorkflowSource/WorkflowType/
+   WorkflowDisplayData/EnumVariants/SyncId-for-env-vars). Remove these structs + the `workflows_state`/
+   `env_var_collection_state` fields + their ctor bindings + all method refs.
+4. **Core-method hand-edits** (incidental deleted-token refs; do NOT delete the whole method —
+   edit in place): `handle_editor_event`, `input_enter`, `handle_action`, `menu_position`,
+   `populate_enum_suggestions_menu`, `set_input_mode_terminal`, `buffer_contains_attachment_patterns`,
+   `apply_external_input_config_update`, `as_str`/`Event` enum (846+ has agent variants —
+   coordinate with view.rs handlers), `to_telemetry_mode`, `remove_excess_images`, `select_image`.
+5. **Clean input.rs imports LAST** (lines ~28-256): many `use` of deleted modules (ai::skills,
+   model::block::AgentInteractionMetadata, universal_developer_input, view::ambient_agent,
+   view::inline_banner, view::queued_prompts_panel, code::editor_management, context_chips::
+   display_chip::DisplayChipConfig, search::ai_context_menu, cli_agent_sessions,
+   cloud_mode_v2_history_menu, conversations, models/plans/profiles/prompts/repos/rewind/skills/
+   user_query, CodeDiffAction, CLIAgent, session_sharing_protocol). Remove these only AFTER the
+   methods/bindings using them are gone, else you create "undeclared" errors.
+
+## STILL-PENDING contract-cluster file: `context_chips/display.rs` + `display_chip.rs`
+I simplified the `PromptDisplay::new` CALL in input.rs (now 7 args: current_prompt,
+terminal_view_id, menu_positioning_provider, initial_session_context, current_repo_path,
+model_events, ctx) but did NOT yet change `PromptDisplay::new`'s DEFINITION. So
+`context_chips/display.rs` `PromptDisplay::new` still takes ai_input_model/ai_context_model/
+agent_view_controller/is_shared_session_viewer — MUST be trimmed to match (drop those 4 params,
+the struct fields, the AI/agent subscriptions, the agent chip kinds, the PromptDisplayEvent
+agent variants OpenAIDocument/RunAgentQuery/OpenConversationHistory/OpenCodeReview). And
+`display_chip.rs` `DisplayChipConfig` (lines ~437-448) has ai_input_model/ai_context_model/
+agent_view_controller/ambient_agent_view_model fields woven through DisplayChip — de-wire jointly.
+This is the NEXT thing to do after #1 above (PromptDisplay is the prompt renderer, terminal-essential).
+
+---
 # Plan 2 Strip — RESUME NOTE (window 3, 2026-06-07)
 
 **Branch:** `plan2-strip` (in this container at `/home/user/rift`; the harness default
@@ -15,7 +105,7 @@ the AI agent product + cloud. See `docs/superpowers/plans/2026-06-06-rift-plan2-
 - Never `cargo clean` (40-min dep rebuild). App-crate incremental rebuild ≈ a few minutes.
 
 ## Error trajectory
-4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → 2081 (window 4) → **1987** (window 5).
+4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → 2081 (window 4) → 1987 (window 5) → **1815** (window 6).
 ~52% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
 mid-Phase-A). Re-baseline each window: rebuild → `/tmp/rb.log` (use
 `cargo build --bin rift-oss > /tmp/rb.log 2>&1` — NOTE: `>/tmp/rb.log` ordering after
