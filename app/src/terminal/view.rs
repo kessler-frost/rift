@@ -1570,13 +1570,6 @@ pub struct BlocklistAIRenderContext {
     /// blocks for that state.
     block_ids: HashMap<AIContextInclusionState, HashSet<BlockId>>,
 
-    /// The ID of the selected Agent Mode conversation, if any.
-    ///
-    selected_conversation_id: Option<AIConversationId>,
-
-    /// The IDs of exchanges in the selected conversation.
-    exchange_ids: Option<HashSet<AIAgentExchangeId>>,
-
     /// `true` if we should highlight pending and active context in this conversation.
     pub should_highlight_context: bool,
 
@@ -1590,7 +1583,7 @@ pub struct BlocklistAIRenderContext {
 impl BlocklistAIRenderContext {
     /// Returns `true` if there's an active AI conversation.
     pub fn has_active_conversation(&self) -> bool {
-        self.selected_conversation_id.is_some()
+        false
     }
 
 
@@ -1598,15 +1591,6 @@ impl BlocklistAIRenderContext {
         &self,
         block: &Block,
     ) -> Option<AIContextInclusionState> {
-        if let (Some(ai_metadata), Some(active_conversation_id)) = (
-            block.agent_interaction_metadata(),
-            self.selected_conversation_id.as_ref(),
-        ) {
-            if ai_metadata.conversation_id() == active_conversation_id {
-                return Some(AIContextInclusionState::Active);
-            }
-        }
-
         [
             AIContextInclusionState::Pending,
             AIContextInclusionState::Active,
@@ -3181,11 +3165,6 @@ impl TerminalView {
         }
         terminal_view.any_session_contains_restored_remote_blocks =
             terminal_view.contains_restored_remote_blocks();
-
-        // Restore AI conversations and create AI blocks after terminal view initialization
-        if let Some(restoration) = conversation_restoration {
-            terminal_view.restore_conversations_on_view_creation(restoration, ctx);
-        }
 
         send_telemetry_from_ctx!(TelemetryEvent::SessionCreation, ctx);
 
