@@ -21,6 +21,30 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+WINDOW 19 CONTINUED — STATE AT 509 errors. input.rs is now PRIMARY-ERROR-CLEAN (its 43 log mentions are
+secondary `-->` refs from OTHER files, not primary errors). BUT 12 `self.ai_input_model` + others remain in input.rs,
+still MASKED by the 4 remaining E0432 unresolved imports (these suppress use-site errors crate-wide). The 4 masking
+roots, each gating an AI subsystem that must be gutted when you remove the import (count WILL jump — expected):
+  1. app/src/terminal/input/slash_commands/data_source/saved_prompts.rs:13 `crate::search::FuzzyMatchWorkflowResult`
+     — AI saved-prompts library data source. Gut/delete the saved-prompts data source.
+  2. app/src/terminal/input/slash_commands/mod.rs:34 `crate::terminal::input::models` — deleted AI input-models module.
+  3. app/src/terminal/view/context_menu.rs:5 — AIAgentExchangeId/AIConversationId/BlocklistAIHistoryModel/
+     ServerConversationToken/ServerOutputId/ShareableObject. context_menu.rs (526 lines) is ~all AI: ai_block_copying_
+     menu_items, conversation_text, copy_conversation_text, fork_ai_conversation, conversation_server_token,
+     conversation_debug_request_id, copy_debugging_menu_items, conversation_menu_items, open_agent_view_entry_context_
+     menu, open_ai_block_overflow_context_menu. Gut these + their callers in terminal/view.rs.
+  4. rich_content AI imports (terminal/view/rich_content.rs ~15 errors).
+DONE THIS WINDOW (continued): full InputAction enum AI/cloud variant+arm+dispatch deletion (big -14 drop), deleted
+attached_context message-bar module, AttachmentChip, populate_enum_suggestions_menu (EnumVariants from cloud_object_
+models), AI @-context-menu editor-event arm, collapsed input_enter submit-chain to shell-only path (deleted ambient/
+cloud/AI-query branches + HarnessAvailabilityModel + is_cloud_agent_pre_first_exchange), deleted render_prefix_mode_
+indicator (ai_indicator_height), workflows-crate keybinding. TOP ERROR FILES NOW: workspace/view.rs 100, terminal/
+view.rs 66, right_panel 34, slash_commands/mod 28 + data_source/mod 25, server/graphql/schema 23, harness_support 16,
+root_view 16, pane_group/mod 16, left_panel 15, rich_content 15, install_tmux 14, remote_server/server_model 14,
+lib.rs 14. STRATEGY: clear masking imports one subsystem at a time (gut import + use-sites together so the file fully
+compiles), grind back under the last committed count before committing. input.rs remaining ai_input_model refs will
+auto-surface as you clear the E0432s — finish them then.
+
 WINDOW 19 (2026-06-07): masking confirmed — `cargo check` shows ~534 but the `Input`/`TerminalView` struct AI
 fields (ai_input_model, ai_context_model, agent_view_controller, ambient_agent_view_model,
 universal_developer_input_button_bar, user_query_menu_view, rewind_menu_view, shared_session_input_state) are
