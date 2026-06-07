@@ -624,47 +624,6 @@ pub struct TabPaneGroupIdentifiers {
     pub terminal_ids: Vec<EntityId>,
 }
 
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum LocalToCloudHandoffIntent {
-    UserInitiated(HandoffEntryPoint),
-    Automatic {
-        trigger: AutoCloudHandoffTrigger,
-        conversation_id: AIConversationId,
-    },
-}
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-struct LocalToCloudHandoffOpenParams {
-    forked_conversation_id: String,
-    launch: Option<PendingCloudLaunch>,
-    environment_id: Option<SyncId>,
-    intent: LocalToCloudHandoffIntent,
-    should_inject_continue: bool,
-}
-
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-impl LocalToCloudHandoffIntent {
-    fn entry_point(self) -> HandoffEntryPoint {
-        match self {
-            Self::UserInitiated(entry_point) => entry_point,
-            Self::Automatic { .. } => HandoffEntryPoint::Automatic,
-        }
-    }
-
-    fn shows_user_feedback(self) -> bool {
-        matches!(self, Self::UserInitiated(_))
-    }
-
-    fn expected_conversation_id(self) -> Option<AIConversationId> {
-        match self {
-            Self::UserInitiated(_) => None,
-            Self::Automatic {
-                conversation_id, ..
-            } => Some(conversation_id),
-        }
-    }
-}
-
 /// Categorization of how the tab bar should be rendered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum ShowTabBar {
