@@ -1428,7 +1428,6 @@ pub struct Input {
     command_x_ray_description: Option<Arc<Description>>,
     last_parsed_tokens: Option<decorations::ParsedTokensSnapshot>,
     debounce_input_background_tx: Sender<InputBackgroundJobOptions>,
-    debounce_ai_query_prediction_tx: Sender<()>,
     /// If true, will submit the command in the editor to the shell upon receiving the
     /// precmd message.
     has_pending_command: bool,
@@ -2093,17 +2092,6 @@ impl Input {
             |_me, _ctx| {},
         );
 
-        let (debounce_ai_query_prediction_tx, debounce_ai_query_prediction_rx) =
-            async_channel::unbounded();
-        let _ = ctx.spawn_stream_local(
-            debounce(
-                DEBOUNCE_AI_QUERY_PREDICTION_PERIOD,
-                debounce_ai_query_prediction_rx,
-            ),
-            |me, _, ctx| me.predict_am_query(ctx),
-            |_me, _ctx| {},
-        );
-
         ctx.subscribe_to_model(&SessionSettings::handle(ctx), move |me, _, evt, ctx| {
             me.handle_session_settings_event(evt, ctx);
         });
@@ -2183,7 +2171,6 @@ impl Input {
             command_x_ray_description: None,
             last_parsed_tokens: None,
             debounce_input_background_tx,
-            debounce_ai_query_prediction_tx,
             has_pending_command: false,
             last_word_insertion,
             decorations_future_handle: None,
@@ -4941,21 +4928,6 @@ impl Input {
         }
 
         self.check_slash_menu_disabled_state(ctx);
-
-        let is_ai_input_enabled = self.ai_input_model.as_ref(ctx).is_ai_input_enabled();
-
-        if Self::is_nl_ai_autosuggestion_triggering_event(event)
-            && FeatureFlag::PredictAMQueries.is_enabled()
-            && AISettings::as_ref(ctx).is_natural_language_autosuggestions_enabled(ctx)
-            && is_ai_input_enabled
-            && !self.buffer_text(ctx).is_empty()
-        {
-            // Cancel any pending requests for AM ghosted text predictions.
-            if let Some(future_handle) = self.predict_am_queries_future_handle.take() {
-                future_handle.abort();
-            }
-            let _ = self.debounce_ai_query_prediction_tx.try_send(());
-        }
 
         match event {
             EditorEvent::Edited(edit_origin) => {
@@ -8519,96 +8491,6 @@ impl Input {
         }
     }
 
-    fn predict_am_query(&mut self, ctx: &mut ViewContext<Self>) {
-        // Cancel any pending requests.
-        if let Some(future_handle) = self.predict_am_queries_future_handle.take() {
-            future_handle.abort();
-        }
-
-        let block = &self.last_user_block_completed;
-        if block.is_none() {
-            return;
-        }
-        let block = block.as_ref().unwrap();
-        let (exit_code, working_dir) = (
-            block.serialized_block.exit_code,
-            block.serialized_block.pwd.as_ref(),
-        );
-        let number_of_top_lines_per_grid = 100;
-        let number_of_bottom_lines_per_grid = 200;
-
-        let (processed_input, processed_output) = {
-            let model = self.model.lock();
-            let terminal_width = model.block_list().size().columns;
-
-            if let Some(current_block) =
-                model.block_list().block_with_id(&block.serialized_block.id)
-            {
-                current_block.get_block_content_summary(
-                    terminal_width,
-                    number_of_top_lines_per_grid,
-                    number_of_bottom_lines_per_grid,
-                )
-            } else {
-                log::error!(
-                    "Failed to fetch predicted queries, could not find block with ID: {:?}",
-                    block.serialized_block.id
-                );
-                return;
-            }
-        };
-
-        let json_message = json!({
-            "command": processed_input,
-            "output": processed_output,
-            "exit_code": exit_code,
-            "pwd": working_dir,
-        });
-
-        let am_query_input_buffer = self.editor.as_ref(ctx).buffer_text(ctx);
-        let Some(session) = self.active_session(ctx) else {
-            return;
-        };
-        let context = WarpAiExecutionContext::new(&session);
-
-        let request = PredictAMQueriesRequest {
-            context_messages: vec![json_message.to_string()],
-            partial_query: am_query_input_buffer.clone(),
-            system_context: context.to_json_string(),
-        };
-
-        let server_api = self.server_api.clone();
-
-        self.predict_am_queries_future_handle = Some(ctx.spawn(
-            async move {
-                match server_api.predict_am_queries(&request).await {
-                    Ok(resp) => Some(resp.suggestion),
-                    Err(err) => {
-                        log::error!("Failed to fetch predicted queries: {err:?}");
-                        None
-                    }
-                }
-            },
-            move |me: &mut Self, maybe_suggestion: Option<String>, ctx: &mut ViewContext<Self>| {
-                // Only set the autosuggestion if the input buffer hasn't changed, since we made the original request
-                // i.e. verify the suggestion is still relevant.
-                if am_query_input_buffer != me.editor.as_ref(ctx).buffer_text(ctx) {
-                    return;
-                }
-
-                if let Some(suggestion) = maybe_suggestion {
-                    me.set_autosuggestion(
-                        suggestion,
-                        AutosuggestionType::AgentModeQuery {
-                            context_block_ids: vec![],
-                            was_intelligent_autosuggestion: true,
-                        },
-                        ctx,
-                    );
-                }
-            },
-        ));
-    }
 
 
 
