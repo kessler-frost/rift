@@ -1836,8 +1836,6 @@ pub fn is_prompt_suggestions_enabled(app: &AppContext) -> bool {
 }
 
 type TerminalViewCallback = Box<dyn FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>)>;
-type ConversationFinishedCallback =
-    Box<dyn FnOnce(&mut TerminalView, FinishReason, &mut ViewContext<TerminalView>)>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::terminal::view) enum PendingUserQueryKind {
@@ -2162,15 +2160,6 @@ pub struct TerminalView {
     /// State handle for the shimmering text animation in the remote server loading footer.
     /// Persisted across renders so the animation doesn't restart.
     remote_server_shimmer_handle: ShimmeringTextStateHandle,
-}
-
-/// Parameters stashed when a code review pane open is requested with
-/// [`GitDeltaPreference::OnlyDirty`] but git status metadata is not yet available.
-/// Consumed once the per-repo [`GitRepoStatusModel`] delivers its first update.
-#[cfg(feature = "local_fs")]
-struct DeferredCodeReviewOpen {
-    git_delta_preference: GitDeltaPreference,
-    focus_new_pane: bool,
 }
 
 #[derive(Copy, Clone, Serialize)]
