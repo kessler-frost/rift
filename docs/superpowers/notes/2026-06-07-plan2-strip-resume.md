@@ -15,11 +15,64 @@ the AI agent product + cloud. See `docs/superpowers/plans/2026-06-06-rift-plan2-
 - Never `cargo clean` (40-min dep rebuild). App-crate incremental rebuild ≈ a few minutes.
 
 ## Error trajectory
-4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → **2081** (window 4).
-~50% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
+4173 (baseline) → ... → 2254 (window 3 HEAD a2e8b90c) → 2081 (window 4) → **1987** (window 5).
+~52% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
 mid-Phase-A). Re-baseline each window: rebuild → `/tmp/rb.log` (use
 `cargo build --bin rift-oss > /tmp/rb.log 2>&1` — NOTE: `>/tmp/rb.log` ordering after
 `2>&1` truncates the log; use the form here).
+
+## WINDOW 5 — what's DONE (linchpin PART 1: the create_model trio is GREEN-relative)
+- **`terminal/local_tty/terminal_manager.rs`** (was 91 errors → 0 real errors): `create_model`
+  signature dropped is_shared_session_creator/restored_blocks/conversation_restoration/
+  initial_input_config; the entire session-sharing body + tail DELETED (the restored_blocks/
+  conversation merge logic, IsSharedSessionCreator match, the warp-prompt session_sharer
+  observe, the `#[cfg(test)] attempt_to_share_session` block, the restoration-separator block,
+  the LLMPreferences/ai_input_model/agent_view_controller/ai_context_model/ai_controller/
+  BlocklistAIHistory subscriptions, the ActiveAgentViewsModel.register, and the
+  Self::wire_up_session_sharer_with_view + Self::handle_network_status_events calls).
+  KEPT: channels, Sessions, ModelEventDispatcher, ApiKeyManager.register, preferred_shell/
+  ShellStarter, create_terminal_model (restored_blocks→None), pty_controller,
+  remote_server_controller, current_prompt/prompt_type, the trimmed `TerminalView::new` call,
+  wire_up_pty_controller_with_view, wire_up_remote_server_controller_with_view. DELETED the
+  whole session-sharing METHOD CLUSTER (stream_historical_agent_conversations,
+  send_selected_conversation_update_for_sharer, start_sharing_session, log_shared_session_lifecycle,
+  cleanup_shared_session, shared_session_terminated, end_shared_session,
+  wire_up_session_sharer_with_view, handle_network_status_events, session_sharer accessor) and
+  the should_skip_sharer_op helper + ACL_UPDATE_FAILURE_RESPONSE const. Removed the
+  `session_sharer` struct field + Self{} entry. `on_view_detached` is now a no-op. Pruned the
+  session_sharing_protocol::* / network / agent imports; re-added `use crate::send_telemetry_on_executor`.
+  KEPT `pid()` (integration_tests-only).
+- **`terminal/mock_terminal_manager.rs`** (was 4 → 0): create_model dropped restored_blocks/
+  conversation_restoration params (→None into create_terminal_model + trimmed TerminalView::new);
+  on_view_detached → no-op (was ActiveAgentViewsModel.unregister); test helper
+  create_new_terminal_view_window_for_test dropped its SerializedBlockListItem param; fixed its
+  8 callers in view_tests.rs.
+- **`terminal/remote_tty/terminal_manager.rs`** (was 1 → 0): create_model dropped
+  initial_input_config param + the two extra TerminalView::new args.
+- Net: 2081 → 1987 (-94). Committed `7b08bbb6`, pushed.
+
+## ⚠️ CORRECTION to window-4 note (IMPORTANT for next window)
+The window-4 note claimed `terminal/view.rs` had its `TerminalView::new` ctor agent let-bindings
+AND its 31 agent struct fields removed. **THIS IS NOT TRUE on disk.** As of window 5:
+- The `TerminalView` STRUCT (def starts ~line 2294) STILL has all agent fields:
+  scroll_position_before_entering_agent_view, enter_agent_view_after_pending_commands,
+  agent_view_back_button, is_orchestration_split_off, conversation_details_panel,
+  ambient_agent_cancel_mouse_state, and (in the Self{} block ~3835-3993):
+  ai_controller, ai_action_model, ai_render_context, get_relevant_files_controller,
+  shared_session, pending_share_source, auto_stop_sharing_on_cli_end, ai_input_model,
+  ai_context_model, agent_todos_popup, cli_subagent_controller, use_agent_footer(=use_agent_button_bar),
+  agent_view_controller, agent_view_back_button, orchestration_pill_bar, ambient_agent_view_model,
+  conversation_details_panel, pending_cloud_followup_task_id, first_time_cloud_agent_setup_view,
+  environment_setup_mode_selector, ephemeral_message_model, passive_suggestions_models, etc.
+- The `TerminalView::new` ctor (2863-3993, ~1100 lines) is FULLY agent-laden, NOT just
+  "subscription stragglers". The agent vars (agent_view_controller/ai_controller/ai_context_model/
+  ai_input_model/ai_action_model/ambient_agent_view_model/ephemeral_message_model/
+  cli_subagent_controller) are referenced (undefined) by MANY blocks + the `Input::new` call
+  (~3385) + the `Self{}` block. Only a FEW vars are still let-defined (suggestions_mode_model,
+  ai_status_bar, conversation_details_panel — all derived from `input`, which itself needs the
+  Input::new strip first). So this is a from-scratch ctor+struct rewrite, not a straggler trim.
+- `Input::new` (input.rs ~1975) STILL takes the 8 agent params and its body builds
+  DisplayChipConfig/PromptDisplay/etc. all over agent models — it is its own large agent-strip.
 
 ## WINDOW 4 — what's DONE (the pane_group contract sub-cluster is now GREEN)
 - **`pane_group/pane/mod.rs`**: IPaneType trimmed to Terminal/Settings/GetStarted/
@@ -53,6 +106,37 @@ mid-Phase-A). Re-baseline each window: rebuild → `/tmp/rb.log` (use
   (`std::sync::Arc`/`HashMap` imports now unused → warnings only, leave for warning-sweep.)
 - **`terminal/view.rs`**: `TerminalView::new` signature lost initial_input_config/
   conversation_restoration/is_cloud_mode params (BODY de-wire NOT done — see linchpin below).
+
+## LINCHPIN STATUS (window 5)
+- **PART 1 DONE**: `local_tty`/`mock`/`remote_tty` `create_model` + `TerminalManager` impls are
+  de-agented and contribute 0 real errors (see WINDOW 5 above). The `TerminalView::new`
+  CALL sites now match the trimmed 11-arg signature
+  `(resources, wakeups_rx, model_events_handle, model, sessions, size_info, colors,
+  model_event_sender, current_prompt, inactive_pty_reads_rx, ctx)`.
+- **PART 2 REMAINS (the big one)**: `terminal/view.rs` `TerminalView` struct + `TerminalView::new`
+  BODY/`Self{}` + `terminal/input.rs` `Input::new` signature+body + `context_chips::display*`
+  ctors. This is a ~several-thousand-line interlocked agent web (NOT a straggler trim — see the
+  CORRECTION section above). Recommended order for next window:
+  1. Strip `Input` struct + `Input::new` (input.rs, 278 errs): drop the 8 agent params
+     (ai_controller/ai_context_model/ai_input_model/ai_action_model/cli_subagent_controller/
+     agent_view_controller/ambient_agent_view_model/ephemeral_message_model); remove agent body
+     (DisplayChipConfig agent fields, PromptDisplay agent args, agent footer/status-bar). Keep
+     completer/prompt/editor terminal essentials. `suggestions_mode_model`/`agent_status_bar`/
+     `inline_terminal_menu_positioner` accessors are read by view.rs ctor — keep or remove jointly.
+  2. Strip `TerminalView` struct agent fields (view.rs ~2294-2660) + the `Self{}` block
+     (~3835-3993) + the ctor agent let/subscription blocks (2876-3834) TOGETHER (compiler-driven).
+  3. Then the cascade: Event/action enums (view/action.rs 24) + handle_action/handle_input_event/
+     handle_terminal_event arms; view/pane_impl.rs (27); view/rich_content.rs (21); view/init.rs (13);
+     pane_group/pane/terminal_pane.rs (119, snapshot must match trimmed TerminalPaneSnapshot:
+     uuid/cwd/shell_launch_data/is_active/is_read_only/active_profile_id ONLY); workspace/view.rs
+     handle_action; workspace/action.rs WorkspaceAction (~398-700); workspace/view/{left_panel,
+     right_panel,vertical_tabs}.rs enum-definers — remove each variant + ALL its match arms together.
+- NOTE: `parent` `terminal/terminal_manager.rs` `create_terminal_model` still has 2 pre-existing
+  errors NOT from window 5: `SerializedBlockListItem` param type (line ~79) and free-fn
+  `should_collect_ai_ugc_telemetry` call (line ~101, the free fn was deleted; it's a method on
+  PrivacySettings now). These are coupled to `terminal/model/terminal_model.rs` (TerminalModel::new
+  still threads restored_blocks: Option<&[SerializedBlockListItem]> + SharedSessionStatus) — a
+  separate later sub-task. Counted in the 1987.
 
 ## LINCHPIN remaining (THE thing blocking the rest; do it as ONE coordinated change)
 `TerminalView::new` + `Input::new` + `local_tty::TerminalManager::create_model` (+ the
