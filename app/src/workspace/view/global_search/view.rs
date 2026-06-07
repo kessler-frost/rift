@@ -35,7 +35,6 @@ use riftui::{
 };
 use string_offset::{ByteOffset, CharCounter};
 
-use crate::code::icon_from_file_path;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
 use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, InteractionState,
@@ -2278,4 +2277,54 @@ impl GlobalSearchView {
             app,
         )
     }
+}
+
+/// Returns a special icon for the given file path, if any. Inlined from the
+/// removed `crate::code::icon` module (the IDE code editor subtree was deleted).
+fn icon_from_file_path(path: &str, appearance: &Appearance) -> Option<Box<dyn Element>> {
+    use riftui::assets::asset_cache::AssetSource;
+    use riftui::elements::{CacheOption, Image};
+
+    let theme = appearance.theme();
+    let parsed_path = Path::new(path);
+    let extension = parsed_path.extension().and_then(|ext| ext.to_str());
+
+    let bundled = |path: &'static str| {
+        Image::new(AssetSource::Bundled { path }, CacheOption::BySize).finish()
+    };
+
+    let image = match extension {
+        Some("rs") => bundled("bundled/svg/file_type/rust.svg"),
+        Some("json") => bundled("bundled/svg/file_type/json.svg"),
+        Some("ts") | Some("tsx") => bundled("bundled/svg/file_type/typescript.svg"),
+        Some("js") | Some("jsx") => bundled("bundled/svg/file_type/javascript.svg"),
+        Some("py") => bundled("bundled/svg/file_type/python.svg"),
+        Some("cpp") | Some("hpp") => bundled("bundled/svg/file_type/cpp.svg"),
+        Some("go") => bundled("bundled/svg/file_type/go.svg"),
+        Some("md") => Icon::new(
+            "bundled/svg/file_type/markdown.svg",
+            theme.main_text_color(theme.background()).into_solid(),
+        )
+        .finish(),
+        Some("sh") => Icon::new(
+            "bundled/svg/terminal.svg",
+            theme.main_text_color(theme.background()).into_solid(),
+        )
+        .finish(),
+        Some("kt") | Some("kts") => bundled("bundled/svg/file_type/kotlin.svg"),
+        Some("php") => bundled("bundled/svg/file_type/php.svg"),
+        Some("pl") | Some("pm") => bundled("bundled/svg/file_type/perl.svg"),
+        Some("c") | Some("h") => bundled("bundled/svg/file_type/c.svg"),
+        Some("pyx") | Some("pxd") => bundled("bundled/svg/file_type/cython.svg"),
+        Some("swf") => bundled("bundled/svg/file_type/flash.svg"),
+        Some("wasm") => bundled("bundled/svg/file_type/wasm.svg"),
+        Some("zig") => bundled("bundled/svg/file_type/zig.svg"),
+        Some("sql") => bundled("bundled/svg/file_type/sql.svg"),
+        Some("ng") | Some("ngml") => bundled("bundled/svg/file_type/angular.svg"),
+        Some("tf") | Some("hcl") | Some("tfvars") => bundled("bundled/svg/file_type/terraform.svg"),
+        _ => {
+            return None;
+        }
+    };
+    Some(image)
 }

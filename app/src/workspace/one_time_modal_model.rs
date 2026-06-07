@@ -6,12 +6,8 @@ use super::hoa_onboarding;
 use crate::auth::auth_manager::AuthManagerEvent;
 use crate::auth::AuthManager;
 use crate::channel::{Channel, ChannelState};
-use crate::settings::cloud_preferences_syncer::{
-    CloudPreferencesSyncer, CloudPreferencesSyncerEvent,
-};
-use crate::settings::{AISettings, CodeSettings};
+use crate::settings::AISettings;
 use crate::terminal::general_settings::GeneralSettings;
-use crate::terminal::session_settings::{AgentToolbarChipSelection, SessionSettings};
 
 /// A generic model for managing one-time modals that should be shown to users only once.
 ///
@@ -48,7 +44,7 @@ impl OneTimeModalModel {
         );
 
         // Subscribe to auth manager events to automatically trigger modal when user becomes onboarded
-        ctx.subscribe_to_model(&AuthManager::handle(ctx), |_, event, ctx| {
+        ctx.subscribe_to_model(&AuthManager::handle(ctx), |me, event, ctx| {
             let AuthManagerEvent::AuthComplete = event else {
                 return;
             };
@@ -56,18 +52,7 @@ impl OneTimeModalModel {
             let auth_state = crate::auth::AuthStateProvider::as_ref(ctx).get().clone();
             let is_existing_user = auth_state.is_onboarded().unwrap_or_default();
             if is_existing_user {
-                // Settings modals settings are synced to the cloud, not respecting the user's sync setting, so they
-                // must all await initial load to be triggered, else we risk reading a stale triggered value.
-                ctx.subscribe_to_model(
-                    &CloudPreferencesSyncer::handle(ctx),
-                    move |me, event, ctx| {
-                        if let CloudPreferencesSyncerEvent::InitialLoadCompleted = event {
-                            ctx.unsubscribe_from_model(&CloudPreferencesSyncer::handle(ctx));
-                            me.check_and_trigger_all_modals(ctx);
-                            maybe_ensure_handoff_chip_in_toolbar(ctx);
-                        }
-                    },
-                );
+                me.check_and_trigger_all_modals(ctx);
             } else {
                 AISettings::handle(ctx).update(ctx, |settings, ctx| {
                     if let Err(e) = settings
@@ -219,16 +204,6 @@ impl OneTimeModalModel {
         if cfg!(target_family = "wasm") {
             return;
         }
-
-        // Existing users should never see the code toolbelt new feature popup.
-        CodeSettings::handle(ctx).update(ctx, |settings, ctx| {
-            if let Err(e) = settings
-                .dismissed_code_toolbelt_new_feature_popup
-                .set_value(true, ctx)
-            {
-                log::warn!("Failed to mark code toolbelt new feature popup as dismissed: {e}");
-            }
-        });
 
         // The OpenWarp launch modal takes priority over the Oz launch modal
         // when both are enabled.
@@ -441,58 +416,6 @@ impl OneTimeModalModel {
         // All conditions met, show the modal
         self.set_build_plan_migration_modal_open(true, ctx)
     }
-}
-
-/// One-time migration: if the user has a custom agent toolbar layout that
-/// predates the handoff-to-cloud chip, append the chip so they get the
-/// new feature without losing their customization.
-///
-/// Users on `Default` already see the chip via `AgentToolbarItemKind::default_right()`.
-fn maybe_ensure_handoff_chip_in_toolbar(ctx: &mut ModelContext<OneTimeModalModel>) {
-    if !FeatureFlag::OzHandoff.is_enabled()
-        || !FeatureFlag::HandoffLocalCloud.is_enabled()
-        || !cfg!(all(feature = "local_fs", not(target_family = "wasm")))
-    {
-        return;
-    }
-
-    let session_settings = SessionSettings::as_ref(ctx);
-    if *session_settings.did_add_handoff_chip_to_toolbar {
-        return;
-    }
-
-    // Mark as done so future app starts skip this path.
-    SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
-        if let Err(e) = settings
-            .did_add_handoff_chip_to_toolbar
-            .set_value(true, ctx)
-        {
-            log::warn!("Failed to mark handoff chip toolbar migration as done: {e}");
-        }
-    });
-
-    // `Default` already includes the chip — nothing to do.
-    let selection = SessionSettings::as_ref(ctx)
-        .agent_footer_chip_selection
-        .clone();
-    let AgentToolbarChipSelection::Custom { mut left, right } = selection else {
-        return;
-    };
-
-    let handoff = AgentToolbarItemKind::HandoffToCloud;
-    if left.contains(&handoff) || right.contains(&handoff) {
-        return;
-    }
-
-    left.push(handoff);
-    SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
-        if let Err(e) = settings
-            .agent_footer_chip_selection
-            .set_value(AgentToolbarChipSelection::Custom { left, right }, ctx)
-        {
-            log::warn!("Failed to add handoff chip to toolbar: {e}");
-        }
-    });
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

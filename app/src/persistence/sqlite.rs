@@ -10,22 +10,6 @@ use std::{fs, thread};
 use ai::project_context::model::ProjectRulePath;
 use anyhow::{anyhow, bail, Context, Result};
 use chrono::Utc;
-use cloud_object_models::folder::persistence as folder_persistence;
-use cloud_object_models::folder::persistence::upsert_folders;
-use cloud_object_models::json_model::persistence::{
-    self as generic_string_persistence, PersistedGenericStringObject,
-};
-use cloud_object_models::notebook::persistence as notebook_persistence;
-use cloud_object_models::notebook::persistence::upsert_notebooks;
-use cloud_object_models::workflow::persistence as workflow_persistence;
-use cloud_object_models::workflow::persistence::upsert_workflows;
-use cloud_object_persistence::{
-    delete_cloud_object, delete_generic_string_object, increment_retry_count,
-    load_cloud_object_read_context, mark_object_as_synced, read_time_of_next_force_object_refresh,
-    record_time_of_next_refresh, update_object_after_server_creation, update_object_metadata,
-    upsert_generic_string_objects as upsert_generic_string_object_rows,
-    GenericStringObjectPersistenceData,
-};
 use diesel::connection::{DefaultLoadingMode, SimpleConnection};
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;
@@ -40,46 +24,34 @@ use lsp::supported_servers::LSPServerType;
 use num_traits::FromPrimitive;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
-use persistence::model::AMBIENT_AGENT_PANE_KIND;
 use riftui::platform::FullscreenState;
 use riftui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
 use riftui::{AppContext, SingletonEntity};
 use uuid::Uuid;
 
-use super::agent::{delete_agent_conversations, upsert_agent_conversation};
-use super::block_list::{
-    delete_ai_conversation, delete_blocks, save_block, update_block_agent_view_visibility,
-    upsert_ai_query,
-};
+use super::block_list::{delete_blocks, save_block};
 use super::model::{
     self, ActiveMCPServer, CurrentUserInformation, MCPEnvironmentVariables, NewActiveMCPServer,
     NewApp, NewCommand, NewServerExperiment, NewTab, NewTeam, NewWindow, NewWorkspace,
     NewWorkspaceMetadata, NewWorkspaceTeam, Project, Tab, Window,
-    WorkspaceMetadata as WorkspaceMetadataModel, AI_DOCUMENT_PANE_KIND, AI_FACT_PANE_KIND,
-    CODE_PANE_KIND, ENV_VAR_COLLECTION_PANE_KIND, EXECUTION_PROFILE_EDITOR_PANE_KIND,
-    MCP_SERVER_PANE_KIND, NOTEBOOK_PANE_KIND, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
-    WELCOME_PANE_KIND, WORKFLOW_PANE_KIND,
+    WorkspaceMetadata as WorkspaceMetadataModel, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
+    WELCOME_PANE_KIND,
 };
 use super::{
     schema, BlockCompleted, FinishedCommandMetadata, ModelEvent, PersistedData, PersistenceScope,
     StartedCommandMetadata, WriterHandles,
 };
 use crate::app_state::{
-    AIFactPaneSnapshot, AmbientAgentPaneSnapshot, AppState, BranchSnapshot, CodePaneSnapShot,
-    CodePaneTabSnapshot, CodeReviewPaneSnapshot, EnvVarCollectionPaneSnapshot, LeafContents,
-    LeafSnapshot, LeftPanelSnapshot, NotebookPaneSnapshot, PaneFlex, PaneNodeSnapshot,
-    RightPanelSnapshot, SettingsPaneSnapshot, SplitDirection, TabSnapshot, TerminalPaneSnapshot,
-    WindowSnapshot, WorkflowPaneSnapshot,
+    AppState, BranchSnapshot, LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneFlex,
+    PaneNodeSnapshot, RightPanelSnapshot, SettingsPaneSnapshot, SplitDirection, TabSnapshot,
+    TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::auth_state::AuthStateProvider;
 use crate::auth::UserUid;
-use crate::code::editor_management::CodeSource;
-use crate::persistence::agent::read_agent_conversations;
-use crate::persistence::block_list::{get_all_restored_blocks, read_ai_queries};
+use crate::persistence::block_list::get_all_restored_blocks;
 use crate::persistence::model::{
-    NewPersistedObjectAction, NewTeamSettings, ProjectRules, UserProfile, CODE_REVIEW_PANE_KIND,
-    GET_STARTED_PANE_KIND,
+    NewTeamSettings, ProjectRules, UserProfile, GET_STARTED_PANE_KIND,
 };
 use crate::server::experiments::ServerExperiment;
 use crate::server::ids::{ClientId, HashableId, ServerId, SyncId};
@@ -564,54 +536,6 @@ fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> a
         ModelEvent::Snapshot(app_state) => {
             save_app_state(connection, &app_state).context("error saving app state")
         }
-        ModelEvent::UpsertWorkflows(workflows) => {
-            upsert_workflows(connection, workflows).context("error saving workflows")
-        }
-        ModelEvent::UpsertNotebooks(notebooks) => {
-            upsert_notebooks(connection, notebooks).context("error saving notebooks")
-        }
-        ModelEvent::UpsertFolders(folders) => {
-            upsert_folders(connection, folders).context("error saving folders")
-        }
-        ModelEvent::UpsertGenericStringObject { object } => {
-            upsert_generic_string_objects(connection, vec![object])
-                .context("error upserting generic object")
-        }
-        ModelEvent::UpsertGenericStringObjects(objects) => {
-            upsert_generic_string_objects(connection, objects)
-                .context("error upserting generic objects")
-        }
-        ModelEvent::UpsertNotebook { notebook } => {
-            upsert_notebooks(connection, vec![notebook]).context("error upserting notebook")
-        }
-        ModelEvent::UpsertWorkflow { workflow } => {
-            upsert_workflows(connection, vec![workflow]).context("error upserting workflow")
-        }
-        ModelEvent::UpsertFolder { folder } => {
-            upsert_folders(connection, vec![folder]).context("error upserting folder")
-        }
-        ModelEvent::MarkObjectAsSynced {
-            revision_and_editor,
-            metadata_ts,
-            hashed_sqlite_id,
-        } => mark_object_as_synced(
-            connection,
-            hashed_sqlite_id,
-            revision_and_editor,
-            metadata_ts,
-        )
-        .context("error marking object as synced"),
-        ModelEvent::IncrementRetryCount(id) => {
-            increment_retry_count(connection, id).context("error incrementing retry count")
-        }
-        ModelEvent::DeleteObjects { ids } => {
-            delete_objects(connection, ids).context("error deleting objects")
-        }
-        ModelEvent::UpdateObjectAfterServerCreation {
-            client_id,
-            server_creation_info,
-        } => update_object_after_server_creation(connection, client_id, server_creation_info)
-            .context("error executing object creation succeeded callback"),
         ModelEvent::UpsertCodebaseIndexMetadata { index_metadata } => {
             save_codebase_index_metadata(connection, *index_metadata)
                 .context("error upserting codebase index metadata")
@@ -636,9 +560,6 @@ fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> a
             set_current_workspace(connection, workspace_uid)
                 .context("error setting current workspace")
         }
-        ModelEvent::UpdateObjectMetadata { id, metadata } => {
-            update_object_metadata(connection, id, metadata).context("error updating metadata")
-        }
         ModelEvent::InsertCommand { metadata } => {
             insert_command(connection, metadata).context("error inserting command")
         }
@@ -651,43 +572,8 @@ fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> a
         ModelEvent::ClearUserProfiles => {
             clear_user_profiles(connection).context("error clearing user profiles")
         }
-        ModelEvent::RecordTimeOfNextRefresh { timestamp } => {
-            record_time_of_next_refresh(connection, timestamp)
-                .context("error marking object refresh as completed")
-        }
-        ModelEvent::InsertObjectAction { object_action } => {
-            insert_object_action(connection, object_action).context("error inserting object action")
-        }
-        ModelEvent::SyncObjectActions {
-            actions_to_sync: objects_to_sync,
-        } => {
-            sync_object_actions(connection, objects_to_sync).context("error syncing object actions")
-        }
         ModelEvent::SaveExperiments { experiments } => {
             save_experiments(connection, experiments).context("error saving experiments")
-        }
-        ModelEvent::UpsertAIQuery { query } => {
-            upsert_ai_query(connection, query).context("error upserting AI query")
-        }
-        ModelEvent::DeleteAIConversation { conversation_id } => {
-            delete_ai_conversation(connection, &conversation_id)
-                .context("error deleting AI conversation")
-        }
-        ModelEvent::UpdateMultiAgentConversation {
-            conversation_id,
-            updated_tasks,
-            conversation_data,
-        } => upsert_agent_conversation(
-            connection,
-            &conversation_id,
-            &updated_tasks,
-            conversation_data,
-        )
-        .map_err(anyhow::Error::from),
-        ModelEvent::DeleteMultiAgentConversations { conversation_ids } => {
-            delete_agent_conversations(connection, conversation_ids)
-                .map_err(anyhow::Error::from)
-                .context("error deleting multi-agent conversation")
         }
         ModelEvent::UpsertCurrentUserInformation { user_information } => {
             upsert_current_user_information(connection, user_information)
@@ -719,38 +605,12 @@ fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> a
             suggestion_type,
         } => remove_ignored_suggestion(connection, suggestion, suggestion_type)
             .context("error removing ignored suggestion"),
-        ModelEvent::UpsertMCPServerInstallation {
-            mcp_server_installation,
-        } => upsert_mcp_server_installation(connection, mcp_server_installation),
-        ModelEvent::DeleteMCPServerInstallations { installation_uuids } => {
-            delete_mcp_server_installations(connection, installation_uuids)
-        }
-        ModelEvent::DeleteMCPServerInstallationsByTemplateUuid { template_uuid } => {
-            delete_mcp_server_installations_by_template_uuid(connection, template_uuid)
-        }
-        ModelEvent::UpdateMCPInstallationRunning {
-            installation_uuid,
-            running,
-        } => update_mcp_server_running(connection, installation_uuid, running)
-            .context("Error updating running field for MCP installation"),
         ModelEvent::UpsertWorkspaceLanguageServer {
             workspace_path,
             lsp_type,
             enabled,
         } => upsert_workspace_language_server(connection, &workspace_path, lsp_type, enabled)
             .context("error upserting workspace language server"),
-        ModelEvent::UpdateBlockAgentViewVisibility {
-            block_id,
-            agent_view_visibility,
-        } => update_block_agent_view_visibility(connection, &block_id, &agent_view_visibility)
-            .context("error updating block agent view visibility"),
-        ModelEvent::SaveAIDocumentContent {
-            document_id,
-            content,
-            version,
-            title,
-        } => save_ai_document_content(connection, &document_id, &content, version, &title)
-            .context("error saving AI document content"),
     }
 }
 
@@ -1071,19 +931,10 @@ fn save_pane_state(
     // kind-specific tables.
     let kind = match &snapshot.contents {
         LeafContents::Terminal(_) => TERMINAL_PANE_KIND,
-        LeafContents::Notebook(_) => NOTEBOOK_PANE_KIND,
-        LeafContents::EnvVarCollection(_) => ENV_VAR_COLLECTION_PANE_KIND,
-        LeafContents::Code(_) => CODE_PANE_KIND,
-        LeafContents::Workflow(_) => WORKFLOW_PANE_KIND,
         LeafContents::Settings(_) => SETTINGS_PANE_KIND,
-        LeafContents::AIFact(_) => AI_FACT_PANE_KIND,
-        LeafContents::CodeReview(_) => CODE_REVIEW_PANE_KIND,
-        LeafContents::AmbientAgent(_) => AMBIENT_AGENT_PANE_KIND,
-        LeafContents::ExecutionProfileEditor => EXECUTION_PROFILE_EDITOR_PANE_KIND,
         LeafContents::GetStarted => GET_STARTED_PANE_KIND,
         LeafContents::Welcome { .. } => WELCOME_PANE_KIND,
-        LeafContents::AIDocument(_) => AI_DOCUMENT_PANE_KIND,
-        LeafContents::EnvironmentManagement(_) | LeafContents::NetworkLog => {
+        LeafContents::NetworkLog => {
             // These pane types are filtered out before this function is
             // called; see `LeafContents::is_persisted` and the skip in
             // `save_app_state`. Reaching this arm would mean a `pane_nodes`

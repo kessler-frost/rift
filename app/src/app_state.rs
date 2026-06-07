@@ -7,7 +7,7 @@ use riftui::platform::FullscreenState;
 use riftui::{AppContext, SingletonEntity as _};
 use serde::{Deserialize, Serialize};
 
-use crate::code::editor_management::CodeSource;
+use crate::ai::blocklist::{InputConfig, SerializedBlockListItem};
 use crate::root_view::quake_mode_window_id;
 use crate::server::ids::SyncId;
 use crate::settings_view::SettingsSection;
@@ -28,12 +28,6 @@ pub struct AppState {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PaneUuid(pub Vec<u8>);
 
-/// Wrapper for persisting agent management filters to restore.
-#[derive(Default, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PersistedAgentManagementFilters {
-    pub filters: AgentManagementFilters,
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct WindowSnapshot {
     pub tabs: Vec<TabSnapshot>,
@@ -49,7 +43,6 @@ pub struct WindowSnapshot {
     pub vertical_tabs_panel_open: bool,
     pub left_panel_width: Option<f32>,
     pub right_panel_width: Option<f32>,
-    pub agent_management_filters: Option<PersistedAgentManagementFilters>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -112,17 +105,7 @@ pub struct LeafSnapshot {
 #[derive(Clone, Debug, PartialEq)]
 pub enum LeafContents {
     Terminal(TerminalPaneSnapshot),
-    Notebook(NotebookPaneSnapshot),
-    AIDocument(AIDocumentPaneSnapshot),
-    Code(CodePaneSnapShot),
-    EnvVarCollection(EnvVarCollectionPaneSnapshot),
-    EnvironmentManagement(EnvironmentManagementPaneSnapshot),
-    Workflow(WorkflowPaneSnapshot),
     Settings(SettingsPaneSnapshot),
-    AIFact(AIFactPaneSnapshot),
-    ExecutionProfileEditor,
-    CodeReview(CodeReviewPaneSnapshot),
-    AmbientAgent(AmbientAgentPaneSnapshot),
     /// The in-app network log pane. Not persisted across restarts because the
     /// backing log is an in-memory ring buffer that starts empty on launch.
     NetworkLog,
@@ -151,34 +134,13 @@ impl LeafContents {
             // Network log: the backing log is an in-memory ring buffer that
             // starts empty on launch; persisting would also regress back to
             // an on-disk log via the app-state database.
-            LeafContents::NetworkLog
-            // Environment management panes are opened on-demand via workspace
-            // actions and have no persistable state.
-            | LeafContents::EnvironmentManagement(_) => false,
+            LeafContents::NetworkLog => false,
             LeafContents::Terminal(_)
-            | LeafContents::Notebook(_)
-            | LeafContents::AIDocument(_)
-            | LeafContents::Code(_)
-            | LeafContents::EnvVarCollection(_)
-            | LeafContents::Workflow(_)
             | LeafContents::Settings(_)
-            | LeafContents::AIFact(_)
-            | LeafContents::ExecutionProfileEditor
-            | LeafContents::CodeReview(_)
-            | LeafContents::AmbientAgent(_)
             | LeafContents::Welcome { .. }
             | LeafContents::GetStarted => true,
         }
     }
-}
-
-/// Snapshot of an ambient agent pane.
-#[derive(Clone, Debug, PartialEq)]
-pub struct AmbientAgentPaneSnapshot {
-    pub uuid: Vec<u8>,
-    // `task_id` is purposefully optional,
-    // as you can have a valid state (i.e. an empty cloud mode pane) where it is None.
-    pub task_id: Option<AmbientAgentTaskId>,
 }
 
 /// Snapshot of the contents of a terminal pane.
@@ -190,81 +152,7 @@ pub struct TerminalPaneSnapshot {
     pub is_active: bool,
     pub is_read_only: bool,
     pub input_config: Option<InputConfig>,
-    pub llm_model_override: Option<String>,
     pub active_profile_id: Option<SyncId>,
-    pub conversation_ids_to_restore: Vec<AIConversationId>,
-    /// The active conversation ID if the agent view was open in fullscreen mode.
-    /// When `Some`, the agent view should be restored to fullscreen for this conversation.
-    pub active_conversation_id: Option<AIConversationId>,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum NotebookPaneSnapshot {
-    CloudNotebook {
-        /// The ID of the notebook that was open in this pane. There are 3 possibilities:
-        /// 1. The pane contains a newly-created notebook that has not been edited yet. It might not
-        ///    have an ID yet (client or server), so this will be `None`.
-        /// 2. The pane contains a notebook that hasn't been synced to the server yet, so this will
-        ///    contain a client ID that should exist in SQLite.
-        /// 3. The pane contains a notebook that's known to the server, so this will contain the
-        ///    server ID.
-        notebook_id: Option<SyncId>,
-        // Settings for the notebook pane when it's opened (such as a folder to focus upon opening)
-        settings: OpenWarpDriveObjectSettings,
-    },
-    LocalFileNotebook {
-        /// The path to the local file that was open in this pane. This may be `None` if
-        /// the pane contained an unreadable file.
-        path: Option<PathBuf>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum AIDocumentPaneSnapshot {
-    Local {
-        document_id: String,
-        version: i32,
-        content: Option<String>,
-        title: Option<String>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct CodePaneTabSnapshot {
-    pub path: Option<PathBuf>,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum CodePaneSnapShot {
-    Local {
-        tabs: Vec<CodePaneTabSnapshot>,
-        active_tab_index: usize,
-        /// The full `CodeSource` for this pane, serialized as JSON in the DB.
-        source: Option<CodeSource>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum WorkflowPaneSnapshot {
-    CloudWorkflow {
-        workflow_id: Option<SyncId>,
-        // Settings for the workflow pane when it's opened (such as a folder to focus upon opening)
-        settings: OpenWarpDriveObjectSettings,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum EnvVarCollectionPaneSnapshot {
-    // CloudEnvVarCollection snapshots operate under the same heuristics
-    // as NotebookPaneSnapshot::CloudNotebook
-    CloudEnvVarCollection {
-        env_var_collection_id: Option<SyncId>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct EnvironmentManagementPaneSnapshot {
-    pub mode: EnvironmentsPage,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -272,19 +160,6 @@ pub enum SettingsPaneSnapshot {
     Local {
         current_page: SettingsSection,
         search_query: Option<String>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum AIFactPaneSnapshot {
-    Personal,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum CodeReviewPaneSnapshot {
-    Local {
-        terminal_uuid: Vec<u8>,
-        repo_path: PathBuf,
     },
 }
 
