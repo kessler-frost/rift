@@ -42,12 +42,9 @@ use typed_path::TypedPath;
 use url::Url;
 use uuid::Uuid;
 
-#[cfg(feature = "local_fs")]
-use crate::app_state::CodePaneSnapShot;
 use crate::app_state::{
-    self, AIFactPaneSnapshot, BranchSnapshot, EnvVarCollectionPaneSnapshot, LeafContents,
-    LeafSnapshot, NotebookPaneSnapshot, PaneNodeSnapshot, PaneUuid, SettingsPaneSnapshot,
-    TerminalPaneSnapshot, WorkflowPaneSnapshot,
+    self, BranchSnapshot, LeafContents, LeafSnapshot, PaneNodeSnapshot, PaneUuid,
+    SettingsPaneSnapshot, TerminalPaneSnapshot,
 };
 use crate::appearance::Appearance;
 use crate::auth::auth_manager::AuthManager;
@@ -55,11 +52,6 @@ use crate::auth::auth_view_modal::AuthViewVariant;
 use crate::auth::AuthStateProvider;
 use crate::banner::{Banner, BannerEvent, BannerState, BannerTextContent, DismissalType};
 use crate::channel::{Channel, ChannelState};
-use crate::code::active_file::ActiveFileModel;
-use crate::code::buffer_location::LocalOrRemotePath;
-#[cfg(feature = "local_fs")]
-use crate::code::editor_management::CodeSource;
-use crate::code::view::{CodeView, CodeViewAction};
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::{self, PaneMode, PaneTemplateType};
 use crate::palette::PaletteMode;
