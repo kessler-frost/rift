@@ -1,5 +1,37 @@
 # Plan 2 Strip — RESUME NOTE (window 7, 2026-06-07)
 
+## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
+State at handoff: branch `plan2-strip`, **1736 compile errors** (down from 4173 baseline,
+~58%), all committed + pushed. To pick up locally:
+`cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
+(needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
+
+**DO NOT USE SUBAGENTS from here on.** The remaining work is the tightly-interconnected
+contract cluster (Event/action enum cascade across `terminal/view.rs` ↔ `workspace/view.rs` ↔
+`pane_group/pane/terminal_pane.rs` ↔ action/enum-definer files — removing one enum variant
+means removing all its match arms across every file *in one pass*) plus the wholesale
+`server/`+`auth/`+`workspaces/` deletion (needs the shims below). These cannot be safely
+parallelized; work INLINE, compiler-driven, one coherent pass. SPEED TIP: iterate with
+`cargo check --bin rift-oss` (skips codegen/linking; same errors), only `cargo build` for the
+final green check. Tool: `/tmp/delbyname.py` (fixed: ignores braces in //-comments & strings)
+— recreate from git if the container is fresh.
+
+## TELEMETRY — full removal (NOT done yet; Phase E + F)
+Currently telemetry is still WIRED but runtime-OFF in OSS (`oss.rs` has
+`telemetry_config: None` + `crash_reporting_config: None`, so nothing reaches Rudderstack).
+Code is NOT yet removed. To fully nuke it (no code, no events, nothing leaves the machine):
+- **Phase E (sanctioned `rift_core` edit):** replace the telemetry macro DEFINITIONS in
+  `crates/rift_core/src/telemetry.rs` (`send_telemetry_from_ctx!`, `send_telemetry_from_app_ctx!`,
+  `send_telemetry_sync_from_app_ctx!`, `send_telemetry_on_executor!`) with NO-OPs (keep
+  names/paths/arities) so all ~67 remaining call sites in `app/src` compile away to nothing.
+  This is the ONLY allowed edit to the guarded rift_core macros. Do NOT delete the 67 call sites.
+- **Phase F (with the server delete):** delete `server/telemetry/` (`TelemetryCollector`,
+  `AppTelemetryContextProvider`), remove the `lib.rs` boot inits (`AppTelemetryContextProvider::
+  new_context_provider` ~L1096, `TelemetryCollector::new(server_api)` ~L1530, the
+  `TelemetryCollector::handle` close-flush ~L1913) and the `TelemetryEvent::*` emissions
+  (AppStartup ~L1401, LoggedOutStartup ~L1434, UserInitiatedClose ~L1971/2003); drop the
+  `TelemetryEvent` + `SettingsTelemetryEvent` enums. Result: zero telemetry.
+
 ## WINDOW 7 — what's DONE (inline_history + workflows-structs + editor AI-menu + context_chips; 1815 → 1736, −79)
 All committed + pushed on `plan2-strip`, each step a verified net error reduction.
 1. **inline_history 3-file cluster (DONE)** `terminal/input/inline_history/{data_source,search_item,view}.rs`

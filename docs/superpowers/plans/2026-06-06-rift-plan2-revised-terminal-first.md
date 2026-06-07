@@ -125,9 +125,17 @@ over stubs; add a permissive stub ONLY where a KEEP call site genuinely remains.
 Delete `autoupdate/`, `changelog_model.rs`, cloud voice (`ServerVoiceTranscriber`/`ai/voice`); remove
 their boot inits + refs.
 
-### Phase E — Telemetry no-op + AuthState shim
-Replace telemetry macro DEFINITIONS in `rift_core` with no-ops (keep names/paths/arities). Add a local
-`AuthState` shim in `rift_core` exposing only the methods KEEP code still calls (e.g.
+### Phase E — Telemetry FULL removal (no-op) + AuthState shim
+**TELEMETRY IS BEING NUKED, not retained.** No data is collected, none leaves the machine.
+Mechanism (chosen over deleting ~67 scattered call sites): replace the telemetry macro DEFINITIONS in
+`crates/rift_core/src/telemetry.rs` (`send_telemetry_from_ctx!`, `send_telemetry_from_app_ctx!`,
+`send_telemetry_sync_from_app_ctx!`, `send_telemetry_on_executor!`) with NO-OPs (keep names/paths/arities)
+so every call site compiles to nothing. This is the ONLY sanctioned edit to the guarded `rift_core` macros.
+Then in Phase F delete the telemetry INFRA: `server/telemetry/` (`TelemetryCollector`,
+`AppTelemetryContextProvider`), the `lib.rs` boot inits + `TelemetryEvent::*` emissions, and the
+`TelemetryEvent`/`SettingsTelemetryEvent` enums. (OSS already sets `telemetry_config: None` +
+`crash_reporting_config: None` in `oss.rs`, so it's runtime-off even before this.)
+Also add a local `AuthState` shim in `rift_core` exposing only the methods KEEP code still calls (e.g.
 `is_anonymous_or_logged_out()->false`, `anonymous_id()->persisted UUID`). Repoint KEEP code. Prep for
 Phase F.
 
