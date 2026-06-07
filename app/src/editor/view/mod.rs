@@ -92,7 +92,6 @@ pub use {
 use self::model::{LocalSelections, Selection, UpdateBufferOption};
 use super::soft_wrap::{ClampDirection, DisplayPointAndClampDirection};
 use super::Point;
-use crate::ai::predict::next_command_model::{NextCommandModel, NextCommandSuggestionState};
 use crate::appearance::Appearance;
 use input_classifier::InputType;
 use crate::channel::{Channel, ChannelState};
@@ -1763,7 +1762,6 @@ pub struct EditorView {
     cursor_display_override: Option<CursorDisplayType>,
     window_id: WindowId,
     autosuggestion_state: Option<Arc<AutosuggestionState>>,
-    next_command_model: Option<ModelHandle<NextCommandModel>>,
 
     /// The height of the editor at the last render.
     /// This is needed because autosuggestions soft wrap and can increase the height of the editor.
@@ -2908,16 +2906,6 @@ impl EditorView {
         Self::new_internal("", options, ctx)
     }
 
-    pub fn with_next_command_model(
-        self,
-        next_command_model: ModelHandle<NextCommandModel>,
-    ) -> Self {
-        Self {
-            next_command_model: Some(next_command_model),
-            ..self
-        }
-    }
-
     /// Creates an [`EditorView`] with the initial text
     /// equal to `base_text` and with behaviour specified by `options`.
     #[cfg(test)]
@@ -3031,7 +3019,6 @@ impl EditorView {
             autocomplete_symbols_setting: *editor_settings_handle.as_ref(ctx).autocomplete_symbols,
             cursor_display_override,
             autosuggestion_state: None,
-            next_command_model: None,
             editor_height_shrink_delay: Arc::new(Mutex::new(EditorHeightShrinkDelay {
                 editor_height_before_shrink: 0.,
                 editor_height_shrink_start: None,
@@ -3300,14 +3287,6 @@ impl EditorView {
         buffer.to_point(char_offset)
     }
 
-    fn next_command_state<'a, A: ModelAsRef>(&self, ctx: &'a A) -> &'a NextCommandSuggestionState {
-        self.next_command_model
-            .as_ref()
-            .map_or(&NextCommandSuggestionState::None, |model| {
-                model.as_ref(ctx).get_state()
-            })
-    }
-
     /// Set an autosuggestion that is rendered natively within the editor as "ghosted" text. This
     /// autosuggestion will continue to be displayed as long as the text in the editor stays the
     /// same or a user inserts a prefix of autosuggestion text.
@@ -3340,53 +3319,6 @@ impl EditorView {
         }
     }
 
-    /// Clears any existing autosuggestions (intelligent or not) that weren't for the current input_type.
-    /// If there's an empty buffer, populates the input with an intelligent autosuggestion for the input_type.
-    pub fn maybe_populate_intelligent_autosuggestion(
-        &mut self,
-        input_type: InputType,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // If our existing autosuggestion is not meant for the current input type, clear it.
-        if self
-            .autosuggestion_state
-            .as_ref()
-            .is_some_and(|state| !state.autosuggestion_type.matches_input_type(input_type))
-        {
-            self.clear_autosuggestion(ctx);
-        }
-        if input_type.is_ai() {
-            // The server does not return AI query suggestions currently.
-            // If we switched to AI input, clear the next command state.
-            // This way when switching back to shell input, there should be no next command suggestion populated.
-            self.clear_next_command_state(ctx);
-        } else if let Some(command) = self
-            .next_command_state(ctx)
-            .command_suggestion()
-            .map(|command| command.to_owned())
-        {
-            // Check if this suggestion is ignored before applying it
-            let is_ignored = IgnoredSuggestionsModel::as_ref(ctx)
-                .is_ignored(&command, SuggestionType::ShellCommand);
-
-            if !is_ignored {
-                // If input type is shell, populate with suggested shell command.
-                // The suggestion must contain the current buffer text as a prefix.
-                let Some(autosuggestion) = command.strip_prefix(self.buffer_text(ctx).as_str())
-                else {
-                    return;
-                };
-                self.set_autosuggestion(
-                    autosuggestion,
-                    AutosuggestionLocation::EndOfBuffer,
-                    AutosuggestionType::Command {
-                        was_intelligent_autosuggestion: true,
-                    },
-                    ctx,
-                );
-            }
-        }
-    }
 
     /// Set placeholder text that appears when buffer matches the given prefix.
     /// Use empty string prefix "" for the default placeholder (shown when buffer is empty).
@@ -3450,16 +3382,6 @@ impl EditorView {
             view.set_current_autosuggestion(None);
         });
 
-        ctx.notify();
-    }
-
-    /// Clears any next command state. Autosuggestion (ghosted text) is not cleared.
-    fn clear_next_command_state(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(next_command_model) = &self.next_command_model {
-            next_command_model.update(ctx, |model, _| {
-                model.clear_state();
-            });
-        }
         ctx.notify();
     }
 

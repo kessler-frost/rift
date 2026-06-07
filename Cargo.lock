@@ -11181,7 +11181,6 @@ dependencies = [
  "remote_server",
  "repo_metadata",
  "reqwest",
- "rift_ai",
  "rift_assets",
  "rift_cli",
  "rift_completer",

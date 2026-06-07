@@ -128,11 +128,6 @@ use super::view::{
 };
 use super::warpify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
-use crate::ai::block_context::BlockContext;
-use crate::ai::predict::next_command_model::{
-    is_command_valid, is_next_command_enabled, NextCommandModel, NextCommandModelEvent,
-    NextCommandSuggestionState, ZeroStateSuggestionInfo,
-};
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::channel::{Channel, ChannelState};
 #[cfg(feature = "local_fs")]
@@ -1304,13 +1299,6 @@ pub struct Input {
     // a settings read on every typed character).
     enable_autosuggestions_setting: bool,
 
-    /// Whether the most recent intelligent autosuggestion was accepted or not.
-    /// Cleared once a command is run.
-    was_intelligent_autosuggestion_accepted: bool,
-    /// We store info about the last intelligent autosuggestion because we need it for
-    /// data collection when the command completes, but state is cleared when the command is executed.
-    last_intelligent_autosuggestion_result: Option<IntelligentAutosuggestionResult>,
-    next_command_model: ModelHandle<NextCommandModel>,
 
     /// The last block that the user ran. This is used for generating autosuggestions.
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
@@ -1352,15 +1340,6 @@ struct AttachmentChip {
     attachment_type: AttachmentType,
     /// Index into the unified pending_attachments list for deletion.
     index: usize,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct IntelligentAutosuggestionResult {
-    #[serde(rename = "was_autosuggestion_accepted")]
-    pub was_suggestion_accepted: bool,
-    #[serde(rename = "was_autosuggestion_from_ai")]
-    pub is_from_ai: bool,
-    pub predicted_command: String,
 }
 
 /// A map of remote buffer operations that were deferred because
@@ -1769,13 +1748,6 @@ impl Input {
             input_render_state_model_handle.clone(),
         );
 
-        let next_command_model = ctx.add_model(|_| {
-            NextCommandModel::new(sessions.clone(), model.clone(), server_api.clone())
-        });
-        ctx.subscribe_to_model(&next_command_model, |me, _, event, ctx| {
-            me.handle_next_command_model_event(event, ctx);
-        });
-
         let has_prompt_suggestion_banner = Arc::new(AtomicBool::new(false));
         let editor = {
             // Clones used in render_decorator_elements closure below.
@@ -1854,7 +1826,6 @@ impl Input {
                     ..Default::default()
                 };
                 EditorView::new(options, ctx)
-                    .with_next_command_model(next_command_model.clone())
             })
         };
 
@@ -2030,9 +2001,6 @@ impl Input {
             enable_autosuggestions_setting: *editor_settings_handle
                 .as_ref(ctx)
                 .enable_autosuggestions,
-            was_intelligent_autosuggestion_accepted: false,
-            last_intelligent_autosuggestion_result: None,
-            next_command_model,
             last_user_block_completed: None,
             hoverable_handle: Default::default(),
             terminal_view_id,
@@ -2682,33 +2650,6 @@ impl Input {
         }
     }
 
-    fn handle_next_command_model_event(
-        &mut self,
-        event: &NextCommandModelEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            NextCommandModelEvent::NextCommandSuggestionReady => {
-                let NextCommandSuggestionState::Ready { is_from_cycle, .. } =
-                    self.next_command_model.as_ref(ctx).get_state()
-                else {
-                    return;
-                };
-
-                // If there is already an autosuggestion for some reason, don't replace it to avoid flickering.
-                // But if the suggestion came from cycling, we want to replace it.
-                let editor = self.editor.as_ref(ctx);
-                if !is_from_cycle && editor.active_autosuggestion() {
-                    return;
-                }
-
-                let input_type = self.ai_input_model.as_ref(ctx).input_type();
-                self.editor.update(ctx, |editor, ctx| {
-                    editor.maybe_populate_intelligent_autosuggestion(input_type, ctx);
-                });
-            }
-        }
-    }
 
     #[cfg(feature = "voice_input")]
     pub(super) fn toggle_voice_input(
@@ -2757,69 +2698,7 @@ impl Input {
 
 
 
-    fn cycle_next_command_suggestion(&mut self, ctx: &mut ViewContext<Self>) {
-        self.next_command_model.update(ctx, |model, ctx| {
-            model.cycle_next_command_suggestion(ctx);
-        });
-        self.editor.update(ctx, |editor, ctx| {
-            editor.clear_autosuggestion(ctx);
-        });
-    }
 
-    /// Predicts the next action using an AI model and past context on blocks within Warp.
-    /// Populates the autosuggestion with the predicted action, if any. Otherwise, falls back to
-    /// existing autosuggestion logic.
-    #[cfg_attr(target_family = "wasm", allow(unused_variables))]
-    fn maybe_predict_next_action_ai(
-        &mut self,
-        block_completed: UserBlockCompleted,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if !is_next_command_enabled(ctx) {
-            return;
-        }
-
-        // If the last block was empty, don't create any suggestions.
-        // Also don't create suggestions for requested commands part of an agent mode conversation.
-        if block_completed.command.is_empty() || block_completed.was_part_of_agent_interaction {
-            return;
-        }
-
-        // If we already have an active autosuggestion (e.g. from command corrections), don't regenerate.
-        let editor = self.editor.as_ref(ctx);
-        if editor.active_autosuggestion() {
-            return;
-        }
-
-        // We only have intelligent autosuggestions on empty buffer for now.
-        if !self.buffer_text(ctx).is_empty() {
-            return;
-        }
-
-        // Don't generate any next command suggestions if there is no internet.
-        // This is needed to prevent generating history-based suggestions.
-        if !NetworkStatus::as_ref(ctx).is_online() {
-            return;
-        }
-
-        let Some(session) = self.active_session(ctx) else {
-            return;
-        };
-        let context = WarpAiExecutionContext::new(&session);
-        let completer_data = self.completer_data();
-        let block_context = Some(BlockContext::from_completed_block(&block_completed));
-        let previous_result = self.last_intelligent_autosuggestion_result.take();
-        self.next_command_model.update(ctx, |model, ctx| {
-            model.generate_next_command_suggestion(
-                block_completed,
-                context,
-                completer_data,
-                block_context,
-                previous_result,
-                ctx,
-            );
-        });
-    }
 
     /// Clear the cached hint text to generate a new one on next render
     pub fn clear_cached_hint_text(&mut self) {
@@ -2928,14 +2807,6 @@ impl Input {
         }
 
         let command = self.get_command(ctx);
-        // Rift: a "# "-prefixed line is a natural-language request, not a command.
-        // Translate it locally and replace the input for review (never auto-run).
-        if let Some(nl) = crate::ai::predict::rift_nl_prefix::nl_request(&command) {
-            let nl = nl.to_string();
-            self.rift_translate_into_input(nl, ctx);
-            self.has_pending_command = false;
-            return;
-        }
         if self.can_execute_command(ctx).is_no() {
             return;
         }
@@ -2947,36 +2818,6 @@ impl Input {
             editor.set_interaction_state(InteractionState::Editable, ctx);
         });
     }
-
-    /// Translate a natural-language request (`# ...`) via local AI and replace the
-    /// input buffer with the resulting command for the user to review. No-op on error
-    /// or missing config, so the terminal never blocks on AI.
-    fn rift_translate_into_input(&mut self, nl: String, ctx: &mut ViewContext<Self>) {
-        let Ok(cfg) = rift_ai::config::RiftAiConfig::load_from(
-            &rift_ai::config::RiftAiConfig::default_path(),
-        ) else {
-            return;
-        };
-        ctx.spawn(
-            async move {
-                rift_ai::translate::translate(
-                    &nl,
-                    &rift_ai::context::RiftContext::default(),
-                    &cfg,
-                )
-                .await
-                .ok()
-            },
-            move |input, cmd: Option<String>, ctx| {
-                if let Some(cmd) = cmd.filter(|c| !c.is_empty()) {
-                    input.editor.update(ctx, |editor, ctx| {
-                        editor.set_buffer_text(&cmd, ctx);
-                    });
-                }
-            },
-        );
-    }
-
 
     /// Freeze the editor and put it in a loading state.
     pub fn freeze_input_in_loading_state(&mut self, ctx: &mut ViewContext<Self>) -> String {
@@ -3087,12 +2928,6 @@ impl Input {
             return false;
         }
 
-        // Save the zero state next command state before clearing it.
-        let zerostate_next_command_suggestion_info = self
-            .next_command_model
-            .as_ref(ctx)
-            .get_zero_state_suggestion_info()
-            .cloned();
         // Clear the auto-suggestion in the editor, so the height of
         // the input box is not inaccurate for its contents. Since we
         // we adjust the height of the long running block to be the same
@@ -3115,9 +2950,6 @@ impl Input {
                 editor.clear_all_placeholder_text();
                 ctx.notify();
             });
-            self.next_command_model.update(ctx, |model, _| {
-                model.clear_state();
-            });
         }
 
         let home_dir = prompt::home_dir_for_block(
@@ -3138,58 +2970,6 @@ impl Input {
             .active_block()
             .has_received_precmd()
         {
-            // Skip any empty blocks created by the user. Keep the last zero-state autosuggestion
-            // until the user executes a command.
-            if !command.is_empty() {
-                if let Some(ZeroStateSuggestionInfo {
-                    request,
-                    response,
-                    is_from_ai,
-                    history_based_autosuggestion_state,
-                    request_duration_ms,
-                }) = zerostate_next_command_suggestion_info
-                {
-                    self.last_intelligent_autosuggestion_result =
-                        Some(IntelligentAutosuggestionResult {
-                            was_suggestion_accepted: self.was_intelligent_autosuggestion_accepted,
-                            is_from_ai,
-                            predicted_command: response.most_likely_action.clone(),
-                        });
-
-                    let should_collect_ugc = should_collect_ai_ugc_telemetry(
-                        ctx,
-                        PrivacySettings::as_ref(ctx).is_telemetry_enabled,
-                    );
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::AgentModePrediction {
-                            was_suggestion_accepted: self.was_intelligent_autosuggestion_accepted,
-                            request_duration_ms,
-                            is_from_ai,
-                            does_actual_command_match_prediction: response.most_likely_action
-                                == command,
-                            does_actual_command_match_history_prediction:
-                                history_based_autosuggestion_state.history_command_prediction
-                                    == command,
-                            history_prediction_likelihood: history_based_autosuggestion_state
-                                .history_command_prediction_likelihood,
-                            total_history_count: history_based_autosuggestion_state
-                                .total_history_count,
-                            actual_next_command_run: should_collect_ugc
-                                .then_some(command.to_string()),
-                            history_based_autosuggestion_state: should_collect_ugc
-                                .then_some(history_based_autosuggestion_state.clone()),
-                            generate_ai_input_suggestions_request: should_collect_ugc
-                                .then_some(*request),
-                            generate_ai_input_suggestions_response: should_collect_ugc
-                                .then(|| response.clone())
-                        },
-                        ctx
-                    );
-                }
-            }
-            // Reset state for whether the user accepted the intelligent autosuggestion.
-            self.was_intelligent_autosuggestion_accepted = false;
-
             self.tips_completed.update(ctx, |tips, ctx| {
                 mark_feature_used_and_write_to_user_defaults(
                     Tip::Hint(TipHint::CreateBlock),
@@ -4153,10 +3933,6 @@ impl Input {
                     suggestions.select_next(ctx);
                 });
             }
-        } else if FeatureFlag::CycleNextCommandSuggestion.is_enabled()
-            && self.editor.as_ref(ctx).is_empty(ctx)
-        {
-            self.cycle_next_command_suggestion(ctx);
         } else {
             self.editor.update(ctx, |editor, ctx| editor.move_down(ctx));
 
@@ -4215,40 +3991,10 @@ impl Input {
         };
         self.abort_latest_autosuggestion_future();
 
-        if FeatureFlag::PartialNextCommandSuggestions.is_enabled() && is_next_command_enabled(ctx) {
-            let Some(session) = self.active_session(ctx) else {
-                return;
-            };
-            let context = WarpAiExecutionContext::new(&session);
-            if let Some(last_user_block_completed) =
-                completer_data.last_user_block_completed.clone()
-            {
-                self.next_command_model.update(ctx, |model, ctx| {
-                    model.generate_next_command_suggestion_with_prefix(
-                        Some(buffer_text),
-                        last_user_block_completed,
-                        context,
-                        completer_data,
-                        None,
-                        None,
-                        ctx,
-                    );
-                });
-                return;
-            }
-        }
-
         let completion_context = completer_data.completion_session_context(ctx);
         let completion_session = completion_context
             .as_ref()
             .map(|completion_context| completion_context.session.clone());
-
-        let reverse_chronological_potential_autosuggestions =
-            NextCommandModel::get_reverse_chronological_potential_autosuggestions(
-                &buffer_text,
-                &completer_data,
-                ctx,
-            );
 
         let session_env_vars = self.sessions.read(ctx, |sessions, _| {
             sessions.get_env_vars_for_session(session_id)
@@ -4261,81 +4007,7 @@ impl Input {
         let abort_handle = ctx
             .spawn_abortable(
                 async move {
-                    #[cfg(feature = "local_fs")]
-                    // First, use rich history to find commands with a matching prefix that were run
-                    // in a similar context, taking into account the most recent block run.
-                    if let Some(conn) = conn {
-                        if let Some(last_user_block_completed) =
-                            &completer_data.last_user_block_completed
-                        {
-                            let similar_history_contexts = {
-                                let mut conn = conn.lock();
-                                NextCommandModel::get_similar_history_context(
-                                    &mut conn,
-                                    last_user_block_completed,
-                                    0,
-                                )
-                            };
-                            if !similar_history_contexts.is_empty() {
-                                let mut history_next_command_counts =
-                                    counter::Counter::<String>::new();
-                                // Find the most likely next command after a similar context, out of those that have a matching prefix and aren't ignored.
-                                for history_context in &similar_history_contexts {
-                                    if history_context
-                                        .next_command
-                                        .command
-                                        .starts_with(&buffer_text)
-                                        && !ignored_suggestions
-                                            .contains(&history_context.next_command.command)
-                                    {
-                                        history_next_command_counts
-                                            [&history_context.next_command.command] += 1;
-                                    }
-                                }
-
-                                for (most_likely_next_command, _) in
-                                    history_next_command_counts.k_most_common_ordered(5)
-                                {
-                                    if is_command_valid(
-                                        &most_likely_next_command,
-                                        completion_context.as_ref(),
-                                        session_env_vars.as_ref(),
-                                    )
-                                    .await
-                                    {
-                                        return AutoSuggestionResult {
-                                            buffer_text,
-                                            autosuggestion_result: Some(
-                                                most_likely_next_command.clone(),
-                                            ),
-                                        };
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // If we have no suggestion from similar historical context, fallback to the most recent
-                    // command with a matching prefix run in the same pwd (if exists, otherwise just most recent command anywhere with matching prefix).
-                    for reverse_chronological_command in
-                        reverse_chronological_potential_autosuggestions.unwrap_or_default()
-                    {
-                        if !ignored_suggestions.contains(&reverse_chronological_command.command)
-                            && is_command_valid(
-                                &reverse_chronological_command.command,
-                                completion_context.as_ref(),
-                                session_env_vars.as_ref(),
-                            )
-                            .await
-                        {
-                            return AutoSuggestionResult {
-                                buffer_text,
-                                autosuggestion_result: Some(reverse_chronological_command.command),
-                            };
-                        }
-                    }
-
-                    // If we have no command anywhere in history with a matching prefix, fallback to the first completer result.
+                    // Fallback to the first completer result for the matching prefix.
                     let Some(completion_context) = completion_context else {
                         return AutoSuggestionResult {
                             buffer_text,
@@ -8569,8 +8241,6 @@ impl Input {
                 } else {
                     log::warn!("Tried to access non-existent shared session history model")
                 }
-            } else if is_next_command_enabled(ctx) {
-                self.maybe_predict_next_action_ai(block_completed, ctx);
             }
 
             ctx.emit(Event::InputStateChanged(InputState::Enabled));
@@ -9175,9 +8845,6 @@ impl TypedActionView for Input {
                         ctx
                     );
                 }
-            }
-            InputAction::CycleNextCommandSuggestion => {
-                self.cycle_next_command_suggestion(ctx);
             }
             InputAction::InsertZeroStatePromptSuggestion(suggestion_type) => {
                 self.insert_zero_state_prompt_suggestion(

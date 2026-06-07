@@ -1,7 +1,6 @@
 // Suppress warnings about rustdoc style.
 #![allow(clippy::doc_lazy_continuation)]
 
-mod ai;
 mod alloc;
 mod antivirus;
 #[cfg(target_os = "macos")]
@@ -1534,7 +1533,6 @@ pub(crate) fn initialize_app(
     timer.mark_interval_end("INITIALIZE_TELEMETRY_COLLECTION");
 
     // Register initial keybindings prior to creating menus
-    ai::init(ctx);
     app_services::init(ctx);
     // // TODO: Temporarily disabling keybindings for WASM builds. Will be implemented in future WASM support.
     #[cfg(not(target_family = "wasm"))]
