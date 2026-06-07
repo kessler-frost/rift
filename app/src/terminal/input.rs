@@ -1141,51 +1141,6 @@ impl MenuPositioningProvider for MenuPositioning {
     }
 }
 
-struct WorkflowsState {
-    selected_workflow_state: Option<SelectedWorkflowState>,
-}
-
-struct EnvVarCollectionState {
-    selected_env_vars: Option<SyncId>,
-}
-
-/// State when a workflow is selected.
-#[derive(Clone)]
-struct SelectedWorkflowState {
-    /// A handle to the WorkflowsMoreInfoView shown for the selected workflow.
-    ///
-    /// Note that this is unconditionally constructed, even when `should_show_more_info_view` is
-    /// `false`, because the `WorkflowsMoreInfoView` itself contains business logic for the state
-    /// of the input editor when editing workflow arguments with the shift-tab UX. This isn't
-    /// ideal, and more of a symptom of retrofitting a `WorkflowsMoreInfoView`-less version of the
-    /// shift-tab UX specifically for up-arrow history.
-    more_info_view: ViewHandle<WorkflowsMoreInfoView>,
-
-    /// Map of arguments to the corresponding index of highlights. This is necessary so that we can
-    /// select all instances of an argument when a user changes the selected argument.
-    argument_index_to_highlight_index: HashMap<WorkflowArgumentIndex, Vec<usize>>,
-
-    /// Map of arguments with enum variants to those variants, which are used as suggested inputs to the argument.
-    argument_index_to_enum_variants: HashMap<WorkflowArgumentIndex, EnumVariants>,
-
-    workflow_source: WorkflowSource,
-    workflow_type: WorkflowType,
-    workflow_selection_source: WorkflowSelectionSource,
-
-    /// `true` if the WorkflowsMoreInfoView should be shown for the selected workflow. This is true
-    /// in all cases except when a workflow-linked history command is selected from up-arrow
-    /// history.
-    should_show_more_info_view: bool,
-}
-
-/// Helper struct for differentiating the cases when the command is able to be
-/// parsed into the workflow it originates from versus when it's been edited to
-/// the point of us not being able to determine where the arguments are.
-pub enum CommandMatchesWorkflowTemplate {
-    Yes(WorkflowDisplayData),
-    No,
-}
-
 /// Helper struct for performing alias expansion.
 struct ExpansionInfo {
     /// The expanded text to replace the alias with.
@@ -1423,8 +1378,6 @@ pub struct Input {
     terminal_view_id: EntityId,
     view_id: EntityId,
     input_render_state_model_handle: ModelHandle<InputRenderStateModel>,
-    workflows_state: WorkflowsState,
-    env_var_collection_state: EnvVarCollectionState,
     command_x_ray_description: Option<Arc<Description>>,
     last_parsed_tokens: Option<decorations::ParsedTokensSnapshot>,
     debounce_input_background_tx: Sender<InputBackgroundJobOptions>,
@@ -2104,14 +2057,6 @@ impl Input {
 
         ctx.subscribe_to_model(&LigatureSettings::handle(ctx), |_, _, _, ctx| ctx.notify());
 
-        let workflows_state = WorkflowsState {
-            selected_workflow_state: None,
-        };
-
-        let env_var_collection_state = EnvVarCollectionState {
-            selected_env_vars: None,
-        };
-
         let last_word_insertion = LastWordInsertion {
             insert_command_from_history_index: 0,
             is_latest_editor_event: false,
@@ -2166,8 +2111,6 @@ impl Input {
             active_block_metadata: None,
             view_id,
             input_render_state_model_handle,
-            workflows_state,
-            env_var_collection_state,
             command_x_ray_description: None,
             last_parsed_tokens: None,
             debounce_input_background_tx,
@@ -3283,21 +3226,6 @@ impl Input {
             .active_block_mut()
             .set_home_dir(home_dir);
 
-        let env_var_collection_id = self.env_var_collection_state.selected_env_vars;
-        self.model
-            .lock()
-            .block_list_mut()
-            .active_block_mut()
-            .set_cloud_env_var_state(env_var_collection_id);
-
-        // Record whether NLD was overridden (input type manually locked) at submission time.
-        let nld_overridden = self.ai_input_model.as_ref(ctx).is_input_type_locked();
-        self.model
-            .lock()
-            .block_list_mut()
-            .active_block_mut()
-            .set_nld_overridden(nld_overridden);
-
         let did_execute: bool;
         if self
             .model
@@ -3512,66 +3440,7 @@ impl Input {
         text_style_run_count != expected_run_count
     }
 
-    fn get_text_style_ranges_for_workflow(
-        &self,
-        ctx: &ViewContext<Self>,
-    ) -> Vec<Range<ByteOffset>> {
-        let text_style_runs: Vec<_> = self
-            .editor
-            .as_ref(ctx)
-            .text_style_runs(ctx)
-            .filter(|style_run| style_run.text_style().background_color.is_some())
-            .collect();
-        self.build_text_run_ranges_for_workflows(&text_style_runs)
-    }
 
-    /// We are currently using the styling of text runs in the input as a way of tracking
-    /// where our workflow arguments are.
-    /// This doesn't work in 2 cases:
-    ///
-    /// 1. When part of a workflow argument is subject to syntax highlighting, it breaks
-    ///    a run into one or more runs. Example: "--env JOB_EXECUTION_MODE=REAL" will wind
-    ///    up with syntax highlighting on `--env`, resulting in 2 runs.
-    /// 2. When workflow arguments directly follow each other with no spacing, they will
-    ///    both be covered by a single run.. Example: {a}{b}{c} will only get a single
-    ///    run covering "abc"
-    ///
-    /// This helper acts as a quick hack to address the first issue:
-    /// if two background-highlighted runs are contiguous, they are merged into a single run.
-    /// This is a short-term fix and should be addressed in a more comprehensive way that does
-    /// not rely on the styling of the input.
-    ///
-    /// See [CLD-997](https://linear.app/warpdotdev/issue/CLD-997)
-    fn build_text_run_ranges_for_workflows(
-        &self,
-        text_style_runs: &[TextRun],
-    ) -> Vec<Range<ByteOffset>> {
-        let mut ranges = text_style_runs
-            .iter()
-            .map(|style_run| style_run.byte_range().clone())
-            .collect::<Vec<_>>();
-        ranges.sort_by(|a, b| a.start.cmp(&b.start));
-
-        let capacity = ranges.len();
-
-        ranges.into_iter().fold(
-            Vec::<Range<ByteOffset>>::with_capacity(capacity),
-            |mut acc: Vec<Range<ByteOffset>>, next| -> Vec<Range<ByteOffset>> {
-                match acc.last() {
-                    Some(current) if current.end >= next.start => {
-                        let new_range = std::cmp::min(current.start, next.start)
-                            ..std::cmp::max(current.end, next.end);
-                        acc.pop();
-                        acc.push(new_range);
-                    }
-                    _ => {
-                        acc.push(next);
-                    }
-                };
-                acc
-            },
-        )
-    }
 
 
     fn populate_enum_suggestions_menu(
@@ -4226,8 +4095,6 @@ impl Input {
                 .update(ctx, |input_suggestions, ctx| {
                     input_suggestions.exit(true, ctx);
                 });
-        } else if self.workflows_state.selected_workflow_state.is_some() {
-            self.clear_current_workflow(ctx);
         } else if !matches!(vim_mode, None | Some(VimMode::Normal)) {
             self.editor.update(ctx, |editor, editor_ctx| {
                 editor.handle_action(&EditorAction::VimEscape, editor_ctx);
@@ -5476,12 +5343,6 @@ impl Input {
                         let buffer_text = editor.buffer_text(ctx);
 
                         self.maybe_generate_autosuggestion(ctx);
-
-                        if buffer_text.is_empty()
-                            && self.workflows_state.selected_workflow_state.is_some()
-                        {
-                            self.clear_current_workflow(ctx);
-                        }
 
                         if self.should_show_completions_while_typing(ctx)
                             && matches!(edit_origin, EditOrigin::UserTyped)
@@ -7413,44 +7274,6 @@ impl Input {
             && !input.any_selections_span_entire_buffer(ctx)
     }
 
-    /// Returns the index of the argument our cursor is currently on, if there is one,
-    /// as well as any style runs computed for reuse in `highlight_selected_workflow_argument`
-    fn get_current_argument(
-        &self,
-        ctx: &ViewContext<Self>,
-    ) -> (Option<WorkflowArgumentIndex>, Vec<Range<ByteOffset>>) {
-        // If we aren't in a workflow, return
-        let Some(workflow_state) = &self.workflows_state.selected_workflow_state else {
-            log::error!(
-                "Tried to get the current argument when no workflow is loaded into the input",
-            );
-            return (None, Vec::new());
-        };
-
-        let cursor_position = self
-            .editor
-            .as_ref(ctx)
-            .end_byte_index_of_last_selection(ctx);
-
-        // Get the highlighted text style ranges, which are used to determine where the workflow arguments are
-        let text_style_ranges = self.get_text_style_ranges_for_workflow(ctx);
-
-        // Find a text range that contains the cursor position
-        let highlight_index = text_style_ranges
-            .iter()
-            .position(|range| range.contains(&cursor_position));
-
-        // Find the argument that corresponds with this highlight index
-        let arg_index = highlight_index.and_then(|index| {
-            workflow_state
-                .argument_index_to_highlight_index
-                .iter()
-                .find(|(_, highlight)| highlight.contains(&index))
-                .map(|(arg_index, _)| *arg_index)
-        });
-
-        (arg_index, text_style_ranges)
-    }
 
     fn input_shift_tab(&mut self, ctx: &mut ViewContext<Self>) {
         match self.suggestions_mode_model.as_ref(ctx).mode() {
@@ -7497,48 +7320,7 @@ impl Input {
             _ => {}
         }
 
-        if let Some(workflows_info_view) = &self
-            .workflows_state
-            .selected_workflow_state
-            .as_ref()
-            .map(|state| &state.more_info_view)
-        {
-            // Get the index of the argument we are currently selecting, if it exists
-            let (current_argument, text_style_ranges) = self.get_current_argument(ctx);
-
-            workflows_info_view.update(ctx, |info_view, ctx| {
-                // If we are selecting an argument, open that one
-                if let Some(index) = current_argument {
-                    info_view.selected_workflow_state.set_argument_index(index);
-                }
-                // If we were in history suggestion mode, select the first argument
-                else if matches!(
-                    self.suggestions_mode_model.as_ref(ctx).mode(),
-                    InputSuggestionsMode::HistoryUp { .. }
-                ) {
-                    info_view
-                        .selected_workflow_state
-                        .set_argument_index(0.into());
-                }
-                // Otherwise, continue to cycle arguments
-                else {
-                    info_view.selected_workflow_state.increment_argument_index();
-                }
-
-                ctx.notify();
-            });
-
-            self.highlight_selected_workflow_argument(text_style_ranges, ctx);
-
-            if let Some(a11y_text) = self.selected_workflow_a11y_text(ctx) {
-                ctx.emit_a11y_content(AccessibilityContent::new_without_help(
-                    a11y_text,
-                    WarpA11yRole::UserAction,
-                ));
-            }
-        } else {
-            self.editor.update(ctx, |input, ctx| input.unindent(ctx));
-        }
+        self.editor.update(ctx, |input, ctx| input.unindent(ctx));
     }
 
     pub fn completion_session_context(&self, ctx: &AppContext) -> Option<SessionContext> {
@@ -8941,63 +8723,11 @@ impl Input {
             .active_block_session_id()
             .expect("session_id should be set (via bootstrap) before executing command");
 
-        // If the SelectedWorkflowState is populated with a workflow, we count this as a workflow execution.
-        let (workflow_id, workflow_command) = {
-            match self.workflows_state.selected_workflow_state.as_ref() {
-                Some(selected_workflow_state) => {
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::WorkflowExecuted(WorkflowTelemetryMetadata {
-                            workflow_source: selected_workflow_state.workflow_source,
-                            workflow_categories: selected_workflow_state
-                                .workflow_type
-                                .as_workflow()
-                                .tags()
-                                .cloned(),
-                            workflow_selection_source: selected_workflow_state
-                                .workflow_selection_source,
-                            // This is only `Some()` for WarpDrive workflows; we don't track
-                            // ID for execution of local workflows because they have no such
-                            // unique ID.
-                            workflow_id: selected_workflow_state.workflow_type.server_id(),
-                            workflow_space: match &selected_workflow_state.workflow_type {
-                                WorkflowType::Cloud(workflow) => Some(workflow.space(ctx).into()),
-                                _ => None,
-                            },
-                            enum_ids: selected_workflow_state
-                                .workflow_type
-                                .as_workflow()
-                                .get_server_enum_ids()
-                        }),
-                        ctx
-                    );
-
-                    let workflow_type = &selected_workflow_state.workflow_type;
-                    let workflow_id = match workflow_type {
-                        WorkflowType::Cloud(workflow) => Some(workflow.id),
-                        _ => None,
-                    };
-
-                    // If the SelectedWorkflowState is populated, then we're always able to return the workflow command.
-                    // The case where workflow_id = None but workflow_command = Some() is when it's a local workflow, which
-                    // don't have ids and are tracked just by persisting the workflow contents. This is a little janky and would
-                    // be fixed if we could identify all workflows under a unified id system, not just cloud ones.
-                    (
-                        workflow_id,
-                        workflow_type
-                            .as_workflow()
-                            .command()
-                            .map(|command| command.to_owned()),
-                    )
-                }
-                None => (None, None),
-            }
-        };
-
         ctx.emit(Event::ExecuteCommand(Box::new(ExecuteCommandEvent {
             command: command.to_string(),
-            workflow_id,
+            workflow_id: None,
             session_id,
-            workflow_command,
+            workflow_command: None,
             should_add_command_to_history: true,
             source,
         })));
@@ -9776,12 +9506,6 @@ impl View for Input {
 
         if ai_settings.is_code_suggestions_enabled(app) {
             ctx.set.insert(flags::CODE_SUGGESTIONS_FLAG);
-        }
-
-        if let Some(workflow) = self.workflows_state.selected_workflow_state.clone() {
-            if workflow.should_show_more_info_view {
-                ctx.set.insert("WorkflowInfoBox");
-            }
         }
 
         let is_profile_model_selector_open = self.should_show_universal_developer_input(app)
