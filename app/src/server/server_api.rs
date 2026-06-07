@@ -375,10 +375,6 @@ pub struct ServerApi {
     last_server_time: Arc<Mutex<Option<ServerTime>>>,
     /// Cached ambient workload token for requests from ambient agents.
     ambient_workload_token: Arc<Mutex<Option<rift_isolation_platform::WorkloadToken>>>,
-    /// The ambient agent task ID for requests from cloud agents.
-    ambient_agent_task_id: Arc<RwLock<Option<AmbientAgentTaskId>>>,
-    /// The source of agent runs (e.g. CLI, GitHub Action). Set once at startup and immutable.
-    agent_source: Option<ai::AgentSource>,
     /// IAP credential cache for staging server access. [`None`] on production builds.
     iap_state: Option<Arc<super::iap::IapState>>,
 
@@ -390,7 +386,6 @@ impl ServerApi {
     fn new(
         auth_state: Arc<AuthState>,
         event_sender: async_channel::Sender<AuthEvent>,
-        agent_source: Option<ai::AgentSource>,
         iap_state: Option<Arc<IapState>>,
         ctx: &mut ModelContext<ServerApiProvider>,
     ) -> Self {
@@ -406,7 +401,6 @@ impl ServerApi {
             Arc::new(client),
             auth_state,
             event_sender,
-            agent_source,
             iap_state,
             telemetry_api,
         )
@@ -416,7 +410,6 @@ impl ServerApi {
         client: Arc<http_client::Client>,
         auth_state: Arc<AuthState>,
         event_sender: async_channel::Sender<AuthEvent>,
-        agent_source: Option<ai::AgentSource>,
         iap_state: Option<Arc<IapState>>,
         telemetry_api: TelemetryApi,
     ) -> Self {
@@ -497,10 +490,6 @@ impl ServerApi {
         self.auth_state.user_id()
     }
 
-    /// Sets the ambient agent task ID to be sent with all subsequent requests.
-    pub fn set_ambient_agent_task_id(&self, task_id: Option<AmbientAgentTaskId>) {
-        *self.ambient_agent_task_id.write() = task_id;
-    }
 
     /// Inspects a response for the IAP challenge header and emits an
     /// `IapChallengeReceived` event if detected. Returns `true` if the
@@ -603,16 +592,6 @@ impl ServerApi {
             .chain(task_id.map(|id| (CLOUD_AGENT_ID_HEADER, id)))
             .chain(agent_source.map(|s| (AGENT_SOURCE_HEADER, s)))
             .collect())
-    }
-
-    async fn ambient_agent_headers_for_task(
-        &self,
-        task_id: &AmbientAgentTaskId,
-    ) -> Result<Vec<(&'static str, String)>> {
-        let mut headers = self.ambient_agent_headers().await?;
-        headers.retain(|(name, _)| *name != CLOUD_AGENT_ID_HEADER);
-        headers.push((CLOUD_AGENT_ID_HEADER, task_id.to_string()));
-        Ok(headers)
     }
 
     pub fn send_graphql_request<'a, QF, O: rift_graphql::client::Operation<QF> + Send + 'a>(
@@ -772,39 +751,6 @@ impl ServerApi {
         Ok(self.wrap_eventsource_with_iap_detection(request.eventsource()))
     }
 
-    pub async fn stream_agent_events_for_task(
-        &self,
-        task_id: &AmbientAgentTaskId,
-        run_ids: &[String],
-        since_sequence: i64,
-    ) -> Result<http_client::EventSourceStream> {
-        debug_assert!(!run_ids.is_empty(), "run_ids must not be empty");
-        let auth_token = self
-            .get_or_refresh_access_token()
-            .await
-            .context("Failed to get access token for SSE stream")?;
-
-        let run_ids_param: String = run_ids
-            .iter()
-            .map(|id| format!("run_ids[]={}", urlencoding::encode(id)))
-            .collect::<Vec<_>>()
-            .join("&");
-        let url = format!(
-            "{}/api/v1/agent/events/stream?{run_ids_param}&since={since_sequence}",
-            ChannelState::rtc_http_url()
-        );
-
-        let mut request = self.client.get(&url);
-        if let Some(token) = auth_token.as_bearer_token() {
-            request = request.bearer_auth(token);
-        }
-
-        for (name, value) in self.ambient_agent_headers_for_task(task_id).await? {
-            request = request.header(name, value);
-        }
-
-        Ok(self.wrap_eventsource_with_iap_detection(request.eventsource()))
-    }
 
     /// Sends a POST request to a public API endpoint and returns the raw response on success.
     async fn post_public_api_response<B>(
@@ -1109,171 +1055,10 @@ impl ServerApi {
             .flush_and_persist_events(max_event_count, settings_snapshot)
     }
 
-    /// Hits the /ai/generate_input_suggestions endpoint to get the predicted next action, based on past context.
-    pub async fn generate_ai_input_suggestions(
-        &self,
-        request: &GenerateAIInputSuggestionsRequest,
-    ) -> Result<generate_ai_input_suggestions::GenerateAIInputSuggestionsResponseV2, AIApiError>
-    {
-        let auth_token = self.get_or_refresh_access_token().await?;
 
-        let request_builder = self.client.post(format!(
-            "{}/ai/generate_input_suggestions",
-            ChannelState::server_root_url()
-        ));
-        let response = if let Some(token) = auth_token.as_bearer_token() {
-            request_builder.bearer_auth(token)
-        } else {
-            request_builder
-        }
-        .json(request)
-        .send()
-        .await?
-        .error_for_status_with_body()
-        .await?
-        .json()
-        .await?;
-        Ok(response)
-    }
 
-    pub async fn get_relevant_files(
-        &self,
-        request: &GetRelevantFiles,
-    ) -> Result<GetRelevantFilesResponse, AIApiError> {
-        let auth_token = self.get_or_refresh_access_token().await?;
 
-        let request_builder = self.client.post(format!(
-            "{}/ai/relevant_files",
-            ChannelState::server_root_url()
-        ));
-        let response = if let Some(token) = auth_token.as_bearer_token() {
-            request_builder.bearer_auth(token)
-        } else {
-            request_builder
-        }
-        .json(request)
-        .send()
-        .await?
-        .error_for_status_with_body()
-        .await?
-        .json()
-        .await?;
 
-        Ok(response)
-    }
-
-    /// Hits the /ai/generate_am_query_suggestions endpoint to get the predicted next query.
-    pub async fn generate_am_query_suggestions(
-        &self,
-        request: &GenerateAMQuerySuggestionsRequest,
-    ) -> Result<generate_am_query_suggestions::GenerateAMQuerySuggestionsResponse, AIApiError> {
-        let auth_token = self.get_or_refresh_access_token().await?;
-
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "agent_mode_evals")] {
-                let url = format!(
-                    "{}/agent-mode-evals/generate_am_query_suggestions",
-                    ChannelState::server_root_url()
-                );
-            } else {
-                let url = format!(
-                    "{}/ai/generate_am_query_suggestions",
-                    ChannelState::server_root_url()
-                );
-            }
-        }
-
-        let request_builder = self.client.post(url);
-        let response = if let Some(token) = auth_token.as_bearer_token() {
-            request_builder.bearer_auth(token)
-        } else {
-            request_builder
-        }
-        .json(request)
-        .send()
-        .await?
-        .error_for_status_with_body()
-        .await?
-        .json()
-        .await?;
-        Ok(response)
-    }
-
-    pub async fn predict_am_queries(
-        &self,
-        request: &PredictAMQueriesRequest,
-    ) -> Result<PredictAMQueriesResponse, AIApiError> {
-        let auth_token = self.get_or_refresh_access_token().await?;
-        let request_builder = self.client.post(format!(
-            "{}/ai/predict_am_queries",
-            ChannelState::server_root_url()
-        ));
-        let response = if let Some(token) = auth_token.as_bearer_token() {
-            request_builder.bearer_auth(token)
-        } else {
-            request_builder
-        }
-        .json(request)
-        .send()
-        .await?
-        .error_for_status_with_body()
-        .await?
-        .json()
-        .await?;
-        Ok(response)
-    }
-
-    /// Hits the /ai/transcribe endpoint to get the transcription for the given audio.
-    pub async fn transcribe(
-        &self,
-        request: &TranscribeRequest,
-    ) -> Result<TranscribeResponse, TranscribeError> {
-        let auth_token = self.get_or_refresh_access_token().await?;
-
-        let request_builder = self
-            .client
-            .post(format!("{}/ai/transcribe", ChannelState::server_root_url()));
-        let response = if let Some(token) = auth_token.as_bearer_token() {
-            request_builder.bearer_auth(token)
-        } else {
-            request_builder
-        }
-        .json(request)
-        .send()
-        .await;
-
-        match response {
-            Ok(res) => {
-                if res.status().is_success() {
-                    match res.json::<TranscribeResponse>().await {
-                        Ok(output_response) => Ok(output_response),
-                        Err(e) => {
-                            log::warn!("Failed to deserialize response: {e:?}");
-                            Err(TranscribeError::Deserialization)
-                        }
-                    }
-                } else if res.status() == http::StatusCode::TOO_MANY_REQUESTS {
-                    if res
-                        .headers()
-                        .get(RIFT_ERROR_CODE_HEADER)
-                        .and_then(|v| v.to_str().ok())
-                        == Some(RIFT_ERROR_CODE_OUT_OF_CREDITS)
-                    {
-                        Err(TranscribeError::QuotaLimit)
-                    } else {
-                        Err(TranscribeError::ServerOverloaded)
-                    }
-                } else {
-                    log::warn!("Non-success status code received: {}", res.status());
-                    Err(TranscribeError::Transport)
-                }
-            }
-            Err(e) => {
-                log::warn!("Error while sending request: {e:?}");
-                Err(TranscribeError::Transport)
-            }
-        }
-    }
 
     pub async fn generate_multi_agent_output(
         &self,
@@ -1600,13 +1385,7 @@ impl ServerApiProvider {
         self.server_api.clone()
     }
 
-    pub fn get_ai_client(&self) -> Arc<dyn AIClient> {
-        self.server_api.clone()
-    }
 
-    pub fn get_cloud_objects_client(&self) -> Arc<dyn ObjectClient> {
-        self.server_api.clone()
-    }
 
     pub fn get_integrations_client(&self) -> Arc<dyn integrations::IntegrationsClient> {
         self.server_api.clone()
