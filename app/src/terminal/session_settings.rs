@@ -132,6 +132,38 @@ impl GithubPrPromptChipDefaultValidation {
     }
 }
 
+/// A single item in a toolbar layout. With the AI agent toolbar removed, only
+/// non-agent context chips (and the rich-input slot) remain.
+#[derive(
+    Clone,
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    schemars::JsonSchema,
+    settings_value::SettingsValue,
+)]
+pub enum AgentToolbarItemKind {
+    ContextChip(ContextChipKind),
+    RichInput,
+}
+
+impl AgentToolbarItemKind {
+    pub fn default_left() -> Vec<Self> {
+        Vec::new()
+    }
+    pub fn default_right() -> Vec<Self> {
+        Vec::new()
+    }
+    pub fn cli_default_left() -> Vec<Self> {
+        Vec::new()
+    }
+    pub fn cli_default_right() -> Vec<Self> {
+        Vec::new()
+    }
+}
+
 /// Shared behavior for toolbar chip selection types.
 /// Each variant stores either a `Default` (resolved via type-specific defaults) or `Custom` left/right item lists.
 pub trait ToolbarChipSelection {

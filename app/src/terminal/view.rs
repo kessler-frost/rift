@@ -241,6 +241,7 @@ use crate::settings::{
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::{flags, SettingsSection};
 use crate::shell_indicator::ShellIndicatorType;
+use crate::terminal::session_settings::AgentToolbarItemKind;
 use crate::terminal::alias::{check_for_alias_async, AliasedCommand};
 use crate::terminal::alt_screen::alt_screen_element::AltScreenElement;
 use crate::terminal::alt_screen_reporting::{AltScreenReporting, AltScreenReportingChangedEvent};
