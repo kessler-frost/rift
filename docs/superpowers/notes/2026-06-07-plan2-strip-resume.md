@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1387 compile errors** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **1179 compile errors** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,25 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 10 done (WorkspaceAction cascade + workspace/view.rs + Workspace struct linchpin, 1387->1179):
+excised 102 agent variants from WorkspaceAction enum (action.rs) + rewrote From/blocked_for_anonymous_user/
+should_save_app_state_on_action keep-only + deleted ~1200 lines of handle_action arms in workspace/view.rs;
+deleted ~25 pure-agent methods (file-tree/shared-session/drive/handoff/code-review/fork/restore-conversation/
+warp-drive/env-vars/mcp/ai-warm-welcome); de-agented handle_palette_event + handle_command_search_event
+(gutted workflow/notebook/drive/AI arms, kept history/dir); removed 14 agent view-handle fields from the
+Workspace struct + their ctor let-bindings/Self-settings/factory+handler methods/render overlay blocks
+(import/ai-assistant/workflow/agent-toolbar/suggested-workflow-rule/ai-fact/agent-mgmt/notification-mailbox/
+handoff/auth-secret/rewind/delete-conversation modals). REMAINING workspace/view.rs (~70, mostly
+error-SUPPRESSED self.<removed-field> uses in focus methods 3640-3963 + notification render + a few
+methods — clearing them un-suppresses then drops the count). TOOLING LESSON: balanced-delete scripts
+(enum-variant / match-arm / let-statement removers) work well BUT (a) start at the statement's FIRST line
+not a continuation line (else they over-run — ate FileModel in lib.rs + adjacent agent methods in
+workspace/view.rs), (b) derive(Debug) enums need no manual-Debug fix. Next: finish workspace/view.rs
+field-use tail, then pane_group/pane/terminal_pane.rs (119), root_view (49), panel enum-definers
+(right_panel 34/vertical_tabs 32/left_panel 12), then Phase F wholesale (server/+auth/+events.rs 178
+TelemetryEvent enum — note PaletteSource/AgentModeEntrypoint in server/telemetry are used by KEEP code,
+relocate or keep), then C/D/G. Also the `crate::code::` IDE-strip surfaces across auth/remote_server/server.
+
 WINDOW 9 done (all AI removed + lib.rs boot inits, 1456->1387): deleted app/src/ai + rift_ai dep
 + editor/input AI-autosuggestion (kept completer-based fallback); de-agented input.rs
 (handle_editor_event AI-input-detection/context-menu, agent accessor methods, dead imports);
