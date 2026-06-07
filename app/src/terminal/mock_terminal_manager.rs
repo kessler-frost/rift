@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use parking_lot::FairMutex;
 use pathfinder_geometry::vector::Vector2F;
-use riftui::{AppContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
+use riftui::{AppContext, ModelHandle, ViewHandle, WindowId};
 
 use super::event_listener::ChannelEventListener;
 use super::model::session::Sessions;
@@ -21,8 +21,6 @@ impl MockTerminalManager {
     pub fn create_model(
         shell_state: ShellLaunchState,
         resources: TerminalViewResources,
-        restored_blocks: Option<&Vec<SerializedBlockListItem>>,
-        conversation_restoration: Option<ConversationRestorationInNewPaneType>,
         initial_size: Vector2F,
         window_id: WindowId,
         ctx: &mut AppContext,
@@ -37,7 +35,7 @@ impl MockTerminalManager {
 
         let model = super::terminal_manager::create_terminal_model(
             None,
-            restored_blocks,
+            None,
             initial_size,
             channel_event_proxy,
             shell_state,
@@ -66,12 +64,7 @@ impl MockTerminalManager {
                 colors,
                 None,
                 prompt_type,
-                None,
-                // We use conversation restoration to load a view-only cloud conversation
-                // into the web view.
-                conversation_restoration,
                 None, // inactive_pty_reads_rx
-                false,
                 ctx,
             )
         });
@@ -107,15 +100,8 @@ impl TerminalManager for MockTerminalManager {
     fn on_view_detached(
         &self,
         _detach_type: crate::pane_group::pane::DetachType,
-        app: &mut AppContext,
+        _app: &mut AppContext,
     ) {
-        // If this is a conversation transcript viewer, unregister the ambient session.
-        if self.model.lock().is_conversation_transcript_viewer() {
-            let terminal_view_id = self.view.id();
-            ActiveAgentViewsModel::handle(app).update(app, |model, ctx| {
-                model.unregister_ambient_session(terminal_view_id, ctx);
-            });
-        }
     }
 
     fn as_any(&self) -> &dyn std::any::Any {
@@ -162,7 +148,6 @@ mod testing {
     impl MockTerminalManager {
         pub fn create_new_terminal_view_window_for_test(
             app: &mut App,
-            restored_blocks: Option<&[SerializedBlockListItem]>,
         ) -> ViewHandle<TerminalView> {
             let server_api = app.read(|ctx| ServerApiProvider::as_ref(ctx).get());
             let tips_model = app.add_model(|_| Default::default());
@@ -180,8 +165,6 @@ mod testing {
                         shell_type: ShellType::Zsh,
                     },
                     resources,
-                    restored_blocks.map(|blocks| blocks.to_vec()).as_ref(),
-                    None,
                     Vector2F::new(7., 10.5),
                     ctx.window_id(),
                     ctx,

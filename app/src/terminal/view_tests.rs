@@ -4079,7 +4079,7 @@ fn test_banner_for_incompatible_plugins() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         SessionSettings::handle(&app).update(&mut app, |session_settings, ctx| {
             let _ = session_settings.honor_ps1.set_value(true, ctx);
@@ -4114,7 +4114,7 @@ fn test_bash_vim_banner_already_shown() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4171,7 +4171,7 @@ fn test_bash_vim_banner_on() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4227,7 +4227,7 @@ fn test_bash_vim_banner_off() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4284,7 +4284,7 @@ fn test_zsh_vim_banner_on() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4340,7 +4340,7 @@ fn test_zsh_vim_banner_off() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4397,7 +4397,7 @@ fn test_fish_vim_banner_on() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
@@ -4446,7 +4446,7 @@ fn test_fish_vim_banner_off() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
         let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app, None);
+            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         // Ensure the terminal is the active session.
         terminal.update(&mut app, |view, ctx| {
