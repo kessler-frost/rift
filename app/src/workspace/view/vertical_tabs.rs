@@ -41,7 +41,7 @@ use crate::context_chips::github_pr_display_text_from_url;
 use crate::editor::EditorView;
 use crate::pane_group::pane::IPaneType;
 use crate::pane_group::{
-    CodePane, NotebookPane, PaneGroup, PaneId, TabBarHoverIndex, TerminalPane, WorkflowPane,
+    PaneGroup, PaneId, TabBarHoverIndex, TerminalPane, 
 };
 use crate::safe_triangle::SafeTriangle;
 use crate::tab::{tab_position_id, SelectedTabColor, TabData};

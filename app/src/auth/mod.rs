@@ -25,12 +25,11 @@ use riftui::modals::{AlertDialogWithCallbacks, ModalButton};
 use riftui::{AppContext, SingletonEntity};
 pub use user_uid::UserUid;
 
-use crate::code::editor_management::{CodeEditorStatus, CodeEditorSummary};
 use crate::palette::PaletteMode;
 use crate::server::telemetry::{PaletteSource, TelemetryEvent};
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::settings::{
-    CloudPreferencesSettings, PrivacySettings, CRASH_REPORTING_ENABLED_DEFAULTS_KEY,
+    PrivacySettings, CRASH_REPORTING_ENABLED_DEFAULTS_KEY,
     TELEMETRY_ENABLED_DEFAULTS_KEY,
 };
 use crate::terminal::general_settings::GeneralSettings;

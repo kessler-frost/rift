@@ -32,7 +32,6 @@ use super::proto::{
     WriteFile, WriteFileResponse, WriteFileSuccess,
 };
 use super::server_buffer_tracker::{PendingBufferRequestKind, ServerBufferTracker};
-use crate::code::global_buffer_model::{GlobalBufferModel, GlobalBufferModelEvent};
 use crate::terminal::shell::ShellType;
 
 /// How long the daemon waits with no connections before exiting.

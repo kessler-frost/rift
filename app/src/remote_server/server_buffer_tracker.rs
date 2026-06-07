@@ -5,7 +5,6 @@ use rift_util::file::FileId;
 use riftui::{ModelContext, ModelHandle, SingletonEntity};
 
 use super::server_model::{ConnectionId, ServerModel};
-use crate::code::global_buffer_model::GlobalBufferModel;
 use crate::remote_server::protocol::RequestId;
 
 /// Distinguishes the type of pending buffer request so the event

@@ -20,8 +20,6 @@ use riftui::{
 };
 
 use crate::appearance::Appearance;
-use crate::code::editor::scroll::{ScrollPosition, ScrollTrigger};
-use crate::code::editor::view::{CodeEditorRenderOptions, CodeEditorView};
 use crate::editor::InteractionState;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view::{self, HeaderContent, StandardHeader, StandardHeaderOptions};

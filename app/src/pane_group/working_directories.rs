@@ -19,9 +19,7 @@ use rift_util::remote_path::RemotePath;
 use riftui::{AppContext, SingletonEntity as _};
 use riftui::{Entity, EntityId, ModelContext, ModelHandle, ViewHandle};
 
-use crate::code::buffer_location::LocalOrRemotePath;
-#[cfg(feature = "local_fs")]
-use crate::code::file_tree::FileTreeView;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::workspace::view::global_search::view::GlobalSearchView;
 
 /// Type-safe wrapper around the map of `LocalOrRemotePath` → `DiffStateModel`.

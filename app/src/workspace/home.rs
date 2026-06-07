@@ -6,7 +6,7 @@
 use riftui::ViewContext;
 
 use super::view::Workspace;
-use crate::pane_group::{AnyPaneContent, FilePane};
+use crate::pane_group::{AnyPaneContent};
 
 const RIFT_HOME_TITLE: &str = "Welcome to Warp on Web";
 const RIFT_HOME_CONTENT: &str = r#"
