@@ -93,7 +93,6 @@ use vec1::Vec1;
 use vim::vim::{VimHandler, VimMode};
 
 use self::decorations::InputBackgroundJobOptions;
-pub use self::handoff_compose::{HandoffComposeState, HandoffComposeStateEvent};
 use super::alias::is_expandable_alias;
 use super::block_list_viewport::InputMode;
 use super::event::{BlockCompletedEvent, BlockType, UserBlockCompleted};
@@ -112,17 +111,6 @@ use super::safe_mode_settings::{
 use super::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use super::settings::{SpacingMode, TerminalSettings, TerminalSettingsChangedEvent};
 use super::shell::ShellType;
-use super::universal_developer_input::{
-    UniversalDeveloperInputButtonBar, UniversalDeveloperInputButtonBarEvent,
-};
-use super::view::ambient_agent::{
-    is_cloud_agent_pre_first_exchange, AmbientAgentViewModel, AmbientAgentViewModelEvent,
-};
-use super::view::inline_banner::{
-    PromptSuggestionBannerState, ZeroStatePromptSuggestionTriggeredFrom,
-    ZeroStatePromptSuggestionType,
-};
-use super::view::queued_prompts_panel::{QueuedPromptsPanelEvent, QueuedPromptsPanelView};
 use super::view::{
     ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
 };
@@ -185,7 +173,6 @@ use crate::settings_view::{flags, SettingsSection};
 use crate::suggestions::ignored_suggestions_model::{
     IgnoredSuggestionsModel, IgnoredSuggestionsModelEvent, SuggestionType,
 };
-use crate::terminal::buy_credits_banner::{BuyCreditsBanner, BuyCreditsBannerEvent};
 #[cfg(not(target_family = "wasm"))]
 use crate::terminal::cli_agent_sessions::plugin_manager::PluginModalKind;
 use crate::terminal::cli_agent_sessions::{
@@ -193,20 +180,9 @@ use crate::terminal::cli_agent_sessions::{
 };
 use crate::terminal::input::buffer_model::InputBufferModel;
 use crate::terminal::input::cloud_mode_v2_history_menu::CloudModeV2HistoryMenuView;
-use crate::terminal::input::conversations::{
-    InlineConversationMenuEvent, InlineConversationMenuView,
-};
 use crate::terminal::input::inline_history::InlineHistoryMenuView;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
-use crate::terminal::input::models::{
-    InlineModelSelectorEvent, InlineModelSelectorTab, InlineModelSelectorView,
-};
-use crate::terminal::input::plans::{InlinePlanMenuEvent, InlinePlanMenuView};
-use crate::terminal::input::profiles::{InlineProfileSelectorEvent, InlineProfileSelectorView};
-use crate::terminal::input::prompts::{InlinePromptsMenuEvent, InlinePromptsMenuView};
 use crate::terminal::input::repos::{InlineReposMenuEvent, InlineReposMenuView};
-use crate::terminal::input::rewind::{RewindMenuEvent, RewindMenuView};
-use crate::terminal::input::skills::{InlineSkillSelectorEvent, InlineSkillSelectorView};
 use crate::terminal::input::slash_command_model::{SlashCommandEntryState, SlashCommandModel};
 use crate::terminal::input::slash_commands::{
     CloudModeV2SlashCommandView, InlineSlashCommandView, SlashCommandDataSource,
@@ -216,7 +192,6 @@ use crate::terminal::input::suggestions_mode_model::{
     InputSuggestionsModeEvent, InputSuggestionsModeModel,
 };
 use crate::terminal::input::terminal_message_bar::TerminalInputMessageBar;
-use crate::terminal::input::user_query::{UserQueryMenuEvent, UserQueryMenuView};
 use crate::terminal::model::session::active_session::ActiveSession;
 use crate::terminal::package_installers::command_at_cursor_has_common_package_installer_prefix;
 use crate::terminal::prompt_render_helper::should_render_ps1_prompt;
