@@ -117,9 +117,6 @@ pub mod settings_view;
 pub mod tab_configs;
 pub mod terminal;
 pub mod themes;
-use ::ai::index::full_source_code_embedding::manager::{
-    CodebaseIndexManager, CodebaseIndexManagerConfig,
-};
 use auth::auth_manager::AuthManager;
 use auth::auth_state::{AuthState, AuthStateProvider};
 use code::editor_management::CodeManager;
@@ -251,43 +248,6 @@ use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 
 /// Our embedded application assets.
 pub static ASSETS: rift_assets::Assets = rift_assets::Assets;
-
-fn determine_agent_source(
-    launch_mode: &LaunchMode,
-) -> Option<crate::ai::ambient_agents::AgentSource> {
-    match launch_mode {
-        LaunchMode::CommandLine { .. } => {
-            if std::env::var("GITHUB_ACTIONS").ok().as_deref() == Some("true") {
-                Some(crate::ai::ambient_agents::AgentSource::GitHubAction)
-            } else {
-                Some(crate::ai::ambient_agents::AgentSource::Cli)
-            }
-        }
-        LaunchMode::App { .. } | LaunchMode::Test { .. } => {
-            Some(crate::ai::ambient_agents::AgentSource::CloudMode)
-        }
-        // RemoteServerProxy and RemoteServerDaemon are headless server
-        // processes that don't use the agent subsystem.
-        LaunchMode::RemoteServerProxy | LaunchMode::RemoteServerDaemon { .. } => None,
-    }
-}
-
-#[cfg(feature = "local_fs")]
-fn daemon_codebase_index_snapshot_storage(launch_mode: &LaunchMode) -> Option<SnapshotStorage> {
-    match launch_mode {
-        LaunchMode::RemoteServerDaemon { identity_key } => {
-            let data_dir = remote_server::setup::remote_server_daemon_data_dir(identity_key);
-            let snapshot_dir = PathBuf::from(tilde(&data_dir).into_owned())
-                .join("cache")
-                .join("codebase_index_snapshots");
-            SnapshotStorage::from_dir(snapshot_dir)
-        }
-        LaunchMode::App { .. }
-        | LaunchMode::CommandLine { .. }
-        | LaunchMode::RemoteServerProxy
-        | LaunchMode::Test { .. } => None,
-    }
-}
 
 /// Launch mode for how to start up Warp.
 #[allow(clippy::large_enum_variant)]
