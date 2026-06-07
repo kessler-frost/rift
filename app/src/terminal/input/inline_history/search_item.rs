@@ -1,5 +1,4 @@
 use chrono::{DateTime, Local};
-use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
 use rift_core::ui::color::coloru_with_opacity;
 use rift_core::ui::theme::Fill;
@@ -18,10 +17,11 @@ use crate::terminal::input::inline_history::data_source::AcceptHistoryItem;
 use crate::terminal::input::inline_menu::styles as inline_styles;
 use crate::util::time_format::format_approx_duration_from_now_utc;
 
+const STATUS_ELEMENT_PADDING: f32 = 2.;
+
 #[derive(Debug, Clone)]
 pub struct InlineHistoryItem {
     item_type: HistoryItemType,
-    name_match_result: Option<FuzzyMatchResult>,
     prefix_match_len: usize,
     score: OrderedFloat<f64>,
     timestamp: DateTime<Local>,
@@ -29,11 +29,6 @@ pub struct InlineHistoryItem {
 
 #[derive(Debug, Clone)]
 enum HistoryItemType {
-    Conversation {
-        conversation_id: AIConversationId,
-        title: String,
-        status: ConversationStatus,
-    },
     Command {
         command: String,
         linked_workflow_data: Option<LinkedWorkflowData>,
@@ -44,25 +39,6 @@ enum HistoryItemType {
 }
 
 impl InlineHistoryItem {
-    pub fn conversation(
-        conversation_id: AIConversationId,
-        title: String,
-        status: ConversationStatus,
-        timestamp: DateTime<Local>,
-    ) -> Self {
-        Self {
-            item_type: HistoryItemType::Conversation {
-                conversation_id,
-                title,
-                status,
-            },
-            name_match_result: None,
-            prefix_match_len: 0,
-            score: OrderedFloat(f64::MIN),
-            timestamp,
-        }
-    }
-
     pub fn command(
         command: String,
         linked_workflow_data: Option<LinkedWorkflowData>,
@@ -73,7 +49,6 @@ impl InlineHistoryItem {
                 command,
                 linked_workflow_data,
             },
-            name_match_result: None,
             prefix_match_len: 0,
             score: OrderedFloat(f64::MIN),
             timestamp,
@@ -83,16 +58,10 @@ impl InlineHistoryItem {
     pub fn ai_prompt(query_text: String, timestamp: DateTime<Local>) -> Self {
         Self {
             item_type: HistoryItemType::AIPrompt { query_text },
-            name_match_result: None,
             prefix_match_len: 0,
             score: OrderedFloat(f64::MIN),
             timestamp,
         }
-    }
-
-    pub fn with_name_match_result(mut self, result: Option<FuzzyMatchResult>) -> Self {
-        self.name_match_result = result;
-        self
     }
 
     pub fn with_prefix_match_len(mut self, len: usize) -> Self {
@@ -116,9 +85,6 @@ impl SearchItem for InlineHistoryItem {
     ) -> Box<dyn Element> {
         let icon_size = inline_styles::font_size(appearance);
         let icon = match &self.item_type {
-            HistoryItemType::Conversation { status, .. } => {
-                render_status_element(status, icon_size, appearance)
-            }
             HistoryItemType::Command { .. } => {
                 let icon_color = inline_styles::icon_color(appearance);
                 Container::new(
@@ -171,14 +137,6 @@ impl SearchItem for InlineHistoryItem {
             inline_styles::secondary_text_color(theme, background_color.into());
 
         let (display_text, match_indices, font_family) = match &self.item_type {
-            HistoryItemType::Conversation { title, .. } => {
-                let indices = self
-                    .name_match_result
-                    .as_ref()
-                    .map(|m| m.matched_indices.clone())
-                    .unwrap_or_default();
-                (title.clone(), indices, appearance.ui_font_family())
-            }
             HistoryItemType::Command { command, .. } => {
                 let indices = if self.prefix_match_len > 0 {
                     (0..self.prefix_match_len).collect()
@@ -249,14 +207,6 @@ impl SearchItem for InlineHistoryItem {
 
     fn accept_result(&self) -> Self::Action {
         match &self.item_type {
-            HistoryItemType::Conversation {
-                conversation_id,
-                title,
-                ..
-            } => AcceptHistoryItem::Conversation {
-                conversation_id: *conversation_id,
-                title: title.clone(),
-            },
             HistoryItemType::Command {
                 command,
                 linked_workflow_data,
@@ -276,7 +226,6 @@ impl SearchItem for InlineHistoryItem {
 
     fn accessibility_label(&self) -> String {
         match &self.item_type {
-            HistoryItemType::Conversation { title, .. } => format!("Conversation: {title}"),
             HistoryItemType::Command { command, .. } => format!("Command: {command}"),
             HistoryItemType::AIPrompt { query_text } => format!("AI prompt: {query_text}"),
         }
