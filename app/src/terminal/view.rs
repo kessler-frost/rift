@@ -1324,13 +1324,6 @@ impl IndicatorPositionArg {
 }
 
 #[derive(Clone)]
-pub struct ExecuteAIRequestedCommandEvent {
-    pub requested_command_id: AIAgentActionId,
-    pub command: String,
-    pub shell_type: ShellType,
-}
-
-#[derive(Clone)]
 pub struct ExecuteCommandEvent {
     pub command: String,
     pub session_id: SessionId,
@@ -1361,7 +1354,6 @@ pub enum Event {
     Escape,
     Exited,
     BlockListCleared,
-    ShareModalOpened(BlockIndex),
     SendNotification(BlockNotification),
     BlockCompleted {
         block: Arc<SerializedBlock>,
@@ -1369,7 +1361,6 @@ pub enum Event {
     },
     Pane(PaneEvent),
     OpenSettings(SettingsSection),
-    AskAIAssistant(AskAIType),
     /// Event propagates terminal inputs up to the workspace,
     /// to be processed on the way back down through the view hierarchy.
     SyncInput(SyncEvent),
@@ -1377,59 +1368,12 @@ pub enum Event {
     /// inside this pane group.
     TerminalViewStateChanged,
     ShowCommandSearch(CommandSearchOptions),
-    // Tell the pane group to open the workflow modal.
-    OpenWorkflowModalWithCommand(String),
-    // Tell the pane group to open the workflow modal with an existing cloud workflow.
-    OpenWorkflowModalWithCloudWorkflow(SyncId),
-    // Tell the pane group to open the workflow modal with an unsaved workflow.
-    OpenWorkflowModalWithTemporary(Box<Workflow>),
-    OpenWarpDriveObjectInPane(ObjectUid),
-    OpenSuggestedAgentModeWorkflowModal {
-        workflow_and_id: SuggestedAgentModeWorkflowAndId,
-    },
-    OpenSuggestedRuleDialog {
-        rule_and_id: SuggestedRuleAndId,
-    },
-    OpenAIFactCollection {
-        /// If set, open the fact collection to the specific rule.
-        sync_id: Option<SyncId>,
-    },
-    ToggleAIDocumentPane {
-        document_id: AIDocumentId,
-        document_version: AIDocumentVersion,
-    },
-    /// Closes all visible AI document panes without opening a new one.
-    HideAIDocumentPanes,
-    /// Opens an AI document pane.
-    /// When `is_auto_open` is true, subject to conditions to check if auto opening is acceptable.
-    /// When `is_auto_open` is false (user-triggered), always opens unconditionally.
-    OpenAIDocumentPane {
-        document_id: AIDocumentId,
-        document_version: AIDocumentVersion,
-        is_auto_open: bool,
-    },
-    OpenPromptEditor,
-    OpenAgentToolbarEditor,
-    OpenCLIAgentToolbarEditor,
-    SummarizationCancelDialogToggled {
-        is_open: bool,
-    },
-    EnvironmentSetupModeSelectorToggled {
-        is_open: bool,
-    },
-    AuthSecretDeleteConfirmationDialogToggled {
-        is_open: bool,
-    },
     CtrlD,
     ShutdownPty,
     // TODO: break this event down into higher-level events that hide the
     // `bytes` detail from the view.
     WriteBytesToPty {
         bytes: Cow<'static, [u8]>,
-    },
-    WriteAgentInputToPty {
-        bytes: Cow<'static, [u8]>,
-        mode: AIAgentPtyWriteMode,
     },
     Resize {
         size_update: SizeUpdate,
@@ -1444,59 +1388,7 @@ pub enum Event {
         /// The session that the file belongs to.
         session: Arc<Session>,
     },
-    #[cfg(feature = "local_fs")]
-    OpenCodeInWarp {
-        source: CodeSource,
-        layout: EditorLayout,
-    },
-    #[cfg(feature = "local_fs")]
-    PreviewCodeInWarp {
-        source: CodeSource,
-    },
-    OpenCodeDiff {
-        view: ViewHandle<CodeDiffView>,
-    },
-    OpenCodeReviewPane(CodeReviewPanelArg),
-    ToggleCodeReviewPane(CodeReviewPanelArg),
-    InsertCodeReviewComments {
-        repo_path: LocalOrRemotePath,
-        comments: Vec<PendingImportedReviewComment>,
-        diff_mode: DiffMode,
-        open_code_review: Option<CodeReviewPanelArg>,
-    },
-    OpenCodeReviewPaneAndScrollToComment {
-        open_code_review: CodeReviewPanelArg,
-        comment: AttachedReviewComment,
-        diff_mode: DiffMode,
-    },
-    ImportAllCodeReviewComments {
-        open_code_review: CodeReviewPanelArg,
-        comments: Vec<AttachedReviewComment>,
-        diff_mode: DiffMode,
-    },
-    StartSharingCurrentSession {
-        scrollback_type: SharedSessionScrollbackType,
-        source: SharedSessionSource,
-    },
-    EstablishedSharedSession {
-        session_id: session_sharing_protocol::common::SessionId,
-    },
-    FailedToShareSession {
-        reason: String,
-        cause: Option<Arc<anyhow::Error>>,
-    },
-    RejoinCurrentSession,
-    StopSharingCurrentSession {
-        reason: SessionEndedReason,
-    },
-    ExtendSessionRetention {
-        reason: SessionRetentionReason,
-    },
     CloseRequested,
-    OpenShareSessionModal {
-        open_source: SharedSessionActionSource,
-    },
-    OpenShareSessionDeniedModal,
     /// Used to focus and bring this session to the foreground.
     FocusSession,
     /// Emitted when the onboarding init flow completes.
@@ -1505,87 +1397,10 @@ pub enum Event {
     OnboardingTutorialCompleted,
     SelectedBlocksChanged,
     SelectedTextChanged,
-    UpdateSessionLinkPermissions {
-        role: Option<Role>,
-    },
-    UpdateSessionTeamPermissions {
-        role: Option<Role>,
-        team_uid: String,
-    },
-    /// Emitted when a shared session sharer updates a viewer's role and
-    /// needs to notify the server of a role change.
-    UpdateRole {
-        participant_id: ParticipantId,
-        role: Role,
-    },
-    UpdateUserRole {
-        user_uid: UserUid,
-        role: Role,
-    },
-    UpdatePendingUserRole {
-        email: String,
-        role: Role,
-    },
-    AddGuests {
-        emails: Vec<String>,
-        role: Role,
-    },
-    RemoveGuest {
-        user_uid: UserUid,
-    },
-    RemovePendingGuest {
-        email: String,
-    },
-    MakeAllParticipantsReaders {
-        reason: RoleUpdateReason,
-    },
-    RequestSharedSessionRole(Role),
-    /// A viewer in a shared session is requesting to send an agent prompt.
-    SendAgentPrompt {
-        server_conversation_token: Option<SessionSharingServerConversationToken>,
-        prompt: String,
-        attachments: Vec<AgentAttachment>,
-    },
-    /// A viewer in a shared session is requesting to cancel the active agent conversation.
-    CancelSharedSessionConversation {
-        server_conversation_token: SessionSharingServerConversationToken,
-    },
-    /// The viewer is reporting its terminal size for viewer-driven PTY sizing.
-    ReportViewerTerminalSize {
-        window_size: SessionSharingWindowSize,
-    },
-    /// The input editor was locally edited and
-    /// peers should be notified, if applicable.
-    InputEditorUpdated {
-        /// The block ID associated to the buffer that
-        /// these operations were made in.
-        block_id: BlockId,
-
-        /// The CRDT-compliant operations.
-        operations: Rc<Vec<CrdtOperation>>,
-    },
-    /// Emitted when a shared session participant tries to
-    /// change a role. `source` dictates how the modal is rendered,
-    /// and what fields are needed
-    OpenSharedSessionRoleChangeModal {
-        source: RoleChangeOpenSource,
-    },
-    CloseSharedSessionRoleChangeModal(RoleChangeCloseSource),
-    RoleRequestInFlight {
-        role_request_id: RoleRequestId,
-    },
-    CancelRoleRequest(RoleRequestId),
-    RoleRequestCancelled(RoleRequestId),
-    RespondToRoleRequest {
-        participant_id: ParticipantId,
-        role_request_id: RoleRequestId,
-        response: RoleRequestResponse,
-    },
     /// Emitted when a pending command (e.g. tab config setup commands) has
     /// been submitted and its block has completed.
     PendingCommandCompleted,
     SessionBootstrapped,
-    AnonymousUserSignup,
     ShellSpawned(ShellType),
 
     /// This terminal pane has initiated a file upload to a remote host.
@@ -1617,119 +1432,23 @@ pub enum Event {
     RemoteServerSkipRequested {
         session_id: SessionId,
     },
-    SignupAnonymousUser {
-        entrypoint: AnonymousUserSignupEntrypoint,
-    },
 
     OpenThemeChooser,
-    OpenConversationHistory,
-    OpenMCPSettingsPage {
-        page: Option<MCPServersSettingsPage>,
-    },
-    OpenAddRulePane,
-    OpenRulesPane,
-    OpenAddPromptPane {
-        /// The initial prompt body content.
-        initial_content: Option<String>,
-    },
-    OpenEnvironmentManagementPane,
-    OpenFilesPalette {
-        source: PaletteSource,
-    },
-    #[cfg(feature = "local_fs")]
-    OpenFileWithTarget {
-        path: PathBuf,
-        target: FileTarget,
-        line_col: Option<LineAndColumnArg>,
-    },
-    /// Emitted when a file in the file tree is renamed.
-    #[cfg(feature = "local_fs")]
-    FileRenamed {
-        old_path: PathBuf,
-        new_path: PathBuf,
-    },
-    /// Emitted when a file in the file tree is deleted.
-    #[cfg(feature = "local_fs")]
-    FileDeleted {
-        path: PathBuf,
-    },
     /// Toggle the left panel to a specific view
     ToggleLeftPanel {
         target_view: LeftPanelTargetView,
         force_open: bool,
     },
     SlowBootstrap,
-    OpenAgentProfileEditor {
-        profile_id: ClientProfileId,
-    },
-    OpenAutoReloadModal {
-        purchased_credits: i32,
-    },
-    #[cfg(not(target_family = "wasm"))]
-    OpenPluginInstructionsPane(CLIAgent, PluginModalKind),
     ShowToast {
         message: String,
         flavor: ToastFlavor,
-    },
-    /// Emitted when the agent's interaction state with a long-running command changes.
-    LongRunningCommandAgentInteractionStateChanged {
-        state: LongRunningCommandAgentInteractionState,
     },
     /// A pluggable notification triggered via OSC 9 or OSC 777 escape sequences.
     /// Used to show an in-app toast notification.
     PluggableNotification {
         title: Option<String>,
         body: String,
-    },
-    /// Emitted when cloud mode runs should display the cloud-agent capacity/credits modal.
-    ShowCloudAgentCapacityModal {
-        variant: CloudAgentCapacityModalVariant,
-    },
-    FreeTierLimitCheckTriggered,
-    /// Emitted when the StartAgent executor needs the workspace to create
-    /// a new child agent conversation in a split pane. The freshly-created
-    /// child conversation id is echoed back to the executor via
-    /// [`BlocklistAIHistoryModel::record_new_conversation_request_complete`]
-    /// so the executor can disambiguate per-request pendings when multiple
-    /// StartAgent requests are in flight in parallel.
-    StartAgentConversation(StartAgentRequest),
-    /// Emitted when the user clicks a child agent row in the status card to reveal
-    /// its hidden pane.
-    RevealChildAgent {
-        conversation_id: AIConversationId,
-    },
-    /// Emitted when the user clicks a pill in the orchestration pill bar.
-    /// The pane group swaps visibility instead of cloning the conversation.
-    SwapPaneToConversation {
-        conversation_id: AIConversationId,
-    },
-    /// Emitted by `OrchestrationViewerModel` when a child of a shared-session
-    /// orchestration first reports a `session_id`. The pane group materializes
-    /// a dedicated hidden shared-session viewer pane for the child, with its
-    /// own `TerminalView`, `BlocklistAIController`, and viewer-side `Network`
-    /// joining the child's session. Subsequent pill clicks navigate to the
-    /// hidden pane via the existing `SwapPaneToConversation` mechanism.
-    EnsureSharedSessionViewerChildPane {
-        conversation_id: AIConversationId,
-        session_id: session_sharing_protocol::common::SessionId,
-    },
-    /// Emitted when "Open in new tab" is picked from a child pill's 3-dot menu.
-    /// Bubbles up to the workspace to create the new tab.
-    OpenChildAgentInNewTab {
-        conversation_id: AIConversationId,
-    },
-    /// Emitted when "Open in new pane" is picked from a child pill's 3-dot menu.
-    /// Reuses the existing dedicated child pane to preserve in-flight state.
-    OpenChildAgentInNewPane {
-        conversation_id: AIConversationId,
-    },
-    /// Emitted when "Stop agent" is picked from a child pill's 3-dot menu.
-    StopAgentConversation {
-        conversation_id: AIConversationId,
-    },
-    /// Emitted when "Kill agent" is picked from a child pill's 3-dot menu.
-    KillAgentConversation {
-        conversation_id: AIConversationId,
     },
 }
 
