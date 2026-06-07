@@ -15,9 +15,29 @@ the AI agent product + cloud. See `docs/superpowers/plans/2026-06-06-rift-plan2-
 - Never `cargo clean` (40-min dep rebuild). App-crate incremental rebuild ≈ a few minutes.
 
 ## Error trajectory (this session)
-4173 (baseline) → 3081 → 2505 → 2427 → 2398 → (rb7 pending after view.rs ctor de-wire).
-~43% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
-mid-Phase-A, matching prior windows).
+4173 (baseline) → 3081 → 2505 → 2427 → 2398 → 2412 → **2254** (HEAD a2e8b90c).
+~46% reduced. All checkpoints committed + pushed (RED intermediate commits are expected
+mid-Phase-A, matching prior windows). Re-baseline each window: rebuild → `/tmp/rb.log`.
+
+## Precise cross-scope emit/consume sites to fix (from persistence de-wire)
+When finishing the contract cluster, these now-dangling producers of removed persistence
+contracts must be de-wired:
+- Deleted `ModelEvent` variants are EMITTED by `pane_group/pane/terminal_pane.rs` (3 sites)
+  and `terminal/view.rs` (1 site).
+- Deleted `PersistedData` fields (cloud_objects, object_actions,
+  time_of_next_force_object_refresh, ai_queries, multi_agent_conversations,
+  mcp_server_installations, mcp_servers_to_restore) are CONSUMED in `lib.rs` ~1177–1194.
+- Removed `StartedCommandMetadata` fields (cloud_workflow_id, workflow_command,
+  is_agent_executed) are SET in `terminal/writeable_pty/command_history.rs`.
+- Removed `LeafContents`/`TerminalPaneSnapshot` agent/cloud variants+fields are CONSTRUCTED
+  across `workspace/**` and `pane_group/**`.
+- `context_chips/{display.rs,display_chip.rs}` are deeply parameterized over deleted agent
+  models (BlocklistAIInputModel/AIContextModel, AgentViewController, AmbientAgentViewModel,
+  AIDocumentId) — their ctors are called from terminal code, so de-wire needs coordinated
+  signature changes (do with the contract cluster). `current_prompt.rs` only blocks on
+  GitRepoStatusModel (re-home target).
+- `integration_testing/**` is behind `feature="integration_tests"` (NOT in default build);
+  its agent/cloud helpers are consumed by `crates/integration` — coordinate before deleting.
 
 ## What's DONE this window
 - `terminal/model/blocks.rs`: agent_view_state field + conversation/AI method cluster +
