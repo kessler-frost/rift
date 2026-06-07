@@ -1658,39 +1658,6 @@ pub(crate) fn initialize_app(
 
 
 
-    let tip_model_handle = ctx.add_singleton_model(|ctx| {
-        ai::agent_tips::AITipModel::<ai::AgentTip>::new_for_agent_tips(ctx)
-    });
-    {
-        // Rebuild the tip pool when AI settings change so tips whose applicability
-        // depends on AI settings appear/disappear without waiting for the next cooldown cycle.
-        let tip_model_handle_for_ai = tip_model_handle.clone();
-        ctx.subscribe_to_model(&AISettings::handle(ctx), move |_, _, ctx| {
-            tip_model_handle_for_ai.update(ctx, |model, ctx| {
-                model.revalidate_tips(ctx);
-            });
-        });
-        // Also revalidate when workspace/team data changes (e.g. voice toggled at
-        // the org level). Billing metadata — including `warp_ai_policy.is_voice_enabled`
-        // — lives inside the team data, so `TeamsChanged` covers all policy updates.
-        let tip_model_handle_for_teams = tip_model_handle.clone();
-        ctx.subscribe_to_model(&UserWorkspaces::handle(ctx), move |_, event, ctx| {
-            if matches!(event, UserWorkspacesEvent::TeamsChanged) {
-                tip_model_handle_for_teams.update(ctx, |model, ctx| {
-                    model.revalidate_tips(ctx);
-                });
-            }
-        });
-        // Revalidate when any keybinding changes so tips with `<keybinding>`
-        // placeholders are hidden/shown when the referenced binding is cleared
-        // or reassigned.
-        ctx.subscribe_to_model(&KeybindingChangedNotifier::handle(ctx), move |_, _, ctx| {
-            tip_model_handle.update(ctx, |model, ctx| {
-                model.revalidate_tips(ctx);
-            });
-        });
-    }
-
     timer.mark_interval_end("SINGLETON_MODELS_REGISTERED");
 
     ctx.add_singleton_model(move |_| timer);
@@ -1708,51 +1675,6 @@ pub(crate) fn initialize_app(
 
 
     ctx.add_singleton_model(DefaultTerminal::new);
-
-    ctx.add_singleton_model(|ctx| {
-        let should_restore_indices = launch_mode.supports_indexing()
-            && (matches!(launch_mode, LaunchMode::RemoteServerDaemon { .. })
-                || UserWorkspaces::as_ref(ctx).is_codebase_context_enabled(ctx));
-        let indices_to_restore = if should_restore_indices {
-            persisted_workspaces.clone()
-        } else {
-            vec![]
-        };
-
-        let codebase_limits = AIRequestUsageModel::as_ref(ctx).codebase_context_limits();
-        let mut codebase_index_config = CodebaseIndexManagerConfig::new(
-            indices_to_restore,
-            codebase_limits.max_indices_allowed,
-            codebase_limits.max_files_per_repo,
-            codebase_limits.embedding_generation_batch_size,
-            server_api_provider.as_ref(ctx).get(),
-            launch_mode.supports_indexing(),
-        );
-        if matches!(launch_mode, LaunchMode::RemoteServerDaemon { .. }) {
-            codebase_index_config = codebase_index_config.defer_persisted_index_restore();
-        }
-        #[cfg(feature = "local_fs")]
-        if let Some(snapshot_storage) = daemon_codebase_index_snapshot_storage(launch_mode) {
-            return CodebaseIndexManager::new_with_snapshot_storage(
-                codebase_index_config,
-                Some(snapshot_storage),
-                ctx,
-            );
-        }
-
-        CodebaseIndexManager::new_with_config(codebase_index_config, ctx)
-    });
-
-    ctx.add_singleton_model(|ctx| {
-        ProjectContextModel::new_from_persisted(
-            persisted_project_rules,
-            read_project_rule_contents,
-            ctx,
-        )
-    });
-
-    // Index global rules (e.g. ~/.agents/AGENTS.md) on a background task so
-    // they are available to subsequent agent queries.
 
     ctx.add_singleton_model(|ctx| {
         PersistedWorkspace::new(
