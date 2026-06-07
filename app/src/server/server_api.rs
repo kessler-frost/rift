@@ -40,6 +40,7 @@ use url::Url;
 use workspace::WorkspaceClient;
 
 use super::experiments::{ServerExperiment, ServerExperiments};
+use crate::terminal::shared_session::AmbientAgentTaskId;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
 use crate::auth::UserUid;

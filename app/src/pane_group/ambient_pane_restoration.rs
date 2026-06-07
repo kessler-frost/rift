@@ -2,6 +2,7 @@ use riftui::{SingletonEntity, ViewContext, ViewHandle};
 use session_sharing_protocol::common::SessionId;
 use uuid::Uuid;
 
+use crate::terminal::shared_session::AmbientAgentTaskId;
 use crate::pane_group::{PaneGroup, PaneId, TerminalPane, TerminalViewResources};
 use crate::terminal::TerminalView;
 use crate::workspace::WorkspaceAction;

@@ -1,6 +1,7 @@
 // We don't directly run agent harnesses on WASM, so this code is unused.
 #![cfg_attr(target_family = "wasm", expect(dead_code))]
 
+use crate::terminal::shared_session::AmbientAgentTaskId;
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
