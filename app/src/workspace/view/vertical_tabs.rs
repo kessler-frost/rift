@@ -1296,17 +1296,7 @@ fn render_detail_kind_badge_icon(
             };
             icon.to_warpui_icon(color).finish()
         }
-        TypedPane::Code(_) => icon_from_file_path(&props.title, appearance)
-            .unwrap_or_else(|| WarpIcon::Code2.to_warpui_icon(sub_text).finish()),
-        typed => {
-            let fill = typed
-                .warp_drive_object_type()
-                .map(|object_type| {
-                    WarpThemeFill::Solid(warp_drive_icon_color(appearance, object_type))
-                })
-                .unwrap_or(sub_text);
-            typed.icon().to_warpui_icon(fill).finish()
-        }
+        typed => typed.icon().to_warpui_icon(sub_text).finish(),
     }
 }
 
@@ -2810,17 +2800,13 @@ fn render_passive_terminal_diff_stats_badge(
 
 fn resolve_icon_with_status_variant(
     typed: &TypedPane<'_>,
-    title: &str,
+    _title: &str,
     appearance: &Appearance,
     app: &AppContext,
 ) -> IconWithStatusVariant {
     let theme = appearance.theme();
     let main_text = theme.main_text_color(theme.background());
     let sub_text = theme.sub_text_color(theme.background());
-
-    let drive_color = |object_type: DriveObjectType| -> WarpThemeFill {
-        WarpThemeFill::Solid(warp_drive_icon_color(appearance, object_type))
-    };
 
     match typed {
         TypedPane::Terminal(terminal_pane) => {
@@ -2836,47 +2822,10 @@ fn resolve_icon_with_status_variant(
                 }
             }
         }
-        TypedPane::Code(_) => {
-            if let Some(icon_element) = icon_from_file_path(title, appearance) {
-                IconWithStatusVariant::NeutralElement { icon_element }
-            } else {
-                IconWithStatusVariant::Neutral {
-                    icon: WarpIcon::Code2,
-                    icon_color: sub_text,
-                }
-            }
-        }
-        // Settings and environment management use the foreground color per design spec
-        TypedPane::Settings | TypedPane::EnvironmentManagement => IconWithStatusVariant::Neutral {
+        TypedPane::Settings => IconWithStatusVariant::Neutral {
             icon: typed.icon(),
             icon_color: main_text,
         },
-        // Warp Drive object types use their established index colors
-        TypedPane::Notebook { is_plan } => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: drive_color(DriveObjectType::Notebook {
-                is_ai_document: *is_plan,
-            }),
-        },
-        TypedPane::Workflow { is_ai_prompt: true } => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: drive_color(DriveObjectType::AgentModeWorkflow),
-        },
-        TypedPane::Workflow {
-            is_ai_prompt: false,
-        } => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: drive_color(DriveObjectType::Workflow),
-        },
-        TypedPane::EnvVarCollection => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: drive_color(DriveObjectType::EnvVarCollection),
-        },
-        TypedPane::AIFact => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: drive_color(DriveObjectType::AIFact),
-        },
-        // Other pane types use sub-text color
         other => IconWithStatusVariant::Neutral {
             icon: other.icon(),
             icon_color: sub_text,
@@ -2884,18 +2833,8 @@ fn resolve_icon_with_status_variant(
     }
 }
 
-fn has_unread_activity(typed: &TypedPane<'_>, app: &AppContext) -> bool {
-    let TypedPane::Terminal(terminal_pane) = typed else {
-        return false;
-    };
-    let terminal_view = terminal_pane.terminal_view(app);
-    has_unread_activity_for_terminal_view(terminal_view.as_ref(app).id(), app)
-}
-
-fn has_unread_activity_for_terminal_view(terminal_view_id: EntityId, app: &AppContext) -> bool {
-    AgentNotificationsModel::as_ref(app)
-        .notifications()
-        .has_unread_for_terminal_view(terminal_view_id)
+fn has_unread_activity(_typed: &TypedPane<'_>, _app: &AppContext) -> bool {
+    false
 }
 
 const INDICATOR_DOT_SIZE: f32 = 8.;
@@ -3175,8 +3114,6 @@ fn build_vertical_tabs_summary_data(
             TypedPane::Terminal(terminal_pane) => {
                 let terminal_view = terminal_pane.terminal_view(app);
                 let terminal_view = terminal_view.as_ref(app);
-                has_unread_activity |=
-                    has_unread_activity_for_terminal_view(terminal_view.id(), app);
                 let title_text = terminal_view.terminal_title_from_shell();
                 let working_directory = resolved_terminal_working_directory(terminal_view, app);
                 let working_directory_text = working_directory
@@ -3665,29 +3602,11 @@ fn resolved_terminal_working_directory(
 /// For cloud agent panes, builds a composite string from the environment name,
 /// setup status, and/or working directory. Returns `None` for non-cloud sessions.
 fn cloud_agent_working_directory_and_env(
-    terminal_view: &TerminalView,
-    working_directory: Option<&str>,
-    app: &AppContext,
+    _terminal_view: &TerminalView,
+    _working_directory: Option<&str>,
+    _app: &AppContext,
 ) -> Option<String> {
-    if !terminal_view.is_ambient_agent_session(app) {
-        return None;
-    }
-    let model_ref = terminal_view.ambient_agent_view_model()?.as_ref(app);
-
-    let env_name = model_ref
-        .selected_environment_id()
-        .and_then(|id| CloudAmbientAgentEnvironment::get_by_id(id, app))
-        .map(|env| env.model().string_model.display_name());
-
-    let setup_status: Option<&str> = model_ref.agent_progress().map(|p| p.setup_status_text());
-
-    match (env_name, setup_status, working_directory) {
-        (Some(env), Some(status), _) => Some(format!("{env} · {status}")),
-        (Some(env), None, Some(wd)) => Some(format!("{env} · {wd}")),
-        (Some(env), None, None) => Some(env),
-        (None, Some(status), _) => Some(status.to_string()),
-        (None, None, _) => None,
-    }
+    None
 }
 
 fn render_terminal_row_content(
@@ -4387,9 +4306,6 @@ fn summary_pane_kind_icon(
     let theme = appearance.theme();
     let main_text = theme.main_text_color(theme.background());
     let sub_text = theme.sub_text_color(theme.background());
-    let drive_color = |object_type: DriveObjectType| -> WarpThemeFill {
-        WarpThemeFill::Solid(warp_drive_icon_color(appearance, object_type))
-    };
 
     match kind {
         SummaryPaneKind::Terminal => (WarpIcon::Terminal, main_text),
@@ -4407,9 +4323,7 @@ fn summary_pane_kind_icon(
             } else {
                 WarpIcon::Notebook
             },
-            drive_color(DriveObjectType::Notebook {
-                is_ai_document: is_plan,
-            }),
+            sub_text,
         ),
         SummaryPaneKind::Workflow { is_ai_prompt } => (
             if is_ai_prompt {
@@ -4417,20 +4331,13 @@ fn summary_pane_kind_icon(
             } else {
                 WarpIcon::Workflow
             },
-            if is_ai_prompt {
-                drive_color(DriveObjectType::AgentModeWorkflow)
-            } else {
-                drive_color(DriveObjectType::Workflow)
-            },
+            sub_text,
         ),
         SummaryPaneKind::Settings | SummaryPaneKind::EnvironmentManagement => {
             (WarpIcon::Gear, main_text)
         }
-        SummaryPaneKind::EnvVarCollection => (
-            WarpIcon::EnvVarCollection,
-            drive_color(DriveObjectType::EnvVarCollection),
-        ),
-        SummaryPaneKind::AIFact => (WarpIcon::BookOpen, drive_color(DriveObjectType::AIFact)),
+        SummaryPaneKind::EnvVarCollection => (WarpIcon::EnvVarCollection, sub_text),
+        SummaryPaneKind::AIFact => (WarpIcon::BookOpen, sub_text),
         SummaryPaneKind::AIDocument => (WarpIcon::Compass, sub_text),
         SummaryPaneKind::ExecutionProfileEditor => (WarpIcon::Lightning, sub_text),
         SummaryPaneKind::Other => (WarpIcon::File, sub_text),
@@ -5901,35 +5808,6 @@ fn render_detail_badge(
     badge.finish()
 }
 
-fn render_detail_status_pill(
-    status: &ConversationStatus,
-    appearance: &Appearance,
-) -> Box<dyn Element> {
-    let theme = appearance.theme();
-    let (icon, color) = status.status_icon_and_color(theme, StatusColorStyle::Standard);
-    Container::new(
-        Flex::row()
-            .with_main_axis_size(MainAxisSize::Min)
-            .with_cross_axis_alignment(CrossAxisAlignment::Center)
-            .with_spacing(4.)
-            .with_child(
-                ConstrainedBox::new(icon.to_warpui_icon(WarpThemeFill::Solid(color)).finish())
-                    .with_width(12.)
-                    .with_height(12.)
-                    .finish(),
-            )
-            .with_child(
-                Text::new_inline(status.to_string(), appearance.ui_font_family(), 10.)
-                    .with_color(WarpThemeFill::Solid(color).into())
-                    .finish(),
-            )
-            .finish(),
-    )
-    .with_padding(Padding::uniform(2.).with_left(4.).with_right(4.))
-    .with_background(ThemeFill::Solid(coloru_with_opacity(color, 10)))
-    .with_corner_radius(CornerRadius::with_all(Radius::Pixels(2.)))
-    .finish()
-}
 
 fn render_detail_wrapping_text(
     text: impl Into<String>,
@@ -6045,9 +5923,6 @@ fn render_terminal_detail_section(
         .with_cross_axis_alignment(CrossAxisAlignment::Start)
         .with_spacing(DETAIL_SIDECAR_SECTION_GAP);
 
-    if let Some(status) = status.as_ref() {
-        section.add_child(render_detail_status_pill(status, appearance));
-    }
     if let Some(working_directory) = working_directory.filter(|wd| !wd.trim().is_empty()) {
         section.add_child(render_detail_wrapping_text(
             working_directory,
