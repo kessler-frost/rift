@@ -1,194 +1,103 @@
 # WARP.md
 
-This file provides guidance when working with code in this repository.
+Guidance for working with code in this repository.
+
+## What this project is
+
+**Rift** is a personal, **local-only** fork of Warp. Everything cloud is being removed —
+AI/agents, Warp Drive, account/auth, telemetry, billing, sharing, cloud workspace sync. The goal
+is a fast, fully local terminal that keeps Warp's good parts (the command **blocks** UI, GPU
+rendering, editor-style command input) and nothing that phones home.
+
+**Do not reintroduce or extend** cloud, accounts, AI, or telemetry. When in doubt, the local
+option wins.
 
 ## Development Commands
 
-### Build and Run
-- `cargo run` - Build and run Warp locally
-- `cargo bundle --bin warp` - Bundle the main app
-
-### Running with local warp-server
-To connect Warp client to a local warp-server instance:
-
-```bash
-# Connect to server on default port 8080
-cargo run --features with_local_server
-
-# Connect to server on custom port (e.g., 8082)
-SERVER_ROOT_URL=http://localhost:8082 WS_SERVER_URL=ws://localhost:8082/graphql/v2 cargo run --features with_local_server
-```
-
-Environment variables:
-- `SERVER_ROOT_URL` - HTTP endpoint (default: `http://localhost:8080`)
-- `WS_SERVER_URL` - WebSocket endpoint (default: `ws://localhost:8080/graphql/v2`)
+### Build / run / iterate
+- `cargo run --bin rift-oss` — build and run Rift (the local, cloud-free binary; `app/src/bin/oss.rs`).
+- Fast iterate loop: `cargo check --bin rift-oss > /tmp/rb.log 2>&1; grep -c '^error' /tmp/rb.log`
+  - `cargo check` skips codegen/linking (same errors, much faster). Use `cargo build` only for the final green check.
+- Build prereq: **`protoc`** (`brew install protobuf`) — required for the `crates/remote_server` protos. `./script/install_cargo_build_deps` installs the rest.
+- Don't `cargo clean` casually — it forces a ~40-min full dependency rebuild. App-crate incremental rebuilds are a few minutes.
 
 ### Testing
-- `cargo nextest run --no-fail-fast --workspace --exclude command-signatures-v2` - Run tests with nextest
-- `cargo nextest run -p warp_completer --features v2` - Run completer tests with v2 features
-- `cargo test --doc` - Run doc tests
-- `cargo test` - Run standard tests for individual packages
-
-### Linting and Formatting
-- `./script/presubmit` - Run all presubmit checks (fmt, clippy, tests)
-- `./script/format` - Format code
-- `cargo clippy --workspace --all-targets --all-features --tests -- -D warnings` - Run clippy
-- `./script/run-clang-format.py -r --extensions 'c,h,cpp,m' ./crates/warpui/src/ ./app/src/` - Format C/C++/Obj-C code
-- `find . -name "*.wgsl" -exec wgslfmt --check {} +` - Check WGSL shader formatting
-
-### Platform Setup
-- `./script/bootstrap` - Platform-specific setup plus common agent skill installation from `skills-lock.json`; prompts for project/global when an install or update is needed unless a target flag or environment override is provided.
-- `./script/bootstrap --skip-common-skills` - Platform setup without installing or updating common agent skills.
-- `./script/bootstrap --install-common-skills` - Explicitly install common agent skills from `skills-lock.json`; this is the default behavior.
-- `./script/bootstrap --install-common-skills-in-repo` - Platform setup plus common agent skill installation in this checkout's `.agents/skills`.
-- `./script/bootstrap --install-common-skills-globally` - Platform setup plus common agent skill installation in `~/.agents/skills`.
-- `../common-skills/scripts/install_common_skills --repo-root "$PWD" --project --if-needed` - Install or refresh shared agent skills in this checkout's `.agents/skills`.
-- `../common-skills/scripts/install_common_skills --repo-root "$PWD" --global --if-needed` - Install or refresh shared agent skills in `~/.agents/skills`.
-- `../common-skills/scripts/remove_common_skills --repo-root "$PWD"` - Remove shared agent skills listed in `skills-lock.json` from this checkout's `.agents/skills`.
-- `../common-skills/scripts/remove_common_skills --repo-root "$PWD" --global` - Remove shared agent skills listed in `skills-lock.json` from `~/.agents/skills`.
-- `../common-skills/scripts/remove_common_skills --repo-root "$PWD" --clear-lock` - Remove shared agent skills from this checkout and delete `skills-lock.json`.
-- `./script/install_cargo_build_deps` - Install Cargo build dependencies
-- `./script/install_cargo_test_deps` - Install Cargo test dependencies
-
-`skills-lock.json` is the standard project lock file managed by `npx skills`. `warpdotdev/common-skills/scripts/install_common_skills` requires an explicit install target before restoring: pass `--project`, pass `--global`, set `WARP_COMMON_SKILLS_INSTALL_TARGET`, or answer the interactive prompt from bootstrap. Non-interactive flows fail if no target is explicit. The installer creates `skills-lock.json` from `warpdotdev/common-skills` if it is missing, uses global as the recommended interactive default, errors if common skills are present in both project and global locations, prevents a global install pinned to one lock from being silently overwritten by another checkout pinned to a different lock, and verifies installed skills against the lock after successful install or skip paths. `script/run` and `script/bootstrap` execute this installer with `script/resolve_common_skills`, which uses `WARP_COMMON_SKILLS_SCRIPTS_DIR` only when explicitly set and otherwise runs the raw script from `warpdotdev/common-skills`. To test a remote common-skills branch, set `WARP_COMMON_SKILLS_REF=<branch>`. Cloud setup should use `common-skills/scripts/install_common_skills --repo-root <warp-checkout> --project --if-needed --non-interactive` or set `WARP_COMMON_SKILLS_INSTALL_TARGET=project` to avoid the prompt. To update the locked common skills, run `npx --yes skills@1.5.6 update -p -y` and commit the resulting `skills-lock.json` changes.
-
-## Architecture Overview
-
-This is a Rust-based terminal emulator with a custom UI framework called **WarpUI**.
-
-### Key Components
-
-**WarpUI Framework** (`ui/`):
-- Custom UI framework with Entity-Component-Handle pattern
-- Global `App` object owns all views/models (entities)
-- Views hold `ViewHandle<T>` references to other views
-- `AppContext` provides temporary access to handles during render/events
-- Elements describe visual layout (Flutter-inspired)
-- Actions system for event handling
-- MouseStateHandle must be created once during construction, and then referenced/cloned anywhere we're using mouse input to track mouse changes. Inline `MouseStateHandle::default()` while rendering will cause no mouse interactions to work.
-
-**Main App** (`app/`):
-- Terminal emulation and shell management (`terminal/`)
-- AI integration including Agent Mode (`ai/`)
-- Cloud synchronization and Drive features (`drive/`)
-- Authentication and user management (`auth/`)
-- Settings and preferences (`settings/`)
-- Workspace and session management (`workspace/`)
-
-**Core Libraries**:
-- `crates/warp_core/` - Core utilities and platform abstractions
-- `crates/editor/` - Text editing functionality
-- `crates/warpui/` and `crates/warpui_core/` - Custom UI framework
-- `crates/ipc/` - Inter-process communication
-- `crates/graphql/` - GraphQL client and schema
-
-### Key Architectural Patterns
-
-1. **Entity-Handle System**: Views reference other views via handles, not direct ownership
-2. **Modular Structure**: Workspace contains multiple workspace configurations, each with terminals, notebooks, etc.
-3. **Cross-Platform**: Native implementations for macOS, Windows, Linux, plus WASM target
-4. **AI Integration**: Built-in AI assistant with context awareness and codebase indexing
-5. **Cloud Sync**: Objects can be synchronized across devices via Warp Drive
-
-### Development Guidelines
-
-**Workspace Structure**:
-- This is a Cargo workspace with 60+ member crates
-- Main binary is in `app/`, UI framework in `crates/warpui/`
-- Platform-specific code is conditionally compiled
-- Integration tests are in `crates/integration/`
-
-**Coding Style Preferences**:
-- Avoid unnecessary type annotations, especially in closure params.
-- Avoid using too many Rust path qualifiers and use imports for concision. Place import statements at the top of the file as per convention.
-  An exception to this is inside cfg-guarded code branches. In those cases, you can either embed the import into the relevant scope or just use an absolute path for one-offs.
-- If a function takes a context parameter (`AppContext`, `ViewContext`, or `ModelContext`), it should be named `ctx` and go last. The one exception is for
-  functions that take a closure parameter, in which case the closure should be last.
-- Always remove unused parameters completely rather than prefixing them with `_`. Update the function signature and all call sites accordingly.
-- Prefer inline format arguments in macros like `println!`, `eprintln!`, and `format!` (for example, `eprintln!("{message}")` instead of `eprintln!("{}", message)`) to satisfy Clippy's `uninlined_format_args` lint.
-- Do not pass `Itertools::format` results directly to logging macros (`log::*`, `safe_*`, etc.). `Itertools::format` produces a single-use formatter, while logging implementations may format a message more than once. Use a reusable `String` such as `iter.join(", ")` for logging arguments instead. Direct use in `format!` or `write!` is fine.
-- Do not remove existing comments when making unrelated changes. Only remove or modify a comment if the logic it describes has changed.
-- When adding a toggleable setting, also add the matching Command Palette enable/disable entry and any required context flags so the setting is discoverable outside Settings.
-
-**Terminal Model Locking**:
-- Be extremely careful when calling `model.lock()` on the terminal model (`TerminalModel`). Acquiring multiple locks on the same model from different call sites can cause a deadlock, resulting in a UI freeze (beach ball on macOS).
-- Before adding a new `model.lock()` call, verify that no caller in the current call stack already holds the lock.
-- Prefer passing already-locked model references down the call stack rather than acquiring new locks.
-- If you must lock the model, keep the lock scope as short as possible and avoid calling other functions that might also attempt to lock.
-
-**Testing**:
-- Use `cargo nextest` for parallel test execution
-- Integration tests use custom framework in `integration/`
-- Tests should be run via presubmit script before submitting
-- Unit tests should be placed in separate files using the naming convention `${filename}_tests.rs` or `mod_test.rs`
-- Test files should be included at the end of their corresponding module with:
+- `cargo nextest run --no-fail-fast --workspace` — run tests (parallel).
+- `cargo test --doc` — doc tests.
+- Unit tests live in a sibling `${filename}_tests.rs` (or `mod_test.rs`), included at the end of the module:
   ```rust
   #[cfg(test)]
-  #[path = "filename_tests.rs"]  // or "mod_test.rs"
+  #[path = "filename_tests.rs"]
   mod tests;
   ```
 
-**Pull Request Workflow**:
-- **ALWAYS** run `./script/format` and `cargo clippy` (the versions specified in ./script/presubmit) before opening a PR or pushing updates to an existing PR branch
-- Those commands must pass completely before creating or updating a pull request
-- Specifically, ensure `./script/format` and `cargo clippy` checks pass
-- If they fail, fix all issues before proceeding with the PR
-- Do not create public pull requests or public issues that disclose a non-public security vulnerability. Refer users to `SECURITY.md` for the proper disclosure methods instead.
-- This applies to:
-  - Opening new pull requests
-  - Pushing new commits to existing PR branches
-  - Any branch updates that will be reviewed
- - When opening PRs, use the PR template at `.github/pull_request_template.md`
- - Add changelog entries when appropriate using the format at the bottom of the PR template. Use the following prefixes (without the `{{}}` brackets):
-   - `CHANGELOG-NEW-FEATURE:` for new, relatively sizable features (use sparingly - these may get marketing/docs)
-   - `CHANGELOG-IMPROVEMENT:` for new functionality of existing features
-   - `CHANGELOG-BUG-FIX:` for fixes related to known bugs or regressions
-   - `CHANGELOG-IMAGE:` for GCP-hosted image URLs
-   - Leave changelog lines blank or remove them if no changelog entry is needed
+### Linting / formatting (the "done" bar = 0 errors AND 0 warnings)
+- `./script/format` — format the code.
+- `cargo clippy --workspace --all-targets --tests -- -D warnings` — `-D warnings` is exactly the "no warnings" gate.
+- `./script/presubmit` — runs fmt + clippy + tests together.
 
-**Database**:
-- Uses Diesel ORM with SQLite
-- Migrations in `crates/persistence/migrations/`
-- Schema defined in `crates/persistence/src/schema.rs`
+## Architecture Overview
 
-**GraphQL**:
-- Schema and client code generation from `crates/warp_graphql_schema/api/schema.graphql`
-- TypeScript types generated for frontend integration
+A Rust terminal emulator with a custom UI framework, **RiftUI**.
 
-### Feature Flags
+**RiftUI** (`crates/riftui`, `crates/riftui_core`):
+- Entity-Component-Handle pattern. A global `App` object owns all views/models (entities).
+- Views hold `ViewHandle<T>` references to other views; `AppContext` gives temporary handle access during render/events.
+- Elements describe visual layout (Flutter-inspired). An Actions system handles events.
+- `MouseStateHandle` must be created **once** during construction and then referenced/cloned wherever mouse input is used. An inline `MouseStateHandle::default()` during render breaks all mouse interaction.
 
-Warp uses compile-time feature flags with a small runtime plumbing layer.
+**Main app** (`app/`):
+- Terminal emulation and shell management (`terminal/`)
+- Tabs / windows / pane layout (`workspace/`, `pane_group/`)
+- Settings and preferences (`settings/`)
+- (AI, Drive, auth, cloud sync, GraphQL are being **removed** — do not build on them.)
 
-How to add a feature flag:
-- Add a new variant to `warp_core/src/features.rs` in the `FeatureFlag` enum
-- (Optional) Enable it by default for dogfood builds by listing it in `DOGFOOD_FLAGS`
-- Gate code paths with `FeatureFlag::YourFlag.is_enabled()`
-- For preview or release rollout, add to `PREVIEW_FLAGS` or `RELEASE_FLAGS` respectively (as appropriate)
+**Core crates:**
+- `crates/rift_core` — core utilities + platform abstractions. **Also home of the telemetry/logging macros** (see guardrail below).
+- `crates/editor` (package `rift_editor`) — the command-input editor.
+- `crates/riftui`, `crates/riftui_core` — the UI framework.
+- `crates/persistence` — local SQLite (Diesel).
+- `crates/rift_features` — the `FeatureFlag` enum + default-on flag lists.
+- `crates/ipc` — inter-process communication.
 
-Best practices:
-- **Prefer runtime checks over cfg directives**: Prefer `FeatureFlag::YourFlag.is_enabled()` over `#[cfg(...)]` compile-time directives so flags can be toggled without recompilation and are easier to clean up later. Use `#[cfg(...)]` only when the code cannot compile without them (for example, platform-specific code or dependencies that do not exist when the feature is disabled).
-- Keep flags high-level and product-focused rather than per-call-site
-- Remove the flag and dead branches after launch has stabilized
-- For UI sections that expose a new feature, hide the UI behind the same flag
+This is a Cargo workspace; platform-specific code is conditionally compiled.
 
-Example:
-```rust
-#[derive(Sequence)]
-pub enum FeatureFlag {
-    YourNewFeature,
-}
+## Coding Style
 
-// Default-on for dogfood builds
-pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
-    FeatureFlag::YourNewFeature,
-];
+- Avoid unnecessary type annotations, especially in closure params.
+- Prefer imports at the top of the file over long path qualifiers. Exception: inside `cfg`-guarded branches, a scoped import or a one-off absolute path is fine.
+- A context param (`AppContext`, `ViewContext`, or `ModelContext`) is named `ctx` and goes **last** — unless the function takes a closure, in which case the closure is last.
+- **Remove unused parameters completely** — never prefix with `_`. Update the signature and every call site. (This is most of the strip's work.)
+- Inline format args in macros: `eprintln!("{message}")`, not `eprintln!("{}", message)` (Clippy `uninlined_format_args`).
+- Don't pass `Itertools::format` results to logging macros (`log::*`, `safe_*`) — it's a single-use formatter and loggers may format twice. Use a reusable `String` (`iter.join(", ")`) for logs. Direct use in `format!`/`write!` is fine.
+- Don't remove existing comments for unrelated changes — only when the logic they describe has actually changed.
 
-// Use in code
-if FeatureFlag::YourNewFeature.is_enabled() {
-    // gated behavior
-}
-```
+## Exhaustive Matching (critical during the strip)
 
-### Exhaustive Matching
+Avoid the wildcard `_` in `match` whenever possible. Exhaustive matching is what makes the
+compiler flag every site that still references a variant — it is the **safety net for the
+AI/cloud excision**. Silencing a `match` with `_ =>` *hides* leftover agent/cloud variants
+instead of forcing their deletion. Match every variant explicitly.
 
-When adding/editing match statements, avoid using the wildcard _ when at all possible. Exhaustive matching is helpful for ensuring that all variants are handled, especially when adding new variants to enums in the future.
+## Strip guardrails (while removing AI/cloud)
+
+- **Delete use-sites; don't stub.** The decision is full excision — remove the fields, enum variants, methods, and match arms that carry deleted types. Do not paper over them with stubs.
+- **Never remove `use rift_core::...` macro imports.** The telemetry/logging macros (`send_telemetry_*`, `report_error`/`report_if_error`, `safe_warn`/`safe_info`) live in `crates/rift_core` (`telemetry.rs`, `errors.rs`, `safe_log.rs`) and are **KEEP**. Deleting their imports during cleanup causes a "cannot find macro" cascade. Only remove *type* imports for deleted modules.
+- An unresolved import (`E0432`) makes rustc **suppress** all of that symbol's use-site errors. Removing the dead import un-masks the real work, so the error count jumping up after an import sweep is expected — not new breakage.
+
+## Terminal Model Locking
+
+- Be extremely careful calling `model.lock()` on `TerminalModel`. Acquiring multiple locks on the same model from different call sites can deadlock → UI freeze (macOS beachball).
+- Before adding a new `model.lock()`, verify no caller already up the stack holds the lock.
+- Prefer passing an already-locked reference down the stack. If you must lock, keep the scope as short as possible and don't call other functions that might also lock.
+
+## Feature Flags
+
+Compile-time flags with a small runtime plumbing layer.
+- Add a variant to the `FeatureFlag` enum in `crates/rift_features/src/lib.rs`; gate code with `FeatureFlag::YourFlag.is_enabled()`. Default-on lists (`DOGFOOD_FLAGS`/`PREVIEW_FLAGS`/`RELEASE_FLAGS`) are in the same file.
+- **Prefer runtime `is_enabled()` checks over `#[cfg(...)]`** so flags toggle without recompiling and are easy to remove later. Use `#[cfg(...)]` only when the code can't compile otherwise (platform-specific or optional-dep code).
+- As the server/experiment system is removed, flags must resolve from **local defaults** — there is no remote config.
+
+## Database
+
+- Diesel ORM over local SQLite. Migrations in `crates/persistence/migrations/`; schema in `crates/persistence/src/schema.rs`.

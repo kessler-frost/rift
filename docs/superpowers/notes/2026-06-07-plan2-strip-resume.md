@@ -1,4 +1,10 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
+## 📖 READ `WARP.md` (repo root) FIRST — it is the canonical strip guideline (user-maintained)
+WARP.md governs: "Delete use-sites; don't stub" (delete methods/fields/variants/match-arms that carry deleted
+types — do NOT paper over with return-false stubs), exhaustive matching = the safety net (NO `_ =>` wildcards),
+unresolved-import (E0432) suppresses use-site errors so count jumps after import sweeps are EXPECTED, remove unused
+params completely (never `_`-prefix), KEEP all `rift_core` macro imports (telemetry/logging/safe_log). Build loop +
+prereqs (protoc, no `cargo clean`) documented there too.
 ## ⚠️⚠️ COURSE CORRECTION (user directive, 2026-06-07): NUKE ALL AI + CLOUD — DELETE, DO NOT STUB ⚠️⚠️
 The user wants ZERO AI and ZERO cloud. DO NOT use "recreate-minimal" stubs for AI/cloud types to make
 AI-adjacent code compile — that PRESERVES AI plumbing. Instead DELETE the code that uses them.
