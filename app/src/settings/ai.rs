@@ -15,6 +15,7 @@ use indexmap::IndexMap;
 use regex::Regex;
 use rift_core::execution_mode::AppExecutionMode;
 use rift_core::features::FeatureFlag;
+use rift_graphql::ai::RequestLimitInfo;
 use riftui::platform::keyboard::KeyCode;
 use riftui::platform::OperatingSystem;
 use riftui::{AppContext, Entity, ModelContext, SingletonEntity, UpdateModel};
