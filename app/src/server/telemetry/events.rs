@@ -380,12 +380,8 @@ impl From<&CommandSearchItemAction> for CommandSearchResultType {
         use crate::search::command_search::searcher::CommandSearchItemAction::*;
         match action {
             AcceptHistory(_) | ExecuteHistory(_) => Self::History,
-            AcceptWorkflow(_) => Self::Workflow,
-            AcceptNotebook(_) => Self::Notebook,
-            AcceptEnvVarCollection(_) => Self::EnvVarCollection,
             OpenWarpAI => Self::OpenWarpAI,
             TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
-            AcceptAIQuery(_) | RunAIQuery(_) => Self::AIQuery,
         }
     }
 }
@@ -818,29 +814,7 @@ pub enum LoginEventSource {
     AuthModal,
 }
 
-/// Origin of a queued prompt, mirrored for telemetry so we don't pull serde derives onto the
-/// canonical `QueuedQueryOrigin` enum (which doesn't otherwise need them).
-#[derive(Clone, Copy, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TelemetryQueuedQueryOrigin {
-    InitialCloudMode,
-    QueueSlashCommand,
-    AutoQueueToggle,
-    CompactAndSlashCommand,
-    ForkAndCompactSlashCommand,
-}
 
-impl From<QueuedQueryOrigin> for TelemetryQueuedQueryOrigin {
-    fn from(origin: QueuedQueryOrigin) -> Self {
-        match origin {
-            QueuedQueryOrigin::InitialCloudMode => Self::InitialCloudMode,
-            QueuedQueryOrigin::QueueSlashCommand => Self::QueueSlashCommand,
-            QueuedQueryOrigin::AutoQueueToggle => Self::AutoQueueToggle,
-            QueuedQueryOrigin::CompactAndSlashCommand => Self::CompactAndSlashCommand,
-            QueuedQueryOrigin::ForkAndCompactSlashCommand => Self::ForkAndCompactSlashCommand,
-        }
-    }
-}
 
 /// Details about which type of slash command was accepted
 #[derive(Clone, Debug, Serialize)]
@@ -1045,8 +1019,6 @@ pub enum TelemetryEvent {
         action: String,
         value: String,
     },
-    WorkflowExecuted(WorkflowTelemetryMetadata),
-    WorkflowSelected(WorkflowTelemetryMetadata),
     OpenWorkflowSearch,
     OpenQuakeModeWindow,
     OpenWelcomeTips,
@@ -1065,13 +1037,6 @@ pub enum TelemetryEvent {
     },
     NotificationsRequestPermissionsOutcome {
         outcome: RequestPermissionsOutcome,
-    },
-    // NotificationSent events are emitted at the app level. Thus, they encompass
-    // notifications that are successfully sent _and_ those that fail at the platform level.
-    NotificationSent {
-        trigger: NotificationsTrigger,
-        /// Identifies which agent variant produced the desktop notification, if any.
-        agent_variant: Option<NotificationAgentVariant>,
     },
     NotificationFailedToSend {
         error: NotificationSendError,
@@ -1177,7 +1142,6 @@ pub enum TelemetryEvent {
     DeletedWorkflow,
     DeletedNotebook,
     ToggleApprovalsModal,
-    ChangedInviteViewOption(TeamsInviteOption),
     SendEmailInvites,
     CommandCorrection {
         event: CommandCorrectionEvent,
@@ -1211,12 +1175,6 @@ pub enum TelemetryEvent {
     AICommandSearchOpened {
         entrypoint: AICommandSearchEntrypoint,
     },
-    OpenNotebook(NotebookTelemetryMetadata),
-    EditNotebook {
-        metadata: NotebookTelemetryMetadata,
-        meaningful_change: bool,
-    },
-    NotebookAction(NotebookActionEvent),
     OpenedAltScreenFind,
     UserInitiatedClose {
         initiated_on: CloseTarget,
@@ -1418,8 +1376,6 @@ pub enum TelemetryEvent {
         /// The maximum PTY throughput in bytes/sec, aggregated over a 10 minute period.
         max_bytes_per_second: usize,
     },
-    DuplicateObject(TelemetryCloudObjectType),
-    ExportObject(TelemetryCloudObjectType),
     DriveSharingOnboardingBlockShown,
     CommandFileRun,
     PageUpDownInEditorPressed {
@@ -1444,9 +1400,6 @@ pub enum TelemetryEvent {
     JumpToSharedSessionParticipant {
         jumped_to: ParticipantId,
     },
-    WebCloudObjectOpenedOnDesktop {
-        object_metadata: CloudObjectTelemetryMetadata,
-    },
     UnsupportedShell {
         shell: String,
     },
@@ -1456,7 +1409,6 @@ pub enum TelemetryEvent {
         num_teammates: usize,
         team_uid: ServerId,
     },
-    CopyObjectToClipboard(TelemetryCloudObjectType),
     OpenAndWarpifyDockerSubshell {
         /// Some variant if we support this shell type, and None otherwise.
         shell_type: Option<ShellType>,
@@ -1570,22 +1522,6 @@ pub enum TelemetryEvent {
     /// language auto-detection false-positive.
     AgentModePotentialAutoDetectionFalsePositive(AgentModeAutoDetectionFalsePositivePayload),
 
-    /// This is a telemetry event used to help track performance of Agent Predict in Warp,
-    /// by keeping track of the context given and the predictions generated.
-    AgentModePrediction {
-        was_suggestion_accepted: bool,
-        request_duration_ms: i64,
-        is_from_ai: bool,
-        does_actual_command_match_prediction: bool,
-        does_actual_command_match_history_prediction: bool,
-        history_prediction_likelihood: f64,
-        total_history_count: usize,
-        // The below fields are only collected if telemetry is enabled.
-        actual_next_command_run: Option<String>,
-        history_based_autosuggestion_state: Option<HistoryBasedAutosuggestionState>,
-        generate_ai_input_suggestions_request: Option<GenerateAIInputSuggestionsRequest>,
-        generate_ai_input_suggestions_response: Option<GenerateAIInputSuggestionsResponseV2>,
-    },
 
     /// Keeps track of number of times the user is presented with a Prompt Suggestions banner.
     PromptSuggestionShown {
@@ -1632,11 +1568,6 @@ pub enum TelemetryEvent {
         interaction_source: InteractionSource,
     },
 
-    /// Keeps track of number of times the user uses a zero state prompt suggestion & the type of suggestion used.
-    ZeroStatePromptSuggestionUsed {
-        suggestion_type: ZeroStatePromptSuggestionType,
-        triggered_from: ZeroStatePromptSuggestionTriggeredFrom,
-    },
 
 
 
@@ -1735,8 +1666,6 @@ pub enum TelemetryEvent {
         /// vary by OS).  See `memory_footprint::memory_breakdown()`.
         memory_breakdown: serde_json::Value,
     },
-    EnvVarCollectionInvoked(EnvVarTelemetryMetadata),
-    EnvVarWorkflowParameterization(EnvVarTelemetryMetadata),
 
     /// The user imported settings from another terminal.
     CompletedSettingsImport {
@@ -1767,7 +1696,6 @@ pub enum TelemetryEvent {
         source: AddTabWithShellSource,
         shell: String,
     },
-    OpenedSharingDialog(OpenedSharingDialogEvent),
     ToggleLigatureRendering {
         enabled: bool,
     },
@@ -1787,17 +1715,8 @@ pub enum TelemetryEvent {
     RepoOutlineConstructionFailed {
         error: String,
     },
-    AgenticOnboardingBlockSelected {
-        block_type: OnboardingChipType,
-    },
     KnowledgePaneOpened {
         entrypoint: KnowledgePaneEntrypoint,
-    },
-    #[cfg(feature = "local_fs")]
-    CodePaneOpened {
-        source: CodeSource,
-        layout: EditorLayout,
-        preview: bool,
     },
     #[cfg(feature = "local_fs")]
     CodePanelsFileOpened {
@@ -1836,9 +1755,6 @@ pub enum TelemetryEvent {
     FileGlobToolSucceeded,
     MCPServerCollectionPaneOpened {
         entrypoint: MCPServerCollectionPaneEntrypoint,
-    },
-    MCPServerAdded {
-        metadata: MCPServerTelemetryMetadata,
     },
     MCPTemplateInstalled {
         source: MCPTemplateInstallationSource,
@@ -2074,11 +1990,6 @@ pub enum TelemetryEvent {
         /// The CLI agent whose plugin was detected.
         cli_agent: CLIAgentType,
     },
-    /// Emitted when an agent notification is shown (toast or mailbox notification).
-    AgentNotificationShown {
-        /// Which agent variant produced the notification.
-        agent_variant: NotificationAgentVariant,
-    },
     /// Emitted when the user toggles the CLI agent footer setting.
     ToggleCLIAgentToolbarSetting {
         /// Whether the setting is enabled or disabled.
@@ -2088,20 +1999,6 @@ pub enum TelemetryEvent {
     ToggleUseAgentToolbarSetting {
         /// Whether the setting is enabled or disabled.
         is_enabled: bool,
-    },
-    /// Emitted when the user enters the agent view.
-    AgentViewEntered {
-        /// The origin/entrypoint for entering the agent view.
-        origin: TelemetryAgentViewEntryOrigin,
-        /// Whether a request was automatically triggered upon entry (e.g., prompt was provided).
-        did_auto_trigger_request: bool,
-    },
-    /// Emitted when the user exits the agent view.
-    AgentViewExited {
-        /// The origin/entrypoint that was used when entering the agent view.
-        origin: TelemetryAgentViewEntryOrigin,
-        /// Whether the conversation was empty (had no exchanges) when exiting.
-        was_empty: bool,
     },
     /// Emitted when the inline conversation menu is opened.
     InlineConversationMenuOpened {
