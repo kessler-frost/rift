@@ -82,47 +82,6 @@ impl SearchItem for HistorySearchItem {
             .with_main_axis_size(MainAxisSize::Max)
             .with_child(command);
 
-        if let Some(workflow) = self.entry.linked_workflow(app) {
-            command_and_workflow.add_child(
-                Flex::row()
-                    .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                    .with_children([
-                        ConstrainedBox::new(
-                            Icon::new(
-                                "bundled/svg/workflow.svg",
-                                highlight_state.sub_text_fill(appearance).into_solid(),
-                            )
-                            .finish(),
-                        )
-                        .with_height(appearance.monospace_font_size() - 4.)
-                        .with_width(appearance.monospace_font_size() - 4.)
-                        .finish(),
-                        Shrinkable::new(
-                            1.,
-                            Align::new(
-                                Container::new(
-                                    Text::new_inline(
-                                        workflow.name().to_owned(),
-                                        appearance.ui_font_family(),
-                                        appearance.monospace_font_size() - 2.,
-                                    )
-                                    .with_color(
-                                        highlight_state.sub_text_fill(appearance).into_solid(),
-                                    )
-                                    .finish(),
-                                )
-                                .with_margin_left(4.)
-                                .finish(),
-                            )
-                            .left()
-                            .finish(),
-                        )
-                        .finish(),
-                    ])
-                    .finish(),
-            );
-        }
-
         let mut item = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Max)
