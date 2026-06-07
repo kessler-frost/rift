@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **~859 real compile errors (was masked as 20 by a failing glob import)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **802 real compile errors (honest re-baselined count)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,40 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 13 (honest grind from re-baselined 859): user APPROVED re-baseline to honest count.
+Committed 859 honest baseline (removed masking command_search-view glob from view.rs). Then ground
+859->802 via SAFE deleter /tmp/delfns.py (single-pass, finds ALL fn ranges first, deletes in REVERSE
+order, brace-count only AFTER first '{' — avoids delbyname's multi-name line-shift + orphan-'}' bug).
+DONE: workspaces/user_workspaces.rs 37->0 (cloud spaces/drive/team methods), gql_convert.rs 26->6
+(cloud GraphQL conversion fns + dead From impls). 
+
+KEY INSIGHT: remaining ~802 are NOT independent per-file deletions — they're INTERCONNECTED AGENT-TYPE
+CLUSTERS. Each needs a delete-whole-thing vs recreate-minimal-stub decision (cf. SerializedBlockListItem
+which I recreated Command-only). Map of clusters:
+ 1. AgentToolbarItemKind (DELETED type) — terminal/session_settings.rs (27, ToolbarChipSelection trait +
+    AgentToolbarChipSelection enum) + header_toolbar_editor.rs + tab_settings.rs + view.rs +
+    context_chips/{current_prompt,prompt_type}.rs + terminal/view.rs. Header toolbar is KEEP; the trait's
+    left_chips/right_chips filter ContextChip(ContextChipKind=KEEP). LIKELY recreate AgentToolbarItemKind
+    minimally as enum { ContextChip(ContextChipKind) } (drop agent variants) — verify use-sites first.
+ 2. WorkspaceSettings.ai_autonomy_settings: AiAutonomySettings (fields are deleted ActionPermission/
+    WriteToPtyPermission/ComputerUsePermission) — gql_convert.rs (6 remaining) + workspaces/workspace.rs
+    type def. Remove ai_autonomy_settings field from WorkspaceSettings + the conversion block.
+ 3. pane_group agent panes (CodePane/CodeDiffPane/AIFactPane/NotebookPane/WorkflowPane/
+    EnvironmentManagementPane/ExecutionProfileEditorPane/ChildAgentOrigin + IPaneType agent variants +
+    TypedPane agent variants) — view/vertical_tabs.rs (35, resolve_pane_type/matching_tab_indices),
+    view/pane_impl.rs (27, Viewer), view/right_panel.rs (34, CodeReviewView), working_directories.rs (22),
+    home.rs, view.rs. Coordinated: trim IPaneType/TypedPane enums + delete the pane structs + use-sites.
+ 4. input AI-input-mode subsystem: InputType/InputConfig/InputTypeAutoDetectionSource/ai_input_model field
+    woven through terminal/input.rs (51) handle_editor_event/input_enter/handle_action/ctor +
+    suggestions_mode_model.rs. Remove ai_input_model field + InputType/InputConfig + AI-input branches.
+ 5. terminal/view.rs (44) render agent subsystem (ambient_agent/Viewer/agent_view_bg_fill/
+    BlocklistAIHistoryModel/struct fields FileLocations/AIConversationId/FinishReason etc).
+ 6. Phase F server/: server_api.rs (21, ai::predict use-sites), network_log_view, graphql/schema (22).
+ 7. slash_commands mod (26) + data_source (25): FuzzyMatchWorkflowResult, input::models, saved_prompts.
+ 8. rich_content.rs (21), block_list_element.rs (shared_session), rich_history.rs (AIQueryHistoryEntryDetails).
+APPROACH: hub files (view.rs/input.rs/terminal/view.rs) — use EDITS not scripts (broke view.rs 3x w/ scripts).
+For each cluster, decide recreate-minimal (if KEEP code needs the type's non-agent part) vs delete-whole.
+
 WINDOW 12 — ⚠️ CRITICAL DISCOVERY: THE ERROR COUNT WAS MASKED.
 A FAILING GLOB IMPORT (`use CommandSearchEvent::*;` at workspace/view.rs ~L11903, inside
 handle_command_search_event; CommandSearchEvent/CommandSearchView are FULLY DELETED — no `view`
