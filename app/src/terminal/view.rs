@@ -11355,17 +11355,6 @@ impl TerminalView {
         }
     }
 
-    #[cfg(feature = "local_fs")]
-    fn open_code_in_warp(
-        &mut self,
-        source: CodeSource,
-        layout: EditorLayout,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        ctx.emit(Event::OpenCodeInWarp { source, layout })
-    }
-
-
     fn toggle_grid_secret(
         &mut self,
         secret_handle: &WithinModel<SecretHandle>,
@@ -16686,7 +16675,6 @@ impl TypedActionView for TerminalView {
             | SetMarkedText { .. }
             | ClearMarkedText => ActionAccessibilityContent::from_debug(),
             #[cfg(feature = "local_fs")]
-            OpenCodeInWarp { .. } => ActionAccessibilityContent::from_debug(),
             OpenInWarpBanner(action) => self.open_in_warp_banner_accessibility_content(*action),
             // Below are actions that are most likely irrelevant to users or are very noisy and the
             // debug version shouldn't be announced.
@@ -16929,22 +16917,6 @@ impl TypedActionView for TerminalView {
             }
             OpenFileInWarp(path) => {
                 self.open_file_in_warp(path.clone(), ctx);
-            }
-            #[cfg(feature = "local_fs")]
-            OpenCodeInWarp {
-                path,
-                layout,
-                line_col,
-            } => {
-                self.open_code_in_warp(
-                    CodeSource::Link {
-                        path: path.clone(),
-                        range_start: *line_col,
-                        range_end: None,
-                    },
-                    *layout,
-                    ctx,
-                );
             }
             OpenBlockListContextMenu => self.open_block_list_context_menu_via_keybinding(ctx),
             TriggerSubshellBootstrap => self.trigger_subshell_bootstrap(None, false, ctx),

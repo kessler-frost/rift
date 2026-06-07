@@ -159,16 +159,9 @@ impl TerminalView {
                             });
                         }
                         OpenableFileType::Code | OpenableFileType::Text => {
-                            #[cfg(feature = "local_fs")]
-                            ctx.emit(Event::OpenCodeInWarp {
-                                source: CodeSource::Link {
-                                    path: banner_state.target.path,
-                                    range_start: None,
-                                    range_end: None,
-                                },
-                                layout: *crate::terminal::view::EditorSettings::as_ref(ctx)
-                                    .open_file_layout
-                                    .value(),
+                            ctx.emit(Event::OpenFileInWarp {
+                                path: banner_state.target.path,
+                                session: banner_state.session,
                             });
                         }
                     }

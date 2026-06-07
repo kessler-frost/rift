@@ -58,13 +58,10 @@ fn open_in_warp_tooltip(
     } else {
         None
     };
+    let _ = line_and_column_num;
     Some(GridTooltipLink {
         text: "Open in Warp".to_string(),
-        action: TerminalAction::OpenCodeInWarp {
-            path,
-            layout: *EditorSettings::as_ref(app).open_file_layout.value(),
-            line_col: line_and_column_num,
-        },
+        action: TerminalAction::OpenFileInWarp(path),
         mouse_state,
         detail,
     })

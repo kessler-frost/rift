@@ -597,14 +597,12 @@ impl Input {
                         let (file_path, line_col) =
                             open_file_command_path(&session, &current_dir, args);
 
+                        let _ = line_col;
                         match std::fs::metadata(&file_path) {
                             Ok(metadata) if metadata.is_file() => {
-                                use crate::util::file::external_editor;
-
-                                ctx.dispatch_typed_action(&TerminalAction::OpenCodeInWarp {
+                                ctx.emit(Event::OpenFileInWarp {
                                     path: file_path,
-                                    layout: external_editor::settings::EditorLayout::SplitPane,
-                                    line_col,
+                                    session,
                                 });
                             }
                             Ok(_) => {

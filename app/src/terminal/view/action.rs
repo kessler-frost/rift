@@ -223,12 +223,6 @@ pub enum TerminalAction {
     CopyRichContentSecret(RichContentSecretTooltipInfo),
     ShowInFileExplorer(PathBuf),
     OpenFileInWarp(PathBuf),
-    #[cfg(feature = "local_fs")]
-    OpenCodeInWarp {
-        path: PathBuf,
-        layout: crate::util::file::external_editor::settings::EditorLayout,
-        line_col: Option<rift_util::path::LineAndColumnArg>,
-    },
     /// Starts a subshell in the active session.
     TriggerSubshellBootstrap,
     /// If the user says "no" to Warpification, possibly requesting not to be asked again
@@ -398,8 +392,6 @@ impl fmt::Debug for TerminalAction {
             CopyRichContentSecret(_) => f.write_str("CopyRichContentSecret"),
             ShowInFileExplorer(_) => f.write_str("ShowInFileExplorer"),
             OpenFileInWarp(_) => f.write_str("OpenFileInWarp"),
-            #[cfg(feature = "local_fs")]
-            OpenCodeInWarp { .. } => f.write_str("OpenCodeInWarp"),
             OpenBlockListContextMenu => f.write_str("OpenBlockListContextMenu"),
             TriggerSubshellBootstrap => f.write_str("TriggerSubshellBootstrap"),
             DismissWarpifyBanner(remember) => write!(f, "DismissWarpifyBanner({remember:?})"),
