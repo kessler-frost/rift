@@ -7,7 +7,6 @@ use riftui::platform::FullscreenState;
 use riftui::{AppContext, SingletonEntity as _};
 use serde::{Deserialize, Serialize};
 
-use crate::ai::blocklist::{InputConfig, SerializedBlockListItem};
 use crate::root_view::quake_mode_window_id;
 use crate::server::ids::SyncId;
 use crate::settings_view::SettingsSection;
@@ -21,8 +20,6 @@ use crate::workspace::WorkspaceRegistry;
 pub struct AppState {
     pub windows: Vec<WindowSnapshot>,
     pub active_window_index: Option<usize>,
-    pub block_lists: Arc<HashMap<PaneUuid, Vec<SerializedBlockListItem>>>,
-    pub running_mcp_servers: Vec<uuid::Uuid>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -151,7 +148,6 @@ pub struct TerminalPaneSnapshot {
     pub shell_launch_data: Option<ShellLaunchData>,
     pub is_active: bool,
     pub is_read_only: bool,
-    pub input_config: Option<InputConfig>,
     pub active_profile_id: Option<SyncId>,
 }
 
