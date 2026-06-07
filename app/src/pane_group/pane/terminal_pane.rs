@@ -147,7 +147,6 @@ impl TerminalPane {
             view.last_focus_ts(),
             view.is_read_only(),
             window_id,
-            view.model.lock().shared_session_status().clone(),
         )
     }
 
