@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1456 compile errors** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **1387 compile errors** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,20 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 9 done (all AI removed + lib.rs boot inits, 1456->1387): deleted app/src/ai + rift_ai dep
++ editor/input AI-autosuggestion (kept completer-based fallback); de-agented input.rs
+(handle_editor_event AI-input-detection/context-menu, agent accessor methods, dead imports);
+removed lib.rs agent boot-inits (blocklist/drive/ai_assistant/env_vars/workflows/voltron/
+agent-todos + EnvVarCollectionManager/WorkflowManager/AITipModel/CodebaseIndexManager/
+ProjectContextModel/AIExecutionProfiles/shared_session/BonusGrant singletons) + ::ai::index
+import + determine_agent_source/daemon_codebase_index_snapshot_storage fns. Accurate top files
+now: workspace/view.rs 238, server/telemetry/events.rs 178 (Phase F), pane_group/pane/
+terminal_pane.rs 119, terminal/input.rs ~45, terminal/view.rs ~56, root_view 49. Remaining input.rs
+needs input_enter/handle_action de-agent (entangled w/ cli_agent_sessions+inline menus) + the
+lib.rs `code::` IDE-strip imports. NOTE delbyname-style balanced deletes BREAK on multi-line
+statements whose marker is on a continuation line (ate FileModel + left orphan `add_singleton_model(`
+in lib.rs — hand-fixed); start balanced deletes at the STATEMENT's first line.
+
 To pick up locally:
 `cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
 (needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
