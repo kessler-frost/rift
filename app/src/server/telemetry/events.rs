@@ -2148,21 +2148,6 @@ pub enum TelemetryEvent {
         remote_os: Option<String>,
         remote_arch: Option<String>,
     },
-    /// Emitted when the user commits a non-empty edit to a queued prompt row.
-    QueuedPromptEdited {
-        origin: TelemetryQueuedQueryOrigin,
-    },
-    /// Emitted when the user deletes a queued prompt row via the trash button or the
-    /// commit-empty edit shortcut.
-    QueuedPromptDeleted {
-        origin: TelemetryQueuedQueryOrigin,
-    },
-    /// Emitted when the user reorders a queued prompt row via drag-and-drop.
-    QueuedPromptReordered {
-        origin: TelemetryQueuedQueryOrigin,
-        from_index: usize,
-        to_index: usize,
-    },
     /// Emitted when the user toggles the queued prompts panel collapse state.
     QueuedPromptPanelCollapseToggled {
         collapsed: bool,
