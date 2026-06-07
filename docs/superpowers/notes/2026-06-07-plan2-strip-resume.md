@@ -1,10 +1,109 @@
-# Plan 2 Strip — RESUME NOTE (window 7, 2026-06-07)
+# Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1736 compile errors** (down from 4173 baseline,
-~58%), all committed + pushed. To pick up locally:
+State at handoff: branch `plan2-strip`, **1663 compile errors** (down from 4173 baseline,
+~60%), all committed + pushed (latest `a3d400ce` + the window-8 enum-cascade commits).
+To pick up locally:
 `cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
 (needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
+Iterate with `cargo check --bin rift-oss > /tmp/rb.log 2>&1; grep -c '^error' /tmp/rb.log`.
+Recreate `/tmp/delbyname.py` from the helper at the top of window-7 if the container is fresh
+(it was recreated this window).
+
+## TELEMETRY — macro no-op ALREADY DONE (Phase E macros complete)
+Verified this window: the 4 telemetry macros are ALREADY no-op'd —
+`send_telemetry_from_ctx!`/`send_telemetry_from_app_ctx!` in `crates/rift_core/src/telemetry.rs`
+(L150/L161) and `send_telemetry_sync_from_ctx!`/`send_telemetry_sync_from_app_ctx!`/
+`send_telemetry_on_executor!` in `app/src/server/telemetry/macros.rs`. So all ~67 call sites
+compile away (tokens discarded, not type-checked). Phase E's REMAINING work is only: (a) the
+`AuthState` shim, and (b) Phase F deletion of `server/telemetry/events.rs` (the `TelemetryEvent`
+enum DEFINITION — 176 errors there are its variant payloads referencing deleted types; leave
+until the server delete). Do NOT delete the 67 call sites.
+
+## WINDOW 8 — what's DONE (ContextMenuAction + TerminalAction enum cascade; 1736 → 1663, −73)
+All committed + pushed on `plan2-strip`, each a verified net error drop.
+1. **ContextMenuAction / InputContextMenuAction cluster (commit `3d924b13`, 1737→1710)**
+   `terminal/view.rs`: dropped agent variants from both enums + their `impl Debug` arms
+   (AskAI/OpenWorkflowModal/OpenShareBlockModal/sharing/AI-block-copy/fork/rewind/debugging-link/
+   EditAgentToolbar/EditCLIAgentToolbar + AskAISource enum; ShowAICommandSearch/AskWarpAI/
+   SaveAsWorkflow). De-wired the menu-builder construction sites (block/text/input/alt-screen
+   context-menu builders — removed the AI/sharing/Drive `if`-gated item blocks + the
+   `RichContentBlockRightClick` AI-block menu section + `prompt_context_menu_items` agent-toolbar
+   branches), the handlers `context_menu_action` + `handle_input_context_menu_action` (keep-only),
+   and `terminal/view/init.rs` ask_ai keybinding registrations.
+2. **TerminalAction enum (commit `d9d9e3c1`, 1710→1669)** `terminal/view/action.rs`: rewrote the
+   `TerminalAction` enum + `impl Debug` to terminal-only (~75 agent/cloud/sharing/workflow/code/
+   MCP variants removed). De-wired `terminal/view.rs` `action_accessibility_contents` (the
+   `|`-chains + dedicated AI arms) and `handle_action` (deleted ~75 agent arms incl. the big runs
+   AI-block-menu / SetInputMode* / DeleteAttachment..StartNewAgentConversation / child-agents).
+   **OnboardingFlow + ShowInitializationBlock kept as variants with NO-OP `handle_action` arms**
+   (pending struct/ctor cleanup — their bodies were agent: add_agentic_suggestions_block /
+   start_agent_onboarding_tutorial / show_initialization_block). KEPT terminal variants
+   (Scroll/Block*/Copy*/Split*/Paste/Find/Vim/SSH/Subshell/Warpify/MiddleClick/DragDrop/
+   ToggleBlockFilter/ToggleSnackbar/ToggleSessionRecording/OpenInlineHistoryMenu/HideTelemetryBanner/
+   ImportSettings/ShowWarpifySettings/OnboardingFlow[no-op]/ShowInitializationBlock[no-op]).
+3. **TerminalAction keybindings (commit `a3d400ce`, 1669→1663)** `terminal/view/init.rs`: removed
+   all agent keybinding registrations (Resume/Fork/ToggleAIDocumentPane/SetInputMode*/
+   ToggleCLIAgentRichInput/ResolvePromptSuggestion/JumpToLatestAgentMessage/OpenWorkflowModal/
+   OpenShareModal/share-session/autoexecute/queue/codebase-index/agentic-suggestion/
+   WriteCodebaseIndex/LoadAgentModeConversation/InitProject/AddProject/ConversationDetails/
+   EnterCloudAgentView); emptied `register_input_mode_bindings` to a no-op.
+
+## WINDOW 8 — REMAINING TerminalAction dispatch sites (≈46, NOT isolated — embedded in OTHER cascades)
+These still reference removed TerminalAction variants but are NOT standalone — they live inside
+agent subtrees that are their own cascades and will clear when those are removed. DO NOT
+one-line-patch them (entangled). Locations:
+- `terminal/view.rs` `handle_input_event` (~L16418-16445): `InputEvent::{OpenProjectRulesPane,
+  OpenViewMCPPane,OpenAddMCPPane,...}` arms call removed TerminalAction — part of the **InputEvent
+  enum cascade** (InputEvent defined in `input.rs`; de-agent InputEvent + these arms together).
+  Also `terminal/view.rs:3676` `TerminalAction::ExitAgentView` (in the agent ctor block).
+- `terminal/input/slash_commands/mod.rs` (12) + `data_source/mod.rs` (25): agent slash commands
+  (/add-mcp,/add-prompt,/add-rule,/conversations,/index,/open-rules,/open-project-rules,/edit-skill,
+  /summarize,/agent,/new,/cloud-agent,/create-docker-sandbox). The whole agent-slash-command set
+  (incl. `search/slash_command_menu/static_commands` `commands::*` defs) should be removed; the file
+  also references deleted Input fields (ai_context_model/ephemeral_message_model/agent_view_controller/
+  suggestions_mode_model/cloud_mode_v2_history_menu_view) + deleted Events (EnterAgentView/
+  EnterCloudAgentView/CreateDockerSandbox). Do with the Input/Event cleanup.
+- Agent banner files — candidates for WHOLESALE deletion (delete file + mod decl + inline_banner
+  render dispatch): `terminal/view/inline_banner/{aws_bedrock_login,aws_cli_not_installed,
+  anonymous_user_ai_sign_up,agent_mode_setup}.rs`, `terminal/view/zero_state_block.rs`.
+- Isolated keep-file singletons (can patch when convenient): `workspace/view/right_panel.rs:1803`
+  (PickRepoToOpen), `pane_group/pane/view/header/mod.rs:416` (DismissCodeToolbeltTooltip),
+  `terminal/view/context_menu.rs:458` (RewindAIConversation), `terminal/view/pane_impl.rs` (4),
+  `terminal/block_list_element.rs` (6), `terminal/alt_screen/alt_screen_element.rs` (1),
+  `workspace/view.rs:21300` (ExecuteRewindAIConversation), `terminal/view_tests.rs` (2).
+
+## WINDOW 8 — NEXT BIG CLUSTERS (in suggested order)
+1. **view.rs `Event` enum** (def ~L1359-1734 pre-window-8; now shifted up ~130 lines): remove agent
+   variants (AskAIAssistant/OpenWorkflowModal*/OpenWarpDriveObjectInPane/AI-doc/CodeReview/sharing/
+   role/MCP/agent-profile/cloud-capacity/StartAgentConversation/child-agents/EnterAgentView/
+   EnterCloudAgentView/CreateDockerSandbox/etc.) TOGETHER with their `ctx.emit(Event::X)` sites
+   (scattered in view.rs methods + workspace/view.rs handle_event) and the handle_event match arms.
+   KEEP terminal Events (AppStateChanged/Escape/Exited/BlockListCleared/SendNotification/
+   BlockCompleted/Pane/OpenSettings/SyncInput/ShowCommandSearch/CtrlD/ShutdownPty/WriteBytesToPty/
+   Resize/ExecuteCommand/BlockStarted/CloseRequested/FocusSession/Onboarding*Completed/
+   Selected*Changed/PendingCommandCompleted/SessionBootstrapped/ShellSpawned/file-upload/
+   RunNativeShellCompletions/RemoteServer*/OpenThemeChooser/ToggleLeftPanel/SlowBootstrap/ShowToast/
+   PluggableNotification + OpenFileInWarp[verify]).
+2. **TerminalView struct + ctor (the window-5 CORRECTION linchpin, STILL pending)**: the struct
+   (~L2294) still has ~30 agent fields (ai_controller/ai_context_model/ai_input_model/
+   ai_action_model/agent_view_controller/ambient_agent_view_model/cli_subagent_controller/
+   use_agent_footer/agent_todos_popup/onboarding_agentic_suggestions_block/pty_recorder[KEEP]/
+   is_conversation_details_panel_open/is_todo_popup_visible/etc.) referenced by ~40 agent methods +
+   the ~1100-line ctor + the `render` method (also agent-laden: agent_view_controller.is_fullscreen,
+   use_agent_footer, ambient_agent_view_model, etc.). This is the from-scratch struct+ctor+render
+   rewrite. Removing the fields will surface/clear hundreds of method-body errors.
+3. **InputEvent cascade** (input.rs enum + view.rs handle_input_event) — see remaining-dispatch above.
+4. Then workspace/view.rs (252) + workspace/action.rs (26) WorkspaceAction + left/right_panel/
+   vertical_tabs enum-definers + pane_group/pane/terminal_pane.rs (119) — the rest of the contract
+   cluster. Then Phase F (server/auth/events.rs) etc.
+
+Error distribution at window-8 handoff (1663): terminal/view.rs 264, workspace/view.rs 252,
+server/telemetry/events.rs 176 (Phase F), terminal/input.rs 128, pane_group/pane/terminal_pane.rs
+119, root_view.rs 50, lib.rs 46, workspaces/user_workspaces.rs 37 (Phase C), right_panel 34,
+vertical_tabs 33, slash_commands/mod 28, view/pane_impl 27, session_settings 27, gql_convert 26
+(Phase C), workspace/action 26, slash_commands/data_source 25, server/graphql 23 (Phase G),
+view/rich_content 21, pane_group/working_directories 21.
 
 **DO NOT USE SUBAGENTS from here on.** The remaining work is the tightly-interconnected
 contract cluster (Event/action enum cascade across `terminal/view.rs` ↔ `workspace/view.rs` ↔
