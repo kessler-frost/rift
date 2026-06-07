@@ -1644,16 +1644,6 @@ impl BlockListElement {
                                 return true;
                             }
 
-                            if matches!(
-                                self.rich_content_metadata.get(view_id),
-                                Some(
-                                    RichContentMetadata::AIBlock(_)
-                                        | RichContentMetadata::PendingUserQuery { .. }
-                                )
-                            ) {
-                                should_redetermine_focus = false;
-                            }
-
                             ctx.dispatch_typed_action(TerminalAction::BlockSelect {
                                 action: BlockSelectAction::MouseDown(None),
                                 should_redetermine_focus,
@@ -4336,11 +4326,7 @@ impl Element for BlockListElement {
                         }
                     }
 
-                    // Don't draw a border below session headers (i.e. above the next block).
-                    draw_border_above_block = !matches!(
-                        self.rich_content_metadata.get(view_id),
-                        Some(RichContentMetadata::HarnessSessionHeader)
-                    );
+                    draw_border_above_block = true;
 
                     grid_origin += vec2f(0., *height_px);
                 }

@@ -1616,22 +1616,10 @@ impl BlocklistAIRenderContext {
     /// Returns the AI context stripe color to use for rich content, if any,
     pub fn context_color_for_rich_content(
         &self,
-        rich_content: &RichContentMetadata,
-        theme: &WarpTheme,
+        _rich_content: &RichContentMetadata,
+        _theme: &WarpTheme,
     ) -> Option<ColorU> {
-        match rich_content {
-            RichContentMetadata::AIBlock(ai_metadata)
-                if self.is_exchange_in_active_conversation(&ai_metadata.exchange_id) =>
-            {
-                self.context_color(theme)
-            }
-            RichContentMetadata::AIOnboardingBlock { exchange_id, .. }
-                if self.is_exchange_in_active_conversation(exchange_id) =>
-            {
-                self.context_color(theme)
-            }
-            _ => None,
-        }
+        None
     }
 
     /// The context color to use for a block, given its conversation phase.
@@ -12340,29 +12328,6 @@ impl TerminalView {
         // except for the rich content block with a matching view ID.
         for rich_content in self.rich_content_views.iter() {
             match rich_content.metadata() {
-                Some(RichContentMetadata::AIBlock(ai_metadata)) => {
-                    if exempt_rich_content_view_id
-                        .is_some_and(|view_id| ai_metadata.ai_block_handle.id() == view_id)
-                    {
-                        continue;
-                    }
-                    ai_metadata
-                        .ai_block_handle
-                        .update(ctx, |ai_block, ctx| ai_block.clear_all_selections(ctx));
-                }
-                Some(RichContentMetadata::EnvVarCollectionBlock {
-                    env_var_collection_block_handle,
-                    ..
-                }) => {
-                    if exempt_rich_content_view_id
-                        .is_some_and(|view_id| env_var_collection_block_handle.id() == view_id)
-                    {
-                        continue;
-                    }
-                    env_var_collection_block_handle.update(ctx, |env_var_collection_block, ctx| {
-                        env_var_collection_block.clear_selection(ctx);
-                    });
-                }
                 Some(RichContentMetadata::WarpifySuccessBlock { .. }) => {
                     // TODO(Simon): We should be checking for WarpifySuccessBlocks here as well.
                     // The `WarpifySuccessBlock` implements a `SelectableArea`.
@@ -17378,21 +17343,6 @@ impl View for TerminalView {
 
         if let Some(SshBlockState::Error { .. }) = self.warpify_state.ssh_block_state() {
             context.set.insert(SSH_ERROR_BLOCK_VISIBLE_KEY);
-        }
-
-        if self
-            .rich_content_views
-            .last()
-            .and_then(|content| content.metadata())
-            .is_some_and(|metadata| {
-                matches!(
-                    metadata,
-                    RichContentMetadata::OnboardingAgenticSuggestions { .. }
-                )
-            })
-            && self.block_onboarding_active
-        {
-            context.set.insert("OnboardingAgenticSuggestionsBlock");
         }
 
         if self.current_repo_path.is_some() {
