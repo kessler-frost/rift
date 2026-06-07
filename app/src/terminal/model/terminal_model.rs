@@ -34,7 +34,7 @@ use super::ansi::{
     TmuxInstallFailedInfo, WarpificationUnavailableReason,
 };
 use super::block::{
-    AgentInteractionMetadata, Block, BlockId, BlockMetadata, BlockSize, BlockState,
+    Block, BlockId, BlockMetadata, BlockSize, BlockState,
     BlocklistEnvVarMetadata, SerializedBlock, SerializedBlockListItem,
 };
 use super::blockgrid::BlockGrid;
@@ -1313,16 +1313,6 @@ impl TerminalModel {
         self.ordered_terminal_events_for_shared_session_tx = None;
     }
 
-    fn ai_metadata_to_protocol(metadata: &AgentInteractionMetadata) -> AICommandMetadata {
-        AICommandMetadata {
-            tool_call_id: metadata
-                .requested_command_action_id()
-                .map(|id| id.to_string())
-                .unwrap_or_default(),
-            // Any command with a long-running control state is considered agent-monitored.
-            is_agent_monitored: metadata.long_running_control_state().is_some(),
-        }
-    }
 
     pub fn set_write_to_pty_events_for_shared_session_tx(&mut self, tx: Sender<Vec<u8>>) {
         self.write_to_pty_events_for_shared_session_tx = Some(tx);
@@ -1346,40 +1336,6 @@ impl TerminalModel {
         self.write_to_pty_events_for_shared_session_tx = None;
     }
 
-    /// Sends an Agent ResponseEvent to viewers if this session is shared.
-    /// The participant_id should be the ID of the participant who initiated the query.
-    /// The forked_from_conversation_token is used for forked conversations to help viewers
-    /// link the new server-assigned token to an existing conversation from historical replay.
-    pub fn send_agent_response_for_shared_session(
-        &mut self,
-        response: &rift_multi_agent_api::ResponseEvent,
-        response_initiator: Option<ParticipantId>,
-        forked_from_conversation_token: Option<String>,
-    ) {
-        // We should always have a response initiator for shared sessions,
-        // but if we don't we should still send the response event to the viewers
-        // (as opposed to completely failing and skipping the send).
-        if response_initiator.is_none() {
-            report_error!(anyhow::anyhow!(
-                "No response initiator tracked for agent response event."
-            ));
-        }
-
-        if self.shared_session_status().is_sharer() {
-            if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-                let encoded = encode_agent_response_event(response);
-                if let Err(e) = tx.try_send(OrderedTerminalEventType::AgentResponseEvent {
-                    response_initiator,
-                    response_event: encoded,
-                    forked_from_conversation_token,
-                }) {
-                    log::warn!("Failed to send OrderedTerminalEventType::AgentResponseEvent: {e}");
-                }
-            }
-        } else {
-            log::debug!("Not sharing this session; ignoring agent response event");
-        }
-    }
 
     pub fn send_agent_conversation_replay_started_for_shared_session(&mut self) {
         if self.shared_session_status().is_sharer() {
@@ -1725,46 +1681,7 @@ impl TerminalModel {
             .set_env_var_metadata(env_var_metadata);
     }
 
-    /// Starts the execution for a command in a shared session (sharer or viewer).
-    pub fn start_command_execution_for_shared_session(
-        &mut self,
-        participant_id: ParticipantId,
-        agent_metadata: Option<AgentInteractionMetadata>,
-    ) {
-        self.start_command_execution();
 
-        // If this command has AI metadata, attach it to the active block.
-        if let Some(ai_metadata) = &agent_metadata {
-            self.block_list
-                .active_block_mut()
-                .set_agent_interaction_mode(ai_metadata.clone());
-        }
-
-        // TODO (suraj): add participant ID to active block metadata.
-
-        // If this is a sharer, send an event to indicate the start of the command execution
-        // along with the identity of the participant that ran the command.
-        if let Some(tx) = &self.ordered_terminal_events_for_shared_session_tx {
-            if let Err(e) = tx.try_send(OrderedTerminalEventType::CommandExecutionStarted {
-                participant_id,
-                ai_metadata: agent_metadata.as_ref().map(Self::ai_metadata_to_protocol),
-            }) {
-                log::warn!("Failed to send OrderedTerminalEventType::CommandExecutionStarted: {e}");
-            }
-        }
-    }
-
-    /// Starts the command execution (per `Self::start_command_execution`) and additionally sets
-    /// the given `ai_metadata` on the active block.
-    pub fn start_command_execution_with_ai_metadata(
-        &mut self,
-        agent_metadata: AgentInteractionMetadata,
-    ) {
-        self.start_command_execution();
-        self.block_list
-            .active_block_mut()
-            .set_agent_interaction_mode(agent_metadata);
-    }
 
     // Starts active block as a background block. Used in Alacritty integration tests to
     // work with the output grid directly.

@@ -682,31 +682,6 @@ struct ViewerCommandExecutionRequest {
 /// Where a command execution request originates from.
 #[derive(Clone)]
 pub enum CommandExecutionSource {
-    /// A non-shared command execution request from Warp AI++.
-    /// Shared commands use the SharedSession variant instead.
-    AI {
-        /// Metadata associated with the execution.
-        metadata: AgentInteractionMetadata,
-    },
-
-    /// A command execution request in a shared session (by a viewer or sharer).
-    ///
-    /// For a sharer, this will be processed similar to [`CommandExecutionSource::User`]
-    /// except the resulting block will be annotated with the participant ID.
-    ///
-    /// For a viewer, this will be handled by sending the request to the sharer.
-    SharedSession {
-        /// The participant ID of the
-        participant_id: ParticipantId,
-        /// The block ID associated to the active block when
-        /// the request was fired.
-        block_id: BlockId,
-        /// Optional AI metadata if this command was requested by the AI agent
-        /// in a shared session. This is used to associate the resulting command block
-        /// with the original agent command.
-        ai_metadata: Option<AgentInteractionMetadata>,
-    },
-
     /// A normal command execution request.
     User,
 
@@ -718,16 +693,7 @@ pub enum CommandExecutionSource {
 impl CommandExecutionSource {
     /// Whether this command execution originates from an AI command.
     pub fn is_ai_command(&self) -> bool {
-        // TODO: at some point we will want to couple both of these cases
-        // into one source variant, as they are both AI sources.
-        matches!(
-            self,
-            CommandExecutionSource::AI { .. }
-                | CommandExecutionSource::SharedSession {
-                    ai_metadata: Some(_),
-                    ..
-                }
-        )
+        false
     }
 }
 
