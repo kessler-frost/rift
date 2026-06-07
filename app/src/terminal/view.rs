@@ -2880,19 +2880,8 @@ impl TerminalView {
         let active_session = ctx.add_model(|ctx| {
             ActiveSession::new(sessions.clone(), model_events_handle.clone(), ctx)
         });
-        let ambient_agent_view_model = is_cloud_mode.then(|| {
-            ctx.add_model(|ctx| ambient_agent::AmbientAgentViewModel::new(terminal_view_id, ctx))
-        });
 
-        let ephemeral_message_model = ctx.add_model(|_| EphemeralMessageModel::new());
 
-        let agent_view_controller = ctx.add_model(|_| {
-            AgentViewController::new(
-                model.clone(),
-                terminal_view_id,
-                ephemeral_message_model.clone(),
-            )
-        });
 
         ctx.subscribe_to_model(&agent_view_controller, |me, _, event, ctx| {
             match event {
@@ -3205,91 +3194,15 @@ impl TerminalView {
             ctx.notify();
         });
 
-        let ai_context_model = ctx.add_model(|ctx| {
-            BlocklistAIContextModel::new(
-                sessions.clone(),
-                &model_events_handle,
-                model.clone(),
-                terminal_view_id,
-                agent_view_controller.clone(),
-                ctx,
-            )
-        });
-        let ai_input_model = ctx.add_model(|ctx| {
-            let mut model = BlocklistAIInputModel::new(
-                model.clone(),
-                agent_view_controller.clone(),
-                ai_context_model.clone(),
-                terminal_view_id,
-                ctx,
-            );
 
-            // If NLD is disabled, restore any input config that was saved.
-            if !model.is_autodetection_enabled_for_current_context(ctx) {
-                if let Some(input_config) = initial_input_config {
-                    let is_input_buffer_empty = true;
-                    model.set_input_config(input_config, is_input_buffer_empty, None, ctx);
-                }
-            }
-            model
-        });
-
-        let get_relevant_files_controller = ctx.add_model(GetRelevantFilesController::new);
-        let ai_action_model = ctx.add_model(|ctx| {
-            BlocklistAIActionModel::new(
-                model.clone(),
-                active_session.clone(),
-                &model_events_handle,
-                get_relevant_files_controller.clone(),
-                terminal_view_id,
-                ctx,
-            )
-        });
-        let ai_controller = ctx.add_model(|ctx| {
-            BlocklistAIController::new(
-                ai_input_model.clone(),
-                ai_context_model.clone(),
-                ai_action_model.clone(),
-                active_session.clone(),
-                agent_view_controller.clone(),
-                model.clone(),
-                terminal_view_id,
-                ctx,
-            )
-        });
-        let maa_passive_suggestions_model = ctx.add_model(|ctx| {
-            MaaPassiveSuggestionsModel::new(
-                active_session.clone(),
-                model.clone(),
-                ai_controller.clone(),
-                &model_events_handle,
-                ambient_agent_view_model.clone(),
-                terminal_view_id,
-                ctx,
-            )
-        });
         ctx.subscribe_to_model(
             &maa_passive_suggestions_model,
             Self::handle_maa_passive_suggestions_event,
         );
-        let legacy_passive_suggestions_model = ctx.add_model(|ctx| {
-            LegacyPassiveSuggestionsModel::new(
-                active_session.clone(),
-                model.clone(),
-                ai_controller.clone(),
-                &model_events_handle,
-                terminal_view_id,
-                ctx,
-            )
-        });
         ctx.subscribe_to_model(
             &legacy_passive_suggestions_model,
             Self::handle_legacy_passive_suggestions_event,
         );
-        let passive_suggestions_models = PassiveSuggestionsModels {
-            maa: maa_passive_suggestions_model,
-            legacy: legacy_passive_suggestions_model,
-        };
 
         let find_model = ctx.add_model(|ctx| TerminalFindModel::new(model.clone(), ctx));
 
@@ -3465,21 +3378,6 @@ impl TerminalView {
             parent: ctx.handle(),
         });
 
-        let cli_subagent_controller = ctx.add_model(|ctx| {
-            CLISubagentController::new(
-                &ai_controller,
-                &ai_action_model,
-                if FeatureFlag::AgentView.is_enabled() {
-                    Some(agent_view_controller.clone())
-                } else {
-                    None
-                },
-                model.clone(),
-                &model_events_handle,
-                terminal_view_id,
-                ctx,
-            )
-        });
         ctx.subscribe_to_model(
             &cli_subagent_controller,
             Self::handle_cli_subagent_controller_event,
@@ -3542,26 +3440,6 @@ impl TerminalView {
             });
         }
 
-        let ai_render_context = Rc::new(RefCell::new(BlocklistAIRenderContext {
-            block_ids: HashMap::from_iter([
-                (
-                    AIContextInclusionState::Pending,
-                    ai_context_model
-                        .as_ref(ctx)
-                        .pending_context_block_ids()
-                        .clone(),
-                ),
-                (AIContextInclusionState::Active, Default::default()),
-            ]),
-            selected_conversation_id: None,
-            exchange_ids: None,
-            should_highlight_context: false,
-            is_ai_input_enabled: ai_input_model.as_ref(ctx).is_ai_input_enabled(),
-            has_pending_context_selected_text: ai_context_model
-                .as_ref(ctx)
-                .pending_context_selected_text()
-                .is_some(),
-        }));
 
         ctx.subscribe_to_model(&ai_context_model, Self::handle_ai_context_model_event);
         ctx.subscribe_to_model(
@@ -3861,15 +3739,11 @@ impl TerminalView {
             }
         });
 
-        let first_time_cloud_agent_setup_view =
-            ctx.add_typed_action_view(ambient_agent::FirstTimeCloudAgentSetupView::new);
 
         ctx.subscribe_to_view(&first_time_cloud_agent_setup_view, |me, _, event, ctx| {
             me.handle_first_time_cloud_agent_setup_event(event, ctx);
         });
 
-        let environment_setup_mode_selector =
-            ctx.add_typed_action_view(EnvironmentSetupModeSelector::new);
 
         ctx.subscribe_to_view(&environment_setup_mode_selector, |me, _, event, ctx| {
             me.handle_environment_setup_mode_selector_event(event, ctx);
@@ -3902,7 +3776,6 @@ impl TerminalView {
             }
         });
 
-        let agent_todos_popup = Self::build_agent_todos_popup(ai_context_model.clone(), ctx);
 
         let terminal_view_id = ctx.view_id();
         let agent_input_footer = input.as_ref(ctx).agent_input_footer().clone();
@@ -3914,9 +3787,6 @@ impl TerminalView {
                 agent_input_footer.clone(),
                 ctx,
             )
-        });
-        let orchestration_pill_bar = ctx.add_typed_action_view(|ctx| {
-            OrchestrationPillBar::new(agent_view_controller.clone(), ctx)
         });
         ctx.subscribe_to_view(&orchestration_pill_bar, |_, _, _, ctx| ctx.notify());
 
