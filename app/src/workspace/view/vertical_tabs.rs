@@ -791,9 +791,6 @@ struct VerticalTabsSummaryBranchEntry {
 #[derive(Clone, Debug, PartialEq)]
 struct VerticalTabsSummaryPrimaryLabel {
     text: String,
-    /// Some when the contributing pane is a conversation with a known status. Drives the
-    /// per-line status pill prefix in Summary mode.
-    status: Option<ConversationStatus>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -876,7 +873,6 @@ fn push_normalized_unique_summary_label(
     values: &mut Vec<VerticalTabsSummaryPrimaryLabel>,
     seen: &mut HashMap<String, ()>,
     text: &str,
-    status: Option<ConversationStatus>,
 ) {
     let Some(normalized) = normalize_summary_text(text) else {
         return;
@@ -885,18 +881,7 @@ fn push_normalized_unique_summary_label(
         return;
     }
     seen.insert(normalized.clone(), ());
-    values.push(VerticalTabsSummaryPrimaryLabel {
-        text: normalized,
-        status,
-    });
-}
-
-/// Stable sort that moves labels with a known `ConversationStatus` ahead of labels without
-/// one, while preserving the relative first-seen order within each group. Used in Summary
-/// mode so the visible 3-line title region (and the `+ N more` overflow) prioritizes
-/// conversation lines over plain terminal / non-conversation lines.
-fn sort_summary_primary_labels_status_first(values: &mut [VerticalTabsSummaryPrimaryLabel]) {
-    values.sort_by_key(|label| label.status.is_none());
+    values.push(VerticalTabsSummaryPrimaryLabel { text: normalized });
 }
 
 fn normalize_summary_text(text: &str) -> Option<String> {
@@ -904,30 +889,6 @@ fn normalize_summary_text(text: &str) -> Option<String> {
     (!normalized.is_empty()).then_some(normalized)
 }
 
-/// Returns the conversation status for a terminal pane, used to render the per-line status
-/// pill prefix in Summary mode. Mirrors the status sources used by `render_detail_status_pill`
-/// in the detail sidecar — CLI agent sessions with rich status, Oz agent conversations, or
-/// ambient agent sessions. Returns `None` for plain terminals or conversations without status.
-fn summary_conversation_status_for_terminal(
-    terminal_view: &TerminalView,
-    app: &AppContext,
-) -> Option<ConversationStatus> {
-    let cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
-    if let Some(session) = cli_agent_session
-        .filter(|s| s.supports_rich_status())
-        .filter(|s| !matches!(s.agent, CLIAgent::Unknown))
-    {
-        return Some(session.status.to_conversation_status());
-    }
-
-    let is_ambient = terminal_view.is_ambient_agent_session(app);
-    let has_conversation = terminal_view
-        .selected_conversation_display_title(app)
-        .is_some();
-    (has_conversation || is_ambient)
-        .then(|| terminal_view.selected_conversation_status_for_display(app))
-        .flatten()
-}
 
 fn coalesce_summary_branch_entries(
     entries: Vec<VerticalTabsSummaryBranchEntry>,
@@ -3235,12 +3196,10 @@ fn build_vertical_tabs_summary_data(
                     terminal_title_fallback_font(&agent_text),
                     terminal_view.last_completed_command_text(),
                 );
-                let status = summary_conversation_status_for_terminal(terminal_view, app);
                 push_normalized_unique_summary_label(
                     &mut primary_labels,
                     &mut primary_seen,
                     primary_label.text(),
-                    status,
                 );
 
                 if let Some(working_directory) = working_directory {
@@ -3271,41 +3230,16 @@ fn build_vertical_tabs_summary_data(
                     });
                 }
             }
-            TypedPane::Code(_) => {
+            TypedPane::Settings | TypedPane::Other => {
                 push_normalized_unique_summary_label(
                     &mut primary_labels,
                     &mut primary_seen,
                     &pane_title,
-                    None,
-                );
-                push_normalized_unique_summary_text(
-                    &mut working_directories,
-                    &mut working_directory_seen,
-                    &pane_subtitle,
-                );
-            }
-            TypedPane::CodeDiff
-            | TypedPane::File
-            | TypedPane::Notebook { .. }
-            | TypedPane::Workflow { .. }
-            | TypedPane::Settings
-            | TypedPane::EnvVarCollection
-            | TypedPane::EnvironmentManagement
-            | TypedPane::AIFact
-            | TypedPane::AIDocument
-            | TypedPane::ExecutionProfileEditor
-            | TypedPane::Other => {
-                push_normalized_unique_summary_label(
-                    &mut primary_labels,
-                    &mut primary_seen,
-                    &pane_title,
-                    None,
                 );
             }
         }
     }
 
-    sort_summary_primary_labels_status_first(&mut primary_labels);
 
     VerticalTabsSummaryData {
         primary_labels,
@@ -4121,7 +4055,7 @@ fn render_summary_tab_item(
             .iter()
             .take(MAX_VISIBLE_PRIMARY_LABELS)
             .collect();
-        let reserve_prefix_slot = visible_labels.iter().any(|label| label.status.is_some());
+        let reserve_prefix_slot = false;
 
         for (idx, label) in visible_labels.iter().enumerate() {
             let line = render_summary_primary_label_line(
@@ -4260,38 +4194,8 @@ fn render_summary_primary_label_line(
     text_color: WarpThemeFill,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
-    // Reserve a slot wide enough for the status pill so non-conversation lines align with
-    // conversation lines in the same region. STATUS_ELEMENT_PADDING is the 2px padding inside
-    // the pill from `render_status_element`.
-    const STATUS_ELEMENT_PADDING: f32 = 2.;
-    let prefix_slot_size = VERTICAL_TABS_SUMMARY_STATUS_ICON_SIZE + STATUS_ELEMENT_PADDING * 2.;
-    let text = render_text_line(&label.text, text_color, ClipConfig::end(), appearance);
-
-    let prefix: Option<Box<dyn Element>> = match (label.status.as_ref(), reserve_prefix_slot) {
-        (Some(status), _) => Some(render_status_element(
-            status,
-            VERTICAL_TABS_SUMMARY_STATUS_ICON_SIZE,
-            appearance,
-        )),
-        (None, true) => Some(
-            ConstrainedBox::new(Empty::new().finish())
-                .with_width(prefix_slot_size)
-                .with_height(prefix_slot_size)
-                .finish(),
-        ),
-        (None, false) => None,
-    };
-
-    let Some(prefix) = prefix else {
-        return text;
-    };
-    Flex::row()
-        .with_main_axis_size(MainAxisSize::Max)
-        .with_cross_axis_alignment(CrossAxisAlignment::Center)
-        .with_spacing(4.)
-        .with_child(prefix)
-        .with_child(Shrinkable::new(1., text).finish())
-        .finish()
+    let _ = reserve_prefix_slot;
+    render_text_line(&label.text, text_color, ClipConfig::end(), appearance)
 }
 
 fn render_summary_overflow_line(
