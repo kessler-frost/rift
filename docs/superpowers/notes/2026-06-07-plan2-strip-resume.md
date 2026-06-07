@@ -21,6 +21,19 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 412 resolution errors (window 19, latest). PRIMARY-CLEAN now: terminal/input.rs, terminal/view.rs,
+slash_commands/mod.rs, slash_commands/data_source/mod.rs + zero_state.rs. (552→412 this run, ~45 commits.)
+NEXT: terminal/view/rich_content.rs (15) — `RichContentMetadata` enum has ~10 AI variants carrying deleted types
+to DELETE: AIBlock(AIBlockMetadata), AIOnboardingBlock{AIAgentExchangeId}, InitStep{InitStepKind,InitStepBlock},
+InitEnvironment{InitEnvironmentBlock}, OnboardingAgenticSuggestions{OnboardingAgenticSuggestionsBlock},
+EnvVarCollectionBlock, TelemetryBanner, AgentViewEntry(AgentViewEntryMetadata), AmbientAgentBlock{AmbientAgentEntryBlock},
+PendingUserQuery{PendingUserQueryBlock}. KEEP: UsageFooter, Ssh* variants, WarpifySuccessBlock, *ZeroState,
+PluginInstructionsBlock, unit AI-named variants (InlineAgentViewHeader/HarnessSessionHeader compile). 17 match-sites
+across rich_content.rs/view.rs/block_list_element.rs/workspace/view.rs cascade — delete each arm. THEN: workspace/view.rs
+(100, code-pane/code-review/cloud-workspace — CodeSource ~14, ForkAIConversation), right_panel (34, code-review panel),
+PHASE-F cloud layer (server/graphql 23+12, harness_support 16, gql_convert 13, remote_server 14 — try wholesale delete),
+root_view 16, pane_group 16, left_panel 15, install_tmux 14 (requested_script UI), lib.rs 14 (ai_client wiring).
+
 ### STATE: 464 resolution errors (window 19, later). MILESTONE: both `terminal/input.rs` AND `terminal/view.rs`
 are now PRIMARY-ERROR-CLEAN (their log mentions are secondary `-->` refs from other files). All masking cleared,
 everything committed+pushed. TOP FILES NOW: workspace/view.rs 100 (next big god-file: code pane / code-review /
