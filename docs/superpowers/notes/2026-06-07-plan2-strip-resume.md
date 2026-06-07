@@ -19,6 +19,38 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 16: honest grind 663->631. CAREFUL-EDIT approach validated for entangled hub-adjacent files
+(the /tmp/delfns.py + reverse-range deleters CORRUPT pane_impl-style files with closures — use Edits there).
+Cleared: pane_impl.rs 27->0 (gut update_pane_configuration + delete selected_conversation chrome chain +
+agent_view_shareable_object + render_shared_session_header_content + parent-card + overflow shared-session
+items + Viewer import), ui_components/agent_icon.rs ->0 (gut terminal_view_agent_icon_variant to None +
+delete dead helpers — SEVERED the conversation-status icon cluster across pane_impl/vertical_tabs),
+auth/mod.rs 16->0 (gut log_out agent-model resets + quit-warning unsaved + delete remove_cloud_persisted_settings),
+terminal/history.rs ->0 + rich_history.rs ->0 (delete linked_workflow x2 + serialized_block_is_agent_executed
++ render_ai_query_rich_history + gut callers).
+
+NEXT KEYSTONE CLUSTER — SharedSessionStatus RECREATE-MINIMAL (unblocks terminal_model.rs 15 + ~10 files,
+65 callers of .shared_session_status()). SharedSessionStatus is DELETED but heavily used. RECREATE it
+(like SerializedBlockListItem/AgentToolbarItemKind) in terminal/model/terminal_model.rs or a shared spot:
+  enum SharedSessionStatus { NotShared, ActiveSharer, ViewPending, ActiveViewer{role:Role},
+    SharePending, SharePendingPreBootstrap{source:SharedSessionSource}, FinishedViewer }
+  (also need minimal SharedSessionSource + Role/role enum + SharedSessionSource::source_type/orchestrator_task_id).
+  Methods called: is_viewer/is_reader/is_sharer/is_executor/is_active_viewer/is_active_sharer/is_view_pending/
+    is_sharer_or_viewer/is_finished_viewer/as_keymap_context/clone (all can be `false`/None except clone).
+  TerminalModel::shared_session_status() should always return NotShared (sharing removed); set_shared_session_*
+    become no-ops; shared_session_source()->None; ambient_agent_task_id->None.
+  Simpler ALT: recreate SharedSessionStatus with ONLY NotShared + the is_* methods returning false, then fix
+    the ~25 callers that match other variants (grep 'SharedSessionStatus::' for arms) — but full-variant
+    recreate is less caller-churn. SharedSessionSource also used in terminal_pane.rs/gql/etc.
+
+REMAINING after that: hub god-files view.rs 73 / input.rs 51 (InputType/InputConfig/ai_input_model AI-input
+subsystem) / terminal/view.rs 44 (render agent subsystem) — all EDITS not scripts. Plus right_panel.rs 34
+(CodeReviewView panel — likely wholesale-deletable + remove RightPanelView field/render from workspace/view),
+slash_commands mod 26 + data_source 25 (execute_slash_command agent arms), server_api 21 + graphql/schema 22
+(Phase F server), rich_content 15 (RichContentMetadata enum -> block_list_element), ssh/install_tmux 14.
+
+WINDOW 15:
+
 WINDOW 15: honest grind 759->697 (859 honest baseline). DONE this window: AgentToolbarItemKind recreate
 (toolbar cluster), rich_content.rs partial (agent structs/field/accessors), vertical_tabs.rs 35->0
 (TypedPane keep-only Terminal/Settings/Other + resolve_pane_type + drive-object icon colors gutted +
