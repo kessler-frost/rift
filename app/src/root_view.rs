@@ -1401,10 +1401,6 @@ impl RootView {
             me.handle_auth_manager_event(event, ctx);
         });
 
-        ctx.subscribe_to_model(&CloudPreferencesSyncer::handle(ctx), |me, _, event, ctx| {
-            me.handle_cloud_preferences_syncer_event(event, ctx);
-        });
-
         let auth_view =
             ctx.add_typed_action_view(|ctx| AuthView::new(AuthViewVariant::Initial, ctx));
 
@@ -1844,21 +1840,6 @@ impl RootView {
         true
     }
 
-    pub fn open_team_settings_with_email_invite_in_existing_window(
-        &mut self,
-        arg: &OpenTeamsSettingsModalArgs,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            handle.update(ctx, |workspace, ctx| {
-                workspace.show_team_settings_page_with_email_invite(arg.invite_email.as_ref(), ctx)
-            });
-            return true;
-        } else {
-            log::warn!("Auth not complete before trying to open settings pane");
-        }
-        false
-    }
 
 
     pub fn join_shared_session_in_existing_window(
@@ -2388,28 +2369,6 @@ impl RootView {
         true
     }
 
-    /// If onboarding stashed `SelectedSettings` to be applied after auth + the
-    /// initial cloud-pref sync, drain the stash and apply now.
-    ///
-    /// Mirrors `start_pending_tutorial` in shape but triggers on a later event:
-    /// `CloudPreferencesSyncerEvent::InitialLoadCompleted` fires once
-    /// `handle_initial_load` has finished reconciling cloud→local, so any
-    /// writes we make here are the last writes and won't be clobbered by that
-    /// pass. By this point the user is also logged in, so AIExecutionProfile
-    /// edits can successfully create cloud objects via `edit_profile_internal`.
-    fn handle_cloud_preferences_syncer_event(
-        &mut self,
-        event: &CloudPreferencesSyncerEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if !matches!(event, CloudPreferencesSyncerEvent::InitialLoadCompleted) {
-            return;
-        }
-        let Some(selected_settings) = self.pending_post_auth_onboarding_settings.take() else {
-            return;
-        };
-        apply_onboarding_settings(&selected_settings, ctx);
-    }
 
     /// If onboarding stored a pending tutorial (because login was required first),
     /// start it now that the workspace exists.
