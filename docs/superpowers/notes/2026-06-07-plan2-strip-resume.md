@@ -19,6 +19,22 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 17: confirmed NO contained wins remain — every remaining file needs fresh-context care:
+ - install_tmux.rs (14): SSH (KEEP) reused AI component `ai/blocklist/inline_action/requested_script.rs`
+   (deleted). Its TYPES (TitledScript/RequestedScriptStatus/RequestedScriptMouseStates) are trivial but its
+   render fns (render_requested_script) depend on AI-blocklist UI (requested_action/block::view_impl). FIX:
+   either recreate the 3 trivial types + reimplement a SIMPLE script-display (new code), OR simplify
+   install_tmux to drop the expandable-script UI. Judgment call — recommend the latter (simpler).
+ - SharedSessionStatus keystone: shared_session module FULLY deleted (was terminal/shared_session/); callers
+   have NO explicit imports (relied on deleted globs) — recreate needs a reachable home + nested
+   SharedSessionSource (recreate) + Role (available from session_sharing_protocol::common). 65 callers.
+ - The rest funnels through hub god-files (view.rs/input.rs/terminal/view.rs) — scattered single-site refs,
+   EDITS only (deleter corrupts them), OR Phase F wholesale server/graphql deletes.
+HONEST STATE: 631 real errors, all committed/pushed. ~57 commits. The grind from here is a coordinated
+hub-centered + keystone-recreate effort best done with fresh context — no safe pick-off files remain.
+
+WINDOW 16:
+
 WINDOW 16: honest grind 663->631. CAREFUL-EDIT approach validated for entangled hub-adjacent files
 (the /tmp/delfns.py + reverse-range deleters CORRUPT pane_impl-style files with closures — use Edits there).
 Cleared: pane_impl.rs 27->0 (gut update_pane_configuration + delete selected_conversation chrome chain +
