@@ -637,7 +637,7 @@ pub fn init(app: &mut AppContext) {
             TerminalAction::OnboardingFlow(OnboardingVersion::Legacy),
         )
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         // UniversalInput callout debug bindings
         EditableBinding::new(
@@ -649,7 +649,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         EditableBinding::new(
             "terminal:agent_onboarding_flow_universal_input_project",
@@ -662,7 +662,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         EditableBinding::new(
             "terminal:agent_onboarding_flow_universal_input_no_project",
@@ -675,7 +675,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         // AgentModality callout debug bindings
         EditableBinding::new(
@@ -692,7 +692,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         EditableBinding::new(
             "terminal:agent_onboarding_flow_modality_no_project",
@@ -708,7 +708,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
         EditableBinding::new(
             "terminal:agent_onboarding_flow_modality_terminal",
@@ -724,7 +724,7 @@ pub fn init(app: &mut AppContext) {
             FeatureFlag::AgentOnboarding.is_enabled() && ChannelState::enable_debug_features()
         })
         .with_context_predicate(
-            id!("Terminal") & id!(SharedSessionStatus::NotShared.as_keymap_context()),
+            id!("Terminal"),
         ),
     ]);
 
