@@ -2878,63 +2878,6 @@ impl TerminalView {
         });
 
 
-        ctx.subscribe_to_view(&first_time_cloud_agent_setup_view, |me, _, event, ctx| {
-            me.handle_first_time_cloud_agent_setup_event(event, ctx);
-        });
-
-
-        ctx.subscribe_to_view(&environment_setup_mode_selector, |me, _, event, ctx| {
-            me.handle_environment_setup_mode_selector_event(event, ctx);
-        });
-
-        if FeatureFlag::CodebaseIndexSpeedbump.is_enabled() {
-            // Check whether or not to show the codebase index speedbump when the codebase indexing settings change.
-            ctx.subscribe_to_model(&CodeSettings::handle(ctx), |me, _, _, ctx| {
-                me.check_codebase_index_speedbump_on_settings_changed(ctx);
-            });
-
-            // Check whether or not to show the codebase index speedbump when AI settings change.
-            ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, ai_settings_event, ctx| {
-                match ai_settings_event {
-                    AISettingsChangedEvent::IsAnyAIEnabled { .. }
-                    | AISettingsChangedEvent::AgentModeCodingPermissions { .. }
-                    | AISettingsChangedEvent::AgentModeCodingFileReadAllowlist { .. } => {
-                        me.check_codebase_index_speedbump_on_settings_changed(ctx);
-                    }
-                    _ => {}
-                }
-            });
-        }
-
-        ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, ai_settings_event, ctx| {
-            if let AISettingsChangedEvent::AwsBedrockCredentialsEnabled { .. } = ai_settings_event {
-                if !UserWorkspaces::as_ref(ctx).is_aws_bedrock_credentials_enabled(ctx) {
-                    me.remove_aws_bedrock_login_banner(ctx);
-                }
-            }
-        });
-
-
-        let terminal_view_id = ctx.view_id();
-        let agent_input_footer = input.as_ref(ctx).agent_input_footer().clone();
-        ctx.subscribe_to_view(&orchestration_pill_bar, |_, _, _, ctx| ctx.notify());
-
-
-        // Conversation details panel (cloud Oz runs and any active local AI conversation).
-        ctx.subscribe_to_view(&conversation_details_panel, |me, _, event, ctx| {
-            match event {
-                ConversationDetailsPanelEvent::Close => {
-                    me.is_conversation_details_panel_open = false;
-                    ctx.notify();
-                }
-                ConversationDetailsPanelEvent::OpenPlanNotebook { notebook_uid } => {
-                    // Convert NotebookId -> SyncId -> ObjectUid (String)
-                    let object_uid = SyncId::from(*notebook_uid).uid();
-                    ctx.emit(Event::OpenWarpDriveObjectInPane(object_uid));
-                }
-            }
-        });
-
         let window_id = ctx.window_id();
         let terminal_view = Self {
             model,
