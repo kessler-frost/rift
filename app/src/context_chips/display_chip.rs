@@ -42,7 +42,6 @@ use crate::settings::{AISettings, AISettingsChangedEvent, InputSettings};
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
-use crate::terminal::model::session::SessionType;
 use crate::terminal::model_events::ModelEventDispatcher;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
@@ -283,7 +282,6 @@ impl UdiChipConfig {
 pub enum DisplayChipAction {
     CloseMenu,
     ToggleMenu,
-    ToggleCodeReview,
     OpenBranchSelector,
     OpenGithubPullRequest(String),
 }
@@ -299,11 +297,8 @@ pub struct DisplayChip {
     quota_reset_popup: ViewHandle<FeaturePopup>,
     session_context: Option<SessionContext>,
     menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
-    agent_view_controller: ModelHandle<AgentViewController>,
     is_shared_session_viewer: bool,
     is_in_agent_view: bool,
-    /// Optional because `DisplayChip` sometimes should be disabled, depending on if it is in an ambient agent view.
-    ambient_agent_view_model: Option<ModelHandle<AmbientAgentViewModel>>,
     /// Cached display string for the code review keybinding.
     code_review_keybinding: Option<String>,
     /// The terminal view this chip belongs to, used to check CLI agent session state.
@@ -318,15 +313,6 @@ pub struct GitLineChanges {
 }
 
 impl GitLineChanges {
-    /// Convert GitDiffData to GitLineChanges
-    pub fn from_diff_stats(diff_stats: &DiffStats) -> Self {
-        Self {
-            files_changed: diff_stats.files_changed as u32,
-            lines_added: diff_stats.total_additions as u32,
-            lines_removed: diff_stats.total_deletions as u32,
-        }
-    }
-
     /// Parse git diff --shortstat output into GitLineChanges struct
     /// Input example: " 1 file changed, 2 insertions(+), 17 deletions(-)"
     pub fn parse_from_git_output(raw_output: &str) -> Option<Self> {
@@ -380,9 +366,6 @@ pub enum DisplayChipKind {
         popup_open: bool,
         popup: ViewHandle<crate::context_chips::node_version_popup::NodeVersionPopupView>,
     },
-    AgentPlanAndTodoList {
-        plan_and_todo_list: ViewHandle<PlanAndTodoListView>,
-    },
     GitBranch {
         menu_open: bool,
         menu: ViewHandle<DisplayChipMenu>,
@@ -405,8 +388,7 @@ impl DisplayChipKind {
             | DisplayChipKind::Ssh
             | DisplayChipKind::Subshell
             | DisplayChipKind::VirtualEnvironment
-            | DisplayChipKind::CondaEnvironment
-            | DisplayChipKind::AgentPlanAndTodoList { .. } => false,
+            | DisplayChipKind::CondaEnvironment => false,
         }
     }
 }
@@ -435,17 +417,12 @@ pub struct MenuItem {
 /// Configuration for creating a DisplayChip
 #[derive(Clone)]
 pub struct DisplayChipConfig {
-    pub ai_input_model: ModelHandle<BlocklistAIInputModel>,
-    pub ai_context_model: ModelHandle<BlocklistAIContextModel>,
     pub terminal_view_id: EntityId,
     pub menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
     pub session_context: Option<SessionContext>,
     pub current_repo_path: Option<PathBuf>,
     pub model_events: ModelHandle<ModelEventDispatcher>,
     pub is_shared_session_viewer: bool,
-    pub agent_view_controller: ModelHandle<AgentViewController>,
-    /// Optional because `DisplayChip` sometimes should be disabled, depending on if it is in an ambient agent view.
-    pub ambient_agent_view_model: Option<ModelHandle<AmbientAgentViewModel>>,
 }
 
 #[derive(Debug, Clone)]
@@ -538,59 +515,18 @@ impl DisplayChip {
         next_chip_kind: Option<ContextChipKind>,
         config: DisplayChipConfig,
     ) -> Self {
-        Self::new_internal(chip_result, next_chip_kind, config, false, ctx)
-    }
-
-    pub fn new_for_agent_view(
-        chip_result: ChipResult,
-        next_chip_kind: Option<ContextChipKind>,
-        config: DisplayChipConfig,
-        ctx: &mut ViewContext<Self>,
-    ) -> Self {
-        Self::new_internal(chip_result, next_chip_kind, config, true, ctx)
+        Self::new_internal(chip_result, next_chip_kind, config, ctx)
     }
 
     fn new_internal(
         chip_result: ChipResult,
         next_chip_kind: Option<ContextChipKind>,
         config: DisplayChipConfig,
-        is_in_agent_view: bool,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        // Re-render this chip whenever Agent Mode state changes so UDI font/color updates
-        // immediately on enter/exit.
-        ctx.subscribe_to_model(&config.agent_view_controller, |_me, _model, _event, ctx| {
-            ctx.notify();
-        });
+        let is_in_agent_view = false;
 
         let display_chip_kind = match chip_result.kind {
-            ContextChipKind::AgentPlanAndTodoList => {
-                let context_model = config.ai_context_model.clone();
-                let view_id = config.terminal_view_id;
-                let plan_and_todo_list = ctx.add_typed_action_view(|ctx| {
-                    PlanAndTodoListView::new(
-                        context_model,
-                        config.menu_positioning_provider.clone(),
-                        view_id,
-                        is_in_agent_view,
-                        ctx,
-                    )
-                });
-
-                ctx.subscribe_to_view(&plan_and_todo_list, |_me, _, event, ctx| match event {
-                    PlanAndTodoListEvent::OpenAIDocument {
-                        document_id,
-                        document_version,
-                    } => {
-                        ctx.emit(PromptDisplayChipEvent::OpenAIDocument {
-                            document_id: *document_id,
-                            document_version: *document_version,
-                        });
-                    }
-                });
-
-                DisplayChipKind::AgentPlanAndTodoList { plan_and_todo_list }
-            }
             ContextChipKind::ShellGitBranch => {
                 // Convert git branch strings to GitBranch items
                 let git_branch_items: Vec<GitBranch> = chip_result
@@ -788,15 +724,10 @@ impl DisplayChip {
                         ctx.focus_self();
                     }
                     NodeVersionPopupEvent::InstallNvm => {
-                        ctx.emit(PromptDisplayChipEvent::RunAgentQuery(if cfg!(windows) {
-                            // nvm-windows has documented issues when installed alongside an existing Node.js installation.
-                            // https://github.com/coreybutler/nvm-windows?tab=readme-ov-file#star-star-uninstall-any-pre-existing-node-installations-star-star
-                            // Prompt the agent to remove this first.
-                            "Uninstall existing Node.js installation and install nvm for me"
-                                .to_string()
-                        } else {
-                            "Install nvm for me".to_string()
-                        }));
+                        ctx.emit(PromptDisplayChipEvent::TryExecuteCommand(
+                            "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash"
+                                .to_string(),
+                        ));
                         me.close_node_version_popup(ctx);
                     }
                     NodeVersionPopupEvent::InstallLatestNodeVersion => {
@@ -840,13 +771,6 @@ impl DisplayChip {
             }
         });
 
-        // Subscribe to ambient agent model changes to re-render when the state changes
-        if let Some(ref ambient_agent_model) = config.ambient_agent_view_model {
-            ctx.subscribe_to_model(ambient_agent_model, |_, _, _, ctx| {
-                ctx.notify();
-            });
-        }
-
         // Cache the code review keybinding and subscribe to changes.
         let code_review_keybinding =
             keybinding_name_to_display_string(TOGGLE_RIGHT_PANEL_BINDING_NAME, ctx);
@@ -876,9 +800,7 @@ impl DisplayChip {
             session_context: config.session_context,
             menu_positioning_provider: config.menu_positioning_provider,
             is_shared_session_viewer: config.is_shared_session_viewer,
-            agent_view_controller: config.agent_view_controller.clone(),
             is_in_agent_view,
-            ambient_agent_view_model: config.ambient_agent_view_model,
             code_review_keybinding,
             terminal_view_id: config.terminal_view_id,
         }
@@ -961,7 +883,6 @@ impl DisplayChip {
             | DisplayChipKind::VirtualEnvironment
             | DisplayChipKind::CondaEnvironment
             | DisplayChipKind::NodeVersion { .. }
-            | DisplayChipKind::AgentPlanAndTodoList { .. }
             | DisplayChipKind::GithubPullRequest => {}
         }
         false
@@ -1058,13 +979,8 @@ impl DisplayChip {
         row.finish()
     }
 
-    pub fn should_render(&self, app: &AppContext) -> bool {
-        match &self.display_chip_kind {
-            DisplayChipKind::AgentPlanAndTodoList { plan_and_todo_list } => {
-                plan_and_todo_list.as_ref(app).should_render(app)
-            }
-            _ => true,
-        }
+    pub fn should_render(&self, _app: &AppContext) -> bool {
+        true
     }
 
     fn git_branch_chip(
@@ -1218,65 +1134,10 @@ impl DisplayChip {
             appearance,
         );
 
-        // Code review is only supported on local sessions and
-        // on remote sessions with a connected host ID.
-        let supports_code_review = self
-            .session_context
-            .as_ref()
-            .map(|ctx| match ctx.session.session_type() {
-                SessionType::Local => true,
-                SessionType::WarpifiedRemote { host_id: Some(_) } => {
-                    FeatureFlag::RemoteCodeReview.is_enabled()
-                }
-                SessionType::WarpifiedRemote { host_id: None } => false,
-            })
-            .unwrap_or(false);
-
-        let diff_stats_display = if supports_code_review {
-            // Get the keybinding for the tooltip
-            let code_review_keybinding = self.code_review_keybinding.clone().unwrap_or_default();
-
-            Hoverable::new(self.diff_stats_mouse_state.clone(), |state| {
-                let base_container = Container::new(git_diff_stats_content)
-                    .with_vertical_padding(2.)
-                    .with_horizontal_padding(4.);
-
-                let base_container = if state.is_hovered() {
-                    base_container
-                        .with_background(appearance.theme().surface_2())
-                        .with_corner_radius(CornerRadius::with_all(Radius::Pixels(
-                            CHIP_INNER_CORNER_RADIUS,
-                        )))
-                        .finish()
-                } else {
-                    base_container.finish()
-                };
-
-                let mut stack = Stack::new().with_child(base_container);
-                if state.is_hovered() {
-                    let tool_tip = appearance
-                        .ui_builder()
-                        .tool_tip_with_sublabel(
-                            CODE_REVIEW_TOOLTIP_TEXT.to_string(),
-                            code_review_keybinding.clone(),
-                        )
-                        .build()
-                        .finish();
-                    stack.add_positioned_overlay_child(tool_tip, udi_tooltip_positioning());
-                }
-                stack.finish()
-            })
-            .on_click(|ctx, _app, _position| {
-                ctx.dispatch_typed_action(DisplayChipAction::ToggleCodeReview);
-            })
-            .with_cursor(Cursor::PointingHand)
-            .finish()
-        } else {
-            Container::new(git_diff_stats_content)
-                .with_vertical_padding(2.)
-                .with_horizontal_padding(4.)
-                .finish()
-        };
+        let diff_stats_display = Container::new(git_diff_stats_content)
+            .with_vertical_padding(2.)
+            .with_horizontal_padding(4.)
+            .finish();
 
         let content = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
@@ -1303,23 +1164,12 @@ impl DisplayChip {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
 
-        // Check if we're in an ambient agent conversation.
-        // If so, the directory chip should be non-interactive.
-        let is_in_active_ambient_agent = self
-            .ambient_agent_view_model
-            .as_ref()
-            .map(|model| {
-                let m = model.as_ref(app);
-                m.is_ambient_agent() && !m.is_configuring_ambient_agent()
-            })
-            .unwrap_or(false);
-
         let mut stack = Stack::new();
 
-        // Menu is only allowed when the caller requests it and we're not in an active ambient
-        // agent session or CLI agent session.
+        // Menu is only allowed when the caller requests it and we're not in a
+        // CLI agent session.
         let is_cli_agent_active = self.is_cli_agent_session_active(app);
-        let allow_show_menu = show_menu && !is_in_active_ambient_agent && !is_cli_agent_active;
+        let allow_show_menu = show_menu && !is_cli_agent_active;
 
         let button = if allow_show_menu {
             let chip_text = self.text.clone();
@@ -1360,18 +1210,9 @@ impl DisplayChip {
             .with_cursor(Cursor::PointingHand)
             .finish()
         } else {
-            // Non-interactive chip (either show_menu is false or in active ambient agent)
+            // Non-interactive chip (show_menu is false or CLI agent session active)
             let font_color = if self.is_in_agent_view {
-                // Use disabled text color when in active ambient agent
-                if is_in_active_ambient_agent {
-                    theme
-                        .disabled_text_color(blended_colors::neutral_1(theme).into())
-                        .into_solid()
-                } else {
-                    // In agent view but the chip is non-interactive for reasons other than an active
-                    // ambient agent session. Keep the normal agent-view subtext styling (not disabled).
-                    agent_view_chip_color(appearance)
-                }
+                agent_view_chip_color(appearance)
             } else {
                 theme.ansi_fg_cyan()
             };
@@ -1563,9 +1404,6 @@ impl DisplayChip {
                 Some(self.node_version_chip(popup, *popup_open, app))
             }
             DisplayChipKind::CondaEnvironment => Some(self.conda_environment_chip(app)),
-            DisplayChipKind::AgentPlanAndTodoList { plan_and_todo_list } => {
-                Some(ChildView::new(plan_and_todo_list).finish())
-            }
             DisplayChipKind::GitBranch { menu_open, menu } => {
                 Some(self.git_branch_chip(*menu_open, menu, app))
             }
@@ -1623,15 +1461,8 @@ pub enum PromptDisplayChipEvent {
     ToggleMenu {
         open: bool,
     },
-    OpenCodeReview,
-    OpenConversationHistory,
     OpenCommandPaletteFiles,
     TryExecuteCommand(String),
-    RunAgentQuery(String),
-    OpenAIDocument {
-        document_id: AIDocumentId,
-        document_version: AIDocumentVersion,
-    },
 }
 
 impl TypedActionView for DisplayChip {
@@ -1660,7 +1491,6 @@ impl TypedActionView for DisplayChip {
                 | DisplayChipKind::Subshell
                 | DisplayChipKind::VirtualEnvironment
                 | DisplayChipKind::CondaEnvironment
-                | DisplayChipKind::AgentPlanAndTodoList { .. }
                 | DisplayChipKind::Text
                 | DisplayChipKind::GithubPullRequest
                 | DisplayChipKind::GitDiffStats { .. } => {}
@@ -1753,10 +1583,6 @@ impl TypedActionView for DisplayChip {
                     }
                     _ => {}
                 }
-            }
-            DisplayChipAction::ToggleCodeReview => {
-                ctx.emit(PromptDisplayChipEvent::OpenCodeReview);
-                ctx.notify();
             }
             DisplayChipAction::OpenBranchSelector => {
                 // Delegate to the existing ToggleMenu action for branch selector

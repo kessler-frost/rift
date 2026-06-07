@@ -91,11 +91,6 @@ impl TerminalView {
         // untracked files) over parsing the raw shell chip output. This matches
         // the preference order used by the prompt chip display (display.rs) and
         // agent footer (chips.rs).
-        #[cfg(feature = "local_fs")]
-        let from_model = self
-            .git_status_metadata(ctx)
-            .map(|metadata| GitLineChanges::from_diff_stats(&metadata.stats_against_head));
-        #[cfg(not(feature = "local_fs"))]
         let from_model: Option<GitLineChanges> = None;
 
         from_model
