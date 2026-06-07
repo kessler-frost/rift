@@ -20177,7 +20177,6 @@ impl TypedActionView for TerminalView {
             | SelectNextBlock
             | SelectBookmarkUp
             | SelectBookmarkDown
-            | JumpToLatestAgentMessage
             | Up
             | Down
             | JumpToBookmark(_)
@@ -20303,10 +20302,6 @@ impl TypedActionView for TerminalView {
                 "Opened Warpify Settings",
                 WarpA11yRole::ButtonRole,
             )),
-            OpenFilesPalette { .. } => Custom(AccessibilityContent::new_without_help(
-                "Opened file search palette",
-                WarpA11yRole::ButtonRole,
-            )),
             InsertCommandCorrection { .. }
             | BlockListContextMenu(_)
             | CloseContextMenu
@@ -20316,7 +20311,6 @@ impl TypedActionView for TerminalView {
             | CopyCommands
             | MaybeHoverSecret { .. }
             | CopyGitBranch
-            | OpenShareModal
             | ReinputCommands
             | ReinputCommandsWithSudo
             | ClearBuffer
@@ -20354,8 +20348,6 @@ impl TypedActionView for TerminalView {
             | AliasExpansionBanner(_)
             | VimModeBanner(_)
             | InsertMostRecentCommandCorrection
-            | StopSharingCurrentSession { .. }
-            | RequestSharedSessionRole(_)
             | OnboardingFlow(_)
             | ImportSettings
             | DragAndDropFiles(_)
@@ -20364,46 +20356,14 @@ impl TypedActionView for TerminalView {
             | NotifySshErrorBlock(_)
             | ToggleBlockFilterOnSelectedOrLastBlock(_)
             | SetMarkedText { .. }
-            | ResumeConversation
-            | ForkConversationFromLastKnownGoodState
-            | ToggleAIDocumentPane
-            | ClearMarkedText
-            | StartLspServer => ActionAccessibilityContent::from_debug(),
+            | ClearMarkedText => ActionAccessibilityContent::from_debug(),
             #[cfg(feature = "local_fs")]
             OpenCodeInWarp { .. } => ActionAccessibilityContent::from_debug(),
             OpenInWarpBanner(action) => self.open_in_warp_banner_accessibility_content(*action),
-            OpenAIBlockAttachedBlocksMenu { .. } => Custom(AccessibilityContent::new_without_help(
-                "Open list of blocks attached as context to this AI query.".to_owned(),
-                WarpA11yRole::PopoverRole,
-            )),
-            OpenAIBlockOverflowMenu { .. } => Custom(AccessibilityContent::new_without_help(
-                "Open overflow menu with copy options for this AI block.".to_owned(),
-                WarpA11yRole::PopoverRole,
-            )),
-            RewindAIConversation { .. } => Custom(AccessibilityContent::new_without_help(
-                "Show confirmation dialog to rewind to before this point in the AI conversation."
-                    .to_owned(),
-                WarpA11yRole::ButtonRole,
-            )),
-            ExecuteRewindAIConversation { .. } => Custom(AccessibilityContent::new_without_help(
-                "Execute rewind to before this point in the AI conversation.".to_owned(),
-                WarpA11yRole::ButtonRole,
-            )),
-            SelectAIAttachedBlock(_) => Custom(AccessibilityContent::new_without_help(
-                "Click on a block attached as context to this AI query.".to_owned(),
-                WarpA11yRole::ButtonRole,
-            )),
-            PickRepoToOpen => Custom(AccessibilityContent::new_without_help(
-                "Use file picker to select a git repository".to_owned(),
-                WarpA11yRole::PopoverRole,
-            )),
-            #[cfg(feature = "voice_input")]
-            ToggleCLIAgentVoiceInput(_) => Empty,
             // Below are actions that are most likely irrelevant to users or are very noisy and the
             // debug version shouldn't be announced.
             Scroll { .. }
             | AltScroll { .. }
-            | SharedSessionViewerAltScroll { .. }
             | ClickOnGrid { .. }
             | MaybeDismissToolTip { .. }
             | MaybeClearAltSelect
@@ -20417,79 +20377,13 @@ impl TypedActionView for TerminalView {
             | NotificationsDiscoveryBanner(_)
             | NotificationsErrorBanner(_)
             | LegacySSHBanner(_)
-            | OpenWorkflowModal
-            | OpenWorkflowModalForAIWorkflow(_)
-            | OpenWorkflowModalForBlock(_)
-            | OpenWorkflowModalWithCloudWorkflow(_)
-            | OpenShareSessionModal { .. }
-            | OpenSharedSessionViewerRoleMenu
-            | CopySharedSessionLink { .. }
-            | OpenSharedSessionOnDesktop { .. }
-            | MakeAllParticipantsReaders { .. }
-            | AskAIAssistant { .. }
             | ToggleSnackbarInActivePane
-            | SetInputModeAgent
-            | SetInputModeTerminal
             | HyperlinkClick { .. }
-            | AttemptLoginGatedFeature
             | StartFileDropTarget
             | StopFileDropTarget
             | RunNativeShellCompletions { .. }
-            | OpenTeamSettingsPage
-            | SelectAgenticSuggestion(_)
             | HideTelemetryBannerPermanently
-            | GenerateCodebaseIndex
-            | LoadAgentModeConversation
-            | DeleteAttachment { .. }
-            | OpenAttachmentLightbox { .. }
-            | WriteCodebaseIndex
-            | ToggleAutoexecuteMode
-            | ToggleQueueNextPrompt
-            | ToggleTodoPopup
-            | CloseTodoPopup
-            | ToggleCodeReviewPane { .. }
-            | OpenProjectRulesPane
-            | InitProject
-            | IndexProjectSpeedbump
-            | OpenViewMCPPane
-            | OpenAddMCPPane
-            | OpenBillingAndUsagePane
-            | OpenAddRulePane
-            | OpenRulesPane
-            | OpenEditSkillPane { .. }
-            | OpenAddPromptPane
-            | AddProjectAtCurrentDirectory
-            | CodebaseIndexSpeedbumpBanner(_)
-            | AgentModeSetupSpeedbumpBanner(_)
-            | AnonymousUserAISignUpBanner(_)
-            | SetupCloudEnvironment(_)
-            | SetupCloudEnvironmentAndStart(_)
-            | TriggerEnvironmentSetupSelection(_)
-            | OpenEnvironmentManagementPane
-            | DismissCodeToolbeltTooltip
-            | SummarizeConversation
-            | ToggleLongRunningCommandControl
-            | ToggleHideCliResponses
-            | OpenConversationsPalette
-            | ExitAgentView
-            | EnterCloudAgentView
-            | StartNewAgentConversation
-            | ToggleConversationDetailsPanel
-            | CancelAmbientAgentTask
             | OpenInlineHistoryMenu
-            | OpenModelSelector
-            | ResolvePromptSuggestion(..)
-            | AwsBedrockLoginBanner(_)
-            | AwsCliNotInstalledBanner(_)
-            | ExecuteRewindFromInlineMenu { .. }
-            | ToggleUsageFooter
-            | RevealChildAgent { .. }
-            | SwitchAgentViewToConversation { .. }
-            | OpenChildAgentInNewPane { .. }
-            | OpenChildAgentInNewTab { .. }
-            | StopAgentConversation { .. }
-            | KillAgentConversation { .. }
-            | ToggleCLIAgentRichInput
             | ToggleSessionRecording => Empty,
         }
     }
@@ -20552,82 +20446,6 @@ impl TypedActionView for TerminalView {
             AltScreenContextMenu { position } => self.alt_screen_context_menu(*position, ctx),
             AltMouseAction(mouse_state) => self.alt_mouse_action(mouse_state, ctx),
             BlockListContextMenu(menu_state) => self.block_list_context_menu(menu_state, ctx),
-            OpenAIBlockAttachedBlocksMenu {
-                exchange_id,
-                conversation_id: ai_conversation_id,
-                ai_block_view_id,
-            } => self.open_ai_block_attached_context_menu(
-                *ai_block_view_id,
-                *exchange_id,
-                *ai_conversation_id,
-                ctx,
-            ),
-            OpenAIBlockOverflowMenu {
-                exchange_id,
-                conversation_id: ai_conversation_id,
-                ai_block_view_id,
-                is_restored,
-            } => self.open_ai_block_overflow_context_menu(
-                *ai_block_view_id,
-                *exchange_id,
-                *ai_conversation_id,
-                *is_restored,
-                ctx,
-            ),
-            RewindAIConversation {
-                ai_block_view_id,
-                exchange_id,
-                conversation_id,
-                entrypoint,
-            } => {
-                self.show_rewind_confirmation_dialog(
-                    *ai_block_view_id,
-                    *exchange_id,
-                    *conversation_id,
-                    *entrypoint,
-                    ctx,
-                );
-            }
-            ExecuteRewindAIConversation {
-                ai_block_view_id,
-                exchange_id,
-                conversation_id,
-            } => {
-                self.rewind_ai_conversation(*ai_block_view_id, *exchange_id, *conversation_id, ctx)
-            }
-            ExecuteRewindFromInlineMenu {
-                exchange_id,
-                conversation_id,
-            } => {
-                // Find the ai_block_view_id for this exchange_id
-                let ai_block_view_id = self.rich_content_views.iter().find_map(|rich_content| {
-                    rich_content.ai_block_metadata().and_then(|metadata| {
-                        if metadata.exchange_id == *exchange_id
-                            && metadata.conversation_id == *conversation_id
-                        {
-                            Some(metadata.ai_block_handle.id())
-                        } else {
-                            None
-                        }
-                    })
-                });
-
-                if let Some(ai_block_view_id) = ai_block_view_id {
-                    self.show_rewind_confirmation_dialog(
-                        ai_block_view_id,
-                        *exchange_id,
-                        *conversation_id,
-                        AgentModeRewindEntrypoint::SlashCommand,
-                        ctx,
-                    );
-                } else {
-                    log::warn!(
-                        "Could not find AI block view for exchange_id {:?} in conversation {:?}",
-                        exchange_id,
-                        conversation_id
-                    );
-                }
-            }
             CloseContextMenu => self.close_context_menu(ctx, true),
             Paste => self.paste(false, ctx),
             Copy => self.copy(ctx),
@@ -20640,7 +20458,6 @@ impl TypedActionView for TerminalView {
                 };
                 self.copy_prompt(&prompt_position, &PromptPart::GitBranch, ctx)
             }
-            OpenShareModal => self.open_share_block_modal(ctx),
             ReinputCommands => self.reinput_commands(false, ctx),
             ReinputCommandsWithSudo => self.reinput_commands(true, ctx),
             ClearBuffer => self.clear_buffer(ctx),
@@ -20661,15 +20478,7 @@ impl TypedActionView for TerminalView {
                         )
                     }
                 }
-
-                if is_first_selection && self.ai_input_model.as_ref(ctx).is_ai_input_enabled() {
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::AgentModeAttachedBlockContext {
-                            method: AgentModeAttachContextMethod::Keyboard
-                        },
-                        ctx
-                    );
-                }
+                let _ = is_first_selection;
             }
             SelectNextBlock => {
                 match input_mode {
@@ -20699,7 +20508,6 @@ impl TypedActionView for TerminalView {
                 InputMode::PinnedToBottom | InputMode::Waterfall => self.bookmark_down(ctx),
                 InputMode::PinnedToTop => self.bookmark_up(ctx),
             },
-            JumpToLatestAgentMessage => self.jump_to_latest_agent_message(ctx),
             BookmarkSelectedBlock => self.bookmark_selected_block(ctx),
             UserInputSequence(bytes) => self.user_input_sequence(bytes, ctx),
             ControlSequence(bytes) => self.control_sequence_on_terminal(bytes, ctx),
@@ -20814,29 +20622,7 @@ impl TypedActionView for TerminalView {
                     ctx,
                 );
             }
-            OpenWorkflowModal => self.open_workflow_modal(ctx),
-            OpenWorkflowModalForAIWorkflow(workflow) => {
-                self.open_workflow_modal_from_ai_generated_workflow(workflow.clone(), ctx)
-            }
-            OpenWorkflowModalForBlock(block_index) => {
-                self.open_workflow_modal_from_block(*block_index, ctx)
-            }
-            OpenWorkflowModalWithCloudWorkflow(workflow_id) => {
-                self.open_workflow_modal_with_existing(*workflow_id, ctx)
-            }
             OpenBlockListContextMenu => self.open_block_list_context_menu_via_keybinding(ctx),
-            AskAIAssistant { block_index } => {
-                if FeatureFlag::AgentMode.is_enabled() {
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::AgentModeClickedEntrypoint {
-                            entrypoint: AgentModeEntrypoint::BlockToolbelt,
-                        },
-                        ctx
-                    );
-                }
-
-                self.ask_ai(&AskAISource::Block(*block_index), ctx)
-            }
             TriggerSubshellBootstrap => self.trigger_subshell_bootstrap(None, false, ctx),
             ShowSubshellBanner(command) => {
                 // Abort handle is no longer needed since we've waited the 1s already.
@@ -20885,39 +20671,8 @@ impl TypedActionView for TerminalView {
                 self.open_block_filter_editor(*block_index, OpenedFromClick::Yes, ctx)
             }
             VimModeBanner(action) => self.handle_vim_banner_action(*action, ctx),
-            OnboardingFlow(version) => {
-                // Don't show onboarding if it's already active or if this is a shared session or if user is anonymous
-                if self
-                    .model
-                    .lock()
-                    .shared_session_status()
-                    .is_sharer_or_viewer()
-                    || self.auth_state.is_anonymous_or_logged_out()
-                {
-                    return;
-                };
-
-                match version {
-                    OnboardingVersion::Legacy => {
-                        if self.block_onboarding_active {
-                            return;
-                        }
-
-                        // We might want to consider marking the user as onboarded here,
-                        // but it's probably fair to assume they have already been onboarded
-                        // by the time they're manually triggering the onboarding flow.
-                        self.add_agentic_suggestions_block(ctx);
-                    }
-                    OnboardingVersion::Agent(agent_version) => {
-                        // The first Agent Modality callout expects terminal mode. If the
-                        // default session mode is Agent (e.g. cloud-synced settings),
-                        // the tab may already be in agent view — exit it first.
-                        // This also removes any zero-state welcome blocks.
-                        self.exit_agent_view(ctx);
-                        self.start_agent_onboarding_tutorial(*agent_version, ctx);
-                    }
-                }
-            }
+            OnboardingFlow(_) => {}
+            ShowInitializationBlock => {}
             ImportSettings => {
                 #[cfg(feature = "local_fs")]
                 {
@@ -20925,26 +20680,12 @@ impl TypedActionView for TerminalView {
                     send_telemetry_from_ctx!(TelemetryEvent::SettingsImportInitiated, ctx);
                 }
             }
-            OpenShareSessionModal { source } => self.open_share_session_modal(*source, ctx),
-            StopSharingCurrentSession { source } => self.stop_sharing_session(*source, ctx),
             ToggleBlockFilterOnSelectedOrLastBlock(source) => {
                 self.toggle_block_filter_on_selected_or_last_block(*source, ctx);
             }
-            CopySharedSessionLink { source } => self.copy_shared_session_link(*source, ctx),
             ToggleSnackbarInActivePane => self.toggle_snackbar_in_active_pane(ctx),
-            MakeAllParticipantsReaders { reason } => {
-                self.make_all_shared_session_participants_readers(*reason, ctx)
-            }
-            OpenSharedSessionViewerRoleMenu => self.open_shared_session_viewer_role_menu(ctx),
-            RequestSharedSessionRole(role) => self.request_shared_session_role(*role, ctx),
             MiddleClickOnGrid { position } => self.middle_click_on_grid(position, ctx),
             MiddleClickOnInput => self.middle_click_on_input(ctx),
-            OpenSharedSessionOnDesktop { source } => {
-                self.open_shared_session_on_desktop(*source, ctx)
-            }
-            SelectAIAttachedBlock(block_index) => {
-                self.scroll_to_and_maybe_select_block(*block_index, ctx)
-            }
             DragAndDropFiles(paths) => {
                 self.drag_and_drop_files(paths, ctx);
             }
@@ -20959,128 +20700,9 @@ impl TypedActionView for TerminalView {
                     });
                 }
             }
-            SetInputModeAgent => {
-                // Guard: when a CLI agent session is active, block mode
-                // toggling and LRC subagent invocation. Context predicates
-                // handle the Terminal-level case, but when the editor child
-                // view is focused (rich input open via Ctrl-G), the parent's
-                // CLI_AGENT_SESSION_ACTIVE_KEY flag isn't visible to the
-                // keybinding matcher.
-                if CLIAgentSessionsModel::as_ref(ctx)
-                    .session(self.view_id)
-                    .is_some()
-                {
-                    return;
-                }
-                if self
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .is_eligible_for_agent_handoff()
-                {
-                    self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                        controller.handoff_active_command_control_to_agent(ctx);
-                    });
-                } else if self
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .is_eligible_to_tag_in_agent()
-                {
-                    if FeatureFlag::AgentView.is_enabled() {
-                        self.agent_view_controller.update(ctx, |controller, ctx| {
-                            if !controller.is_inline() {
-                                if let Err(e) = controller.try_enter_inline_agent_view(
-                                    None,
-                                    AgentViewEntryOrigin::LongRunningCommand,
-                                    ctx,
-                                ) {
-                                    log::error!(
-                                        "Failed to enter inline agent view for tag-in: {e}"
-                                    );
-                                }
-                            }
-                        });
-                    }
-                    self.tag_in_agent_for_user_long_running_command(ctx);
-                } else {
-                    self.input.update(ctx, |input, ctx| {
-                        input.set_input_mode_agent(false, ctx);
-                    });
-                }
-                ctx.notify();
-            }
-            SetInputModeTerminal => {
-                if CLIAgentSessionsModel::as_ref(ctx)
-                    .session(self.view_id)
-                    .is_some()
-                {
-                    return;
-                }
-                if self
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .is_agent_in_control()
-                {
-                    self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                        controller.switch_control_to_user(UserTakeOverReason::Manual, ctx);
-                    });
-                } else if self
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .is_agent_tagged_in()
-                {
-                    self.tag_out_agent_for_user_long_running_command(ctx);
-
-                    if FeatureFlag::AgentView.is_enabled()
-                        && self.agent_view_controller.as_ref(ctx).is_inline()
-                    {
-                        self.agent_view_controller.update(ctx, |controller, ctx| {
-                            controller.exit_agent_view(ctx);
-                        });
-                    }
-                } else {
-                    self.input.update(ctx, |input, ctx| {
-                        input.set_input_mode_terminal(true, ctx);
-                    });
-                }
-                ctx.notify();
-            }
-            #[cfg(feature = "voice_input")]
-            ToggleCLIAgentVoiceInput(source) => {
-                // For CLI agents, route through the footer's self-contained
-                // voice flow (records + writes transcription to PTY). For
-                // the regular editor, fall back to the editor-based flow.
-                let has_cli_agent = self.use_agent_footer.as_ref(ctx).has_cli_agent(ctx);
-                if has_cli_agent {
-                    let footer = self.input.as_ref(ctx).agent_input_footer().clone();
-                    footer.update(ctx, |footer, ctx| {
-                        footer.toggle_cli_voice_input(source, ctx);
-                    });
-                } else {
-                    self.input.update(ctx, |input, ctx| {
-                        input.toggle_voice_input(source, ctx);
-                    });
-                }
-            }
             HyperlinkClick(hyperlink) => {
                 ctx.notify();
                 ctx.open_url(&hyperlink.url);
-            }
-            AttemptLoginGatedFeature => {
-                AuthManager::handle(ctx).update(ctx, |auth_manager, ctx| {
-                    auth_manager.attempt_login_gated_feature(
-                        "Upgrade AI Usage",
-                        AuthViewVariant::RequireLoginCloseable,
-                        ctx,
-                    )
-                });
             }
             StartFileDropTarget => {
                 let Some(session) = self
@@ -21110,544 +20732,22 @@ impl TypedActionView for TerminalView {
                     results_tx: results_tx.clone(),
                 });
             }
-            OpenTeamSettingsPage => {
-                ctx.emit(Event::OpenSettings(SettingsSection::Teams));
-            }
             SetMarkedText {
                 marked_text,
                 selected_range,
             } => self.set_marked_text_on_terminal(marked_text, selected_range, ctx),
             ClearMarkedText => self.clear_marked_text_on_terminal(ctx),
-            SelectAgenticSuggestion(index) => {
-                if let Some(block) = self.onboarding_agentic_suggestions_block.as_ref() {
-                    block.update(ctx, |block, ctx| {
-                        block.handle_key_pressed(*index, ctx);
-                    });
-                }
-            }
             HideTelemetryBannerPermanently => self.hide_telemetry_banner_permanently(ctx),
-            ShowInitializationBlock => self.show_initialization_block(),
-            GenerateCodebaseIndex => {
-                self.generate_codebase_index(ctx);
-            }
-            LoadAgentModeConversation => {
-                self.load_agent_mode_conversation(ctx);
-            }
             ShowWarpifySettings => ctx.emit(Event::OpenSettings(SettingsSection::Warpify)),
-            DeleteAttachment { index } => {
-                self.ai_context_model.update(ctx, |context_model, ctx| {
-                    context_model.remove_pending_attachment(*index, ctx);
-                });
-            }
-            OpenAttachmentLightbox { index } => {
-                let pending_images = self
-                    .ai_context_model
-                    .as_ref(ctx)
-                    .pending_attachments()
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(attachment_index, attachment)| match attachment {
-                        PendingAttachment::Image(image) => Some((attachment_index, image.clone())),
-                        PendingAttachment::File(_) => None,
-                    })
-                    .collect::<Vec<_>>();
-                let mut images = Vec::new();
-                let mut initial_index = None;
-                for (attachment_index, image) in pending_images {
-                    let image_bytes =
-                        match base64::engine::general_purpose::STANDARD.decode(&image.data) {
-                            Ok(image_bytes) => image_bytes,
-                            Err(error) => {
-                                log::warn!(
-                                "Failed to decode pending image attachment for lightbox: {error}"
-                            );
-                                continue;
-                            }
-                        };
-
-                    let asset_id = format!("pending-attachment-lightbox-{attachment_index}");
-                    AssetCache::handle(ctx).update(ctx, |asset_cache, ctx| {
-                        asset_cache.insert_raw_asset_bytes::<ImageType>(
-                            asset_id.clone(),
-                            &image_bytes,
-                            ctx,
-                        );
-                    });
-
-                    if attachment_index == *index {
-                        initial_index = Some(images.len());
-                    }
-                    images.push(ui_components::lightbox::LightboxImage {
-                        source: ui_components::lightbox::LightboxImageSource::Resolved {
-                            asset_source: riftui::assets::asset_cache::AssetSource::Raw {
-                                id: asset_id,
-                            },
-                        },
-                        description: Some(image.file_name.clone()),
-                    });
-                }
-
-                let Some(initial_index) = initial_index else {
-                    return;
-                };
-
-                ctx.dispatch_typed_action(&WorkspaceAction::OpenLightbox {
-                    images,
-                    initial_index,
-                });
-            }
-            WriteCodebaseIndex => {
-                self.write_codebase_index(ctx);
-            }
-            ToggleAutoexecuteMode => {
-                // Cloud (ambient) agent conversations run with fast-forward conceptually
-                // always on, so toggling it from the chip or keybinding is a no-op there.
-                let is_locked = {
-                    let terminal_model = self.model.lock();
-                    is_in_cloud_context(
-                        terminal_model.block_list().agent_view_state(),
-                        &terminal_model,
-                    )
-                };
-                if is_locked {
-                    return;
-                }
-
-                // If there's a pending (blocked) requested code diff, accept it first.
-                if let Some(ai_block) = self.last_ai_block() {
-                    ai_block.update(ctx, |ai_block, ctx| {
-                        ai_block.accept_pending_action(ctx);
-                    });
-                }
-
-                self.ai_context_model.update(ctx, |context_model, ctx| {
-                    context_model.toggle_pending_query_autoexecute(ctx);
-                });
-                ctx.notify();
-            }
-            ToggleQueueNextPrompt => {
-                let Some(conversation_id) =
-                    BlocklistAIHistoryModel::as_ref(ctx).active_conversation_id(self.view_id)
-                else {
-                    return;
-                };
-                QueuedQueryModel::handle(ctx).update(ctx, |model, ctx| {
-                    model.toggle_queue_next_prompt(conversation_id, ctx);
-                });
-                ctx.notify();
-            }
-            CodebaseIndexSpeedbumpBanner(action) => {
-                self.codebase_index_speedbump_banner_action(*action, ctx);
-            }
-            AgentModeSetupSpeedbumpBanner(action) => {
-                self.agent_mode_setup_speedbump_banner_action(*action, ctx)
-            }
-            AnonymousUserAISignUpBanner(action) => {
-                self.anonymous_user_ai_sign_up_banner_action(*action, ctx);
-            }
-            ResumeConversation => {
-                // With Agent View, we want to resume the conversation the user is currently viewing,
-                // not necessarily the most recently created one.
-                let conversation_id = if FeatureFlag::AgentView.is_enabled() {
-                    self.agent_view_controller
-                        .as_ref(ctx)
-                        .agent_view_state()
-                        .active_conversation_id()
-                } else {
-                    BlocklistAIHistoryModel::as_ref(ctx).last_conversation_id(self.id())
-                };
-                if let Some(conversation_id) = conversation_id {
-                    self.handle_resume_conversation(&conversation_id, ctx)
-                }
-            }
-            ForkConversationFromLastKnownGoodState => {
-                let active_conversation = if FeatureFlag::AgentView.is_enabled() {
-                    self.agent_view_controller
-                        .as_ref(ctx)
-                        .agent_view_state()
-                        .active_conversation_id()
-                        .and_then(|id| BlocklistAIHistoryModel::as_ref(ctx).conversation(&id))
-                } else {
-                    BlocklistAIHistoryModel::as_ref(ctx).active_conversation(self.id())
-                };
-                if let Some(active_conversation) = active_conversation {
-                    let conversation_id = active_conversation.id();
-                    let exchange_id = {
-                        let terminal_model = self.model.lock();
-                        fork_from_last_known_good_state_exchange_id(
-                            active_conversation,
-                            &terminal_model,
-                        )
-                    };
-                    if let Some(exchange_id) = exchange_id {
-                        ctx.dispatch_typed_action(&WorkspaceAction::ForkAIConversation {
-                            conversation_id,
-                            fork_from_exchange: Some(ForkFromExchange {
-                                exchange_id,
-                                fork_from_exact_exchange: false,
-                            }),
-                            summarize_after_fork: false,
-                            summarization_prompt: None,
-                            initial_prompt: None,
-                            destination: ForkedConversationDestination::SplitPane,
-                        });
-                    }
-                }
-            }
-            ToggleAIDocumentPane => {
-                if let Some(conversation) =
-                    BlocklistAIHistoryModel::as_ref(ctx).active_conversation(self.id())
-                {
-                    let conversation_id = conversation.id();
-                    let doc_model = AIDocumentModel::as_ref(ctx);
-                    let is_plan_for_this_conversation_open = self
-                        .agent_view_controller
-                        .as_ref(ctx)
-                        .pane_group_id()
-                        .is_some_and(|pane_group_id| {
-                            doc_model.is_document_visible_by_conversation_in_pane_group(
-                                &conversation_id,
-                                pane_group_id,
-                            )
-                        });
-                    if is_plan_for_this_conversation_open {
-                        ctx.emit(Event::HideAIDocumentPanes);
-                    } else {
-                        let docs = doc_model.get_all_documents_for_conversation(conversation_id);
-                        match docs.len() {
-                            0 => {} // No plans — nothing to do.
-                            1 => {
-                                let (document_id, doc) = &docs[0];
-                                ctx.emit(Event::OpenAIDocumentPane {
-                                    document_id: *document_id,
-                                    document_version: doc.version,
-                                    is_auto_open: false,
-                                });
-                            }
-                            _ => {
-                                // Multiple plans — open the plan picker menu.
-                                self.input.update(ctx, |input, ctx| {
-                                    input.open_plan_menu(conversation_id, ctx);
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            ToggleTodoPopup => {
-                self.is_todo_popup_visible = !self.is_todo_popup_visible;
-                // Focus the todos popup for esc key handling
-                if self.is_todo_popup_visible {
-                    ctx.focus(&self.agent_todos_popup);
-                }
-                ctx.notify();
-            }
-            CloseTodoPopup => {
-                self.is_todo_popup_visible = false;
-                ctx.notify();
-            }
-            ToggleCodeReviewPane { entrypoint } => {
-                ctx.emit(Event::ToggleCodeReviewPane(CodeReviewPanelArg {
-                    repo_path: self.current_repo_path.clone(),
-                    terminal_view: self.view_handle.clone(),
-                    entrypoint: *entrypoint,
-                    focus_new_pane: true,
-                    cli_agent: None,
-                }));
-            }
-            InitProject => self.init_project(false, ctx),
-            SetupCloudEnvironment(repos) => {
-                self.setup_cloud_environment(repos.clone(), ctx);
-            }
-            SetupCloudEnvironmentAndStart(repos) => {
-                self.setup_cloud_environment_and_start(repos.clone(), ctx);
-            }
-            TriggerEnvironmentSetupSelection(repos) => {
-                self.enter_environment_setup_selector(repos.clone(), ctx);
-            }
-            OpenEnvironmentManagementPane => {
-                self.open_environment_management_pane(ctx);
-            }
-            SummarizeConversation => self.summarize_conversation(ctx),
-            IndexProjectSpeedbump => {
-                let codebase_context_enabled =
-                    UserWorkspaces::as_ref(ctx).is_codebase_context_enabled(ctx);
-
-                if FeatureFlag::FullSourceCodeEmbedding.is_enabled() && codebase_context_enabled {
-                    #[cfg(feature = "local_fs")]
-                    if let Some(current_dir) = self.pwd() {
-                        let directory = PathBuf::from(&current_dir);
-
-                        if let Ok(repo_path) = directory.canonicalize() {
-                            // Start indexing the codebase
-                            CodebaseIndexManager::handle(ctx).update(ctx, |manager, ctx| {
-                                manager.index_directory(repo_path.clone(), ctx);
-                            });
-
-                            self.remove_codebase_index_speedbump_banner(ctx);
-                            self.insert_codebase_index_speedbump_banner(
-                                repo_path, true, /* show_is_indexing */
-                                ctx,
-                            );
-                        }
-                    }
-                }
-            }
-            AddProjectAtCurrentDirectory => {
-                // Get the current working directory and add it as a project
-                if let Some(current_dir) = self.pwd() {
-                    let path = PathBuf::from(&current_dir);
-
-                    // Access the ProjectManagementModel and add the project
-                    ProjectManagementModel::handle(ctx).update(ctx, |project_model, ctx| {
-                        project_model.upsert_project(path, ctx);
-                    });
-                }
-            }
-            OpenProjectRulesPane => {
-                if let Some(current_dir) = self.pwd() {
-                    let mut warp_md_path = PathBuf::from(&current_dir);
-                    warp_md_path.push(RIFT_MD_PATH);
-                    #[cfg(feature = "local_fs")]
-                    ctx.emit(Event::OpenCodeInWarp {
-                        source: CodeSource::ProjectRules {
-                            location: LocalOrRemotePath::Local(warp_md_path),
-                        },
-                        layout: *crate::util::file::external_editor::EditorSettings::as_ref(ctx)
-                            .open_file_layout
-                            .value(),
-                    });
-                }
-            }
-            OpenViewMCPPane => {
-                ctx.emit(Event::OpenMCPSettingsPage {
-                    page: Some(MCPServersSettingsPage::List),
-                });
-            }
-            OpenAddMCPPane => {
-                ctx.emit(Event::OpenMCPSettingsPage {
-                    page: Some(MCPServersSettingsPage::Edit { item_id: None }),
-                });
-            }
-            OpenBillingAndUsagePane => {
-                ctx.emit(Event::OpenSettings(SettingsSection::BillingAndUsage));
-            }
-            OpenAddRulePane => {
-                ctx.emit(Event::OpenAddRulePane);
-            }
-            OpenRulesPane => {
-                ctx.emit(Event::OpenRulesPane);
-            }
-            OpenEditSkillPane { skill_reference } => {
-                #[cfg(feature = "local_fs")]
-                {
-                    use ai::skills::SkillReference;
-
-                    match skill_reference {
-                        SkillReference::Path(path) => {
-                            ctx.emit(Event::OpenCodeInWarp {
-                                source: CodeSource::Skill {
-                                    reference: skill_reference.clone(),
-                                    location: path.clone(),
-                                    origin: crate::ai::skills::SkillOpenOrigin::OpenSkillCommand,
-                                },
-                                layout:
-                                    *crate::util::file::external_editor::EditorSettings::as_ref(ctx)
-                                        .open_file_layout
-                                        .value(),
-                            });
-                        }
-                        SkillReference::BundledSkillId(_) => {
-                            let window_id = ctx.window_id();
-                            ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                                toast_stack.add_ephemeral_toast(
-                                    DismissibleToast::error(
-                                        "Bundled skills cannot be edited".to_string(),
-                                    ),
-                                    window_id,
-                                    ctx,
-                                );
-                            });
-                        }
-                    }
-                }
-
-                #[cfg(not(feature = "local_fs"))]
-                {
-                    let _ = skill_reference;
-                    let window_id = ctx.window_id();
-                    ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                        toast_stack.add_ephemeral_toast(
-                            DismissibleToast::error(
-                                "Editing skills is not supported in this build".to_string(),
-                            ),
-                            window_id,
-                            ctx,
-                        );
-                    });
-                }
-            }
-            OpenAddPromptPane => ctx.emit(Event::OpenAddPromptPane {
-                initial_content: None,
-            }),
-            PickRepoToOpen => {
-                ctx.dispatch_typed_action(&WorkspaceAction::OpenRepository { path: None });
-            }
-            OpenFilesPalette { source } => ctx.emit(Event::OpenFilesPalette { source: *source }),
-            DismissCodeToolbeltTooltip => {
-                CodeSettings::handle(ctx).update(ctx, |settings, ctx| {
-                    if let Err(e) = settings
-                        .dismissed_code_toolbelt_new_feature_popup
-                        .set_value(true, ctx)
-                    {
-                        log::warn!(
-                            "Failed to mark code toolbelt new feature popup as dismissed: {e}"
-                        );
-                    }
-                });
-                ctx.notify();
-            }
-            StartLspServer => {
-                #[cfg(feature = "local_fs")]
-                self.start_lsp_server_in_active_pwd(ctx);
-            }
-            OpenConversationsPalette => {
-                ctx.emit(Event::OpenConversationHistory);
-            }
-            ToggleLongRunningCommandControl => {
-                let terminal_model = self.model.lock();
-                let active_block = terminal_model.block_list().active_block();
-                if active_block.is_agent_in_control() {
-                    drop(terminal_model);
-                    self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                        controller.switch_control_to_user(UserTakeOverReason::Manual, ctx);
-                    });
-                } else if active_block.is_eligible_for_agent_handoff() {
-                    drop(terminal_model);
-                    self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                        controller.handoff_active_command_control_to_agent(ctx);
-                    });
-                }
-                ctx.notify();
-            }
-            ToggleHideCliResponses => {
-                self.cli_subagent_controller.update(ctx, |controller, ctx| {
-                    controller.toggle_hide_responses(ctx);
-                });
-                ctx.notify();
-            }
-            ExitAgentView => {
-                // Match the back button's "for Orchestrator" affordance for
-                // child agents: navigate to the parent before falling back
-                // to the in-place exit flow.
-                if self.try_navigate_to_parent_conversation(ctx) {
-                    ctx.notify();
-                } else if self
-                    .agent_view_controller
-                    .as_ref(ctx)
-                    .can_exit_agent_view()
-                    .is_ok()
-                {
-                    self.exit_agent_view(ctx);
-                    ctx.notify();
-                }
-            }
-            EnterCloudAgentView => {
-                let mut draft_text = self.input.as_ref(ctx).buffer_text(ctx);
-                draft_text.truncate(draft_text.trim_end().len());
-                let initial_prompt = (!draft_text.trim().is_empty()).then_some(draft_text);
-                self.enter_cloud_agent_view(initial_prompt, ctx);
-            }
-            StartNewAgentConversation => {
-                self.input.update(ctx, |input, ctx| {
-                    input.handle_action(&InputAction::StartNewAgentConversation, ctx);
-                });
-            }
             OpenInlineHistoryMenu => {
                 self.input.update(ctx, |input, ctx| {
                     input.handle_action(&InputAction::OpenInlineHistoryMenu, ctx);
-                });
-            }
-            OpenModelSelector => {
-                self.input.update(ctx, |input, ctx| {
-                    input.handle_action(&InputAction::OpenModelSelector, ctx);
-                });
-            }
-            ResolvePromptSuggestion(resolution) => {
-                self.resolve_passive_suggestion(*resolution, ctx);
-            }
-            AwsBedrockLoginBanner(action) => {
-                self.handle_aws_bedrock_login_banner_action(*action, ctx);
-            }
-            AwsCliNotInstalledBanner(action) => {
-                self.handle_aws_cli_not_installed_banner_action(*action, ctx);
-            }
-            ToggleConversationDetailsPanel => {
-                let will_open = !self.is_conversation_details_panel_open;
-                self.is_conversation_details_panel_open = will_open;
-                if will_open {
-                    self.fetch_and_update_conversation_details_panel(ctx);
-                }
-                ctx.notify();
-            }
-            CancelAmbientAgentTask => {
-                if let Some(ambient_agent_view_model) = self.ambient_agent_view_model.as_ref() {
-                    ambient_agent_view_model.update(ctx, |model, ctx| {
-                        model.cancel_task(ctx);
-                    });
-                }
-                ctx.notify();
-            }
-            ToggleUsageFooter => {
-                self.toggle_usage_footer(ctx);
-            }
-            RevealChildAgent { conversation_id } => {
-                ctx.emit(Event::RevealChildAgent {
-                    conversation_id: *conversation_id,
-                });
-            }
-            SwitchAgentViewToConversation { conversation_id } => {
-                // Pill-bar nav: every child has a hidden pane, so swap to it.
-                ctx.emit(Event::SwapPaneToConversation {
-                    conversation_id: *conversation_id,
-                });
-            }
-            OpenChildAgentInNewPane { conversation_id } => {
-                // Reveal the existing child pane as a sibling; preserves
-                // in-flight state. Don't touch `self`'s active conversation
-                // — `self` is the child view, swapped into the orchestrator's slot.
-                ctx.emit(Event::OpenChildAgentInNewPane {
-                    conversation_id: *conversation_id,
-                });
-            }
-            OpenChildAgentInNewTab { conversation_id } => {
-                // Workspace re-parents the existing child pane into a new tab.
-                // Don't touch `self`'s active conversation (same reason as above).
-                ctx.emit(Event::OpenChildAgentInNewTab {
-                    conversation_id: *conversation_id,
-                });
-            }
-            StopAgentConversation { conversation_id } => {
-                ctx.emit(Event::StopAgentConversation {
-                    conversation_id: *conversation_id,
-                });
-            }
-            KillAgentConversation { conversation_id } => {
-                ctx.emit(Event::KillAgentConversation {
-                    conversation_id: *conversation_id,
                 });
             }
             ToggleSessionRecording => {
                 self.pty_recorder.update(ctx, |recorder, ctx| {
                     recorder.toggle_recording(ctx);
                 });
-            }
-            ToggleCLIAgentRichInput => {
-                if self.has_active_cli_agent_input_session(ctx) {
-                    self.close_cli_agent_rich_input_and_disable_auto_toggle(ctx);
-                } else {
-                    self.open_cli_agent_rich_input(CLIAgentInputEntrypoint::CtrlG, ctx);
-                }
             }
         }
     }
