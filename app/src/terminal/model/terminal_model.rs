@@ -52,6 +52,7 @@ use super::selection::ScrollDelta;
 use super::session::{BootstrapSessionType, InBandCommandOutputReceiver, SessionId};
 use super::tmux::commands::TmuxCommand;
 use super::{tmux, Secret, SecretHandle};
+use crate::terminal::shared_session::{SharedSessionSource, SharedSessionStatus};
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::block_filter::BlockFilterQuery;
 use crate::terminal::block_list_element::GridType;

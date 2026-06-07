@@ -67,6 +67,7 @@ pub mod safe_mode_settings;
 mod secret_regex_updater;
 pub mod session_settings;
 pub mod settings;
+pub mod shared_session;
 mod share_block_modal;
 mod shell_launch_state;
 
