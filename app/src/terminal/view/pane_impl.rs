@@ -985,12 +985,8 @@ impl TerminalView {
         }
     }
 
-    pub fn selected_conversation_display_title(&self, ctx: &AppContext) -> Option<String> {
-        let is_ambient_agent = self.is_ambient_agent_session(ctx);
-        self.selected_conversation_for_user_facing_chrome(ctx)
-            .map(|conversation| {
-                self.selected_conversation_display_title_for_chrome(conversation, is_ambient_agent)
-            })
+    pub fn selected_conversation_display_title(&self, _ctx: &AppContext) -> Option<String> {
+        None
     }
 
     /// Server metadata for the selected conversation, if any.
