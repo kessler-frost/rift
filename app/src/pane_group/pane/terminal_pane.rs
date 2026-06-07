@@ -453,56 +453,10 @@ impl PaneContent for TerminalPane {
 
     fn shareable_link(
         &self,
-        ctx: &mut ViewContext<PaneGroup>,
+        _ctx: &mut ViewContext<PaneGroup>,
     ) -> Result<ShareableLink, ShareableLinkError> {
-        let manager = self.terminal_manager(ctx);
-        let the_model = manager.as_ref(ctx).model();
-        let lock = the_model.lock();
-
-        // Check if this is a conversation transcript viewer
-        if lock.is_conversation_transcript_viewer() {
-            // Try to get the conversation token from the history model
-            let history_model = crate::ai::blocklist::BlocklistAIHistoryModel::handle(ctx);
-            let terminal_view_id = self.terminal_view(ctx).id();
-
-            // Find the conversation for this terminal view
-            // We're assuming the conversation transcript view only has one conversation.
-            // TODO(roland): store conversation id or server conversation token on the model ConversationTranscriptViewerStatus
-            if let Some(conversation) = history_model
-                .as_ref(ctx)
-                .all_live_conversations_for_terminal_view(terminal_view_id)
-                .next()
-            {
-                if let Some(token) = conversation.server_conversation_token() {
-                    let url_string = token.conversation_link();
-                    if let Ok(url) = url::Url::parse(&url_string) {
-                        return Ok(ShareableLink::Pane { url });
-                    }
-                }
-            }
-
-            // If we can't get the conversation link yet (still loading or not available),
-            // return Expected error to preserve the current browser URL
-            return Err(ShareableLinkError::Expected);
-        }
-
-        // Check for shared session status
-        let session_status = lock.shared_session_status();
-        match session_status {
-            SharedSessionStatus::NotShared => Ok(ShareableLink::Base),
-            SharedSessionStatus::ActiveViewer { role: _ } => {
-                let manager = Manager::as_ref(ctx);
-                let terminal_view_id = self.terminal_view(ctx).id();
-                if let Some(url) = retrieve_shared_session_link(manager, &terminal_view_id) {
-                    Ok(ShareableLink::Pane { url })
-                } else {
-                    Err(ShareableLinkError::Unexpected(String::from(
-                        "Failed to retreive shared session link",
-                    )))
-                }
-            }
-            _ => Err(ShareableLinkError::Expected),
-        }
+        // Session/conversation sharing was removed; only the base link remains.
+        Ok(ShareableLink::Base)
     }
 
     fn pane_configuration(&self) -> ModelHandle<PaneConfiguration> {
@@ -637,17 +591,6 @@ fn handle_terminal_view_event(
                     terminal_pane.delete_blocks(ctx);
                 }
             }
-            Event::ShareModalOpened(block_id) => {
-                group.terminal_with_open_share_block_modal = Some(terminal_pane_id);
-                group.share_block_modal.update(ctx, |share_modal, ctx| {
-                    if let Some(session) = group.terminal_view_from_pane_id(pane_id, ctx) {
-                        let model = session.read(ctx, |view, _| view.model.clone());
-                        share_modal.open_with_model_update(model, *block_id, ctx);
-                        ctx.notify();
-                    }
-                });
-                ctx.notify();
-            }
             Event::SendNotification(notification) => {
                 ctx.emit(pane_group::Event::SendNotification {
                     notification: notification.clone(),
@@ -706,18 +649,7 @@ fn handle_terminal_view_event(
             Event::OpenSettings(section) => {
                 ctx.emit(pane_group::Event::OpenSettings(*section));
             }
-            Event::OpenAutoReloadModal { purchased_credits } => {
-                ctx.emit(pane_group::Event::OpenAutoReloadModal {
-                    purchased_credits: *purchased_credits,
-                });
-            }
             #[cfg(not(target_family = "wasm"))]
-            Event::OpenPluginInstructionsPane(agent, kind) => {
-                ctx.emit(pane_group::Event::OpenPluginInstructionsPane(*agent, *kind));
-            }
-            Event::AskAIAssistant(ask_type) => {
-                ctx.emit(pane_group::Event::AskAIAssistant(ask_type.to_owned()))
-            }
             Event::SyncInput(sync_event) => {
                 if SyncedInputState::as_ref(ctx)
                     .should_sync_this_pane_group(ctx.view_id(), ctx.window_id())
@@ -734,28 +666,6 @@ fn handle_terminal_view_event(
             Event::OnboardingTutorialCompleted => {
                 ctx.emit(pane_group::Event::OnboardingTutorialCompleted);
             }
-            Event::OpenWorkflowModalWithCommand(command) => {
-                ctx.emit(pane_group::Event::OpenWorkflowModalWithCommand(
-                    command.clone(),
-                ));
-            }
-            Event::OpenWorkflowModalWithCloudWorkflow(workflow_id) => {
-                ctx.emit(pane_group::Event::OpenCloudWorkflowForEdit(*workflow_id));
-            }
-            Event::OpenWorkflowModalWithTemporary(workflow) => {
-                ctx.emit(pane_group::Event::OpenWorkflowModalWithTemporary(
-                    workflow.clone(),
-                ));
-            }
-            Event::OpenPromptEditor => {
-                ctx.emit(pane_group::Event::OpenPromptEditor);
-            }
-            Event::OpenAgentToolbarEditor => {
-                ctx.emit(pane_group::Event::OpenAgentToolbarEditor);
-            }
-            Event::OpenCLIAgentToolbarEditor => {
-                ctx.emit(pane_group::Event::OpenCLIAgentToolbarEditor);
-            }
             Event::OpenFileInWarp { path, session } => {
                 ctx.emit(pane_group::Event::OpenFileInWarp {
                     path: LocalOrRemotePath::Local(path.clone()),
@@ -763,146 +673,18 @@ fn handle_terminal_view_event(
                 });
             }
             #[cfg(feature = "local_fs")]
-            Event::PreviewCodeInWarp { source } => {
-                ctx.emit(pane_group::Event::PreviewCodeInWarp {
-                    source: source.clone(),
-                });
-            }
             #[cfg(feature = "local_fs")]
-            Event::OpenCodeInWarp { source, layout } => {
-                ctx.emit(pane_group::Event::OpenCodeInWarp {
-                    source: source.clone(),
-                    layout: *layout,
-                    line_col: if let CodeSource::Link { range_start, .. } = source {
-                        *range_start
-                    } else {
-                        None
-                    },
-                });
-            }
-            Event::OpenCodeDiff { view } => {
-                ctx.emit(pane_group::Event::OpenCodeDiff { view: view.clone() });
-            }
-            Event::OpenCodeReviewPane(arg) => {
-                ctx.emit(pane_group::Event::OpenCodeReviewPane(arg.clone()));
-            }
-            Event::OpenCodeReviewPaneAndScrollToComment {
-                open_code_review,
-                comment,
-                diff_mode,
-            } => {
-                ctx.emit(pane_group::Event::OpenCodeReviewPaneAndScrollToComment {
-                    open_code_review: open_code_review.clone(),
-                    comment: comment.clone(),
-                    diff_mode: diff_mode.clone(),
-                });
-            }
-            Event::ImportAllCodeReviewComments {
-                open_code_review,
-                comments,
-                diff_mode,
-            } => {
-                ctx.emit(pane_group::Event::ImportAllCodeReviewComments {
-                    open_code_review: open_code_review.clone(),
-                    comments: comments.clone(),
-                    diff_mode: diff_mode.clone(),
-                });
-            }
-            Event::ToggleCodeReviewPane(arg) => {
-                ctx.emit(pane_group::Event::ToggleCodeReviewPane(arg.clone()));
-            }
-            Event::OpenShareSessionModal { open_source } => {
-                group.open_share_session_modal(terminal_pane_id, *open_source, ctx)
-            }
             // When the host's manual share stops, also stop the share on
             // any local children whose share was auto-created via
             // `inherit_share_for_local_child`. Skipped on wasm because the
             // transitive-share tracker is only populated on non-wasm
             // dispatch paths.
             #[cfg(not(target_family = "wasm"))]
-            Event::StopSharingCurrentSession { .. } => {
-                group.stop_transitively_shared_child_shares(pane_id, ctx);
-            }
-            Event::OpenShareSessionDeniedModal => {
-                group.open_share_session_denied_modal(terminal_pane_id, ctx);
-            }
             Event::FocusSession => {
                 group.focus_pane(terminal_pane_id.into(), true, ctx);
                 ctx.emit(pane_group::Event::FocusPaneGroup);
             }
-            Event::OpenSharedSessionRoleChangeModal { source } => match source {
-                RoleChangeOpenSource::ViewerRequest { role } => {
-                    group.open_shared_session_viewer_request_modal(terminal_pane_id, *role, ctx)
-                }
-                RoleChangeOpenSource::SharerResponse {
-                    participant_id,
-                    role_request_id,
-                    role,
-                } => group.open_shared_session_sharer_response_modal(
-                    terminal_pane_id,
-                    participant_id.clone(),
-                    role_request_id.clone(),
-                    *role,
-                    ctx,
-                ),
-                RoleChangeOpenSource::SharerGrant { participant_id } => group
-                    .open_shared_session_sharer_grant_modal(
-                        terminal_pane_id,
-                        participant_id.clone(),
-                        ctx,
-                    ),
-            },
-            Event::CloseSharedSessionRoleChangeModal(source) => {
-                group.close_shared_session_role_change_modal(*source, ctx);
-            }
-            Event::RoleRequestInFlight { role_request_id } => {
-                group.set_shared_session_role_change_modal_request_id(role_request_id.clone(), ctx);
-            }
-            Event::RoleRequestCancelled(role_request_id) => {
-                group.remove_shared_session_role_request(role_request_id.clone(), ctx);
-            }
-            Event::OpenWarpDriveObjectInPane(uid) => {
-                ctx.emit(pane_group::Event::OpenWarpDriveObjectInPane(uid.clone()));
-            }
-            Event::OpenSuggestedAgentModeWorkflowModal { workflow_and_id } => {
-                ctx.emit(pane_group::Event::OpenSuggestedAgentModeWorkflowModal {
-                    workflow_and_id: workflow_and_id.clone(),
-                });
-            }
-            Event::OpenSuggestedRuleDialog { rule_and_id } => {
-                ctx.emit(pane_group::Event::OpenSuggestedRuleModal {
-                    rule_and_id: rule_and_id.clone(),
-                });
-            }
-            Event::OpenAIFactCollection { sync_id } => {
-                ctx.emit(pane_group::Event::OpenAIFactCollection { sync_id: *sync_id });
-            }
-            Event::SummarizationCancelDialogToggled { is_open } => {
-                group.terminal_with_open_summarization_dialog = is_open.then_some(terminal_pane_id);
-                ctx.notify();
-            }
-            Event::EnvironmentSetupModeSelectorToggled { is_open } => {
-                group.pane_with_open_environment_setup_mode_selector = is_open.then_some(pane_id);
-                ctx.notify();
-            }
-            Event::AuthSecretDeleteConfirmationDialogToggled { is_open } => {
-                group.pane_with_open_auth_secret_delete_confirmation_dialog =
-                    is_open.then_some(pane_id);
-                ctx.notify();
-            }
-            Event::AnonymousUserSignup => ctx.emit(pane_group::Event::AnonymousUserSignup),
             #[cfg(feature = "local_fs")]
-            Event::OpenFileWithTarget {
-                path,
-                target,
-                line_col,
-            } => {
-                ctx.emit(pane_group::Event::OpenFileWithTarget {
-                    path: path.clone(),
-                    target: target.clone(),
-                    line_col: *line_col,
-                });
-            }
             Event::CopyFileToRemote { command, upload_id } => {
                 let new_pane_id = group.insert_terminal_pane(
                     Direction::Right,
@@ -935,9 +717,6 @@ fn handle_terminal_view_event(
                     local_pane_id: terminal_pane_id,
                 });
             }
-            Event::OpenConversationHistory => {
-                ctx.emit(OpenConversationHistory);
-            }
             Event::FileUploadFinished(exit_code) => {
                 ctx.emit(pane_group::Event::FileUploadFinished {
                     local_pane_id: terminal_pane_id,
@@ -967,45 +746,11 @@ fn handle_terminal_view_event(
                     upload_id: *upload_id,
                 })
             }
-            Event::SignupAnonymousUser { entrypoint } => {
-                ctx.emit(pane_group::Event::SignupAnonymousUser {
-                    entrypoint: *entrypoint,
-                });
-            }
             Event::OpenThemeChooser => {
                 ctx.emit(pane_group::Event::OpenThemeChooser);
             }
-            Event::OpenMCPSettingsPage { page } => {
-                ctx.emit(pane_group::Event::OpenMCPSettingsPage { page: *page });
-            }
-            Event::OpenFilesPalette { source } => {
-                ctx.emit(pane_group::Event::OpenFilesPalette { source: *source })
-            }
-            Event::OpenAddRulePane => {
-                ctx.emit(crate::pane_group::Event::OpenAddRulePane);
-            }
-            Event::OpenRulesPane => {
-                ctx.emit(crate::pane_group::Event::OpenAIFactCollection { sync_id: None });
-            }
-            Event::OpenAddPromptPane { initial_content } => {
-                ctx.emit(crate::pane_group::Event::OpenAddPromptPane {
-                    initial_content: initial_content.clone(),
-                });
-            }
-            Event::OpenEnvironmentManagementPane => {
-                ctx.emit(crate::pane_group::Event::OpenEnvironmentManagementPane);
-            }
             #[cfg(feature = "local_fs")]
-            Event::FileRenamed { old_path, new_path } => {
-                ctx.emit(pane_group::Event::FileRenamed {
-                    old_path: old_path.clone(),
-                    new_path: new_path.clone(),
-                });
-            }
             #[cfg(feature = "local_fs")]
-            Event::FileDeleted { path } => {
-                ctx.emit(pane_group::Event::FileDeleted { path: path.clone() });
-            }
             Event::ToggleLeftPanel {
                 target_view,
                 force_open,
@@ -1014,165 +759,6 @@ fn handle_terminal_view_event(
                     target_view: *target_view,
                     force_open: *force_open,
                 });
-            }
-            Event::ToggleAIDocumentPane {
-                document_id,
-                document_version,
-            } => {
-                if let Some(conversation_id) =
-                    crate::ai::document::ai_document_model::AIDocumentModel::as_ref(ctx)
-                        .get_conversation_id_for_document_id(document_id)
-                {
-                    group.toggle_ai_document_pane(
-                        conversation_id,
-                        *document_id,
-                        *document_version,
-                        ctx,
-                    );
-                }
-            }
-            Event::HideAIDocumentPanes => {
-                group.close_all_ai_document_panes(ctx);
-            }
-            Event::OpenAIDocumentPane {
-                document_id,
-                document_version,
-                is_auto_open,
-            } => {
-                let should_open = if *is_auto_open {
-                    // Auto-open: only open if there's already a visible plan pane
-                    // (to replace it with the newest plan) or if there's enough space.
-                    let has_visible_ai_doc_pane = group
-                        .ai_document_panes()
-                        .any(|pane_id| !group.is_pane_hidden_for_close(pane_id));
-
-                    has_visible_ai_doc_pane
-                        || group
-                            .terminal_view_from_pane_id(terminal_pane_id, ctx)
-                            .is_some_and(|tv| tv.as_ref(ctx).can_auto_open_panel())
-                } else {
-                    // User-triggered: always open.
-                    true
-                };
-
-                if should_open {
-                    if let Some(conversation_id) =
-                        crate::ai::document::ai_document_model::AIDocumentModel::as_ref(ctx)
-                            .get_conversation_id_for_document_id(document_id)
-                    {
-                        group.open_ai_document_pane(
-                            conversation_id,
-                            *document_id,
-                            *document_version,
-                            ctx,
-                        );
-                    }
-                }
-            }
-            Event::OpenAgentProfileEditor { profile_id } => {
-                ctx.emit(pane_group::Event::OpenAgentProfileEditor {
-                    profile_id: *profile_id,
-                });
-            }
-            Event::InsertCodeReviewComments {
-                repo_path,
-                comments,
-                diff_mode,
-                open_code_review,
-            } => {
-                ctx.emit(pane_group::Event::InsertCodeReviewComments {
-                    repo_path: repo_path.clone(),
-                    comments: comments.to_owned(),
-                    diff_mode: diff_mode.to_owned(),
-                    open_code_review: open_code_review.clone(),
-                });
-            }
-            Event::ShowCloudAgentCapacityModal { variant } => {
-                ctx.emit(pane_group::Event::ShowCloudAgentCapacityModal { variant: *variant });
-            }
-            Event::FreeTierLimitCheckTriggered => {
-                ctx.emit(pane_group::Event::FreeTierLimitCheckTriggered);
-            }
-            Event::RevealChildAgent { conversation_id } => {
-                // Routed through the swap mechanism to land all reveal cases in one path.
-                if group.ensure_hidden_child_agent_pane_for_conversation(*conversation_id, ctx) {
-                    group.swap_active_pane_to_conversation(pane_id, *conversation_id, ctx);
-                } else {
-                    log::warn!(
-                        "RevealChildAgent: failed to materialize child conversation {conversation_id:?}"
-                    );
-                }
-            }
-            Event::SwapPaneToConversation { conversation_id } => {
-                // Swap visibility instead of cloning so in-flight state in the
-                // target pane is preserved.
-                if group.ensure_hidden_child_agent_pane_for_conversation(*conversation_id, ctx) {
-                    group.swap_active_pane_to_conversation(pane_id, *conversation_id, ctx);
-                } else {
-                    log::warn!(
-                        "SwapPaneToConversation: failed to materialize conversation {conversation_id:?}"
-                    );
-                }
-            }
-            Event::EnsureSharedSessionViewerChildPane {
-                conversation_id,
-                session_id,
-            } => {
-                // Emitted by `OrchestrationViewerModel` when a child of the
-                // orchestrator currently being viewed first surfaces a
-                // joinable `session_id`. Materializes a dedicated hidden
-                // shared-session viewer pane for the child so subsequent pill
-                // clicks land on a populated agent view rather than an empty
-                // cloud-mode shell.
-                group.ensure_shared_session_viewer_child_pane(*conversation_id, *session_id, ctx);
-            }
-            Event::OpenChildAgentInNewTab { conversation_id } => {
-                // Pane group can't add tabs; forward to the workspace.
-                if group.ensure_hidden_child_agent_pane_for_conversation(*conversation_id, ctx) {
-                    ctx.emit(pane_group::Event::OpenChildAgentInNewTab {
-                        conversation_id: *conversation_id,
-                    });
-                } else {
-                    log::warn!(
-                        "OpenChildAgentInNewTab: failed to materialize child conversation {conversation_id:?}"
-                    );
-                }
-            }
-            Event::OpenChildAgentInNewPane { conversation_id } => {
-                // Reuse the existing hidden child pane to preserve in-flight
-                // state and the live transcript instead of creating a new view.
-                if group.ensure_hidden_child_agent_pane_for_conversation(*conversation_id, ctx) {
-                    if group
-                        .unhide_child_agent_pane_for_split_off(*conversation_id, ctx)
-                        .is_none()
-                    {
-                        log::warn!(
-                            "OpenChildAgentInNewPane: no hidden child pane registered for conversation {conversation_id:?}"
-                        );
-                    }
-                } else {
-                    log::warn!(
-                        "OpenChildAgentInNewPane: failed to materialize child conversation {conversation_id:?}"
-                    );
-                }
-            }
-            Event::StopAgentConversation { conversation_id } => {
-                stop_agent_conversation(group, *conversation_id, ctx);
-            }
-            Event::KillAgentConversation { conversation_id } => {
-                let source_terminal_view_id = group
-                    .terminal_view_from_pane_id(terminal_pane_id, ctx)
-                    .map(|terminal_view| terminal_view.id());
-                kill_agent_conversation(group, source_terminal_view_id, *conversation_id, ctx);
-            }
-            Event::StartAgentConversation(request) => {
-                dispatch_start_agent_conversation(
-                    group,
-                    pane_id,
-                    terminal_pane_id,
-                    request.clone(),
-                    ctx,
-                );
             }
             _ => {}
         }
