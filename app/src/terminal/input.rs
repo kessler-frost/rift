@@ -1342,7 +1342,6 @@ pub fn init(app: &mut AppContext) {
     .with_group(bindings::BindingGroup::Settings.as_str())
     .with_context_predicate(
         id!("Input")
-            & id!(SharedSessionStatus::ActiveSharer.as_keymap_context())
             & !id!("LongRunningCommand")
             & !id!(flags::ACTIVE_AGENT_VIEW)
             & !id!(flags::ACTIVE_INLINE_AGENT_VIEW),
@@ -1426,7 +1425,6 @@ pub fn init(app: &mut AppContext) {
         )
         .with_context_predicate(
             id!("Input")
-                & !id!(SharedSessionStatus::reader().as_keymap_context())
                 & id!(flags::IS_ANY_AI_ENABLED)
                 & !id!("AIInput"),
         )
@@ -7461,22 +7459,6 @@ impl Input {
 
             // Make sure the viewer's interaction state is correct based on their role.
             // We may have locked up their input if they tried to execute a command.
-            if let SharedSessionStatus::ActiveViewer { role } =
-                self.model.lock().shared_session_status()
-            {
-                self.editor.update(ctx, |editor, ctx| {
-                    editor.set_interaction_state(role.into(), ctx);
-
-                    // Also need to set the text colors back to normal.
-                    let appearance: &Appearance = Appearance::as_ref(ctx);
-                    editor.set_text_colors(TextColors::from_appearance(appearance), ctx);
-                });
-
-                if let Some(shared_session_input_state) = self.shared_session_input_state.as_mut() {
-                    shared_session_input_state.pending_command_execution_request = None;
-                };
-            }
-
             // Update the segmented control disabled state based on the new state.
             self.universal_developer_input_button_bar
                 .update(ctx, |button_bar, ctx| {
