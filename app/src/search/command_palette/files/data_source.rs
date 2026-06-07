@@ -7,13 +7,11 @@ use std::sync::Arc;
 
 use futures_lite::FutureExt;
 use fuzzy_match::FuzzyMatchResult;
-use instant::Instant;
 use itertools::Itertools;
 use rift_util::path::CleanPathResult;
 use riftui::{AppContext, Entity, SingletonEntity};
 
 use super::search_item::{CreateFileSearchItem, FileSearchItem};
-use crate::code::opened_files::{OpenedFilesInRepo, OpenedFilesModel};
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::data_source::{Query, QueryFilter, QueryResult};
 use crate::search::files::model::FileSearchModel;
@@ -26,7 +24,6 @@ const MAX_RESULTS: usize = 100;
 enum FileRanking {
     None,
     ChangedInGit,
-    OpenedInWarp { timestamp: Instant },
 }
 
 pub struct FileDataSource {
@@ -129,36 +126,18 @@ impl FileDataSource {
         'static,
         Result<Vec<QueryResult<CommandPaletteItemAction>>, DataSourceRunErrorWrapper>,
     > {
-        let file_search_model = FileSearchModel::as_ref(app);
-
         let (contents, git_changed_files) = self.contents_with_git_changes(app);
-
-        let opened_files = OpenedFilesModel::as_ref(app);
-
-        let repo_root = file_search_model.repo_root_location(app);
-        let opened_files = repo_root
-            .and_then(|repo_root| opened_files.opened_files_for_repo(&repo_root))
-            .cloned();
 
         Box::pin(async move {
             let mut results = Vec::new();
 
             for chunk in contents.chunks(50) {
                 for item in chunk {
-                    let mut file_ranking = if git_changed_files.contains(&item.path) {
+                    let file_ranking = if git_changed_files.contains(&item.path) {
                         FileRanking::ChangedInGit
                     } else {
                         FileRanking::None
                     };
-
-                    if let Some(last_opened_timestamp) = opened_files
-                        .as_ref()
-                        .and_then(|of: &OpenedFilesInRepo| of.get(&item.path))
-                    {
-                        file_ranking = FileRanking::OpenedInWarp {
-                            timestamp: *last_opened_timestamp,
-                        };
-                    }
 
                     let match_result = FuzzyMatchResult {
                         score: 0,
@@ -193,8 +172,6 @@ impl FileDataSource {
         'static,
         Result<Vec<QueryResult<CommandPaletteItemAction>>, DataSourceRunErrorWrapper>,
     > {
-        let file_search_model = FileSearchModel::as_ref(app);
-
         let contents = self.contents(app);
 
         // Strip any trailing : in case user is in the middle of typing a line / column arg.
@@ -203,11 +180,8 @@ impl FileDataSource {
         let text = CleanPathResult::with_line_and_column_number(query_text);
         let query_file_content = text.path;
 
-        let opened_files = OpenedFilesModel::as_ref(app);
-
         #[cfg(feature = "local_fs")]
-        let repo_root = file_search_model.repo_root(app);
-        let repo_root_location = file_search_model.repo_root_location(app);
+        let repo_root = FileSearchModel::as_ref(app).repo_root(app);
 
         // For the "Create file" fallback, use the expanded (but not repo-root-stripped)
         // path so that absolute paths work correctly with Path::join.
@@ -239,10 +213,6 @@ impl FileDataSource {
         )
         .unwrap_or(query_file_content);
 
-        let opened_files = repo_root_location
-            .and_then(|repo_root| opened_files.opened_files_for_repo(&repo_root))
-            .cloned();
-
         const CHUNK_SIZE: usize = 50;
 
         Box::pin(async move {
@@ -252,7 +222,7 @@ impl FileDataSource {
             // allow the main thread to abort the search if needed.
             for chunk in contents.chunks(CHUNK_SIZE) {
                 for item in chunk {
-                    let Some(mut match_result) =
+                    let Some(match_result) =
                         FileSearchModel::fuzzy_match_path(&item.path, &query_file_content)
                     else {
                         continue;
@@ -262,15 +232,6 @@ impl FileDataSource {
                     if item.is_directory {
                         continue;
                     }
-
-                    if opened_files
-                        .as_ref()
-                        .and_then(|of: &OpenedFilesInRepo| of.get(&item.path))
-                        .is_some()
-                    {
-                        // Apply a boost to opened files to rank them above non-opened files.
-                        match_result.score += 100;
-                    };
 
                     let search_item = FileSearchItem {
                         path: PathBuf::from(&item.path),

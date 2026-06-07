@@ -9,7 +9,6 @@ mod aws_cli_not_installed;
 mod notifications_discovery;
 mod notifications_error;
 mod open_in_warp;
-mod passive_code_diff;
 mod session_state;
 mod shared_sessions;
 mod shell_process_terminated;
@@ -24,7 +23,6 @@ pub use aws_cli_not_installed::*;
 pub use notifications_discovery::*;
 pub use notifications_error::*;
 pub use open_in_warp::*;
-pub use passive_code_diff::*;
 use pathfinder_color::ColorU;
 use riftui::elements::{
     Align, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Icon,

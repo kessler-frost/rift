@@ -5,8 +5,7 @@ use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback, ModalButton};
 use riftui::{AppContext, EntityId, SingletonEntity, ViewContext, WeakViewHandle, WindowId};
 use settings::ToggleableSetting as _;
 
-use crate::code::editor_management::{CodeEditorStatus, CodeEditorSummary};
-use crate::pane_group::{CodePane, PaneGroup, PaneId, TerminalPane};
+use crate::pane_group::{PaneGroup, PaneId, TerminalPane};
 use crate::server::telemetry::CloseTarget;
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::terminal::general_settings::GeneralSettings;
@@ -25,11 +24,6 @@ enum QuitScope<'a> {
     Tabs(Vec<WeakViewHandle<PaneGroup>>),
     Window(WindowId),
     App,
-    #[allow(dead_code)]
-    EditorTab {
-        file_name: Option<String>,
-        editor_status: Vec<CodeEditorStatus>,
-    }, // TODO: Include the "log out" confirmation modal too.
 }
 
 /// Summary of unsaved data and running processes to show the user before they quit.
@@ -48,8 +42,6 @@ pub struct UnsavedStateSummary<'a> {
 
     /// The number of live shared sessions.
     pub shared_sessions: usize,
-    /// Whether or not there are unsaved code changes.
-    unsaved_code_changes: bool,
 }
 
 /// Builder for a warning dialog that displays unsaved state.
@@ -96,63 +88,6 @@ impl QuitScope<'_> {
                 .filter(|session| session.window_id() == *window_id)
                 .collect_vec(),
             Self::App => SessionNavigationData::all_sessions(ctx).collect_vec(),
-            Self::EditorTab { .. } => Vec::new(),
-        }
-    }
-
-    /// All code editors in this scope.
-    fn code_editors(&self, ctx: &AppContext) -> Vec<CodeEditorStatus> {
-        match self {
-            Self::Pane {
-                pane_group,
-                pane_id,
-                ..
-            } => pane_group
-                .downcast_pane_by_id::<CodePane>(*pane_id)
-                .map(|code_pane| code_pane.editor_status(ctx))
-                .into_iter()
-                .collect(),
-            Self::Tabs(ref tabs) => tabs
-                .iter()
-                .filter_map(|tab| tab.upgrade(ctx))
-                .flat_map(|pane_group| CodeEditorStatus::editors_in_tab(&pane_group, ctx))
-                .collect_vec(),
-            Self::Window(window_id) => {
-                CodeEditorStatus::editors_in_window(*window_id, ctx).collect_vec()
-            }
-            Self::App => CodeEditorStatus::all_editors(ctx).collect_vec(),
-            Self::EditorTab { editor_status, .. } => editor_status.clone(),
-        }
-    }
-
-    /// All code review views in this scope (from the panel, not panes).
-    fn code_review_views(&self, ctx: &AppContext) -> Vec<CodeEditorStatus> {
-        match self {
-            Self::Pane { .. } => {
-                vec![] // There cannot be a code review view in a pane.
-            }
-            Self::Tabs(ref tabs) => {
-                let window_ids: Vec<_> = tabs
-                    .iter()
-                    .filter_map(|tab| tab.upgrade(ctx))
-                    .map(|pane_group| pane_group.window_id(ctx))
-                    .unique()
-                    .collect();
-                window_ids
-                    .into_iter()
-                    .flat_map(|window_id| {
-                        CodeEditorStatus::code_review_views_in_window(window_id, ctx)
-                    })
-                    .collect_vec()
-            }
-            Self::Window(window_id) => {
-                CodeEditorStatus::code_review_views_in_window(*window_id, ctx).collect_vec()
-            }
-            Self::App => ctx
-                .window_ids()
-                .flat_map(|window_id| CodeEditorStatus::code_review_views_in_window(window_id, ctx))
-                .collect_vec(),
-            Self::EditorTab { .. } => vec![],
         }
     }
 
@@ -183,7 +118,6 @@ impl QuitScope<'_> {
                 })
                 .unwrap_or_default(),
             Self::App => crate::session_management::num_shared_sessions(ctx),
-            Self::EditorTab { .. } => 0,
         }
     }
 
@@ -193,7 +127,6 @@ impl QuitScope<'_> {
             Self::Tabs(_) => CloseTarget::Tab,
             Self::Window(_) => CloseTarget::Window,
             Self::App => CloseTarget::App,
-            Self::EditorTab { .. } => CloseTarget::EditorTab,
         }
     }
 }
@@ -209,21 +142,6 @@ impl UnsavedStateSummary<'static> {
 
     pub fn for_tabs(tabs: Vec<WeakViewHandle<PaneGroup>>, ctx: &mut AppContext) -> Self {
         Self::for_scope(QuitScope::Tabs(tabs), ctx)
-    }
-
-    #[allow(dead_code)]
-    pub fn for_editor_tab(
-        file_name: Option<String>,
-        editor_status: Vec<CodeEditorStatus>,
-        ctx: &mut AppContext,
-    ) -> Self {
-        Self::for_scope(
-            QuitScope::EditorTab {
-                file_name,
-                editor_status,
-            },
-            ctx,
-        )
     }
 }
 
@@ -248,12 +166,6 @@ impl<'a> UnsavedStateSummary<'a> {
         let sessions = scope.sessions(ctx);
         let sessions_summary = RunningSessionSummary::new(&sessions);
 
-        let code_editors = scope.code_editors(ctx);
-        let code_editor_summary = CodeEditorSummary::new(&code_editors);
-
-        let code_review_views = scope.code_review_views(ctx);
-        let code_review_summary = CodeEditorSummary::new(&code_review_views);
-
         let num_shared_sessions = scope.shared_sessions(ctx);
 
         UnsavedStateSummary {
@@ -263,16 +175,12 @@ impl<'a> UnsavedStateSummary<'a> {
             tabs_with_long_running_commands: sessions_summary.tabs_running().len(),
             terminal_sessions: sessions,
             shared_sessions: num_shared_sessions,
-            unsaved_code_changes: !code_editor_summary.unsaved_changes.is_empty()
-                || !code_review_summary.unsaved_changes.is_empty(),
         }
     }
 
     pub fn should_display_warning(&self, ctx: &AppContext) -> bool {
         *GeneralSettings::as_ref(ctx).show_warning_before_quitting
-            && (self.total_long_running_commands > 0
-                || self.shared_sessions > 0
-                || self.unsaved_code_changes)
+            && (self.total_long_running_commands > 0 || self.shared_sessions > 0)
     }
 
     pub fn running_sessions(&self) -> RunningSessionSummary<'_> {
@@ -292,7 +200,7 @@ impl<'a> UnsavedStateSummary<'a> {
             QuitScope::Tabs(ref tabs) if tabs.len() == 1 => " in this tab.",
             QuitScope::Window(_) => " in this window.",
             QuitScope::Pane { .. } => " in this pane.",
-            QuitScope::App | QuitScope::Tabs(_) | QuitScope::EditorTab { .. } => ".",
+            QuitScope::App | QuitScope::Tabs(_) => ".",
         };
 
         if self.total_long_running_commands > 0 {
@@ -324,14 +232,6 @@ impl<'a> UnsavedStateSummary<'a> {
                 self.shared_sessions,
                 pluralize(self.shared_sessions, "session", "sessions")
             ));
-        }
-
-        if self.unsaved_code_changes {
-            if let QuitScope::EditorTab { ref file_name, .. } = self.scope {
-                info_text_lines.push(format!("Do you want to save the changes you made to {}? Your changes will be discarded if you don't save them.", file_name.clone().unwrap_or("this file".to_string())));
-            } else {
-                info_text_lines.push(format!("You have unsaved file changes{scope_suffix}"));
-            }
         }
 
         info_text_lines.join("\n")
@@ -432,7 +332,6 @@ impl<'a> QuitWarningDialog<'a> {
             QuitScope::Tabs(_) => "Close tabs?",
             QuitScope::Window(_) => "Close window?",
             QuitScope::App => "Quit Warp?",
-            QuitScope::EditorTab { .. } => "Save changes?",
         };
 
         AlertDialogWithCallbacks::for_app(

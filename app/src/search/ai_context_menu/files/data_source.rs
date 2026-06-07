@@ -6,21 +6,15 @@ use std::sync::Arc;
 use futures_lite::future::yield_now;
 use fuzzy_match::FuzzyMatchResult;
 use itertools::Itertools;
-#[cfg(feature = "local_fs")]
-use repo_metadata::repositories::DetectedRepositories;
 use riftui::{AppContext, SingletonEntity};
 
 use super::search_item::FileSearchItem;
-#[cfg(feature = "local_fs")]
-use crate::code::opened_files::OpenedFilesModel;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::async_snapshot_data_source::AsyncSnapshotDataSource;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::files::model::FileSearchModel;
 use crate::search::files::search_item::FileSearchResult;
 use crate::search::mixer::{BoxFuture, DataSourceRunErrorWrapper};
-#[cfg(feature = "local_fs")]
-use crate::workspace::ActiveSession;
 
 const MAX_RESULTS: usize = 200;
 
@@ -106,34 +100,8 @@ pub fn file_data_source_for_pwd(
     )
 }
 
-/// Captures last-opened timestamps from `OpenedFilesModel` for the active
-/// repo at snapshot time. Returns an empty map when no repo is active.
-#[cfg(feature = "local_fs")]
-fn snapshot_last_opened(app: &AppContext) -> HashMap<String, instant::Instant> {
-    let repo_root = app
-        .windows()
-        .state()
-        .active_window
-        .and_then(|window_id| ActiveSession::as_ref(app).working_directory(window_id))
-        .and_then(|working_dir| DetectedRepositories::as_ref(app).get_root_for_path(working_dir));
-
-    let Some(repo_root) = repo_root else {
-        return HashMap::new();
-    };
-
-    let opened_files_model = OpenedFilesModel::as_ref(app);
-    let Some(opened_in_repo) = opened_files_model.opened_files_for_repo(&repo_root) else {
-        return HashMap::new();
-    };
-
-    opened_in_repo
-        .iter()
-        .map(|(path, ts)| (path.clone(), *ts))
-        .collect()
-}
-
-/// File-open recency is unavailable without a local filesystem.
-#[cfg(not(feature = "local_fs"))]
+/// File-open recency tracking was tied to the deleted code editor, so no
+/// recency signal is available.
 fn snapshot_last_opened(_app: &AppContext) -> HashMap<String, instant::Instant> {
     HashMap::new()
 }
