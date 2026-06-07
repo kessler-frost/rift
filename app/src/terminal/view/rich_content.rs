@@ -87,73 +87,8 @@ impl RichContent {
         self.metadata.as_mut()
     }
 
-    pub fn is_ai_block(&self) -> bool {
-        matches!(self.metadata, Some(RichContentMetadata::AIBlock(_)))
-    }
-
     pub fn is_usage_footer(&self) -> bool {
         matches!(self.metadata, Some(RichContentMetadata::UsageFooter))
-    }
-
-    pub fn is_telemetry_banner(&self) -> bool {
-        matches!(
-            self.metadata,
-            Some(RichContentMetadata::TelemetryBanner { .. })
-        )
-    }
-
-    pub fn is_agent_view_entry(&self) -> bool {
-        matches!(self.metadata, Some(RichContentMetadata::AgentViewEntry(_)))
-    }
-
-    pub fn is_inline_agent_view_header(&self) -> bool {
-        matches!(
-            self.metadata,
-            Some(RichContentMetadata::InlineAgentViewHeader)
-        )
-    }
-
-    pub fn is_agent_view_zero_state(&self) -> bool {
-        matches!(self.metadata, Some(RichContentMetadata::AgentViewZeroState))
-    }
-
-    pub fn is_pending_user_query(&self) -> bool {
-        matches!(
-            self.metadata,
-            Some(RichContentMetadata::PendingUserQuery { .. })
-        )
-    }
-
-    pub fn is_init_step(&self) -> bool {
-        matches!(self.metadata, Some(RichContentMetadata::InitStep { .. }))
-    }
-
-    pub fn init_step_kind(&self) -> Option<InitStepKind> {
-        match &self.metadata {
-            Some(RichContentMetadata::InitStep { step_kind, .. }) => Some(*step_kind),
-            _ => None,
-        }
-    }
-
-    pub fn init_step_block_handle(&self) -> Option<&ViewHandle<InitStepBlock>> {
-        match &self.metadata {
-            Some(RichContentMetadata::InitStep { block_handle, .. }) => Some(block_handle),
-            _ => None,
-        }
-    }
-
-    pub fn ai_block_metadata(&self) -> Option<&AIBlockMetadata> {
-        match &self.metadata {
-            Some(RichContentMetadata::AIBlock(metadata)) => Some(metadata),
-            _ => None,
-        }
-    }
-
-    pub fn agent_view_entry_metadata(&self) -> Option<&AgentViewEntryMetadata> {
-        match &self.metadata {
-            Some(RichContentMetadata::AgentViewEntry(metadata)) => Some(metadata),
-            _ => None,
-        }
     }
 
     pub(super) fn to_block_list_element_render_params(
@@ -166,25 +101,7 @@ impl RichContent {
 /// `RichContent` view-specific metadata required for rendering in the `BlocklistElement`.
 #[derive(Clone, Debug)]
 pub enum RichContentMetadata {
-    AIBlock(AIBlockMetadata),
-    AIOnboardingBlock {
-        /// The ID corresponding to the `AIAgentExchange` represented in this block.
-        exchange_id: AIAgentExchangeId,
-    },
     UsageFooter,
-    InitStep {
-        step_kind: InitStepKind,
-        block_handle: ViewHandle<InitStepBlock>,
-    },
-    InitEnvironment {
-        block_handle: ViewHandle<InitEnvironmentBlock>,
-    },
-    OnboardingAgenticSuggestions {
-        agentic_suggestions_block_handle: ViewHandle<OnboardingAgenticSuggestionsBlock>,
-    },
-    EnvVarCollectionBlock {
-        env_var_collection_block_handle: ViewHandle<EnvVarCollectionBlock>,
-    },
     SshWarpifyBlock {
         ssh_warpify_block_handle: ViewHandle<SshWarpifyBlock>,
     },
@@ -203,21 +120,8 @@ pub enum RichContentMetadata {
     WarpifySuccessBlock {
         bootstrap_success_block_handle: ViewHandle<WarpifySuccessBlock>,
     },
-    TelemetryBanner {
-        telemetry_banner_handle: ViewHandle<TelemetryBanner>,
-    },
-    AgentViewEntry(AgentViewEntryMetadata),
-    AmbientAgentBlock {
-        block_handle: ViewHandle<AmbientAgentEntryBlock>,
-    },
-    InlineAgentViewHeader,
-    AgentViewZeroState,
     TerminalViewZeroState,
     PluginInstructionsBlock,
-    PendingUserQuery {
-        pending_user_query_block_handle: ViewHandle<PendingUserQueryBlock>,
-    },
-    HarnessSessionHeader,
 }
 
 impl TerminalView {
