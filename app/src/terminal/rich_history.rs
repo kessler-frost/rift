@@ -9,7 +9,6 @@ use riftui::{AppContext, Element, SingletonEntity};
 
 use super::HistoryEntry;
 use crate::appearance::Appearance;
-use crate::input_suggestions::AIQueryHistoryEntryDetails;
 use crate::ui_components::icons::Icon as UiIcon;
 use crate::util::time_format::{format_approx_duration_from_now, human_readable_precise_duration};
 

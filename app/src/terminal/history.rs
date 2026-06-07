@@ -228,15 +228,8 @@ pub struct HistoryEntry {
     pub is_agent_executed: bool,
 }
 
-fn serialized_block_is_agent_executed(block: &SerializedBlock) -> bool {
-    let Some(ai_metadata) = block.ai_metadata.as_ref() else {
-        return false;
-    };
-
-    serde_json::from_str::<SerializedAIMetadata>(ai_metadata)
-        .ok()
-        .map(AgentInteractionMetadata::from)
-        .is_some_and(|metadata| metadata.requested_command_action_id().is_some())
+fn serialized_block_is_agent_executed(_block: &SerializedBlock) -> bool {
+    false
 }
 
 impl HistoryEntry {
@@ -327,22 +320,6 @@ impl HistoryEntry {
             shell_host: block.shell_host.clone(),
             is_for_restored_block: false,
             is_agent_executed: serialized_block_is_agent_executed(block),
-        }
-    }
-
-    /// Returns an `Option` containing the workflow linked to this command, if any.
-    ///
-    /// First looks up the workflow using `self.workflow_id`, then falls back to looking up the
-    /// workflow using `self.workflow_command`, if any.
-    pub fn linked_workflow(&self, app: &AppContext) -> Option<Workflow> {
-        match (&self.workflow_id, &self.workflow_command) {
-            (Some(workflow_id), _) => CloudModel::as_ref(app)
-                .get_workflow(workflow_id)
-                .map(|workflow| workflow.model().data.clone()),
-            (_, Some(workflow_command)) => LocalWorkflows::as_ref(app)
-                .workflow_with_command(app, workflow_command)
-                .map(|(_, workflow)| workflow.clone()),
-            _ => None,
         }
     }
 
