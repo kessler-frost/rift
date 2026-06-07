@@ -3341,25 +3341,6 @@ impl TerminalView {
         self.block_completed_callbacks.push(Box::new(callback));
     }
 
-    fn set_pending_cloud_mode_start_callback(
-        &mut self,
-        callback: TerminalViewCallback,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.clear_pending_cloud_mode_start_callback();
-        self.pending_cloud_mode_start_callback = Some(callback);
-
-        self.pending_cloud_mode_start_abort_handle = Some(ctx.spawn_abortable(
-            // Reuse the same timeout as agent-view confirmation prompts so a pending cloud-mode
-            // start cannot outlive the user-visible confirmation window semantics.
-            Timer::after(ENTER_OR_EXIT_CONFIRMATION_WINDOW),
-            |me, _, _ctx| {
-                me.pending_cloud_mode_start_callback = None;
-                me.pending_cloud_mode_start_abort_handle = None;
-            },
-            |_, _| (),
-        ));
-    }
 
     fn clear_pending_cloud_mode_start_callback(&mut self) {
         if let Some(handle) = self.pending_cloud_mode_start_abort_handle.take() {
@@ -3380,45 +3361,6 @@ impl TerminalView {
         callback(self, ctx);
     }
 
-    /// If the active conversation is a child agent, navigate to the parent
-    /// and return `true`; otherwise return `false` so the caller can run
-    /// the normal exit-agent-view flow. Cross-tab and swap-target cases
-    /// are handled by the workspace's focus path; falls back to emitting
-    /// a swap event when the parent has no canonical owner. Runs before
-    /// any can-exit gating so long-running children can still navigate back.
-    fn try_navigate_to_parent_conversation(&mut self, ctx: &mut ViewContext<Self>) -> bool {
-        if !FeatureFlag::AgentView.is_enabled() {
-            return false;
-        }
-        let active_conv_id = self
-            .agent_view_controller
-            .as_ref(ctx)
-            .agent_view_state()
-            .active_conversation_id();
-        let Some(active_conv_id) = active_conv_id else {
-            return false;
-        };
-        let history = BlocklistAIHistoryModel::as_ref(ctx);
-        let parent_id = history
-            .conversation(&active_conv_id)
-            .and_then(|c| c.parent_conversation_id());
-        let Some(parent_id) = parent_id else {
-            return false;
-        };
-        let parent_terminal_view_id = history.terminal_view_id_for_conversation(&parent_id);
-
-        if let Some(parent_terminal_view_id) = parent_terminal_view_id {
-            // Defer so it runs after in-flight event handling completes.
-            ctx.dispatch_typed_action_deferred(WorkspaceAction::FocusTerminalViewInWorkspace {
-                terminal_view_id: parent_terminal_view_id,
-            });
-        } else {
-            ctx.emit(Event::SwapPaneToConversation {
-                conversation_id: parent_id,
-            });
-        }
-        true
-    }
 
     /// Exits the active agent, either:
     /// * Exiting agent view for the selected conversation
@@ -3446,18 +3388,6 @@ impl TerminalView {
         }
     }
 
-    /// Schedule a callback to run after the next
-    /// [`BlocklistAIControllerEvent::FinishedReceivingOutput`] received, regardless of whether the
-    /// conversation completed successfully, was cancelled, or encountered an error.
-    /// The callback receives the `FinishReason` to allow different handling based on how the
-    /// conversation ended.
-    pub fn on_next_conversation_finished<F>(&mut self, callback: F)
-    where
-        F: FnOnce(&mut Self, FinishReason, &mut ViewContext<Self>) + 'static,
-    {
-        self.conversation_completed_callbacks
-            .push(Box::new(callback));
-    }
 
 
     #[cfg(feature = "local_fs")]
@@ -3721,32 +3651,6 @@ impl TerminalView {
 
 
 
-    /// Drains one queued prompt when the cloud setup phase completes for a promptless handoff run
-    /// (a prompt will not be auto-sent by the worker so there's no normal event to initiate a queued prompt sending).
-    pub(crate) fn maybe_drain_queue_after_promptless_setup(&mut self, ctx: &mut ViewContext<Self>) {
-        let is_promptless_run = self
-            .ambient_agent_view_model()
-            .and_then(|model| {
-                model
-                    .as_ref(ctx)
-                    .request()
-                    .map(|request| request.prompt.is_none())
-            })
-            .unwrap_or(false);
-        if !is_promptless_run {
-            return;
-        }
-
-        let Some(conversation_id) = self
-            .ai_context_model
-            .as_ref(ctx)
-            .selected_conversation_id(ctx)
-        else {
-            return;
-        };
-
-        self.drain_queued_prompts(conversation_id, FinishReason::Complete, ctx);
-    }
 
 
 
@@ -3766,17 +3670,6 @@ impl TerminalView {
         });
     }
 
-    pub fn attach_plan_as_context(
-        &mut self,
-        ai_document_id: AIDocumentId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.input.update(ctx, |input, ctx| {
-            let content = format!("<plan:{ai_document_id}>");
-            input.append_to_buffer(content.as_str(), ctx);
-            ctx.notify();
-        });
-    }
 
     /// Marks this view as hosting a split-off child; pane header switches
     /// from the pill bar to a parent→child breadcrumb row.
@@ -3800,18 +3693,6 @@ impl TerminalView {
         self.is_orchestration_split_off
     }
 
-    /// Returns true if the given conversation is currently selected in this terminal.
-    pub fn is_conversation_selected(
-        &self,
-        conversation_id: &AIConversationId,
-        ctx: &AppContext,
-    ) -> bool {
-        self.ai_context_model
-            .as_ref(ctx)
-            .selected_conversation_id(ctx)
-            .map(|id| id == *conversation_id)
-            .unwrap_or(false)
-    }
 
 
 
@@ -3994,35 +3875,12 @@ impl TerminalView {
         });
     }
 
-    pub fn ai_controller(&self) -> &ModelHandle<BlocklistAIController> {
-        &self.ai_controller
-    }
-
-    pub fn ai_context_model(&self) -> &ModelHandle<BlocklistAIContextModel> {
-        &self.ai_context_model
-    }
-
-    pub fn ai_input_model(&self) -> &ModelHandle<BlocklistAIInputModel> {
-        &self.ai_input_model
-    }
-
-    pub fn agent_view_controller(&self) -> &ModelHandle<AgentViewController> {
-        &self.agent_view_controller
-    }
-
-    pub fn active_conversation_id(&self, app: &AppContext) -> Option<AIConversationId> {
-        self.agent_view_controller
-            .as_ref(app)
-            .agent_view_state()
-            .active_conversation_id()
-    }
 
 
-    pub fn ambient_agent_view_model(
-        &self,
-    ) -> Option<&ModelHandle<ambient_agent::AmbientAgentViewModel>> {
-        self.ambient_agent_view_model.as_ref()
-    }
+
+
+
+
 
     /// Tear down the Cloud Mode Setup V2 UI in response to a
     /// setup-phase-ended signal: clear the BlockList
@@ -4052,27 +3910,7 @@ impl TerminalView {
             .and_then(|model| model.as_ref(app).task_id())
             .or_else(|| model.ambient_agent_task_id())
     }
-    pub fn ambient_agent_task_id_for_details_panel(
-        &self,
-        app: &AppContext,
-    ) -> Option<AmbientAgentTaskId> {
-        let model = self.model.lock();
-        self.ambient_agent_task_id_for_details_panel_from_model(&model, app)
-    }
 
-    /// Whether the conversation details side panel should be available in the
-    /// pane header / pane layout for this terminal view.
-    fn can_show_conversation_details_ui_from_model(
-        &self,
-        model: &TerminalModel,
-        app: &AppContext,
-    ) -> bool {
-        self.ambient_agent_task_id_for_details_panel_from_model(model, app)
-            .is_some()
-            || BlocklistAIHistoryModel::as_ref(app)
-                .active_conversation(self.view_id)
-                .is_some_and(|conversation| !conversation.is_empty())
-    }
 
     /// Convenience wrapper around
     /// [`Self::can_show_conversation_details_ui_from_model`] that locks the
@@ -14430,27 +14268,6 @@ impl TerminalView {
     }
 
 
-    /// Collects all imported review comments from blocks in the current thread of the given
-    /// conversation.
-    fn all_comments_in_thread(
-        &self,
-        conversation_id: &AIConversationId,
-        ctx: &AppContext,
-    ) -> (Vec<AttachedReviewComment>, Option<String>) {
-        let mut all_comments = Vec::new();
-        let mut base_branch = None;
-        for ai_block in self.ai_blocks_for_current_thread(conversation_id, ctx) {
-            if let Some(imported) = ai_block.collect_imported_comments() {
-                all_comments.extend(imported.comments);
-                if base_branch.is_none() {
-                    base_branch = imported.base_branch;
-                }
-            }
-        }
-        // The iterator yields blocks newest-first; reverse to get chronological order.
-        all_comments.reverse();
-        (all_comments, base_branch)
-    }
 
     /// Returns `true` if any block in the current thread of the given conversation has imported
     /// review comments.
@@ -14543,18 +14360,6 @@ impl TerminalView {
         None
     }
 
-    fn ai_block_for_exchange(
-        &self,
-        exchange_id: &AIAgentExchangeId,
-    ) -> Option<&ViewHandle<AIBlock>> {
-        self.rich_content_views.iter().find_map(|rich_content| {
-            let ai_metadata = rich_content.ai_block_metadata()?;
-            if ai_metadata.exchange_id == *exchange_id {
-                return Some(&ai_metadata.ai_block_handle);
-            }
-            None
-        })
-    }
 
     fn ai_block_handle_by_view_id(&self, view_id: EntityId) -> Option<&ViewHandle<AIBlock>> {
         self.rich_content_views.iter().find_map(|rich_content| {
@@ -15766,16 +15571,6 @@ impl TerminalView {
         false
     }
 
-    /// Returns true when there exists an AgentViewBlock with origin LongRunningCommand that matches
-    /// the given conversation id.
-    fn has_existing_lrc_agent_view_block(&self, conversation_id: AIConversationId) -> bool {
-        self.rich_content_views.iter().any(|content| {
-            content.agent_view_entry_metadata().is_some_and(|metadata| {
-                metadata.conversation_id == conversation_id
-                    && matches!(metadata.origin, AgentViewEntryOrigin::LongRunningCommand)
-            })
-        })
-    }
 
     fn update_block_filter_for_block_with_active_editor(
         &mut self,
@@ -16200,78 +15995,6 @@ impl TerminalView {
         }
     }
 
-    fn jump_to_latest_agent_message(&mut self, ctx: &mut ViewContext<Self>) {
-        // Agent messages only render inside the agent view; in the terminal they
-        // collapse to a hidden, zero-height block. So "jump to latest agent
-        // message" makes sure we're in the agent view for the most recent
-        // conversation and then scrolls to its latest exchange.
-        if !FeatureFlag::AgentView.is_enabled() {
-            return;
-        }
-        // Follow actual agent activity. Prefer the active conversation — the one
-        // currently or most recently streaming, which tracks where the latest
-        // agent message landed even after the user switches back to an older
-        // conversation — and target its latest visible exchange. When there is no
-        // active conversation, fall back to the single most-recently-streamed
-        // exchange across all conversations (rather than the most-recently-
-        // *created* conversation) and enter the conversation that owns it.
-        let history = BlocklistAIHistoryModel::as_ref(ctx);
-        let (conversation_id, exchange_id) =
-            if let Some(active_conversation_id) = history.active_conversation_id(self.id()) {
-                // Resolve the target exchange from the conversation model rather than
-                // from the currently-mounted blocks: when entering from the terminal
-                // the blocks mount over later frames, so the latest block may not
-                // exist yet this tick. Use the latest *visible* exchange so we land on
-                // a block that actually renders (skipping passive/hidden exchanges).
-                let Some(exchange_id) = history
-                    .conversation(&active_conversation_id)
-                    .and_then(|conversation| conversation.latest_visible_exchange())
-                    .map(|exchange| exchange.id)
-                else {
-                    return;
-                };
-                (active_conversation_id, exchange_id)
-            } else {
-                let Some(exchange_id) = history
-                    .latest_exchange_across_all_conversations(self.id())
-                    .map(|exchange| exchange.id)
-                else {
-                    return;
-                };
-                let Some(conversation_id) =
-                    history.conversation_id_for_exchange(exchange_id, self.id())
-                else {
-                    return;
-                };
-                (conversation_id, exchange_id)
-            };
-        // Only re-enter the agent view when we're not already in this
-        // conversation's view; re-entering when already there is needless churn.
-        let already_in_view = self
-            .agent_view_controller
-            .as_ref(ctx)
-            .agent_view_state()
-            .active_conversation_id()
-            == Some(conversation_id);
-        if already_in_view {
-            // Blocks are already mounted, so the exchange resolves immediately.
-            self.scroll_to_exchange(exchange_id, ctx);
-        } else {
-            self.enter_agent_view_for_conversation(
-                None,
-                AgentViewEntryOrigin::JumpToLatestAgentMessage,
-                conversation_id,
-                ctx,
-            );
-            // The target block doesn't exist on this frame — entering the agent view
-            // mounts it over the following layout. Record it and let
-            // `after_terminal_view_layout` scroll once the block is mounted, which
-            // also runs after the agent view's own entry scroll so it isn't
-            // overridden.
-            self.pending_agent_scroll_target = Some(exchange_id);
-        }
-        send_telemetry_from_ctx!(TelemetryEvent::JumpToLatestAgentMessage, ctx);
-    }
 
     fn terminal_down(&mut self, ctx: &mut ViewContext<Self>) {
         if !self.selected_blocks.is_empty() {
@@ -16683,29 +16406,7 @@ impl TerminalView {
         }
     }
 
-    /// Sends code review comments to a running CLI agent, routing to the
-    /// rich input when it is open or directly to the PTY when closed.
-    pub fn send_review_to_cli_agent_or_rich_input(
-        &mut self,
-        review: &AgentReviewCommentBatch,
-        ctx: &mut ViewContext<Self>,
-    ) -> anyhow::Result<()> {
-        let text = cli_agent::build_review_prompt(review);
-        self.try_send_text_to_cli_agent_or_rich_input(text, ctx);
-        Ok(())
-    }
 
-    /// Sends diff file context hunks to a running CLI agent, routing to the
-    /// rich input when open or the PTY when closed.
-    #[cfg(feature = "local_fs")]
-    pub fn send_diff_context_to_cli_agent_or_rich_input(
-        &mut self,
-        file_diffs: &std::collections::HashMap<String, Vec<crate::ai::agent::DiffSetHunk>>,
-        ctx: &mut ViewContext<Self>,
-    ) -> Option<CliAgentRouting> {
-        let text = cli_agent::build_diff_context_prompt(file_diffs);
-        self.try_send_text_to_cli_agent_or_rich_input(text, ctx)
-    }
 
     /// Sends a diff hunk location to a running CLI agent, routing to the
     /// rich input when open or the PTY when closed.
@@ -18326,24 +18027,6 @@ impl TerminalView {
         }
     }
 
-    fn show_rewind_confirmation_dialog(
-        &mut self,
-        ai_block_view_id: EntityId,
-        exchange_id: AIAgentExchangeId,
-        conversation_id: AIConversationId,
-        entrypoint: AgentModeRewindEntrypoint,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        send_telemetry_from_ctx!(
-            TelemetryEvent::AgentModeRewindDialogOpened { entrypoint },
-            ctx
-        );
-        ctx.dispatch_typed_action(&WorkspaceAction::ShowRewindConfirmationDialog {
-            ai_block_view_id,
-            exchange_id,
-            conversation_id,
-        });
-    }
 
 
     fn handle_input_context_menu_action(
