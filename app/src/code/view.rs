@@ -10,6 +10,7 @@ use rift_core::features::FeatureFlag;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::icons::ICON_DIMENSIONS;
 use rift_editor::render::element::VerticalExpansionBehavior;
+use rift_util::file_type::is_markdown_file;
 use rift_util::path::LineAndColumnArg;
 #[cfg(feature = "local_fs")]
 use riftui::clipboard::ClipboardContent;
@@ -34,7 +35,7 @@ use riftui::{
 use super::buffer_location::LocalOrRemotePath;
 use super::diff_viewer::DiffViewer;
 use super::editor::view::{CodeEditorEvent, CodeEditorView};
-use super::editor_management::{CodeManager, CodeSource};
+use super::editor_management::CodeSource;
 use super::local_code_editor::{LocalCodeEditorEvent, LocalCodeEditorView};
 use crate::code::editor::scroll::ScrollPosition;
 use crate::code::editor::view::CodeEditorRenderOptions;
@@ -68,7 +69,9 @@ use crate::terminal::view::CliAgentRouting;
 use crate::ui_components::blended_colors;
 use crate::ui_components::buttons::icon_button;
 use crate::util::path::{display_name_with_host, display_path_with_host};
-use crate::view_components::{DismissibleToast, MarkdownToggleEvent, MarkdownToggleView};
+use crate::view_components::{
+    DismissibleToast, MarkdownDisplayMode, MarkdownToggleEvent, MarkdownToggleView,
+};
 use crate::workspace::util::get_context_target_terminal_view;
 use crate::workspace::{ActiveSession, TabBarDropTargetData, ToastStack, WorkspaceAction};
 use crate::{send_telemetry_from_ctx, TelemetryEvent};
@@ -490,12 +493,6 @@ impl CodeView {
             });
         }
 
-        // Bundled skills cannot be edited.
-        if self.source.is_bundled_skill() {
-            editor.update(ctx, |editor, ctx| {
-                editor.set_interaction_state(InteractionState::Selectable, ctx);
-            });
-        }
         ctx.subscribe_to_view(&code_editor, |me, _, event, ctx| match event {
             LocalCodeEditorEvent::FileLoaded => {
                 me.pane_configuration.update(ctx, |pane_config, ctx| {
@@ -539,16 +536,8 @@ impl CodeView {
                 log::warn!("Failed to load file. {err:?}");
                 CodeView::display_save_failure(ctx.window_id(), ctx);
             }
-            LocalCodeEditorEvent::DiffAccepted => {
-                CodeManager::handle(ctx).update(ctx, |code_manager, ctx| {
-                    code_manager.complete_pending_diffs(me.source.clone(), ctx);
-                });
-            }
-            LocalCodeEditorEvent::DiffRejected => {
-                CodeManager::handle(ctx).update(ctx, |code_manager, ctx| {
-                    code_manager.complete_pending_diffs(me.source.clone(), ctx);
-                });
-            }
+            LocalCodeEditorEvent::DiffAccepted => (),
+            LocalCodeEditorEvent::DiffRejected => (),
             LocalCodeEditorEvent::DiffStatusUpdated => (),
             LocalCodeEditorEvent::UserEdited => (),
             LocalCodeEditorEvent::VimMinimizeRequested => (),
@@ -591,11 +580,6 @@ impl CodeView {
                     });
                 }
                 me.focus_contents(ctx);
-            }
-            LocalCodeEditorEvent::CommentSaved { .. }
-            | LocalCodeEditorEvent::RequestOpenComment(_)
-            | LocalCodeEditorEvent::DeleteComment { .. } => {
-                // Comment events are handled by CodeReviewView, not CodeView
             }
             LocalCodeEditorEvent::RunTabConfigSkill { path } => {
                 ctx.emit(CodeViewEvent::RunTabConfigSkill { path: path.clone() });

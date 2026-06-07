@@ -271,8 +271,7 @@ impl DelayRendering {
 
     /// Consume the delay rendering state without flushing edits to the render state.
     /// Use when a full layout rebuild will follow that supersedes the pending edits.
-    /// Still emits `DelayedRenderingFlushed` so downstream listeners (e.g. CodeReviewView)
-    /// are notified.
+    /// Still emits `DelayedRenderingFlushed` so downstream listeners are notified.
     fn skip(self, ctx: &mut ModelContext<CodeEditorModel>) {
         ctx.emit(CodeEditorModelEvent::DelayedRenderingFlushed);
     }
@@ -306,6 +305,11 @@ pub struct CodeEditorModel {
     lazy_layout_initialized: bool,
     /// Whether syntax parsing should be bootstrapped from the latest full buffer content.
     pending_syntax_tree_bootstrap: bool,
+}
+
+/// Text unit for by-word navigation with the current word boundary policy.
+pub fn word_unit(ctx: &AppContext) -> TextUnit {
+    TextUnit::Word(SemanticSelection::as_ref(ctx).word_boundary_policy())
 }
 
 impl CodeEditorModel {

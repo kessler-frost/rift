@@ -110,8 +110,7 @@ impl DisplayMode {
 }
 
 /// A shared trait for views that display an inline diff.
-/// Implemented by both `LocalCodeEditorView` (for native file-backed diffs)
-/// and `InlineDiffView` (for mocked/WASM diffs).
+/// Implemented by `LocalCodeEditorView` (for native file-backed diffs).
 pub trait DiffViewer
 where
     Self: Sized + View,

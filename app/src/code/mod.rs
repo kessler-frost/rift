@@ -21,7 +21,6 @@ pub mod diff_viewer;
 pub mod editor;
 pub mod editor_management;
 pub mod global_buffer_model;
-pub mod inline_diff;
 #[cfg(feature = "local_fs")]
 pub mod language_server_shutdown_manager;
 #[cfg(not(target_family = "wasm"))]
@@ -39,24 +38,6 @@ pub enum ImmediateSaveError {
     NoActiveFileTab,
     #[error("Remote session disconnected")]
     RemoteDisconnected,
-}
-
-/// Trait to determine whether we should show the comment editor based on state held
-/// by the parent of the [`CodeEditorView`].
-pub trait ShowCommentEditorProvider: Debug + 'static {
-    /// Returns whether the comment editor should be shown given the location of the line where
-    /// the editor would be shown.
-    #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
-    fn should_show_comment_editor(&self, editor_line_location: RectF, app: &AppContext) -> bool;
-}
-
-#[derive(Debug)]
-struct NoopCommentEditorProvider;
-
-impl ShowCommentEditorProvider for NoopCommentEditorProvider {
-    fn should_show_comment_editor(&self, _editor_line_location: RectF, _app: &AppContext) -> bool {
-        false
-    }
 }
 
 /// Trait to determine whether we should show the find references card based on state held

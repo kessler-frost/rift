@@ -24,7 +24,7 @@ use string_offset::CharOffset;
 
 use crate::cmd_or_ctrl_shift;
 use crate::code::editor::line::EditorLineLocation;
-use crate::code::editor::model::CodeEditorModel;
+use crate::code::editor::model::word_unit;
 use crate::code::editor::view::{CodeEditorEvent, CodeEditorView, VimMode};
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;

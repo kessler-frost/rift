@@ -60,7 +60,6 @@ use vim::vim::{MotionType, VimMode};
 
 use crate::code::buffer_location::LocalOrRemotePath as BufferFileLocation;
 use crate::code::editor::model::HoverableLink;
-use crate::code::editor::EditorReviewComment;
 use crate::code::footer::{CodeFooterView, CodeFooterViewEvent};
 use crate::code::global_buffer_model::{BufferState, GlobalBufferModel, GlobalBufferModelEvent};
 use crate::code::{SaveOutcome, ShowFindReferencesCardProvider};
@@ -133,15 +132,6 @@ pub enum LocalCodeEditorEvent {
         /// The ID of the LSP server that produced this definition.
         /// Used to register external files with the correct server.
         source_server_id: LanguageServerId,
-    },
-    /// Emitted when a comment is saved. This propagates the comment content
-    /// changes to the CodeReviewView, which will update the comment model.
-    CommentSaved {
-        comment: EditorReviewComment,
-    },
-    RequestOpenComment(CommentId),
-    DeleteComment {
-        id: CommentId,
     },
     /// Emitted when the viewport is updated after layout
     ViewportUpdated,
@@ -421,17 +411,6 @@ impl LocalCodeEditorView {
                         me.lsp_hover_state = LspHoverState::Loading(None);
                     }
                 }
-            }
-            CodeEditorEvent::CommentSaved { comment } => {
-                ctx.emit(LocalCodeEditorEvent::CommentSaved {
-                    comment: comment.clone(),
-                });
-            }
-            CodeEditorEvent::DeleteComment { id } => {
-                ctx.emit(LocalCodeEditorEvent::DeleteComment { id: *id });
-            }
-            CodeEditorEvent::RequestOpenComment(uuid) => {
-                ctx.emit(LocalCodeEditorEvent::RequestOpenComment(*uuid));
             }
             CodeEditorEvent::ViewportUpdated => {
                 ctx.emit(LocalCodeEditorEvent::ViewportUpdated);

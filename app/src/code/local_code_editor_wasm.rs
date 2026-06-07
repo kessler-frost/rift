@@ -16,7 +16,6 @@ pub use super::diff_viewer::DisplayMode;
 use super::editor::view::CodeEditorView;
 use super::ImmediateSaveError;
 use crate::code::buffer_location::LocalOrRemotePath as BufferFileLocation;
-use crate::code::editor::EditorReviewComment;
 use crate::terminal::TerminalView;
 
 #[derive(Debug)]
@@ -47,12 +46,6 @@ pub enum LocalCodeEditorEvent {
     },
     #[allow(dead_code)]
     DiscardUnsavedChanges { path: PathBuf },
-    #[allow(dead_code)]
-    CommentSaved { comment: EditorReviewComment },
-    #[allow(dead_code)]
-    DeleteComment { id: CommentId },
-    #[allow(dead_code)]
-    RequestOpenComment(CommentId),
     #[allow(dead_code)]
     ViewportUpdated,
     #[allow(dead_code)]

@@ -55,35 +55,6 @@ pub(super) trait GutterButton {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct AddAsContextButton {
-    is_enabled: bool,
-}
-
-impl AddAsContextButton {
-    pub fn new(is_enabled: bool) -> Self {
-        Self { is_enabled }
-    }
-}
-
-impl GutterButton for AddAsContextButton {
-    fn is_enabled(&self) -> bool {
-        self.is_enabled
-    }
-
-    fn tooltip_text(&self) -> Option<&'static str> {
-        if self.is_enabled {
-            Some("Add diff hunk as context")
-        } else {
-            Some("Save changes to attach as context.")
-        }
-    }
-
-    fn icon(&self) -> Icon {
-        Icon::Paperclip
-    }
-}
-
-#[derive(Debug, Default, Clone, Copy)]
 pub struct RevertHunkButton {
     is_enabled: bool,
 }
@@ -109,67 +80,5 @@ impl GutterButton for RevertHunkButton {
 
     fn icon(&self) -> Icon {
         Icon::ReverseLeft
-    }
-}
-
-#[derive(Debug, Default, Clone, Copy)]
-#[allow(dead_code)]
-pub enum CommentButton {
-    #[default]
-    CreateNewComment,
-    Disabled,
-    AddedComment,
-    EditorOpenedToCreateNewComment,
-    EditorOpenedToUpdateComment,
-}
-
-impl GutterButton for CommentButton {
-    fn background_color(&self, mouse_state: &MouseState, appearance: &Appearance) -> Fill {
-        match self {
-            CommentButton::CreateNewComment => {
-                if mouse_state.is_hovered() {
-                    Fill::Solid(internal_colors::neutral_3(appearance.theme()))
-                } else {
-                    Fill::Solid(internal_colors::neutral_1(appearance.theme()))
-                }
-            }
-            CommentButton::EditorOpenedToCreateNewComment => {
-                Fill::Solid(internal_colors::neutral_3(appearance.theme()))
-            }
-            CommentButton::Disabled => Fill::Solid(internal_colors::neutral_1(appearance.theme())),
-            CommentButton::AddedComment | CommentButton::EditorOpenedToUpdateComment => {
-                internal_colors::accent(appearance.theme())
-            }
-        }
-    }
-
-    fn is_enabled(&self) -> bool {
-        matches!(
-            self,
-            CommentButton::AddedComment
-                | CommentButton::CreateNewComment
-                | CommentButton::EditorOpenedToCreateNewComment
-        )
-    }
-
-    fn tooltip_text(&self) -> Option<&'static str> {
-        match self {
-            CommentButton::CreateNewComment => Some("Add comment on line"),
-            CommentButton::Disabled => Some("Save changes to add comment"),
-            CommentButton::AddedComment => Some("Show saved comment"),
-            CommentButton::EditorOpenedToCreateNewComment
-            | CommentButton::EditorOpenedToUpdateComment => None,
-        }
-    }
-
-    fn icon(&self) -> Icon {
-        match self {
-            CommentButton::CreateNewComment
-            | CommentButton::Disabled
-            | CommentButton::EditorOpenedToCreateNewComment => Icon::MessagePlusSquare,
-            CommentButton::AddedComment | CommentButton::EditorOpenedToUpdateComment => {
-                Icon::MessageText
-            }
-        }
     }
 }
