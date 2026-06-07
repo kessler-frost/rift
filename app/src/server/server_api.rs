@@ -434,8 +434,6 @@ impl ServerApi {
             telemetry_api,
             last_server_time: Arc::new(Mutex::new(None)),
             ambient_workload_token: Arc::new(Mutex::new(None)),
-            ambient_agent_task_id: Arc::new(RwLock::new(None)),
-            agent_source,
             iap_state,
             #[cfg(feature = "agent_mode_evals")]
             eval_user_id,
@@ -1279,19 +1277,12 @@ impl ServerApiProvider {
     #[cfg_attr(target_family = "wasm", allow(unused_variables))]
     pub fn new(
         auth_state: Arc<AuthState>,
-        agent_source: Option<ai::AgentSource>,
         iap_state: Option<Arc<super::iap::IapState>>,
         ctx: &mut ModelContext<Self>,
     ) -> Self {
         let (event_sender, event_receiver) = async_channel::bounded(10);
 
-        let server_api = ServerApi::new(
-            auth_state.clone(),
-            event_sender,
-            agent_source,
-            iap_state,
-            ctx,
-        );
+        let server_api = ServerApi::new(auth_state.clone(), event_sender, iap_state, ctx);
 
         ctx.spawn_stream_local(
             event_receiver,

@@ -1039,7 +1039,7 @@ pub(crate) fn initialize_app(
     let server_api_provider = ctx.add_singleton_model({
         let auth_state = auth_state.clone();
         let iap_state = iap_state.clone();
-        move |ctx| ServerApiProvider::new(auth_state, agent_source, iap_state, ctx)
+        move |ctx| ServerApiProvider::new(auth_state, iap_state, ctx)
     });
 
     let server_api = server_api_provider.as_ref(ctx).get();
