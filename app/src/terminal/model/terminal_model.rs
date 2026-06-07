@@ -96,8 +96,8 @@ pub enum ConversationTranscriptViewerStatus {
     Loading,
     /// Viewing a local conversation (not from ambient agent).
     ViewingLocalConversation,
-    /// Viewing an ambient agent conversation with the associated task ID.
-    ViewingAmbientConversation(AmbientAgentTaskId),
+    /// Viewing an ambient agent conversation.
+    ViewingAmbientConversation,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -1177,7 +1177,6 @@ impl TerminalModel {
             is_ai_ugc_telemetry_enabled,
             session_startup_path,
             shell_state,
-            SharedSessionStatus::NotShared,
             false,
         )
     }
@@ -1219,22 +1218,7 @@ impl TerminalModel {
     }
 
     pub fn is_shared_ambient_agent_session(&self) -> bool {
-        matches!(
-            self.shared_session_source.as_ref().map(|s| &s.source_type),
-            Some(SessionSourceType::AmbientAgent { .. })
-        )
-    }
-
-    pub fn ambient_agent_task_id(&self) -> Option<AmbientAgentTaskId> {
-        if let Some(ConversationTranscriptViewerStatus::ViewingAmbientConversation(task_id)) =
-            &self.conversation_transcript_viewer_status
-        {
-            return Some(*task_id);
-        }
-        self.shared_session_source
-            .as_ref()
-            .and_then(|s| s.orchestrator_task_id())
-            .and_then(|s| s.parse().ok())
+        false
     }
 
 
