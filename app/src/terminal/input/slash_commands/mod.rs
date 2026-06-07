@@ -31,7 +31,6 @@ use crate::tab::SelectedTabColor;
 use crate::terminal::input::decorations::InputBackgroundJobOptions;
 use crate::terminal::input::inline_menu::{InlineMenuAction, InlineMenuType};
 use crate::terminal::input::message_bar::Message;
-use crate::terminal::input::models::InlineModelSelectorTab;
 use crate::terminal::input::slash_command_model::{
     SlashCommandEntryState, UpdatedSlashCommandModel,
 };
@@ -778,34 +777,6 @@ impl Input {
                 self.clear_buffer_and_reset_undo_stack(ctx);
                 self.open_v2_environment_selector(ctx);
                 return true;
-            }
-            models if command.name == commands::MODEL.name => {
-                if self.is_cloud_mode_input_v2_composing(ctx) {
-                    self.suggestions_mode_model.update(ctx, |model, ctx| {
-                        model.set_mode(InputSuggestionsMode::Closed, ctx);
-                    });
-                    self.clear_buffer_and_reset_undo_stack(ctx);
-                    self.agent_input_footer.update(ctx, |footer, ctx| {
-                        footer.open_v2_model_selector(ctx);
-                    });
-                    return true;
-                } else if trigger.is_keybinding() {
-                    // A keybinding may carry a pre-existing prompt in the buffer; open
-                    // like the model chip so the prompt is parked for search and
-                    // restored when a model is selected (or the selector is dismissed).
-                    self.open_model_selector_and_snapshot_prompt(
-                        InlineModelSelectorTab::BaseAgent,
-                        ctx,
-                    );
-                } else {
-                    // Typed `/model`: the buffer holds the consumable command text.
-                    // Just switch into the model selector; `set_mode` snapshots the
-                    // buffer so it's restored on dismiss but cleared on selection.
-                    self.suggestions_mode_model.update(ctx, |model, ctx| {
-                        model.set_mode(InputSuggestionsMode::ModelSelector, ctx);
-                    });
-                    ctx.notify();
-                }
             }
             profiles if command.name == commands::PROFILE.name => {
                 if !FeatureFlag::InlineProfileSelector.is_enabled() {
