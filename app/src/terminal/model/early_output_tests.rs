@@ -198,5 +198,5 @@ fn test_queued_typeahead_shell_reported() {
     assert!(block_list
         .background_block_mut()
         .expect("Block should exist")
-        .is_empty(&AgentViewState::Inactive));
+        .is_empty());
 }

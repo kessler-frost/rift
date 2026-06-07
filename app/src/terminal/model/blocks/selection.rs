@@ -916,7 +916,7 @@ impl BlockList {
                             let block_index = selection_start_cursor.start().block_count.into();
                             if let Some(command_block) = self.block_at(block_index) {
                                 // Don't copy hidden or empty blocks.
-                                if command_block.is_empty(agent_view_state) {
+                                if command_block.is_empty() {
                                     selection_start_cursor.next();
                                     continue;
                                 }

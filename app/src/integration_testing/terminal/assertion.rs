@@ -405,7 +405,7 @@ pub fn assert_selected_block_index_is_first_renderable() -> AssertionCallback {
                 .block_at(selected_block_index)
                 .expect("Block should exist");
             assert!(
-                block.height(&AgentViewState::Inactive) != Lines::zero(),
+                block.height() != Lines::zero(),
                 "The selected block should be rendered"
             );
             // Previous index either doesn't exist or isn't renderable
@@ -413,7 +413,7 @@ pub fn assert_selected_block_index_is_first_renderable() -> AssertionCallback {
                 let prev_block = model.block_list().block_at(selected_block_index - 1.into());
                 if let Some(prev_block) = prev_block {
                     assert!(
-                        prev_block.is_empty(&AgentViewState::Inactive),
+                        prev_block.is_empty(),
                         "Prev index should be hidden"
                     );
                 }
@@ -436,7 +436,7 @@ pub fn assert_selected_block_index_is_last_renderable() -> AssertionCallback {
                 .block_at(selected_block_index)
                 .expect("Block should exist");
             assert!(
-                block.height(&AgentViewState::Inactive) != Lines::zero(),
+                block.height() != Lines::zero(),
                 "The selected block should be rendered"
             );
 
@@ -644,7 +644,7 @@ pub fn assert_no_visible_background_blocks(
                 .blocks()
                 .iter()
                 .filter(|block| {
-                    block.is_background() && block.is_visible(&AgentViewState::Inactive)
+                    block.is_background() && block.is_visible()
                 })
                 .count();
             async_assert_eq!(

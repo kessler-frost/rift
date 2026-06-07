@@ -20548,7 +20548,7 @@ impl TerminalView {
                 model
                     .block_list()
                     .block_at(*block_index)
-                    .is_some_and(|block| !block.is_empty(agent_view_state))
+                    .is_some_and(|block| !block.is_empty())
             })
             .count()
     }
@@ -20567,7 +20567,7 @@ impl TerminalView {
                 if let Some(block) = model
                     .block_list()
                     .block_at(block_index)
-                    .filter(|block| !block.is_empty(agent_view_state))
+                    .filter(|block| !block.is_empty())
                 {
                     action(block);
                 }
@@ -23646,7 +23646,7 @@ impl TerminalView {
             .block_list()
             .blocks()
             .iter()
-            .filter(|b| b.is_visible(agent_view_state))
+            .filter(|b| b.is_visible())
             .map(|b| b.size().columns)
             .max()
             .unwrap_or(self.size_info.columns);
@@ -23668,7 +23668,7 @@ impl TerminalView {
                 .block_list()
                 .blocks()
                 .iter()
-                .filter(|b| b.is_visible(agent_view_state))
+                .filter(|b| b.is_visible())
                 .count()
                 > 0
             && required_terminal_width > pane_width;
@@ -27769,7 +27769,7 @@ impl View for TerminalView {
                     .block_list()
                     .blocks()
                     .iter()
-                    .filter(|block| block.is_visible(agent_view_state))
+                    .filter(|block| block.is_visible())
                     .rev()
                     .take(5)
                     .collect_vec();
