@@ -11152,81 +11152,11 @@ impl Workspace {
             CommandPaletteEvent::Close {
                 accepted_action_type,
             } => self.close_palette(true, *accepted_action_type, ctx),
-            CommandPaletteEvent::ExecuteWorkflow { id } => {
-                let Some(workflow) = CloudModel::as_ref(ctx).get_workflow(id) else {
-                    log::warn!("Tried to execute workflow for id {id:?} but it does not exist");
-                    return;
-                };
-
-                self.run_cloud_workflow_in_active_input(
-                    workflow.clone(),
-                    WorkflowSelectionSource::CommandPalette,
-                    TerminalSessionFallbackBehavior::default(),
-                    ctx,
-                );
-            }
-            CommandPaletteEvent::InvokeEnvironmentVariables { id } => {
-                let Some(env_var_collection) = CloudModel::as_ref(ctx).get_env_var_collection(id)
-                else {
-                    log::warn!("Tried to execute EVC for id {id:?} but it does not exist");
-                    return;
-                };
-
-                self.invoke_environment_variables(env_var_collection.clone(), false, ctx);
-            }
-            CommandPaletteEvent::OpenNotebook { id } => self.open_notebook(
-                &NotebookSource::Existing(*id),
-                &OpenWarpDriveObjectSettings::default(),
-                ctx,
-                true,
-            ),
-            CommandPaletteEvent::ViewInWarpDrive { id } => {
-                self.view_in_and_focus_warp_drive(WarpDriveItemId::Object(*id), ctx);
-            }
-            #[allow(unused_variables)]
-            CommandPaletteEvent::OpenFile {
-                path,
-                line_and_column_arg,
-            } => {
-                #[cfg(feature = "local_fs")]
-                {
-                    // Build a LocalOrRemotePath for the file. For remote sessions
-                    // the host_id comes from the active working directory.
-                    let location = {
-                        let window_id = ctx.window_id();
-                        ActiveSession::as_ref(ctx)
-                            .working_directory(window_id)
-                            .and_then(|wd| match wd {
-                                LocalOrRemotePath::Remote(remote) => {
-                                    let std_path =
-                                        rift_util::standardized_path::StandardizedPath::try_new(
-                                            path,
-                                        )
-                                        .ok()?;
-                                    Some(LocalOrRemotePath::Remote(
-                                        rift_util::remote_path::RemotePath::new(
-                                            remote.host_id.clone(),
-                                            std_path,
-                                        ),
-                                    ))
-                                }
-                                LocalOrRemotePath::Local(_) => None,
-                            })
-                            .unwrap_or_else(|| LocalOrRemotePath::Local(PathBuf::from(path)))
-                    };
-
-                    let code_source = CodeSource::CommandPalette { location };
-
-                    self.open_code(
-                        code_source,
-                        *EditorSettings::as_ref(ctx).open_file_layout.value(),
-                        *line_and_column_arg,
-                        false, // preview
-                        &[],
-                        ctx,
-                    );
-                }
-            }
+            CommandPaletteEvent::ExecuteWorkflow { .. }
+            | CommandPaletteEvent::InvokeEnvironmentVariables { .. }
+            | CommandPaletteEvent::OpenNotebook { .. }
+            | CommandPaletteEvent::ViewInWarpDrive { .. }
+            | CommandPaletteEvent::OpenFile { .. } => {}
             CommandPaletteEvent::OpenDirectory { path } => {
                 let active_terminal_view = self
                     .active_tab_pane_group()
@@ -12386,37 +12316,14 @@ impl Workspace {
                 self.current_workspace_state.is_command_search_open = false;
                 ctx.notify();
             }
-            ItemSelected { query, payload } => {
+            ItemSelected { query: _, payload } => {
                 use CommandSearchItemAction::*;
                 match payload.as_ref() {
-                    AcceptHistory(AcceptedHistoryItem {
-                        command,
-                        linked_workflow_data,
-                    }) => {
-                        // Switch to shell input mode so the history command is
-                        // treated as a shell command, not an agent prompt.
+                    AcceptHistory(AcceptedHistoryItem { command, .. }) => {
                         active_input_handle.update(ctx, |input, ctx| {
-                            input.set_input_mode_terminal(false, ctx);
                             input.replace_buffer_content(command.as_str(), ctx);
                             input.focus_input_box(ctx);
                         });
-
-                        if let Some(linked_workflow_data) = linked_workflow_data {
-                            active_input_handle.update(ctx, |input, ctx| {
-                                if let Some((workflow_type, workflow_source)) =
-                                    linked_workflow_data.linked_workflow(ctx)
-                                {
-                                    input.show_workflow_info_box_for_history_command(
-                                        command.as_str(),
-                                        workflow_type,
-                                        workflow_source,
-                                        WorkflowSelectionSource::UniversalSearch,
-                                        ctx,
-                                    );
-                                }
-                                ctx.notify();
-                            });
-                        }
                     }
                     ExecuteHistory(command) => {
                         active_input_handle.update(ctx, |input, ctx| {
@@ -12424,109 +12331,13 @@ impl Workspace {
                             ctx.notify();
                         });
                     }
-                    AcceptWorkflow(accepted) => {
-                        let (workflow, workflow_source) = match accepted {
-                            AcceptedWorkflow::Cloud { id, source } => {
-                                let Some(cloud_workflow) =
-                                    CloudModel::as_ref(ctx).get_workflow(id).cloned()
-                                else {
-                                    self.toast_stack.update(ctx, |view, ctx| {
-                                        view.add_ephemeral_toast(
-                                            DismissibleToast::error(
-                                                "This workflow is no longer available.".to_string(),
-                                            ),
-                                            ctx,
-                                        );
-                                    });
-                                    return;
-                                };
-                                (WorkflowType::Cloud(Box::new(cloud_workflow)), *source)
-                            }
-                            AcceptedWorkflow::Local {
-                                workflow, source, ..
-                            } => ((**workflow).clone(), *source),
-                        };
-                        active_input_handle.update(ctx, |input, ctx| {
-                            input.show_workflows_info_box_on_workflow_selection(
-                                workflow,
-                                workflow_source,
-                                WorkflowSelectionSource::UniversalSearch,
-                                None,
-                                ctx,
-                            );
-                            ctx.notify();
-                        });
-                    }
-                    TranslateUsingWarpAI => {
-                        active_input_handle.update(ctx, |input, ctx| {
-                            let content = format!("# {query}");
-                            input.focus_input_box(ctx);
-                            // Mimic the user replacing the editor text, as the replacement
-                            // is done in response to an explicit user action.
-                            input.user_replace_editor_text(content.as_str(), ctx);
-                            ctx.notify();
-                        });
-                    }
-                    AcceptNotebook(sync_id) => {
-                        self.open_notebook(
-                            &NotebookSource::Existing(*sync_id),
-                            &OpenWarpDriveObjectSettings::default(),
-                            ctx,
-                            true,
-                        );
-                    }
-                    AcceptEnvVarCollection(env_var_collection) => {
-                        self.invoke_environment_variables(
-                            (**env_var_collection).clone(),
-                            false,
-                            ctx,
-                        );
-                    }
-                    OpenWarpAI => {
-                        if !AISettings::as_ref(ctx).is_any_ai_enabled(ctx) {
-                            return;
-                        }
-
-                        if FeatureFlag::AgentMode.is_enabled() {
-                            let active_terminal_view = self.active_session_view(ctx).expect("There must be an active terminal view if the user selected a command search result");
-
-                            active_terminal_view.update(ctx, |terminal_view, ctx| {
-                                terminal_view.ask_blocklist_ai(
-                                    &AskAIType::FromAICommandSearch {
-                                        query: Arc::new(query.to_owned()),
-                                    },
-                                    ctx,
-                                )
-                            });
-                        } else {
-                            active_input_handle.update(ctx, |input, ctx| {
-                                input.replace_buffer_content("", ctx);
-                            });
-
-                            self.ask_ai_assistant(
-                                &AskAIType::FromAICommandSearch {
-                                    query: Arc::new(query.to_string()),
-                                },
-                                ctx,
-                            );
-                        }
-                    }
-                    AcceptAIQuery(ai_query) => {
-                        let active_terminal_view = self.active_session_view(ctx).expect("There must be an active terminal view if the user selected a command search result");
-
-                        active_terminal_view.update(ctx, |terminal_view, ctx| {
-                            terminal_view.set_ai_input_mode_with_query(Some(ai_query), ctx);
-                        });
-                    }
-                    RunAIQuery(ai_query) => {
-                        let active_terminal_view = self.active_session_view(ctx).expect("There must be an active terminal view if the user selected a command search result");
-
-                        active_terminal_view.update(ctx, |terminal_view, ctx| {
-                            terminal_view.set_ai_input_mode_with_query(Some(ai_query), ctx);
-                        });
-
-                        active_input_handle.update(ctx, |input, ctx| input.input_enter(ctx));
-                    }
+                    AcceptWorkflow(_)
+                    | TranslateUsingWarpAI
+                    | AcceptNotebook(_)
+                    | AcceptEnvVarCollection(_)
+                    | OpenWarpAI
+                    | AcceptAIQuery(_)
+                    | RunAIQuery(_) => {}
                 }
             }
             Resize => {
