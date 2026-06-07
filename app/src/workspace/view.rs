@@ -1387,13 +1387,6 @@ impl Workspace {
         }
     }
 
-    fn build_import_modal(ctx: &mut ViewContext<Self>) -> ViewHandle<ImportModal> {
-        let modal = ctx.add_typed_action_view(ImportModal::new);
-        ctx.subscribe_to_view(&modal, |me, _, event, ctx| {
-            me.handle_import_modal_event(event, ctx);
-        });
-        modal
-    }
 
 
     fn build_prompt_editor_modal(ctx: &mut ViewContext<Self>) -> ViewHandle<PromptEditorModal> {
@@ -1404,15 +1397,6 @@ impl Workspace {
         modal
     }
 
-    fn build_agent_toolbar_editor_modal(
-        ctx: &mut ViewContext<Self>,
-    ) -> ViewHandle<AgentToolbarEditorModal> {
-        let modal = ctx.add_typed_action_view(AgentToolbarEditorModal::new);
-        ctx.subscribe_to_view(&modal, |me, _, event, ctx| {
-            me.handle_agent_toolbar_editor_modal_event(event, ctx);
-        });
-        modal
-    }
 
     fn build_welcome_tips(
         tips_completed: ModelHandle<TipsCompleted>,
@@ -1538,26 +1522,7 @@ impl Workspace {
         theme_deletion_modal
     }
 
-    fn build_suggested_agent_mode_workflow_modal(
-        ctx: &mut ViewContext<Self>,
-    ) -> ViewHandle<SuggestedAgentModeWorkflowModal> {
-        let suggested_agent_mode_workflow_modal =
-            ctx.add_typed_action_view(|_| SuggestedAgentModeWorkflowModal::default());
 
-        ctx.subscribe_to_view(&suggested_agent_mode_workflow_modal, |me, _, event, ctx| {
-            me.handle_suggested_agent_mode_workflow_modal_event(event, ctx);
-        });
-
-        suggested_agent_mode_workflow_modal
-    }
-
-    fn build_suggested_rule_modal(ctx: &mut ViewContext<Self>) -> ViewHandle<SuggestedRuleModal> {
-        let suggested_rule_modal = ctx.add_typed_action_view(SuggestedRuleModal::new);
-        ctx.subscribe_to_view(&suggested_rule_modal, |me, _, event, ctx| {
-            me.handle_suggested_rule_modal_event(event, ctx);
-        });
-        suggested_rule_modal
-    }
 
 
     fn build_close_session_confirmation_dialog(
@@ -3079,55 +3044,6 @@ impl Workspace {
     }
 
 
-    /// Handles updating the tab status when an agent task status changes.
-    fn handle_history_model_event(
-        &mut self,
-        _: ModelHandle<BlocklistAIHistoryModel>,
-        event: &BlocklistAIHistoryEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        #[cfg(target_family = "wasm")]
-        if self
-            .current_workspace_state
-            .is_transcript_details_panel_open
-        {
-            let focused_terminal_view_id = self
-                .active_tab_pane_group()
-                .as_ref(ctx)
-                .focused_session_view(ctx)
-                .map(|view| view.id());
-
-            let is_relevant_update = matches!(
-                event,
-                BlocklistAIHistoryEvent::SetActiveConversation { .. }
-                    | BlocklistAIHistoryEvent::UpdatedConversationMetadata { .. }
-                    | BlocklistAIHistoryEvent::RestoredConversations { .. }
-                    | BlocklistAIHistoryEvent::UpdatedConversationArtifacts { .. }
-                    | BlocklistAIHistoryEvent::UpdatedConversationStatus { .. }
-                    | BlocklistAIHistoryEvent::UpdatedStreamingExchange { .. }
-            );
-
-            if is_relevant_update
-                && event.terminal_view_id().is_some_and(|event_id| {
-                    focused_terminal_view_id.is_some_and(|id| id == event_id)
-                })
-            {
-                self.update_transcript_details_panel_data(ctx);
-                ctx.notify();
-            }
-        }
-
-        if matches!(
-            event,
-            BlocklistAIHistoryEvent::UpdatedConversationStatus { .. }
-        ) {
-            ctx.notify();
-        }
-
-        if self.agent_conversation_event_affects_vertical_tabs(event, ctx) {
-            ctx.notify();
-        }
-    }
 
     fn workspace_contains_terminal_view(
         &self,
@@ -3777,21 +3693,6 @@ impl Workspace {
         }
     }
 
-    fn stop_sharing_session(
-        &mut self,
-        terminal_view_id: &EntityId,
-        source: SharedSessionActionSource,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        use terminal::shared_session::manager::Manager;
-
-        let manager = Manager::as_ref(ctx);
-        if let Some(terminal_view) = manager.shared_view_by_id(terminal_view_id, ctx) {
-            terminal_view.update(ctx, |view, ctx| {
-                view.stop_sharing_session(source, ctx);
-            });
-        }
-    }
 
     fn copy_shared_session_link_from_tab(&mut self, tab_index: usize, ctx: &mut ViewContext<Self>) {
         // Get the pane group for the specified tab
@@ -4472,43 +4373,6 @@ impl Workspace {
         self.tabs.get(index).and_then(|tab| tab.color())
     }
 
-    /// Finds the pane containing a terminal viewing the given ambient agent conversation,
-    /// returning None if the ambient conversation is not open in any tab.
-    fn find_pane_with_ambient_agent_conversation(
-        &self,
-        task_id: AmbientAgentTaskId,
-        ctx: &AppContext,
-    ) -> Option<(usize, PaneViewLocator)> {
-        // First, check ActiveAgentViewsModel for the terminal view that has this task registered.
-        // This is the authoritative source since it's updated when the session is joined.
-        let active_terminal_view_id =
-            ActiveAgentViewsModel::as_ref(ctx).get_terminal_view_id_for_ambient_task(task_id);
-
-        self.tabs.iter().enumerate().find_map(|(index, tab)| {
-            let pane_group = tab.pane_group.as_ref(ctx);
-            let pane_id = pane_group.visible_pane_ids().into_iter().find(|pane_id| {
-                pane_group
-                    .terminal_view_from_pane_id(*pane_id, ctx)
-                    .is_some_and(|tv| {
-                        // Check if this is the terminal view registered in ActiveAgentViewsModel
-                        if active_terminal_view_id == Some(tv.id()) {
-                            return true;
-                        }
-                        // Fall back to checking the terminal view directly.
-                        tv.as_ref(ctx).ambient_agent_task_id_for_details_panel(ctx) == Some(task_id)
-                    })
-            });
-            pane_id.map(|pane_id| {
-                (
-                    index,
-                    PaneViewLocator {
-                        pane_group_id: tab.pane_group.id(),
-                        pane_id,
-                    },
-                )
-            })
-        })
-    }
 
     /// Gets all sessions in the current workspace.
     pub fn workspace_sessions<'a>(
@@ -5155,19 +5019,6 @@ impl Workspace {
         }
     }
 
-    fn handle_agent_toolbar_editor_modal_event(
-        &mut self,
-        event: &AgentToolbarEditorEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            AgentToolbarEditorEvent::Close => {
-                self.current_workspace_state.is_agent_toolbar_editor_open = false;
-                self.focus_active_tab(ctx);
-                ctx.notify();
-            }
-        }
-    }
 
     fn build_header_toolbar_editor_modal(
         ctx: &mut ViewContext<Self>,
@@ -5605,14 +5456,6 @@ impl Workspace {
             .write(ClipboardContent::plain_text(version.to_string()));
     }
 
-    fn export_all_warp_drive_objects(&mut self, ctx: &mut ViewContext<Self>) {
-        let window_id = ctx.window_id();
-        let cloud_model = CloudModel::as_ref(ctx);
-        let exportable_objects = cloud_model.get_all_exportable_object_ids();
-        ExportManager::handle(ctx).update(ctx, move |export_manager, ctx| {
-            export_manager.export(window_id, &exportable_objects, ctx);
-        });
-    }
 
     /// Builds the unified new-session menu items
     /// tab bar chevron and the vertical tab bar `+` button.
@@ -6782,41 +6625,6 @@ impl Workspace {
             })
     }
 
-    /// Triggers the drive sharing onboarding block.
-    fn check_and_trigger_drive_sharing_onboarding_block(
-        &mut self,
-        object_id: CloudObjectTypeAndId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if self.auth_state.is_anonymous_or_logged_out() {
-            return;
-        }
-
-        if *WarpDriveSettings::as_ref(ctx)
-            .sharing_onboarding_block_shown
-            .value()
-        {
-            return;
-        }
-
-        if let Some(terminal_view_handle) = self.active_session_view(ctx) {
-            let terminal_view_id = terminal_view_handle.id();
-
-            // Don't show onboarding block while agent is actively streaming
-            let is_agent_in_progress = BlocklistAIHistoryModel::handle(ctx)
-                .as_ref(ctx)
-                .active_conversation(terminal_view_id)
-                .is_some_and(|conversation| conversation.status().is_in_progress());
-
-            if is_agent_in_progress {
-                return;
-            }
-
-            terminal_view_handle.update(ctx, |terminal_view, ctx| {
-                terminal_view.insert_drive_sharing_onboarding_block(object_id, ctx);
-            });
-        }
-    }
 
     fn check_and_trigger_telemetry_banner_for_existing_users(
         &mut self,
@@ -7331,27 +7139,6 @@ impl Workspace {
     }
 
 
-    /// Open the Execution Profile Editor pane
-    pub fn open_execution_profile_editor_pane(
-        &mut self,
-        direction: Option<Direction>,
-        profile_id: ClientProfileId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let manager = ExecutionProfileEditorManager::handle(ctx);
-
-        if let Some(locator) = manager.as_ref(ctx).find_pane(ctx.window_id(), profile_id) {
-            self.focus_pane(locator, ctx);
-            return;
-        }
-
-        let pane = ExecutionProfileEditorPane::new(profile_id, ctx);
-        let direction = direction.unwrap_or(Direction::Right);
-        self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-            pane_group
-                .add_pane_with_direction(direction, pane, true /* focus_new_pane */, ctx);
-        });
-    }
 
     /// Open the Environment Management pane in a split pane (default direction is right).
     pub fn open_environment_management_pane(
@@ -9475,47 +9262,6 @@ impl Workspace {
         }
     }
 
-    fn maybe_refresh_workflow_info_box_and_input(
-        &mut self,
-        workflow_id: &SyncId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let Some(terminal_view_handle) = self
-            .active_tab_pane_group()
-            .as_ref(ctx)
-            .active_session_view(ctx)
-        else {
-            return;
-        };
-        let terminal_input =
-            terminal_view_handle.read(ctx, |terminal_view, _| terminal_view.input().clone());
-
-        if self.is_input_box_visible(ctx) {
-            let open_workflow_id = terminal_input.update(ctx, |input, _| {
-                // We only care to refresh if workflow info box is visible
-                if input.is_workflows_info_box_open() {
-                    input.workflows_info_box_open_workflow_cloud_id()
-                } else {
-                    None
-                }
-            });
-
-            // Check if workflow displayed in info box matches the one that was just updated.
-            if open_workflow_id == Some(*workflow_id) {
-                // Fetch latest version of workflow and update info box with fresh contents
-                let cloud_model = CloudModel::as_ref(ctx);
-                if let Some(workflow) = cloud_model.get_workflow(workflow_id) {
-                    // Proc same behavior as DrivePanelEvent::RunWorkflow
-                    self.run_cloud_workflow_in_active_input(
-                        workflow.clone(),
-                        WorkflowSelectionSource::WarpDrive,
-                        TerminalSessionFallbackBehavior::default(),
-                        ctx,
-                    );
-                }
-            }
-        }
-    }
 
     fn handle_require_login_modal_event(
         &mut self,
@@ -11232,118 +10978,6 @@ impl Workspace {
         });
     }
 
-    /// Navigate to an existing AI conversation, focusing on its terminal view, if it's open anywhere.
-    /// If the conversation is not in an open pane, restore it based on the provided layout override
-    /// or the user's setting.
-    fn restore_or_navigate_to_conversation(
-        &mut self,
-        conversation_id: AIConversationId,
-        window_id: Option<WindowId>,
-        pane_view_locator: Option<PaneViewLocator>,
-        terminal_view_id: Option<EntityId>,
-        mut restore_layout: Option<RestoreConversationLayout>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // If we have all required navigation data, try to navigate to the existing pane
-        if let (Some(pane_view_locator), Some(window_id), Some(terminal_view_id)) =
-            (pane_view_locator, window_id, terminal_view_id)
-        {
-            // The pane group will be in the undo stack if its parent view (either the tab or the split pane)
-            // has been recently closed, and this closure can still be undone.
-            let is_pane_in_undo_stack = UndoCloseStack::as_ref(ctx)
-                .is_pane_group_tab_in_stack(pane_view_locator.pane_group_id)
-                || ctx
-                    .view_with_id::<PaneGroup>(window_id, pane_view_locator.pane_group_id)
-                    .is_some_and(|pg| {
-                        pg.as_ref(ctx)
-                            .is_pane_hidden_for_close(pane_view_locator.pane_id)
-                    });
-            // Check if there's an active long-running command in the target terminal and target conversation.
-            let has_blocking_long_running_command = ctx
-                .view_with_id::<TerminalView>(window_id, terminal_view_id)
-                .map(|view| {
-                    let model = view.as_ref(ctx).model.lock();
-                    let is_long_running = model
-                        .block_list()
-                        .active_block()
-                        .is_active_and_long_running();
-                    let selected_conversation_id = view
-                        .as_ref(ctx)
-                        .ai_context_model()
-                        .as_ref(ctx)
-                        .selected_conversation_id(ctx);
-
-                    is_long_running && selected_conversation_id != Some(conversation_id)
-                })
-                .unwrap_or(false);
-            // If the pane group is in the undo stack, we want to make sure its tab/pane parent
-            // is not re-openable (as this would cause a duplicate of this conversation to be created).
-            if is_pane_in_undo_stack {
-                // Don't open in this pane, fall back to user setting
-                restore_layout = None;
-
-                // TODO(harry): this does not detect correctly when the conversation is part of a window that has been closed.
-                UndoCloseStack::handle(ctx).update(ctx, |stack, ctx| {
-                    stack.discard_pane_group_parent(pane_view_locator.pane_group_id, ctx);
-                });
-            } else if has_blocking_long_running_command {
-                // Don't open in this pane and use the existing restore layout.
-            } else {
-                BlocklistAIHistoryModel::handle(ctx).update(ctx, |history_model, ctx| {
-                    history_model.set_active_conversation_id(
-                        conversation_id,
-                        terminal_view_id,
-                        ctx,
-                    );
-                });
-
-                Self::set_pending_query_state_for_terminal_view(
-                    terminal_view_id,
-                    PendingQueryState::Existing { conversation_id },
-                    ctx,
-                );
-
-                // If the conversation is in the current window, focus the pane directly.
-                // Otherwise, dispatch an action to the appropriate window.
-                if window_id == ctx.window_id() {
-                    ctx.windows().show_window_and_focus_app(window_id);
-                    self.focus_pane(pane_view_locator, ctx);
-                } else if let Some(root_view_id) = ctx.root_view_id(window_id) {
-                    ctx.dispatch_action_for_view(
-                        window_id,
-                        root_view_id,
-                        "root_view:handle_pane_navigation_event",
-                        &pane_view_locator,
-                    );
-                }
-                return;
-            }
-        }
-
-        // Determine effective layout: use provided layout or fall back to setting
-        #[cfg(feature = "local_fs")]
-        let layout_from_setting =
-            match *EditorSettings::as_ref(ctx).open_conversation_layout_preference {
-                OpenConversationPreference::NewTab => RestoreConversationLayout::NewTab,
-                OpenConversationPreference::SplitPane => RestoreConversationLayout::SplitPane,
-            };
-        #[cfg(not(feature = "local_fs"))]
-        let layout_from_setting = RestoreConversationLayout::NewTab;
-
-        let effective_layout = restore_layout.unwrap_or(layout_from_setting);
-        // Handle based on effective layout
-        match effective_layout {
-            RestoreConversationLayout::ActivePane => {
-                self.restore_conversation_in_active_pane(conversation_id, ctx);
-            }
-            RestoreConversationLayout::SplitPane => {
-                self.restore_conversation_in_split_pane(conversation_id, ctx);
-            }
-            RestoreConversationLayout::NewTab => {
-                self.restore_conversation_in_new_tab(conversation_id, ctx);
-            }
-        }
-    }
 
 
     /// Restores a conversation in a new split pane.
@@ -11506,131 +11140,6 @@ impl Workspace {
         }
     }
 
-    /// Fork an existing AI conversation.
-    /// Optionally summarizes the conversation after forking and/or sends an initial prompt.
-    /// When cloud conversation storage is enabled and the source has a server token,
-    /// a server-side fork is created first so the new conversation immediately gets
-    /// cloud storage and a server identity.
-    #[allow(clippy::too_many_arguments)]
-    fn fork_ai_conversation(
-        &mut self,
-        conversation_id: AIConversationId,
-        fork_from_exchange: Option<ForkFromExchange>,
-        summarize_after_fork: bool,
-        summarization_prompt: Option<String>,
-        initial_prompt: Option<String>,
-        destination: ForkedConversationDestination,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let history_model = BlocklistAIHistoryModel::handle(ctx);
-        let window_id = ctx.window_id();
-
-        let source_terminal_view_id = history_model
-            .as_ref(ctx)
-            .all_live_conversations()
-            .into_iter()
-            .find(|(_, convo)| convo.id() == conversation_id)
-            .map(|(terminal_view_id, _)| terminal_view_id);
-
-        // An empty prompt should not be provided as a query for the new forked conversation.
-        let initial_prompt = initial_prompt.and_then(|prompt| {
-            if prompt.trim().is_empty() {
-                None
-            } else {
-                Some(prompt)
-            }
-        });
-
-        // True when the fork is paired with a follow-up that fires immediately after restore
-        // (a prompt to send, or a `/summarize` triggered by `summarize_after_fork`).
-        // Used to suppress the `couldn't find original conversation directory` ephemeral hint
-        // for cloud-to-local forks, which would otherwise mask the warping indicator while the
-        // agent processes the follow-up. See `BlocklistAIStatusBar::render`'s
-        // `ephemeral_message_model.current_message().is_none()` gate.
-        let has_initial_query = summarize_after_fork || initial_prompt.is_some();
-
-        let cloud_storage_enabled =
-            PrivacySettings::as_ref(ctx).is_cloud_conversation_storage_enabled;
-
-        // Load the conversation data asynchronously
-        let future = history_model
-            .as_ref(ctx)
-            .load_conversation_data(conversation_id, ctx);
-
-        ctx.spawn(future, move |workspace, source_conversation, ctx| {
-            let Some(CloudConversationData::Oz(source_conversation)) = source_conversation else {
-                log::error!("Failed to load Oz conversation {conversation_id} for forking.");
-                WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error(
-                        "Failed to load conversation for forking.".to_owned(),
-                    );
-                    toast_stack.add_ephemeral_toast(toast, window_id, ctx);
-                });
-                return;
-            };
-
-            let source_server_token = source_conversation
-                .server_conversation_token()
-                .map(|t| t.as_str().to_string());
-            let title_for_fork = source_conversation.title();
-
-            // Skip the server-side fork when forking from a specific exchange.
-            // The server's ForkConversation copies the entire GCS conversation
-            // data, which includes exchanges after the fork point. This creates
-            // a mismatch with the locally-truncated fork and causes TaskNotFound
-            // errors during cloud-to-cloud handoff replay.
-            let should_server_fork =
-                cloud_storage_enabled && fork_from_exchange.is_none();
-            if let Some(source_token) = source_server_token.filter(|_| should_server_fork) {
-                let ai_client = ServerApiProvider::as_ref(ctx).get_ai_client();
-                ctx.spawn(
-                    async move {
-                        ai_client
-                            .fork_conversation(source_token, title_for_fork)
-                            .await
-                    },
-                    move |workspace, result, ctx| {
-                        let server_forked_id = match result {
-                            Ok(response) => Some(response.forked_conversation_id),
-                            Err(err) => {
-                                log::warn!("Server-side fork failed, proceeding with local-only fork: {err:#}");
-                                None
-                            }
-                        };
-                        workspace.create_local_fork(
-                            source_conversation,
-                            conversation_id,
-                            fork_from_exchange,
-                            summarize_after_fork,
-                            summarization_prompt,
-                            initial_prompt,
-                            destination,
-                            has_initial_query,
-                            source_terminal_view_id,
-                            server_forked_id,
-                            window_id,
-                            ctx,
-                        );
-                    },
-                );
-            } else {
-                workspace.create_local_fork(
-                    source_conversation,
-                    conversation_id,
-                    fork_from_exchange,
-                    summarize_after_fork,
-                    summarization_prompt,
-                    initial_prompt,
-                    destination,
-                    has_initial_query,
-                    source_terminal_view_id,
-                    None,
-                    window_id,
-                    ctx,
-                );
-            }
-        });
-    }
 
     /// Completes the fork by creating the local conversation and restoring it into a pane.
     /// If `server_forked_conversation_id` is provided, the local fork is bound to the
@@ -16186,40 +15695,8 @@ impl Workspace {
     }
 
 
-    /// Opens the workflow from a given [`CloudWorkflow`]'s server ID.
-    fn open_workflow_with_existing(
-        &mut self,
-        workflow_id: SyncId,
-        settings: &OpenWarpDriveObjectSettings,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let source = WorkflowOpenSource::Existing(workflow_id);
-        self.open_workflow_in_pane(&source, settings, WorkflowViewMode::Edit, ctx)
-    }
 
 
-    /// Opens the workflow for create with a prepopulated command specified
-    fn open_workflow_with_command(&mut self, command: String, ctx: &mut ViewContext<Self>) {
-        let Some(owner) = UserWorkspaces::as_ref(ctx).personal_drive(ctx) else {
-            log::warn!("Unable to open workflow with command - unset personal drive");
-            return;
-        };
-        let source = WorkflowOpenSource::New {
-            title: None,
-            content: Some(command),
-            owner,
-            initial_folder_id: None,
-            is_for_agent_mode: false,
-        };
-        self.open_workflow_in_pane(
-            &source,
-            &OpenWarpDriveObjectSettings::default(),
-            WorkflowViewMode::Create,
-            ctx,
-        );
-
-        ctx.notify();
-    }
 
     fn render_ai_assistant_warm_welcome(&self, appearance: &Appearance) -> Box<dyn Element> {
         let theme = appearance.theme();
