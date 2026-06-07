@@ -6,7 +6,6 @@ use rift_core::features::FeatureFlag;
 use riftui::keymap::BindingId;
 use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
-use super::{conversations, warp_drive};
 use crate::search::action::CommandBindingDataSource;
 use crate::search::binding_source::BindingSource;
 use crate::search::command_palette::mixer::{CommandPaletteItemAction, ItemSummary};
@@ -18,16 +17,13 @@ use crate::search::files::model::FileSearchModel;
 use crate::search::mixer::AddAsyncSourceOptions;
 use crate::search::QueryFilter;
 use crate::session_management::SessionSource;
-use crate::settings::AISettings;
 
 /// Store of all of the [`crate::search::DataSource`]s for the command palette.
 pub struct DataSourceStore {
     actions_data_source: ModelHandle<CommandBindingDataSource>,
     sessions_data_source: ModelHandle<navigation::DataSource>,
-    warp_drive_data_source: ModelHandle<warp_drive::DataSource>,
     launch_config_data_source: ModelHandle<launch_config::DataSource>,
     new_session_data_source: Option<ModelHandle<NewSessionDataSource>>,
-    all_conversation_data_source: ModelHandle<conversations::DataSource>,
     repo_data_source: ModelHandle<RepoDataSource>,
     tabs_data_source: Option<ModelHandle<tabs::DataSource>>,
 }
@@ -44,26 +40,19 @@ impl DataSourceStore {
         let sessions_data_source =
             ctx.add_model(|_| navigation::DataSource::new(active_session_handle));
 
-        let warp_drive_data_source = ctx.add_model(warp_drive::DataSource::new);
-
         let launch_config_data_source = ctx.add_model(launch_config::DataSource::new);
 
         let new_session_data_source = (FeatureFlag::ShellSelector.is_enabled()
             && cfg!(feature = "local_tty"))
         .then_some(ctx.add_model(|ctx| NewSessionDataSource::new(binding_source, ctx)));
 
-        let all_conversation_data_source: ModelHandle<conversations::DataSource> =
-            ctx.add_model(|_| conversations::DataSource::new());
-
         let repo_data_source = ctx.add_model(|_| RepoDataSource::new());
 
         Self {
             actions_data_source,
             sessions_data_source,
-            warp_drive_data_source,
             launch_config_data_source,
             new_session_data_source,
-            all_conversation_data_source,
             repo_data_source,
             tabs_data_source: None,
         }
@@ -90,22 +79,6 @@ impl DataSourceStore {
                 self.sessions_data_source.clone(),
                 HashSet::from([QueryFilter::Sessions]),
             );
-
-            if WarpDriveSettings::is_warp_drive_enabled(ctx) {
-                let mut warp_drive_filters = HashSet::from([
-                    QueryFilter::Notebooks,
-                    QueryFilter::Plans,
-                    QueryFilter::Drive,
-                    QueryFilter::Workflows,
-                ]);
-
-                warp_drive_filters.insert(QueryFilter::EnvironmentVariables);
-
-                if AISettings::as_ref(ctx).is_any_ai_enabled(ctx) {
-                    warp_drive_filters.insert(QueryFilter::AgentModeWorkflows);
-                }
-                mixer.add_sync_source(self.warp_drive_data_source.clone(), warp_drive_filters);
-            }
 
             mixer.add_sync_source(
                 self.actions_data_source.clone(),
@@ -137,14 +110,6 @@ impl DataSourceStore {
                         run_when_unfiltered: true,
                     },
                     ctx,
-                );
-            }
-
-            // Add conversation search if AI is enabled
-            if AISettings::as_ref(ctx).is_any_ai_enabled(ctx) {
-                mixer.add_sync_source(
-                    self.all_conversation_data_source.clone(),
-                    HashSet::from([QueryFilter::Conversations]),
                 );
             }
 
@@ -208,18 +173,6 @@ impl DataSourceStore {
                 .actions_data_source
                 .as_ref(app)
                 .query_result(*binding_id),
-            ItemSummary::Workflow { id } => self
-                .warp_drive_data_source
-                .as_ref(app)
-                .query_result(id, app),
-            ItemSummary::EnvVarCollection { id } => self
-                .warp_drive_data_source
-                .as_ref(app)
-                .query_result(id, app),
-            ItemSummary::Notebook { id } => self
-                .warp_drive_data_source
-                .as_ref(app)
-                .query_result(id, app),
             ItemSummary::Session { pane_view_locator } => self
                 .sessions_data_source
                 .as_ref(app)
@@ -227,12 +180,6 @@ impl DataSourceStore {
             ItemSummary::LaunchConfiguration => {
                 // TODO(CLD-205): Launch configurations are not supported in the recent section of the
                 // zero state yet.
-                None
-            }
-            ItemSummary::CloudObject => {
-                // We don't yet support all cloud objects in the command palette but
-                // we have a `ViewInWarpDrive` action that supports all of them, so
-                // this is necessary to make the compiler happy.
                 None
             }
             ItemSummary::NewSession { id } => self
@@ -282,20 +229,6 @@ impl DataSourceStore {
                 // For now, return None as projects aren't expected in the regular command palette.
                 None
             }
-            ItemSummary::Conversation { id } => conversations::DataSource::query_result(id, app),
-
-            ItemSummary::NewConversation => {
-                // The new conversation item should not show up in the recent command list,
-                // as its use is specific to the conversation filter.
-                None
-            }
-
-            ItemSummary::ForkConversation => {
-                // The forked conversation item should not show up in the recent command list,
-                // as its use is specific to the conversation filter.
-                None
-            }
-
             ItemSummary::NoOp => {
                 // No-op action (used for non-interactable separator items that don't do anything on click).
                 None

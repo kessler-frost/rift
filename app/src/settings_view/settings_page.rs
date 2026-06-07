@@ -28,15 +28,12 @@ use settings::Setting;
 
 use super::about_page::AboutPageView;
 use super::appearance_page::AppearanceSettingsPageView;
-use super::billing_and_usage_dispatch::BillingAndUsageDispatchView;
 use super::code_page::CodeSettingsPageView;
 use super::features_page::FeaturesPageView;
 use super::keybindings::KeybindingsView;
 use super::main_page::MainSettingsPageView;
 use super::privacy_page::PrivacyPageView;
 use super::show_blocks_view::ShowBlocksView;
-use super::teams_page::TeamsPageView;
-use super::warp_drive_page::WarpDriveSettingsPageView;
 use super::warpify_page::WarpifyPageView;
 use super::SettingsSection;
 use crate::appearance::Appearance;
@@ -101,15 +98,9 @@ pub enum SettingsPageViewHandle {
     Keybindings(ViewHandle<KeybindingsView>),
     About(ViewHandle<AboutPageView>),
     Code(ViewHandle<CodeSettingsPageView>),
-    Teams(ViewHandle<TeamsPageView>),
     OzCloudAPIKeys(ViewHandle<super::platform_page::PlatformPageView>),
     Privacy(ViewHandle<PrivacyPageView>),
     Warpify(ViewHandle<WarpifyPageView>),
-    AI(ViewHandle<AISettingsPageView>),
-    CloudEnvironments(ViewHandle<EnvironmentsPageView>),
-    BillingAndUsage(ViewHandle<BillingAndUsageDispatchView>),
-    MCPServers(ViewHandle<MCPServersSettingsPageView>),
-    WarpDrive(ViewHandle<WarpDriveSettingsPageView>),
 }
 
 impl SettingsPageViewHandle {
@@ -123,22 +114,10 @@ impl SettingsPageViewHandle {
             Keybindings(view_handle) => ChildView::new(view_handle).finish(),
             About(view_handle) => ChildView::new(view_handle).finish(),
             Code(view_handle) => ChildView::new(view_handle).finish(),
-            Teams(view_handle) => ChildView::new(view_handle).finish(),
             OzCloudAPIKeys(view_handle) => ChildView::new(view_handle).finish(),
             Privacy(view_handle) => ChildView::new(view_handle).finish(),
             Warpify(view_handle) => ChildView::new(view_handle).finish(),
-            AI(view_handle) => ChildView::new(view_handle).finish(),
-            CloudEnvironments(view_handle) => ChildView::new(view_handle).finish(),
-            BillingAndUsage(view_handle) => ChildView::new(view_handle).finish(),
-            MCPServers(view_handle) => ChildView::new(view_handle).finish(),
-            WarpDrive(view_handle) => ChildView::new(view_handle).finish(),
         }
-    }
-}
-
-impl From<ViewHandle<MCPServersSettingsPageView>> for SettingsPageViewHandle {
-    fn from(view_handle: ViewHandle<MCPServersSettingsPageView>) -> Self {
-        SettingsPageViewHandle::MCPServers(view_handle)
     }
 }
 
@@ -374,86 +353,6 @@ pub fn render_separator(appearance: &Appearance) -> Box<dyn Element> {
         .finish()
 }
 
-pub fn render_full_pane_width_ai_button(
-    text: &str,
-    is_any_ai_enabled: bool,
-    mouse_state: MouseStateHandle,
-    action: AISettingsPageAction,
-    appearance: &Appearance,
-) -> Box<dyn Element> {
-    let (text_color, bg, icon_bg) = if is_any_ai_enabled {
-        (
-            appearance
-                .theme()
-                .main_text_color(appearance.theme().background())
-                .into(),
-            internal_colors::neutral_3(appearance.theme()),
-            appearance.theme().background(),
-        )
-    } else {
-        (
-            appearance.theme().disabled_ui_text_color().into(),
-            internal_colors::neutral_2(appearance.theme()),
-            appearance.theme().disabled_ui_text_color(),
-        )
-    };
-
-    let mut button = Hoverable::new(mouse_state, |_| {
-        Container::new(
-            Flex::row()
-                .with_main_axis_size(MainAxisSize::Max)
-                .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                .with_main_axis_alignment(MainAxisAlignment::SpaceBetween)
-                .with_child(
-                    Expanded::new(
-                        1.,
-                        appearance
-                            .ui_builder()
-                            .wrappable_text(text.to_string(), true)
-                            .with_style(UiComponentStyles {
-                                font_size: Some(CONTENT_FONT_SIZE),
-                                font_color: Some(text_color),
-                                ..Default::default()
-                            })
-                            .build()
-                            .finish(),
-                    )
-                    .finish(),
-                )
-                .with_child(
-                    ConstrainedBox::new(
-                        Icon::ChevronRight
-                            .to_warpui_icon(appearance.theme().main_text_color(icon_bg))
-                            .finish(),
-                    )
-                    .with_width(16.)
-                    .with_height(16.)
-                    .finish(),
-                )
-                .finish(),
-        )
-        .with_background(bg)
-        .with_border(
-            Border::new(1.).with_border_fill(internal_colors::neutral_4(appearance.theme())),
-        )
-        .with_corner_radius(CornerRadius::with_all(Radius::Pixels(4.)))
-        .with_horizontal_padding(16.)
-        .with_vertical_padding(11.)
-        .with_margin_bottom(12.)
-        .finish()
-    });
-
-    if is_any_ai_enabled {
-        button = button
-            .on_click(move |ctx, _, _| {
-                ctx.dispatch_typed_action(action.clone());
-            })
-            .with_cursor(Cursor::PointingHand);
-    }
-
-    button.finish()
-}
-
 #[derive(Default)]
 pub struct AdditionalInfo<T> {
     pub mouse_state: MouseStateHandle,
@@ -508,29 +407,14 @@ impl LocalOnlyIconState {
     /// - `LocalOnlyIconState::Visible` with a `MouseStateHandle` if the setting is never synced to cloud.
     /// - `LocalOnlyIconState::Hidden` if the setting is synced to cloud.
     pub fn for_setting(
-        storage_key: &str,
-        sync_to_cloud: SyncToCloud,
-        mouse_states: &mut HashMap<String, MouseStateHandle>,
-        app: &AppContext,
+        _storage_key: &str,
+        _sync_to_cloud: SyncToCloud,
+        _mouse_states: &mut HashMap<String, MouseStateHandle>,
+        _app: &AppContext,
     ) -> Self {
-        if !*CloudPreferencesSettings::as_ref(app).settings_sync_enabled {
-            // Only show the local-only icon if settings sync is enabled.
-            return Self::Hidden;
-        }
-
-        match sync_to_cloud {
-            SyncToCloud::Never => {
-                let mouse_state = mouse_states
-                    .entry(storage_key.to_string())
-                    .or_default()
-                    .clone();
-                Self::Visible {
-                    mouse_state,
-                    custom_tooltip: None,
-                }
-            }
-            _ => Self::Hidden,
-        }
+        // Cloud settings sync has been removed; all settings are local-only,
+        // so the "not cloud-synced" indicator is never shown.
+        Self::Hidden
     }
 }
 

@@ -6,7 +6,6 @@ use async_channel::Sender;
 use itertools::Itertools;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
-use rift_core::features::FeatureFlag;
 use riftui::elements::{
     AnchorPair, Border, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Dismiss, Empty, Fill, Flex, Hoverable, Icon, MouseStateHandle, OffsetPositioning, OffsetType,
@@ -28,27 +27,12 @@ use crate::debounce;
 #[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::blocks::data_source::BlockDataSource;
 #[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::code::data_source::{code_data_source, CodeSymbolCache};
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::code::is_code_symbols_indexing;
-#[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::commands::data_source::CommandDataSource;
-use crate::search::ai_context_menu::conversations::data_source::ConversationDataSource;
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::diffset::data_source::DiffSetDataSource;
 #[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::files::data_source::{
     file_data_source_for_current_repo, file_data_source_for_pwd,
 };
 use crate::search::ai_context_menu::mixer::{AIContextMenuMixer, AIContextMenuSearchableAction};
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::notebooks::data_source::NotebookDataSource;
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::rules::data_source::RulesDataSource;
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::skills::data_source::SkillsDataSource;
-#[cfg(not(target_family = "wasm"))]
-use crate::search::ai_context_menu::workflows::data_source::WorkflowDataSource;
 use crate::search::data_source::{Query, QueryFilter, QueryResult};
 #[cfg(not(target_family = "wasm"))]
 use crate::search::mixer::AddAsyncSourceOptions;
@@ -82,22 +66,6 @@ pub enum AIContextMenuCategory {
     RepoFiles,
     Commands,
     Blocks,
-    Workflows,
-    Notebooks,
-    Plans,
-    Diffs,
-    Docs,
-    Tasks,
-    Rules,
-    Servers,
-    Terminal,
-    Web,
-    RecentDiff,
-    RecentBlock,
-    Code,
-    DiffSet,
-    Conversations,
-    Skills,
 }
 
 impl AIContextMenuCategory {
@@ -107,22 +75,6 @@ impl AIContextMenuCategory {
             AIContextMenuCategory::RepoFiles => "Files and folders",
             AIContextMenuCategory::Commands => "Commands",
             AIContextMenuCategory::Blocks => "Blocks",
-            AIContextMenuCategory::Workflows => "Workflows",
-            AIContextMenuCategory::Notebooks => "Notebooks",
-            AIContextMenuCategory::Plans => "Plans",
-            AIContextMenuCategory::Diffs => "Diffs",
-            AIContextMenuCategory::Docs => "Docs",
-            AIContextMenuCategory::Tasks => "Past tasks",
-            AIContextMenuCategory::Rules => "Rules",
-            AIContextMenuCategory::Servers => "Servers and integrations",
-            AIContextMenuCategory::Terminal => "Terminal",
-            AIContextMenuCategory::Web => "Web",
-            AIContextMenuCategory::RecentDiff => "Most recent diff",
-            AIContextMenuCategory::RecentBlock => "Most recent block",
-            AIContextMenuCategory::Code => "Code",
-            AIContextMenuCategory::DiffSet => "Diff sets",
-            AIContextMenuCategory::Conversations => "Conversations",
-            AIContextMenuCategory::Skills => "Skills",
         }
     }
 
@@ -132,22 +84,6 @@ impl AIContextMenuCategory {
             AIContextMenuCategory::RepoFiles => "bundled/svg/folder.svg",
             AIContextMenuCategory::Commands => "bundled/svg/terminal.svg",
             AIContextMenuCategory::Blocks => "bundled/svg/terminal.svg",
-            AIContextMenuCategory::Workflows => "bundled/svg/workflow.svg",
-            AIContextMenuCategory::Notebooks => "bundled/svg/notebook.svg",
-            AIContextMenuCategory::Plans => "bundled/svg/compass-3.svg",
-            AIContextMenuCategory::Diffs => "bundled/svg/diff.svg",
-            AIContextMenuCategory::Docs => "bundled/svg/docs.svg",
-            AIContextMenuCategory::Tasks => "bundled/svg/tasks.svg",
-            AIContextMenuCategory::Rules => "bundled/svg/book-open.svg",
-            AIContextMenuCategory::Servers => "bundled/svg/server.svg",
-            AIContextMenuCategory::Terminal => "bundled/svg/terminal.svg",
-            AIContextMenuCategory::Web => "bundled/svg/web.svg",
-            AIContextMenuCategory::RecentDiff => "bundled/svg/diff.svg",
-            AIContextMenuCategory::RecentBlock => "bundled/svg/block.svg",
-            AIContextMenuCategory::Code => "bundled/svg/code-02.svg",
-            AIContextMenuCategory::DiffSet => "bundled/svg/diff.svg",
-            AIContextMenuCategory::Conversations => "bundled/svg/conversation.svg",
-            AIContextMenuCategory::Skills => "bundled/svg/stars-01.svg",
         }
     }
 }
@@ -224,8 +160,6 @@ pub struct AIContextMenu {
     /// a lot of helpful logic for managing the search state.
     search_bar: ViewHandle<SearchBar<AIContextMenuSearchableAction>>,
     search_bar_state: ModelHandle<SearchBarState<AIContextMenuSearchableAction>>,
-    #[cfg(not(target_family = "wasm"))]
-    code_symbol_cache: ModelHandle<CodeSymbolCache>,
     state: AIContextMenuState,
     /// Debounce channel for search queries
     search_debounce_tx: Sender<String>,
@@ -372,8 +306,6 @@ impl AIContextMenu {
         is_cli_agent_input: bool,
         app: &AppContext,
     ) -> Vec<AIContextMenuCategory> {
-        let show_warp_drive = WarpDriveSettings::is_warp_drive_enabled(app);
-
         // Compute once — used by CLI agent, AI-mode, and terminal-mode branches.
         let is_active_dir_in_git_repo = {
             #[cfg(target_family = "wasm")]
@@ -406,30 +338,12 @@ impl AIContextMenu {
                     categories.push(AIContextMenuCategory::CurrentFolderFiles);
                 }
             }
-            if FeatureFlag::AIContextMenuCode.is_enabled()
-                && *InputSettings::as_ref(app)
-                    .outline_codebase_symbols_for_at_context_menu
-                    .value()
-                && is_active_dir_in_git_repo
-                && !is_shared_session_viewer
-            {
-                categories.push(AIContextMenuCategory::Code);
-            }
             return categories;
         }
 
         // For ambient agent sessions, only show limited categories
         if is_in_ambient_agent {
-            let mut categories = vec![];
-            if show_warp_drive {
-                if FeatureFlag::DriveObjectsAsContext.is_enabled() {
-                    categories.push(AIContextMenuCategory::Workflows);
-                    categories.push(AIContextMenuCategory::Notebooks);
-                    categories.push(AIContextMenuCategory::Plans);
-                }
-                categories.push(AIContextMenuCategory::Rules);
-            }
-            return categories;
+            return vec![];
         }
 
         if is_ai_or_autodetect_mode {
@@ -444,57 +358,16 @@ impl AIContextMenu {
                 }
             }
 
-            if FeatureFlag::AIContextMenuCommands.is_enabled() {
-                categories.push(AIContextMenuCategory::Commands);
-            }
+            categories.push(AIContextMenuCategory::Commands);
             categories.push(AIContextMenuCategory::Blocks);
-            if FeatureFlag::AIContextMenuCode.is_enabled()
-                && *InputSettings::as_ref(app)
-                    .outline_codebase_symbols_for_at_context_menu
-                    .value()
-                && is_active_dir_in_git_repo
-                && !is_shared_session_viewer
-            {
-                categories.push(AIContextMenuCategory::Code);
-            }
-            if show_warp_drive && FeatureFlag::DriveObjectsAsContext.is_enabled() {
-                categories.push(AIContextMenuCategory::Workflows);
-                categories.push(AIContextMenuCategory::Notebooks);
-                categories.push(AIContextMenuCategory::Plans);
-            }
-            if FeatureFlag::DiffSetAsContext.is_enabled()
-                && is_active_dir_in_git_repo
-                && !is_shared_session_viewer
-            {
-                categories.push(AIContextMenuCategory::DiffSet);
-            }
-            if FeatureFlag::ConversationsAsContext.is_enabled() {
-                categories.push(AIContextMenuCategory::Conversations);
-            }
-            if show_warp_drive {
-                categories.push(AIContextMenuCategory::Rules);
-            }
-            categories.push(AIContextMenuCategory::Skills);
             categories
         } else if !is_shared_session_viewer {
-            // Terminal mode: show Files and Code categories (when enabled)
-            let mut categories = if is_active_dir_in_git_repo {
+            // Terminal mode: show Files category
+            if is_active_dir_in_git_repo {
                 vec![AIContextMenuCategory::RepoFiles]
             } else {
                 vec![AIContextMenuCategory::CurrentFolderFiles]
-            };
-
-            // Also show Code category in terminal mode when enabled
-            if FeatureFlag::AIContextMenuCode.is_enabled()
-                && *InputSettings::as_ref(app)
-                    .outline_codebase_symbols_for_at_context_menu
-                    .value()
-                && is_active_dir_in_git_repo
-            {
-                categories.push(AIContextMenuCategory::Code);
             }
-
-            categories
         } else {
             // File searching is not available in shared session viewers
             vec![]
@@ -608,33 +481,10 @@ impl AIContextMenu {
         // Get initial categories for proper initialization
         let initial_categories = Self::get_categories_for_mode(true, false, false, false, ctx); // Default to AI mode, not a viewer, not ambient agent, not CLI agent input
 
-        #[cfg(not(target_family = "wasm"))]
-        let code_symbol_cache = ctx.add_model(CodeSymbolCache::new);
-
-        // When the outline updates (e.g. indexing finishes), re-run the current
-        // mixer query so the Code results refresh automatically.
-        #[cfg(not(target_family = "wasm"))]
-        ctx.subscribe_to_model(&code_symbol_cache, |me, _handle, _event, ctx| {
-            let code_active = matches!(
-                me.state.navigation_state,
-                NavigationState::Category(AIContextMenuCategory::Code)
-                    | NavigationState::AllCategories
-            );
-            if code_active {
-                me.mixer.update(ctx, |mixer, ctx| {
-                    if let Some(query) = mixer.current_query().cloned() {
-                        mixer.run_query(query, ctx);
-                    }
-                });
-            }
-        });
-
         let mut result = Self {
             mixer,
             search_bar,
             search_bar_state,
-            #[cfg(not(target_family = "wasm"))]
-            code_symbol_cache,
             state: AIContextMenuState {
                 navigation_state: if initial_categories.len() > 1 {
                     NavigationState::MainMenu
@@ -899,125 +749,6 @@ impl AIContextMenu {
                     );
                 });
             }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Code) => {
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_async_source(
-                        code_data_source(self.code_symbol_cache.as_ref(ctx)),
-                        [QueryFilter::Code],
-                        AddAsyncSourceOptions {
-                            debounce_interval: Some(Duration::from_millis(50)),
-                            run_in_zero_state: true,
-                            run_when_unfiltered: true,
-                        },
-                        ctx,
-                    );
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Workflows) => {
-                let workflow_data_source = ctx.add_model(|_| WorkflowDataSource::new());
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(workflow_data_source, [QueryFilter::Workflows]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Notebooks) => {
-                let notebook_data_source = ctx.add_model(|_| NotebookDataSource::new(false));
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(notebook_data_source, [QueryFilter::Notebooks]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Plans) => {
-                let notebook_data_source = ctx.add_model(|_| NotebookDataSource::new(true));
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(notebook_data_source, [QueryFilter::Notebooks]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Rules) => {
-                let rules_data_source = ctx.add_model(|_| RulesDataSource::new());
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(rules_data_source, [QueryFilter::Rules]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::DiffSet) => {
-                let diffset_data_source = ctx.add_model(|_| DiffSetDataSource);
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(diffset_data_source, [QueryFilter::DiffSets]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            NavigationState::Category(AIContextMenuCategory::Conversations) => {
-                let conversation_data_source = ctx.add_model(|_| ConversationDataSource);
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(conversation_data_source, [QueryFilter::Conversations]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
-            #[cfg(not(target_family = "wasm"))]
-            NavigationState::Category(AIContextMenuCategory::Skills) => {
-                let skills_data_source = ctx.add_model(|_| SkillsDataSource::new());
-                self.mixer.update(ctx, |mixer, ctx| {
-                    mixer.add_sync_source(skills_data_source, [QueryFilter::Skills]);
-                    mixer.run_query(
-                        Query {
-                            text: "".into(),
-                            filters: HashSet::new(),
-                        },
-                        ctx,
-                    );
-                });
-            }
             NavigationState::Category(_) => {
                 // TODO: Add other data sources
             }
@@ -1095,65 +826,6 @@ impl AIContextMenu {
                         mixer.add_sync_source(block_data_source, [QueryFilter::Blocks]);
                     });
                 }
-                AIContextMenuCategory::Code => {
-                    self.mixer.update(ctx, |mixer, ctx| {
-                        mixer.add_async_source(
-                            code_data_source(self.code_symbol_cache.as_ref(ctx)),
-                            [QueryFilter::Code],
-                            AddAsyncSourceOptions {
-                                debounce_interval: Some(Duration::from_millis(50)),
-                                run_in_zero_state: true,
-                                run_when_unfiltered: true,
-                            },
-                            ctx,
-                        );
-                    });
-                }
-                AIContextMenuCategory::Workflows => {
-                    let workflow_data_source = ctx.add_model(|_| WorkflowDataSource::new());
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(workflow_data_source, [QueryFilter::Workflows]);
-                    });
-                }
-                AIContextMenuCategory::Notebooks => {
-                    let notebook_data_source = ctx.add_model(|_| NotebookDataSource::new(false));
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(notebook_data_source, [QueryFilter::Notebooks]);
-                    });
-                }
-                AIContextMenuCategory::Plans => {
-                    let notebook_data_source = ctx.add_model(|_| NotebookDataSource::new(true));
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(notebook_data_source, [QueryFilter::Notebooks]);
-                    });
-                }
-                AIContextMenuCategory::Rules => {
-                    let rules_data_source = ctx.add_model(|_| RulesDataSource::new());
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(rules_data_source, [QueryFilter::Rules]);
-                    });
-                }
-                AIContextMenuCategory::DiffSet => {
-                    let diffset_data_source = ctx.add_model(|_| DiffSetDataSource);
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(diffset_data_source, [QueryFilter::DiffSets]);
-                    });
-                }
-                AIContextMenuCategory::Conversations => {
-                    let conversation_data_source = ctx.add_model(|_| ConversationDataSource);
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(
-                            conversation_data_source,
-                            [QueryFilter::Conversations],
-                        );
-                    });
-                }
-                AIContextMenuCategory::Skills => {
-                    let skills_data_source = ctx.add_model(|_| SkillsDataSource::new());
-                    self.mixer.update(ctx, |mixer, _ctx| {
-                        mixer.add_sync_source(skills_data_source, [QueryFilter::Skills]);
-                    });
-                }
                 _ => {
                     // TODO: Add other categories
                 }
@@ -1177,22 +849,6 @@ impl AIContextMenu {
         self.mixer.update(ctx, |mixer, ctx| {
             mixer.reset(ctx);
         });
-
-        let categories = Self::get_categories_for_mode(
-            self.state.is_ai_or_autodetect_mode,
-            self.state.is_shared_session_viewer,
-            self.state.is_in_ambient_agent,
-            self.state.is_cli_agent_input,
-            ctx,
-        );
-        for category in categories.iter() {
-            if matches!(category, AIContextMenuCategory::Conversations) {
-                let conversation_data_source = ctx.add_model(|_| ConversationDataSource);
-                self.mixer.update(ctx, |mixer, _ctx| {
-                    mixer.add_sync_source(conversation_data_source, [QueryFilter::Conversations]);
-                });
-            }
-        }
 
         self.mixer.update(ctx, |mixer, ctx| {
             mixer.run_query(
@@ -1388,23 +1044,6 @@ impl AIContextMenu {
         Container::new(
             Text::new(
                 "Loading results...",
-                appearance.ui_font_family(),
-                appearance.monospace_font_size(),
-            )
-            .with_color(theme.main_text_color(theme.background()).into_solid())
-            .finish(),
-        )
-        .with_uniform_padding(PADDING)
-        .finish()
-    }
-
-    #[cfg_attr(target_family = "wasm", allow(dead_code))]
-    fn render_code_symbols_indexing(&self, app: &AppContext) -> Box<dyn Element> {
-        let appearance = Appearance::as_ref(app);
-        let theme = appearance.theme();
-        Container::new(
-            Text::new(
-                "Code symbols indexing...",
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -1613,20 +1252,12 @@ impl AIContextMenu {
 
     /// Renders the appropriate empty-state element: code-symbols-indexing
     /// indicator (when applicable), loading spinner, or the provided fallback.
-    #[cfg_attr(target_family = "wasm", allow(unused_variables))]
     fn render_empty_state(
         &self,
-        category: Option<&AIContextMenuCategory>,
+        _category: Option<&AIContextMenuCategory>,
         fallback: Box<dyn Element>,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        #[cfg(not(target_family = "wasm"))]
-        if let Some(cat) = category {
-            if *cat == AIContextMenuCategory::Code && is_code_symbols_indexing(app) {
-                return self.render_code_symbols_indexing(app);
-            }
-        }
-
         if self.mixer.as_ref(app).is_loading() {
             self.render_loading_results(app)
         } else {

@@ -214,15 +214,8 @@ impl SearchItemIcon for BindingGroup {
                 ColorU::from_u32(colors::RIFT_AI)
             }
             Self::WarpAi => appearance.theme().foreground().into_solid(),
-            Self::Workflow => warp_drive_icon_color(appearance, DriveObjectType::Workflow),
-            Self::Notebooks => warp_drive_icon_color(
-                appearance,
-                DriveObjectType::Notebook {
-                    is_ai_document: false,
-                },
-            ),
-            Self::EnvVarCollection => {
-                warp_drive_icon_color(appearance, DriveObjectType::EnvVarCollection)
+            Self::Workflow | Self::Notebooks | Self::EnvVarCollection => {
+                appearance.theme().foreground().into_solid()
             }
         }
     }

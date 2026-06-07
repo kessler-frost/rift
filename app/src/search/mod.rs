@@ -1,15 +1,12 @@
 pub mod action;
 pub mod ai_context_menu;
-mod ai_queries;
 pub(crate) mod async_snapshot_data_source;
 pub mod binding_source;
 pub mod command_palette;
 pub mod command_search;
-mod env_var_collections;
 pub mod external_secrets;
 pub mod files;
 mod filter_chip_renderer;
-pub mod notebook_embedding;
 mod palette_styles;
 mod search_bar;
 pub mod search_results_menu;
@@ -23,4 +20,3 @@ pub use mixer::SyncDataSource;
 pub use result_renderer::ItemHighlightState;
 // Re-export core search types.
 pub use rift_search_core::*;
-pub use workflows::fuzzy_match::FuzzyMatchWorkflowResult;
