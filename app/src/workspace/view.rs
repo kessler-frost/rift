@@ -823,7 +823,6 @@ pub struct Workspace {
     new_worktree_modal: ModalViewState<Modal<NewWorktreeModal>>,
     close_session_confirmation_dialog: ViewHandle<CloseSessionConfirmationDialog>,
     resource_center_view: ViewHandle<ResourceCenterView>,
-    command_search_view: ViewHandle<CommandSearchView>,
     autoupdate_unable_to_update_banner_dismissed: bool,
     autoupdate_unable_to_launch_new_version: bool,
     reauth_banner_dismissed: bool,
@@ -2441,11 +2440,6 @@ impl Workspace {
         let enable_auto_reload_modal = Self::build_enable_auto_reload_modal(ctx);
 
         let close_session_confirmation_dialog = Self::build_close_session_confirmation_dialog(ctx);
-        let command_search_view =
-            ctx.add_typed_action_view(|ctx| CommandSearchView::new(ai_client.clone(), ctx));
-        ctx.subscribe_to_view(&command_search_view, |me, _, event, ctx| {
-            me.handle_command_search_event(event, ctx);
-        });
 
         let working_directories_model =
             ctx.add_model(|_| pane_group::WorkingDirectoriesModel::new());
@@ -2730,7 +2724,6 @@ impl Workspace {
             new_worktree_modal,
             close_session_confirmation_dialog,
             resource_center_view,
-            command_search_view,
             autoupdate_unable_to_update_banner_dismissed: false,
             autoupdate_unable_to_launch_new_version: false,
             reauth_banner_dismissed: false,
@@ -11440,93 +11433,6 @@ impl Workspace {
         };
     }
 
-    fn show_command_search(
-        &mut self,
-        query_filter: Option<search::QueryFilter>,
-        init_content: &InitContent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // View-only sessions should not show command search
-        if self.is_readonly_shared_session_active(ctx) {
-            return;
-        }
-
-        // Close all overlays including chip menus before opening command search
-        self.close_all_overlays(ctx);
-
-        if let Some(session_id) = self.active_session_id(ctx) {
-            let active_input_handle = self.get_active_input_view_handle(ctx);
-
-            let initial_query = match init_content {
-                InitContent::FromInputBuffer => {
-                    if let Some(input_handle) = &active_input_handle {
-                        input_handle.read(ctx, |input, ctx| input.buffer_text(ctx))
-                    } else {
-                        "".to_owned()
-                    }
-                }
-                InitContent::Custom(query) => query.to_owned(),
-            };
-
-            let session_context = active_input_handle.as_ref().and_then(|input_handle| {
-                input_handle.read(ctx, |input, ctx| input.completion_session_context(ctx))
-            });
-
-            let ai_execution_context = session_context
-                .as_ref()
-                .map(|session_context| WarpAiExecutionContext::new(&session_context.session));
-
-            let menu_positioning = active_input_handle
-                .as_ref()
-                .map_or_else(MenuPositioning::default, |input_handle| {
-                    input_handle.read(ctx, |input, ctx| input.menu_positioning(ctx))
-                });
-
-            if !self.current_workspace_state.is_command_search_open {
-                send_telemetry_from_ctx!(
-                    TelemetryEvent::CommandSearchOpened {
-                        has_initial_query: !initial_query.is_empty(),
-                    },
-                    ctx
-                );
-            }
-
-            // Make sure we close any already-open input suggestions panel.
-            if let Some(input_handle) = &active_input_handle {
-                input_handle.update(ctx, |input, ctx| {
-                    input.close_input_suggestions(false, ctx);
-                });
-            };
-
-            self.current_workspace_state.is_command_search_open = true;
-            self.command_search_view.update(ctx, |view, ctx| {
-                view.reset_state(
-                    session_id,
-                    session_context,
-                    initial_query,
-                    query_filter,
-                    menu_positioning,
-                    ai_execution_context,
-                    ctx,
-                );
-            });
-
-            let tip = match query_filter {
-                Some(search::QueryFilter::History) => Tip::Action(TipAction::HistorySearch),
-                _ => Tip::Action(TipAction::CommandSearch),
-            };
-
-            self.tips_completed.update(ctx, |tips_completed, ctx| {
-                mark_feature_used_and_write_to_user_defaults(tip, tips_completed, ctx);
-                ctx.notify();
-            });
-
-            ctx.notify();
-            ctx.focus(&self.command_search_view);
-        } else {
-            log::error!("Command search keybinding triggered but no session is active!");
-        }
-    }
 
     fn get_active_input_view_handle(&self, app: &AppContext) -> Option<ViewHandle<Input>> {
         app.view(self.active_tab_pane_group())
@@ -11895,63 +11801,6 @@ impl Workspace {
     }
 
 
-    fn handle_command_search_event(
-        &mut self,
-        event: &CommandSearchEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        use CommandSearchEvent::*;
-        let Some(active_input_handle) = self.get_active_input_view_handle(ctx) else {
-            return;
-        };
-        match event {
-            Close {
-                query: query_when_closed,
-                filter: filter_when_closed,
-            } => {
-                self.current_workspace_state.is_command_search_open = false;
-
-                active_input_handle.update(ctx, |input, ctx| {
-                    input.handle_command_search_closed(query_when_closed, filter_when_closed, ctx);
-                    ctx.notify();
-                });
-
-                ctx.notify();
-            }
-            Blur => {
-                self.current_workspace_state.is_command_search_open = false;
-                ctx.notify();
-            }
-            ItemSelected { query: _, payload } => {
-                use CommandSearchItemAction::*;
-                match payload.as_ref() {
-                    AcceptHistory(AcceptedHistoryItem { command, .. }) => {
-                        active_input_handle.update(ctx, |input, ctx| {
-                            input.replace_buffer_content(command.as_str(), ctx);
-                            input.focus_input_box(ctx);
-                        });
-                    }
-                    ExecuteHistory(command) => {
-                        active_input_handle.update(ctx, |input, ctx| {
-                            input.try_execute_command(command.as_str(), ctx);
-                            ctx.notify();
-                        });
-                    }
-                    AcceptWorkflow(_)
-                    | TranslateUsingWarpAI
-                    | AcceptNotebook(_)
-                    | AcceptEnvVarCollection(_)
-                    | OpenWarpAI
-                    | AcceptAIQuery(_)
-                    | RunAIQuery(_) => {}
-                }
-            }
-            Resize => {
-                // A resize of universal search should write the app snapshot to sqlite.
-                ctx.dispatch_global_action("workspace:save_app", ());
-            }
-        }
-    }
 
     fn handle_window_settings_changed_event(
         &mut self,
@@ -17985,41 +17834,6 @@ impl View for Workspace {
             }
         }
 
-        if self.current_workspace_state.is_command_search_open {
-            if let Some(active_input_handle) = self.get_active_input_view_handle(app) {
-                let input_position = app.view(&active_input_handle).save_position_id();
-                let menu_positioning = app.view(&self.command_search_view).menu_positioning();
-                // Position the CommandSearchView over the active pane's input.
-                let search_panel_margin = 4.;
-                let positioning = match menu_positioning {
-                    MenuPositioning::AboveInputBox => {
-                        OffsetPositioning::offset_from_save_position_element(
-                            input_position,
-                            vec2f(search_panel_margin, -search_panel_margin),
-                            PositionedElementOffsetBounds::WindowBySize,
-                            PositionedElementAnchor::BottomLeft,
-                            ChildAnchor::BottomLeft,
-                        )
-                    }
-                    MenuPositioning::BelowInputBox => {
-                        OffsetPositioning::offset_from_save_position_element(
-                            input_position,
-                            vec2f(search_panel_margin, 0.),
-                            PositionedElementOffsetBounds::WindowBySize,
-                            PositionedElementAnchor::TopLeft,
-                            ChildAnchor::TopLeft,
-                        )
-                    }
-                };
-
-                stack.add_positioned_child(
-                    Container::new(ChildView::new(&self.command_search_view).finish())
-                        .with_margin_right(search_panel_margin)
-                        .finish(),
-                    positioning,
-                );
-            }
-        }
 
         if self.welcome_tips_view_state.is_popup_open() {
             stack.add_child(ChildView::new(&self.welcome_tips_view).finish());
