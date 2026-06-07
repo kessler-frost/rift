@@ -21,6 +21,18 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### ⚠️ TWO-PHASE FINISH (KEY INSIGHT, window 19): The error count is ONLY name-RESOLUTION errors
+(E0412 cannot-find-type, E0433 undeclared-module/type, E0425 cannot-find-value/fn, E0422, E0405). rustc does NOT
+run type-checking (typeck) until resolution is 100% clean, so EVERY field/method error (E0609 "no field
+ai_input_model", E0599 "no method") is SUPPRESSED right now — there are literally 0 of them in the build despite
+12 live `self.ai_input_model` refs in input.rs. So: reaching "0 errors" on the current metric will reveal a SECOND
+WAVE of typeck errors (the dead struct-field accesses). Proactively grep-and-delete the known dead fields
+(ai_input_model, ai_context_model, agent_view_controller, ambient_agent_view_model, universal_developer_input_button_
+bar, user_query_menu_view, rewind_menu_view, agent_input_footer, agent_shortcut_view_model, host_selector,
+harness_selector, buy_credits_banner, shared_session/_viewer) as you go so phase 2 is small. All 4 E0432 masking
+imports are now CLEARED (context_menu gutted, slash_commands /model arm + models import, saved_prompts AI data source
+deleted). Count 502, all resolution errors.
+
 WINDOW 19 CONTINUED — STATE AT 509 errors. input.rs is now PRIMARY-ERROR-CLEAN (its 43 log mentions are
 secondary `-->` refs from OTHER files, not primary errors). BUT 12 `self.ai_input_model` + others remain in input.rs,
 still MASKED by the 4 remaining E0432 unresolved imports (these suppress use-site errors crate-wide). The 4 masking
