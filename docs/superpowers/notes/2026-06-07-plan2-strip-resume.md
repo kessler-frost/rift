@@ -1,7 +1,23 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
+## ⚠️⚠️ COURSE CORRECTION (user directive, 2026-06-07): NUKE ALL AI + CLOUD — DELETE, DO NOT STUB ⚠️⚠️
+The user wants ZERO AI and ZERO cloud. DO NOT use "recreate-minimal" stubs for AI/cloud types to make
+AI-adjacent code compile — that PRESERVES AI plumbing. Instead DELETE the code that uses them.
+REVERTED: the SharedSessionStatus/SharedSessionSource/AmbientAgentTaskId stubs (terminal/shared_session.rs)
+and AIConversationId/AIAgentExchangeId stubs — all removed. Now DELETE their use-sites:
+ - shared-session subsystem: TerminalModel fields shared_session_status/shared_session_source/
+   ordered_terminal_events_for_shared_session_tx/write_to_pty_events_for_shared_session_tx + new_*_for_shared_session
+   ctors + shared_session_status()/set_* accessors + the ~65 callers (gut to the no-share path) + SizeUpdateReason
+   SharerSizeChanged/ViewerSizeReported variants.
+ - ambient-agent subsystem: AmbientAgentTaskId + ambient_agent_view_model + pane_group/ambient_pane_restoration.
+ - AI conversation/block/fork: context_menu fork code, rich_content AI metadata, view.rs AI-block rendering,
+   ai_context_model/ai_input_model/agent_view_controller fields on TerminalView/Input.
+KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-only — already AI-stripped).
+RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
+This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
+
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **592 real compile errors (honest count)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **628 real compile errors (post course-correction; un-stubbed)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
