@@ -114,7 +114,6 @@ use super::view::{
 };
 use super::warpify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
-use crate::terminal::shared_session::SharedSessionStatus;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::channel::{Channel, ChannelState};
 #[cfg(feature = "local_fs")]

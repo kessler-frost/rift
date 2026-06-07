@@ -10,7 +10,6 @@ use super::{
     AgentOnboardingVersion, ContextMenuAction, OnboardingIntention, OnboardingVersion,
     TerminalAction,
 };
-use crate::terminal::shared_session::SharedSessionStatus;
 use crate::channel::{Channel, ChannelState};
 use crate::features::FeatureFlag;
 use crate::server::telemetry::{InteractionSource, ToggleBlockFilterSource};

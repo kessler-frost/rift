@@ -135,7 +135,6 @@ use super::util::{
     WorkspaceMouseStates, WorkspaceState,
 };
 use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
-use crate::terminal::shared_session::AmbientAgentTaskId;
 use crate::app_state::{
     LeafContents, LeafSnapshot, LeftPanelDisplayedTab, LeftPanelSnapshot,
     PaneNodeSnapshot, PaneUuid, RightPanelSnapshot, SettingsPaneSnapshot, TabSnapshot,

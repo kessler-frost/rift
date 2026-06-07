@@ -8,7 +8,6 @@ pub mod inline_banner;
 use onboarding::callout::{FinalState, OnboardingCalloutViewEvent, OnboardingQuery};
 use onboarding::{OnboardingCalloutView, OnboardingKeybindings};
 
-use crate::terminal::shared_session::SharedSessionStatus;
 use crate::global_resource_handles::GlobalResourceHandlesProvider;
 mod link_detection;
 mod open_in_warp;
