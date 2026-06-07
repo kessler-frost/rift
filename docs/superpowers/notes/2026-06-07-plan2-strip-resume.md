@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **631 real compile errors (honest count)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **592 real compile errors (honest count)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,34 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 18: honest grind 631->592. TWO KEYSTONE RECREATES (recover exact code from git commit fe469743^,
+strip AI/network/graphql parts):
+ - SharedSessionStatus + SharedSessionSource -> new file terminal/shared_session.rs (recovered from deleted
+   terminal/shared_session/mod.rs; dropped active_viewer_keymap_context[0 callers]/IsSharedSessionCreator[tests];
+   Role from session_sharing_protocol::common, SessionSourceType from ::sharer; as_keymap_context->&'static str).
+   Wired `pub mod shared_session;` in terminal/mod.rs + imports in terminal_model/input/view/view::init/
+   session_management. Cleared ~24.
+ - AmbientAgentTaskId(NonNilUuid) -> appended to terminal/shared_session.rs (recovered from deleted
+   ai/ambient_agents/mod.rs; dropped the cynic::Id graphql impl; kept Display/FromStr). Wired imports in
+   workspace/view + pane_group/ambient_pane_restoration + terminal_model + server_api + harness_support. Cleared ~15.
+ RECREATE-MINIMAL now proven 4x (SerializedBlockListItem/AgentToolbarItemKind/SharedSessionStatus/AmbientAgentTaskId)
+ — recover exact def from git fe469743^, keep non-AI parts, wire imports.
+
+NEXT CLUSTER (terminal_model 2 remaining + spreads): AgentInteractionMetadata is NOT a clean recreate (it's
+genuinely AI-coupled: requested_command_action_id->AIAgentActionId, ai::agent::{conversation,task} deps, 616-line
+ai-coupled interaction_mode.rs). GUT it instead: drop agent_metadata params from terminal_model
+start_command_execution_for_shared_session + start_command_execution_with_ai_metadata (+ delete
+ai_metadata_to_protocol + uncalled send_agent_response_for_shared_session + remove AgentInteractionMetadata
+from the super::block import L37), then fix CommandExecutionSource enum (drop AI{metadata}/SharedSession{ai_metadata}
+variants — check CommandExecutionSource def) + pty_controller.rs write_command match arms (562/568) +
+block.rs set_agent_interaction_mode. ~4-file coordination.
+
+REMAINING after that: hub god-files view.rs ~70 / input.rs ~50 (InputType/InputConfig/ai_input_model) /
+terminal/view.rs ~44 (render agent subsystem — scattered, EDITS) + right_panel 34 + slash_commands 51 +
+Phase F server_api/graphql/harness_support ~50 + install_tmux 14 (requested_script — simplify, drop script UI).
+
+WINDOW 17:
+
 WINDOW 17: confirmed NO contained wins remain — every remaining file needs fresh-context care:
  - install_tmux.rs (14): SSH (KEEP) reused AI component `ai/blocklist/inline_action/requested_script.rs`
    (deleted). Its TYPES (TitledScript/RequestedScriptStatus/RequestedScriptMouseStates) are trivial but its
