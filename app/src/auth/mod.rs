@@ -58,13 +58,8 @@ pub fn maybe_log_out(app: &mut AppContext) {
         .long_running_cmds
         .len();
     let num_shared_sessions = crate::session_management::num_shared_sessions(app);
-    let num_unsaved_objects =
-        CloudModel::as_ref(app).num_unsaved_objects_to_warn_about_before_quitting();
-
-    let code_editors = CodeEditorStatus::all_editors(app).collect_vec();
-    let code_editor_summary = CodeEditorSummary::new(&code_editors);
-
-    let num_unsaved_files = code_editor_summary.unsaved_changes.len();
+    let num_unsaved_objects = 0;
+    let num_unsaved_files = 0;
 
     let show_warning_before_log_out = *GeneralSettings::as_ref(app)
         .show_warning_before_quitting
@@ -207,44 +202,6 @@ pub fn log_out(app: &mut AppContext) {
     AuthManager::handle(app).update(app, |auth_manager, ctx| {
         auth_manager.log_out(ctx);
     });
-    AIExecutionProfilesModel::handle(app).update(app, |ai_execution_profiles_model, _| {
-        ai_execution_profiles_model.reset();
-    });
-    BlocklistAIHistoryModel::handle(app).update(app, |history_model, _| {
-        history_model.reset();
-    });
-    OrchestrationPillBarModel::handle(app).update(app, |pill_bar_model, _| {
-        pill_bar_model.reset();
-    });
-    AgentConversationsModel::handle(app).update(app, |agent_conversations_model, _| {
-        agent_conversations_model.reset();
-    });
-    CloudModel::handle(app).update(app, |cloud_model, _| {
-        cloud_model.reset();
-    });
-    // Clear the sync queue so that we don't try to sync the old user's objects to the new user.
-    SyncQueue::handle(app).update(app, |sync_queue, _| {
-        sync_queue.clear();
-    });
-
-    // Stop the cloud object and workspace metadata polling loops that were started on login.
-    UpdateManager::handle(app).update(app, |manager, _| {
-        manager.stop_polling_for_updated_objects();
-    });
-    TeamUpdateManager::handle(app).update(app, |manager, _| {
-        manager.stop_polling_for_workspace_metadata_updates();
-    });
-    remove_cloud_persisted_settings(app);
-    NotebookManager::handle(app).update(app, |manager, _| manager.reset());
-    EnvVarCollectionManager::handle(app).update(app, |manager, _| manager.reset());
-    WorkflowManager::handle(app).update(app, |manager, _| manager.reset());
-
-    // Stop and leave all shared sessions
-    SharedSessionManager::handle(app).update(app, |manager, ctx| {
-        manager.stop_all_shared_sessions(ctx);
-        manager.clear_joined();
-    });
-
     // Dispatch action on root view of every open window so the state can be updated
     // correctly.
     let window_ids = app.window_ids().collect_vec();
@@ -264,46 +221,3 @@ pub fn log_out(app: &mut AppContext) {
     crate::platform::wasm::emit_event(crate::platform::wasm::WarpEvent::LoggedOut);
 }
 
-// Remove the cloud persisted settings from user defaults.
-// When a user signs out, we remove cloud persisted settings of their account.
-// This is so they do not experience the old settings when they log in with a different account.
-// Partial deletion of user defaults is a stopgap for Logout v0. The correct solution is:
-fn remove_cloud_persisted_settings(app: &mut AppContext) {
-    let is_settings_sync_enabled = *CloudPreferencesSettings::as_ref(app).settings_sync_enabled;
-    if is_settings_sync_enabled {
-        SettingsManager::handle(app).update(app, |settings_manager, ctx| {
-            let errors = settings_manager.clear_cloud_settings_local_state(ctx);
-            for e in errors {
-                log::error!("Failed to remove cloud synced setting from user defaults: {e:?}");
-            }
-        });
-    }
-
-    if let Err(e) = app
-        .private_user_preferences()
-        .remove_value(TELEMETRY_ENABLED_DEFAULTS_KEY)
-    {
-        log::error!("Failed to remove Telemetry Enabled Defaults Key from user defaults: {e:?}");
-    }
-
-    if let Err(e) = app
-        .private_user_preferences()
-        .remove_value(CRASH_REPORTING_ENABLED_DEFAULTS_KEY)
-    {
-        log::error!(
-            "Failed to remove Crash Reporting Enabled Defaults Key from user defaults: {e:?}"
-        );
-    }
-
-    if let Err(e) = app
-        .private_user_preferences()
-        .remove_value(REQUEST_LIMIT_INFO_CACHE_KEY)
-    {
-        log::error!("Failed to remove Request Limit Defaults Key from user defaults: {e:?}");
-    }
-
-    // Reset the Privacy Settings in the login screen to default values.
-    PrivacySettings::handle(app).update(app, |privacy_settings, _| {
-        privacy_settings.refresh_to_default();
-    });
-}
