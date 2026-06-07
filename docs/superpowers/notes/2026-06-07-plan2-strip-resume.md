@@ -15,9 +15,19 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+NUKE PROGRESS (628->568): DELETED (properly, not stubbed): shared-session subsystem (TerminalModel 4 fields
++20 methods + ~6 caller sweeps incl init.rs keymap predicates + input.rs viewer-state block + view.rs pending-share),
+ambient_pane_restoration.rs (whole module), ServerApi AI methods (transcribe/predict/generate-suggestions/
+ambient-headers/get-ai-client/get-cloud-objects) + ambient_agent_task_id/agent_source fields+ctor params (ServerApi
++ServerApiProvider+lib.rs caller). TOOLING: delfns.py corrupts methods whose body trips its brace-matcher (server_api
+ambient_agent_headers_for_task) — delete those via Edit. REMAINING DEEP-NUKE TARGETS: workspace/view.rs 73,
+input.rs 47 (ai_input_model/InputType/InputConfig), terminal/view.rs 42 (AI-block render), right_panel 34 (code-review),
+slash_commands 51, server/graphql 22 + harness_support 15 (Phase F cloud — check wholesale-delete), rich_content 15,
+install_tmux 14 (drop requested_script UI), lib.rs ai_client wiring (get_ai_client deleted — thread out ai_client var).
+
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **628 real compile errors (post course-correction; un-stubbed)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **568 real compile errors (nuke-mode, deleting AI/cloud not stubbing)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
