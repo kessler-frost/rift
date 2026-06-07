@@ -330,7 +330,7 @@ pub struct BlockFilter {
 
 impl BlockFilter {
     /// Tests if a block matches this filter.
-    pub fn matches(self, block: &Block, agent_view_state: &AgentViewState) -> bool {
+    pub fn matches(self, block: &Block) -> bool {
         (self.include_background || !block.is_background())
             && (self.include_hidden || !block.is_empty())
     }
@@ -1948,7 +1948,7 @@ impl BlockList {
     {
         block_indices.into_iter().find(|index| {
             self.block_at(*index)
-                .is_some_and(|block| filter.matches(block, &self.agent_view_state))
+                .is_some_and(|block| filter.matches(block))
         })
     }
 
