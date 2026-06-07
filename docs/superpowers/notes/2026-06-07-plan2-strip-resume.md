@@ -1,8 +1,16 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **1479 compile errors** (down from 4173 baseline,
-~65%), all committed + pushed (latest `3f16a99c`).
+State at handoff: branch `plan2-strip`, **1456 compile errors** (down from 4173 baseline,
+~65%), all committed + pushed (latest InputEvent-cascade commit).
+view.rs is down to 82 errors; the next cluster is **input.rs (124)** — same shape as the
+view.rs cleanup BUT it runs through the KEEP autosuggestion path (`InputType` =
+`input_classifier::InputType` must be RE-HOMED, not deleted; `InputTypeAutoDetectionSource`
+IS agent). Dead imports at input.rs top (L96 handoff_compose, L115 universal_developer_input,
+L118 ambient_agent, L125 queued_prompts_panel, L193 buy_credits_banner, L201-224
+conversations/models/plans/profiles/prompts/rewind/skills/user_query) + emit sites for the
+now-removed InputEvent variants + agent methods. Then workspace/view.rs (252), pane_group/
+pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale deletes.
 To pick up locally:
 `cd /Users/fimbulwinter/dev/rift && git fetch origin plan2-strip && git checkout plan2-strip`
 (needs `protoc`: `brew install protobuf`). Pairs with local `project_rift.md` memory.
