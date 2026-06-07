@@ -1982,15 +1982,6 @@ impl Input {
 
 
 
-    fn check_slash_menu_disabled_state(&mut self, ctx: &mut ViewContext<Self>) {
-        let should_disable =
-            !self.editor().as_ref(ctx).is_empty(ctx) || self.is_locked_in_shell_mode(ctx);
-        self.universal_developer_input_button_bar
-            .update(ctx, |button_bar, ctx| {
-                button_bar.set_slash_button_disabled(should_disable, ctx);
-            });
-    }
-
     fn handle_ai_context_menu_search(&mut self, is_navigation: bool, ctx: &mut ViewContext<Self>) {
         let InputSuggestionsMode::AIContextMenu {
             at_symbol_position,
@@ -3457,27 +3448,17 @@ impl Input {
 
     fn editor_escape(&mut self, ctx: &mut ViewContext<Self>) {
         let vim_mode = self.editor.as_ref(ctx).vim_mode(ctx);
-        let has_attached_context = {
-            let context_model = self.ai_context_model.as_ref(ctx);
-            !context_model.pending_context_block_ids().is_empty()
-                || context_model.pending_context_selected_text().is_some()
-        };
-        let should_escape_vim_before_dismissing = (vim_mode == Some(VimMode::Insert)
+        let should_escape_vim_before_dismissing = vim_mode == Some(VimMode::Insert)
             && (self.suggestions_mode_model.as_ref(ctx).is_history_up()
                 || self
                     .suggestions_mode_model
                     .as_ref(ctx)
-                    .is_inline_history_menu()))
-            || (vim_mode == Some(VimMode::Insert)
-                && self.prefix_mode(ctx) == InputPrefixMode::CloudHandoff);
+                    .is_inline_history_menu());
 
         if should_escape_vim_before_dismissing {
             self.editor.update(ctx, |editor, editor_ctx| {
                 editor.handle_action(&EditorAction::VimEscape, editor_ctx);
             });
-        } else if self.suggestions_mode_model.as_ref(ctx).is_ai_context_menu() {
-            // Handle AI context menu escape specifically to ensure proper state reset
-            self.close_ai_context_menu(ctx);
         } else if self.suggestions_mode_model.as_ref(ctx).is_slash_commands() {
             if self.maybe_clear_v2_slash_section_filter(ctx) {
                 return;
@@ -3487,9 +3468,6 @@ impl Input {
             self.suggestions_mode_model.update(ctx, |model, ctx| {
                 model.set_mode(InputSuggestionsMode::Closed, ctx);
             });
-            ctx.notify();
-        } else if self.prefix_mode(ctx) == InputPrefixMode::CloudHandoff {
-            self.exit_cloud_handoff_compose(ctx);
             ctx.notify();
         } else if self
             .suggestions_mode_model
@@ -3515,24 +3493,7 @@ impl Input {
             self.editor.update(ctx, |editor, editor_ctx| {
                 editor.handle_action(&EditorAction::VimEscape, editor_ctx);
             });
-        } else if FeatureFlag::AgentView.is_enabled()
-            && self.agent_view_controller.as_ref(ctx).is_active()
-            && has_attached_context
-        {
-            self.clear_attached_context(ctx);
         } else {
-            if FeatureFlag::AgentView.is_enabled()
-                && !self.agent_view_controller.as_ref(ctx).is_fullscreen()
-            {
-                if self.ai_input_model.as_ref(ctx).is_ai_input_enabled() {
-                    // This implies the contents of the terminal input are autodetected as an agent
-                    // prompt; overrides the autodetection by explicitly setting input mode back to
-                    // terminal.
-                    self.set_input_mode_terminal(false, ctx);
-                }
-            } else {
-                self.set_input_mode_natural_language_detection(ctx);
-            }
             ctx.emit(Event::Escape);
         }
     }
@@ -4097,12 +4058,6 @@ impl Input {
         if !matches!(event, EditorEvent::InsertLastWordPrevCommand) {
             self.update_last_word_insertion_state();
         }
-
-        if self.should_close_ai_context_menu(event, ctx) {
-            self.close_ai_context_menu(ctx);
-        }
-
-        self.check_slash_menu_disabled_state(ctx);
 
         match event {
             EditorEvent::Edited(edit_origin) => {
@@ -4715,9 +4670,7 @@ impl Input {
                 init_content: InitContent::Custom("".to_owned()),
             })),
             EditorEvent::VimStatusUpdate => ctx.notify(),
-            EditorEvent::BackspaceOnEmptyBuffer | EditorEvent::BackspaceAtBeginningOfBuffer => {
-                self.handle_backspace_at_buffer_boundary(ctx);
-            }
+            EditorEvent::BackspaceOnEmptyBuffer | EditorEvent::BackspaceAtBeginningOfBuffer => {}
             EditorEvent::EmacsBindingUsed => {
                 ctx.emit(Event::EmacsBindingUsed);
             }
@@ -5194,75 +5147,6 @@ impl Input {
         self.is_processing_attached_images = is_processing_attached_images;
         self.update_image_context_options(ctx);
         ctx.notify();
-    }
-
-    /// Handles backspace at the buffer boundary (empty buffer or cursor at
-    /// position 0). Covers prefix-mode exit (`&` and `!`) and legacy
-    /// classic-mode AI icon toggling in a single function.
-    fn handle_backspace_at_buffer_boundary(&mut self, ctx: &mut ViewContext<Self>) {
-        match self.prefix_mode(ctx) {
-            InputPrefixMode::CloudHandoff => {
-                self.exit_cloud_handoff_compose(ctx);
-                ctx.notify();
-                return;
-            }
-            InputPrefixMode::Shell => {
-                let is_cli_agent_input_open =
-                    CLIAgentSessionsModel::as_ref(ctx).is_input_open(self.terminal_view_id);
-                if self.agent_view_controller.as_ref(ctx).is_fullscreen() || is_cli_agent_input_open
-                {
-                    self.exit_shell_mode_to_ai(ctx);
-                    ctx.notify();
-                }
-                return;
-            }
-            InputPrefixMode::None => {}
-        }
-
-        // Legacy classic-mode AI icon toggling (only reachable when Agent View
-        // is inactive and no prefix mode is set).
-        if !self.ai_input_model.as_ref(ctx).is_ai_input_enabled() {
-            return;
-        }
-
-        let is_udi_enabled = InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-        if is_udi_enabled {
-            return;
-        }
-
-        // When the agent view is active, the classic-mode AI icon toggling and follow-up clearing
-        // logic below does not apply.
-        if FeatureFlag::AgentView.is_enabled() && self.agent_view_controller.as_ref(ctx).is_active()
-        {
-            return;
-        }
-
-        // If we have an AI follow up icon, backspace should clear that icon.
-        if self
-            .ai_context_model
-            .as_ref(ctx)
-            .is_targeting_existing_conversation()
-        {
-            self.ai_context_model.update(ctx, |ai_context_model, ctx| {
-                ai_context_model.set_pending_query_state_for_new_conversation(
-                    // This origin is unused in this codepath, which doesn't get called when
-                    // AgentView is enabled.
-                    AgentViewEntryOrigin::Input {
-                        was_prompt_autodetected: false,
-                    },
-                    ctx,
-                );
-            });
-        } else {
-            // Otherwise backspace away the AI icon.
-            let new_input_type = self.ai_input_model.update(ctx, |ai_input_model, ctx| {
-                let new_input_config = ai_input_model.input_config().with_toggled_type().locked();
-                let new_input_type = new_input_config.input_type;
-                ai_input_model.set_input_config_for_classic_mode(new_input_config, ctx);
-                new_input_type
-            });
-            self.maybe_send_autodetection_telemetry_on_manual_toggle(new_input_type, ctx);
-        }
     }
 
     /// Updates the tab completion menu given the current text of the editor and location of the
