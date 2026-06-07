@@ -1112,7 +1112,6 @@ pub struct Input {
     #[cfg(feature = "local_fs")]
     conn: Option<Arc<Mutex<SqliteConnection>>>,
 
-    attachment_chips: Vec<AttachmentChip>,
 
     is_processing_attached_images: bool,
 
@@ -1134,15 +1133,6 @@ pub struct Input {
     /// we snapshot the current input contents here so we can restore them after the command
     /// completes and the buffer would normally be cleared.
     input_contents_before_prompt_chip_command: Option<String>,
-}
-
-#[derive(Clone)]
-struct AttachmentChip {
-    file_name: String,
-    mouse_state_handle: MouseStateHandle,
-    attachment_type: AttachmentType,
-    /// Index into the unified pending_attachments list for deletion.
-    index: usize,
 }
 
 /// A map of remote buffer operations that were deferred because
@@ -1309,15 +1299,6 @@ pub fn init(app: &mut AppContext) {
         .with_key_binding("tab"),
     ]);
 
-    if let Some(custom_action) = workflows::CategoriesView::custom_action() {
-        app.register_editable_bindings([EditableBinding::new(
-            "input:toggle_workflows",
-            "Workflows",
-            InputAction::SelectAndRefreshVoltron(VoltronItem::Workflows),
-        )
-        .with_context_predicate(id!("Input"))
-        .with_custom_action(custom_action)]);
-    }
 
     if ChannelState::channel() == Channel::Integration {
         app.register_fixed_bindings([
@@ -1657,7 +1638,6 @@ impl Input {
                     terminal_view_id,
                     active_session,
                     &suggestions_mode_model,
-                    agent_view_controller.clone(),
                     &inline_terminal_menu_positioner,
                     buffer_model,
                     ctx,
@@ -1807,7 +1787,6 @@ impl Input {
             terminal_view_id,
             #[cfg(feature = "local_fs")]
             conn: None,
-            attachment_chips: Default::default(),
             is_processing_attached_images: false,
             inline_terminal_menu_positioner,
             is_editor_empty_on_last_edit: is_editor_empty,
@@ -2312,7 +2291,6 @@ impl Input {
         from: &voice_input::VoiceInputToggledFrom,
         ctx: &mut ViewContext<Self>,
     ) {
-        self.enter_ai_mode(Some(InputTypeAutoDetectionSource::VoiceInputToggle), ctx);
         let did_start_listening = self
             .editor
             .update(ctx, |editor, ctx| editor.toggle_voice_input(from, ctx));
@@ -2716,66 +2694,6 @@ impl Input {
 
 
 
-
-
-    fn populate_enum_suggestions_menu(
-        &mut self,
-        enum_variants: EnumVariants,
-        selected_ranges: Vec<Range<ByteOffset>>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // If the newly highlighted argument has enum variants, populate the suggestions menu
-        let position = self.editor.as_ref(ctx).first_selection_end_to_point(ctx);
-
-        self.editor.update(ctx, |editor, ctx| {
-            editor.cache_buffer_point(
-                position,
-                COMPLETIONS_START_OF_REPLACEMENT_SPAN_POSITION_ID,
-                ctx,
-            );
-        });
-
-        let variants = match enum_variants {
-            EnumVariants::Static(variants) => {
-                self.suggestions_mode_model.update(ctx, |m, ctx| {
-                    m.set_mode(
-                        InputSuggestionsMode::StaticWorkflowEnumSuggestions {
-                            suggestions: variants.clone(),
-                            menu_position: TabCompletionsMenuPosition::AtFirstCursor,
-                            selected_ranges,
-                            cursor_point: position,
-                        },
-                        ctx,
-                    );
-                });
-                variants
-            }
-            EnumVariants::Dynamic(command) => {
-                if FeatureFlag::DynamicWorkflowEnums.is_enabled() {
-                    self.suggestions_mode_model.update(ctx, |m, ctx| {
-                        m.set_mode(
-                            InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                                suggestions: vec![],
-                                menu_position: TabCompletionsMenuPosition::AtFirstCursor,
-                                selected_ranges,
-                                cursor_point: position,
-                                dynamic_enum_status: DynamicEnumSuggestionStatus::Unapproved,
-                                command,
-                            },
-                            ctx,
-                        );
-                    });
-                }
-                vec![]
-            }
-        };
-
-        self.input_suggestions.update(ctx, |input, ctx| {
-            input.set_enum_variants(variants, ctx);
-        });
-
-        ctx.notify();
-    }
 
 
 
@@ -4577,109 +4495,6 @@ impl Input {
                         editor.system_delete(replacement_range, ctx);
                     });
                 }
-            }
-            EditorEvent::AcceptAIContextMenuItem(action) => {
-                // Handle different action types
-                match action {
-                    AIContextMenuSearchableAction::InsertText { text } => {
-                        // Only enter AI mode if we're in autodetect mode (not locked in terminal mode)
-                        if self
-                            .ai_input_model
-                            .as_ref(ctx)
-                            .should_run_input_autodetection(ctx)
-                        {
-                            self.enter_ai_mode(
-                                Some(InputTypeAutoDetectionSource::AtContextMenuInsert),
-                                ctx,
-                            );
-                        }
-
-                        // For InsertText, we replace the "@" and any filter text with the provided text
-                        self.replace_at_symbol_with_text(text, ctx);
-                    }
-                    AIContextMenuSearchableAction::InsertFilePath { file_path } => {
-                        // Handle file/directory path insertion
-                        let is_ai_mode = self.ai_input_model.as_ref(ctx).is_ai_input_enabled();
-                        let file_path = if is_ai_mode {
-                            file_path.to_string()
-                        } else {
-                            #[cfg(feature = "local_fs")]
-                            {
-                                // Try to get current working directory and process the file path
-                                let processed_path = self
-                                    .active_block_metadata
-                                    .as_ref()
-                                    .and_then(BlockMetadata::current_working_directory)
-                                    .and_then(|pwd| {
-                                        // Find git repo and construct absolute path
-                                        use repo_metadata::repositories::DetectedRepositories;
-                                        use rift_util::local_or_remote_path::LocalOrRemotePath;
-                                        let git_repo_path = DetectedRepositories::as_ref(ctx)
-                                            .get_root_for_path(&LocalOrRemotePath::Local(
-                                                Path::new(pwd).to_path_buf(),
-                                            ))
-                                            .and_then(|r| PathBuf::try_from(r).ok())?;
-                                        let absolute_path = git_repo_path.join(file_path);
-
-                                        // Try to get relative path if it's shorter
-                                        let is_wsl = self
-                                            .active_session(ctx)
-                                            .map(|session| session.is_wsl())
-                                            .unwrap_or(false);
-
-                                        let relative_path = rift_util::path::to_relative_path(
-                                            is_wsl,
-                                            &absolute_path,
-                                            Path::new(pwd),
-                                        );
-
-                                        match relative_path {
-                                            Some(rel)
-                                                if rel.len()
-                                                    < absolute_path.to_string_lossy().len() =>
-                                            {
-                                                Some(rel)
-                                            }
-                                            _ => Some(absolute_path.to_string_lossy().to_string()),
-                                        }
-                                    });
-
-                                processed_path.unwrap_or_else(|| file_path.to_string())
-                            }
-
-                            #[cfg(not(feature = "local_fs"))]
-                            file_path.to_string()
-                        };
-                        self.replace_at_symbol_with_text(&file_path, ctx);
-                    }
-                    AIContextMenuSearchableAction::InsertDriveObject {
-                        object_type,
-                        object_uid,
-                    } => {
-                        // For InsertDriveObject, format as <object_type:uid> and replace the "@" and any filter text
-                        let drive_object_text = format!("<{object_type}:{object_uid}>");
-                        self.replace_at_symbol_with_text(&drive_object_text, ctx);
-                    }
-                    AIContextMenuSearchableAction::InsertPlan { ai_document_uid } => {
-                        // For InsertPlan, format as <plan:uid> and replace the "@" and any filter text
-                        let ai_document_text = format!("<plan:{ai_document_uid}>");
-                        self.replace_at_symbol_with_text(&ai_document_text, ctx);
-                    }
-                    AIContextMenuSearchableAction::InsertConversation { conversation_id } => {
-                        let conversation_text = format!("<convo:{conversation_id}>");
-                        self.replace_at_symbol_with_text(&conversation_text, ctx);
-                    }
-                    AIContextMenuSearchableAction::InsertDiffSet { diff_mode } => {
-                        // Emit event to the TerminalView to attach the diff set
-                        ctx.emit(Event::AttachDiffSetContext {
-                            diff_mode: diff_mode.clone(),
-                        });
-                    }
-                    AIContextMenuSearchableAction::InsertSkill { name } => {
-                        self.replace_at_symbol_with_text(&format!("/{name}"), ctx);
-                    }
-                }
-                self.close_ai_context_menu(ctx);
             }
             EditorEvent::Paste => {
                 self.process_paste_event(ctx);
@@ -7273,27 +7088,6 @@ impl Input {
             None
         }
     }
-
-    fn render_attachment_chips(&self, appearance: &Appearance) -> Option<Box<dyn Element>> {
-        if self.attachment_chips.is_empty() {
-            None
-        } else {
-            let chips = self
-                .attachment_chips
-                .iter()
-                .map(|chip| self.render_attached_chip(chip, appearance));
-
-            Some(
-                Wrap::row()
-                    .with_run_spacing(spacing::UDI_CHIP_MARGIN)
-                    .with_main_axis_alignment(MainAxisAlignment::Start)
-                    .with_main_axis_size(MainAxisSize::Min)
-                    .with_children(chips)
-                    .finish(),
-            )
-        }
-    }
-
 
     fn render_input_box(
         &self,
