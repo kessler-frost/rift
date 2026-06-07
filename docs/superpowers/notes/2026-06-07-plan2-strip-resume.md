@@ -1,7 +1,7 @@
 # Plan 2 Strip — RESUME NOTE (window 8, 2026-06-07)
 
 ## ⚠️ HANDOFF — continue on LOCAL machine (no more subagents)
-State at handoff: branch `plan2-strip`, **802 real compile errors (honest re-baselined count)** (down from 4173 baseline,
+State at handoff: branch `plan2-strip`, **759 real compile errors (honest count)** (down from 4173 baseline,
 ~65%), all committed + pushed (latest InputEvent-cascade commit).
 
 ⚠️ **SCOPE CHANGE 2026-06-07 (user-confirmed): REMOVE ALL AI — no keep-path.** The former
@@ -19,6 +19,13 @@ queued_prompts_panel, L193 buy_credits_banner, L201-224 conversations/models/pla
 rewind/skills/user_query) + emit sites for the removed InputEvent variants + agent methods. Then
 workspace/view.rs (252), pane_group/pane/terminal_pane.rs (119), then Phases C/D/F/G wholesale
 deletes (incl. `crates/rift_ai` + `app/src/ai/` wholesale + drop rift_ai from app/Cargo.toml).
+WINDOW 14: honest grind continues 859->759. Validated RECREATE-MINIMAL pattern again: AgentToolbarItemKind
+recreated as enum{ContextChip(ContextChipKind),RichInput} in terminal/session_settings.rs + imports wired in
+chip_configurator/view (resolved toolbar cluster ~43 errs). chip_configurator match had `control=>` catch-all so
+safe. Next clusters by yield: pane_group panes (~118: vertical_tabs/pane_impl/right_panel/working_directories),
+input AI-mode subsystem (~51), terminal/view.rs render (~43), slash_commands (~51), rich_content (21,
+agent_view_conversation_id field + InitStepBlock/PendingUserQueryBlock/InitEnvironmentBlock types).
+
 WINDOW 13 (honest grind from re-baselined 859): user APPROVED re-baseline to honest count.
 Committed 859 honest baseline (removed masking command_search-view glob from view.rs). Then ground
 859->802 via SAFE deleter /tmp/delfns.py (single-pass, finds ALL fn ranges first, deletes in REVERSE
