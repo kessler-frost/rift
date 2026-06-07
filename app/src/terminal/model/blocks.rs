@@ -63,8 +63,6 @@ pub struct RichContentItem {
     pub content_type: Option<RichContentType>,
     pub view_id: EntityId,
     pub last_laid_out_height: BlockHeight,
-    /// The conversation ID of the active agent view when this rich content was created, if any.
-    pub agent_view_conversation_id: Option<AIConversationId>,
     pub should_hide: bool,
 }
 
@@ -72,44 +70,19 @@ impl RichContentItem {
     pub fn new(
         content_type: Option<RichContentType>,
         view_id: EntityId,
-        agent_view_conversation_id: Option<AIConversationId>,
         should_hide: bool,
     ) -> Self {
         Self {
             content_type,
             view_id,
             last_laid_out_height: BlockHeight::from(1.0),
-            agent_view_conversation_id,
             should_hide,
         }
     }
 
     #[cfg(test)]
-    pub fn new_for_test(
-        content_type: Option<RichContentType>,
-        view_id: EntityId,
-        agent_view_conversation_id: Option<AIConversationId>,
-    ) -> Self {
-        Self::new(content_type, view_id, agent_view_conversation_id, false)
-    }
-
-    pub fn should_hide_for_agent_view_state(&self, agent_view_state: &AgentViewState) -> bool {
-        if !FeatureFlag::AgentView.is_enabled() {
-            return false;
-        }
-
-        match agent_view_state {
-            AgentViewState::Active {
-                conversation_id,
-                display_mode: AgentViewDisplayMode::FullScreen,
-                ..
-            } => Some(*conversation_id) != self.agent_view_conversation_id,
-            AgentViewState::Active {
-                display_mode: AgentViewDisplayMode::Inline,
-                ..
-            }
-            | AgentViewState::Inactive => self.agent_view_conversation_id.is_some(),
-        }
+    pub fn new_for_test(content_type: Option<RichContentType>, view_id: EntityId) -> Self {
+        Self::new(content_type, view_id, false)
     }
 }
 
