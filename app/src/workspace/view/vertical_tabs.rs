@@ -3089,13 +3089,8 @@ impl TypedPane<'_> {
         }
     }
 
-    fn warp_drive_object_type(&self) -> Option<DriveObjectType> {
-        typed_pane_warp_drive_object_type(self)
-    }
-
     fn supports_vertical_tabs_detail_sidecar(&self) -> bool {
-        matches!(self, TypedPane::Terminal(_) | TypedPane::Code(_))
-            || self.warp_drive_object_type().is_some()
+        matches!(self, TypedPane::Terminal(_))
     }
     fn kind_label(&self) -> &'static str {
         match self {
@@ -6327,31 +6322,6 @@ fn render_warp_drive_object_detail_section(
 fn code_detail_kind_label(file_name: &str) -> Option<String> {
     language_by_local_filename(Path::new(file_name))
         .map(|language| language.display_name().to_string())
-}
-
-fn typed_pane_warp_drive_object_type(typed: &TypedPane<'_>) -> Option<DriveObjectType> {
-    match typed {
-        TypedPane::Notebook { is_plan } => Some(DriveObjectType::Notebook {
-            is_ai_document: *is_plan,
-        }),
-        TypedPane::Workflow { is_ai_prompt: true } => Some(DriveObjectType::AgentModeWorkflow),
-        TypedPane::Workflow {
-            is_ai_prompt: false,
-        } => Some(DriveObjectType::Workflow),
-        TypedPane::EnvVarCollection => Some(DriveObjectType::EnvVarCollection),
-        TypedPane::AIFact => Some(DriveObjectType::AIFact),
-        TypedPane::AIDocument => Some(DriveObjectType::Notebook {
-            is_ai_document: true,
-        }),
-        TypedPane::Terminal(_)
-        | TypedPane::Code(_)
-        | TypedPane::CodeDiff
-        | TypedPane::File
-        | TypedPane::Settings
-        | TypedPane::EnvironmentManagement
-        | TypedPane::ExecutionProfileEditor
-        | TypedPane::Other => None,
-    }
 }
 
 fn render_detail_section(
