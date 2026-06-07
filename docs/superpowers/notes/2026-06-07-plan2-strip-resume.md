@@ -21,6 +21,25 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+WINDOW 19 (2026-06-07): masking confirmed — `cargo check` shows ~534 but the `Input`/`TerminalView` struct AI
+fields (ai_input_model, ai_context_model, agent_view_controller, ambient_agent_view_model,
+universal_developer_input_button_bar, user_query_menu_view, rewind_menu_view, shared_session_input_state) are
+ALREADY DELETED from the structs; their use-sites are suppressed by E0412/E0433 resolve errors in the same fn
+bodies, so the count barely moves as you delete them (you remove masked + visible together). To make the visible
+count drop, target the VISIBLE type errors (EnumVariants/InputTypeAutoDetectionSource/AgentViewEntryOrigin/
+InputConfig/HarnessAvailabilityModel/is_cloud_agent_pre_first_exchange/ai_indicator_height/BlocklistAIHistoryModel
+in input.rs handle_action+render; AI-block render in view.rs) — deleting those blocks removes the field refs too.
+DONE THIS WINDOW: entire `shared_session_status()` cascade (~52 sites) deleted across terminal_model, input, view,
+tab, wasm_view, pane_group, slash_commands, pane_impl, alt_screen, workspace/view, zero_state, quit_warning — only
+1 wasm-gated site left in workspace/view.rs. Also: shared-session tx fields (ordered_terminal_events_for_shared_
+session_tx) + secret-obfuscation-for-sharer + SizeUpdateReason viewer-size in terminal_model; InputSuggestionsMode
+AI fields (UserQueryMenu.conversation_id/PlanMenu/InlineHistoryMenu + InputConfig/AIConversationId), HistoryUp
+original_input_type/was_locked, input_config_to_restore event field, prefix_mode+InputPrefixMode+handoff,
+is_locked_in_*_mode, keymap_context AI gutted. NEXT: input.rs handle_action (7826+: AgentViewEntryOrigin,
+TemplatableMCPServerManager, HandoffEntryPoint, InlineModelSelectorTab) + render (ai_indicator_height) +
+populate_enum_suggestions_menu (EnumVariants) + is_cloud_agent_pre_first_exchange (input_enter 6602/7040) +
+editor_up/down menu-view arms (user_query_menu_view/rewind_menu_view). Then terminal/view.rs AI-block render.
+
 NUKE PROGRESS (628->568): DELETED (properly, not stubbed): shared-session subsystem (TerminalModel 4 fields
 +20 methods + ~6 caller sweeps incl init.rs keymap predicates + input.rs viewer-state block + view.rs pending-share),
 ambient_pane_restoration.rs (whole module), ServerApi AI methods (transcribe/predict/generate-suggestions/
