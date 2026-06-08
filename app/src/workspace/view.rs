@@ -896,9 +896,6 @@ pub struct Workspace {
     tab_config_action_sidecar_item: Option<SidecarItemKind>,
     tab_config_action_sidecar_mouse_states: crate::tab_configs::action_sidecar::SidecarMouseStates,
     remove_tab_config_confirmation_dialog: ViewHandle<RemoveTabConfigConfirmationDialog>,
-    /// Workspace-level modal hosting `AuthSecretFtuxView` for the
-    /// orchestration cards' "New API key…" flow. Cloud mode renders the
-    /// FTUX view inline and does not use this.
 }
 
 impl Workspace {
