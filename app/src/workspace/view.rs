@@ -8302,44 +8302,19 @@ impl Workspace {
     /// Closes all tabs that have code panes with the specified file path open.
     /// This is used when a file is renamed or deleted in the file tree
     #[cfg(feature = "local_fs")]
-    fn close_tabs_with_file_path(&mut self, old_path: &Path, ctx: &mut ViewContext<Self>) {
-        // Find all code panes across all tabs that have this file open
-        for tab_data in &self.tabs {
-            // Check if this tab has any code panes with the old file path open
-            tab_data.pane_group.update(ctx, |pane_group, ctx| {
-                // Collect code panes first to avoid borrowing issues
-                let code_panes: Vec<_> = pane_group.code_panes(ctx).collect();
-                for (_, code_pane) in code_panes {
-                    code_pane.update(ctx, |code_view, ctx| {
-                        code_view.close_tabs_with_path(old_path, ctx);
-                    });
-                }
-            });
-        }
-
+    fn close_tabs_with_file_path(&mut self, _old_path: &Path, ctx: &mut ViewContext<Self>) {
+        // Code panes were an AI feature and have been removed.
         ctx.notify();
     }
 
-    /// Renames all open code tabs that point to `old_path` to now point to `new_path`,
-    /// updating their contents in-place rather than closing them.
+    /// Code panes were an AI feature and have been removed, so there is nothing to rename.
     #[cfg(feature = "local_fs")]
     fn rename_tabs_with_file_path(
         &mut self,
-        old_path: &Path,
-        new_path: &Path,
+        _old_path: &Path,
+        _new_path: &Path,
         ctx: &mut ViewContext<Self>,
     ) {
-        for tab_data in &self.tabs {
-            tab_data.pane_group.update(ctx, |pane_group, ctx| {
-                // Collect code panes first to avoid borrowing issues
-                let code_panes: Vec<_> = pane_group.code_panes(ctx).collect();
-                for (_, code_pane) in code_panes {
-                    code_pane.update(ctx, |code_view, ctx| {
-                        code_view.rename_tabs_with_path(old_path, new_path, ctx);
-                    });
-                }
-            });
-        }
         ctx.notify();
     }
 
@@ -11057,12 +11032,7 @@ impl Workspace {
         pane_group
             .pane_ids()
             .filter(|id| !pane_group.is_pane_hidden_for_close(*id))
-            .any(|id| {
-                id.is_terminal_pane()
-                    || id.is_file_pane()
-                    || id.is_code_pane()
-                    || id.is_code_diff_pane()
-            })
+            .any(|id| id.is_terminal_pane())
     }
 
     fn render_right_panel_button(
@@ -14257,15 +14227,12 @@ impl TypedActionView for Workspace {
                             self.add_terminal_tab(false, ctx);
                         }
                     }
-                    DefaultSessionMode::CloudAgent => {
-                        self.add_ambient_agent_tab(ctx);
-                    }
-                    DefaultSessionMode::DockerSandbox => {
-                        self.add_docker_sandbox_tab(ctx);
-                    }
-                    // Terminal and Agent are handled by the existing path
-                    // (add_terminal_tab applies DefaultSessionMode::Agent internally).
-                    DefaultSessionMode::Terminal | DefaultSessionMode::Agent => {
+                    // Cloud Agent and Docker Sandbox were AI/cloud features and have been
+                    // removed; fall back to the terminal/welcome path like the other modes.
+                    DefaultSessionMode::Terminal
+                    | DefaultSessionMode::Agent
+                    | DefaultSessionMode::CloudAgent
+                    | DefaultSessionMode::DockerSandbox => {
                         if FeatureFlag::WelcomeTab.is_enabled() {
                             self.add_welcome_tab(ctx);
                         } else {
@@ -14479,7 +14446,9 @@ impl TypedActionView for Workspace {
             ShowCommandSearch(CommandSearchOptions {
                 filter,
                 init_content,
-            }) => self.show_command_search(*filter, init_content, ctx),
+            }) => {
+                let _ = (filter, init_content);
+            }
             ToggleMouseReporting => self.toggle_mouse_reporting(ctx),
             ToggleScrollReporting => self.toggle_scroll_reporting(ctx),
             ToggleFocusReporting => self.toggle_focus_reporting(ctx),
@@ -14504,31 +14473,8 @@ impl TypedActionView for Workspace {
                 self.toggle_vertical_tabs_panel(ctx);
             }
             ToggleNotificationMailbox { select_first } => {
-                if FeatureFlag::HOANotifications.is_enabled()
-                    && *AISettings::as_ref(ctx).show_agent_notifications
-                {
-                    let opening = !self.current_workspace_state.is_notification_mailbox_open;
-                    self.current_workspace_state.is_notification_mailbox_open = opening;
-                    if let Some(stack) = &self.notification_toast_stack {
-                        stack.update(ctx, |stack, ctx| stack.set_mailbox_open(opening, ctx));
-                    }
-                    if opening {
-                        if self.tab_bar_mode(ctx).has_tab_bar() {
-                            self.tab_bar_pinned_by_popup = true;
-                        }
-                        if let Some(view) = &self.notification_mailbox_view {
-                            view.update(ctx, |mailbox, ctx| {
-                                mailbox.reset_for_open(*select_first, ctx);
-                            });
-                            ctx.focus(view);
-                        }
-                    } else {
-                        self.tab_bar_pinned_by_popup = false;
-                        self.sync_window_button_visibility(ctx);
-                        self.focus_active_tab(ctx);
-                    }
-                    ctx.notify();
-                }
+                // Agent notification mailbox was an AI feature and has been removed.
+                let _ = select_first;
             }
             ToggleVerticalTabsSettingsPopup => {
                 if FeatureFlag::VerticalTabs.is_enabled()
@@ -14830,8 +14776,8 @@ impl TypedActionView for Workspace {
             NavigateNextPaneOrPanel => {
                 self.navigate_pane_or_panel(PanePanelDirection::Next, ctx);
             }
-            FocusLeftPanel => self.focus_left_panel(ctx),
-            FocusRightPanel => self.focus_right_panel(ctx),
+            FocusLeftPanel => {}
+            FocusRightPanel => {}
             TerminateApp => {
                 ctx.terminate_app(TerminationMode::Cancellable, None);
             }
