@@ -3,7 +3,6 @@ use std::ops::Range;
 use std::path::PathBuf;
 
 use command_corrections::Correction;
-pub use onboarding::OnboardingIntention;
 use pathfinder_geometry::vector::Vector2F;
 use rift_util::user_input::UserInput;
 use riftui::elements::HyperlinkUrl;
@@ -30,24 +29,6 @@ use crate::terminal::model::terminal_model::{BlockIndex, WithinModel};
 use crate::terminal::model::SecretHandle;
 use crate::terminal::ssh::error::SshErrorBlockAction;
 use crate::terminal::view::RichContentSecretTooltipInfo;
-
-/// Version of the agent onboarding flow (non-legacy).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AgentOnboardingVersion {
-    UniversalInput {
-        has_project: bool,
-    },
-    AgentModality {
-        has_project: bool,
-        intention: OnboardingIntention,
-    },
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum OnboardingVersion {
-    Legacy,
-    Agent(AgentOnboardingVersion),
-}
 
 /// This represents whether entering a subshell for a particular command should become automatic in
 /// the future, or to ask again.
@@ -228,7 +209,6 @@ pub enum TerminalAction {
     AliasExpansionBanner(AliasExpansionBannerAction),
     OpenInWarpBanner(OpenInWarpBannerAction),
     OpenBlockFilterEditor(BlockIndex),
-    OnboardingFlow(OnboardingVersion),
     ImportSettings,
     ToggleBlockFilterOnSelectedOrLastBlock(ToggleBlockFilterSource),
     VimModeBanner(VimModeBannerAction),
@@ -394,7 +374,6 @@ impl fmt::Debug for TerminalAction {
             OpenBlockFilterEditor(block_index) => {
                 write!(f, "OpenBlockFilterEditor({block_index:?})")
             }
-            OnboardingFlow(version) => write!(f, "OnboardingFlow({version:?})"),
             ImportSettings => write!(f, "ImportSettings"),
             ToggleBlockFilterOnSelectedOrLastBlock(_) => {
                 f.write_str("ToggleBlockFilterOnSelectedOrLastBlock")

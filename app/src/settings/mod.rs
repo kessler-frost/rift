@@ -21,7 +21,6 @@ mod linux;
 pub mod macros;
 pub mod manager;
 pub mod native_preference;
-mod onboarding;
 mod pane;
 mod privacy;
 mod same_line_prompt_block;
@@ -52,7 +51,6 @@ pub use input_mode::*;
 #[cfg(any(target_os = "linux", target_os = "freebsd"))]
 pub use linux::*;
 pub use native_preference::*;
-pub use onboarding::*;
 pub use pane::*;
 pub use privacy::*;
 use rift_core::user_preferences::GetUserPreferences as _;
