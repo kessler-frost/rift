@@ -1656,17 +1656,6 @@ impl Input {
 
 
 
-    fn open_profile_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        if !FeatureFlag::InlineProfileSelector.is_enabled() {
-            return;
-        }
-
-        self.suggestions_mode_model.update(ctx, |model, ctx| {
-            model.set_mode(InputSuggestionsMode::ProfileSelector, ctx);
-        });
-
-        ctx.notify();
-    }
 
 
 
@@ -1891,10 +1880,6 @@ impl Input {
 
 
 
-    /// Clear the cached hint text to generate a new one on next render
-    pub fn clear_cached_hint_text(&mut self) {
-        self.cached_agent_mode_hint_text = None;
-    }
 
 
     /// Finds the start byte of the token under the given hovered point
@@ -2384,7 +2369,6 @@ impl Input {
     }
 
     pub fn clear_buffer_and_reset_undo_stack(&mut self, ctx: &mut ViewContext<Self>) {
-        self.clear_cached_hint_text();
         self.editor.update(ctx, |view, ctx| {
             view.clear_buffer_and_reset_undo_stack(ctx);
         });
@@ -2512,13 +2496,6 @@ impl Input {
         // history up menu.
         let editor = self.editor.as_ref(ctx);
         if editor.single_cursor_on_first_row(ctx) {
-            if FeatureFlag::InlineHistoryMenu.is_enabled()
-                && self.suggestions_mode_model.as_ref(ctx).is_closed()
-            {
-                self.open_inline_history_menu(ctx);
-                return;
-            }
-
             let history = self.collate_ai_and_command_history(ctx);
             let original_buffer = self.editor.as_ref(ctx).buffer_text(ctx);
 
@@ -2598,16 +2575,6 @@ impl Input {
             self.editor.update(ctx, |editor, editor_ctx| {
                 editor.handle_action(&EditorAction::VimEscape, editor_ctx);
             });
-        } else if self.suggestions_mode_model.as_ref(ctx).is_slash_commands() {
-            if self.maybe_clear_v2_slash_section_filter(ctx) {
-                return;
-            }
-            self.slash_command_model
-                .update(ctx, |model, ctx| model.disable(ctx));
-            self.suggestions_mode_model.update(ctx, |model, ctx| {
-                model.set_mode(InputSuggestionsMode::Closed, ctx);
-            });
-            ctx.notify();
         } else if self
             .suggestions_mode_model
             .as_ref(ctx)
@@ -2652,23 +2619,6 @@ impl Input {
 
         if handled {
             return;
-        } else if self
-            .suggestions_mode_model
-            .as_ref(ctx)
-            .is_inline_history_menu()
-        {
-            if self.is_cloud_mode_input_v2_composing(ctx) {
-                if let Some(view) = self.cloud_mode_v2_history_menu_view.clone() {
-                    view.update(ctx, |view, ctx| {
-                        view.select_down(ctx);
-                    });
-                }
-            } else {
-                self.inline_history_menu_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-            }
-            return;
         }
 
         if self.suggestions_mode_model.as_ref(ctx).is_visible() {
@@ -2682,11 +2632,6 @@ impl Input {
             }
         } else {
             self.editor.update(ctx, |editor, ctx| editor.move_down(ctx));
-
-            // Try to expand the most recent passive code diff if it exists.
-            ctx.emit(Event::TryHandlePassiveCodeDiff(
-                CodeDiffAction::ScrollToExpand,
-            ));
         }
     }
 
@@ -3007,10 +2952,6 @@ impl Input {
                     self.model.lock().set_is_input_dirty(true);
                 }
 
-                if self.maybe_activate_cloud_handoff_prefix(edit_origin, ctx) {
-                    return;
-                }
-
                 if *edit_origin == EditOrigin::UserTyped
                     && !ctx
                         .model(&self.input_render_state_model_handle)
@@ -3300,9 +3241,7 @@ impl Input {
                     AutosuggestionType::Command {
                         was_intelligent_autosuggestion,
                     } => {
-                        if *was_intelligent_autosuggestion {
-                            self.was_intelligent_autosuggestion_accepted = true;
-                        } else {
+                        if !*was_intelligent_autosuggestion {
                             // This accepted autosuggestion count is used to determine whether to show the right arrow to accept icon
                             // when there's an autosuggestion while the input buffer is not empty.
                             // So it should only be incremented when an autosuggestion is accepted while the buffer is not empty (is NOT intelligent/zero-state).
@@ -3348,19 +3287,7 @@ impl Input {
             EditorEvent::Navigate(NavigationKey::ShiftTab) => {
                 self.input_shift_tab(ctx);
             }
-            EditorEvent::Navigate(NavigationKey::Right) => {
-                // If the AI context menu is open and we're at the end of the buffer,
-                // make right arrow act like enter and select the current item
-                if self.suggestions_mode_model.as_ref(ctx).is_ai_context_menu() {
-                    self.editor.update(ctx, |editor, ctx| {
-                        if let Some(ai_context_menu) = editor.ai_context_menu() {
-                            ai_context_menu.update(ctx, |menu, ctx| {
-                                menu.select_current_item(ctx);
-                            });
-                        }
-                    });
-                }
-            }
+            EditorEvent::Navigate(NavigationKey::Right) => {}
             EditorEvent::Enter => self.input_enter(ctx),
             EditorEvent::CmdEnter => self.input_cmd_enter(ctx),
             EditorEvent::CtrlEnter => self.input_ctrl_enter(ctx),
@@ -3432,9 +3359,7 @@ impl Input {
             EditorEvent::EmacsBindingUsed => {
                 ctx.emit(Event::EmacsBindingUsed);
             }
-            EditorEvent::UpdatePeers { operations } => {
-                self.latest_buffer_operations.extend(operations.to_vec());
-            }
+            EditorEvent::UpdatePeers { .. } => {}
             EditorEvent::MiddleClickPaste => {
                 ctx.emit(Event::InputFocusedFromMiddleClick);
             }
@@ -3703,7 +3628,6 @@ impl Input {
         ctx: &mut ViewContext<Self>,
     ) {
         self.is_processing_attached_images = is_processing_attached_images;
-        self.update_image_context_options(ctx);
         ctx.notify();
     }
 
@@ -3801,7 +3725,7 @@ impl Input {
                 .update(ctx, |input_suggestions, ctx| {
                     input_suggestions.select_prev(ctx);
                 });
-        } else if !self.ai_input_model.as_ref(ctx).is_ai_input_enabled() {
+        } else {
             self.fuzzy_history_search(ctx);
         }
     }
@@ -3946,8 +3870,6 @@ impl Input {
         let buffer_text = editor.buffer_text(ctx);
 
         self.is_completions_while_typing_turned_on(ctx)
-            && (!self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
-                || should_show_completions_in_ai_input(&buffer_text))
             && buffer_text.len() >= MIN_BUFFER_LEN_TO_SHOW_COMPLETIONS_WHILE_TYPING
             && self.is_cursor_in_valid_position_for_completions_while_typing(ctx)
     }
@@ -3966,10 +3888,6 @@ impl Input {
     }
 
     fn should_expand_aliases(&self, ctx: &mut ViewContext<Self>) -> bool {
-        // Never expand aliases when in AI input mode, regardless of the setting.
-        if self.ai_input_model.as_ref(ctx).input_type().is_ai() {
-            return false;
-        }
         *AliasExpansionSettings::as_ref(ctx)
             .alias_expansion_enabled
             .value()
@@ -4071,17 +3989,6 @@ impl Input {
             }
         }
 
-        let input_type = self.ai_input_model.as_ref(ctx).input_type();
-
-        // Don't trigger completions if the last character typed is whitespace, in AI input mode.
-        // The user is likely typing in a natural language word at this point, not a filepath.
-        if input_type.is_ai()
-            && completions_trigger == CompletionsTrigger::AsYouType
-            && before_cursor_text.ends_with(char::is_whitespace)
-        {
-            return;
-        }
-
         let Some(session_id) = self.completer_data().active_block_session_id() else {
             return;
         };
@@ -4117,8 +4024,8 @@ impl Input {
                         CompleterOptions {
                             match_strategy: matcher,
                             fallback_strategy,
-                            suggest_file_path_completions_only: input_type.is_ai(),
-                            parse_quotes_as_literals: input_type.is_ai(),
+                            suggest_file_path_completions_only: false,
+                            parse_quotes_as_literals: false,
                         },
                         &completion_context,
                     )
@@ -4985,11 +4892,9 @@ impl Input {
         }
     }
 
-    /// Submits the rich-input buffer on Ctrl+Enter when `submit_on_ctrl_enter` is enabled;
-    /// otherwise emits [`Event::CtrlEnter`]. Exposed `pub(crate)` for unit tests.
-    pub(crate) fn input_ctrl_enter(&mut self, ctx: &mut ViewContext<Self>) {
-        ctx.emit(Event::CtrlEnter);
-    }
+    /// Ctrl+Enter previously submitted AI input; that behavior has been removed, so
+    /// this is now a no-op. Exposed `pub(crate)` for unit tests.
+    pub(crate) fn input_ctrl_enter(&mut self, _ctx: &mut ViewContext<Self>) {}
 
     fn input_cmd_enter(&mut self, ctx: &mut ViewContext<Self>) {
         // NaturalLanguageCommandSearch has its own `cmd+enter` behaviour, not expected to execute here
@@ -5018,52 +4923,7 @@ impl Input {
                 let editor_model = self.editor.read(ctx, |view, ctx| view.snapshot_model(ctx));
                 self.get_enum_suggestions_async(command.clone(), editor_model, ctx);
             }
-            _ => {
-                if FeatureFlag::AgentView.is_enabled()
-                    && self.maybe_handle_cmd_or_ctrl_shift_enter_for_slash_command(ctx)
-                {
-                    return;
-                }
-                // In cloud mode (ambient agent), Cmd+Enter should exit cloud mode entirely and start a
-                // new *local* agent conversation in the root terminal. This should work whether the
-                // buffer is empty (blank convo) or non-empty (prefill draft, but don't auto-send).
-                if self
-                    .ambient_agent_view_model()
-                    .is_some_and(|ambient_agent_model| {
-                        ambient_agent_model.as_ref(ctx).is_ambient_agent()
-                    })
-                {
-                    let mut draft = self.editor.as_ref(ctx).buffer_text(ctx);
-                    // Normalize draft for empty-checks and for prefill.
-                    draft.truncate(draft.trim_end().len());
-
-                    let is_empty = draft.trim().is_empty();
-                    ctx.emit(Event::ExitCloudModeAndStartLocalAgent {
-                        initial_prompt: (!is_empty).then_some(draft),
-                    });
-                    return;
-                }
-
-                // If there is a slash command bound to cmd-enter, we'll execute it.
-                let cmd_enter_slash_command = {
-                    self.slash_command_data_source
-                        .as_ref(ctx)
-                        .active_commands()
-                        .find_map(|(_, command)| {
-                            let binding = keybinding_name_to_normalized_string(command.name, ctx)?;
-                            (binding == CMD_ENTER_KEYBINDING).then_some(command)
-                        })
-                        .cloned()
-                };
-
-
-                if let Some(command) = cmd_enter_slash_command {
-                    self.select_slash_command(&command, SlashCommandTrigger::keybinding(), ctx);
-                    return;
-                }
-
-                ctx.emit(Event::UnhandledCmdEnter)
-            }
+            _ => {}
         }
     }
 
@@ -5104,9 +4964,7 @@ impl Input {
         // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in terminal
         // mode. Selections are preserved so they can be attached to the query when entering the
         // agent view.
-        if !self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
-            && !FeatureFlag::AgentView.is_enabled()
-        {
+        if !FeatureFlag::AgentView.is_enabled() {
             self.model.lock().block_list_mut().clear_selection();
         }
 
@@ -5124,12 +4982,6 @@ impl Input {
         ctx.notify();
         true
     }
-
-    /// Returns the operations for any edits made to the latest buffer.
-    pub fn latest_buffer_operations(&self) -> impl Iterator<Item = &CrdtOperation> {
-        self.latest_buffer_operations.iter()
-    }
-
 
 
 
@@ -5150,54 +5002,33 @@ impl Input {
         if let BlockType::User(user_block) = &block_completed_event.block_type {
             // Only clear the input buffer for user-executed commands, not agent-executed ones.
             let should_clear_buffer = !user_block.was_part_of_agent_interaction;
-            let latest_block_id = self.model.lock().block_list().active_block_id().clone();
             let input_contents_before_prompt_chip_command =
                 self.input_contents_before_prompt_chip_command.take();
 
             if should_clear_buffer {
                 // We want to reinitialize the buffer whenever a command is completed so that
                 // state does not leak from buffer to buffer (e.g. edit history).
-                if self.deferred_remote_operations.latest_block_id != latest_block_id {
-                    self.deferred_remote_operations.latest_block_id = latest_block_id;
-                    self.editor
-                        .update(ctx, |editor, ctx| editor.reinitialize_buffer(None, ctx));
-                    self.latest_buffer_operations = Vec::new();
+                self.editor
+                    .update(ctx, |editor, ctx| editor.reinitialize_buffer(None, ctx));
 
-                    // If we have a pending input restore (from a prompt chip command like cd),
-                    // restore the input contents instead of leaving the buffer empty.
-                    if let Some(restore_text) = input_contents_before_prompt_chip_command {
-                        self.editor.update(ctx, |editor, ctx| {
-                            editor.set_buffer_text(&restore_text, ctx);
-                        });
-                        self.is_editor_empty_on_last_edit = false;
-                    } else {
-                        // This is the one place where buffer contents can change without an `Edit`
-                        // -- this is because the buffer semantically isn't being edited, a new one is
-                        // being constructed. We can guarantee in this case that the buffer was previously
-                        // non-empty and should emit this event, because this code path is executed upon block
-                        // completion in response to an executed command, though this guarantee is not explicitly
-                        // enforced by the code.
-                        self.is_editor_empty_on_last_edit = true;
-                        ctx.emit(Event::InputEmptyStateChanged {
-                            is_empty: true,
-                            reason: InputEmptyStateChangeReason::UserCommandCompleted,
-                        });
-                    }
-                }
-            } else {
-                // For agent-executed commands, still update the latest block ID but don't clear the buffer
-                if self.deferred_remote_operations.latest_block_id != latest_block_id {
-                    self.deferred_remote_operations.latest_block_id = latest_block_id;
+                // If we have a pending input restore (from a prompt chip command like cd),
+                // restore the input contents instead of leaving the buffer empty.
+                if let Some(restore_text) = input_contents_before_prompt_chip_command {
+                    self.editor.update(ctx, |editor, ctx| {
+                        editor.set_buffer_text(&restore_text, ctx);
+                    });
+                    self.is_editor_empty_on_last_edit = false;
+                } else {
+                    // This is the one place where buffer contents can change without an `Edit`
+                    // -- this is because the buffer semantically isn't being edited, a new one is
+                    // being constructed.
+                    self.is_editor_empty_on_last_edit = true;
+                    ctx.emit(Event::InputEmptyStateChanged {
+                        is_empty: true,
+                        reason: InputEmptyStateChangeReason::UserCommandCompleted,
+                    });
                 }
             }
-
-            // Make sure the viewer's interaction state is correct based on their role.
-            // We may have locked up their input if they tried to execute a command.
-            // Update the segmented control disabled state based on the new state.
-            self.universal_developer_input_button_bar
-                .update(ctx, |button_bar, ctx| {
-                    button_bar.update_segmented_control_disabled_state(ctx);
-                });
 
             // Generate autosuggestion if the input is not empty (user had type-ahead).
             self.maybe_generate_autosuggestion(ctx);
@@ -5232,12 +5063,6 @@ impl Input {
                 .block_list()
                 .is_bootstrapping_precmd_done()
         {
-            // When a bootstrap block is completed and the session is now
-            // post-bootstrap, post-precmd, we know that the active block ID
-            // is the block ID that we want to key input updates off of
-            // (the block IDs during bootstrap are meaningless).
-            self.refresh_deferred_remote_operations(ctx);
-
             // If the user typed ahead during bootstrap, the autosuggestion and
             // completions-as-you-type requests were silently skipped (history
             // wasn't queryable, session ID was absent). Now that bootstrap is
@@ -5447,10 +5272,6 @@ impl Input {
             .update(ctx, |prompt, prompt_ctx| {
                 prompt.update_session_context(session_context.clone(), prompt_ctx);
             });
-
-        self.agent_input_footer.update(ctx, |footer, footer_ctx| {
-            footer.update_session_context(session_context, footer_ctx);
-        });
     }
 
     pub fn update_repo_path(&mut self, repo_path: Option<PathBuf>, ctx: &mut ViewContext<Self>) {
@@ -5459,22 +5280,6 @@ impl Input {
             .update(ctx, |prompt, prompt_ctx| {
                 prompt.update_repo_path(repo_path.clone(), prompt_ctx);
             });
-
-        self.agent_input_footer.update(ctx, |footer, footer_ctx| {
-            footer.set_current_repo_path(repo_path.clone(), footer_ctx);
-        });
-
-        self.slash_command_data_source.update(ctx, {
-            let repo_path = repo_path.clone();
-            |data_source, ctx| {
-                data_source.set_active_repo_root(repo_path, ctx);
-            }
-        });
-        if let Some(data_source) = self.cloud_mode_composer_slash_command_data_source.as_ref() {
-            data_source.update(ctx, |data_source, ctx| {
-                data_source.set_active_repo_root(repo_path, ctx);
-            });
-        }
     }
 
     fn active_session_path_if_local(&self, ctx: &ViewContext<Self>) -> Option<&Path> {
@@ -5491,68 +5296,7 @@ impl Input {
         })
     }
 
-    fn apply_input_banner_padding(
-        &self,
-        banner: Box<dyn Element>,
-        is_compact_mode: bool,
-        input_mode: InputMode,
-        appearance: &Appearance,
-        app: &AppContext,
-    ) -> Box<dyn Element> {
-        let constrained_banner = ConstrainedBox::new(banner)
-            .with_height(2. * appearance.line_height_ratio() * appearance.monospace_font_size())
-            .finish();
-        let should_use_udi_spacing = self.should_show_universal_developer_input(app)
-            || (FeatureFlag::AgentView.is_enabled()
-                && self.agent_view_controller.as_ref(app).is_active());
-        let mut container: Container = Container::new(constrained_banner);
-        let (suggestion_to_prompt_padding, suggestion_to_input_border_padding) =
-            if should_use_udi_spacing {
-                (0., 0.)
-            } else if is_compact_mode {
-                (0., 8.)
-            } else {
-                (-12., 8.)
-            };
 
-        container = match input_mode {
-            InputMode::PinnedToTop => container
-                .with_padding_top(suggestion_to_prompt_padding)
-                .with_padding_bottom(suggestion_to_input_border_padding),
-            InputMode::PinnedToBottom | InputMode::Waterfall => container
-                .with_padding_bottom(suggestion_to_prompt_padding)
-                .with_padding_top(suggestion_to_input_border_padding),
-        };
-
-        container.finish()
-    }
-
-    /// Renders a banner that should stay next to the input box.
-    fn render_input_banner(
-        &self,
-        appearance: &Appearance,
-        app: &AppContext,
-        input_mode: InputMode,
-        is_compact_mode: bool,
-    ) -> Option<Box<dyn Element>> {
-        if let Some(prompt_suggestions_banner_state) = &self.prompt_suggestions_banner_state {
-            if prompt_suggestions_banner_state.should_hide {
-                return None;
-            }
-
-            let prompt_suggestions_banner = ChildView::new(&self.prompt_suggestions_view).finish();
-
-            Some(self.apply_input_banner_padding(
-                prompt_suggestions_banner,
-                is_compact_mode,
-                input_mode,
-                appearance,
-                app,
-            ))
-        } else {
-            None
-        }
-    }
 
     fn render_input_box(
         &self,
@@ -5743,8 +5487,8 @@ impl TypedActionView for Input {
             InputAction::MaybeOpenCompletionSuggestions => {
                 self.maybe_open_completion_suggestions(ctx);
             }
-            InputAction::HideWorkflowInfoCard => self.hide_workflows_info_box(ctx),
-            InputAction::ResetWorkflowState => self.reset_workflow_state(None, ctx),
+            InputAction::HideWorkflowInfoCard => {}
+            InputAction::ResetWorkflowState => {}
             InputAction::ToggleClassicCompletionsMode => {
                 InputSettings::handle(ctx).update(ctx, |settings, ctx| {
                     if let Err(e) = settings.classic_completions_mode.toggle_and_save_value(ctx) {
@@ -5764,18 +5508,14 @@ impl TypedActionView for Input {
                     report_if_error!(settings.completions_menu_height.set_value(*height, ctx));
                 });
             }
-            InputAction::ToggleSlashCommandsMenu => {
-                self.toggle_legacy_slash_commands_menu(ctx);
-            }
+            InputAction::ToggleSlashCommandsMenu => {}
             InputAction::TriggerSlashCommandFromKeybinding(command_name) => {
                 let Some(command) = COMMAND_REGISTRY.get_command_with_name(command_name) else {
                     return;
                 };
                 self.select_slash_command(command, SlashCommandTrigger::keybinding(), ctx);
             }
-            InputAction::OpenInlineHistoryMenu => {
-                self.open_inline_history_menu(ctx);
-            }
+            InputAction::OpenInlineHistoryMenu => {}
         }
     }
 }
@@ -5799,9 +5539,6 @@ impl View for Input {
             if self.prompt_render_helper.has_open_chip_menu(ctx) {
                 // Focus the PromptDisplay, which will in turn focus any open chip menu
                 ctx.focus(self.prompt_render_helper.prompt_view());
-            } else if self.agent_input_footer.as_ref(ctx).has_open_chip_menu(ctx) {
-                // Focus the AgentInputFooter, which will in turn focus any open chip menu
-                ctx.focus(&self.agent_input_footer);
             } else {
                 ctx.focus(&self.editor);
                 ctx.notify();
@@ -5858,16 +5595,12 @@ impl View for Input {
             ctx.set.insert("TerminalView_NonEmptyBlockList");
         }
 
-        for (_, command) in self.slash_command_data_source.as_ref(app).active_commands() {
-            ctx.set.insert(command.name);
-        }
-
         ctx
     }
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
         if self.should_show_universal_developer_input(app) {
-            self.render_universal_developer_input(app)
+            self.render_terminal_input(app)
         } else {
             self.render_classic_input(app)
         }
