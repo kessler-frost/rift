@@ -2919,7 +2919,7 @@ fn render_pane_row(props: PaneProps<'_>, app: &AppContext) -> Box<dyn Element> {
             .with_child(title_row.finish());
 
         if !effective_subtitle.is_empty() {
-            let subtitle_clip = if matches!(props.typed, TypedPane::Code(_)) {
+            let subtitle_clip = if false {
                 ClipConfig::start()
             } else {
                 ClipConfig::ellipsis()
@@ -2970,21 +2970,7 @@ impl TypedPane<'_> {
                     Some(_) | None => SummaryPaneKind::Terminal,
                 }
             }
-            TypedPane::Code(_) => SummaryPaneKind::Code {
-                title: title.to_string(),
-            },
-            TypedPane::CodeDiff => SummaryPaneKind::CodeDiff,
-            TypedPane::File => SummaryPaneKind::File,
-            TypedPane::Notebook { is_plan } => SummaryPaneKind::Notebook { is_plan: *is_plan },
-            TypedPane::Workflow { is_ai_prompt } => SummaryPaneKind::Workflow {
-                is_ai_prompt: *is_ai_prompt,
-            },
             TypedPane::Settings => SummaryPaneKind::Settings,
-            TypedPane::EnvVarCollection => SummaryPaneKind::EnvVarCollection,
-            TypedPane::EnvironmentManagement => SummaryPaneKind::EnvironmentManagement,
-            TypedPane::AIFact => SummaryPaneKind::AIFact,
-            TypedPane::AIDocument => SummaryPaneKind::AIDocument,
-            TypedPane::ExecutionProfileEditor => SummaryPaneKind::ExecutionProfileEditor,
             TypedPane::Other => SummaryPaneKind::Other,
         }
     }
@@ -2995,39 +2981,15 @@ impl TypedPane<'_> {
     fn kind_label(&self) -> &'static str {
         match self {
             TypedPane::Terminal(_) => "Terminal",
-            TypedPane::Code(_) => "Code",
-            TypedPane::CodeDiff => "Code Diff",
-            TypedPane::File => "File",
-            TypedPane::Notebook { .. } => "Notebook",
-            TypedPane::Workflow { .. } => "Workflow",
             TypedPane::Settings => "Settings",
-            TypedPane::EnvVarCollection => "Environment Variables",
-            TypedPane::EnvironmentManagement => "Environments",
-            TypedPane::AIFact => "Rules",
-            TypedPane::AIDocument => "Plan",
-            TypedPane::ExecutionProfileEditor => "Execution Profile",
             TypedPane::Other => "Other",
         }
     }
 
     fn badge(&self, app: &AppContext) -> Option<String> {
         match self {
-            TypedPane::Code(code_pane) => code_pane
-                .file_view(app)
-                .as_ref(app)
-                .contains_unsaved_changes(app)
-                .then(|| "Unsaved".to_string()),
             TypedPane::Terminal(_)
-            | TypedPane::CodeDiff
-            | TypedPane::File
-            | TypedPane::Notebook { .. }
-            | TypedPane::Workflow { .. }
             | TypedPane::Settings
-            | TypedPane::EnvVarCollection
-            | TypedPane::EnvironmentManagement
-            | TypedPane::AIFact
-            | TypedPane::AIDocument
-            | TypedPane::ExecutionProfileEditor
             | TypedPane::Other => None,
         }
     }
@@ -3035,20 +2997,7 @@ impl TypedPane<'_> {
     fn icon(&self) -> WarpIcon {
         match self {
             TypedPane::Terminal(_) => WarpIcon::Terminal,
-            TypedPane::Code(_) => WarpIcon::Code2,
-            TypedPane::CodeDiff => WarpIcon::Diff,
-            TypedPane::File => WarpIcon::File,
-            TypedPane::Notebook { is_plan: true } => WarpIcon::Compass,
-            TypedPane::Notebook { is_plan: false } => WarpIcon::Notebook,
-            TypedPane::Workflow { is_ai_prompt: true } => WarpIcon::Prompt,
-            TypedPane::Workflow {
-                is_ai_prompt: false,
-            } => WarpIcon::Workflow,
-            TypedPane::Settings | TypedPane::EnvironmentManagement => WarpIcon::Gear,
-            TypedPane::EnvVarCollection => WarpIcon::EnvVarCollection,
-            TypedPane::AIFact => WarpIcon::BookOpen,
-            TypedPane::AIDocument => WarpIcon::Compass,
-            TypedPane::ExecutionProfileEditor => WarpIcon::Lightning,
+            TypedPane::Settings => WarpIcon::Gear,
             TypedPane::Other => WarpIcon::File,
         }
     }
@@ -3059,7 +3008,7 @@ fn pane_display_title_and_subtitle(
     title: &str,
     secondary_title: &str,
 ) -> (String, String) {
-    if matches!(typed, TypedPane::Code(_)) && !title.is_empty() {
+    if false && !title.is_empty() {
         let path = Path::new(title);
         let filename = path
             .file_name()
@@ -3281,17 +3230,7 @@ impl<'a> PaneProps<'a> {
                 self.display_title_override.as_deref(),
                 app,
             ),
-            TypedPane::Code(_)
-            | TypedPane::CodeDiff
-            | TypedPane::File
-            | TypedPane::Notebook { .. }
-            | TypedPane::Workflow { .. }
-            | TypedPane::Settings
-            | TypedPane::EnvVarCollection
-            | TypedPane::EnvironmentManagement
-            | TypedPane::AIFact
-            | TypedPane::AIDocument
-            | TypedPane::ExecutionProfileEditor
+            TypedPane::Settings
             | TypedPane::Other => {
                 non_terminal_search_text_fragments(self.generated_or_tab_title(), &self.subtitle)
             }
@@ -4617,7 +4556,6 @@ fn render_terminal_diff_stats_badge(
             pane_id,
         };
         ctx.dispatch_typed_action(WorkspaceAction::FocusPane(locator));
-        ctx.dispatch_typed_action(WorkspaceAction::OpenCodeReviewPanel(locator));
     })
     .with_cursor(Cursor::PointingHand)
     .finish()
@@ -4667,7 +4605,7 @@ fn render_compact_non_terminal_title(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
-    let clip_config = if matches!(typed, TypedPane::Code(_)) {
+    let clip_config = if false {
         ClipConfig::start()
     } else {
         ClipConfig::ellipsis()
@@ -4770,22 +4708,9 @@ fn compute_tab_group_color_mode(
                         .color_for_directory(Path::new(&cwd))
                         .and_then(|c| c.ansi_color())
                 })
-            } else if let Some(code_view) = pane_group.code_view_from_pane_id(pane_id, app) {
-                // Code pane: determine color from the open file path using longest-prefix
-                // matching against configured directories, so e.g. warp-internal/code.rs
-                // inherits the color assigned to warp-internal.
-                code_view
-                    .as_ref(app)
-                    .local_path(app)
-                    .as_deref()
-                    .and_then(|file_path| {
-                        dir_colors
-                            .color_for_directory(file_path)
-                            .and_then(|c| c.ansi_color())
-                    })
             } else {
-                // Other non-terminal panes (notebook, workflow, etc.): fall back to the
-                // cached directory color from the tab's last active terminal.
+                // Other non-terminal panes: fall back to the cached directory color
+                // from the tab's last active terminal.
                 tab.default_directory_color
             };
             (pane_id, color)
@@ -5983,77 +5908,12 @@ fn render_terminal_detail_section(
 }
 
 fn render_code_detail_section(
-    props: &PaneProps<'_>,
-    appearance: &Appearance,
-    app: &AppContext,
+    _props: &PaneProps<'_>,
+    _appearance: &Appearance,
+    _app: &AppContext,
 ) -> Box<dyn Element> {
-    let theme = appearance.theme();
-    let text_colors = detail_sidecar_text_colors(theme);
-    let TypedPane::Code(code_pane) = &props.typed else {
-        return Empty::new().finish();
-    };
-    let code_view = code_pane.file_view(app);
-    let code_view = code_view.as_ref(app);
-    let extra_open_tabs = code_view.tab_count().saturating_sub(1);
-
-    let mut section = Flex::column()
-        .with_cross_axis_alignment(CrossAxisAlignment::Start)
-        .with_spacing(DETAIL_SIDECAR_SECTION_GAP);
-    section.add_child(render_detail_wrapping_text(
-        props.title.clone(),
-        12.,
-        text_colors.main,
-        None,
-        appearance,
-    ));
-
-    if !props.subtitle.trim().is_empty() {
-        section.add_child(render_detail_wrapping_text(
-            props.subtitle.clone(),
-            12.,
-            text_colors.sub,
-            None,
-            appearance,
-        ));
-    }
-
-    if extra_open_tabs > 0 {
-        section.add_child(render_detail_wrapping_text(
-            format!("and {extra_open_tabs} more"),
-            12.,
-            text_colors.sub,
-            None,
-            appearance,
-        ));
-    }
-
-    if let Some(language_name) = code_detail_kind_label(&props.title) {
-        let mut metadata_row = Flex::row()
-            .with_main_axis_size(MainAxisSize::Max)
-            .with_main_axis_alignment(MainAxisAlignment::SpaceBetween)
-            .with_cross_axis_alignment(CrossAxisAlignment::Center);
-        metadata_row.add_child(render_detail_badge(
-            language_name,
-            Some(render_detail_kind_badge_icon(props, appearance, app)),
-            None,
-            text_colors.disabled,
-            appearance,
-        ));
-        if let Some(badge) = props.typed.badge(app) {
-            metadata_row.add_child(render_detail_badge(
-                badge,
-                None,
-                Some(internal_colors::fg_overlay_1(theme)),
-                text_colors.sub,
-                appearance,
-            ));
-        }
-        section.add_child(metadata_row.finish());
-    }
-
-    Container::new(section.finish())
-        .with_padding(Padding::uniform(DETAIL_SIDECAR_SECTION_PADDING))
-        .finish()
+    // Code panes were an AI feature and have been removed.
+    Empty::new().finish()
 }
 
 fn render_warp_drive_object_detail_section(
@@ -6104,17 +5964,7 @@ fn render_detail_section(
             appearance,
             app,
         ),
-        TypedPane::Code(_) => render_code_detail_section(props, appearance, app),
-        TypedPane::Notebook { .. }
-        | TypedPane::Workflow { .. }
-        | TypedPane::EnvVarCollection
-        | TypedPane::AIFact
-        | TypedPane::AIDocument => render_warp_drive_object_detail_section(props, appearance, app),
-        TypedPane::CodeDiff
-        | TypedPane::File
-        | TypedPane::Settings
-        | TypedPane::EnvironmentManagement
-        | TypedPane::ExecutionProfileEditor
+        TypedPane::Settings
         | TypedPane::Other => Empty::new().finish(),
     }
 }
@@ -6414,7 +6264,7 @@ fn render_compact_pane_row(props: PaneProps<'_>, app: &AppContext) -> Box<dyn El
                 },
                 12.,
                 main_text_color,
-                if matches!(props.typed, TypedPane::Code(_)) {
+                if false {
                     ClipConfig::start()
                 } else {
                     ClipConfig::ellipsis()
@@ -6425,7 +6275,7 @@ fn render_compact_pane_row(props: PaneProps<'_>, app: &AppContext) -> Box<dyn El
             let subtitle = if effective_subtitle.is_empty() {
                 None
             } else {
-                let subtitle_clip = if matches!(props.typed, TypedPane::Code(_)) {
+                let subtitle_clip = if false {
                     ClipConfig::start()
                 } else {
                     ClipConfig::ellipsis()
