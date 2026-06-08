@@ -10963,35 +10963,11 @@ impl Workspace {
 
     fn render_agent_management_view_button(
         &self,
-        appearance: &Appearance,
-        ctx: &AppContext,
+        _appearance: &Appearance,
+        _ctx: &AppContext,
     ) -> Box<dyn Element> {
-        let is_active = self.current_workspace_state.is_agent_management_view_open;
-
-        SavePosition::new(
-            Container::new(
-                Align::new(
-                    self.render_tab_bar_icon_button(
-                        appearance,
-                        icons::Icon::Grid,
-                        &self.mouse_states.agent_management_view_button,
-                        WorkspaceAction::ToggleAgentManagementView,
-                        "Agent management panel".to_string(),
-                        keybinding_name_to_display_string(
-                            "workspace:toggle_agent_management_view",
-                            ctx,
-                        ),
-                        is_active,
-                        false,
-                    )
-                    .finish(),
-                )
-                .finish(),
-            )
-            .finish(),
-            "workspace:toggle_agent_management_view",
-        )
-        .finish()
+        // Agent management panel was an AI feature and has been removed.
+        Empty::new().finish()
     }
 
     fn render_left_toggle_button(
@@ -12305,9 +12281,7 @@ impl Workspace {
         Align::new(
             button
                 .build()
-                .on_click(|ctx, _, _| {
-                    ctx.dispatch_typed_action(WorkspaceAction::SignInAnonymousWebUser)
-                })
+                .on_click(|_ctx, _, _| {})
                 .finish(),
         )
         .finish()
@@ -12347,9 +12321,7 @@ impl Workspace {
         Align::new(
             button
                 .build()
-                .on_click(|ctx, _, _| {
-                    ctx.dispatch_typed_action(WorkspaceAction::SignupAnonymousUser)
-                })
+                .on_click(|_ctx, _, _| {})
                 .finish(),
         )
         .finish()
@@ -12689,18 +12661,9 @@ impl Workspace {
         }
         let error = self.settings_file_error.as_ref()?;
         let (heading, description) = error.heading_and_description();
-        let secondary_button =
-            AISettings::as_ref(app)
-                .is_any_ai_enabled(app)
-                .then(|| WorkspaceBannerButtonDetails {
-                    text: "Fix with Oz".to_owned(),
-                    action: WorkspaceAction::FixSettingsWithOz {
-                        error_description: error.to_string(),
-                    },
-                    variant: BannerButtonVariant::Naked,
-                    icon: Some(Icon::Oz),
-                    more_info_button_action: None,
-                });
+        // "Fix with Oz" was an AI feature and has been removed.
+        let secondary_button: Option<WorkspaceBannerButtonDetails> = None;
+        let _ = app;
         Some(WorkspaceBannerFields {
             banner_type: WorkspaceBanner::InvalidSettings,
             severity: BannerSeverity::Warning,
@@ -12727,24 +12690,8 @@ impl Workspace {
     }
 
     fn render_reauth_banner_element(&self) -> Option<WorkspaceBannerFields> {
-        if self.reauth_banner_dismissed || !self.auth_state.needs_reauth() {
-            return None;
-        }
-
-        Some(WorkspaceBannerFields {
-            banner_type: WorkspaceBanner::Reauth,
-            severity: BannerSeverity::Warning,
-            heading: Some("Your login has expired.".into()),
-            description: "Please sign in again to restore access to cloud-based features.".into(),
-            secondary_button: None,
-            button: Some(WorkspaceBannerButtonDetails {
-                text: "Sign in".into(),
-                action: WorkspaceAction::Reauth,
-                variant: BannerButtonVariant::Outlined,
-                icon: None,
-                more_info_button_action: None,
-            }),
-        })
+        // Cloud re-authentication was removed along with the cloud backend.
+        None
     }
 
     fn render_autoupdate_banner_element(&self, app: &AppContext) -> Option<WorkspaceBannerFields> {
