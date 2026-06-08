@@ -2250,10 +2250,7 @@ impl TerminalView {
         model: &TerminalModel,
         app: &AppContext,
     ) -> bool {
-        let input_is_visible = self.is_input_box_visible(model, app);
-        // If there is a conversation tombstone and the input is hidden, should not broadcast input updates as
-        // the cloud agent session is over.
-        self.conversation_ended_tombstone_view_id.is_none() || input_is_visible
+        self.is_input_box_visible(model, app)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -2705,7 +2702,7 @@ impl TerminalView {
 
 
         let window_id = ctx.window_id();
-        let terminal_view = Self {
+        let mut terminal_view = Self {
             model,
             input,
             inline_menu_positioner,
@@ -3171,15 +3168,6 @@ impl TerminalView {
 
 
 
-    /// Fully clear the per-repo git status handle, including the input's repo
-    /// path. Use this when navigating out of a git repository.
-    #[cfg(feature = "local_fs")]
-    fn clear_git_repo_status(&mut self, ctx: &mut ViewContext<Self>) {
-        self.clear_git_repo_status_subscription(ctx);
-        self.input.update(ctx, |input, ctx| {
-            input.update_repo_path(None, ctx);
-        });
-    }
 
 
     #[cfg(feature = "local_fs")]
@@ -3193,30 +3181,10 @@ impl TerminalView {
     }
 
 
-    #[cfg(feature = "local_fs")]
-    fn needs_git_status_for_agent_context(&self, ctx: &AppContext) -> bool {
-        self.current_local_repo_path().is_some()
-            && self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
-    }
-
-    /// Returns whether this terminal view should subscribe to git status updates.
-    #[cfg(feature = "local_fs")]
-    fn should_subscribe_to_git_status(&self, ctx: &AppContext) -> bool {
-        self.needs_git_status_for_chip_ui(ctx) || self.needs_git_status_for_agent_context(ctx)
-    }
 
 
-    #[cfg(feature = "local_fs")]
-    fn needs_pr_info_for_agent_context(&self, ctx: &AppContext) -> bool {
-        self.current_local_repo_path().is_some()
-            && self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
-    }
 
-    /// Whether this terminal needs PR info from the git status model.
-    #[cfg(feature = "local_fs")]
-    fn needs_pr_info(&self, ctx: &AppContext) -> bool {
-        self.needs_pr_info_for_chip_ui(ctx) || self.needs_pr_info_for_agent_context(ctx)
-    }
+
 
     #[cfg(feature = "local_fs")]
     fn should_retry_default_pr_chip_validation(ctx: &AppContext) -> bool {
@@ -3226,44 +3194,7 @@ impl TerminalView {
             && matches!(*settings.saved_prompt, PromptSelection::Default)
     }
 
-    /// Refresh the terminal's own `pr_info_consumer` registration on the
-    /// current git status handle. Each consumer manages its own slot; this
-    /// only toggles the terminal's slot.
-    #[cfg(feature = "local_fs")]
-    fn sync_pr_info_consumer_for_current_subscription(&self, ctx: &mut ViewContext<Self>) {
-        let Some(handle) = &self.git_repo_status else {
-            return;
-        };
-        let terminal_view_id = self.view_id;
-        let needs_pr_info = self.needs_pr_info(ctx);
-        handle.update(ctx, |model, ctx| {
-            model.set_pr_info_consumer(terminal_view_id, needs_pr_info, ctx);
-        });
-    }
 
-    /// Triggers a PR info refresh after a `gh`/`gt` command completes.
-    ///
-    /// These commands don't touch `.git/` so the filesystem watcher won't
-    /// catch them; we refresh explicitly while an active PR-info consumer is
-    /// registered for this terminal.
-    #[cfg(feature = "local_fs")]
-    fn refresh_pr_info_after_gh_or_gt_command(&mut self, ctx: &mut ViewContext<Self>) {
-        if !self.needs_pr_info(ctx) {
-            return;
-        }
-        // Ensure we have a subscription to the per-repo status model.
-        // `should_subscribe_to_git_status` already returns true while
-        // suppression is active so the default chip can recover, so this
-        // is a no-op when already subscribed and creates a fresh
-        // subscription when one is needed.
-
-        let Some(handle) = self.git_repo_status.clone() else {
-            return;
-        };
-        handle.update(ctx, |model, ctx| {
-            model.refresh_pr_info(ctx);
-        });
-    }
 
 
 
@@ -3292,27 +3223,6 @@ impl TerminalView {
     }
 
 
-    /// Marks this view as hosting a split-off child; pane header switches
-    /// from the pill bar to a parent→child breadcrumb row.
-    pub fn mark_as_orchestration_split_off(&mut self, ctx: &mut ViewContext<Self>) {
-        if !self.is_orchestration_split_off {
-            self.is_orchestration_split_off = true;
-            ctx.notify();
-        }
-    }
-
-    /// Clears the split-off marker so the pill bar renders again.
-    pub fn clear_orchestration_split_off(&mut self, ctx: &mut ViewContext<Self>) {
-        if self.is_orchestration_split_off {
-            self.is_orchestration_split_off = false;
-            ctx.notify();
-        }
-    }
-
-    /// Whether this view renders the breadcrumb row instead of the pill bar.
-    pub fn is_orchestration_split_off(&self) -> bool {
-        self.is_orchestration_split_off
-    }
 
 
 
@@ -3489,53 +3399,11 @@ impl TerminalView {
 
 
 
-    /// Tear down the Cloud Mode Setup V2 UI in response to a
-    /// setup-phase-ended signal: clear the BlockList
-    /// executing-startup-commands flag AND finish/collapse the active
-    /// ambient setup command group. Owns both pieces of state so callers
-    /// (the shared-session viewer arm, legacy fallbacks) don't have to
-    /// orchestrate two unrelated mutations. Idempotent across both.
-    pub(crate) fn tear_down_cloud_mode_setup_phase(&mut self, ctx: &mut ViewContext<Self>) {
-        self.model
-            .lock()
-            .block_list_mut()
-            .set_is_executing_oz_environment_startup_commands(false);
-        if let Some(ambient_model) = self.ambient_agent_view_model.clone() {
-            ambient_model.update(ctx, |model, ctx| {
-                model.tear_down_active_setup_command_group(ctx);
-            });
-        }
-    }
 
 
 
-    /// Convenience wrapper around
-    /// [`Self::can_show_conversation_details_ui_from_model`] that locks the
-    /// terminal model. Do not call from contexts that already hold the lock.
-    fn can_show_conversation_details_ui(&self, app: &AppContext) -> bool {
-        let model = self.model.lock();
-        self.can_show_conversation_details_ui_from_model(&model, app)
-    }
 
-    /// Consume the one-shot conversation details panel auto-open for this
-    /// view. Call this before the first `maybe_auto_open_conversation_details_panel`
-    /// fires (e.g. on a parent-orchestrated child agent pane) so the panel does
-    /// not default open. Manual toggle via `TerminalAction::ToggleConversationDetailsPanel`
-    /// continues to work normally.
-    pub(crate) fn suppress_initial_conversation_details_panel_auto_open(&mut self) {
-        self.conversation_details_panel_auto_open_policy =
-            ConversationDetailsPanelAutoOpenPolicy::DefaultClosed;
-    }
 
-    #[cfg(test)]
-    pub(crate) fn is_initial_conversation_details_panel_auto_open_suppressed_for_test(
-        &self,
-    ) -> bool {
-        matches!(
-            self.conversation_details_panel_auto_open_policy,
-            ConversationDetailsPanelAutoOpenPolicy::DefaultClosed
-        )
-    }
 
 
     pub fn active_session(&self) -> &ModelHandle<ActiveSession> {
