@@ -21,6 +21,17 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 383 resolution errors. PRIMARY-CLEAN (7): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
+zero_state.rs, rich_content.rs, block_list_element.rs (+alt_screen_element presence done). (552→383 this run, ~52
+commits.) TOP FILES: workspace/view.rs 100 (code-pane/code-review/cloud-workspace god-file — CodeSource ~14,
+ForkAIConversation, PersistedWorkspace, CodePane/CodeReviewView), right_panel 34 (code-review side panel — likely
+wholesale-deletable), PHASE-F CLOUD (server/graphql/schema 23 + util 12 + harness_support 16 + remote_server/
+server_model 14 + gql_convert 13 ≈ 78 — try deleting server/graphql + harness_support modules wholesale, then fix
+the few importers: auth/server_api/workspaces), root_view 16, pane_group/mod 16, left_panel 15, install_tmux 14
+(requested_script script-display UI), lib.rs 14 (thread out ai_client var — get_ai_client deleted), workspace/action 11,
+ui_components/icon_with_status 10. REMINDER: count is resolution-errors-only; typeck "no field" wave appears at 0 —
+keep grep-deleting dead struct fields (esp. workspace/view.rs cloud fields) as you clear each file.
+
 ### STATE: 397 resolution errors. PRIMARY-CLEAN: input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs +
 zero_state.rs, view/rich_content.rs (RichContentMetadata AI variants + accessors deleted; cascade done). NEXT just
 UNMASKED: terminal/block_list_element.rs (10, the block renderer god-file) — shared-session presence/avatar render
