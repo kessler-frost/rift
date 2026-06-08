@@ -748,10 +748,7 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
                 left_panel_open: Some(window.left_panel_open),
                 vertical_tabs_panel_open: Some(window.vertical_tabs_panel_open),
                 fullscreen_state: window.fullscreen_state as i32,
-                agent_management_filters: window
-                    .agent_management_filters
-                    .as_ref()
-                    .and_then(|f| serde_json::to_string(f).ok()),
+                agent_management_filters: None,
             };
             diesel::insert_into(schema::windows::dsl::windows)
                 .values(new_window)
@@ -895,20 +892,7 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
             .values(new_app)
             .execute(conn)?;
 
-        // Save active MCP servers
-        let active_mcp_servers: Vec<NewActiveMCPServer> = app_state
-            .running_mcp_servers
-            .iter()
-            .map(|uuid| NewActiveMCPServer {
-                mcp_server_uuid: uuid.to_string(),
-            })
-            .collect();
-
-        if !active_mcp_servers.is_empty() {
-            diesel::insert_into(schema::active_mcp_servers::dsl::active_mcp_servers)
-                .values(active_mcp_servers)
-                .execute(conn)?;
-        }
+        // MCP servers were an AI feature and are no longer persisted.
 
         Ok(())
     })?;
@@ -965,10 +949,7 @@ fn save_pane_state(
                     .shell_launch_data
                     .as_ref()
                     .and_then(|shell| serde_json::to_string(shell).ok()),
-                input_config: terminal_snapshot
-                    .input_config
-                    .as_ref()
-                    .and_then(|config| serde_json::to_string(config).ok()),
+                input_config: None,
                 llm_model_override: None,
                 active_profile_id: terminal_snapshot
                     .active_profile_id
@@ -1108,14 +1089,13 @@ fn get_all_workspace_language_servers_by_workspace(
             continue;
         };
 
-        let Some(enablement) = serde_json::from_str(&enablement_str).ok() else {
-            continue;
-        };
-
+        // `EnablementState` (telemetry) is not serde-able; the restored value is no
+        // longer consumed, so default it rather than deserializing.
+        let _ = enablement_str;
         grouped
             .entry(path)
             .or_default()
-            .insert(server_type, enablement);
+            .insert(server_type, EnablementState::Always);
     }
 
     Ok(grouped)
@@ -1149,7 +1129,13 @@ fn upsert_workspace_language_server(
         .first::<model::WorkspaceLanguageServer>(conn)
         .optional()?;
 
-    let enablement_str = serde_json::to_string(&enablement)?;
+    // `EnablementState` (telemetry) is not serde-able; persist a simple marker.
+    let enablement_str = if enablement.is_enabled() {
+        "enabled"
+    } else {
+        "disabled"
+    }
+    .to_string();
 
     if let Some(existing_record) = existing {
         // Update existing record
@@ -1599,9 +1585,6 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
                     let shell_launch_data: Option<ShellLaunchData> = terminal_pane
                         .shell_launch_data
                         .and_then(|shell_str| serde_json::from_str(&shell_str).ok());
-                    let input_config = terminal_pane
-                        .input_config
-                        .and_then(|config_str| serde_json::from_str(&config_str).ok());
                     let active_profile_id = terminal_pane
                         .active_profile_id
                         .and_then(|profile_str| serde_json::from_str(&profile_str).ok());
@@ -1613,7 +1596,6 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
                         is_active: terminal_pane.is_active,
                         is_read_only: false,
                         shell_launch_data,
-                        input_config,
                         active_profile_id,
                     })
                 }
@@ -1952,16 +1934,11 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
         })
         .collect();
 
-    let restored_blocks = get_all_restored_blocks(conn)?;
-
-    // Load active MCP servers from database
-    let running_mcp_servers = load_active_mcp_servers(conn)?;
+    let _restored_blocks = get_all_restored_blocks(conn)?;
 
     let app_state = AppState {
         windows: saved_windows,
         active_window_index,
-        block_lists: Arc::new(restored_blocks),
-        running_mcp_servers,
     };
 
     let codebase_indices = get_all_codebase_index_metadata(conn)?;
