@@ -52,7 +52,18 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### ▶▶ EXECUTING the panel/code deletion INCREMENTALLY (works! NOT all-or-nothing) — 83 resolution errors now (234→83, 64%).
+### ▶▶ STATE: 66 resolution errors (234→66 this session, 72%). Incremental view.rs grind continuing — cleared so far also:
+WarpDriveSettings, AgentNotificationsModel+BonusGrantNotification subs, Warp Home/Drive auto-open (UpdateManager/CloudModel/
+create_home_pane), free-tier AI-limit modal (→return false), cloud settings-sync flag, compute_left_panel_views dead variants.
+REMAINING view.rs (~14): the RIGHT-PANEL/CODE-REVIEW method cluster — open_code_review_panel_from_arg, update_right_panel_open_state,
+toggle_right_panel(@15976 caller), open_right_panel x2, close_right_panel(@2928/16142), toggle_right_panel_maximized(@4907/4920),
++ structs CodeReviewPaneContext(DiffStateModel)/RightPanelUpdateParams(CodeReviewPaneEntrypoint) [~6765-7011] — these are the
+gateway to deleting right_panel.rs(34). Also: ZeroStatePromptSuggestionType(2), ConversationRestorationInNewPaneType(2),
+RewindDialogSource, DeleteConversationDialogSource, NotebookPaneSnapshot, FilePane, AmbientAgentTaskId(enum variants @627/629),
+CodeObjectTypeAndId(@11077 param). THEN the LeftPanelView/RightPanelView fields+ctors+render+toggle methods + ToolPanelView +
+binding consts, THEN delete left_panel.rs/right_panel.rs/global_search/ files + mod decls + the ~10 GlobalSearch-referencing files.
+
+### ▶▶ (history) EXECUTING the panel/code deletion INCREMENTALLY (works! NOT all-or-nothing):
 KEY: workspace/view.rs can be ground down cluster-by-cluster, committing each drop, WITHOUT deleting the panel files first.
 The panel TYPES still resolve (files not yet deleted), so removing their use-sites one subsystem at a time keeps the count
 monotonically dropping. Done so far in view.rs: PersistedWorkspace→ProjectManagementModel re-points; the whole code-pane opener
