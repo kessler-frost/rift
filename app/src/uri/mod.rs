@@ -231,15 +231,6 @@ impl UriHost {
 
                 if let Some(settings_sub_page) = settings_sub_page {
                     match settings_sub_page.as_str() {
-                        "billing_and_usage" => {
-                            dispatch_action_in_new_or_existing_window(
-                                primary_window_id,
-                                "root_view:open_settings_page_in_existing_window",
-                                "root_view:open_settings_page_in_new_window",
-                                &SettingsSection::BillingAndUsage,
-                                ctx,
-                            );
-                        }
                         "mcp" => {
                             // warp://settings/mcp?autoinstall=<name> auto-installs a gallery MCP server.
                             // The value is matched case-insensitively against gallery titles.
@@ -790,74 +781,10 @@ impl Action {
                     log::warn!("no workspace views in window {window_id} for open repo action");
                 }
             }
-            Action::CloudAgentSetup => {
-                let window_id =
-                    primary_window_id.or_else(|| Some(open_new_window_get_handles(None, ctx).0));
-
-                let Some(window_id) = window_id else {
-                    log::warn!("unable to determine window for cloud agent setup action");
-                    return;
-                };
-
-                let Some(mut workspaces) = ctx.views_of_type::<Workspace>(window_id) else {
-                    log::warn!(
-                        "no workspace found in window {window_id} for cloud agent setup action"
-                    );
-                    return;
-                };
-
-                if let Some(workspace) = workspaces.pop() {
-                    workspace.update(ctx, |workspace, ctx| {
-                        workspace.handle_action(&WorkspaceAction::OpenCloudAgentSetupGuide, ctx);
-                    });
-                } else {
-                    log::warn!(
-                        "no workspace views in window {window_id} for cloud agent setup action"
-                    );
-                }
-            }
-            Action::NewCloudAgentConversation => {
-                let Some(window_id) = primary_window_id else {
-                    open_new_with_workspace_source(NewWorkspaceSource::AmbientAgent, ctx);
-                    return;
-                };
-
-                let Some(mut workspaces) = ctx.views_of_type::<Workspace>(window_id) else {
-                    log::warn!(
-                        "no workspace found in window {window_id} for new cloud agent conversation action"
-                    );
-                    return;
-                };
-
-                if let Some(workspace) = workspaces.pop() {
-                    workspace.update(ctx, |workspace, ctx| {
-                        workspace.handle_action(&WorkspaceAction::AddAmbientAgentTab, ctx);
-                    });
-                } else {
-                    log::warn!(
-                        "no workspace views in window {window_id} for new cloud agent conversation action"
-                    );
-                }
-            }
-            Action::NewAgentConversation => {
-                let window_id =
-                    primary_window_id.or_else(|| Some(open_new_window_get_handles(None, ctx).0));
-
-                let Some(window_id) = window_id else {
-                    log::warn!("unable to determine window for new agent conversation action");
-                    return;
-                };
-
-                let Some(workspace) = WorkspaceRegistry::as_ref(ctx).get(window_id, ctx) else {
-                    log::warn!(
-                        "no workspace found in window {window_id} for new agent conversation action"
-                    );
-                    return;
-                };
-
-                workspace.update(ctx, |workspace, ctx| {
-                    workspace.handle_action(&WorkspaceAction::AddAgentTab, ctx);
-                });
+            Action::CloudAgentSetup
+            | Action::NewCloudAgentConversation
+            | Action::NewAgentConversation => {
+                // Cloud/local agent conversations were AI features and have been removed.
             }
             Action::CreateEnvironment { repos } => {
                 use crate::root_view::CreateEnvironmentArg;

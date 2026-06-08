@@ -575,13 +575,9 @@ impl ServerApi {
             .await
             .context("Failed to get ambient workload token")?;
 
-        let task_id = self
-            .ambient_agent_task_id
-            .read()
-            .as_ref()
-            .map(|id| id.to_string());
-
-        let agent_source = self.agent_source.as_ref().map(|s| s.as_str().to_string());
+        // Ambient agent task/source were cloud features and have been removed.
+        let task_id: Option<String> = None;
+        let agent_source: Option<String> = None;
 
         Ok(workload_token
             .map(|token| (AMBIENT_WORKLOAD_TOKEN_HEADER, token))

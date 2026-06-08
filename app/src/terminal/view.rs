@@ -61,15 +61,12 @@ pub use init::{
 };
 use init::{INPUT_BOX_VISIBLE_KEY, TOGGLE_BLOCK_FILTER_KEYBINDING};
 use inline_banner::{
-    render_alias_expansion_banner, render_aws_bedrock_login_banner,
-    render_aws_cli_not_installed_banner, render_inline_notifications_discovery_banner,
+    render_alias_expansion_banner, render_inline_notifications_discovery_banner,
     render_inline_notifications_error_banner, render_inline_shared_session_ended_banner,
     render_inline_shared_session_started_banner, render_inline_ssh_wrapper_banner,
     render_open_in_warp_banner, render_shell_process_terminated_banner, render_vim_mode_banner,
-    AliasExpansionBanner, AliasExpansionBannerAction, AnonymousUserAISignUpBannerState,
-    AnonymousUserLoginBannerAction, AwsBedrockLoginBannerAction, AwsBedrockLoginBannerState,
-    AwsCliNotInstalledBannerAction, AwsCliNotInstalledBannerState, ByoLlmAuthBannerSessionState,
-    OpenInWarpBannerState, SSHBannerAction, SSHBannerState, VimModeBannerAction,
+    AliasExpansionBanner, AliasExpansionBannerAction, OpenInWarpBannerState, SSHBannerAction,
+    SSHBannerState, VimModeBannerAction,
 };
 pub use inline_banner::{NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction};
 use instant::Instant;
@@ -328,9 +325,7 @@ use crate::terminal::settings::{TerminalSettings, TerminalSettingsChangedEvent};
 use crate::terminal::ssh::ssh_detection::SshInteractiveSessionDetected;
 use crate::terminal::view::block_onboarding::onboarding_prompt_block::OnboardingPromptBlock;
 use crate::terminal::view::inline_banner::{
-    render_agent_mode_setup_banner, AgentModeSetupSpeedbumpBannerAction,
-    AgentModeSetupSpeedbumpBannerState, AliasExpansionBannerState,
-    NotificationsDiscoveryBannerState, NotificationsErrorBannerState,
+    AliasExpansionBannerState, NotificationsDiscoveryBannerState, NotificationsErrorBannerState,
     VimModeBannerState,
 };
 pub use crate::terminal::view::rich_content::{
@@ -829,10 +824,6 @@ pub enum InlineBannerType {
     OpenInWarp,
     VimMode,
     CodebaseIndexSpeedbump,
-    AgentModeSetup,
-    AnonymousUserAISignUp,
-    AwsBedrockLogin,
-    AwsCliNotInstalled,
 }
 
 impl InlineBannerType {
@@ -841,12 +832,7 @@ impl InlineBannerType {
     pub fn is_visible_in_agent_view(&self) -> bool {
         match self {
             // Agent-related banners: visible in agent view
-            Self::PromptSuggestions
-            | Self::CodebaseIndexSpeedbump
-            | Self::AgentModeSetup
-            | Self::AnonymousUserAISignUp
-            | Self::AwsBedrockLogin
-            | Self::AwsCliNotInstalled => true,
+            Self::PromptSuggestions | Self::CodebaseIndexSpeedbump => true,
             // Terminal-context banners: hidden in agent view
             Self::NotificationsDiscovery
             | Self::NotificationsError
@@ -902,14 +888,6 @@ struct InlineBannersState {
     open_in_warp_banner: Option<OpenInWarpBannerState>,
 
     vim_banner_state: Option<VimModeBannerState>,
-
-    agent_setup_speedbump_banner: Option<AgentModeSetupSpeedbumpBannerState>,
-
-    anonymous_user_ai_sign_up_banner: Option<AnonymousUserAISignUpBannerState>,
-
-    aws_bedrock_login_banner: Option<AwsBedrockLoginBannerState>,
-
-    aws_cli_not_installed_banner: Option<AwsCliNotInstalledBannerState>,
 }
 
 impl InlineBannersState {
@@ -5205,220 +5183,6 @@ impl TerminalView {
         });
     }
 
-    fn agent_mode_setup_speedbump_banner_action(
-        &mut self,
-        action: AgentModeSetupSpeedbumpBannerAction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match action {
-            AgentModeSetupSpeedbumpBannerAction::Close => {
-                send_telemetry_from_ctx!(TelemetryEvent::AgentModeSetupBannerDismissed, ctx);
-                self.remove_agent_setup_speedbump_banner(ctx)
-            }
-            AgentModeSetupSpeedbumpBannerAction::SetupAgentMode => {
-                send_telemetry_from_ctx!(TelemetryEvent::AgentModeSetupBannerAccepted, ctx);
-                #[cfg(feature = "local_fs")]
-                if let Some(repo_path) = self.current_local_repo_path() {
-                    self.mark_agent_init_callout_as_shown_for_directory(repo_path, ctx);
-                }
-                self.remove_agent_setup_speedbump_banner(ctx);
-            }
-        }
-    }
-
-
-    #[cfg(feature = "local_fs")]
-    fn insert_agent_mode_setup_speedbump_banner(
-        &mut self,
-        repo_path: PathBuf,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Create new inline banner
-        let banner_id = self.inline_banners_state.next_banner_id();
-        let banner_state = AgentModeSetupSpeedbumpBannerState::new(banner_id, repo_path.clone());
-
-        // Insert the banner into the block list
-        self.model
-            .lock()
-            .block_list_mut()
-            .append_inline_banner_with_custom_height(
-                InlineBannerItem::new(banner_id, InlineBannerType::AgentModeSetup),
-                4.0,
-            );
-
-        // Store the banner state
-        self.inline_banners_state.agent_setup_speedbump_banner = Some(banner_state);
-
-        // Track that this banner has been shown for this repo
-        // so it won't be shown again
-        self.mark_agent_init_callout_as_shown_for_directory(&repo_path, ctx);
-
-        ctx.notify();
-    }
-
-
-    #[cfg(feature = "local_fs")]
-    fn remove_agent_setup_speedbump_banner(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(banner_state) = self
-            .inline_banners_state
-            .agent_setup_speedbump_banner
-            .take()
-        {
-            self.model
-                .lock()
-                .block_list_mut()
-                .remove_inline_banner(banner_state.id);
-            ctx.notify();
-        }
-    }
-
-    #[cfg(not(feature = "local_fs"))]
-    fn remove_agent_setup_speedbump_banner(&mut self, _ctx: &mut ViewContext<Self>) {
-        // No-op when local filesystem is unavailable.
-    }
-
-    fn anonymous_user_ai_sign_up_banner_action(
-        &mut self,
-        action: AnonymousUserLoginBannerAction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match action {
-            AnonymousUserLoginBannerAction::SignUp | AnonymousUserLoginBannerAction::Close => {
-                self.remove_anonymous_user_ai_sign_up_banner(ctx);
-            }
-        }
-    }
-
-    fn insert_anonymous_user_ai_sign_up_banner(&mut self, ctx: &mut ViewContext<Self>) {
-        if *GeneralSettings::as_ref(ctx)
-            .anonymous_user_ai_sign_up_banner_shown
-            .value()
-        {
-            return;
-        }
-
-        let banner_id = self.inline_banners_state.next_banner_id();
-        let banner_state = AnonymousUserAISignUpBannerState::new(banner_id);
-
-        self.model
-            .lock()
-            .block_list_mut()
-            .append_inline_banner_with_custom_height(
-                InlineBannerItem::new(banner_id, InlineBannerType::AnonymousUserAISignUp),
-                3.0,
-            );
-
-        self.inline_banners_state.anonymous_user_ai_sign_up_banner = Some(banner_state);
-        GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {
-            let _ = settings
-                .anonymous_user_ai_sign_up_banner_shown
-                .set_value(true, ctx);
-        });
-
-        ctx.notify();
-    }
-
-    fn remove_anonymous_user_ai_sign_up_banner(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(banner_state) = self
-            .inline_banners_state
-            .anonymous_user_ai_sign_up_banner
-            .take()
-        {
-            self.model
-                .lock()
-                .block_list_mut()
-                .remove_inline_banner(banner_state.id);
-            ctx.notify();
-        }
-    }
-
-    fn remove_aws_bedrock_login_banner(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(banner_state) = self.inline_banners_state.aws_bedrock_login_banner.take() {
-            self.model
-                .lock()
-                .block_list_mut()
-                .remove_inline_banner(banner_state.id);
-        }
-        ctx.notify();
-    }
-
-    fn handle_aws_bedrock_login_banner_action(
-        &mut self,
-        action: AwsBedrockLoginBannerAction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match action {
-            AwsBedrockLoginBannerAction::Login => {
-                self.run_aws_login_command(ctx);
-            }
-            AwsBedrockLoginBannerAction::DontShowAgain => {
-                AISettings::handle(ctx).update(ctx, |ai_settings, ctx| {
-                    report_if_error!(ai_settings
-                        .aws_bedrock_login_banner_dismissed
-                        .set_value(true, ctx));
-                });
-            }
-            AwsBedrockLoginBannerAction::Dismiss => {
-                // Mark as dismissed for this session (won't reappear until app restart)
-                ByoLlmAuthBannerSessionState::handle(ctx).update(ctx, |state, ctx| {
-                    state.dismiss(ctx);
-                });
-            }
-        }
-        self.remove_aws_bedrock_login_banner(ctx);
-    }
-
-    /// Runs the AWS login command configured in settings to refresh Bedrock credentials.
-    /// Doing this in PTY vs just a subprocess allows the user to see any output/errors
-    /// from the command directly in the terminal. Also, `aws login` commands may require
-    /// user interaction (e.g. "do you want to override X profile? y/n" is common)
-    fn run_aws_login_command(&mut self, ctx: &mut ViewContext<Self>) {
-        let login_command = AISettings::as_ref(ctx)
-            .aws_bedrock_auth_refresh_command
-            .value()
-            .clone();
-
-        if login_command.is_empty() {
-            log::warn!("AWS login command is not configured");
-            return;
-        }
-
-        // Write the command to the PTY and execute it
-        let command_bytes = login_command.into_bytes();
-        self.clear_line_editor_and_write_to_pty(command_bytes, ctx);
-        self.write_to_pty(vec![escape_sequences::C0::CR], ctx);
-    }
-
-
-    fn remove_aws_cli_not_installed_banner(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(banner_state) = self
-            .inline_banners_state
-            .aws_cli_not_installed_banner
-            .take()
-        {
-            self.model
-                .lock()
-                .block_list_mut()
-                .remove_inline_banner(banner_state.id);
-        }
-        ctx.notify();
-    }
-
-    fn handle_aws_cli_not_installed_banner_action(
-        &mut self,
-        action: AwsCliNotInstalledBannerAction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match action {
-            AwsCliNotInstalledBannerAction::LearnMore => {
-                ctx.open_url(AwsCliNotInstalledBannerAction::docs_url());
-            }
-            AwsCliNotInstalledBannerAction::Dismiss => {}
-        }
-        self.remove_aws_cli_not_installed_banner(ctx);
-    }
-
-
     /// Inserts a banner notifying the user that the shell process has terminated.
     fn insert_shell_process_terminated_banner(
         &mut self,
@@ -7167,12 +6931,6 @@ impl TerminalView {
         self.is_login_shell_bootstrapped = true;
         self.hide_slow_bootstrap_banner(ctx);
 
-        if self.auth_state.is_anonymous_or_logged_out()
-            && !FeatureFlag::OpenWarpNewSettingsModes.is_enabled()
-        {
-            self.insert_anonymous_user_ai_sign_up_banner(ctx);
-        }
-
         if self.should_display_vim_banner(&session, ctx) {
             self.insert_vim_mode_banner(ctx);
         }
@@ -7499,51 +7257,8 @@ impl TerminalView {
 
 
 
-    #[cfg(feature = "local_fs")]
-    fn update_repo_banner_state(&mut self, directory: PathBuf, ctx: &mut ViewContext<Self>) {
-        self.update_agent_mode_setup_speedbump_banner(directory, ctx);
-    }
-
-    #[cfg(not(feature = "local_fs"))]
     fn update_repo_banner_state(&mut self, _directory: PathBuf, _ctx: &mut ViewContext<Self>) {
-        // Repo setup is not supported without a local filesystem.
-    }
-
-    #[cfg(feature = "local_fs")]
-    fn update_agent_mode_setup_speedbump_banner(
-        &mut self,
-        _directory: PathBuf,
-        ctx: &mut ViewContext<Self>,
-    ) {
         // The agent-mode setup speedbump banner was an AI feature and has been removed.
-        self.remove_agent_setup_speedbump_banner(ctx);
-    }
-
-
-
-    fn mark_agent_init_callout_as_shown_for_directory(
-        &self,
-        directory: &Path,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let mut shown_repo_paths = AISettings::as_ref(ctx)
-            .agent_mode_setup_banner_shown_for_repo_paths
-            .clone();
-        if shown_repo_paths
-            .iter()
-            .any(|shown_path| shown_path == directory)
-        {
-            return;
-        }
-        shown_repo_paths.push(directory.to_path_buf());
-        AISettings::handle(ctx).update(ctx, |ai_settings, ctx| {
-            if let Err(e) = ai_settings
-                .agent_mode_setup_banner_shown_for_repo_paths
-                .set_value(shown_repo_paths, ctx)
-            {
-                log::error!("Failed to persist 'Agent Mode setup banner shown' setting: {e}");
-            }
-        });
     }
 
     fn reset_onboarding_blocks(&mut self, ctx: &mut ViewContext<Self>) {
@@ -13225,31 +12940,6 @@ impl TerminalView {
             );
         }
 
-
-        if let Some(banner_state) = &self.inline_banners_state.agent_setup_speedbump_banner {
-            inline_banners.insert(
-                banner_state.id,
-                render_agent_mode_setup_banner(banner_state, appearance),
-            );
-        }
-
-        if let Some(banner_state) = &self.inline_banners_state.anonymous_user_ai_sign_up_banner {
-            inline_banners.insert(banner_state.id, banner_state.render(appearance));
-        }
-
-        if let Some(banner_state) = &self.inline_banners_state.aws_bedrock_login_banner {
-            inline_banners.insert(
-                banner_state.id,
-                render_aws_bedrock_login_banner(banner_state, appearance),
-            );
-        }
-
-        if let Some(banner_state) = &self.inline_banners_state.aws_cli_not_installed_banner {
-            inline_banners.insert(
-                banner_state.id,
-                render_aws_cli_not_installed_banner(banner_state, appearance),
-            );
-        }
 
         inline_banners
     }

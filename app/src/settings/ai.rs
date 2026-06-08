@@ -1756,7 +1756,7 @@ impl AISettings {
 
         // Check if request_limit_info has unlimited requests
         let is_quota_exceeded = !request_limit_info.is_unlimited
-            && request_limit_info.num_requests_used_since_refresh >= request_limit_info.limit;
+            && request_limit_info.requests_used_since_last_refresh >= request_limit_info.request_limit;
 
         let mut cycle_history = self.ai_request_quota_info.cycle_history.clone();
 

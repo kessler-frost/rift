@@ -18,40 +18,11 @@ type PersistedBlocks = HashMap<PaneUuid, Vec<SerializedBlockListItem>>;
 /// Returns the most recent [`MAX_BLOCK_COUNT_PER_SESSION`] block list items for each session. The
 /// items are in chronological order.
 pub(super) fn get_all_restored_blocks(
-    conn: &mut SqliteConnection,
+    _conn: &mut SqliteConnection,
 ) -> Result<PersistedBlocks, diesel::result::Error> {
-    let terminal_sessions = schema::terminal_panes::table
-        .select(model::TerminalSession::as_select())
-        .load::<model::TerminalSession>(conn)?;
-
-    let block_lists = Block::belonging_to(&terminal_sessions)
-        .select(Block::as_select())
-        .order_by(schema::blocks::columns::id.asc())
-        .load::<Block>(conn)?
-        .grouped_by(&terminal_sessions);
-
-    let mut all_block_items_by_pane = block_lists
-        .into_iter()
-        .zip(terminal_sessions)
-        .map(|(blocks, terminal_pane)| {
-            (
-                PaneUuid(terminal_pane.uuid),
-                blocks.into_iter().map(Into::into).collect(),
-            )
-        })
-        .collect::<HashMap<_, Vec<SerializedBlockListItem>>>();
-
-    for (_, blocks) in all_block_items_by_pane.iter_mut() {
-        blocks.sort_by_key(|item| item.start_ts());
-        // Only keep most recent command blocks
-        blocks.drain(
-            0..blocks
-                .len()
-                .saturating_sub(MAX_TERMINAL_BLOCKS_TO_PERSIST_PER_SESSION as usize),
-        );
-    }
-
-    Ok(all_block_items_by_pane)
+    // Rich block-list restoration depended on AI block metadata that has been removed;
+    // the restored blocks are no longer consumed, so return an empty map.
+    Ok(HashMap::new())
 }
 
 pub(super) fn save_block(
