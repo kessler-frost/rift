@@ -22,6 +22,7 @@ use itertools::Itertools;
 use libsqlite3_sys as sqlite3;
 use lsp::supported_servers::LSPServerType;
 use num_traits::FromPrimitive;
+use rift_core::telemetry::EnablementState;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use riftui::platform::FullscreenState;

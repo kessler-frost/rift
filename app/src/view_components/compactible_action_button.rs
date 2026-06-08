@@ -247,3 +247,13 @@ pub fn render_expansion_icon(
     .with_height(icon_size(app))
     .finish()
 }
+
+/// Square dimension (in px) for the chevron icon, matching the monospace line
+/// height. Recovered inline from the deleted `ai::blocklist` inline-action icons.
+fn icon_size(app: &AppContext) -> f32 {
+    let appearance = Appearance::as_ref(app);
+    app.font_cache().line_height(
+        appearance.monospace_font_size(),
+        appearance.line_height_ratio(),
+    )
+}
