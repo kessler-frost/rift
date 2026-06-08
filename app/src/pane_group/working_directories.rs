@@ -311,25 +311,19 @@ impl WorkingDirectoriesModel {
     /// Get the repository path the user has manually selected for the code review
     /// panel in a given pane group, if any. Used to restore the selection when the
     /// user navigates back to the pane group's session.
-    pub fn get_selected_review_repo(&self, pane_group_id: EntityId) -> Option<&LocalOrRemotePath> {
-        self.selected_review_repo.get(&pane_group_id)
+    // The code review panel was an AI feature and has been removed.
+    pub fn get_selected_review_repo(&self, _pane_group_id: EntityId) -> Option<&LocalOrRemotePath> {
+        None
     }
 
-    /// Persist the repository the user manually selected for the code review panel
-    /// in a given pane group. This is only called for explicit user-driven
-    /// selections (e.g. via the dropdown), not for auto-selected defaults.
     pub fn set_selected_review_repo(
         &mut self,
-        pane_group_id: EntityId,
-        repo_path: LocalOrRemotePath,
+        _pane_group_id: EntityId,
+        _repo_path: LocalOrRemotePath,
     ) {
-        self.selected_review_repo.insert(pane_group_id, repo_path);
     }
 
-    /// Clear the saved code review panel selection for a pane group.
-    pub fn clear_selected_review_repo(&mut self, pane_group_id: EntityId) {
-        self.selected_review_repo.remove(&pane_group_id);
-    }
+    pub fn clear_selected_review_repo(&mut self, _pane_group_id: EntityId) {}
 
     pub fn store_global_search_view(
         &mut self,
@@ -359,10 +353,7 @@ impl WorkingDirectoriesModel {
         // Clean up views that should persist in handle_empty_pane_group e.g. there's only a settings pane in the pane group
         // but need to be removed when the pane group is destroyed
         self.global_search_views.remove(&pane_group_id);
-        self.file_tree_views.remove(&pane_group_id);
-        self.code_review_views.remove(&pane_group_id);
         self.focused_repo.remove(&pane_group_id);
-        self.selected_review_repo.remove(&pane_group_id);
     }
 
     fn handle_empty_pane_group(&mut self, pane_group_id: EntityId, ctx: &mut ModelContext<Self>) {
@@ -370,10 +361,6 @@ impl WorkingDirectoriesModel {
         let did_remove_terminals = self.directory_to_terminal.remove(&pane_group_id).is_some();
         let orphaned_repos = self.repository_roots.remove_pane_group(pane_group_id);
         let did_remove_repos = orphaned_repos.is_some();
-
-        if let Some(orphaned_repos) = orphaned_repos {
-            self.drop_unused_diff_state_models(orphaned_repos, ctx);
-        }
 
         if did_remove_dirs {
             ctx.emit(WorkingDirectoriesEvent::DirectoriesChanged {
@@ -651,7 +638,7 @@ impl WorkingDirectoriesModel {
         }
 
         if old_repos != new_deduplicated_repos {
-            self.drop_unused_diff_state_models(orphaned_repos, ctx);
+            let _ = &orphaned_repos;
             self.emit_repositories_changed(pane_group_id, ctx);
         }
 
