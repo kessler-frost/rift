@@ -9180,20 +9180,15 @@ impl Workspace {
 
 
 
-    /// Add a tab with a file notebook pane open.
+    /// The built-in notebook viewer was removed; open the file in the external editor instead.
     pub fn add_tab_for_file_notebook(
         &mut self,
         file_path: Option<PathBuf>,
         ctx: &mut ViewContext<Self>,
     ) {
-        let panes_layout = PanesLayout::Snapshot(Box::new(PaneNodeSnapshot::Leaf(LeafSnapshot {
-            is_focused: true,
-            custom_vertical_tabs_title: None,
-            contents: LeafContents::Notebook(NotebookPaneSnapshot::LocalFileNotebook {
-                path: file_path,
-            }),
-        })));
-        self.add_tab_with_pane_layout(panes_layout, Arc::new(HashMap::new()), None, ctx);
+        if let Some(path) = file_path {
+            crate::util::file::open_file_path_with_editor(None, path, None, ctx);
+        }
     }
 
     pub fn add_tab_for_assisted_autoupdate<V: View>(
