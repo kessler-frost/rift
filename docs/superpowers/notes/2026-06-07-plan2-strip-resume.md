@@ -21,6 +21,21 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE (window 9, 2026-06-07): 207 resolution errors (552→207). This window: (C) network_log_view DONE (CodeEditorView→
+read-only monospace Text); (B) cloud-team CloudObjectEventEntrypoint cascade DONE (dropped entrypoint param from team API
+create_team/remove_user_from_team/leave_team + TeamUpdateManager, supply rift_graphql::object::CloudObjectEventEntrypoint::Unknown
+to the still-required gql input field); and the ENTIRE AI-autonomy/LLM-host workspace-settings vertical DONE — deleted
+LlmSettings/AiAutonomySettings/AiPermissionsSettings/SandboxedAgentSettings structs + WorkspaceSettings fields, gql_convert
+From-impls+ToPredicates/ToPathBufs helpers, user_workspaces accessors (aws_bedrock_*, ai_autonomy_settings, sandboxed,
+is_ai_allowed_in_remote_sessions, get_remote_session_regex_list, update_* test helpers), team.rs/workspace.rs is_custom_llm_enabled,
+settings/ai.rs 7 is_*_editable→is_any_ai_enabled + deleted is_ai_disabled_due_to_remote_session_org_policy, terminal/view.rs
+is_block_considered_remote (dropped command param + regex branch) + update_focused_terminal_info (dropped gate). NOTE: AISettings
+(settings/ai.rs) is CORE — used in 40+ files, NOT deletable; FocusedTerminalInfo/DefaultSessionMode also stay.
+ALSO this window: fixed /doctor LSP crash — `rustup component add rust-analyzer` (shim was present but component missing in 1.92.0).
+REMAINING ≈207 = (A) CODE-REVIEW PANEL ~119 (workspace/view.rs 73 + right_panel 34 + left_panel 12) + (B) PHASE-F GRAPHQL ~34
+(server/graphql/schema/mod 22 + util 12) + small unmasked non-AI residue (update_manager EnvVar/GitDeltaPreference,
+gql_convert convert_billing_cycle_usage, repo_picker, sqlite, etc.).
+
 ### STATE: 234 resolution errors (552→234 this run, ~80 commits, 29 files primary-clean — 57% reduction). Cleared the
 ENTIRE Phase-F server_api periphery this stretch: deleted harness_support module (moved generic UploadTarget types to
 presigned_upload), GlobalBufferModel remote-code-editing subsystem in remote_server/server_model, cloud-model refreshes
