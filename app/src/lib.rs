@@ -1039,7 +1039,6 @@ pub(crate) fn initialize_app(
     });
 
     let server_api = server_api_provider.as_ref(ctx).get();
-    let ai_client = server_api_provider.as_ref(ctx).get_ai_client();
 
     ctx.add_singleton_model(|_ctx| AuthStateProvider::new(auth_state.clone()));
 
@@ -1103,56 +1102,35 @@ pub(crate) fn initialize_app(
     });
 
     let (
-        mut cloud_objects,
         mut cached_workspaces,
         mut current_workspace_uid,
         mut app_state,
         mut command_history,
         mut restored_user_profiles,
-        mut time_of_next_force_object_refresh,
-        mut object_actions,
         mut experiments,
-        mut ai_queries,
         persisted_workspaces,
         mut workspace_language_servers,
-        mut multi_agent_conversations,
         mut persisted_projects,
         mut persisted_project_rules,
         mut persisted_ignored_suggestions,
-        mut persisted_mcp_server_installations,
-        mut mcp_servers_to_restore,
     ) = sqlite_data
         .map(|sqlite_data| {
             (
-                sqlite_data.cloud_objects,
                 sqlite_data.workspaces,
                 sqlite_data.current_workspace_uid,
                 Some(sqlite_data.app_state),
                 sqlite_data.command_history,
                 sqlite_data.user_profiles,
-                sqlite_data.time_of_next_force_object_refresh,
-                sqlite_data.object_actions,
                 sqlite_data.experiments,
-                sqlite_data.ai_queries,
                 sqlite_data.codebase_indices,
                 sqlite_data.workspace_language_servers,
-                sqlite_data.multi_agent_conversations,
                 sqlite_data.projects,
                 sqlite_data.project_rules,
                 sqlite_data.ignored_suggestions,
-                sqlite_data.mcp_server_installations,
-                sqlite_data.mcp_servers_to_restore,
             )
         })
         .unwrap_or_else(|| {
             (
-                Default::default(),
-                Default::default(),
-                Default::default(),
-                Default::default(),
-                Default::default(),
-                Default::default(),
-                Default::default(),
                 Default::default(),
                 Default::default(),
                 Default::default(),
@@ -1172,23 +1150,16 @@ pub(crate) fn initialize_app(
         log::debug!(
             "[Remote codebase indexing] Restored daemon codebase index metadata: metadata_count={codebase_index_count}"
         );
-        cloud_objects = Default::default();
         cached_workspaces = Default::default();
         current_workspace_uid = None;
         app_state = None;
         command_history = Default::default();
         restored_user_profiles = Default::default();
-        time_of_next_force_object_refresh = None;
-        object_actions = Default::default();
         experiments = Default::default();
-        ai_queries = Default::default();
         workspace_language_servers = Default::default();
-        multi_agent_conversations = Default::default();
         persisted_projects = Default::default();
         persisted_project_rules = Default::default();
         persisted_ignored_suggestions = Default::default();
-        persisted_mcp_server_installations = Default::default();
-        mcp_servers_to_restore = Default::default();
     }
 
     // Initialize a global model to track server-side experiment state.
@@ -1210,9 +1181,7 @@ pub(crate) fn initialize_app(
     // Initialize ApiKeyManager after UserWorkspaces so it can subscribe to workspace/settings changes
     ctx.add_singleton_model(|ctx| {
         #[cfg_attr(target_family = "wasm", allow(unused_mut))]
-        let mut manager = ::ai::api_keys::ApiKeyManager::new(ctx);
-        #[cfg(not(target_family = "wasm"))]
-        manager.subscribe_to_settings_changes(ctx);
+        let manager = ::ai::api_keys::ApiKeyManager::new(ctx);
         manager
     });
 
@@ -1556,10 +1525,6 @@ pub(crate) fn initialize_app(
     // LogManager must be registered before any subsystem (e.g. MCP, LSP) that creates file-based loggers.
     ctx.add_singleton_model(|_| simple_logger::manager::LogManager::new());
 
-    let running_mcp_servers = app_state
-        .as_ref()
-        .map(|app_state| app_state.running_mcp_servers.as_slice())
-        .unwrap_or(&[]);
 
 
 
