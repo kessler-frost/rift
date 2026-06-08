@@ -7,11 +7,43 @@ use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 #[cfg(not(target_family = "wasm"))]
 use crc::{Crc, CRC_32_ISCSI};
+use std::collections::HashMap;
+
 use rift_core::errors::{register_error, ErrorExt};
 use thiserror::Error;
 
-#[cfg(feature = "local_fs")]
-use super::harness_support::{UploadFieldValue, UploadTarget};
+/// An upload target describing where and how to upload a blob (e.g. an S3 presigned URL).
+#[serde_with::serde_as]
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct UploadTarget {
+    pub url: String,
+    pub method: String,
+    pub headers: HashMap<String, String>,
+    /// Ordered multipart form fields for POST uploads.
+    #[serde(default)]
+    #[serde_as(deserialize_as = "serde_with::DefaultOnNull")]
+    pub fields: Vec<UploadField>,
+}
+
+/// A single multipart form field on a POST upload target.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct UploadField {
+    pub name: String,
+    pub value: UploadFieldValue,
+}
+
+/// Descriptor for a field value when uploading to an [`UploadTarget`].
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum UploadFieldValue {
+    /// Literal string value known at URL-generation time.
+    Static { value: String },
+    /// Client should compute CRC32C of the upload, base64-encode the 4-byte
+    /// big-endian result, and send it as this field's value.
+    ContentCrc32C,
+    /// Client should use the raw upload bytes as this field's value.
+    ContentData,
+}
 
 /// Typed error for HTTP-backed operations so downstream classifiers (e.g. the agent-SDK
 /// retry helper) can decide transient vs permanent failures without string-parsing the
@@ -70,35 +102,6 @@ impl<'a> From<&'a UploadTarget> for NormalizedUploadTarget<'a> {
                 .headers
                 .iter()
                 .map(|(name, value)| (name.as_str(), value.as_str()))
-                .collect(),
-            fields: target
-                .fields
-                .iter()
-                .map(|field| NormalizedField {
-                    name: field.name.as_str(),
-                    value: match &field.value {
-                        UploadFieldValue::Static { value } => {
-                            NormalizedFieldValue::Static(value.as_str())
-                        }
-                        UploadFieldValue::ContentCrc32C => NormalizedFieldValue::ContentCrc32C,
-                        UploadFieldValue::ContentData => NormalizedFieldValue::ContentData,
-                    },
-                })
-                .collect(),
-        }
-    }
-}
-
-#[cfg(feature = "local_fs")]
-impl<'a> From<&'a FileArtifactUploadTargetInfo> for NormalizedUploadTarget<'a> {
-    fn from(target: &'a FileArtifactUploadTargetInfo) -> Self {
-        Self {
-            url: &target.url,
-            method: &target.method,
-            headers: target
-                .headers
-                .iter()
-                .map(|header| (header.name.as_str(), header.value.as_str()))
                 .collect(),
             fields: target
                 .fields
@@ -416,35 +419,6 @@ fn encode_crc32c_base64(crc32c: u32) -> String {
     // Storage providers expect the checksum as base64 of the raw big-endian CRC32C bytes,
     // not the more human-readable hex string we typically log.
     STANDARD.encode(crc32c.to_be_bytes())
-}
-
-/// Upload a file artifact. Always computes the base64 CRC32C so callers can
-/// pass it to `confirmFileArtifactUpload`.
-#[cfg(feature = "local_fs")]
-pub(crate) async fn upload_file_to_target(
-    http_client: &http_client::Client,
-    target: &FileArtifactUploadTargetInfo,
-    body: impl UploadBody,
-) -> Result<String> {
-    let normalized = NormalizedUploadTarget::from(target);
-    let error_context = UploadErrorContext {
-        transport: "Failed to upload artifact bytes",
-        failure: "Artifact upload",
-    };
-
-    // `confirmFileArtifactUpload` always needs the CRC32C, so we always compute
-    // it up front and then hand it to the dispatcher so the multipart path
-    // doesn't recompute it.
-    let crc32c_base64 = body.compute_crc32c_base64().await?;
-    send_upload(
-        http_client,
-        &normalized,
-        body,
-        Some(crc32c_base64.clone()),
-        error_context,
-    )
-    .await?;
-    Ok(crc32c_base64)
 }
 
 #[cfg(test)]

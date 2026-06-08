@@ -1,7 +1,6 @@
 pub mod auth;
 mod base_client;
 pub mod block;
-pub mod harness_support;
 pub mod integrations;
 pub mod managed_secrets;
 pub(crate) mod presigned_upload;
@@ -1392,10 +1391,6 @@ impl ServerApiProvider {
         self.server_api.client.clone()
     }
 
-    #[cfg_attr(target_family = "wasm", expect(dead_code))]
-    pub fn get_harness_support_client(&self) -> Arc<dyn harness_support::HarnessSupportClient> {
-        self.server_api.clone()
-    }
 }
 
 impl Entity for ServerApiProvider {
