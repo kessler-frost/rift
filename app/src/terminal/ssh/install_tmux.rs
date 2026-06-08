@@ -7,6 +7,7 @@ use riftui::elements::{
     Hoverable, Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
 };
 use riftui::keymap::FixedBinding;
+use riftui::ui_components::components::UiComponent;
 use riftui::ui_components::toggle_menu::ToggleMenuStateHandle;
 use riftui::{
     AppContext, BlurContext, Element, Entity, FocusContext, SingletonEntity, TypedActionView, View,
@@ -304,7 +305,7 @@ impl SshInstallTmuxBlock {
             .finish(),
         )
         .with_uniform_padding(8.)
-        .with_background(theme.background_elevated())
+        .with_background(theme.surface_1())
         .with_corner_radius(riftui::elements::CornerRadius::with_all(
             riftui::elements::Radius::Pixels(6.),
         ))
@@ -312,8 +313,11 @@ impl SshInstallTmuxBlock {
 
         let install_button = appearance
             .ui_builder()
-            .button(self.install_button_mouse_state.clone())
-            .with_text(if is_running { "Installing…" } else { "Install" })
+            .button(
+                riftui::ui_components::button::ButtonVariant::Text,
+                self.install_button_mouse_state.clone(),
+            )
+            .with_text_label(if is_running { "Installing…" } else { "Install" }.to_string())
             .build()
             .on_click(|ctx, _, _| {
                 ctx.dispatch_typed_action(SshInstallTmuxBlockAction::InstallTmux);
@@ -322,8 +326,11 @@ impl SshInstallTmuxBlock {
 
         let skip_button = appearance
             .ui_builder()
-            .button(self.skip_button_mouse_state.clone())
-            .with_text("Skip")
+            .button(
+                riftui::ui_components::button::ButtonVariant::Text,
+                self.skip_button_mouse_state.clone(),
+            )
+            .with_text_label("Skip".to_string())
             .build()
             .on_click(|ctx, _, _| {
                 ctx.dispatch_typed_action(SshInstallTmuxBlockAction::Cancel);

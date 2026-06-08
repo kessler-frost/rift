@@ -103,49 +103,21 @@ impl Input {
 
     fn run_input_mode_detection(
         &self,
-        completion_context: SessionContext,
-        ctx: &mut ViewContext<Self>,
+        _completion_context: SessionContext,
+        _ctx: &mut ViewContext<Self>,
     ) {
-        if let Some(parsed_token) = self.last_parsed_tokens.clone() {
-            let session_id = completion_context.session.id();
-            self.ai_input_model.update(ctx, |ai_input_model, ctx| {
-                ai_input_model.detect_and_set_input_type(
-                    parsed_token,
-                    completion_context,
-                    Some(session_id),
-                    ctx,
-                )
-            })
-        }
+        // AI input-mode detection was removed.
     }
 
     /// Applies background highlighting to slash command and skill command prefixes that should be
     /// syntax highlighted.
     fn apply_slash_command_prefix_highlighting(
         &mut self,
-        buffer_text: &str,
-        ctx: &mut ViewContext<Self>,
+        _buffer_text: &str,
+        _ctx: &mut ViewContext<Self>,
     ) -> bool {
-        let highlighted_prefix_len = self
-            .slash_command_model
-            .as_ref(ctx)
-            .state()
-            .command_prefix_highlight_len(buffer_text);
-
-        let Some(highlighted_prefix_len) = highlighted_prefix_len else {
-            return false;
-        };
-
-        let theme = Appearance::as_ref(ctx).theme();
-        let color = theme.ansi_fg_magenta();
-        self.editor.update(ctx, |editor, ctx| {
-            editor.update_buffer_styles(
-                vec![CharOffset::from(0)..CharOffset::from(highlighted_prefix_len)],
-                TextStyleOperation::default().set_syntax_color(color),
-                ctx,
-            )
-        });
-        true
+        // The slash-command model was removed; no prefix highlighting.
+        false
     }
 
     /// Computes information about the currently-entered command in a background
@@ -159,28 +131,6 @@ impl Input {
     ) {
         if mode.no_jobs_to_run() {
             return;
-        }
-
-        let mut mode = mode;
-
-        // We don't show input command decorations in AI mode, but we keep slash command prefix highlighting.
-        let buffer_text = self.editor.as_ref(ctx).buffer_text(ctx);
-        if self.ai_input_model.as_ref(ctx).is_ai_input_enabled()
-            || (FeatureFlag::AgentView.is_enabled()
-                && self
-                    .slash_command_model
-                    .as_ref(ctx)
-                    .state()
-                    .is_detected_command_or_skill())
-        {
-            self.clear_decorations(ctx);
-            self.apply_slash_command_prefix_highlighting(&buffer_text, ctx);
-            mode.command_decoration = false;
-
-            // Return early because there are no input background jobs to run.
-            if mode.no_jobs_to_run() {
-                return;
-            }
         }
 
         match self.completion_session_context_or_empty_context(ctx) {
@@ -231,28 +181,8 @@ impl Input {
                     },
                 ));
             }
-            CompletionSessionContext::Empty(detection_ctx) => {
-                if mode.ai_input_detection {
-                    // No session context available (e.g., shared session viewer).
-                    // Use a dedicated detection context that does not expose top-level commands.
-                    let buffer_text = self.editor.as_ref(ctx).buffer_text(ctx);
-                    let ai_input_model = self.ai_input_model.clone();
-                    ctx.spawn(
-                        async move {
-                            parse_current_commands_and_tokens(buffer_text, &detection_ctx).await
-                        },
-                        move |_input, parsed_tokens, ctx| {
-                            ai_input_model.update(ctx, |model, ctx| {
-                                model.detect_and_set_input_type(
-                                    parsed_tokens,
-                                    EmptyCompletionContext::new(),
-                                    None,
-                                    ctx,
-                                );
-                            });
-                        },
-                    );
-                }
+            CompletionSessionContext::Empty(_detection_ctx) => {
+                // AI input-mode detection was removed.
             }
         }
     }

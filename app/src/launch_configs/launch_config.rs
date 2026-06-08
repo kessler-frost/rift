@@ -145,24 +145,11 @@ impl TryFrom<PaneNodeSnapshot> for PaneTemplateType {
                     pane_mode: PaneMode::Terminal,
                     shell: None,
                 }),
-                // Currently, notebook panes cannot be saved in launch configurations.
-                LeafContents::Notebook(_)
-                | LeafContents::EnvVarCollection(_)
-                | LeafContents::Code(_)
-                | LeafContents::Workflow(_)
-                | LeafContents::Settings(_)
-                | LeafContents::AIFact(_)
-                | LeafContents::CodeReview(_)
-                | LeafContents::ExecutionProfileEditor
+                // These pane kinds cannot be saved in launch configurations.
+                LeafContents::Settings(_)
                 | LeafContents::GetStarted
                 | LeafContents::NetworkLog
-                | LeafContents::Welcome { .. }
-                | LeafContents::AIDocument(_)
-                | LeafContents::EnvironmentManagement(_)
-                | LeafContents::AmbientAgent(_) => {
-                    // TODO: Handle AIDocument in launch config
-                    Err(())
-                }
+                | LeafContents::Welcome { .. } => Err(()),
             },
         }
     }
