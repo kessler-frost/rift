@@ -2003,7 +2003,7 @@ impl BlockListElement {
                 {
                     if block_list
                         .block_at(block_index)
-                        .map(|block| block.should_hide_block(block_list.agent_view_state()))
+                        .map(|block| block.should_hide_block())
                         .unwrap_or(true)
                     {
                         any_hidden = true;
@@ -2209,30 +2209,17 @@ impl BlockListElement {
         block_borders_enabled: bool,
         snackbar_header: &Option<SnackbarHeader>,
         ai_render_context: &BlocklistAIRenderContext,
-        agent_view_state: &AgentViewState,
         ctx: &mut PaintContext,
         app: &AppContext,
     ) {
         let block_height = block.height().as_f64() as f32 * cell_size.y();
-        if block.is_restored()
-            && (!FeatureFlag::AgentView.is_enabled() || !agent_view_state.is_fullscreen())
-        {
+        if block.is_restored() {
             ctx.scene
                 .draw_rect_with_hit_recording(RectF::new(
                     grid_origin,
                     Vector2F::new(bounds.width(), block_height),
                 ))
                 .with_background(warp_theme.restored_blocks_overlay());
-        }
-
-        // Update the background for the current active long running command when the inline agent view is active.
-        if agent_view_state.is_inline() && block.is_active_and_long_running() {
-            ctx.scene
-                .draw_rect_with_hit_recording(RectF::new(
-                    grid_origin,
-                    Vector2F::new(bounds.width(), block_height),
-                ))
-                .with_background(agent_view_bg_fill(app));
         }
 
         let mut did_render_ai_stripe = false;
@@ -2326,7 +2313,6 @@ impl BlockListElement {
         ai_render_context: &BlocklistAIRenderContext,
         cursor_hint_text: Option<&mut Box<dyn Element>>,
         image_metadata: &HashMap<u32, StoredImageMetadata>,
-        agent_view_state: &AgentViewState,
         ctx: &mut PaintContext,
         app: &AppContext,
     ) {
@@ -2340,7 +2326,6 @@ impl BlockListElement {
             block_borders_enabled,
             snackbar_header,
             ai_render_context,
-            agent_view_state,
             ctx,
             app,
         );
@@ -2575,8 +2560,6 @@ impl BlockListElement {
                                     .normal,
                             )
                             .into()
-                    } else if block.is_agent_in_control() {
-                        ai_brand_color(&block_grid_params.grid_render_params.warp_theme)
                     } else {
                         block_grid_params
                             .grid_render_params
@@ -3629,7 +3612,6 @@ impl Element for BlockListElement {
         }
 
         let mut cli_subagent_views_to_paint = vec![];
-        let agent_view_state = model.block_list().agent_view_state();
 
         let items = self
             .visible_items
@@ -3907,7 +3889,6 @@ impl Element for BlockListElement {
                         self.ai_render_context.borrow().deref(),
                         self.cursor_hint_text_element.as_mut(),
                         &model.image_id_to_metadata,
-                        agent_view_state,
                         ctx,
                         app,
                     );
