@@ -1019,8 +1019,6 @@ pub(crate) fn initialize_app(
     let auth_state = Arc::new(AuthState::initialize(ctx, api_key));
     timer.mark_interval_end("AUTH_MANAGER_SET_USER");
 
-    let agent_source = determine_agent_source(launch_mode);
-
     // NetworkLogModel must be registered before ServerApiProvider so that
     // `network_logging::init` (invoked from within `ServerApiProvider::new`)
     // can reach it via `NetworkLogModel::handle(ctx)` when forwarding items
@@ -1294,8 +1292,6 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(remote_server::manager::RemoteServerManager::new);
     #[cfg(not(target_family = "wasm"))]
-    ctx.add_singleton_model(remote_server::codebase_index_model::RemoteCodebaseIndexModel::new);
-    #[cfg(not(target_family = "wasm"))]
     remote_server::wire_auth_token_rotation(ctx);
 
     log::info!(
@@ -1533,11 +1529,8 @@ pub(crate) fn initialize_app(
     ctx.add_singleton_model(workspace::OneTimeModalModel::new);
     #[cfg(feature = "local_fs")]
     ctx.add_singleton_model(FileModel::new);
-    ctx.add_singleton_model(GlobalBufferModel::new);
     #[cfg(windows)]
     ctx.add_singleton_model(util::traffic_lights::windows::RendererState::new);
-    #[cfg(feature = "local_fs")]
-    ctx.add_singleton_model(|_| LanguageServerShutdownManager::new());
 
     #[cfg(feature = "voice_input")]
     ctx.add_singleton_model(voice_input::VoiceInput::new);
@@ -1582,8 +1575,6 @@ pub(crate) fn initialize_app(
     // ByoLlmAuthBannerSessionState tracks dismissal of the BYO LLM auth banner (e.g., AWS Bedrock login).
     ctx.add_singleton_model(ByoLlmAuthBannerSessionState::new);
 
-    ctx.add_singleton_model(|_| CodeManager::default());
-    ctx.add_singleton_model(|_| OpenedFilesModel::new());
     ctx.add_singleton_model(TerminalKeybindings::new);
     ctx.add_singleton_model(|_| ActiveSession::default());
 
@@ -1632,14 +1623,7 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(DefaultTerminal::new);
 
-    ctx.add_singleton_model(|ctx| {
-        PersistedWorkspace::new(
-            persisted_workspaces,
-            workspace_language_servers,
-            persistence_writer.sender(),
-            ctx,
-        )
-    });
+    let _ = (persisted_workspaces, workspace_language_servers);
     ctx.add_singleton_model(move |_| persistence_writer);
 
     ctx.add_singleton_model(input_classifier::InputClassifierModel::new);
@@ -1730,12 +1714,6 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
             );
         })),
         on_will_terminate: Some(Box::new(move |ctx| {
-            NotebookManager::handle(ctx).update(ctx, |manager, ctx| {
-                // Notebooks are only saved periodically, so ensure that any pending changes have
-                // been sent to the writer thread before terminating.
-                manager.close_notebooks(ctx);
-            });
-
             PersistenceWriter::handle(ctx).update(ctx, |writer, _ctx| {
                 writer.terminate();
             });
@@ -2167,17 +2145,9 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
             global_options,
             ..
         } => {
-            cfg_if::cfg_if! {
-                if #[cfg(target_family = "wasm")] {
-                    panic!("Cannot execute CLI command {command:?} on the web");
-                } else {
-                    if let Err(err) = crate::ai::agent_sdk::run(ctx, command.clone(), global_options.clone()) {
-                        eprintln!("{err:#}");
-                        report_error!(err);
-                        std::process::exit(1);
-                    }
-                }
-            }
+            let _ = (command, global_options);
+            eprintln!("CLI agent commands are not supported in this build.");
+            std::process::exit(1);
         }
         // Proxy should never reach launch() — it's a thin byte bridge.
         LaunchMode::RemoteServerProxy => {
