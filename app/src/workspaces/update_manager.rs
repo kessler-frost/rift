@@ -315,7 +315,7 @@ impl TeamUpdateManager {
                         .context("Error leaving team")
                 },
                 move |me, result, ctx| {
-                    me.on_team_left(team_uid, result, ctx);
+                    me.on_team_left(result, ctx);
                 },
             );
         } else {
@@ -326,7 +326,6 @@ impl TeamUpdateManager {
 
     fn on_team_left(
         &mut self,
-        left_team_uid: ServerId,
         result: Result<WorkspacesMetadataWithPricing>,
         ctx: &mut ModelContext<Self>,
     ) {
@@ -360,14 +359,6 @@ impl TeamUpdateManager {
 
                 // Update sqlite
                 self.save_to_db([ModelEvent::UpsertWorkspaces { workspaces }]);
-
-                // Remove objects owned by the team that was left.
-                UpdateManager::handle(ctx).update(ctx, |update_manager, ctx| {
-                    // We first remove team objects from local state so that they're not shown to the user.
-                    // Then, refresh all objects to fetch any that were independently shared.
-                    update_manager.remove_team_objects(left_team_uid, ctx);
-                    update_manager.refresh_updated_objects(ctx);
-                });
 
                 ctx.emit(TeamUpdateManagerEvent::LeaveSuccess);
             }
@@ -478,13 +469,6 @@ impl TeamUpdateManager {
                 if let Some(experiments) = experiments {
                     ServerApiProvider::handle(ctx).update(ctx, |provider, ctx| {
                         provider.handle_experiments_fetched(experiments, ctx);
-                    });
-                }
-
-                if let Some(feature_model_choices) = user_workspaces_access.feature_model_choices {
-                    LLMPreferences::handle(ctx).update(ctx, |llm_preferences, ctx| {
-                        llm_preferences
-                            .update_feature_model_choices(feature_model_choices.try_into(), ctx);
                     });
                 }
 
