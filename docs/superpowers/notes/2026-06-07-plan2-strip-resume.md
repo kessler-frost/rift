@@ -21,6 +21,21 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 375 resolution errors. PRIMARY-CLEAN (8): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
+zero_state.rs, rich_content.rs, block_list_element.rs, ui_components/icon_with_status.rs. (552→375 this run, ~54
+commits.) ACCURATE PRIMARY-ERROR COUNTS (grep -A1 '^error' | grep '\-\->'): workspace/view.rs 73, right_panel 34,
+server/graphql/schema/mod 22, harness_support 15, install_tmux 14, remote_server/server_model 14, left_panel 12,
+server/graphql/schema/util 12, ssh_remote_server_choice_view 9, slash_command_model 9, lib.rs 9, markdown_toggle_view 8,
+workspaces/workspace 7, cli_agent_sessions/mod 7, server/network_log_view 7, gql_convert 6, block_list_viewport 6,
+server_api/team 6, auth/auth_manager 6, plugin_instructions_block 5.
+TWO BIG COUPLED UNITS to do with fresh context: (A) workspace/view.rs 73 + right_panel 34 (1851-line CodeReviewView/
+DiffStateModel/agent-management side panel — likely DELETE RightPanelView wholesale + its workspace/view.rs mount
+points + CodeSource code-pane). (B) PHASE-F cloud server/graphql layer ≈88 (schema/mod 22 + util 12 + harness_support
+15 + remote_server/server_model 14 + network_log_view 7 + team 6 + gql_convert 6 + auth_manager 6 — the cloud GraphQL
+schema maps to deleted cloud_object_models; try deleting server/graphql + harness_support modules, fix importers in
+auth/settings/workspace). SMALLER CONTAINED: install_tmux (requested_script UI — needs reimpl/drop, intricate),
+markdown_toggle_view 8, slash_command_model 9, ssh_remote_server_choice_view 9.
+
 ### STATE: 383 resolution errors. PRIMARY-CLEAN (7): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
 zero_state.rs, rich_content.rs, block_list_element.rs (+alt_screen_element presence done). (552→383 this run, ~52
 commits.) TOP FILES: workspace/view.rs 100 (code-pane/code-review/cloud-workspace god-file — CodeSource ~14,
