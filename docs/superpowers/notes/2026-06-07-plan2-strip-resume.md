@@ -41,6 +41,17 @@ window also cleared a long tail of isolated/bounded units:
    `ProjectEvent::Added`. Applied to repo_picker.rs, new_worktree_modal.rs, repos/data_source.rs. (Removed the now-used
    `#[expect(unused)]` on ProjectEvent::Added.path.) ANY remaining PersistedWorkspace use-site → same re-point.
 
+### UPDATE (continued, 175 errors): also cleared this window — UGC-telemetry cascade DONE (removed is_ai_ugc_telemetry_enabled
+bool threaded TerminalModel::new→BlockList→Block + the full-output collection branch + PrivacySettingsSnapshot field/method +
+get_snapshot's app param (sed `.get_snapshot(ctx)`→`.get_snapshot()` across privacy/auth_manager/view/collector) + telemetry/mod
+always-clear UGC + create_project_view UGC send + a dangling None arg in create_pending_background_block); billing_cycle_usage→None
+(dead field, converter intentionally deleted); cli_agent CLAUDE_ORANGE = missing import (lives in rift_core::ui::color); inline_menu
+agent_view_bg_fill→theme.surface_overlay_1(); tab.rs shared_session_indicator_color→inline theme red (NOTE: Indicator::Shared +
+is_being_shared + FeatureFlag::CreatingSharedSessions still compile — shared-session tab indicator was MISSED by task #1, finish later);
+workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (NEW_AGENT_PANE_LABEL).
+REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
+(TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
+
 ### DEFERRED clusters (each its own focused unit, NOT 1-error quick wins despite showing as few errors):
  - is_ai_ugc_telemetry_enabled: threaded as a bool param through TerminalModel::new → blocks.rs → block.rs → terminal_model.rs
    (~14 sites) + PrivacySettingsSnapshot.should_collect_ai_ugc_telemetry field/method + create_project_view + telemetry/mod.
