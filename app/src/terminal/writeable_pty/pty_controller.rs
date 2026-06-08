@@ -50,12 +50,6 @@ enum PtyWrite {
         /// The bytes to be written.
         bytes: Cow<'static, [u8]>,
     },
-    AgentInput {
-        /// The bytes to be written.
-        bytes: Cow<'static, [u8]>,
-        /// The `mode` for the agent's write.
-        mode: AIAgentPtyWriteMode,
-    },
     TmuxCommand(TmuxCommand),
     RunNativeShellCompletions(NativeShellCompletionsState),
 }
@@ -615,22 +609,6 @@ impl<T: EventLoopSender> PtyController<T> {
         }
     }
 
-    /// Writes agent input to the PTY.
-    pub fn write_agent_bytes<B: Into<Cow<'static, [u8]>>>(
-        &mut self,
-        bytes: B,
-        mode: &AIAgentPtyWriteMode,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        self.send_write_to_event_loop(
-            PtyWrite::AgentInput {
-                bytes: bytes.into(),
-                mode: *mode,
-            },
-            ctx,
-        );
-    }
-
     /// Writes user input to the PTY.
     ///
     /// This should only be called for non-command input (e.g. input that should be passed through
@@ -674,11 +652,6 @@ impl<T: EventLoopSender> PtyController<T> {
                 on_write_fn,
                 false,
             ),
-            PtyWrite::AgentInput { bytes, mode } => {
-                let decorated_bytes =
-                    mode.decorate_bytes(bytes.into_owned(), self.is_bracketed_paste_enabled);
-                (decorated_bytes.into(), false, None, false)
-            }
             PtyWrite::Bytes { bytes } => (bytes, false, None, false),
             PtyWrite::TmuxCommand(command) => {
                 let command = command.get_command_string();

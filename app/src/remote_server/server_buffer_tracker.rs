@@ -128,7 +128,6 @@ impl ServerBufferTracker {
             self.buffer_connections.remove(&file_id);
             self.buffer_handles.remove(&file_id);
             self.open_buffers.retain(|_, id| *id != file_id);
-            GlobalBufferModel::handle(ctx).update(ctx, |gbm, ctx| gbm.remove(file_id, ctx));
         }
 
         orphaned
@@ -157,7 +156,6 @@ impl ServerBufferTracker {
         self.buffer_connections.remove(&file_id);
         self.buffer_handles.remove(&file_id);
         self.open_buffers.remove(path);
-        GlobalBufferModel::handle(ctx).update(ctx, |gbm, ctx| gbm.remove(file_id, ctx));
     }
 
     // ── Pending request tracking ──────────────────────────────────
