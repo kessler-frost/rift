@@ -125,63 +125,51 @@ impl InputSuggestionsModeModel {
     }
 
     pub fn is_ai_context_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::AIContextMenu { .. })
+        false
     }
 
     pub fn is_slash_commands(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::SlashCommands)
+        false
     }
 
     pub fn is_conversation_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::ConversationMenu)
+        false
     }
 
     pub fn is_inline_model_selector(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::ModelSelector)
+        false
     }
 
     pub fn is_profile_selector(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::ProfileSelector)
+        false
     }
 
     pub fn is_prompts_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::PromptsMenu)
+        false
     }
 
     pub fn is_skill_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::SkillMenu)
+        false
     }
 
     pub fn is_user_query_menu(&self) -> bool {
-        matches!(
-            self.mode,
-            InputSuggestionsMode::UserQueryMenu {
-                action: super::UserQueryMenuAction::ForkFrom,
-                ..
-            }
-        )
+        false
     }
 
     pub fn is_rewind_menu(&self) -> bool {
-        matches!(
-            self.mode,
-            InputSuggestionsMode::UserQueryMenu {
-                action: super::UserQueryMenuAction::Rewind,
-                ..
-            }
-        )
+        false
     }
 
     pub fn is_inline_history_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::InlineHistoryMenu { .. })
+        false
     }
 
     pub fn is_repos_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::IndexedReposMenu)
+        false
     }
 
     pub fn is_plan_menu(&self) -> bool {
-        matches!(self.mode, InputSuggestionsMode::PlanMenu { .. })
+        false
     }
 
     pub fn inline_menu_type(&self) -> Option<InlineMenuType> {
