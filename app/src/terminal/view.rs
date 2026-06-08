@@ -160,9 +160,7 @@ use super::warpify::WarpificationSource;
 use super::{CLIAgent, GridType};
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
-use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
-use crate::auth::auth_view_modal::AuthViewVariant;
 use crate::auth::AuthStateProvider;
 use crate::autoupdate::{self, get_update_state, AutoupdateStage};
 use crate::banner::{
@@ -191,7 +189,6 @@ use crate::server::ids::SyncId;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
     BlockLatencyInfo, LinkOpenMethod,
-    SaveAsWorkflowModalSource,
     TelemetryEvent, ToggleBlockFilterSource, 
 };
 use crate::session_management::{CommandContext, SessionNavigationPromptElements};
@@ -335,10 +332,10 @@ use crate::util::color::darken;
 use crate::util::openable_file_type::{is_markdown_file, FileTarget};
 use crate::util::repo_detection::{detect_possible_git_repo, RepoDetectionSessionType};
 use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
-use crate::view_components::{DismissibleToast, ToastFlavor};
+use crate::view_components::ToastFlavor;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
-    CommandSearchOptions, OneTimeModalModel, ToastStack,
+    CommandSearchOptions, OneTimeModalModel,
 };
 use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 use crate::{
@@ -483,8 +480,6 @@ pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY: &str = "LongRunningR
 pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY: &str =
     "LongRunningRequestedUserTookOverCommand";
 
-/// We only auto open the code review pane if the pane it's getting opened from has a certain width
-const MINIMUM_WIDTH_TO_AUTO_OPEN_PANE: f32 = 600.0;
 
 lazy_static! {
     static ref CTRL_SHIFT_A_KEYSTROKE: Keystroke = Keystroke {
@@ -1612,10 +1607,6 @@ enum SecretTooltip {
     Grid {
         is_agent_mode: bool,
         tooltip: WithinModel<SecretHandle>,
-    },
-    RichContent {
-        is_agent_mode: bool,
-        tooltip: RichContentSecretTooltipInfo,
     },
 }
 
@@ -2978,13 +2969,6 @@ impl TerminalView {
         terminal_view
     }
 
-    /// Schedule a callback to run after the next [`ModelEvent::AfterBlockCompleted`] received.
-    fn on_next_block_completed<F>(&mut self, callback: F)
-    where
-        F: FnOnce(&mut Self, &mut ViewContext<Self>) + 'static,
-    {
-        self.block_completed_callbacks.push(Box::new(callback));
-    }
 
 
 
@@ -7759,15 +7743,6 @@ impl TerminalView {
     }
 
 
-    /// Adds ephemeral error toast to toast stack.
-    fn show_error_toast(&mut self, text: String, ctx: &mut ViewContext<Self>) {
-        let window_id = ctx.window_id();
-        ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            let toast = DismissibleToast::error(text);
-            toast_stack.add_ephemeral_toast(toast, window_id, ctx);
-        });
-    }
-
     /// Currently, we show the notification error in the form of a banner,
     /// similar to how we help the user discover notifications via a banner.
     pub fn show_notification_error(
@@ -8935,23 +8910,6 @@ impl TerminalView {
         ctx.emit(Event::SelectedBlocksChanged);
     }
 
-    // Additionally handles side effects of changing block selections (i.e. CMD + F results, etc.),
-    // but without re-syncing Agent Mode context. The field `self.selected_blocks` should only be
-    // mutated as part of a `change_block_selections` or `change_block_selections_to_match_ai_context`
-    // invocation.
-    fn change_block_selections_to_match_ai_context<F>(
-        &mut self,
-        change_selection: F,
-        ctx: &mut ViewContext<Self>,
-    ) where
-        F: FnOnce(&mut SelectedBlocks),
-    {
-        change_selection(&mut self.selected_blocks);
-        self.update_find_selection(ctx);
-
-        ctx.emit(Event::SelectedBlocksChanged);
-    }
-
     pub fn integration_test_change_block_selection_to_single(
         &mut self,
         block_index: BlockIndex,
@@ -9808,15 +9766,6 @@ impl TerminalView {
         );
     }
 
-    fn open_workflow_modal_with_command(
-        &mut self,
-        command: String,
-        _source: SaveAsWorkflowModalSource,
-        _ctx: &mut ViewContext<Self>,
-    ) {
-        let _ = command;
-        send_telemetry_from_ctx!(TelemetryEvent::SaveAsWorkflowModal { source }, ctx);
-    }
 
     fn copy_prompt(
         &mut self,
@@ -10608,48 +10557,6 @@ impl TerminalView {
             );
             self.input_command(ctx, commands.join("\n"));
             self.focus_input_box(ctx);
-        }
-    }
-
-    fn context_menu_open_share_block_modal(
-        &mut self,
-        block_index: BlockIndex,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if AuthStateProvider::as_ref(ctx)
-            .get()
-            .is_anonymous_or_logged_out()
-        {
-            AuthManager::handle(ctx).update(ctx, |auth_manager, ctx| {
-                auth_manager.attempt_login_gated_feature(
-                    "Share Block",
-                    AuthViewVariant::ShareRequirementCloseable,
-                    ctx,
-                )
-            });
-            return;
-        }
-
-        send_telemetry_from_ctx!(
-            TelemetryEvent::ContextMenuOpenShareModal(self.selected_blocks.cardinality()),
-            ctx
-        );
-        self.tips_completed.update(ctx, |tips, ctx| {
-            mark_feature_used_and_write_to_user_defaults(
-                Tip::Hint(TipHint::BlockAction),
-                tips,
-                ctx,
-            );
-            ctx.notify();
-        });
-        let _ = block_index;
-        self.close_context_menu(ctx, true);
-        ctx.notify();
-    }
-
-    fn open_share_block_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(selected_index) = self.selected_blocks.tail() {
-            self.context_menu_open_share_block_modal(selected_index, ctx);
         }
     }
 
@@ -13584,10 +13491,6 @@ impl TerminalView {
         self.active_filter_editor_block_index
     }
 
-
-    pub(crate) fn view_id(&self) -> EntityId {
-        self.view_id
-    }
 
     fn cursor_position_id(&self) -> String {
         self.cursor_position_id.clone()

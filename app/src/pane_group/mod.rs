@@ -198,8 +198,6 @@ pub enum PaneGroupAction {
 }
 #[derive(PartialEq)]
 enum PaneRemovalReason {
-    // This pane is being removed from the pane group because it is being moved to another tab or becoming a tab of its own
-    Move,
     // This pane is being removed because it is being closed
     Close,
 }
@@ -553,13 +551,6 @@ pub struct NewTerminalOptions {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DefaultSessionModeBehavior {
     Apply,
-    Ignore,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum NewPaneVisibility {
-    Visible,
-    HiddenForMove,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -567,7 +558,6 @@ struct AddPaneOptions {
     direction: Direction,
     base_pane_id: Option<PaneId>,
     focus_new_pane: bool,
-    visibility: NewPaneVisibility,
     emit_app_state_changed: bool,
 }
 
@@ -1698,30 +1688,6 @@ impl PaneGroup {
 
     /// Helper that creates the initial [`PaneData`] and [`InitialFocus`] given a terminal view.
     /// This is a common case in creating a new pane group with a single terminal session.
-    fn terminal_pane_data(
-        uuid: Vec<u8>,
-        view: ViewHandle<TerminalView>,
-        terminal_manager: ModelHandle<Box<dyn TerminalManager>>,
-        model_event_sender: Option<SyncSender<ModelEvent>>,
-        pane_contents: &mut HashMap<PaneId, Box<dyn AnyPaneContent>>,
-        pane_history: &mut Vec<PaneId>,
-        ctx: &mut ViewContext<Self>,
-    ) -> (PaneData, InitialFocus) {
-        let pane_data = TerminalPane::new(uuid, terminal_manager, view, model_event_sender, ctx);
-        let terminal_pane_id = pane_data.terminal_pane_id();
-        let pane_id = terminal_pane_id.into();
-        pane_contents.insert(pane_id, Box::new(pane_data));
-        pane_history.push(pane_id);
-        let focus = InitialFocus {
-            focused_pane: Some(pane_id),
-            active_session: Some(terminal_pane_id),
-        };
-        (PaneData::new(pane_id), focus)
-    }
-
-
-
-
 
 
     /// Initial layout for a [`PaneGroup`] with a single terminal pane.
@@ -3362,12 +3328,6 @@ impl PaneGroup {
         options: AddPaneOptions,
         ctx: &mut ViewContext<Self>,
     ) -> Option<PaneId> {
-        let pane_id = new_pane.as_pane().id();
-        match options.visibility {
-            NewPaneVisibility::Visible => {}
-            NewPaneVisibility::HiddenForMove => self.panes.hide_pane_for_move(pane_id),
-        }
-
         let pane_id = self.init_pane(new_pane, ctx)?;
         let split_succeeded = match options.base_pane_id {
             Some(base_pane_id) => self.panes.split(base_pane_id, pane_id, options.direction),
@@ -3431,7 +3391,6 @@ impl PaneGroup {
                 direction,
                 base_pane_id,
                 focus_new_pane,
-                visibility: NewPaneVisibility::Visible,
                 emit_app_state_changed: true,
             },
             ctx,

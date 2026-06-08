@@ -127,18 +127,6 @@ impl PaneGroupFocusState {
         }
     }
 
-    /// Sets whether the focused pane is maximized.
-    pub(super) fn set_focused_pane_maximized(
-        &mut self,
-        maximized: bool,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        if self.is_focused_pane_maximized != maximized {
-            self.is_focused_pane_maximized = maximized;
-            ctx.emit(PaneGroupFocusEvent::FocusedPaneMaximizedChanged);
-        }
-    }
-
     /// Toggles whether the focused pane is maximized.
     pub(super) fn toggle_focused_pane_maximized(&mut self, ctx: &mut ModelContext<Self>) {
         self.is_focused_pane_maximized = !self.is_focused_pane_maximized;

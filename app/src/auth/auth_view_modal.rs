@@ -139,8 +139,6 @@ const MODAL_WIDTH: f32 = 352.;
 pub enum AuthViewVariant {
     Initial,
     RequireLoginCloseable,
-    HitDriveObjectLimitCloseable,
-    ShareRequirementCloseable,
 }
 
 impl AuthView {
@@ -357,9 +355,7 @@ impl View for AuthView {
 
         let background_color = match self.auth_view_variant {
             AuthViewVariant::Initial => appearance.theme().background().into(),
-            AuthViewVariant::RequireLoginCloseable
-            | AuthViewVariant::HitDriveObjectLimitCloseable
-            | AuthViewVariant::ShareRequirementCloseable => ColorU::transparent_black(),
+            AuthViewVariant::RequireLoginCloseable => ColorU::transparent_black(),
         };
 
         // TODO(liam): use theme colors for background and window border

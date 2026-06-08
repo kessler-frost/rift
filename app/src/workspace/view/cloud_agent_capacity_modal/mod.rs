@@ -38,7 +38,6 @@ const BILLING_AND_USAGE_URL: &str = "warp://settings/billing_and_usage";
 pub enum CloudAgentCapacityModalVariant {
     #[default]
     ConcurrentLimit,
-    OutOfCredits,
 }
 
 pub fn init(app: &mut AppContext) {
@@ -70,10 +69,6 @@ impl CloudAgentCapacityModal {
         }
     }
 
-    pub fn set_variant(&mut self, variant: CloudAgentCapacityModalVariant) {
-        self.variant = variant;
-    }
-
     fn get_upgrade_url(ctx: &ViewContext<Self>) -> Option<String> {
         let auth_state = AuthStateProvider::handle(ctx).as_ref(ctx).get();
         if let Some(team) = UserWorkspaces::handle(ctx).as_ref(ctx).current_team() {
@@ -90,9 +85,6 @@ impl CloudAgentCapacityModal {
                 customer_type,
                 CustomerType::Business | CustomerType::Enterprise
             ),
-            CloudAgentCapacityModalVariant::OutOfCredits => {
-                matches!(customer_type, CustomerType::Free | CustomerType::Unknown)
-            }
         }
     }
 
@@ -100,8 +92,7 @@ impl CloudAgentCapacityModal {
         customer_type: CustomerType,
         variant: CloudAgentCapacityModalVariant,
     ) -> bool {
-        matches!(variant, CloudAgentCapacityModalVariant::OutOfCredits)
-            || Self::can_upgrade(customer_type, variant)
+        Self::can_upgrade(customer_type, variant)
     }
 
     fn cta_url(&self, ctx: &ViewContext<Self>) -> Option<String> {
@@ -129,10 +120,6 @@ impl CloudAgentCapacityModal {
                 "Concurrent cloud agent limit reached",
                 "This cloud run is queued because your team has reached the maximum number of concurrent cloud agents. It will start automatically when another cloud run finishes.".to_string(),
             ),
-            CloudAgentCapacityModalVariant::OutOfCredits => (
-                "You're out of AI credits",
-                "This cloud run stopped because your team has used all available AI credits for the current billing period.".to_string(),
-            ),
         };
 
         // Title
@@ -148,9 +135,6 @@ impl CloudAgentCapacityModal {
             let upgrade_suffix = match self.variant {
                 CloudAgentCapacityModalVariant::ConcurrentLimit => {
                     " Upgrade your plan for more concurrent cloud agents."
-                }
-                CloudAgentCapacityModalVariant::OutOfCredits => {
-                    " Upgrade your plan to continue running cloud agents."
                 }
             };
             explanation_text.push_str(upgrade_suffix);

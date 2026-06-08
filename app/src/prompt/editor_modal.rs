@@ -262,31 +262,6 @@ impl EditorModal {
             .open_single_zone_with_renderers(used_chips, unused_chips);
     }
 
-    /// Resets the state to match the most recent saved prompt states.
-    /// This API must be used when opening the modal.
-    pub fn open(
-        &mut self,
-        ps1_grid_info: Option<(BlockGrid, SizeInfo)>,
-        chip_runtime_capabilities: ChipRuntimeCapabilities,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // The first thing we should do is just reset the state. We'll populate it accordingly below.
-        self.reset();
-        self.ps1_grid_info = ps1_grid_info;
-        self.chip_runtime_capabilities = chip_runtime_capabilities;
-
-        let used_chips = Prompt::as_ref(ctx).chip_kinds();
-        self.update_used_chips(used_chips, ctx);
-
-        self.prompt_type = PromptType::from_settings(ctx);
-        self.same_line_prompt_enabled = SessionSettings::as_ref(ctx)
-            .saved_prompt
-            .value()
-            .same_line_prompt_enabled();
-
-        ctx.notify();
-    }
-
     /// Updates the state of the Warp prompt separator dropdown to be enabled/disabled based on the current state of the modal.
     fn update_warp_separator_dropdown_state(&mut self, ctx: &mut ViewContext<Self>) {
         // If we are using the Warp prompt and SLP is enabled, then we enable the dropdown. Otherwise, disable it.
