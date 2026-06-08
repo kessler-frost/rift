@@ -1557,6 +1557,7 @@ pub enum AIContextInclusionState {
     Active,
 }
 
+#[derive(Default)]
 pub struct BlocklistAIRenderContext {
     /// The set of `BlockId`s corresponding to blocks to be included or previously included as AI
     /// context.
@@ -3895,9 +3896,7 @@ impl TerminalView {
             // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in
             // terminal mode. Selections are preserved so they can be attached to the query when
             // entering the agent view.
-            if !self.ai_render_context.borrow().is_ai_input_enabled
-                && !FeatureFlag::AgentView.is_enabled()
-            {
+            if !FeatureFlag::AgentView.is_enabled() {
                 self.clear_selected_blocks(ctx);
                 self.clear_selected_text(ctx);
             }
@@ -5391,10 +5390,6 @@ impl TerminalView {
             return;
         }
 
-        // Track that we're running an AWS login command so we can detect
-        // "command not found" if AWS CLI isn't installed
-        self.is_pending_aws_login = true;
-
         // Write the command to the PTY and execute it
         let command_bytes = login_command.into_bytes();
         self.clear_line_editor_and_write_to_pty(command_bytes, ctx);
@@ -5533,15 +5528,6 @@ impl TerminalView {
 
     /// Recomputes the chip values for the Warp prompt (i.e. _not_ PS1).
     fn refresh_warp_prompt(&mut self, ctx: &mut ViewContext<Self>) {
-        // Ask the per-repo sub-model to re-fetch metadata so the chip values
-        // reflect the latest git state (branch, diff stats, etc.).
-        #[cfg(feature = "local_fs")]
-        if let Some(handle) = &self.git_repo_status {
-            handle.update(ctx, |model, ctx| {
-                model.refresh_metadata(ctx);
-            });
-        }
-
         self.input.update(ctx, |input, ctx| {
             input.update_prompt_display_chips(ctx);
         });
@@ -6184,7 +6170,7 @@ impl TerminalView {
                     if let BlockType::User(user_block_completed) = block_type {
                         let is_universal_developer_input_enabled =
                             InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-                        let is_in_agent_view = self.agent_view_controller.as_ref(ctx).is_active();
+                        let is_in_agent_view = false;
                         send_telemetry_from_ctx!(
                             TelemetryEvent::BlockCompleted {
                                 block_finished_to_precmd_delay_ms: delay_ms,
@@ -9941,34 +9927,9 @@ impl TerminalView {
                 .is_some()
     }
 
-    /// Determines if a position in the terminal grid is within an Agent Mode conversation.
-    fn is_position_in_agent_mode_conversation(&self, position: &WithinModel<Point>) -> bool {
-        // First check if there's an active conversation at all
-        let ai_render_context = self.ai_render_context.borrow();
-        if !ai_render_context.has_active_conversation() {
-            return false;
-        }
-
-        // If we're in the alt screen, the content wouldn't be sent to the AI
-        if matches!(position, WithinModel::AltScreen(_)) {
-            return false;
-        }
-
-        // If we're in a block, check if that specific block is part of the active conversation
-        if let WithinModel::BlockList(within_block) = position {
-            let model = self.model.lock();
-            if let Some(block) = model.block_list().block_at(within_block.block_index) {
-                // Check if this block has the same visual indicator (pink bar) that shows
-                // it's part of the active conversation
-                ai_render_context
-                    .context_inclusion_state_for_block(block)
-                    .is_some()
-            } else {
-                false
-            }
-        } else {
-            false
-        }
+    /// Agent Mode conversations have been removed, so no grid position is ever within one.
+    fn is_position_in_agent_mode_conversation(&self, _position: &WithinModel<Point>) -> bool {
+        false
     }
 
     fn click_on_grid(
@@ -12886,7 +12847,7 @@ impl TerminalView {
             obfuscate_secrets: get_secret_obfuscation_mode(app),
             hovered_secret: self.hovered_secret,
             horizontal_clipped_scroll_state: self.horizontal_clipped_scroll_state.clone(),
-            ai_render_context: self.ai_render_context.clone(),
+            ai_render_context: Rc::new(RefCell::new(BlocklistAIRenderContext::default())),
         }
     }
 
@@ -15942,12 +15903,6 @@ impl View for TerminalView {
                 context
                     .set
                     .insert(LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY);
-
-                if active_block.is_eligible_for_agent_handoff() {
-                    context
-                        .set
-                        .insert(LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY);
-                }
             }
         }
 
