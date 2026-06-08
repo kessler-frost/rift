@@ -317,24 +317,6 @@ impl ErrorExt for AIApiError {
 }
 register_error!(AIApiError);
 
-#[derive(thiserror::Error, Debug)]
-pub enum TranscribeError {
-    #[error("Request failed due to lack of Voice quota.")]
-    QuotaLimit,
-
-    #[error("Warp is currently overloaded. Please try again later.")]
-    ServerOverloaded,
-
-    #[error("Internal error occurred at transport layer.")]
-    Transport,
-
-    #[error("Failed to deserialize JSON.")]
-    Deserialization,
-
-    #[error(transparent)]
-    Other(#[from] anyhow::Error),
-}
-
 cfg_if::cfg_if! {
     if #[cfg(target_family = "wasm")] {
         // The WASM version of this type has no bound on `Send`, which is not implemented on

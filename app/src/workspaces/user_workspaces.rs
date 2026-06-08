@@ -224,7 +224,7 @@ impl UserWorkspaces {
     /// Note that the value may be incorrect if called before the team's billing metadata has been fetched.
     /// If voice input support is not compiled into this build, always returns `false`.
     pub fn is_voice_enabled(&self) -> bool {
-        cfg!(feature = "voice_input")
+        false
             && self
                 .current_team()
                 // If the user has no team, they can toggle Voice (no restrictions).

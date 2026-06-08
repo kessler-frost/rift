@@ -207,8 +207,6 @@ pub struct EditorElement {
     remote_selections_data: HashMap<ReplicaId, RemoteDrawableSelectionData>,
 
     voice_input_cursor_icon: Option<Box<dyn Element>>,
-    #[cfg_attr(not(feature = "voice_input"), allow(unused))]
-    voice_input_toggle_key_code: Option<KeyCode>,
 }
 
 impl EditorElement {
@@ -227,7 +225,6 @@ impl EditorElement {
         local_selection_data: LocalDrawableSelectionData,
         remote_selections_data: HashMap<ReplicaId, super::RemoteDrawableSelectionData>,
         cursor_display_type: Option<CursorDisplayType>,
-        voice_input_toggle_key_code: Option<KeyCode>,
     ) -> Self {
         let remote_selections_data = HashMap::from_iter(remote_selections_data.into_iter().map(
             |(replica_id, drawable_selections_data)| {
@@ -257,7 +254,6 @@ impl EditorElement {
             preferred_cursor_type: cursor_display_type.unwrap_or_default(),
             cycle_next_command_hint: None,
             voice_input_cursor_icon: None,
-            voice_input_toggle_key_code,
         }
     }
 
@@ -434,31 +430,9 @@ impl EditorElement {
         state: &KeyState,
         ctx: &mut EventContext,
     ) -> bool {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "voice_input")] {
-                self.maybe_handle_voice_toggle(key_code, state, ctx);
-            } else {
-                // Silence unused param warnings when voice_input is disabled.
-                let _ = (key_code, state, ctx);
-            }
-        }
+        // Silence unused param warnings.
+        let _ = (key_code, state, ctx);
         false
-    }
-
-    #[cfg(feature = "voice_input")]
-    fn maybe_handle_voice_toggle(
-        &self,
-        key_code: &KeyCode,
-        state: &KeyState,
-        ctx: &mut EventContext,
-    ) {
-        if let Some(voice_input_toggle_key_code) = self.voice_input_toggle_key_code {
-            if *key_code == voice_input_toggle_key_code {
-                ctx.dispatch_typed_action(EditorAction::ToggleVoiceInput(
-                    voice_input::VoiceInputToggledFrom::Key { state: *state },
-                ));
-            }
-        }
     }
 
     fn mouse_moved(
@@ -1516,18 +1490,6 @@ impl EditorElement {
                 .finish(),
             ])
             .finish()
-    }
-
-    #[cfg(feature = "voice_input")]
-    pub fn with_voice_input_cursor_icon(self, element: Box<dyn Element>) -> Self {
-        // If voice input is not active, don't render the icon.
-        if !self.view_snapshot.voice_input_state.is_active() {
-            return self;
-        }
-        Self {
-            voice_input_cursor_icon: Some(element),
-            ..self
-        }
     }
 
     /// Takes into account whether or not we're in Vim mode to determine the cursor type.
