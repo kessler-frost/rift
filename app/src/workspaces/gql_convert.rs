@@ -702,9 +702,7 @@ impl From<GqlWorkspace> for Workspace {
                     cents_spent: info.current_month_spend_cents,
                 })
                 .unwrap_or_default(),
-            billing_cycle_usage: gql_workspace
-                .billing_cycle_usage_history
-                .map(convert_billing_cycle_usage),
+            billing_cycle_usage: None,
             has_billing_history: gql_workspace.has_billing_history,
             settings: gql_workspace.settings.clone().into(),
             invite_code: gql_workspace
