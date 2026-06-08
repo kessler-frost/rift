@@ -52,7 +52,23 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### ▶▶ STATE: 3 resolution errors (234→3 this session, 99%!). voice + AgentViewController chain + up_arrow + classic/common
+### 🎉🎉 RESOLUTION ERRORS = 0 (234→0 this session). PHASE 1 (name resolution) COMPLETE. 🎉🎉
+The LeftPanelView wholesale deletion LANDED (pushed through in one pass via intermediate rebuilds — the trick was: do all
+edits, rebuild to track without committing, fix flagged sites, repeat; do NOT revert mid-pass). left_panel.rs deleted; only
+LeftPanelView removed (GlobalSearch module RETAINED — it's wired into ~10 other files and doesn't error; deleting it is an
+optional follow-up per the user's "delete GlobalSearch too", but NOT needed for 0 errors).
+NEW METRIC: now track TOTAL errors → `cargo check --bin rift-oss 2>&1 | grep -c '^error'`. Currently ~1490.
+### 🚧 PHASE 2: TYPECK WAVE (~1490 errors, MECHANICAL dangling-ref deletion). Codes: E0599 no-method(835), E0609 no-field(328),
+E0282 type-annotations(213), E0220 assoc-type(78), E0560 struct-field(10), E0061 arg-count(9), E0615(8). These are calls to
+deleted AI/cloud fields/methods/event-variants. Concentrated in: server/telemetry/events.rs(402 — deleted AI/cloud TelemetryEvent
+variants+fields), terminal/input.rs(285 — ai_input_model/agent_view_controller field+method refs, already-deleted fields),
+terminal/view.rs(242), workspace/view.rs(118), workspace/view/vertical_tabs.rs(74), input/slash_commands/mod.rs(64),
+workspace/mod.rs(50), pane_group/mod.rs(39), input/classic.rs(32), input/terminal.rs(27). Approach: per file, delete the
+dangling field/method/match-arm/event use-sites (E0609/E0599), give explicit types or delete bindings for E0282 (usually
+None/vec![]/Default whose element type was a deleted enum). Commit per file as total drops. WARP.md: delete use-sites, no stubs.
+After 0 errors → warnings → 0/0.
+
+### ▶▶ (history) STATE: 3 resolution errors (234→3 this session, 99%!). voice + AgentViewController chain + up_arrow + classic/common
 workflow-overlay + VOLTRON (deleted wholesale: voltron.rs + ~25 input.rs/common/classic/terminal integration sites, incl
 InputAction::SelectAndRefreshVoltron variant+arm+binding, close_voltron/select_and_refresh_voltron/voltron anchors, is_voltron_open/
 voltron_view on_focus+keymap_context, add_voltron_overlay) — ALL DONE.
