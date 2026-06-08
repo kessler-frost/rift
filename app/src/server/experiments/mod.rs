@@ -12,8 +12,6 @@
 //! for a full guide on the server-side experiment framework.
 
 use riftui::AppContext;
-#[cfg(not(test))]
-use riftui::SingletonEntity as _;
 #[cfg(test)]
 use riftui::SingletonEntity;
 

@@ -2,7 +2,7 @@
 #[allow(unused_imports)]
 pub use cloud_objects::ids::GenericStringObjectId;
 pub use cloud_objects::ids::{
-    ApiKeyUid, ClientId, HashableId, ObjectUid, ServerId, SyncId,
+    ApiKeyUid, HashableId, ServerId, SyncId,
 };
 
 /// server_id_traits is a macro used for generating implementations for the type aliases on

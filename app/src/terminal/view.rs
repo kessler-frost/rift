@@ -9,8 +9,6 @@ pub mod inline_banner;
 mod link_detection;
 mod open_in_warp;
 mod pane_impl;
-#[cfg(not(target_family = "wasm"))]
-pub(crate) mod plugin_instructions_block;
 pub mod rich_content;
 mod shell_terminated_banner;
 pub mod ssh_file_upload;
@@ -195,7 +193,7 @@ use crate::resource_center::{
 use crate::server::ids::SyncId;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
-    self, BlockLatencyInfo, LinkOpenMethod,
+    BlockLatencyInfo, LinkOpenMethod,
     SaveAsWorkflowModalSource,
     TelemetryEvent, ToggleBlockFilterSource, 
 };
@@ -237,8 +235,6 @@ use crate::terminal::cli_agent_sessions::event::{
     CLI_AGENT_NOTIFICATION_SENTINEL,
 };
 use crate::terminal::cli_agent_sessions::listener::{is_agent_supported, CLIAgentSessionListener};
-#[cfg(not(target_family = "wasm"))]
-use crate::terminal::cli_agent_sessions::plugin_manager::plugin_manager_for;
 use crate::terminal::cli_agent_sessions::{
     CLIAgentInputState, CLIAgentSessionsModel,
 };
@@ -257,7 +253,6 @@ use crate::terminal::input::{
     CommandExecutionSource, InputAction, InputState, MenuPositioning,
     MenuPositioningProvider,
 };
-use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::ligature_settings::{should_use_ligature_rendering, LigatureSettings};
 use crate::terminal::links::should_directly_open_link;
 #[cfg(feature = "local_tty")]
@@ -6772,19 +6767,8 @@ impl TerminalView {
         agent: CLIAgent,
         ctx: &mut ViewContext<Self>,
     ) {
-        #[cfg(not(target_family = "wasm"))]
-        let plugin_version = if matches!(agent, CLIAgent::Codex) {
-            // We use the lack of a plugin version for codex to differentiate between
-            // OSC 9 notification fallback and real plugin.
-            None
-        } else {
-            // No SessionStart event in this path (mid-session install/update).
-            // Assume the just-installed plugin meets the minimum version for this agent
-            // so the update chip doesn't flash before the user runs /reload-plugins.
-            plugin_manager_for(agent).map(|m| m.minimum_plugin_version().to_owned())
-        };
-        #[cfg(target_family = "wasm")]
-        let plugin_version = None;
+        // Plugin version tracking was tied to the removed CLI-agent plugin manager.
+        let plugin_version: Option<String> = None;
         let notification = CLIAgentEvent {
             source: CLIAgentEventSource::RichPlugin,
             v: 1,
@@ -6917,13 +6901,6 @@ impl TerminalView {
             && !is_anonymous_or_logged_out;
         let is_launch_modal_open = OneTimeModalModel::as_ref(ctx).is_oz_launch_modal_open();
 
-        let has_plugin_instructions_block = self.rich_content_views.iter().any(|rc| {
-            matches!(
-                rc.metadata(),
-                Some(RichContentMetadata::PluginInstructionsBlock)
-            )
-        });
-
         if FeatureFlag::AgentView.is_enabled()
             && TerminalSettings::as_ref(ctx).should_show_zero_state_block(ctx)
             && !self.model.lock().block_list().is_restored_session()
@@ -6931,7 +6908,6 @@ impl TerminalView {
             && self.onboarding_callout_view.is_none()
             && !is_launch_modal_open
             && !is_subshell_or_ssh
-            && !has_plugin_instructions_block
         {
             let agent_view_zero_state = ctx.add_typed_action_view(|ctx| {
                 TerminalViewZeroStateBlock::new(&self.model_events_handle, ctx)
@@ -7472,25 +7448,6 @@ impl TerminalView {
             );
         }
     }
-
-
-    #[cfg(not(target_family = "wasm"))]
-    pub(crate) fn remove_plugin_instructions_block(
-        &mut self,
-        block_handle: ViewHandle<plugin_instructions_block::PluginInstructionsBlock>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let block_id = block_handle.id();
-        self.rich_content_views
-            .retain(|rich_content| rich_content.view_id() != block_id);
-        self.model
-            .lock()
-            .block_list_mut()
-            .remove_rich_content(block_id);
-        ctx.notify();
-    }
-
-
 
 
 

@@ -15,7 +15,6 @@ mod terminal_message_bar;
 
 use std::any::Any;
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::fmt::Write;
 use std::ops::Range;
 use std::path::{Path, PathBuf};

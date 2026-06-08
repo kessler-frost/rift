@@ -6,7 +6,6 @@ use riftui::{AppContext, EntityId, SingletonEntity, ViewContext, WeakViewHandle,
 use settings::ToggleableSetting as _;
 
 use crate::pane_group::{PaneGroup, PaneId, TerminalPane};
-use crate::server::telemetry::CloseTarget;
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::terminal::general_settings::GeneralSettings;
 use crate::workspace::Workspace;
