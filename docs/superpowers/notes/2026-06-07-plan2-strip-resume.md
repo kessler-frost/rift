@@ -21,6 +21,19 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 358 resolution errors. PRIMARY-CLEAN (10): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
+zero_state.rs, rich_content.rs, block_list_element.rs, icon_with_status.rs, slash_command_model.rs, +deleted
+markdown_toggle_view.rs (orphaned). (552→358 this run, ~57 commits.)
+⚠️ requested_script DEPENDENCY: install_tmux.rs (14) AND ssh_remote_server_choice_view.rs (9) both reference shared
+block-UI primitives from the DELETED `requested_script` module: `rich_navigation_button`, `KeyboardNavigableButtons`,
+`HeaderConfig`, `INLINE_ACTION_HORIZONTAL_PADDING`, plus install_tmux's `RequestedScriptStatus`/`TitledScript`/
+`render_requested_script(s)`/`ENTER_KEYSTROKE`/`ESCAPE_KEYSTROKE`. These are GENERIC navigation-button/header UI (NOT
+AI types) — to fix, either reimplement these primitives locally (a small shared ui_components helper) or inline simple
+buttons. Decision needed: the requested_script module was deleted as "AI-coupled" but these UI primitives are reusable.
+NEXT BIG: (A) workspace/view.rs 73 + right_panel 34 code-review/code-pane unit (DELETE RightPanelView wholesale).
+(B) Phase-F cloud server/graphql ≈88. Smaller: workspaces/workspace 7, cli_agent_sessions/mod 7, block_list_viewport 6,
+plugin_instructions_block 5, lib.rs 9 (ai_client wiring).
+
 ### STATE: 375 resolution errors. PRIMARY-CLEAN (8): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
 zero_state.rs, rich_content.rs, block_list_element.rs, ui_components/icon_with_status.rs. (552→375 this run, ~54
 commits.) ACCURATE PRIMARY-ERROR COUNTS (grep -A1 '^error' | grep '\-\->'): workspace/view.rs 73, right_panel 34,
