@@ -3313,7 +3313,7 @@ impl TerminalView {
     pub fn session_is_local<C: ModelAsRef>(&self, session_id: SessionId, ctx: &C) -> bool {
         let forced_non_local = {
             let model = self.model.lock();
-            model.is_shared_session_viewer() || model.is_conversation_transcript_viewer()
+            model.is_conversation_transcript_viewer()
         };
         !forced_non_local
             && self
@@ -3447,33 +3447,8 @@ impl TerminalView {
         self.model.lock().is_shared_ambient_agent_session()
     }
 
-    pub fn is_shared_session_viewer(&self) -> bool {
-        self.model.lock().is_shared_session_viewer()
-    }
 
-    pub(crate) fn apply_viewer_shared_session_input_update(
-        &mut self,
-        block_id: &BlockId,
-        operations: Vec<CrdtOperation>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if self.should_suppress_ambient_setup_input_sync(ctx) {
-            return;
-        }
 
-        self.input().update(ctx, |input, ctx| {
-            input.process_remote_edits(block_id, operations, ctx);
-        });
-    }
-
-    fn should_suppress_ambient_setup_input_sync(&self, app: &AppContext) -> bool {
-        FeatureFlag::CloudModeSetupV2.is_enabled()
-            && self.ambient_agent_view_model.as_ref().is_some_and(|model| {
-                let model = model.as_ref(app);
-                let setup_state = model.setup_command_state();
-                setup_state.should_suppress_input_sync_for_current_group()
-            })
-    }
 
     pub fn ssh_file_upload(&self) -> &ViewHandle<FileUpload> {
         &self.ssh_file_upload
@@ -3590,38 +3565,9 @@ impl TerminalView {
     // Take control back from the agent for the active long running command
     // (which was started outside of a conversation).
 
-    fn emit_long_running_command_agent_interaction_state_changed(
-        &self,
-        agent_has_control: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let state = if agent_has_control {
-            LongRunningCommandAgentInteractionState::InControl
-        } else {
-            let is_tagged_in = self
-                .model
-                .lock()
-                .block_list()
-                .active_block()
-                .is_agent_tagged_in();
-            if is_tagged_in {
-                LongRunningCommandAgentInteractionState::TaggedIn
-            } else {
-                LongRunningCommandAgentInteractionState::NotInteracting
-            }
-        };
-        log::info!(
-            "emit_long_running_command_agent_interaction_state_changed: \
-             agent_has_control={agent_has_control}, emitting state={state:?}"
-        );
-        ctx.emit(Event::LongRunningCommandAgentInteractionStateChanged { state });
-    }
 
 
 
-    pub fn has_active_env_var_block(&self, app: &AppContext) -> bool {
-        self.active_env_var_collection_block(app).is_some()
-    }
 
     /// Shuts down the pty and event loop, terminating the shell process.
     /// Also marks this view as manually shut down for telemetry attribution.
@@ -3737,8 +3683,6 @@ impl TerminalView {
     ) {
         if is_long_running {
             self.user_write_ctrl_c_to_pty(ctx);
-        } else {
-            self.maybe_handle_ctrl_c_in_rich_content_block(ctx);
         }
     }
 
@@ -3794,9 +3738,7 @@ impl TerminalView {
     pub fn is_long_running_and_user_controlled(&self) -> bool {
         let model = self.model.lock();
         let active_block = model.block_list().active_block();
-        active_block.is_active_and_long_running()
-            && !active_block.is_agent_driving_command()
-            && !model.is_read_only()
+        active_block.is_active_and_long_running() && !model.is_read_only()
     }
 
     pub fn was_ever_visible(&self) -> bool {
@@ -3849,14 +3791,10 @@ impl TerminalView {
             ctx.emit(Event::SyncInput(SyncEvent {
                 source_view_id: self.view_id,
                 data: SyncInputType::NonEditorTyped {
-                    chars: Arc::new(chars.clone()),
+                    chars: Arc::new(chars),
                 },
             }));
         }
-
-        self.model
-            .lock()
-            .send_write_to_pty_events_for_shared_session(chars);
     }
 
     fn update_scroll_position_locking(
@@ -4071,9 +4009,6 @@ impl TerminalView {
         {
             let mut terminal_model = self.model.lock();
             let active_block = terminal_model.block_list().active_block();
-            if active_block.is_agent_in_control() {
-                return;
-            }
             if active_block.is_active_and_long_running() && !active_block.has_received_user_input()
             {
                 terminal_model
@@ -4260,20 +4195,6 @@ impl TerminalView {
 
     fn handle_typeahead_event(&mut self, ctx: &mut ViewContext<Self>) {
         let mut model = self.model.lock();
-        let completed_block_idx = model.block_list().prev_matching_block_from_index(
-            BlockFilter {
-                include_hidden: true,
-                include_background: false,
-            },
-            model.block_list().active_block_index(),
-        );
-        let was_typeahead_entered_during_ai_requested_command =
-            completed_block_idx.is_some_and(|idx| {
-                model
-                    .block_list()
-                    .block_at(idx)
-                    .is_some_and(|block| block.agent_interaction_metadata().is_some())
-            });
 
         let Some((typeahead, num_typeahead_chars_inserted)) = model
             .block_list_mut()
@@ -4286,20 +4207,13 @@ impl TerminalView {
             return;
         };
 
-        // We don't insert typeahead into the input buffer when it was entered during an
-        // agent-requested command - the agent is going to follow-up immediately after the
-        // command exists anyway, not to mention the expected semantics of typeahead are
-        // probably different with AI requested commands because the input remains interactive
-        // (for at least the first few seconds of the command's execution).
-        if !was_typeahead_entered_during_ai_requested_command {
-            #[cfg(feature = "integration_tests")]
-            log::info!("Writing typeahead to input editor: {typeahead}");
+        #[cfg(feature = "integration_tests")]
+        log::info!("Writing typeahead to input editor: {typeahead}");
 
-            self.input.update(ctx, |input, ctx| {
-                input.insert_typeahead_text(num_typeahead_chars_inserted, typeahead, ctx);
-            });
-            ctx.notify();
-        }
+        self.input.update(ctx, |input, ctx| {
+            input.insert_typeahead_text(num_typeahead_chars_inserted, typeahead, ctx);
+        });
+        ctx.notify();
     }
 
     /// This function is invoked every time there is some form of view event
@@ -4343,9 +4257,6 @@ impl TerminalView {
             model.block_list_mut().update_active_block_height();
         }
         self.maybe_emit_terminal_view_state_changed_for_long_running_block(ctx);
-        self.use_agent_footer.update(ctx, |footer, ctx| {
-            footer.notify_and_notify_children(ctx);
-        });
 
         // Need to re-render both the alt screen and the blocklist on keypresses.
         ctx.notify();
