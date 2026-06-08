@@ -621,10 +621,10 @@ impl ShowTabBar {
 enum SimplifiedWasmTabBarContent {
     /// Viewing a Warp Drive object (notebook, workflow, env vars, AI facts, MCP servers)
     WarpDriveObject,
-    /// Participating in a shared session (viewer or writer). Contains the optional ambient agent task ID.
-    SharedSession { task_id: Option<AmbientAgentTaskId> },
-    /// Viewing a conversation transcript. Contains the optional ambient agent task ID.
-    ConversationTranscript { task_id: Option<AmbientAgentTaskId> },
+    /// Participating in a shared session (viewer or writer).
+    SharedSession,
+    /// Viewing a conversation transcript.
+    ConversationTranscript,
 }
 
 type RemoteUploadId = (TerminalPaneId, FileUploadId);
@@ -4650,15 +4650,9 @@ impl Workspace {
         }
 
         match target {
-            FileTarget::MarkdownViewer(layout) => {
-                let session = self.get_active_session(ctx);
-
-                self.open_file_notebook(
-                    LocalOrRemotePath::Local(path.clone()),
-                    session,
-                    layout,
-                    ctx,
-                );
+            FileTarget::MarkdownViewer(_layout) => {
+                // The built-in notebook/markdown viewer was removed; open externally.
+                crate::util::file::open_file_path_with_editor(line_col, path.clone(), None, ctx);
             }
             FileTarget::EnvEditor => {
                 let editor_value: Option<String> = self
@@ -6157,48 +6151,6 @@ impl Workspace {
             Some("Settings".to_owned()),
             ctx,
         );
-    }
-
-    /// Open a file from the given session as a notebook pane.
-    #[cfg(feature = "local_fs")]
-    fn open_file_notebook(
-        &mut self,
-        path: LocalOrRemotePath,
-        session: Option<Arc<Session>>,
-        layout: EditorLayout,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // TODO(ben): It might be worth managing file-based notebooks via NotebookManager
-        //   (e.g. for open-or-switch behavior). See if it overcomplicates things.
-        let pane = FilePane::new(
-            Some(path),
-            session,
-            #[cfg(feature = "local_fs")]
-            None,
-            ctx,
-        );
-
-        match layout {
-            EditorLayout::NewTab => {
-                let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
-                let new_idx = match new_tab_placement_setting {
-                    NewTabPlacement::AfterAllTabs => self.tab_count(),
-                    // Add tab after current tab
-                    NewTabPlacement::AfterCurrentTab => self.active_tab_index + 1,
-                };
-                self.add_tab_from_existing_pane(Box::new(pane), new_idx, ctx);
-            }
-            EditorLayout::SplitPane => {
-                self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                    pane_group.add_pane_with_direction(
-                        Direction::Right,
-                        pane,
-                        true, /* focus_new_pane */
-                        ctx,
-                    );
-                });
-            }
-        }
     }
 
     fn attach_path_as_context(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
