@@ -31,7 +31,13 @@ work falls into 4 coherent units (no isolated quick-deletes left):
    ComputerUsePermission) + user_workspaces.rs + gql_convert.rs all tied to the cloud workspace GraphQL conversion.
    Coordinated delete: server/graphql + harness_support modules, strip AI fields from workspace settings structs,
    fix gql_convert/user_workspaces/auth importers.
-3. UI-PRIMITIVE REIMPL CLUSTER (install_tmux 14 + ssh_remote_server_choice_view 9 + plugin_instructions_block 5):
+   plugin_instructions_block (5): DONE — replaced render_code_block_plain with a monospace Text block (no copy/run
+   buttons; acceptable strip simplification). Template for the others: replace deleted UI primitive with simple inline
+   element. BUT ssh_choice/install_tmux use `KeyboardNavigableButtons` (a STATEFUL ViewHandle component with focus
+   forwarding) — that one needs RECOVERY not inline replacement: recover the generic KeyboardNavigableButtons +
+   rich_navigation_button + HeaderConfig + INLINE_ACTION_HORIZONTAL_PADDING from the git commit that deleted the
+   `requested_script` module and re-home them in ui_components (they are NOT AI types — deletion was too aggressive).
+3. UI-PRIMITIVE REIMPL CLUSTER (install_tmux 14 + ssh_remote_server_choice_view 9, plugin_instructions_block DONE):
    all reference GENERIC block-UI helpers (rich_navigation_button, KeyboardNavigableButtons, HeaderConfig,
    INLINE_ACTION_HORIZONTAL_PADDING from deleted `requested_script`; render_code_block_plain, CodeBlockOptions,
    CodeSnippetButtonHandles from the deleted `code` module). These are NOT AI types — reimplement them as a small
