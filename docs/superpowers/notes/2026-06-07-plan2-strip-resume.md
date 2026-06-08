@@ -52,7 +52,23 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### ▶▶ STATE: 5 resolution errors (234→5 this session, 98%!). Since the 14-error mark also cleared: voice vertical
+### ▶▶ STATE: 3 resolution errors (234→3 this session, 99%!). voice + AgentViewController chain + up_arrow + classic/common
+workflow-overlay + VOLTRON (deleted wholesale: voltron.rs + ~25 input.rs/common/classic/terminal integration sites, incl
+InputAction::SelectAndRefreshVoltron variant+arm+binding, close_voltron/select_and_refresh_voltron/voltron anchors, is_voltron_open/
+voltron_view on_focus+keymap_context, add_voltron_overlay) — ALL DONE.
+ONLY left_panel.rs (3: crate::code file-tree imports) REMAINS = the LeftPanelView+GlobalSearch ONE-COMPLETE-PASS deletion.
+  ⚠️ ~30 view.rs sites; KEEP-vs-DELETE nuance: `left_panel_open`/`pane_group.left_panel_open` are BOOLS → KEEP. Delete only the
+  `left_panel_view: ViewHandle<LeftPanelView>` field + `left_panel_views: Vec<ToolPanelView>` field + ctor(~2406-2418) + Self ctor
+  fields(~2660) + imports(138 LeftPanelDisplayedTab/LeftPanelSnapshot, 354 LeftPanel*/ToolPanelView) + methods
+  [restore_left_panel_for_tab, reset_focused_index_in_warp_drive, has_warp_drive_initialized_sections, is_warp_drive_view_focused,
+  focus_left_region_entry(+3 callers ~3561/3579/3614), open_or_toggle_warp_drive, open_left_panel_view, toggle_left_panel_view,
+  compute_left_panel_views, update_left_panel_available_views, compute_left_panel_snapshot, handle_left_panel_event, open_warp_drive_palette,
+  is_warp_drive_open] + 2 ChildView renders(~13998 HeaderToolbarItemKind::ToolsPanel→None, ~16096 wasm) + left_panel_views.len()/
+  is_empty() tooltip sites(~11622/11676/12296/15259) + the 15461/15479 ClosePanel focus check + restore/snapshot left-panel branches.
+  THEN delete left_panel.rs + global_search/ + mod decls. GlobalSearch in 10 other files becomes unused (warnings, not errors) — OK.
+  Field removal breaks ALL ~30 at once → must be one pass; partial = revert (proven twice). After it: resolution=0, then typeck wave.
+
+### ▶▶ (history) STATE: 5 resolution errors (234→5 this session, 98%!). Since the 14-error mark also cleared: voice vertical
 (deleted ServerVoiceTranscriber, wired VoiceTranscriber::disabled()), the AgentViewController inline-menu chain (slash/repos/
 cloud_mode_v2 — dead agent_view_controller params, the views were never constructed), up_arrow (command-only now), classic
 (removed AI image-attachment chips), common+classic+terminal (removed SelectedWorkflowState more-info overlay).
