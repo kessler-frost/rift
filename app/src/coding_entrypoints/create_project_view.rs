@@ -83,20 +83,6 @@ impl CreateProjectView {
                     ctx
                 );
 
-                // Send content event only if UGC collection is enabled
-                let should_collect_ugc = should_collect_ai_ugc_telemetry(
-                    ctx,
-                    PrivacySettings::as_ref(ctx).is_telemetry_enabled,
-                );
-                if should_collect_ugc {
-                    send_telemetry_from_ctx!(
-                        TelemetryEvent::CreateProjectPromptSubmittedContent {
-                            custom_prompt: prompt.clone(),
-                        },
-                        ctx
-                    );
-                }
-
                 ctx.emit(CreateProjectEvent::SubmitPrompt(prompt.clone()));
             }
             GlowingEditorEvent::Cancel => {

@@ -2570,7 +2570,7 @@ impl TerminalView {
             |me, privacy_settings_handle, event, ctx| {
                 if let PrivacySettingsChangedEvent::UpdateIsTelemetryEnabled { .. } = event {
                     me.privacy_settings_snapshot =
-                        privacy_settings_handle.as_ref(ctx).get_snapshot(ctx)
+                        privacy_settings_handle.as_ref(ctx).get_snapshot()
                 }
             },
         );
@@ -2763,7 +2763,7 @@ impl TerminalView {
             file_link_scanning_join_handle: None,
             last_focus_ts: None,
             tips_completed: resources.tips_completed.clone(),
-            privacy_settings_snapshot: privacy_settings_handle.as_ref(ctx).get_snapshot(ctx),
+            privacy_settings_snapshot: privacy_settings_handle.as_ref(ctx).get_snapshot(),
             was_ever_visible: false,
             view_id: ctx.view_id(),
             current_state: TerminalViewStateChange::default(),

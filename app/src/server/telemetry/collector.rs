@@ -82,7 +82,7 @@ impl TelemetryCollector {
     pub fn write_telemetry_events_to_disk(&self, ctx: &mut ModelContext<TelemetryCollector>) {
         match self.server_api.persist_telemetry_events(
             MAX_TELEMETRY_EVENTS_TO_STORE,
-            PrivacySettings::as_ref(ctx).get_snapshot(ctx),
+            PrivacySettings::as_ref(ctx).get_snapshot(),
         ) {
             Ok(()) => {
                 log::info!("Successfully wrote telemetry events to disk")
@@ -102,7 +102,7 @@ impl TelemetryCollector {
         let execution_mode = AppExecutionMode::as_ref(ctx);
 
         if execution_mode.send_telemetry_at_shutdown() {
-            let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot(ctx);
+            let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot();
             let server_api = self.server_api.clone();
             match riftui::r#async::block_on(async move {
                 server_api
@@ -135,7 +135,7 @@ impl TelemetryCollector {
     /// function should be called on startup to track events that were recorded at the end of the
     /// last session and were not flushed.
     fn flush_persisted_events_from_disk(&self, ctx: &mut ModelContext<TelemetryCollector>) {
-        let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot(ctx);
+        let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot();
         let server_api = self.server_api.clone();
         let _ = ctx.spawn(
             async move {
@@ -199,7 +199,7 @@ impl TelemetryCollector {
     /// itself after `TELEMETRY_FLUSH_DURATION`.
     fn schedule_event_queue_flush(&self, ctx: &mut ModelContext<TelemetryCollector>) {
         let server_api = self.server_api.clone();
-        let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot(ctx);
+        let privacy_settings_snapshot = PrivacySettings::as_ref(ctx).get_snapshot();
         let _ = ctx.spawn(
             async move {
                 match server_api

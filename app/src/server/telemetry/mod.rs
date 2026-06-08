@@ -321,10 +321,9 @@ impl TelemetryApi {
             .into_iter()
             .partition(|message| message.contains_ugc);
 
-        // If we shouldn't collect UGC telemetry, forcibly clear any messages with UGC before trying to send.
-        if !settings_snapshot.should_collect_ai_ugc_telemetry() {
-            messages_with_ugc.clear();
-        }
+        // UGC (user-generated content) telemetry is never collected; forcibly clear any
+        // messages with UGC before trying to send.
+        messages_with_ugc.clear();
 
         for (messages, rudder_stack_destination) in [
             (

@@ -390,7 +390,7 @@ impl AuthManager {
                 // Fetch the user's privacy settings from the server if any or update the server settings.
                 let privacy_settings_handle = PrivacySettings::handle(ctx);
                 let privacy_settings_snapshot =
-                    privacy_settings_handle.as_ref(ctx).get_snapshot(ctx);
+                    privacy_settings_handle.as_ref(ctx).get_snapshot();
                 ctx.update_model(&privacy_settings_handle, |privacy_settings, ctx| {
                     privacy_settings.fetch_or_update_settings(ctx);
                 });
