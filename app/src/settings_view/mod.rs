@@ -8,7 +8,7 @@ use features_page::{FeaturesPageView, FeaturesSettingsPageEvent};
 use itertools::Itertools as _;
 use keybindings::KeybindingsView;
 use main_page::{MainPageAction, MainSettingsPageEvent, MainSettingsPageView};
-use nav::{SettingsNavItem, SettingsUmbrella};
+use nav::SettingsNavItem;
 use pathfinder_geometry::vector::Vector2F;
 use privacy_page::{PrivacyPageView, PrivacyPageViewEvent};
 use rift_core::channel::ChannelState;
@@ -66,8 +66,6 @@ pub mod keybindings;
 mod main_page;
 mod nav;
 pub mod pane_manager;
-mod platform;
-mod platform_page;
 mod privacy;
 mod privacy_page;
 mod settings_file_footer;
@@ -161,8 +159,6 @@ pub enum SettingsSection {
     Privacy,
     SharedBlocks,
     Warpify,
-    // ── Cloud platform umbrella subpages ──
-    OzCloudAPIKeys,
 }
 
 use std::fmt::{self, Display};
@@ -174,7 +170,6 @@ impl Display for SettingsSection {
         match self {
             SettingsSection::Keybindings => write!(f, "Keyboard shortcuts"),
             SettingsSection::SharedBlocks => write!(f, "Shared blocks"),
-            SettingsSection::OzCloudAPIKeys => write!(f, "Oz Cloud API Keys"),
             _ => write!(f, "{self:?}"),
         }
     }
@@ -188,20 +183,13 @@ impl SettingsSection {
 
     /// Returns true if this section is a subpage under the "Cloud platform" umbrella.
     pub fn is_cloud_platform_subpage(&self) -> bool {
-        matches!(self, Self::OzCloudAPIKeys)
+        false
     }
 
     /// Maps subpage sections back to their parent page section for page lookup.
     /// Non-subpage sections return themselves.
     pub fn parent_page_section(&self) -> Self {
-        // OzCloudAPIKeys IS its own backing page (1:1 mapping), so every
-        // section returns itself.
         *self
-    }
-
-    /// The ordered list of Cloud platform subpage sections.
-    pub fn cloud_platform_subpages() -> &'static [Self] {
-        &[Self::OzCloudAPIKeys]
     }
 }
 
@@ -218,7 +206,6 @@ impl FromStr for SettingsSection {
             "Privacy" => Ok(Self::Privacy),
             "Shared blocks" => Ok(Self::SharedBlocks),
             "Warpify" => Ok(Self::Warpify),
-            "Oz Cloud API Keys" | "OzCloudAPIKeys" => Ok(Self::OzCloudAPIKeys),
             _ => Err(()),
         }
     }
@@ -876,7 +863,6 @@ macro_rules! update_page {
             SettingsPageViewHandle::SharedBlocks(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Keybindings(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Warpify(handle) => $ctx.update_view(handle, $update),
-            SettingsPageViewHandle::OzCloudAPIKeys(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Privacy(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::About(handle) => $ctx.update_view(handle, $update),
         }
@@ -968,11 +954,6 @@ impl SettingsView {
             me.handle_privacy_page_event(event, ctx);
         });
 
-        let platform_page_handle = ctx.add_typed_action_view(platform_page::PlatformPageView::new);
-        ctx.subscribe_to_view(&platform_page_handle, |me, _, event, ctx| {
-            me.handle_platform_page_event(event, ctx);
-        });
-
         let font_family = Appearance::as_ref(ctx).ui_font_family();
         let search_editor = ctx.add_typed_action_view(|ctx| {
             let options = SingleLineEditorOptions {
@@ -1006,7 +987,6 @@ impl SettingsView {
             SettingsPage::new(appearance_page_handle),
             SettingsPage::new(features_page_handle),
             SettingsPage::new(keybindings_handle),
-            SettingsPage::new(platform_page_handle),
             SettingsPage::new(warpify_page_handle),
             SettingsPage::new(show_blocks_view_handle),
             SettingsPage::new(privacy_page_handle),
@@ -1016,10 +996,6 @@ impl SettingsView {
         // Build sidebar nav items.
         let mut nav_items = vec![
             SettingsNavItem::Page(SettingsSection::Account),
-            SettingsNavItem::Umbrella(SettingsUmbrella::new(
-                "Cloud platform",
-                vec![SettingsSection::OzCloudAPIKeys],
-            )),
             SettingsNavItem::Page(SettingsSection::Appearance),
             SettingsNavItem::Page(SettingsSection::Features),
             SettingsNavItem::Page(SettingsSection::Keybindings),
@@ -1399,23 +1375,6 @@ impl SettingsView {
         }
     }
 
-    fn handle_platform_page_event(
-        &mut self,
-        event: &platform_page::PlatformPageViewEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            platform_page::PlatformPageViewEvent::ShowCreateApiKeyModal => {
-                // Modal rendering is handled in get_modal_content_for_page
-                ctx.notify();
-            }
-            platform_page::PlatformPageViewEvent::HideCreateApiKeyModal => {
-                // Modal rendering is handled in get_modal_content_for_page
-                ctx.notify();
-            }
-        }
-    }
-
     pub fn search_for_keybinding(&mut self, keybinding_name: &str, ctx: &mut ViewContext<Self>) {
         self.set_and_refresh_current_page(SettingsSection::Keybindings, ctx);
 
@@ -1535,7 +1494,6 @@ impl SettingsView {
             SettingsPageViewHandle::Features(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Appearance(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::About(v) => v.as_ref(app).should_render(app),
-            SettingsPageViewHandle::OzCloudAPIKeys(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Privacy(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Warpify(v) => v.as_ref(app).should_render(app),
         }
@@ -1706,9 +1664,6 @@ impl SettingsView {
     ) -> Option<Box<dyn Element>> {
         match page_handle {
             SettingsPageViewHandle::Privacy(view) => {
-                view.read(app, |view, _| view.get_modal_content())
-            }
-            SettingsPageViewHandle::OzCloudAPIKeys(view) => {
                 view.read(app, |view, _| view.get_modal_content())
             }
             _ => None,

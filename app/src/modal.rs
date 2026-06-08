@@ -202,10 +202,6 @@ impl<T: View> Modal<T> {
         self
     }
 
-    pub fn set_title(&mut self, title: Option<String>) {
-        self.title = title;
-    }
-
     fn handle_appearance_update(
         &mut self,
         handle: ModelHandle<Appearance>,
