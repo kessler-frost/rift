@@ -1580,16 +1580,6 @@ impl BlockList {
         self.block_id_to_block_index.get(id).copied()
     }
 
-    pub fn block_for_ai_action_id(&self, id: &AIAgentActionId) -> Option<&Block> {
-        self.blocks.iter().find(|block| {
-            block.agent_interaction_metadata().is_some_and(|metadata| {
-                metadata
-                    .requested_command_action_id()
-                    .is_some_and(|action_id| action_id == id)
-            })
-        })
-    }
-
     /// Scans the block at `block_index` for secrets.
     pub fn scan_block_for_secrets(&mut self, block_index: BlockIndex) {
         if let Some(block) = self.blocks.get_mut(block_index.0) {
@@ -1599,35 +1589,6 @@ impl BlockList {
 
     pub fn block_heights(&self) -> &SumTree<BlockHeightItem> {
         &self.block_heights
-    }
-
-    pub fn is_requested_command_block_immediately_after_ai_block(
-        &self,
-        ai_block_id: EntityId,
-        block_requested_command_action_id: &AIAgentActionId,
-    ) -> bool {
-        let Some(ai_block_total_idx) = self
-            .removable_blocklist_item_positions
-            .get(&RemovableBlocklistItem::RichContent(ai_block_id))
-        else {
-            return false;
-        };
-        let mut cursor = self
-            .block_heights
-            .cursor::<TotalIndex, BlockHeightSummary>();
-        cursor.seek(ai_block_total_idx, SeekBias::Right);
-        cursor.next();
-        let Some(BlockHeightItem::Block(..)) = cursor.item() else {
-            return false;
-        };
-        let block_idx = cursor.start().block_count;
-        self.block_at(block_idx.into()).is_some_and(|block| {
-            block.agent_interaction_metadata().is_some_and(|metadata| {
-                metadata
-                    .requested_command_action_id()
-                    .is_some_and(|action_id| action_id == block_requested_command_action_id)
-            })
-        })
     }
 
     /// Finds the first block out of the given indices that matches the filter.
@@ -1927,27 +1888,6 @@ impl BlockList {
             Some(subshell_separator_height),
             None,
             move |b| b.update_padding(padding),
-            |_| {},
-        );
-    }
-
-    pub fn set_visibility_of_block_for_ai_action(
-        &mut self,
-        id: &AIAgentActionId,
-        is_visible: bool,
-    ) {
-        let id = id.clone();
-        self.update_blocks_and_sumtree(
-            None,
-            None,
-            move |block| {
-                if block
-                    .requested_command_action_id()
-                    .is_some_and(|action_id| *action_id == id)
-                {
-                    block.set_should_hide(!is_visible);
-                }
-            },
             |_| {},
         );
     }
