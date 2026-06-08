@@ -52,6 +52,24 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
+### ▶▶ EXECUTING the panel/code deletion INCREMENTALLY (works! NOT all-or-nothing) — 83 resolution errors now (234→83, 64%).
+KEY: workspace/view.rs can be ground down cluster-by-cluster, committing each drop, WITHOUT deleting the panel files first.
+The panel TYPES still resolve (files not yet deleted), so removing their use-sites one subsystem at a time keeps the count
+monotonically dropping. Done so far in view.rs: PersistedWorkspace→ProjectManagementModel re-points; the whole code-pane opener
+subsystem (open_code/CodePane/CodeSource/add_tab_for_code_file/add_tab_for_new_code_file — redirect CodeEditor/OpenSettingsFile/
+OpenProjectRulesPane targets to the external editor); BlocklistAIHistoryModel sub+uses; EnableAutoReloadModal (cloud billing
+modal: field/build/ctor/handler/render); cloud-mode HandoffEnvironmentCreationModal method; recovered non-AI helpers inline
+(tail_command_for_shell for LSP logs, add_color/remove_color diff-stat colors). PATTERN for each deleted modal/model: remove
+field (~840s struct) + ctor build/subscribe + Self{} field + handle_*_event method + render block; rebuild; commit.
+REMAINING view.rs clusters (~32): WarpDriveSettings(3)+WarpDriveSettingsChangedEvent, CodeReviewPaneEntrypoint(3)/DiffStateModel/
+CodeReviewPanelArg (code-review panel opener methods — delete), AgentNotificationsModel(3)/NotificationFilter/BonusGrantNotification,
+ConversationRestorationInNewPaneType(2)/DeleteConversationDialogSource(2)/RewindDialogSource, UpdateManager(2)/CloudModel(2)/
+CloudPreferencesSettings/CloudObjectTypeAndId/AIRequestUsageModel (cloud), ZeroStatePromptSuggestionType(2), NotebookPaneSnapshot,
+FilePane, AmbientAgentTaskId. THEN: the LeftPanelView/RightPanelView hosting itself (fields ~882/884, ctors, render, toggle methods,
+LeftPanel/RightPanel actions+events, ToolPanelView, binding consts) — and FINALLY delete left_panel.rs/right_panel.rs/global_search/
+files + mod decls (7/9/13) + the ~10 other GlobalSearch files. Use the resolution-only build check:
+  grep -cE '^error\[E0(432|433|412|425|422|405|585)\]' /tmp/rb.log
+
 ### ✅ USER DECISION (window 9 final, 2026-06-07): DELETE THE CODE-PANELS FEATURE WHOLESALE — including GlobalSearch.
 The user explicitly chose "Delete panels wholesale": remove left_panel.rs + right_panel.rs + global_search/ + their
 ENTIRE workspace/view.rs hosting, including the GlobalSearch feature. Consistent with crate::code already being fully deleted.
