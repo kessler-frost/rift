@@ -145,7 +145,6 @@ rift_logging.workspace = true
 sentry = { workspace = true, optional = true }
 lz4_flex = "0.11"
 markdown_parser.workspace = true
-mcp.workspace = true
 memchr.workspace = true
 memo-map.workspace = true
 mermaid_to_svg.workspace = true
@@ -259,7 +258,6 @@ rift_multi_agent_api.workspace = true
 remote_server.workspace = true
 repo_metadata.workspace = true
 vim.workspace = true
-rmcp.workspace = true
 rift_isolation_platform.workspace = true
 rift_ripgrep.workspace = true
 rift_managed_secrets.workspace = true
@@ -517,7 +515,6 @@ default = [
     "validate_autosuggestions",
     "clear_autosuggestion_on_escape",
     "file_retrieval_tools",
-    "mcp_server",
     "fast_forward_autoexecute_button",
     "image_as_context",
     "command_palette_file_search",
@@ -551,7 +548,6 @@ default = [
     "vim_code_editor",
     "code_launch_modal",
     "allow_ignoring_input_suggestions",
-    "mcp_oauth",
     "expand_edit_to_pane",
     "fallback_model_load_output_messaging",
     "api_key_authentication",
@@ -572,7 +568,6 @@ default = [
     "create_environment_slash_command",
     "code_review_find",
     "shared_session_long_running_commands",
-    "mcp_grouped_server_context",
     "fork_from_command",
     "context_window_usage_v2",
     "ambient_agents_command_line",
@@ -619,7 +614,6 @@ default = [
     "incremental_auto_reload",
     "active_conversation_requires_interaction",
     "figma_detection",
-    "file_based_mcp",
     "inline_repo_menu",
     "kitty_keyboard_protocol",
     "inline_menu_headers",
@@ -767,9 +761,6 @@ local_fs = [
 log_expensive_frames_in_sentry = []
 markdown_tables = []
 markdown_mermaid = []
-mcp_server = []
-mcp_oauth = []
-mcp_debugging_ids = []
 notebook_parameter = []
 oz_changelog_updates = []
 personal_cloud_objects = []
@@ -913,7 +904,6 @@ artifact_command = []
 cloud_environments = []
 create_environment_slash_command = []
 summarize_conversation_command = []
-mcp_grouped_server_context = []
 web_search_ui = []
 web_fetch_ui = []
 fork_from_command = []
@@ -952,7 +942,6 @@ oz_launch_modal = []
 open_warp_launch_modal = []
 orchestration_launch_modal = []
 new_tab_styling = []
-file_based_mcp = []
 skill_arguments = []
 active_conversation_requires_interaction = []
 incremental_auto_reload = []

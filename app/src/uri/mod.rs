@@ -41,9 +41,6 @@ use crate::{
 
 const DESKTOP_REDIRECT_URI_PATH: &str = "/desktop_redirect";
 
-/// Args for opening the MCP settings page via deeplink.
-pub struct OpenMCPSettingsArgs {}
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum UriHost {
     Auth,
@@ -212,7 +209,6 @@ impl UriHost {
                 // - warp://settings/teams?invite={email} - opens team settings with invite modal
                 // - warp://settings/billing_and_usage - opens billing and usage settings page
                 // - warp://settings/environments - opens environments settings page
-                // - warp://settings/mcp - opens MCP servers settings page
                 // - warp://settings/platform - opens platform settings page
                 // - warp://settings/appearance - opens appearance settings page (themes, fonts, etc.)
                 let settings_sub_page: Option<String> = url
@@ -224,16 +220,6 @@ impl UriHost {
 
                 if let Some(settings_sub_page) = settings_sub_page {
                     match settings_sub_page.as_str() {
-                        "mcp" => {
-                            let args = OpenMCPSettingsArgs {};
-                            dispatch_action_in_new_or_existing_window(
-                                primary_window_id,
-                                "root_view:open_mcp_settings_in_existing_window",
-                                "root_view:open_mcp_settings_in_new_window",
-                                &args,
-                                ctx,
-                            );
-                        }
                         "platform" => {
                             dispatch_action_in_new_or_existing_window(
                                 primary_window_id,

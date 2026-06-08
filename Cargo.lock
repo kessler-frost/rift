@@ -7888,37 +7888,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mcp"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-trait",
- "cfg-if",
- "cloud_object_models",
- "futures",
- "http 1.4.0",
- "log",
- "oauth2",
- "pin-project-lite",
- "reqwest",
- "rift_core",
- "riftui",
- "riftui_extras",
- "rmcp",
- "serde",
- "serde_json",
- "simple_logger",
- "sse-stream",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "url",
- "uuid",
- "windows 0.62.2",
-]
-
-[[package]]
 name = "measure_time"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8416,18 +8385,6 @@ dependencies = [
  "cfg_aliases 0.2.1",
  "libc",
  "memoffset 0.9.0",
-]
-
-[[package]]
-name = "nix"
-version = "0.31.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
-dependencies = [
- "bitflags 2.9.4",
- "cfg-if",
- "cfg_aliases 0.2.1",
- "libc",
 ]
 
 [[package]]
@@ -10041,20 +9998,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "process-wrap"
-version = "9.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e842efad9119158434d193c6682e2ebee4b44d6ad801d7b349623b3f57cdf55"
-dependencies = [
- "futures",
- "indexmap 2.12.0",
- "nix 0.31.3",
- "tokio",
- "tracing",
- "windows 0.62.2",
-]
-
-[[package]]
 name = "procfs-core"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11110,7 +11053,6 @@ dependencies = [
  "lz4_flex 0.11.6",
  "mach2 0.5.0",
  "markdown_parser",
- "mcp",
  "memchr",
  "memo-map",
  "mermaid_to_svg",
@@ -11176,7 +11118,6 @@ dependencies = [
  "riftui",
  "riftui_core",
  "riftui_extras",
- "rmcp",
  "rquickjs",
  "rust-embed 8.7.2",
  "rustls",
@@ -12030,23 +11971,16 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "futures",
- "http 1.4.0",
- "oauth2",
  "pastey 0.2.1",
  "pin-project-lite",
- "process-wrap",
- "reqwest",
  "rmcp-macros",
  "schemars",
  "serde",
  "serde_json",
- "sse-stream",
  "thiserror 2.0.17",
  "tokio",
- "tokio-stream",
  "tokio-util",
  "tracing",
- "url",
 ]
 
 [[package]]
@@ -13453,19 +13387,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sse-stream"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3962b63f038885f15bce2c6e02c0e7925c072f1ac86bb60fd44c5c6b762fb72"
-dependencies = [
- "bytes",
- "futures-util",
- "http-body 1.0.1",
- "http-body-util",
- "pin-project-lite",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14432,17 +14353,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
 dependencies = [
  "rustls",
- "tokio",
-]
-
-[[package]]
-name = "tokio-stream"
-version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32da49809aab5c3bc678af03902d4ccddea2a87d028d86392a4b1560c6906c70"
-dependencies = [
- "futures-core",
- "pin-project-lite",
  "tokio",
 ]
 

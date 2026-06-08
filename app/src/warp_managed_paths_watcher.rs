@@ -46,18 +46,8 @@ pub(crate) fn ensure_warp_watch_roots_exist() {
 }
 
 #[cfg_attr(target_family = "wasm", allow(dead_code))]
-pub(crate) fn warp_home_config_dir() -> Option<PathBuf> {
-    rift_core::paths::warp_home_config_dir()
-}
-
-#[cfg_attr(target_family = "wasm", allow(dead_code))]
 pub(crate) fn warp_home_skills_dir() -> Option<PathBuf> {
     rift_core::paths::warp_home_skills_dir()
-}
-
-#[cfg_attr(target_family = "wasm", allow(dead_code))]
-pub(crate) fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
-    rift_core::paths::warp_home_mcp_config_file_path()
 }
 
 #[cfg_attr(target_family = "wasm", allow(dead_code))]
@@ -201,27 +191,6 @@ impl WarpManagedPathsWatcher {
                         WatchFilter::accept_all(),
                         RecursiveMode::Recursive,
                         "Warp home skills directory",
-                    );
-                }
-            }
-            if let (Some(warp_home_config_dir), Some(warp_home_mcp_config_path)) =
-                (warp_home_config_dir(), warp_home_mcp_config_file_path())
-            {
-                if warp_home_config_dir.exists()
-                    && !warp_home_config_dir.starts_with(&data_dir)
-                    && (!should_register_config_local_dir
-                        || !warp_home_config_dir.starts_with(&config_local_dir))
-                {
-                    // Watch the config directory non-recursively,
-                    // and ignore events for files other than the MCP config file.
-                    let emit = Arc::new(move |path: &Path| path == warp_home_mcp_config_path);
-                    Self::register_path(
-                        ctx,
-                        &watcher,
-                        warp_home_config_dir,
-                        WatchFilter::with_filter(Arc::new(|_: &Path| true), emit),
-                        RecursiveMode::NonRecursive,
-                        "Warp home MCP config directory",
                     );
                 }
             }

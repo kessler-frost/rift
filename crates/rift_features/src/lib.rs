@@ -260,9 +260,6 @@ pub enum FeatureFlag {
     /// Allows AI to call the grep tool.
     GrepTool,
 
-    /// MCP server v0 functionality.
-    McpServer,
-
     /// Enables image as context for AM.
     ImageAsContext,
 
@@ -425,9 +422,6 @@ pub enum FeatureFlag {
     /// Enables API key management UI in settings
     APIKeyManagement,
 
-    /// Enables OAuth support for MCP.
-    McpOauth,
-
     /// Enables attaching diff sets (multiple hunks from multiple files) as context in Agent Mode.
     DiffSetAsContext,
 
@@ -494,9 +488,6 @@ pub enum FeatureFlag {
 
     /// Enables the web fetch UI (when the model fetches content from URLs).
     WebFetchUI,
-
-    /// Displays debugging IDs for MCP servers, installations, and gallery items.
-    McpDebuggingIds,
 
     /// Enables rendering of images in markdown files and AI responses.
     MarkdownImages,
@@ -663,9 +654,6 @@ pub enum FeatureFlag {
 
     /// Updated tab styling (background colors, border, close button positioning, margins).
     NewTabStyling,
-
-    /// Enables file-based MCP server support via .mcp.json files in repo roots.
-    FileBasedMcp,
 
     /// Enables passing user query arguments to skill invocations ($ARGUMENTS, $N).
     SkillArguments,

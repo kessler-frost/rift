@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use csv::Writer;
 use enclose::enclose;
 use itertools::Itertools;
-use rift_core::context_flag::ContextFlag;
 use rift_util::path::user_friendly_path;
 use riftui::actions::StandardAction;
 use riftui::keymap::{Keystroke, Trigger};
@@ -534,13 +533,6 @@ fn make_new_ai_menu(ctx: &AppContext) -> Menu {
         ]);
     }
 
-    if FeatureFlag::McpServer.is_enabled() && ContextFlag::ShowMCPServers.is_enabled() {
-        items.push(updateable_custom_item_without_checkmark(
-            CustomAction::OpenMCPServerCollection,
-            ctx,
-        ));
-    }
-
     Menu::new("AI", items)
 }
 
@@ -608,7 +600,6 @@ fn make_new_drive_menu(ctx: &AppContext) -> Menu {
         updateable_custom_item_without_checkmark(CustomAction::SearchDrive, ctx),
         updateable_custom_item_without_checkmark(CustomAction::OpenTeamSettings, ctx),
         updateable_custom_item_without_checkmark(CustomAction::OpenAIFactCollection, ctx),
-        updateable_custom_item_without_checkmark(CustomAction::OpenMCPServerCollection, ctx),
     ]);
 
     items.push(updateable_custom_item_without_checkmark(

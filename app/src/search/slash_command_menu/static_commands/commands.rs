@@ -28,15 +28,6 @@ pub static CLOUD_AGENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand
     argument: Some(Argument::optional().with_execute_on_selection()),
 });
 
-pub const ADD_MCP: StaticCommand = StaticCommand {
-    name: "/add-mcp",
-    description: "Add a new MCP server via the MCP settings page",
-    icon_path: "bundled/svg/dataflow.svg",
-    availability: Availability::AI_ENABLED,
-    auto_enter_ai_mode: false,
-    argument: None,
-};
-
 pub const PR_COMMENTS: StaticCommand = StaticCommand {
     name: "/pr-comments",
     description: "Pull GitHub PR review comments",
@@ -224,15 +215,6 @@ pub const OPEN_PROJECT_RULES: StaticCommand = StaticCommand {
     description: "Open the project rules file (AGENTS.md)",
     icon_path: "bundled/svg/file-code-02.svg",
     availability: Availability::REPOSITORY.union(Availability::AI_ENABLED),
-    auto_enter_ai_mode: false,
-    argument: None,
-};
-
-pub const OPEN_MCP_SERVERS: StaticCommand = StaticCommand {
-    name: "/open-mcp-servers",
-    description: "Open MCP servers",
-    icon_path: "bundled/svg/dataflow.svg",
-    availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
     argument: None,
 };
@@ -613,7 +595,6 @@ impl Registry {
 
 fn all_commands() -> Vec<StaticCommand> {
     let mut commands = vec![
-        ADD_MCP,
         ADD_PROMPT.clone(),
         ADD_RULE,
         COST,
@@ -621,7 +602,6 @@ fn all_commands() -> Vec<StaticCommand> {
         INDEX,
         INIT,
         OPEN_PROJECT_RULES,
-        OPEN_MCP_SERVERS,
         OPEN_RULES,
         AGENT.clone(),
         NEW.clone(),

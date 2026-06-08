@@ -12971,9 +12971,6 @@ impl Workspace {
         if *ai_settings.warp_drive_context_enabled.value() {
             context.set.insert(flags::RIFT_DRIVE_CONTEXT_FLAG);
         }
-        if *ai_settings.file_based_mcp_enabled.value() {
-            context.set.insert(flags::FILE_BASED_MCP_FLAG);
-        }
         if *ai_settings.can_use_warp_credits_for_fallback.value() {
             context.set.insert(flags::RIFT_CREDIT_FALLBACK_FLAG);
         }
