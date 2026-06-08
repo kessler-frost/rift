@@ -64,16 +64,6 @@ impl FreeTierLimitHitModal {
             },
         );
 
-        ctx.subscribe_to_model(
-            &AIRequestUsageModel::handle(ctx),
-            |_, _, event, ctx| match event {
-                AIRequestUsageModelEvent::RequestUsageUpdated => {
-                    ctx.emit(FreeTierLimitHitModalEvent::MaybeOpen);
-                }
-                AIRequestUsageModelEvent::RequestBonusRefunded { .. } => {}
-            },
-        );
-
         FreeTierLimitHitModal {
             state_handles: Default::default(),
         }
