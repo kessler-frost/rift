@@ -115,7 +115,6 @@ impl SlashCommandEntryState {
 
 pub struct SlashCommandModel {
     input_buffer_model: ModelHandle<InputBufferModel>,
-    ai_input_model: ModelHandle<BlocklistAIInputModel>,
     active_session: ModelHandle<ActiveSession>,
     state: SlashCommandEntryState,
     data_source: ModelHandle<SlashCommandDataSource>,
@@ -124,7 +123,6 @@ pub struct SlashCommandModel {
 impl SlashCommandModel {
     pub fn new(
         buffer_model: &ModelHandle<InputBufferModel>,
-        ai_input_model: &ModelHandle<BlocklistAIInputModel>,
         active_session: ModelHandle<ActiveSession>,
         data_source: ModelHandle<SlashCommandDataSource>,
         ctx: &mut ModelContext<Self>,
@@ -133,36 +131,8 @@ impl SlashCommandModel {
             me.handle_input_buffer_update(event, ctx);
         });
 
-        if !FeatureFlag::AgentView.is_enabled() {
-            // In the old modality, slash commands are disabled in locked shell mode.
-            //
-            // In the new modality, slash commands _are_ accessible in the terminal view, which is
-            // in locked shell mode if NLD is disabled.
-            ctx.subscribe_to_model(ai_input_model, |me, event, ctx| match event {
-                BlocklistAIInputEvent::InputTypeChanged { config }
-                | BlocklistAIInputEvent::LockChanged { config } => {
-                    if config.is_locked {
-                        if config.is_shell() && !me.state.is_disabled() {
-                            let old_state = std::mem::replace(
-                                &mut me.state,
-                                SlashCommandEntryState::DisabledUntilEmptyBuffer,
-                            );
-                            ctx.emit(UpdatedSlashCommandModel { old_state });
-                        } else if !config.is_shell()
-                            && me.input_buffer_model.as_ref(ctx).current_value().is_empty()
-                        {
-                            let old_state =
-                                std::mem::replace(&mut me.state, SlashCommandEntryState::None);
-                            ctx.emit(UpdatedSlashCommandModel { old_state });
-                        }
-                    }
-                }
-            });
-        }
-
         Self {
             input_buffer_model: buffer_model.clone(),
-            ai_input_model: ai_input_model.clone(),
             active_session,
             data_source,
             state: SlashCommandEntryState::None,
@@ -181,23 +151,6 @@ impl SlashCommandModel {
             return;
         }
 
-        // In the old modality, the input mode is always set to AI mode when a slash command
-        // is being composed. We interpret slash command menu dismissal as intent to execute a
-        // shell command.
-        //
-        // In the new modality, we don't implicitly tie slash command composition to a specific
-        // input mode, so we shouldn't change the input mode based on slash command disablement.
-        if !FeatureFlag::AgentView.is_enabled()
-            && !self.ai_input_model.as_ref(ctx).is_input_type_locked()
-        {
-            self.ai_input_model.update(ctx, |input_model, ctx| {
-                input_model.set_input_type(
-                    InputType::Shell,
-                    Some(InputTypeAutoDetectionSource::SlashCommand),
-                    ctx,
-                );
-            });
-        }
 
         let old_state = std::mem::replace(
             &mut self.state,
@@ -234,29 +187,8 @@ impl SlashCommandModel {
 
     /// Detects whether `buffer` matches a known skill command.
     /// Accepts `&AppContext` so it can be called outside a model update.
-    fn detect_skill_command(&self, buffer: &str, ctx: &AppContext) -> Option<DetectedSkillCommand> {
-        let (possible_command, possible_argument) =
-            if let Some((command, argument)) = buffer.split_once(" ") {
-                (command, Some(argument.to_owned()))
-            } else {
-                (buffer, None)
-            };
-
-        let skill_name = possible_command.strip_prefix('/')?;
-
-        let active_session = self.active_session.as_ref(ctx);
-        let cwd_path = active_session.current_working_directory_location(ctx);
-        let skills = SkillManager::handle(ctx)
-            .as_ref(ctx)
-            .get_skills_for_working_directory(cwd_path.as_ref(), ctx);
-
-        let matched_skill = skills.into_iter().find(|skill| skill.name == skill_name)?;
-
-        Some(DetectedSkillCommand {
-            reference: matched_skill.reference,
-            name: matched_skill.name,
-            argument: possible_argument,
-        })
+    fn detect_skill_command(&self, _buffer: &str, _ctx: &AppContext) -> Option<DetectedSkillCommand> {
+        None
     }
 
     fn handle_input_buffer_update(
@@ -267,20 +199,7 @@ impl SlashCommandModel {
         // AI-off is no longer a blanket disable: AI-dependent commands are filtered out
         // of `active_commands` via `Availability::AI_ENABLED`, so parsing still works for
         // non-AI commands like `/open-file`.
-        if !FeatureFlag::AgentView.is_enabled() {
-            let ai_input_model = self.ai_input_model.as_ref(ctx);
-            if ai_input_model.is_input_type_locked() && !ai_input_model.is_ai_input_enabled() {
-                if !self.state.is_disabled() {
-                    let old_state = std::mem::replace(
-                        &mut self.state,
-                        SlashCommandEntryState::DisabledUntilEmptyBuffer,
-                    );
-                    ctx.emit(UpdatedSlashCommandModel { old_state });
-                }
-                return;
-            }
-        } else if !self.data_source.as_ref(ctx).is_agent_view_active(ctx)
-            && !self.data_source.as_ref(ctx).is_cli_agent_input_open(ctx)
+        if !self.data_source.as_ref(ctx).is_cli_agent_input_open(ctx)
             && !*InputSettings::as_ref(ctx)
                 .enable_slash_commands_in_terminal
                 .value()
@@ -323,24 +242,6 @@ impl SlashCommandModel {
                     }
                 }
 
-                if !FeatureFlag::AgentView.is_enabled()
-                    || detected_command.command.auto_enter_ai_mode
-                {
-                    // In the old modality, when there is a detected slash command, the input _must_ be in
-                    // AI mode; we don't respect `StaticCommand::auto_enter_ai_mode = false`. That field is
-                    // only used in the new modality.
-                    //
-                    // The fact that we've even detected a command implies that the input mode is in AI
-                    // mode, either locked or unlocked; if the input were locked to shell mode then the
-                    // state would be `DisabledUntilEmptyBuffer` and we would have shortcircuited above.
-                    self.ai_input_model.update(ctx, |input_model, ctx| {
-                        input_model.set_input_type(
-                            InputType::AI,
-                            Some(InputTypeAutoDetectionSource::SlashCommand),
-                            ctx,
-                        );
-                    });
-                }
                 self.state = SlashCommandEntryState::SlashCommand(detected_command);
             }
             SlashCommandEntryState::SkillCommand(detected_skill) => {
@@ -350,14 +251,6 @@ impl SlashCommandModel {
                     }
                 }
 
-                // Skill commands always require AI mode
-                self.ai_input_model.update(ctx, |input_model, ctx| {
-                    input_model.set_input_type(
-                        InputType::AI,
-                        Some(InputTypeAutoDetectionSource::SlashCommand),
-                        ctx,
-                    );
-                });
                 self.state = SlashCommandEntryState::SkillCommand(detected_skill);
             }
             _ if new.starts_with('/') => {
@@ -368,27 +261,6 @@ impl SlashCommandModel {
                     .is_some_and(|command| command == pending_command)
                 {
                     return;
-                }
-
-                if !FeatureFlag::AgentView.is_enabled() {
-                    // In the old modality, when composing a slash command, the input _must_ be in
-                    // AI mode; we don't respect `StaticCommand::auto_enter_ai_mode = false`. That
-                    // field is only used in the new modality.
-                    //
-                    // We don't even rely on the fact that the input is in AI mode while a slash
-                    // command is being composed, its solely used to disable error underlining.
-                    //
-                    // In the new modality, slash commands declare whether or not they are
-                    // available in terminal mode, and syntax highlighting/error underlining is
-                    // handled appropriately. I am just making this change to preserve the existing
-                    // product behavior (agent icon in NLD toggle becomes yellow).
-                    self.ai_input_model.update(ctx, |input_model, ctx| {
-                        input_model.set_input_type(
-                            InputType::AI,
-                            Some(InputTypeAutoDetectionSource::SlashCommand),
-                            ctx,
-                        );
-                    });
                 }
 
                 if pending_command
