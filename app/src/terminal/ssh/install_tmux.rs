@@ -21,6 +21,16 @@ use crate::terminal::warpify::settings::WarpifySettings;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon as UiIcon;
 
+/// Status of the local install-tmux script confirmation prompt.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum RequestedScriptStatus {
+    /// Waiting for the user to accept or dismiss the install prompt.
+    #[default]
+    WaitingForUser,
+    /// The install script is currently running.
+    Running,
+}
+
 pub const WHY_INSTALL_TMUX_URL: &str =
     "https://docs.warp.dev/terminal/warpify/ssh#why-do-i-need-tmux-on-the-remote-machine";
 
@@ -84,7 +94,8 @@ impl SshKeyEvent {
 }
 
 pub struct SshInstallTmuxBlock {
-    requested_script_mouse_states: RequestedScriptMouseStates,
+    install_button_mouse_state: MouseStateHandle,
+    skip_button_mouse_state: MouseStateHandle,
     why_install_tmux_highlight_index: HighlightedHyperlink,
     never_warpify_mouse_state_handle: MouseStateHandle,
     block_mouse_state: MouseStateHandle,
@@ -162,7 +173,8 @@ impl SshInstallTmuxBlock {
         outdated_version: bool,
     ) -> Self {
         Self {
-            requested_script_mouse_states: Default::default(),
+            install_button_mouse_state: Default::default(),
+            skip_button_mouse_state: Default::default(),
             why_install_tmux_highlight_index: Default::default(),
             never_warpify_mouse_state_handle: Default::default(),
             block_mouse_state: Default::default(),
@@ -245,66 +257,103 @@ impl SshInstallTmuxBlock {
         SystemInstallState {
             is_first_script_active,
             tmux_system_install_script,
-            toggle_menu_mouse_states,
-            toggle_menu_state_handle,
             ..
         }: &SystemInstallState,
         app: &AppContext,
     ) -> Box<dyn Element> {
         let package_manager = &self.system_details.package_manager;
-        Container::new(requested_script::render_requested_scripts(
-            TitledScript {
-                title: format!("Install with {package_manager}"),
-                content: tmux_system_install_script.to_string(),
-            },
-            TitledScript {
-                title: "Install to ~/.rift".to_string(),
-                content: self.tmux_local_install_script.clone(),
-            },
-            *is_first_script_active,
-            self.script_status.clone(),
-            self.is_collapsed,
-            self.show_tmux_install_block,
-            move |ctx, _, _| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::ToggleVisibility),
-            |ctx| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::InstallTmux),
-            |ctx| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::Cancel),
-            &ENTER_KEYSTROKE,
-            &ESCAPE_KEYSTROKE,
-            &self.requested_script_mouse_states,
-            toggle_menu_mouse_states.clone(),
-            toggle_menu_state_handle.clone(),
-            Rc::new(move |ctx, _, _| {
-                ctx.dispatch_typed_action(SshInstallTmuxBlockAction::OnToggleInstallScriptChoice)
-            }),
-            self.is_focused,
-            380.,
-            app,
-        ))
-        .with_margin_top(16.)
-        .finish()
+        let title = if *is_first_script_active {
+            format!("Install with {package_manager}")
+        } else {
+            "Install to ~/.rift".to_string()
+        };
+        let script = if *is_first_script_active {
+            tmux_system_install_script
+        } else {
+            &self.tmux_local_install_script
+        };
+        self.render_install_prompt(&title, script, app)
     }
 
     fn render_local_install_ui(&self, app: &AppContext) -> Box<dyn Element> {
-        let header = if self.is_focused {
-            "Run this script to install tmux?"
-        } else {
-            ""
-        };
-        Container::new(requested_script::render_requested_script(
-            header,
-            &self.tmux_local_install_script,
-            self.script_status.clone(),
-            self.is_collapsed,
-            self.show_tmux_install_block,
-            move |ctx, _, _| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::ToggleVisibility),
-            |ctx| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::InstallTmux),
-            |ctx| ctx.dispatch_typed_action(SshInstallTmuxBlockAction::Cancel),
-            &ENTER_KEYSTROKE,
-            &ESCAPE_KEYSTROKE,
-            &self.requested_script_mouse_states,
-            self.is_focused,
+        self.render_install_prompt(
+            "Run this script to install tmux?",
+            &self.tmux_local_install_script.clone(),
             app,
+        )
+    }
+
+    /// Renders the install-tmux prompt: the script text plus Install / Skip buttons.
+    fn render_install_prompt(
+        &self,
+        title: &str,
+        script: &str,
+        app: &AppContext,
+    ) -> Box<dyn Element> {
+        let appearance = Appearance::handle(app).as_ref(app);
+        let theme = appearance.theme();
+        let is_running = matches!(self.script_status, RequestedScriptStatus::Running);
+
+        let script_block = Container::new(
+            riftui::elements::Text::new(
+                script.to_owned(),
+                appearance.monospace_font_family(),
+                appearance.monospace_font_size() - 1.,
+            )
+            .with_color(theme.main_text_color(theme.background()).into_solid())
+            .finish(),
+        )
+        .with_uniform_padding(8.)
+        .with_background(theme.background_elevated())
+        .with_corner_radius(riftui::elements::CornerRadius::with_all(
+            riftui::elements::Radius::Pixels(6.),
         ))
+        .finish();
+
+        let install_button = appearance
+            .ui_builder()
+            .button(self.install_button_mouse_state.clone())
+            .with_text(if is_running { "Installing…" } else { "Install" })
+            .build()
+            .on_click(|ctx, _, _| {
+                ctx.dispatch_typed_action(SshInstallTmuxBlockAction::InstallTmux);
+            })
+            .finish();
+
+        let skip_button = appearance
+            .ui_builder()
+            .button(self.skip_button_mouse_state.clone())
+            .with_text("Skip")
+            .build()
+            .on_click(|ctx, _, _| {
+                ctx.dispatch_typed_action(SshInstallTmuxBlockAction::Cancel);
+            })
+            .finish();
+
+        let buttons = Flex::row()
+            .with_spacing(8.)
+            .with_main_axis_alignment(MainAxisAlignment::End)
+            .with_child(skip_button)
+            .with_child(install_button)
+            .finish();
+
+        Container::new(
+            Flex::column()
+                .with_spacing(8.)
+                .with_cross_axis_alignment(CrossAxisAlignment::Stretch)
+                .with_child(
+                    riftui::elements::Text::new(
+                        title.to_owned(),
+                        appearance.ui_font_family(),
+                        appearance.monospace_font_size(),
+                    )
+                    .with_color(theme.main_text_color(theme.background()).into_solid())
+                    .finish(),
+                )
+                .with_child(script_block)
+                .with_child(buttons)
+                .finish(),
+        )
         .with_margin_top(16.)
         .finish()
     }
