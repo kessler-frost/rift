@@ -52,6 +52,28 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
+### 🚨 PHASE-2 TYPECK WAVE HAS SURFACED (window 9 end) — metric/strategy CHANGE 🚨
+Deleting the dead graphql/schema module dropped resolution errors below the threshold where rustc
+proceeds to TYPECHECK, un-masking the long-predicted second wave. `grep -c '^error'` now reads ~1974,
+but that is NO LONGER the right metric. Two distinct counts now:
+  • RESOLUTION errors (E0432/E0433/E0412/E0425/E0422/E0405/E0585) = 139. THIS is the strip's tip-of-iceberg
+    metric tracked all along. Build-check should now be:
+      cargo check --bin rift-oss > /tmp/rb.log 2>&1; grep -cE '^error\[E0(432|433|412|425|422|405|585)\]' /tmp/rb.log
+  • TYPECK errors (E0599 no-method 886, E0282 type-annotations 501, E0609 no-field 319, E0220/E0061/E0560/E0277…)
+    ≈ 1835. These are the REAL bulk of remaining work: every dangling reference to a deleted AI/cloud field or
+    method accumulated across the whole strip (e.g. ServerApi.ambient_agent_task_id/agent_source, WindowSnapshot.
+    agent_management_filters, AgentToolbarItemKind::display_label/icon). They were ALWAYS there, just hidden.
+STRATEGY for next window: (1) finish clearing the 139 resolution errors first (so the typeck picture is stable/
+complete — resolution errors can still mask SOME typeck). (2) Then grind the typeck wave by file — it's concentrated
+in the god-files: workspace/view.rs (440), server/telemetry/events.rs (402), terminal/input.rs (292), terminal/
+view.rs (242), workspace/view/vertical_tabs.rs (78). Most are E0609/E0599 dangling deleted-field/method refs →
+delete the use-sites (match arms, struct-construction fields, method calls) per WARP.md. E0282 type-annotations
+are usually `None`/`Default::default()`/`vec![]` whose element type was a deleted enum — give an explicit type or
+delete the binding. This wave is large but MECHANICAL (mostly deletion of dangling refs), unlike the delicate
+resolution-phase contract cascades. Commit per-file as each clears.
+DO NOT be alarmed by the 1974 number or revert the schema deletion — the unmask is correct and expected (WARP.md
+documents it). The strip is now in its final, larger-but-mechanical phase.
+
 ### DEFERRED clusters (each its own focused unit, NOT 1-error quick wins despite showing as few errors):
  - is_ai_ugc_telemetry_enabled: threaded as a bool param through TerminalModel::new → blocks.rs → block.rs → terminal_model.rs
    (~14 sites) + PrivacySettingsSnapshot.should_collect_ai_ugc_telemetry field/method + create_project_view + telemetry/mod.
