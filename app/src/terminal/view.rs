@@ -5292,13 +5292,7 @@ impl TerminalView {
         ctx: &mut ViewContext<Self>,
     ) {
         match action {
-            AnonymousUserLoginBannerAction::SignUp => {
-                ctx.emit(Event::SignupAnonymousUser {
-                    entrypoint: AnonymousUserSignupEntrypoint::LoginGatedFeature,
-                });
-                self.remove_anonymous_user_ai_sign_up_banner(ctx);
-            }
-            AnonymousUserLoginBannerAction::Close => {
+            AnonymousUserLoginBannerAction::SignUp | AnonymousUserLoginBannerAction::Close => {
                 self.remove_anonymous_user_ai_sign_up_banner(ctx);
             }
         }
@@ -5794,14 +5788,6 @@ impl TerminalView {
                                     // is known so the active session's working directory catches up.
                                     ctx.emit(Event::AppStateChanged);
 
-                                    if FeatureFlag::AIContextMenuEnabled.is_enabled() {
-                                        me.input.update(ctx, |input, ctx| {
-                                            input
-                                                .check_and_update_ai_context_menu_disabled_state(
-                                                    ctx,
-                                                );
-                                        });
-                                    }
                                     ctx.emit(Event::Pane(PaneEvent::RemoteRepoNavigated {
                                         remote_path: remote_path.clone(),
                                     }));
@@ -5812,7 +5798,6 @@ impl TerminalView {
                                         let Some(active_directory) =
                                             me.active_session_path_if_local(ctx)
                                         else {
-                                            me.clear_git_repo_status(ctx);
                                             return;
                                         };
 
@@ -5832,14 +5817,6 @@ impl TerminalView {
                                             return;
                                         }
 
-                                        if old_repo_path
-                                            .as_ref()
-                                            .and_then(|p| p.to_local_path())
-                                            != Some(repo_path.as_path())
-                                        {
-                                                me.clear_git_repo_status_subscription(ctx);
-                                        }
-
                                         me.input.update(ctx, |input, ctx| {
                                             input.update_repo_path(
                                                 Some(repo_path.clone()),
@@ -5847,25 +5824,12 @@ impl TerminalView {
                                             );
                                         });
 
-                                        if FeatureFlag::AIContextMenuEnabled.is_enabled() {
-                                            me.input.update(ctx, |input, ctx| {
-                                                input
-                                                    .check_and_update_ai_context_menu_disabled_state(
-                                                        ctx,
-                                                    );
-                                            });
-                                        }
-
-                                        me.start_lsp_server_in_active_pwd(ctx);
-
                                         me.update_repo_banner_state(repo_path.clone(), ctx);
                                     }
                                     #[cfg(not(feature = "local_fs"))]
                                     let _ = repo_path;
                                 }
                                 None => {
-                                    #[cfg(feature = "local_fs")]
-                                    me.clear_git_repo_status(ctx);
                                     ctx.notify();
                                 }
                             }
@@ -5938,10 +5902,6 @@ impl TerminalView {
                 ctx.request_user_attention();
             }
             ModelEvent::Exit { reason } => {
-                if !self.manual_pty_shutdown_requested {
-                    self.maybe_send_agent_exited_shell_telemetry(ctx);
-                }
-
                 // If the pty spawn has failed, we've already inserted a banner.
                 if !self.pty_spawn_failed {
                     let shell_detail = self.shell_detail.take().unwrap_or("shell".to_owned());
@@ -5986,30 +5946,6 @@ impl TerminalView {
                     find_model.notify_block_completed(completed_block_index, ctx);
                 });
 
-                if !matches!(block_completed_event.block_type, BlockType::BootstrapHidden) {
-                    if let Some(env_var_block) = self.active_env_var_collection_block(ctx) {
-                        let output_truncated =
-                            if let BlockType::User(completed) = &block_completed_event.block_type {
-                                Some(completed.output_truncated.clone())
-                            } else {
-                                None
-                            };
-                        env_var_block.update(ctx, move |block, ctx| {
-                            if block.is_running() {
-                                match output_truncated {
-                                    // If we have a non-empty response we assume it's an error. We are
-                                    // relying on this because we don't get a non-zero exit code for the
-                                    // `export` function
-                                    Some(output) if !output.is_empty() => {
-                                        block.on_failed(Some(output), ctx)
-                                    }
-                                    _ => block.on_succeeded(ctx),
-                                }
-                            }
-                        });
-                    }
-                }
-
                 // If this block ran a possible subshell command, and it exited before the 1s timer
                 // completed, abort showing the banner.
                 if let Some(abort_handle) = self.warpify_state.take_subshell_banner_abort_handle() {
@@ -6046,17 +5982,7 @@ impl TerminalView {
                     self.on_user_block_completed(&block_completed_event.block_id, ctx);
                 }
 
-                // Clear any stale warpify mode so it doesn't leak into the next command's footer rendering.
-                self.use_agent_footer.update(ctx, |footer, ctx| {
-                    footer.clear_warpify_mode(ctx);
-                });
-                self.hide_use_agent_footer_in_blocklist(ctx);
                 if matches!(block_completed_event.block_type, BlockType::User(_)) {
-                    // Close the rich input editor if it was open (side effects
-                    // like input config restore happen reactively).
-                    // The auto-toggle flag is irrelevant here because the
-                    // session is removed immediately afterwards.
-                    self.close_cli_agent_rich_input(CLIAgentRichInputCloseReason::Other, ctx);
                     CLIAgentSessionsModel::handle(ctx).update(ctx, |sessions_model, ctx| {
                         sessions_model.remove_session(self.view_id, ctx);
                     });
@@ -6213,84 +6139,6 @@ impl TerminalView {
                         } else {
                             self.warpify_state.clear_pending_ssh_host();
 
-                            ctx.spawn(
-                                Timer::after(Duration::from_millis(
-                                    LONG_RUNNING_COMMAND_DURATION_MS,
-                                )),
-                                move |me, _, ctx| {
-                                    // Detect CLI agent and create session before
-                                    // showing the footer, so the session drives
-                                    // the footer rather than the other way around.
-                                    let detection = {
-                                        let model = me.model.lock();
-                                        me.detect_cli_agent_from_model(&model, ctx)
-                                    };
-                                    let view_id = me.view_id;
-                                    CLIAgentSessionsModel::handle(ctx).update(
-                                        ctx,
-                                        |sessions_model, ctx| match detection {
-                                            Some((agent, ref custom_command_prefix))
-                                                if !sessions_model
-                                                    .session(view_id)
-                                                    .is_some_and(|s| s.agent == agent) =>
-                                            {
-                                                let remote_host =
-                                                    me.active_session_remote_host(ctx);
-                                                sessions_model.set_session(
-                                                    view_id,
-                                                    CLIAgentSession {
-                                                        agent,
-                                                        status: CLIAgentSessionStatus::InProgress,
-                                                        session_context:
-                                                            CLIAgentSessionContext::default(),
-                                                        input_state: CLIAgentInputState::Closed,
-                                                        should_auto_toggle_input: *AISettings::as_ref(
-                                                            ctx,
-                                                        )
-                                                        .auto_open_rich_input_on_cli_agent_start,
-                                                        listener: None,
-                                                        plugin_version: None,
-                                                        remote_host,
-                                                        draft_text: None,
-                                                        custom_command_prefix: custom_command_prefix.clone(),
-                                                        received_rich_notification: false,
-                                                    },
-                                                    ctx,
-                                                );
-                                            }
-                                            _ => {}
-                                        },
-                                    );
-
-                                    // Codex doesn't use the sentinel-based plugin protocol,
-                                    // so create the listener proactively on command detection
-                                    // (rather than waiting for a SessionStart event).
-                                    if matches!(detection, Some((CLIAgent::Codex, _))) {
-                                        me.register_cli_agent_listener_without_session_start_event(
-                                            CLIAgent::Codex,
-                                            ctx,
-                                        );
-                                    }
-
-                                    me.maybe_show_use_agent_footer_in_blocklist(ctx);
-                                    me.maybe_auto_open_cli_agent_rich_input(ctx);
-                                    me.input.update(ctx, |input, ctx| {
-                                        input.universal_developer_input_button_bar().update(
-                                            ctx,
-                                            |bar, ctx| {
-                                                bar.update_segmented_control_disabled_state(ctx);
-                                            },
-                                        )
-                                    });
-                                    // Update agent view back button state when command becomes long-running
-                                    if FeatureFlag::AgentView.is_enabled()
-                                        && me.agent_view_controller.as_ref(ctx).is_fullscreen()
-                                    {
-                                        me.update_agent_view_back_button_state(ctx);
-                                        me.update_agent_view_pane_header(ctx);
-                                    }
-                                },
-                            );
                         }
                     }
 
