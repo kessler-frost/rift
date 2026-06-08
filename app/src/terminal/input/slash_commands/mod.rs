@@ -3,7 +3,6 @@ mod data_source;
 mod search_item;
 pub(super) mod view;
 
-use ai::skills::SkillReference;
 pub use cloud_mode_v2_view::{CloudModeV2SlashCommandView, Section as CloudModeV2Section};
 pub use data_source::*;
 use rift_core::features::FeatureFlag;
@@ -33,11 +32,6 @@ pub enum AcceptSlashCommandOrSavedPrompt {
     },
     SavedPrompt {
         id: SyncId,
-    },
-    /// A skill selected from browse or search. Contains name (for display/insertion) and path/bundled_skill_id (for execution).
-    Skill {
-        reference: SkillReference,
-        name: String,
     },
 }
 impl InlineMenuAction for AcceptSlashCommandOrSavedPrompt {

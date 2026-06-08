@@ -1081,7 +1081,6 @@ pub(crate) fn initialize_app(
         mut command_history,
         mut restored_user_profiles,
         mut experiments,
-        persisted_workspaces,
         mut workspace_language_servers,
         mut persisted_projects,
         mut persisted_ignored_suggestions,
@@ -1094,7 +1093,6 @@ pub(crate) fn initialize_app(
                 sqlite_data.command_history,
                 sqlite_data.user_profiles,
                 sqlite_data.experiments,
-                sqlite_data.codebase_indices,
                 sqlite_data.workspace_language_servers,
                 sqlite_data.projects,
                 sqlite_data.ignored_suggestions,
@@ -1111,15 +1109,10 @@ pub(crate) fn initialize_app(
                 Default::default(),
                 Default::default(),
                 Default::default(),
-                Default::default(),
             )
         });
 
     if matches!(launch_mode, LaunchMode::RemoteServerDaemon { .. }) {
-        let codebase_index_count = persisted_workspaces.len();
-        log::debug!(
-            "[Remote codebase indexing] Restored daemon codebase index metadata: metadata_count={codebase_index_count}"
-        );
         cached_workspaces = Default::default();
         current_workspace_uid = None;
         app_state = None;
@@ -1145,13 +1138,6 @@ pub(crate) fn initialize_app(
             current_workspace_uid,
             ctx,
         )
-    });
-
-    // Initialize ApiKeyManager after UserWorkspaces so it can subscribe to workspace/settings changes
-    ctx.add_singleton_model(|ctx| {
-        #[cfg_attr(target_family = "wasm", allow(unused_mut))]
-        let manager = ::ai::api_keys::ApiKeyManager::new(ctx);
-        manager
     });
 
     ctx.add_singleton_model(AntivirusInfo::new);
@@ -1327,18 +1313,6 @@ pub(crate) fn initialize_app(
     #[cfg(not(target_family = "wasm"))]
     {
         ctx.add_singleton_model(DirectoryWatcher::new);
-        // Register the skill provider directories as force-included paths so
-        // the gitignore-pruning watch descend filter still watches gitignored
-        // skill directories (e.g. `.agents/skills`) for `Repository`
-        // subscribers (LSP, MCP). Registered before any repository begins
-        // watching so it gates descent on the very first registration.
-        DirectoryWatcher::handle(ctx).update(ctx, |watcher, _| {
-            watcher.register_force_included_paths(
-                ::ai::skills::SKILL_PROVIDER_DEFINITIONS
-                    .iter()
-                    .map(|provider| provider.skills_path.clone()),
-            );
-        });
         ctx.add_singleton_model(|_| DetectedRepositories::default());
         if let Some(home_dir) = dirs::home_dir() {
             ctx.add_singleton_model(|ctx| HomeDirectoryWatcher::new(home_dir, ctx));
@@ -1364,18 +1338,6 @@ pub(crate) fn initialize_app(
             } else {
                 RepoMetadataModel::new(ctx)
             };
-            model.register_force_included_paths(
-                ::ai::skills::SKILL_PROVIDER_DEFINITIONS
-                    .iter()
-                    .map(|provider| provider.skills_path.clone()),
-                ctx,
-            );
-            model.set_project_skill_provider_paths(
-                ::ai::skills::SKILL_PROVIDER_DEFINITIONS
-                    .iter()
-                    .map(|provider| provider.skills_path.clone()),
-                ctx,
-            );
 
             // Subscribe to RemoteServerManager push events so that remote repo
             // metadata snapshots and incremental updates populate the remote
@@ -1548,7 +1510,7 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(DefaultTerminal::new);
 
-    let _ = (persisted_workspaces, workspace_language_servers);
+    let _ = workspace_language_servers;
     ctx.add_singleton_model(move |_| persistence_writer);
 
     ctx.add_singleton_model(input_classifier::InputClassifierModel::new);

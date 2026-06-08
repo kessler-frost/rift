@@ -38,7 +38,6 @@ use std::time::Duration;
 
 use action::RememberForWarpification;
 pub use action::TerminalAction;
-use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
 use async_channel::{Receiver, Sender};
 use block_banner::{render_warpification_banner, WarpificationMode, WarpifyBannerState};
 pub use block_banner::{WithinBlockBanner, BLOCK_BANNER_HEIGHT};
@@ -6694,13 +6693,6 @@ impl TerminalView {
         self.any_session_contains_restored_remote_blocks = self.contains_restored_remote_blocks();
         self.any_session_contains_remote_blocks |= self.active_block_is_considered_remote(ctx);
         self.update_focused_terminal_info(ctx);
-
-        if let Some(working_directory) = self.pwd_if_local(ctx) {
-            CodebaseIndexManager::handle(ctx).update(ctx, |manager, _ctx| {
-                let path_buf = PathBuf::from(&working_directory);
-                manager.handle_session_bootstrapped(&path_buf);
-            });
-        }
 
         // At the end of bootstrapping, set the title to the title of
         // the selected conversation. If there is no selected conversation,

@@ -1,6 +1,5 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use ai::workspace::WorkspaceMetadata;
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
 use rift_core::ui::theme::Fill;
@@ -19,7 +18,7 @@ use crate::ui_components::icons::Icon as UiIcon;
 #[derive(Debug)]
 pub struct RepoSearchItem {
     pub display_name: String,
-    pub metadata: WorkspaceMetadata,
+    pub path: PathBuf,
     pub match_result: FuzzyMatchResult,
 }
 
@@ -32,10 +31,10 @@ fn repo_display_name(repo_path: &Path) -> String {
 }
 
 impl RepoSearchItem {
-    pub fn new(metadata: WorkspaceMetadata) -> Self {
+    pub fn new(path: PathBuf) -> Self {
         RepoSearchItem {
-            display_name: repo_display_name(&metadata.path),
-            metadata,
+            display_name: repo_display_name(&path),
+            path,
             match_result: FuzzyMatchResult::no_match(),
         }
     }
@@ -61,7 +60,7 @@ impl RepoSearchItem {
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         Text::new_inline(
-            repo_display_name(&self.metadata.path),
+            repo_display_name(&self.path),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
         )
@@ -116,7 +115,7 @@ impl SearchItem for RepoSearchItem {
 
     fn accept_result(&self) -> CommandPaletteItemAction {
         // Convert the absolute repo path into parent + basename for OpenDirectory
-        let repo_path: &Path = &self.metadata.path;
+        let repo_path: &Path = &self.path;
         let parent = repo_path.parent().unwrap_or(Path::new("/"));
         let basename = repo_path
             .file_name()
@@ -135,6 +134,6 @@ impl SearchItem for RepoSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Repo: {}", self.metadata.path.display())
+        format!("Repo: {}", self.path.display())
     }
 }

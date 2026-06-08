@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use ai::skills::SkillReference;
 use lazy_static::lazy_static;
 use riftui::elements::ChildView;
 use riftui::{AppContext, Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
@@ -52,12 +51,6 @@ pub enum SlashCommandsEvent {
     SelectedStaticCommand {
         id: SlashCommandId,
         cmd_or_ctrl_enter: bool,
-    },
-    /// A skill was selected from the menu. Contains the skill name (for buffer insertion)
-    /// and path/bundled_skill_id (for execution context).
-    SelectedSkill {
-        reference: SkillReference,
-        name: String,
     },
 }
 
@@ -219,12 +212,6 @@ impl InlineSlashCommandView {
             }
             AcceptSlashCommandOrSavedPrompt::SavedPrompt { id } => {
                 ctx.emit(SlashCommandsEvent::SelectedSavedPrompt { id: *id });
-            }
-            AcceptSlashCommandOrSavedPrompt::Skill { name, reference } => {
-                ctx.emit(SlashCommandsEvent::SelectedSkill {
-                    reference: reference.clone(),
-                    name: name.clone(),
-                });
             }
         }
     }

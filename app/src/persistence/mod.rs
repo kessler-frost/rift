@@ -20,8 +20,6 @@ use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
 use std::thread::JoinHandle;
 
-use ai::project_context::model::ProjectRulePath;
-use ai::workspace::WorkspaceMetadata as CodeWorkspaceMetadata;
 use chrono::{DateTime, Local};
 use instant::Instant;
 use lsp::supported_servers::LSPServerType;
@@ -173,7 +171,6 @@ pub struct PersistedData {
     pub command_history: Vec<PersistedCommand>,
     pub user_profiles: Vec<UserProfileWithUID>,
     pub experiments: Vec<ServerExperiment>,
-    pub codebase_indices: Vec<CodeWorkspaceMetadata>,
     pub workspace_language_servers: HashMap<PathBuf, HashMap<LSPServerType, EnablementState>>,
     pub projects: Vec<Project>,
     pub ignored_suggestions: Vec<(String, SuggestionType)>,
@@ -245,12 +242,6 @@ pub enum ModelEvent {
     UpsertCurrentUserInformation {
         user_information: PersistedCurrentUserInformation,
     },
-    UpsertCodebaseIndexMetadata {
-        index_metadata: Box<CodeWorkspaceMetadata>,
-    },
-    DeleteCodebaseIndexMetadata {
-        repo_path: PathBuf,
-    },
     UpsertProject {
         project: Project,
     },
@@ -260,12 +251,6 @@ pub enum ModelEvent {
     UpsertMCPServerEnvironmentVariables {
         mcp_server_uuid: Vec<u8>,
         environment_variables: String,
-    },
-    UpsertProjectRules {
-        project_rule_paths: Vec<ProjectRulePath>,
-    },
-    DeleteProjectRules {
-        path: Vec<PathBuf>,
     },
     AddIgnoredSuggestion {
         suggestion: String,

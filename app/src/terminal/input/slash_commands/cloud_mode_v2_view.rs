@@ -120,7 +120,6 @@ impl Section {
     fn for_action(action: &AcceptSlashCommandOrSavedPrompt) -> Self {
         match action {
             AcceptSlashCommandOrSavedPrompt::SlashCommand { .. } => Self::Commands,
-            AcceptSlashCommandOrSavedPrompt::Skill { .. } => Self::Skills,
             AcceptSlashCommandOrSavedPrompt::SavedPrompt { .. } => Self::Prompts,
         }
     }
@@ -529,12 +528,6 @@ impl CloudModeV2SlashCommandView {
             }
             AcceptSlashCommandOrSavedPrompt::SavedPrompt { id } => {
                 ctx.emit(SlashCommandsEvent::SelectedSavedPrompt { id: *id });
-            }
-            AcceptSlashCommandOrSavedPrompt::Skill { name, reference } => {
-                ctx.emit(SlashCommandsEvent::SelectedSkill {
-                    reference: reference.clone(),
-                    name: name.clone(),
-                });
             }
         }
     }

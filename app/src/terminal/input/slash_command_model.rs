@@ -1,4 +1,3 @@
-use ai::skills::SkillReference;
 use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 use settings::Setting as _;
 
@@ -25,19 +24,6 @@ pub struct DetectedCommand {
     pub argument: Option<String>,
 }
 
-/// A detected skill command in the input buffer.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DetectedSkillCommand {
-    /// Either a path or a bundled_skill_id which uniquely identifies the skill
-    pub reference: SkillReference,
-
-    /// The skill name (without the leading '/').
-    pub name: String,
-
-    /// The space-delimited argument to the skill command (the user's prompt).
-    pub argument: Option<String>,
-}
-
 #[derive(Debug, Clone)]
 pub enum SlashCommandEntryState {
     /// The input contents have nothing to do with a slash command.
@@ -49,8 +35,6 @@ pub enum SlashCommandEntryState {
     },
     /// A valid slash command is entered in the input.
     SlashCommand(DetectedCommand),
-    /// A valid skill command is entered in the input.
-    SkillCommand(DetectedSkillCommand),
     /// Slash commands are disabled until the buffer is cleared.
     ///
     /// In this state, buffer content is not parsed for slash commands.
@@ -74,7 +58,7 @@ impl SlashCommandEntryState {
 
     /// Returns `true` if a slash command or skill command has been detected.
     pub fn is_detected_command_or_skill(&self) -> bool {
-        matches!(self, Self::SlashCommand(_) | Self::SkillCommand(_))
+        matches!(self, Self::SlashCommand(_))
     }
 
     /// Returns the byte length of the command prefix that should be highlighted
@@ -84,14 +68,6 @@ impl SlashCommandEntryState {
             SlashCommandEntryState::SlashCommand(detected) => buffer_text
                 .starts_with(detected.command.name)
                 .then_some(detected.command.name.len()),
-            SlashCommandEntryState::SkillCommand(detected) => {
-                // Skill name doesn't include the leading '/', so we prefix it for matching.
-                let prefix_len = 1 + detected.name.len();
-                buffer_text
-                    .get(..prefix_len)
-                    .is_some_and(|p| p.starts_with('/') && p[1..] == *detected.name)
-                    .then_some(prefix_len)
-            }
             SlashCommandEntryState::None
             | SlashCommandEntryState::Composing { .. }
             | SlashCommandEntryState::DisabledUntilEmptyBuffer => None,
@@ -173,16 +149,7 @@ impl SlashCommandModel {
         if let Some(detected) = self.data_source.as_ref(ctx).parse_slash_command(text) {
             return SlashCommandEntryState::SlashCommand(detected);
         }
-        if let Some(detected) = self.detect_skill_command(text, ctx) {
-            return SlashCommandEntryState::SkillCommand(detected);
-        }
         SlashCommandEntryState::None
-    }
-
-    /// Detects whether `buffer` matches a known skill command.
-    /// Accepts `&AppContext` so it can be called outside a model update.
-    fn detect_skill_command(&self, _buffer: &str, _ctx: &AppContext) -> Option<DetectedSkillCommand> {
-        None
     }
 
     fn handle_input_buffer_update(
@@ -237,15 +204,6 @@ impl SlashCommandModel {
                 }
 
                 self.state = SlashCommandEntryState::SlashCommand(detected_command);
-            }
-            SlashCommandEntryState::SkillCommand(detected_skill) => {
-                if let SlashCommandEntryState::SkillCommand(old_detected_skill) = &self.state {
-                    if *old_detected_skill == detected_skill {
-                        return;
-                    }
-                }
-
-                self.state = SlashCommandEntryState::SkillCommand(detected_skill);
             }
             _ if new.starts_with('/') => {
                 let pending_command = &new[1..];

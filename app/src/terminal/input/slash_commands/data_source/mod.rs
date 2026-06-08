@@ -276,16 +276,6 @@ impl SlashCommandDataSource {
         CLIAgentSessionsModel::as_ref(ctx).is_input_open(self.terminal_view_id)
     }
 
-    /// Returns the supported skill providers for the active CLI agent, or `None` if
-    /// CLI agent input is not open (meaning no filtering should be applied).
-    pub fn active_cli_agent_providers(
-        &self,
-        _ctx: &AppContext,
-    ) -> Option<&'static [ai::skills::SkillProvider]> {
-        // Skill providers were an AI feature; no skill filtering is applied.
-        None
-    }
-
 }
 
 impl SyncDataSource for SlashCommandDataSource {

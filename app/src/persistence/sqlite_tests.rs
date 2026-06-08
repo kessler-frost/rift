@@ -1,16 +1,13 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use ai::workspace::WorkspaceMetadata;
-use chrono::Utc;
 use diesel::connection::SimpleConnection;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 
 use super::{
-    app_database_file_path, database_file_path_for_scope, deduplicate_events,
-    get_all_codebase_index_metadata, read_sqlite_data, save_app_state,
-    save_codebase_index_metadata, setup_database, start_writer,
+    app_database_file_path, database_file_path_for_scope, deduplicate_events, read_sqlite_data,
+    save_app_state, setup_database,
 };
 use crate::app_state::{
     AppState, LeafContents, LeafSnapshot, PaneNodeSnapshot, TabSnapshot, TerminalPaneSnapshot,
@@ -81,17 +78,8 @@ fn remote_server_daemon_database_permissions_are_owner_only() {
     assert_eq!(database_path.metadata().unwrap().mode() & 0o777, 0o600);
 }
 
-fn test_codebase_metadata(path: &str) -> WorkspaceMetadata {
-    WorkspaceMetadata {
-        path: PathBuf::from(path),
-        navigated_ts: Some(Utc::now()),
-        modified_ts: None,
-        queried_ts: None,
-    }
-}
-
 #[test]
-fn sqlite_read_restores_app_state_and_codebase_metadata() {
+fn sqlite_read_restores_app_state() {
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
     let database_path = tempdir.path().join("warp.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
@@ -102,57 +90,10 @@ fn sqlite_read_restores_app_state_and_codebase_metadata() {
     };
     save_app_state(&mut conn, &app_state).expect("app state should save");
 
-    let metadata = test_codebase_metadata("/tmp/remote-repo");
-    save_codebase_index_metadata(&mut conn, metadata.clone())
-        .expect("codebase index metadata should save");
     let restored = read_sqlite_data(&mut conn).expect("persisted data should load");
     assert_eq!(restored.app_state.windows.len(), 1);
-    assert_eq!(restored.codebase_indices.len(), 1);
-    assert_eq!(restored.codebase_indices[0].path, metadata.path);
 }
 
-#[test]
-fn sqlite_writer_reuses_codebase_index_metadata_events() {
-    let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
-    let conn = setup_database(&database_path).expect("database should initialize");
-
-    let writer = start_writer(conn, database_path.clone()).expect("writer should start");
-    let metadata = test_codebase_metadata("/tmp/writer-repo");
-    writer
-        .sender
-        .send(ModelEvent::UpsertCodebaseIndexMetadata {
-            index_metadata: Box::new(metadata.clone()),
-        })
-        .expect("upsert event should send");
-    writer
-        .sender
-        .send(ModelEvent::Terminate)
-        .expect("terminate event should send");
-    writer.handle.join().expect("writer should terminate");
-
-    let mut conn = setup_database(&database_path).expect("database should reopen");
-    let restored = get_all_codebase_index_metadata(&mut conn).expect("metadata should load");
-    assert_eq!(restored.len(), 1);
-    assert_eq!(restored[0].path, metadata.path);
-
-    let writer = start_writer(conn, database_path.clone()).expect("writer should restart");
-    writer
-        .sender
-        .send(ModelEvent::DeleteCodebaseIndexMetadata {
-            repo_path: metadata.path,
-        })
-        .expect("delete event should send");
-    writer
-        .sender
-        .send(ModelEvent::Terminate)
-        .expect("terminate event should send");
-    writer.handle.join().expect("writer should terminate");
-
-    let mut conn = setup_database(&database_path).expect("database should reopen");
-    let restored = get_all_codebase_index_metadata(&mut conn).expect("metadata should load");
-    assert!(restored.is_empty());
-}
 #[test]
 fn test_deduplicate_snapshots() {
     let completed_block_1 = BlockCompleted {
