@@ -21,6 +21,24 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 352 resolution errors. PRIMARY-CLEAN (11): + block_list_viewport.rs (AgentViewState removed). The remaining
+work falls into 4 coherent units (no isolated quick-deletes left):
+1. CODE-REVIEW PANEL (workspace/view.rs 73 + right_panel 34): RightPanelView is woven into workspace/view.rs as a real
+   panel (open/close/maximize/snapshot/keybinding) but its only CONTENT is code-review (CodeReviewView/State/
+   DiffStateModel) + agent-management (both AI/cloud). Gut the code-review content, keep/empty the panel shell.
+2. PHASE-F CLOUD GRAPHQL + WORKSPACE-SETTINGS (~88+): server/graphql/schema maps to deleted cloud_object_models;
+   workspaces/workspace.rs AiAutonomySettings/LlmSettings (ActionPermission/LLMModelHost/WriteToPtyPermission/
+   ComputerUsePermission) + user_workspaces.rs + gql_convert.rs all tied to the cloud workspace GraphQL conversion.
+   Coordinated delete: server/graphql + harness_support modules, strip AI fields from workspace settings structs,
+   fix gql_convert/user_workspaces/auth importers.
+3. UI-PRIMITIVE REIMPL CLUSTER (install_tmux 14 + ssh_remote_server_choice_view 9 + plugin_instructions_block 5):
+   all reference GENERIC block-UI helpers (rich_navigation_button, KeyboardNavigableButtons, HeaderConfig,
+   INLINE_ACTION_HORIZONTAL_PADDING from deleted `requested_script`; render_code_block_plain, CodeBlockOptions,
+   CodeSnippetButtonHandles from the deleted `code` module). These are NOT AI types — reimplement them as a small
+   shared ui_components helper (or inline simple buttons/text). Decision: where to host the reimplemented primitives.
+4. PHASE-2 TYPECK WAVE: masked "no field"/"no method" errors (e.g. dead block_list().agent_view_state() calls in
+   view.rs:8548/12700/12721/14978) surface only once resolution hits 0. Grep-clean as you go.
+
 ### STATE: 358 resolution errors. PRIMARY-CLEAN (10): input.rs, view.rs, slash_commands/mod.rs, data_source/mod.rs,
 zero_state.rs, rich_content.rs, block_list_element.rs, icon_with_status.rs, slash_command_model.rs, +deleted
 markdown_toggle_view.rs (orphaned). (552→358 this run, ~57 commits.)
