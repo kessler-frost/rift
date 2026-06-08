@@ -155,12 +155,6 @@ pub struct CurrentPrompt {
     sessions: ModelHandle<Sessions>,
     prompt_chip_logger: PromptChipLogger,
     update_tx: async_channel::Sender<()>,
-
-    /// When set, git-backed chip values are populated from `GitRepoStatusModel`.
-    /// `ShellGitBranch` and `GitDiffStats` are driven by filesystem events;
-    /// `GithubPullRequest` is driven by PR info from the per-repo status model.
-    #[cfg(feature = "local_fs")]
-    git_repo_status: Option<WeakModelHandle<GitRepoStatusModel>>,
 }
 
 /// Context about the current terminal session, needed to update the prompt.
@@ -230,8 +224,6 @@ impl CurrentPrompt {
             update_tx,
             same_line_prompt_enabled: prompt.as_ref(ctx).same_line_prompt_enabled(),
             separator: prompt.as_ref(ctx).separator(),
-            #[cfg(feature = "local_fs")]
-            git_repo_status: None,
         }
     }
 
@@ -1362,116 +1354,15 @@ impl CurrentPrompt {
     /// metadata and PR info events so git-backed prompt chips are updated from
     /// the per-repo status model.
     #[cfg(feature = "local_fs")]
-    pub fn set_git_repo_status(
-        &mut self,
-        handle: Option<WeakModelHandle<GitRepoStatusModel>>,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        // Unsubscribe from the previous model, if any.
-        if let Some(old_weak) = self.git_repo_status.take() {
-            if let Some(old_strong) = old_weak.upgrade(ctx) {
-                ctx.unsubscribe_from_model(&old_strong);
-            }
-        }
-
+    pub fn set_git_repo_status(&mut self, _handle: Option<()>, _ctx: &mut ModelContext<Self>) {
         // Repo detached, clear GitDiffStats.
-        if handle.is_none() {
-            if let Some(state) = self.states.get_mut(&ContextChipKind::GitDiffStats) {
-                state.clear_abort_handlers();
-                state.clear_cache();
-            }
-            let _ = self.update_tx.try_send(());
-            return;
+        if let Some(state) = self.states.get_mut(&ContextChipKind::GitDiffStats) {
+            state.clear_abort_handlers();
+            state.clear_cache();
         }
-
-        if let Some(weak) = handle {
-            if let Some(strong) = weak.upgrade(ctx) {
-                self.git_repo_status = Some(weak);
-                ctx.subscribe_to_model(&strong, |me, event, ctx| match event {
-                    GitRepoStatusEvent::MetadataChanged => {
-                        me.apply_git_repo_metadata(ctx);
-                        me.sync_pr_chip_from_singleton(ctx);
-                    }
-                    GitRepoStatusEvent::PrInfoChanged => {
-                        me.sync_pr_chip_from_singleton(ctx);
-                    }
-                });
-
-                // Eagerly populate chips if metadata is already available (the
-                // initial `refresh_metadata` in `GitRepoStatusModel::new` may
-                // have completed before we subscribed). If it hasn't finished
-                // yet, the subscription above will catch the `MetadataChanged`
-                // event when it does.
-                if strong.as_ref(ctx).metadata().is_some() {
-                    self.apply_git_repo_metadata(ctx);
-                    self.sync_pr_chip_from_singleton(ctx);
-                }
-            }
-        }
+        let _ = self.update_tx.try_send(());
     }
 
-    /// Read the current `GitRepoStatusModel` metadata and push it into the
-    /// `ShellGitBranch` and `GitDiffStats` chip states.
-    #[cfg(feature = "local_fs")]
-    fn apply_git_repo_metadata(&mut self, ctx: &mut ModelContext<Self>) {
-        let metadata = self
-            .git_repo_status
-            .as_ref()
-            .and_then(|w| w.upgrade(ctx))
-            .and_then(|h| h.as_ref(ctx).metadata().cloned());
-
-        let Some(metadata) = metadata else {
-            return;
-        };
-
-        // Update ShellGitBranch.
-        let new_branch = ChipValue::Text(metadata.current_branch_name.clone());
-        let current_branch = self
-            .latest_chip_value(&ContextChipKind::ShellGitBranch)
-            .cloned();
-        if current_branch.as_ref() != Some(&new_branch) {
-            self.update_chip_value(&ContextChipKind::ShellGitBranch, Some(new_branch));
-            // Refresh the branch dropdown so it stays in sync.
-            let chip_kind = ContextChipKind::ShellGitBranch;
-            if let Some(chip) = chip_kind.to_chip() {
-                if let Some(on_click_gen) = chip.on_click_generator().cloned() {
-                    self.refresh_on_click_values(&chip_kind, on_click_gen, ctx);
-                }
-            }
-        }
-
-        // Update GitDiffStats with structured data directly.
-        let new_diff_stats = ChipValue::GitDiffStats(GitLineChanges::from_diff_stats(
-            &metadata.stats_against_head,
-        ));
-        let current_diff_stats = self
-            .latest_chip_value(&ContextChipKind::GitDiffStats)
-            .cloned();
-        if current_diff_stats.as_ref() != Some(&new_diff_stats) {
-            self.update_chip_value(&ContextChipKind::GitDiffStats, Some(new_diff_stats));
-        }
-    }
-
-    /// Reads PR info from the per-repo git status singleton and updates
-    /// the `GithubPullRequest` chip value if it differs from the current one.
-    #[cfg(feature = "local_fs")]
-    fn sync_pr_chip_from_singleton(&mut self, ctx: &AppContext) {
-        let new_pr_value = self
-            .git_repo_status
-            .as_ref()
-            .and_then(|w| w.upgrade(ctx))
-            .and_then(|h| {
-                h.as_ref(ctx)
-                    .pr_info()
-                    .map(|info| ChipValue::Text(info.url.clone()))
-            });
-        let current_pr = self
-            .latest_chip_value(&ContextChipKind::GithubPullRequest)
-            .cloned();
-        if current_pr != new_pr_value {
-            self.update_chip_value(&ContextChipKind::GithubPullRequest, new_pr_value);
-        }
-    }
 
     /// Returns `true` when the given chip's value is updated externally
     /// (e.g. by a filesystem watcher) and the periodic timer should be skipped.
@@ -1484,7 +1375,7 @@ impl CurrentPrompt {
                     | ContextChipKind::GitDiffStats
                     | ContextChipKind::GithubPullRequest
             ) {
-                return self.git_repo_status.is_some();
+                return false;
             }
         }
         let _ = chip_kind;
