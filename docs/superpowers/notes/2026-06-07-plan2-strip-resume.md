@@ -52,7 +52,18 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### ▶▶ STATE: 66 resolution errors (234→66 this session, 72%). Incremental view.rs grind continuing — cleared so far also:
+### ▶▶ STATE: 14 resolution errors (234→14 this session, 94%!). workspace/view.rs is FULLY RESOLUTION-CLEAN; right_panel.rs
+DELETED; home.rs DELETED. The incremental view.rs grind cleared the entire god-file: RightPanelView hosting+methods, code-pane
+opener subsystem, all the cloud/AI modal+model clusters, the conversation_restoration/object_id/notebook/dialog threads.
+REMAINING 14: left_panel.rs(3 — crate::code file-tree imports; LeftPanelView still hosted in view.rs ~20 sites via self.left_panel_view
++ left_panel_views/compute_left_panel_views/open_left_panel_view/close_left_panel/toggle_left_panel — DELETE same as right_panel
+did, then delete left_panel.rs + global_search/ + the ~10 GlobalSearch files per the user wholesale-delete decision);
+voltron.rs(2, CategoriesView→input.rs select_and_refresh_voltron); up_arrow.rs(2)/classic.rs(1)/common.rs(1) + AgentViewController
+chain slash_commands/view+repos/view+cloud_mode_v2_history_menu(3) — ALL the input.rs ai_input_model satellite cluster (do with
+input.rs); voice vertical server/voice_transcriber.rs(2) + voice/ + editor/view/voice.rs (TranscribeRequest/Provider, cfg voice_input).
+After these 14 resolution → the big PHASE-2 TYPECK WAVE (~1800, mechanical dangling-ref deletion in the god-files) then warnings.
+
+### ▶▶ (history) STATE: 66 resolution errors (234→66 this session, 72%). Incremental view.rs grind:
 WarpDriveSettings, AgentNotificationsModel+BonusGrantNotification subs, Warp Home/Drive auto-open (UpdateManager/CloudModel/
 create_home_pane), free-tier AI-limit modal (→return false), cloud settings-sync flag, compute_left_panel_views dead variants.
 REMAINING view.rs (~14): the RIGHT-PANEL/CODE-REVIEW method cluster — open_code_review_panel_from_arg, update_right_panel_open_state,
