@@ -3,7 +3,6 @@ use std::sync::Arc;
 use anyhow::Result;
 use rift_core::features::FeatureFlag;
 use rift_core::settings::{ChangeEventReason, Setting};
-use rift_graphql::workspace::FeatureModelChoice;
 use riftui::{AppContext, Entity, ModelContext, SingletonEntity, Tracked};
 
 use super::team::{DiscoverableTeam, Team};
@@ -36,9 +35,9 @@ const STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX: &str = "/upgrade";
 
 #[derive(Debug)]
 pub enum UserWorkspacesEvent {
-    GenerateStripeBillingPortalLink(String),
-    GenerateStripeBillingPortalLinkRejected(anyhow::Error),
-    FetchDiscoverableTeamsSuccess(Vec<DiscoverableTeam>),
+    GenerateStripeBillingPortalLink,
+    GenerateStripeBillingPortalLinkRejected,
+    FetchDiscoverableTeamsSuccess,
     UpdateWorkspaceSettingsSuccess,
     UpdateWorkspaceSettingsRejected(anyhow::Error),
     /// Fired whenever the set of teams the user is on changes.
@@ -68,11 +67,6 @@ pub struct WorkspacesMetadataResponse {
     pub joinable_teams: Vec<DiscoverableTeam>,
     /// The list of experiments applicable to the user.
     pub experiments: Option<Vec<ServerExperiment>>,
-    /// TODO(Tyler): Post-workspaces, move this into the workspace object.
-    /// Feature model choices may change from user to user and while the app is open, so we need to periodically update this list.
-    /// It makes most sense to fetch this in workspaces which is queried every 10 minutes.
-    /// This is list of available LLM models for the user.
-    pub feature_model_choices: Option<FeatureModelChoice>,
 }
 
 // A representation of all data we fetch at a single time via our 10 minute poll.
@@ -447,9 +441,7 @@ impl UserWorkspaces {
         ctx: &mut ModelContext<Self>,
     ) {
         self.joinable_teams.clone_from(&joinable_teams);
-        ctx.emit(UserWorkspacesEvent::FetchDiscoverableTeamsSuccess(
-            joinable_teams,
-        ));
+        ctx.emit(UserWorkspacesEvent::FetchDiscoverableTeamsSuccess);
         ctx.notify();
     }
 
@@ -501,11 +493,9 @@ impl UserWorkspaces {
         ctx: &mut ModelContext<Self>,
     ) {
         match result {
-            Err(err) => ctx.emit(UserWorkspacesEvent::GenerateStripeBillingPortalLinkRejected(err)),
-            Ok(billing_session_link) => {
-                ctx.emit(UserWorkspacesEvent::GenerateStripeBillingPortalLink(
-                    billing_session_link,
-                ));
+            Err(_) => ctx.emit(UserWorkspacesEvent::GenerateStripeBillingPortalLinkRejected),
+            Ok(_) => {
+                ctx.emit(UserWorkspacesEvent::GenerateStripeBillingPortalLink);
             }
         };
         ctx.notify();

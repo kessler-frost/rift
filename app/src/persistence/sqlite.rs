@@ -1150,23 +1150,6 @@ fn delete_project(conn: &mut SqliteConnection, project_path: &str) -> Result<()>
     Ok(())
 }
 
-fn get_all_project_rules(
-    conn: &mut SqliteConnection,
-) -> Result<Vec<ProjectRulePath>, diesel::result::Error> {
-    use schema::project_rules::dsl::*;
-
-    Ok(project_rules
-        .load_iter::<ProjectRules, DefaultLoadingMode>(conn)?
-        .filter_map(|item| match item {
-            Ok(rule) => Some(ProjectRulePath {
-                path: PathBuf::from(rule.path),
-                project_root: PathBuf::from(rule.project_root),
-            }),
-            Err(_) => None,
-        })
-        .collect_vec())
-}
-
 fn upsert_project_rules(
     conn: &mut SqliteConnection,
     new_project_rules: Vec<ProjectRulePath>,
@@ -1897,7 +1880,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
     let codebase_indices = get_all_codebase_index_metadata(conn)?;
     let workspace_language_servers = get_all_workspace_language_servers_by_workspace(conn)?;
     let projects = get_all_projects(conn)?;
-    let project_rules = get_all_project_rules(conn)?;
     let ignored_suggestions = get_all_ignored_suggestions(conn)?;
 
     Ok(PersistedData {
@@ -1910,7 +1892,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
         codebase_indices,
         workspace_language_servers,
         projects,
-        project_rules,
         ignored_suggestions,
     })
 }
