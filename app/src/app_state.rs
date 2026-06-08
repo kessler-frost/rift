@@ -13,7 +13,6 @@ use crate::settings_view::SettingsSection;
 use crate::tab::SelectedTabColor;
 use crate::terminal::ShellLaunchData;
 use crate::themes::theme::AnsiColorIdentifier;
-use crate::workspace::view::left_panel::ToolPanelView;
 use crate::workspace::WorkspaceRegistry;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -167,16 +166,6 @@ pub enum LeftPanelDisplayedTab {
     ConversationListView,
 }
 
-impl From<ToolPanelView> for LeftPanelDisplayedTab {
-    fn from(view: ToolPanelView) -> Self {
-        match view {
-            ToolPanelView::ProjectExplorer => LeftPanelDisplayedTab::FileTree,
-            ToolPanelView::GlobalSearch { .. } => LeftPanelDisplayedTab::GlobalSearch,
-            ToolPanelView::WarpDrive => LeftPanelDisplayedTab::WarpDrive,
-            ToolPanelView::ConversationListView => LeftPanelDisplayedTab::ConversationListView,
-        }
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LeftPanelSnapshot {

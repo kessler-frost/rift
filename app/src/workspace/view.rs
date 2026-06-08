@@ -6,7 +6,6 @@ mod crash_recovery;
 pub(crate) mod free_tier_limit_hit_modal;
 pub mod global_search;
 pub(crate) mod launch_modal;
-pub(crate) mod left_panel;
 pub(crate) mod onboarding;
 pub(crate) mod openwarp_launch_modal;
 pub(crate) mod orchestration_launch_modal;
@@ -350,9 +349,6 @@ use crate::workspace::view::free_tier_limit_hit_modal::{
 };
 use crate::workspace::view::global_search::view::GlobalSearchEntryFocus;
 use crate::workspace::view::launch_modal::{LaunchModal, LaunchModalEvent, OzLaunchSlide};
-use crate::workspace::view::left_panel::{
-    LeftPanelAction, LeftPanelEvent, LeftPanelView, ToolPanelView,
-};
 use crate::workspace::view::openwarp_launch_modal::{
     OpenWarpLaunchModal, OpenWarpLaunchModalEvent,
 };
@@ -860,8 +856,6 @@ pub struct Workspace {
     left_panel_open: bool,
     vertical_tabs_panel_open: bool,
     vertical_tabs_panel: VerticalTabsPanelState,
-    left_panel_view: ViewHandle<LeftPanelView>,
-    left_panel_views: Vec<ToolPanelView>,
     working_directories_model: ModelHandle<pane_group::WorkingDirectoriesModel>,
     lightbox_view: Option<ViewHandle<LightboxView>>,
     hoa_onboarding_flow: Option<ViewHandle<HoaOnboardingFlow>>,
@@ -2405,20 +2399,6 @@ impl Workspace {
         let working_directories_model =
             ctx.add_model(|_| pane_group::WorkingDirectoriesModel::new());
 
-        let left_panel_views = Self::compute_left_panel_views(ctx);
-
-        let left_panel_view = ctx.add_typed_action_view(|ctx| {
-            LeftPanelView::new(
-                working_directories_model.clone(),
-                left_panel_views.clone(),
-                ctx,
-            )
-        });
-
-        ctx.subscribe_to_view(&left_panel_view, |me, _, event, ctx| {
-            me.handle_left_panel_event(event, ctx);
-        });
-
         ctx.observe(&tips_completed, Workspace::on_tips_model_changed);
 
         let autoupdate_handle = AutoupdateState::handle(ctx);
@@ -2468,13 +2448,12 @@ impl Workspace {
             me.handle_tab_settings_change(event, ctx)
         });
 
-        ctx.subscribe_to_model(&CodeSettings::handle(ctx), |me, _, event, ctx| {
+        ctx.subscribe_to_model(&CodeSettings::handle(ctx), |_me, _, event, ctx| {
             if matches!(
                 event,
                 CodeSettingsChangedEvent::ShowProjectExplorer { .. }
                     | CodeSettingsChangedEvent::ShowGlobalSearch { .. }
             ) {
-                me.update_left_panel_available_views(ctx);
                 ctx.notify();
             }
         });
@@ -2556,7 +2535,6 @@ impl Workspace {
         ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, event, ctx| match event {
             AISettingsChangedEvent::IsAnyAIEnabled { .. }
             | AISettingsChangedEvent::ShowConversationHistory { .. } => {
-                me.update_left_panel_available_views(ctx);
                 ctx.notify();
             }
             AISettingsChangedEvent::IsActiveAIEnabled { .. }
@@ -2673,8 +2651,6 @@ impl Workspace {
             left_panel_open: false,
             vertical_tabs_panel_open: false,
             vertical_tabs_panel: Default::default(),
-            left_panel_view,
-            left_panel_views,
             working_directories_model,
             shown_staging_banner_count: 0,
 
@@ -3135,12 +3111,6 @@ impl Workspace {
         if self.left_panel_visibility_across_tabs_enabled(ctx) {
             self.reconcile_left_panel_open_for_active_tab(ctx);
         }
-
-        let active_pane_group = self.active_tab_pane_group().clone();
-        let working_directories_model = self.working_directories_model.clone();
-        self.left_panel_view.update(ctx, |left_panel, ctx| {
-            left_panel.set_active_pane_group(active_pane_group, &working_directories_model, ctx);
-        });
     }
 
     fn initial_vertical_tabs_panel_open(
@@ -3206,20 +3176,6 @@ impl Workspace {
                 handle.set_size(left_panel_snapshot.width as f32);
             }
         }
-
-        self.left_panel_view.update(ctx, |lp, ctx| {
-            // Restore which panel tab was active
-            let active_view = match left_panel_snapshot.left_panel_displayed_tab {
-                LeftPanelDisplayedTab::FileTree => ToolPanelView::ProjectExplorer,
-                LeftPanelDisplayedTab::GlobalSearch => ToolPanelView::GlobalSearch {
-                    entry_focus: GlobalSearchEntryFocus::Results,
-                },
-                LeftPanelDisplayedTab::WarpDrive => ToolPanelView::WarpDrive,
-                LeftPanelDisplayedTab::ConversationListView => ToolPanelView::ConversationListView,
-            };
-            lp.restore_active_view_from_snapshot(active_view, ctx);
-            lp.set_active_pane_group(pane_group.clone(), &self.working_directories_model, ctx);
-        });
 
         ctx.notify();
     }
@@ -3421,45 +3377,30 @@ impl Workspace {
         ctx.notify();
     }
 
-    /// Sets focused to the index of either the selected object or the first item in WD
+    /// Warp Drive was removed; nothing to focus/reset.
     fn reset_focused_index_in_warp_drive(
         &mut self,
-        should_scroll: bool,
-        ctx: &mut ViewContext<Self>,
+        _should_scroll: bool,
+        _ctx: &mut ViewContext<Self>,
     ) {
-        ctx.focus(&self.left_panel_view);
-
-        self.update_warp_drive_view(ctx, |drive_panel, ctx| {
-            drive_panel.reset_focused_index_in_warp_drive(should_scroll, ctx);
-        });
     }
 
     pub fn has_warp_drive_initialized_sections(
         &self,
-        app: &AppContext,
+        _app: &AppContext,
     ) -> impl Future<Output = ()> {
-        self.left_panel_view
-            .as_ref(app)
-            .warp_drive_view()
-            .as_ref(app)
-            .has_warp_drive_initialized_sections(app)
+        std::future::ready(())
     }
 
-    /// Check if Warp Drive view is focused within.
-    /// Routes to the appropriate Warp Drive panel.
-    fn is_warp_drive_view_focused(&self, ctx: &mut ViewContext<Self>) -> bool {
-        let app = ctx;
-        self.left_panel_view.is_self_or_child_focused(app)
+    /// Check if Warp Drive view is focused within. (Warp Drive removed.)
+    fn is_warp_drive_view_focused(&self, _ctx: &mut ViewContext<Self>) -> bool {
+        false
     }
 
     fn current_focus_region(&self, ctx: &mut ViewContext<Self>) -> FocusRegion {
         let app = ctx;
         if self.active_tab_pane_group().is_self_or_child_focused(app) {
             return FocusRegion::PaneGroup;
-        }
-
-        if self.left_panel_view.is_self_or_child_focused(app) {
-            return FocusRegion::LeftPanel;
         }
 
         if self.ai_assistant_panel.is_self_or_child_focused(app)
@@ -3500,13 +3441,7 @@ impl Workspace {
         handle.update(ctx, |pane_group, ctx| pane_group.focus_last_pane(ctx))
     }
 
-    fn focus_left_region_entry(&mut self, ctx: &mut ViewContext<Self>) {
-        if self.has_left_region(ctx) {
-            self.left_panel_view.update(ctx, |left_panel, ctx| {
-                left_panel.focus_active_view_on_entry(ctx);
-            });
-        }
-    }
+    fn focus_left_region_entry(&mut self, _ctx: &mut ViewContext<Self>) {}
 
     fn focus_right_region_entry(&mut self, ctx: &mut ViewContext<Self>) {
         if self.current_workspace_state.is_ai_assistant_panel_open {
@@ -3951,18 +3886,6 @@ impl Workspace {
             self.reconcile_left_panel_open_for_active_tab(ctx);
         }
 
-        let left_active_pane_group = self.active_tab_pane_group().clone();
-        let right_active_pane_group = self.active_tab_pane_group().clone();
-        let working_directories_model = self.working_directories_model.clone();
-
-        self.left_panel_view.update(ctx, |left_panel, ctx| {
-            left_panel.set_active_pane_group(
-                left_active_pane_group,
-                &working_directories_model,
-                ctx,
-            );
-        });
-        let _ = (right_active_pane_group, &working_directories_model);
 
         let pane_group = self.active_tab_pane_group();
         let focused_terminal_view_id = self
@@ -4496,10 +4419,7 @@ impl Workspace {
         } else {
             PanelPosition::Right
         };
-        self.left_panel_view.update(ctx, |view, ctx| {
-            view.set_panel_position(tools_position, ctx);
-        });
-        let _ = code_review_position;
+        let _ = (tools_position, code_review_position);
     }
 
     fn build_header_toolbar_context_menu(
@@ -4674,25 +4594,6 @@ impl Workspace {
             }
         }
     }
-
-    fn handle_left_panel_event(&mut self, event: &LeftPanelEvent, ctx: &mut ViewContext<Self>) {
-        match event {
-            LeftPanelEvent::FileTree(pane_group_event) => {
-                let pane_group = self.active_tab_pane_group().clone();
-                self.handle_file_tree_event(pane_group, pane_group_event, ctx);
-            }
-            LeftPanelEvent::OpenFileWithTarget {
-                location,
-                target,
-                line_col,
-            } => {
-                if let LocalOrRemotePath::Local(path) = location {
-                    self.open_file_with_target(path.clone(), target.clone(), *line_col, ctx);
-                }
-            }
-        }
-    }
-
 
     fn join_slack(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.open_url(links::SLACK_URL);
@@ -6458,16 +6359,6 @@ impl Workspace {
                 }
             }
 
-            // Auto-expand the file tree when the left panel is opened and the project explorer is
-            // the active view.
-            let file_tree_active = self
-                .left_panel_view
-                .read(ctx, |lp, _| lp.is_file_tree_active());
-            if file_tree_active {
-                self.left_panel_view.update(ctx, |left_panel, ctx| {
-                    left_panel.auto_expand_active_file_tree_to_most_recent_directory(ctx);
-                });
-            }
         }
 
         if !new_state {
@@ -8244,24 +8135,12 @@ impl Workspace {
 
     fn compute_left_panel_snapshot(
         &self,
-        pane_group: &ViewHandle<PaneGroup>,
-        left_panel_width: Option<f32>,
-        app: &AppContext,
+        _pane_group: &ViewHandle<PaneGroup>,
+        _left_panel_width: Option<f32>,
+        _app: &AppContext,
     ) -> Option<LeftPanelSnapshot> {
-        let pane_group_ref = pane_group.as_ref(app);
-        if !pane_group_ref.left_panel_open {
-            return None;
-        }
-
-        let pane_group_id = pane_group.id();
-
-        self.left_panel_view.read(app, |lp, _| {
-            Some(LeftPanelSnapshot {
-                left_panel_displayed_tab: lp.active_view().into(),
-                pane_group_id: pane_group_id.to_string(),
-                width: left_panel_width.unwrap_or(DEFAULT_LEFT_PANEL_WIDTH) as usize,
-            })
-        })
+        // The left panel was removed; nothing to snapshot.
+        None
     }
 
     fn compute_right_panel_snapshot(
@@ -10503,11 +10382,7 @@ impl Workspace {
                     enablement
                 };
 
-            self.left_panel_view.update(ctx, |left_panel, ctx| {
-                left_panel.update_coding_panel_enablement(enablement, ctx);
-            });
-
-            let _ = (is_remote, is_wsl_session);
+            let _ = (enablement, is_remote, is_wsl_session);
         } else {
             let enablement = CodingPanelEnablementState::from_session_env(
                 file_tree_and_global_search_are_enabled,
@@ -10516,9 +10391,7 @@ impl Workspace {
                 false,
             );
 
-            self.left_panel_view.update(ctx, |left_panel, ctx| {
-                left_panel.update_coding_panel_enablement(enablement, ctx);
-            });
+            let _ = enablement;
         }
     }
 
@@ -11637,21 +11510,7 @@ impl Workspace {
                     "workspace:toggle_vertical_tabs_panel",
                 )
             } else {
-                let tooltip = if self.left_panel_views.len() <= 1 {
-                    match self
-                        .left_panel_views
-                        .first()
-                        .copied()
-                        .unwrap_or(ToolPanelView::WarpDrive)
-                    {
-                        ToolPanelView::ProjectExplorer => "Project explorer",
-                        ToolPanelView::GlobalSearch { .. } => "Global search",
-                        ToolPanelView::WarpDrive => "Warp Drive",
-                        ToolPanelView::ConversationListView => "Agent conversations",
-                    }
-                } else {
-                    "Tools panel"
-                };
+                let tooltip = "Tools panel";
                 (
                     self.active_tab_pane_group().as_ref(ctx).left_panel_open,
                     tooltip,
@@ -11691,21 +11550,7 @@ impl Workspace {
     ) -> Box<dyn Element> {
         let is_active = self.active_tab_pane_group().as_ref(ctx).left_panel_open;
 
-        let tooltip_text = if self.left_panel_views.len() <= 1 {
-            match self
-                .left_panel_views
-                .first()
-                .copied()
-                .unwrap_or(ToolPanelView::WarpDrive)
-            {
-                ToolPanelView::ProjectExplorer => "Project explorer",
-                ToolPanelView::GlobalSearch { .. } => "Global search",
-                ToolPanelView::WarpDrive => "Warp Drive",
-                ToolPanelView::ConversationListView => "Agent conversations",
-            }
-        } else {
-            "Tools panel"
-        };
+        let tooltip_text = "Tools panel";
 
         SavePosition::new(
             Container::new(
@@ -12311,9 +12156,6 @@ impl Workspace {
         let inner = match item {
             HeaderToolbarItemKind::TabsPanel => self.render_left_toggle_button(appearance, ctx),
             HeaderToolbarItemKind::ToolsPanel => {
-                if self.left_panel_views.is_empty() {
-                    return None;
-                }
                 if vertical_tabs_active {
                     self.render_tools_panel_button(appearance, ctx)
                 } else {
@@ -14009,13 +13851,8 @@ impl Workspace {
                     .finish(),
                 )
             }
-            HeaderToolbarItemKind::ToolsPanel => {
-                if !pane_group.left_panel_open || riftui::platform::is_mobile_device() {
-                    return None;
-                }
-                Some(ChildView::new(&self.left_panel_view).finish())
-            }
-            HeaderToolbarItemKind::CodeReview
+            HeaderToolbarItemKind::ToolsPanel
+            | HeaderToolbarItemKind::CodeReview
             | HeaderToolbarItemKind::AgentManagement
             | HeaderToolbarItemKind::NotificationsMailbox => None,
         }
@@ -14804,63 +14641,6 @@ impl Workspace {
         ctx.focus(&self.build_plan_migration_modal);
     }
 
-    fn open_left_panel_view(&mut self, action: &LeftPanelAction, ctx: &mut ViewContext<Self>) {
-        if !self.active_tab_pane_group().as_ref(ctx).left_panel_open {
-            self.toggle_left_panel(ctx);
-        }
-
-        if self.active_tab_pane_group().as_ref(ctx).left_panel_open {
-            self.left_panel_view.update(ctx, |left_panel, ctx| {
-                left_panel.handle_action_with_force_open(action, false, ctx);
-                left_panel.focus_active_view_on_entry(ctx);
-            });
-        }
-    }
-
-    fn toggle_left_panel_view(
-        &mut self,
-        action: &LeftPanelAction,
-        is_showing_target_view: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let is_left_panel_open = self.active_tab_pane_group().as_ref(ctx).left_panel_open;
-
-        if is_left_panel_open && is_showing_target_view {
-            // If we're showing the target view for this action,
-            // toggle the left panel closed.
-            self.toggle_left_panel(ctx);
-        } else {
-            self.open_left_panel_view(action, ctx);
-        }
-    }
-
-    /// Computes the list of available left panel views based on current AI settings and feature flags.
-    fn compute_left_panel_views(ctx: &AppContext) -> Vec<ToolPanelView> {
-        let mut views = vec![];
-        if cfg!(feature = "local_fs") && *CodeSettings::as_ref(ctx).show_project_explorer.value() {
-            views.push(ToolPanelView::ProjectExplorer);
-        }
-        if cfg!(feature = "local_fs")
-            && FeatureFlag::GlobalSearch.is_enabled()
-            && *CodeSettings::as_ref(ctx).show_global_search.value()
-        {
-            views.push(ToolPanelView::GlobalSearch {
-                entry_focus: GlobalSearchEntryFocus::Results,
-            });
-        }
-        views
-    }
-
-    /// Recomputes the available left panel views based on current AI settings and feature flags,
-    /// then updates both the workspace's left_panel_views and the LeftPanelView's toolbelt buttons.
-    fn update_left_panel_available_views(&mut self, ctx: &mut ViewContext<Self>) {
-        let views = Self::compute_left_panel_views(ctx);
-        self.left_panel_views = views.clone();
-        self.left_panel_view.update(ctx, |left_panel, ctx| {
-            left_panel.update_available_views(views, ctx);
-        });
-    }
-
     /// Opens a given URL in the desktop Warp app if installed, or redirects to download page.
     #[cfg(target_family = "wasm")]
     fn open_link_on_desktop(&mut self, url: &Url, ctx: &mut ViewContext<Self>) {
@@ -15269,52 +15049,7 @@ impl TypedActionView for Workspace {
                 send_telemetry_from_ctx!(TelemetryEvent::DragAndDropTabGroup, ctx);
                 ctx.notify();
             }
-            ToggleLeftPanel => {
-                let active_pane_group = self.active_tab_pane_group().clone();
-                let was_open = active_pane_group.read(ctx, |pg, _| pg.left_panel_open);
-
-                // Don't open the panel if no views are available.
-                if !was_open && self.left_panel_views.is_empty() {
-                    return;
-                }
-
-                let file_tree_active = self
-                    .left_panel_view
-                    .read(ctx, |lp, _| lp.is_file_tree_active());
-                let warp_drive_active = self
-                    .left_panel_view
-                    .read(ctx, |lp, _| lp.is_warp_drive_active());
-
-                self.toggle_left_panel(ctx);
-
-                let is_open = active_pane_group.read(ctx, |pg, _| pg.left_panel_open);
-
-                if !was_open && is_open {
-                    self.left_panel_view.update(ctx, |left_panel, ctx| {
-                        left_panel.focus_active_view_on_entry(ctx);
-                    });
-
-                    if file_tree_active {
-                        send_telemetry_from_ctx!(
-                            TelemetryEvent::FileTreeToggled {
-                                source: FileTreeSource::LeftPanelToolbelt,
-                                is_code_mode_v2: true,
-                                cli_agent: None,
-                            },
-                            ctx
-                        );
-                    } else if warp_drive_active {
-                        // Tools panel opened with Warp Drive as the active view
-                        send_telemetry_from_ctx!(
-                            TelemetryEvent::WarpDriveOpened {
-                                source: WarpDriveSource::LeftPanelToolbelt,
-                                is_code_mode_v2: true
-                            },
-                            ctx
-                        );
-                    }
-                }
-            }
+            ToggleLeftPanel => {}
             ToggleRightPanel => {}
             ToggleVerticalTabsPanel => {
                 self.toggle_vertical_tabs_panel(ctx);
@@ -15475,11 +15210,7 @@ impl TypedActionView for Workspace {
                 );
                 ctx.notify();
             }
-            ClosePanel => {
-                if self.left_panel_view.is_self_or_child_focused(ctx) {
-                    self.close_left_panel(ctx);
-                }
-            }
+            ClosePanel => {}
             OpenInExplorer { path } => {
                 ctx.open_file_path_in_explorer(path);
             }
@@ -16080,52 +15811,6 @@ impl View for Workspace {
                 .finish()
         };
         let mut stack = Stack::new();
-
-        #[cfg(target_family = "wasm")]
-        {
-            let pane_group = self.active_tab_pane_group().as_ref(app);
-            if riftui::platform::wasm::is_mobile_device() && pane_group.left_panel_open {
-                let scrim = Rect::new()
-                    .with_background(Fill::Solid(ColorU::new(
-                        0,
-                        0,
-                        0,
-                        MOBILE_OVERLAY_SCRIM_ALPHA,
-                    )))
-                    .finish();
-                let clickable_scrim = EventHandler::new(scrim)
-                    .on_left_mouse_down(|ctx, _, _| {
-                        ctx.dispatch_typed_action(WorkspaceAction::ToggleLeftPanel);
-                        DispatchEventResult::StopPropagation
-                    })
-                    .finish();
-                stack.add_positioned_overlay_child(
-                    Percentage::width(1.0 - MOBILE_OVERLAY_PANEL_WIDTH_RATIO, clickable_scrim)
-                        .finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        TAB_BAR_POSITION_ID,
-                        vec2f(0., 0.),
-                        PositionedElementOffsetBounds::WindowBySize,
-                        PositionedElementAnchor::BottomRight,
-                        ChildAnchor::TopRight,
-                    ),
-                );
-
-                let panel_content = Container::new(ChildView::new(&self.left_panel_view).finish())
-                    .with_background(appearance.theme().surface_1())
-                    .finish();
-                stack.add_positioned_overlay_child(
-                    Percentage::width(MOBILE_OVERLAY_PANEL_WIDTH_RATIO, panel_content).finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        TAB_BAR_POSITION_ID,
-                        vec2f(0., 0.),
-                        PositionedElementOffsetBounds::WindowBySize,
-                        PositionedElementAnchor::BottomLeft,
-                        ChildAnchor::TopLeft,
-                    ),
-                );
-            }
-        }
 
         stack.add_child(
             Container::new(panels)
