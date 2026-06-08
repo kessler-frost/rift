@@ -6,8 +6,6 @@ use rift_core::settings::{ChangeEventReason, Setting};
 use riftui::{AppContext, Entity, ModelContext, SingletonEntity, Tracked};
 
 use super::team::{DiscoverableTeam, Team};
-#[cfg(test)]
-use super::workspace::WorkspaceMemberUsageInfo;
 use super::workspace::{
     AdminEnablementSetting, EnterpriseSecretRegex,
     UgcCollectionEnablementSetting, Workspace, WorkspaceUid,
@@ -24,10 +22,6 @@ use crate::server::server_api::workspace::WorkspaceClient;
 use crate::server::server_api::{team::MockTeamClient, workspace::MockWorkspaceClient};
 use crate::settings::{
     AISettings, AISettingsChangedEvent, CodeSettings, CodeSettingsChangedEvent, PrivacySettings,
-};
-#[cfg(test)]
-use crate::workspaces::workspace::{
-    AIAutonomyPolicy, BillingMetadata, WorkspaceMember, WorkspaceSettings,
 };
 
 const STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX: &str = "/upgrade";
@@ -547,98 +541,6 @@ impl UserWorkspaces {
             .map(|policy| policy.is_enabled)
             .unwrap_or(true);
         FeatureFlag::CreatingSharedSessions.set_enabled(is_session_sharing_enabled_via_tier_policy);
-    }
-}
-
-#[cfg(test)]
-impl UserWorkspaces {
-    /// Creates a test workspace with a team and sets it as the current workspace.
-    /// Returns the workspace UID and admin UID for use in tests.
-    pub fn setup_test_workspace(&mut self, ctx: &mut ModelContext<Self>) {
-        let workspace_uid = WorkspaceUid::from(ServerId::from(1));
-        let owner_uid = UserUid::new("test_owner");
-
-        let workspace_settings = WorkspaceSettings::default();
-
-        let workspace = Workspace {
-            uid: workspace_uid,
-            name: "Test Workspace".to_string(),
-            stripe_customer_id: None,
-            teams: vec![Team {
-                uid: ServerId::from(2),
-                name: "Test Team".to_string(),
-                organization_settings: workspace_settings.clone(),
-                billing_metadata: BillingMetadata::default(),
-                members: vec![],
-                invite_code: None,
-                pending_email_invites: vec![],
-                invite_link_domain_restrictions: vec![],
-                stripe_customer_id: None,
-                is_eligible_for_discovery: false,
-                has_billing_history: false,
-            }],
-            members: vec![WorkspaceMember {
-                uid: owner_uid,
-                email: "test@example.com".to_string(),
-                role: MembershipRole::Owner,
-                usage_info: WorkspaceMemberUsageInfo {
-                    requests_used_since_last_refresh: 0,
-                    request_limit: 1000,
-                    is_unlimited: false,
-                    is_request_limit_prorated: false,
-                },
-            }],
-            billing_metadata: BillingMetadata::default(),
-            bonus_grants_purchased_this_month: Default::default(),
-            billing_cycle_usage: None,
-            has_billing_history: false,
-            settings: workspace_settings,
-            invite_code: None,
-            invite_link_domain_restrictions: vec![],
-            pending_email_invites: vec![],
-            is_eligible_for_discovery: false,
-            total_requests_used_since_last_refresh: 0,
-        };
-
-        self.update_workspaces(vec![workspace], ctx);
-        self.set_current_workspace_uid(workspace_uid, ctx);
-    }
-
-    /// Updates the current workspace by applying a mutation function.
-    pub fn update_current_workspace<F>(&mut self, f: F, ctx: &mut ModelContext<Self>)
-    where
-        F: FnOnce(&mut Workspace),
-    {
-        if let Some(workspace) = self.current_workspace() {
-            if workspace.teams.is_empty() {
-                panic!("No team found in current workspace. Did you call setup_test_workspace()?");
-            }
-
-            let mut new_workspace = workspace.clone();
-            f(&mut new_workspace);
-
-            self.update_workspaces(vec![new_workspace], ctx);
-        } else {
-            panic!("No workspace found. Did you call setup_test_workspace()?");
-        }
-    }
-
-    pub fn update_ai_autonomy_policy_flag(&mut self, enabled: bool, ctx: &mut ModelContext<Self>) {
-        self.update_current_workspace(
-            |workspace| {
-                if let Some(team) = workspace.teams.first_mut() {
-                    team.billing_metadata.tier.ai_autonomy_policy = Some(AIAutonomyPolicy {
-                        is_enabled: enabled,
-                        toggleable: true,
-                    });
-                } else {
-                    panic!(
-                        "No team found in current workspace. Did you call setup_test_workspace()?"
-                    );
-                }
-            },
-            ctx,
-        );
     }
 }
 

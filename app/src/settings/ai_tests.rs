@@ -1,4 +1,5 @@
 use chrono::Utc;
+use rift_graphql::ai::RequestLimitRefreshDuration;
 use rift_graphql::scalars::time::ServerTimestamp;
 use riftui::{App, SingletonEntity};
 
@@ -8,15 +9,15 @@ use crate::test_util::settings::initialize_settings_for_tests;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 fn create_test_request_limit_info(
-    limit: usize,
-    used: usize,
+    limit: i32,
+    used: i32,
     next_refresh: DateTime<Utc>,
     is_unlimited: bool,
     refresh_duration: RequestLimitRefreshDuration,
 ) -> RequestLimitInfo {
     RequestLimitInfo {
-        limit,
-        num_requests_used_since_refresh: used,
+        request_limit: limit,
+        requests_used_since_last_refresh: used,
         next_refresh_time: ServerTimestamp::new(next_refresh),
         is_unlimited,
         request_limit_refresh_duration: refresh_duration,

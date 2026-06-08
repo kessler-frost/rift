@@ -260,6 +260,14 @@ impl Entity for CLIAgentSessionsModel {
 impl SingletonEntity for CLIAgentSessionsModel {}
 
 impl CLIAgentSessionsModel {
+    #[cfg(test)]
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self {
+            sessions: HashMap::new(),
+        }
+    }
+
     pub fn session(&self, terminal_view_id: EntityId) -> Option<&CLIAgentSession> {
         self.sessions.get(&terminal_view_id)
     }

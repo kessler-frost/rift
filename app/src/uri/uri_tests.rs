@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::*;
 use crate::launch_configs::launch_config::make_mock_single_window_launch_config;
 use crate::linear::{LinearAction, LinearIssueWork};
@@ -773,17 +775,6 @@ fn test_open_file_executable_sh_routes_to_execute() {
 
 #[test]
 #[cfg(unix)]
-fn test_open_file_non_executable_sh_routes_to_editor() {
-    use std::os::unix::fs::PermissionsExt;
-    let dir = tempfile::tempdir().unwrap();
-    let p = dir.path().join("view.sh");
-    std::fs::write(&p, b"#!/bin/sh\n:\n").unwrap();
-    std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o644)).unwrap();
-    assert_eq!(classify_open_file_action(&p), OpenFileAction::Editor);
-}
-
-#[test]
-#[cfg(unix)]
 fn test_open_file_executable_bash_zsh_fish_route_to_execute() {
     use std::os::unix::fs::PermissionsExt;
     let dir = tempfile::tempdir().unwrap();
@@ -805,15 +796,6 @@ fn test_open_file_markdown_unchanged() {
     let p = dir.path().join("README.md");
     std::fs::write(&p, b"# hi\n").unwrap();
     assert_eq!(classify_open_file_action(&p), OpenFileAction::Notebook);
-}
-
-#[test]
-#[cfg(feature = "local_fs")]
-fn test_open_file_rust_source_still_opens_in_editor() {
-    let dir = tempfile::tempdir().unwrap();
-    let p = dir.path().join("main.rs");
-    std::fs::write(&p, b"fn main() {}\n").unwrap();
-    assert_eq!(classify_open_file_action(&p), OpenFileAction::Editor);
 }
 
 #[test]
@@ -852,20 +834,6 @@ fn test_open_file_directory_routes_to_session() {
         classify_open_file_action(dir.path()),
         OpenFileAction::ExecuteInSession
     );
-}
-
-#[test]
-#[cfg(unix)]
-fn test_open_file_non_runnable_shebang_routes_to_editor() {
-    // Extensionless `#!/bin/sh` file without the user-execute bit. Without the
-    // shebang fall-through this would hit `ExecuteInSession` and the shell would
-    // refuse to run it; the editor is the right place to view it.
-    use std::os::unix::fs::PermissionsExt;
-    let dir = tempfile::tempdir().unwrap();
-    let p = dir.path().join("noext");
-    std::fs::write(&p, b"#!/bin/sh\necho hi\n").unwrap();
-    std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o644)).unwrap();
-    assert_eq!(classify_open_file_action(&p), OpenFileAction::Editor);
 }
 
 #[test]

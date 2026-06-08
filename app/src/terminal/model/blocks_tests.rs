@@ -1,5 +1,4 @@
 use float_cmp::{approx_eq, assert_approx_eq};
-use rift_core::features::FeatureFlag;
 use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
 use riftui::units::IntoLines;
 use riftui::App;
@@ -8,7 +7,6 @@ use super::*;
 use crate::settings::TerminalSpacing;
 use crate::terminal::event::Event;
 use crate::terminal::model::ansi::Handler;
-use crate::terminal::model::block::AgentInteractionMetadata;
 use crate::terminal::model::test_utils;
 use crate::terminal::model::test_utils::TestBlockListBuilder;
 use crate::terminal::view::{InlineBannerItem, InlineBannerType};
@@ -468,9 +466,11 @@ pub fn test_restore_completed_blocks() {
         block_list.blocks[1].height(),
         restored_block_height
     );
+    // The session-restoration separator was removed, so the total height is
+    // just the two restored blocks.
     assert_lines_approx_eq!(
         block_list.block_heights.summary().height,
-        2.0 * restored_block_height + RESTORED_BLOCK_SEPARATOR_HEIGHT
+        2.0 * restored_block_height
     );
 
     let mut block_completed_events = Vec::new();
@@ -661,56 +661,10 @@ pub fn test_basic_bootstrapping() {
 }
 
 #[test]
-pub fn test_session_restoration_separator() {
-    let serialized_block: SerializedBlockListItem =
-        SerializedBlock::new_for_test("i am".as_bytes().to_vec(), "restored".as_bytes().to_vec())
-            .into();
-    let restored_blocks = [serialized_block.clone(), serialized_block];
-    let mut block_list = TestBlockListBuilder::new()
-        .with_restored_blocks(&restored_blocks)
-        .build();
-
-    block_list.set_next_gap_height_in_lines((11. + RESTORED_BLOCK_SEPARATOR_HEIGHT).into_lines());
-    assert_eq!(block_list.blocks.len(), 3);
-    assert_lines_approx_eq!(block_list.blocks[0].height(), 5.5);
-    assert_lines_approx_eq!(block_list.blocks[1].height(), 5.5);
-    assert_lines_approx_eq!(block_list.blocks[2].height(), 0.0);
-
-    // We have two blocks at height 5.5 and a separator with height 1.5.
-    assert_lines_approx_eq!(
-        block_list.block_heights.summary().height,
-        11.0 + RESTORED_BLOCK_SEPARATOR_HEIGHT
-    );
-
-    // Clear the visible screen and ensure total height increases by 10.
-    block_list.clear_visible_screen();
-    assert_eq!(block_list.blocks.len(), 3);
-    assert_lines_approx_eq!(
-        block_list.block_heights.summary().height,
-        11.0 + RESTORED_BLOCK_SEPARATOR_HEIGHT
-            + block_list
-                .next_gap_height()
-                .expect("height should be set")
-                .as_f64()
-    );
-
-    // With the active block still hidden during initialize, the gap is inserted before the active
-    // block in clear_visible_screen.
-    // Total items: 2 restored blocks + 1 separator + 1 gap + 1 active block = 5.
-    assert_eq!(block_list.block_heights.summary().total_count, 5);
-    // Gap is at index 3 (before the active block at index 4).
-    assert_eq!(block_list.active_gap.as_ref().unwrap().index, 3);
-    assert_approx_eq!(
-        Lines,
-        block_list.active_gap.as_ref().unwrap().current_height,
-        block_list
-            .next_gap_height()
-            .expect("gap height should be set")
-    );
-}
-
-#[test]
 pub fn test_insert_non_block_item() {
+    // A representative separator height for the manually-inserted non-block items
+    // in this test (the old `RESTORED_BLOCK_SEPARATOR_HEIGHT` constant).
+    const SEPARATOR_HEIGHT: f64 = 1.5;
     let mut block_list =
         new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
 
@@ -728,7 +682,7 @@ pub fn test_insert_non_block_item() {
     let inserted_index = block_list.insert_non_block_item_before_block(
         first_block_index,
         BlockHeightItem::RestoredBlockSeparator {
-            height_when_visible: BlockHeight::from(RESTORED_BLOCK_SEPARATOR_HEIGHT),
+            height_when_visible: BlockHeight::from(SEPARATOR_HEIGHT),
             is_historical_conversation_restoration: false,
             is_hidden: false,
         },
@@ -739,7 +693,7 @@ pub fn test_insert_non_block_item() {
     let inserted_index = block_list.insert_non_block_item_before_block(
         block_list.active_block_index(),
         BlockHeightItem::RestoredBlockSeparator {
-            height_when_visible: BlockHeight::from(RESTORED_BLOCK_SEPARATOR_HEIGHT),
+            height_when_visible: BlockHeight::from(SEPARATOR_HEIGHT),
             is_historical_conversation_restoration: false,
             is_hidden: false,
         },
@@ -802,7 +756,7 @@ pub fn test_insert_non_block_item() {
         BlockHeightSummary {
             total_count: 1,
             block_count: 0,
-            height: RESTORED_BLOCK_SEPARATOR_HEIGHT.into_lines(),
+            height: SEPARATOR_HEIGHT.into_lines(),
         },
     );
 
@@ -830,7 +784,7 @@ pub fn test_insert_non_block_item() {
         BlockHeightSummary {
             total_count: 1,
             block_count: 0,
-            height: RESTORED_BLOCK_SEPARATOR_HEIGHT.into_lines(),
+            height: SEPARATOR_HEIGHT.into_lines(),
         },
     );
 
@@ -845,7 +799,7 @@ pub fn test_insert_non_block_item() {
     );
 
     // Overall, we have two blocks with 8.5 height and two separator with 1.5 height.
-    let total_height = 2. * block_height + 2. * RESTORED_BLOCK_SEPARATOR_HEIGHT;
+    let total_height = 2. * block_height + 2. * SEPARATOR_HEIGHT;
     assert_lines_approx_eq!(block_list.block_heights.summary().height, total_height);
 
     // Now clear the visible screen--the number of blocks shouldn't change but total height
@@ -1320,7 +1274,7 @@ fn test_remove_rich_content_block() {
     insert_block(&mut block_list, "cmd", "output");
 
     let view_id_a = EntityId::new();
-    block_list.append_rich_content(RichContentItem::new_for_test(None, view_id_a, None), false);
+    block_list.append_rich_content(RichContentItem::new_for_test(None, view_id_a), false);
 
     let second_block_index = insert_block(&mut block_list, "cmd", "output");
 
@@ -1331,7 +1285,7 @@ fn test_remove_rich_content_block() {
     );
 
     let view_id_b = EntityId::new();
-    block_list.append_rich_content(RichContentItem::new_for_test(None, view_id_b, None), false);
+    block_list.append_rich_content(RichContentItem::new_for_test(None, view_id_b), false);
 
     /*
     The blocklist is now:
@@ -1391,291 +1345,6 @@ fn test_remove_rich_content_block() {
         .items()
         .iter()
         .any(|item| matches!(&item, BlockHeightItem::RichContent { .. })));
-}
-
-#[test]
-fn test_conversation_scoped_rich_content_hidden_outside_fullscreen_agent_view() {
-    FeatureFlag::AgentView.set_enabled(true);
-    let mut block_list =
-        new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
-    let conversation_id = AIConversationId::new();
-    let view_id = EntityId::new();
-
-    block_list.append_rich_content(
-        RichContentItem::new_for_test(None, view_id, Some(conversation_id)),
-        false,
-    );
-
-    block_list.set_agent_view_state(AgentViewState::Active {
-        conversation_id,
-        origin: AgentViewEntryOrigin::Input {
-            was_prompt_autodetected: false,
-        },
-        display_mode: AgentViewDisplayMode::FullScreen,
-        original_conversation_length: 0,
-    });
-
-    let item_visible_in_fullscreen =
-        block_list
-            .block_heights()
-            .items()
-            .iter()
-            .find_map(|item| match item {
-                BlockHeightItem::RichContent(rich_content) if rich_content.view_id == view_id => {
-                    Some(*rich_content)
-                }
-                _ => None,
-            });
-    assert!(item_visible_in_fullscreen.is_some());
-    assert!(item_visible_in_fullscreen.is_some_and(|item| !item.should_hide));
-    assert!(item_visible_in_fullscreen
-        .is_some_and(|item| item.last_laid_out_height > BlockHeight::zero()));
-
-    block_list.set_agent_view_state(AgentViewState::Inactive);
-
-    let item_hidden_in_terminal_mode =
-        block_list
-            .block_heights()
-            .items()
-            .iter()
-            .find_map(|item| match item {
-                BlockHeightItem::RichContent(rich_content) if rich_content.view_id == view_id => {
-                    Some(*rich_content)
-                }
-                _ => None,
-            });
-    assert!(item_hidden_in_terminal_mode.is_some());
-    assert!(item_hidden_in_terminal_mode.is_some_and(|item| item.should_hide));
-
-    block_list.set_agent_view_state(AgentViewState::Active {
-        conversation_id,
-        origin: AgentViewEntryOrigin::Input {
-            was_prompt_autodetected: false,
-        },
-        display_mode: AgentViewDisplayMode::Inline,
-        original_conversation_length: 0,
-    });
-
-    let item_hidden_in_inline =
-        block_list
-            .block_heights()
-            .items()
-            .iter()
-            .find_map(|item| match item {
-                BlockHeightItem::RichContent(rich_content) if rich_content.view_id == view_id => {
-                    Some(*rich_content)
-                }
-                _ => None,
-            });
-    assert!(item_hidden_in_inline.is_some());
-    assert!(item_hidden_in_inline.is_some_and(|item| item.should_hide));
-}
-
-#[test]
-fn test_clear_user_executed_command_blocks_for_conversation() {
-    let mut block_list =
-        new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
-
-    let terminal_block_index = insert_block(&mut block_list, "terminal", "output");
-
-    let conversation_id = AIConversationId::new();
-
-    let user_block_index = insert_block(&mut block_list, "user", "output");
-    {
-        let block = &mut block_list.blocks_mut()[user_block_index.0];
-        // User-executed command blocks created inside agent view typically remain in User
-        // interaction mode.
-        block.set_conversation_id(conversation_id);
-    }
-
-    let requested_command_block_index = insert_block(&mut block_list, "requested", "output");
-    {
-        let block = &mut block_list.blocks_mut()[requested_command_block_index.0];
-        block.set_conversation_id(conversation_id);
-        let action_id: AIAgentActionId = "action".to_owned().into();
-        block.set_agent_interaction_mode(AgentInteractionMetadata::new_hidden(
-            action_id,
-            conversation_id,
-        ));
-    }
-
-    let view_id = EntityId::new();
-    block_list.append_rich_content(
-        RichContentItem::new_for_test(None, view_id, Some(conversation_id)),
-        false,
-    );
-
-    block_list.set_agent_view_state(AgentViewState::Active {
-        conversation_id,
-        origin: AgentViewEntryOrigin::LongRunningCommand,
-        display_mode: AgentViewDisplayMode::FullScreen,
-        original_conversation_length: 0,
-    });
-
-    let terminal_block_id = block_list
-        .block_at(terminal_block_index)
-        .unwrap()
-        .id()
-        .clone();
-    let user_block_id = block_list.block_at(user_block_index).unwrap().id().clone();
-    let requested_command_block_id = block_list
-        .block_at(requested_command_block_index)
-        .unwrap()
-        .id()
-        .clone();
-
-    block_list.clear_user_executed_command_blocks_for_conversation(conversation_id);
-
-    assert!(block_list.block_index_for_id(&terminal_block_id).is_some());
-    assert!(block_list
-        .block_index_for_id(&requested_command_block_id)
-        .is_some());
-    assert!(block_list.block_index_for_id(&user_block_id).is_none());
-    assert!(block_list
-        .removable_blocklist_item_positions
-        .contains_key(&RemovableBlocklistItem::RichContent(view_id)));
-}
-
-#[test]
-fn test_agent_origin_block_can_be_attached_to_other_conversation() {
-    let _agent_view_flag = FeatureFlag::AgentView.override_enabled(true);
-    let mut block_list =
-        new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
-
-    let expected_origin_conversation_id = AIConversationId::new();
-    let other_conversation_id = AIConversationId::new();
-
-    let active_state = |conversation_id| AgentViewState::Active {
-        conversation_id,
-        origin: AgentViewEntryOrigin::Input {
-            was_prompt_autodetected: false,
-        },
-        display_mode: AgentViewDisplayMode::FullScreen,
-        original_conversation_length: 0,
-    };
-
-    block_list.set_agent_view_state(active_state(expected_origin_conversation_id));
-    let user_block_index = insert_block(&mut block_list, "user", "output");
-    let user_block_id = block_list.block_at(user_block_index).unwrap().id().clone();
-
-    let associated = block_list
-        .associate_blocks_with_conversation([&user_block_id].into_iter(), other_conversation_id);
-    assert_eq!(associated.len(), 1);
-    assert_eq!(associated[0].0, user_block_id);
-    match &associated[0].1 {
-        AgentViewVisibility::Agent {
-            origin_conversation_id: observed_origin_conversation_id,
-            pending_other_conversation_ids,
-            other_conversation_ids,
-        } => {
-            assert_eq!(
-                observed_origin_conversation_id,
-                &expected_origin_conversation_id
-            );
-            assert!(pending_other_conversation_ids.contains(&other_conversation_id));
-            assert!(!other_conversation_ids.contains(&other_conversation_id));
-        }
-        _ => panic!("Expected agent visibility for agent-origin block"),
-    }
-
-    block_list.set_agent_view_state(active_state(other_conversation_id));
-    let user_block_index = block_list.block_index_for_id(&user_block_id).unwrap();
-    let user_block = block_list.block_at(user_block_index).unwrap();
-    assert!(!user_block.is_empty(block_list.agent_view_state()));
-
-    let promoted = block_list.promote_blocks_to_attached_from_conversation(other_conversation_id);
-    assert_eq!(promoted.len(), 1);
-    assert_eq!(promoted[0].0, user_block_id);
-    match &promoted[0].1 {
-        AgentViewVisibility::Agent {
-            pending_other_conversation_ids,
-            other_conversation_ids,
-            ..
-        } => {
-            assert!(!pending_other_conversation_ids.contains(&other_conversation_id));
-            assert!(other_conversation_ids.contains(&other_conversation_id));
-        }
-        _ => panic!("Expected agent visibility for agent-origin block"),
-    }
-
-    let removed = block_list.remove_pending_context_assocation_for_blocks(
-        [&user_block_id].into_iter(),
-        other_conversation_id,
-    );
-    assert!(removed.is_empty());
-
-    block_list.set_agent_view_state(AgentViewState::Inactive);
-    let user_block_index = block_list.block_index_for_id(&user_block_id).unwrap();
-    let user_block = block_list.block_at(user_block_index).unwrap();
-    assert!(user_block.is_empty(block_list.agent_view_state()));
-}
-
-#[test]
-fn test_finish_startup_commands_at_block_attaches_and_unhides_command_blocks_since_target_block() {
-    let _agent_view_flag = FeatureFlag::AgentView.override_enabled(true);
-    let mut block_list =
-        new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
-    block_list.set_is_executing_oz_environment_startup_commands(true);
-
-    let setup_block_index = insert_block(&mut block_list, "setup", "output");
-    let harness_block_index = insert_block(&mut block_list, "claude", "output");
-    let followup_block_index = insert_block(&mut block_list, "pwd", "output");
-    let setup_block_id = block_list.block_at(setup_block_index).unwrap().id().clone();
-    let harness_block_id = block_list
-        .block_at(harness_block_index)
-        .unwrap()
-        .id()
-        .clone();
-    let followup_block_id = block_list
-        .block_at(followup_block_index)
-        .unwrap()
-        .id()
-        .clone();
-    let conversation_id = AIConversationId::new();
-
-    block_list.set_agent_view_state(AgentViewState::Active {
-        conversation_id,
-        origin: AgentViewEntryOrigin::ThirdPartyCloudAgent,
-        display_mode: AgentViewDisplayMode::FullScreen,
-        original_conversation_length: 0,
-    });
-
-    block_list
-        .finish_oz_environment_startup_commands_at_block(&harness_block_id, Some(conversation_id));
-
-    assert!(!block_list.is_executing_oz_environment_startup_commands());
-
-    for block_id in [&harness_block_id, &followup_block_id] {
-        let block = block_list
-            .block_with_id(block_id)
-            .expect("block should still exist");
-        assert!(!block.is_hidden());
-        assert!(!block.is_oz_environment_startup_command());
-        assert!(!block.should_hide_block(block_list.agent_view_state()));
-        match block.agent_view_visibility() {
-            AgentViewVisibility::Terminal {
-                pending_conversation_ids,
-                conversation_ids,
-            } => {
-                assert!(pending_conversation_ids.is_empty());
-                assert!(conversation_ids.contains(&conversation_id));
-            }
-            AgentViewVisibility::Agent {
-                origin_conversation_id,
-                pending_other_conversation_ids,
-                other_conversation_ids,
-            } => panic!(
-                "expected terminal visibility, got agent visibility: {origin_conversation_id:?}, {pending_other_conversation_ids:?}, {other_conversation_ids:?}"
-            ),
-        }
-    }
-
-    let setup_block = block_list
-        .block_with_id(&setup_block_id)
-        .expect("setup block should still exist");
-    assert!(setup_block.is_hidden());
-    assert!(setup_block.is_oz_environment_startup_command());
-    assert!(setup_block.should_hide_block(block_list.agent_view_state()));
 }
 
 #[test]

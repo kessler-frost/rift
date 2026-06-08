@@ -8,8 +8,8 @@ use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 
 use super::{
-    app_database_file_path, database_file_path_for_scope, decode_path, deduplicate_events,
-    encode_path, get_all_codebase_index_metadata, read_sqlite_data, save_app_state,
+    app_database_file_path, database_file_path_for_scope, deduplicate_events,
+    get_all_codebase_index_metadata, read_sqlite_data, save_app_state,
     save_codebase_index_metadata, setup_database, start_writer,
 };
 use crate::app_state::{
@@ -99,8 +99,6 @@ fn sqlite_read_restores_app_state_and_codebase_metadata() {
     let app_state = AppState {
         windows: vec![test_terminal_window_snapshot(false)],
         active_window_index: Some(0),
-        block_lists: Default::default(),
-        running_mcp_servers: Default::default(),
     };
     save_app_state(&mut conn, &app_state).expect("app state should save");
 
@@ -169,21 +167,15 @@ fn test_deduplicate_snapshots() {
     };
     let snapshot_1 = AppState {
         active_window_index: Some(1),
-        block_lists: Default::default(),
         windows: Default::default(),
-        running_mcp_servers: Default::default(),
     };
     let snapshot_2 = AppState {
         active_window_index: Some(2),
-        block_lists: Default::default(),
         windows: Default::default(),
-        running_mcp_servers: Default::default(),
     };
     let snapshot_3 = AppState {
         active_window_index: Some(3),
-        block_lists: Default::default(),
         windows: Default::default(),
-        running_mcp_servers: Default::default(),
     };
 
     let original_events = vec![
@@ -240,7 +232,6 @@ fn test_terminal_window_snapshot(vertical_tabs_panel_open: bool) -> WindowSnapsh
                     }),
                     is_active: true,
                     is_read_only: false,
-                    input_config: None,
                     active_profile_id: None,
                 }),
             }),
@@ -276,8 +267,6 @@ fn test_sqlite_round_trips_vertical_tabs_panel_open() {
             test_terminal_window_snapshot(true),
         ],
         active_window_index: Some(1),
-        block_lists: Default::default(),
-        running_mcp_servers: Default::default(),
     };
 
     save_app_state(&mut conn, &app_state).expect("app state should save");
@@ -319,7 +308,6 @@ fn test_sqlite_round_trips_custom_vertical_tabs_title() {
                         }),
                         is_active: true,
                         is_read_only: false,
-                        input_config: None,
                         active_profile_id: None,
                     }),
                 }),
@@ -342,8 +330,6 @@ fn test_sqlite_round_trips_custom_vertical_tabs_title() {
             right_panel_width: None,
         }],
         active_window_index: Some(0),
-        block_lists: Default::default(),
-        running_mcp_servers: Default::default(),
     };
 
     save_app_state(&mut conn, &app_state).expect("app state should save");
@@ -363,42 +349,6 @@ fn test_sqlite_round_trips_custom_vertical_tabs_title() {
         custom_vertical_tabs_title.as_deref(),
         Some("Production API")
     );
-}
-
-fn assert_encode_then_decode_preserves_original_path(original_path: PathBuf) {
-    let bytes = encode_path(original_path.clone());
-    let decoded_path = decode_path(bytes);
-    assert_eq!(original_path, decoded_path);
-}
-
-/// Test that a local path can be encoded and decoded. We use this when persisting a local
-/// file path for notebooks in sqlite. We need this test because Windows `OsString`s are
-/// often arbitrary sequences of 16-bit values, unlike Unix which uses sequences of 8-bit
-/// values (bytes). Since `diesel::sql_types::Binary` deals with sequences of bytes (`u8`)
-/// we need to perform special casting on `OsString`s on Windows.
-#[test]
-fn test_path_encode_decode() {
-    // Empty path
-    assert_encode_then_decode_preserves_original_path(PathBuf::new());
-
-    // Windows-style paths
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"C:\windows\system32.dll"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("c:temp"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"\temp"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"\temp\emoji\🙈.txt"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"\temp\ñoñàscii\temp.txt"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"\temp\hindi\हिन्दी"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(r"\temp\cjk\狗没有耐心"));
-
-    // Unix-style paths
-    assert_encode_then_decode_preserves_original_path(PathBuf::from(
-        "/home/persistence/example.sql",
-    ));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("./database/log.txt"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("/temp/emoji/🙈.txt"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("/temp/ñoñàscii/temp.txt"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("/temp/hindi/हिन्दी"));
-    assert_encode_then_decode_preserves_original_path(PathBuf::from("/temp/cjk/狗没有耐心"));
 }
 
 // Regression: GH#10083. The macOS green-tile button could leave a 1px-wide
@@ -424,8 +374,6 @@ fn test_sqlite_drops_too_small_bounds_on_save() {
     let app_state = AppState {
         windows: vec![snapshot],
         active_window_index: Some(0),
-        block_lists: Default::default(),
-        running_mcp_servers: Default::default(),
     };
 
     save_app_state(&mut conn, &app_state).expect("app state should save");
@@ -463,8 +411,6 @@ fn test_sqlite_drops_too_small_bounds_on_read() {
     let app_state = AppState {
         windows: vec![test_terminal_window_snapshot(false)],
         active_window_index: Some(0),
-        block_lists: Default::default(),
-        running_mcp_servers: Default::default(),
     };
     save_app_state(&mut conn, &app_state).expect("app state should save");
 

@@ -13,7 +13,7 @@ use rift_core::command::ExitCode;
 use riftui::r#async::executor::Background;
 
 use super::ansi::{CommandFinishedValue, Handler, PrecmdValue, PreexecValue, Processor};
-use super::block::{Block, BlockId, BlockSize};
+use super::block::{Block, BlockId, BlockSize, SerializedBlock, SerializedBlockListItem};
 use super::blocks::BlockList;
 use super::bootstrap::BootstrapStage;
 use super::terminal_model::BlockIndex;
@@ -21,6 +21,14 @@ use super::{ObfuscateSecrets, TerminalModel};
 use crate::terminal::color::{self, Colors};
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::{BlockPadding, SizeInfo};
+
+/// Test-only convenience conversion so tests can write
+/// `serialized_block.into()` to obtain a restorable block-list item.
+impl From<SerializedBlock> for SerializedBlockListItem {
+    fn from(block: SerializedBlock) -> Self {
+        SerializedBlockListItem::Command { block }
+    }
+}
 
 pub fn block_size() -> BlockSize {
     BlockSize {
@@ -119,25 +127,18 @@ impl<'a> TestBlockListBuilder<'a> {
     }
 
     pub fn build(self) -> BlockList {
-        let mut block_list = BlockList::new(
+        BlockList::new(
             self.restored_blocks,
             self.block_sizes,
             self.channel_event_proxy,
             Arc::new(Background::default()),
             false, /* show_warp_bootstrap_input */
-            false, /* show_warp_bootstrap_input */
+            false, /* show_in_band_command_blocks */
             false, /* show_memory_stats */
             self.honor_ps1,
             false, /* is_inverted */
             ObfuscateSecrets::No,
-            false, /* is_telemetry_enabled */
-        );
-        // This is usually done by the terminal manager after constructing the blocklist,
-        // but we have tests assuming the separator exists.
-        if self.restored_blocks.is_some() {
-            block_list.append_session_restoration_separator_to_block_list(false);
-        }
-        block_list
+        )
     }
 }
 
@@ -215,8 +216,6 @@ impl TestBlockBuilder {
             self.block_index,
             self.honor_ps1,
             ObfuscateSecrets::No,
-            false, /* is_telemetry_enabled */
-            None,
         )
     }
 }

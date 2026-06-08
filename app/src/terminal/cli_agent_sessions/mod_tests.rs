@@ -2,8 +2,7 @@ use super::event::{
     parse_event, CLIAgentEvent, CLIAgentEventPayload, CLIAgentEventSource, CLIAgentEventType,
 };
 use super::{
-    CLIAgentInputEntrypoint, CLIAgentInputState, CLIAgentSession, CLIAgentSessionContext,
-    CLIAgentSessionStatus, CLIAgentSessionsModel,
+    CLIAgentInputState, CLIAgentSession, CLIAgentSessionContext, CLIAgentSessionStatus,
 };
 use crate::terminal::CLIAgent;
 
@@ -238,136 +237,6 @@ fn parse_pi_stop_notification() {
 }
 
 #[test]
-fn apply_event_preserves_input_session() {
-    let input_state = CLIAgentInputState::Open {
-        entrypoint: CLIAgentInputEntrypoint::CtrlG,
-        previous_input_config: InputConfig {
-            input_type: InputType::Shell,
-            is_locked: false,
-        },
-        previous_was_lock_set_with_empty_buffer: true,
-    };
-    let mut session = CLIAgentSession {
-        agent: CLIAgent::Claude,
-        status: CLIAgentSessionStatus::InProgress,
-        session_context: CLIAgentSessionContext::default(),
-        input_state,
-        should_auto_toggle_input: false,
-        listener: None,
-        remote_host: None,
-        plugin_version: None,
-        draft_text: None,
-        custom_command_prefix: None,
-        received_rich_notification: false,
-    };
-
-    let event = CLIAgentEvent {
-        source: CLIAgentEventSource::RichPlugin,
-        v: 1,
-        agent: CLIAgent::Claude,
-        event: CLIAgentEventType::PermissionRequest,
-        session_id: Some("abc".to_string()),
-        cwd: Some("/tmp/proj".to_string()),
-        project: Some("proj".to_string()),
-        payload: CLIAgentEventPayload {
-            summary: Some("Needs approval".to_string()),
-            ..Default::default()
-        },
-    };
-
-    session.apply_event(&event);
-
-    assert_eq!(session.input_state, input_state);
-}
-
-#[test]
-fn is_remote_returns_true_when_remote_host_is_set() {
-    let session = CLIAgentSession {
-        agent: CLIAgent::Claude,
-        status: CLIAgentSessionStatus::InProgress,
-        session_context: CLIAgentSessionContext::default(),
-        input_state: CLIAgentInputState::Closed,
-        should_auto_toggle_input: false,
-        listener: None,
-        plugin_version: None,
-        draft_text: None,
-        remote_host: Some("user@devbox".to_owned()),
-        custom_command_prefix: None,
-        received_rich_notification: false,
-    };
-    assert!(session.is_remote());
-}
-
-#[test]
-fn is_remote_returns_false_when_remote_host_is_none() {
-    let session = CLIAgentSession {
-        agent: CLIAgent::Claude,
-        status: CLIAgentSessionStatus::InProgress,
-        session_context: CLIAgentSessionContext::default(),
-        input_state: CLIAgentInputState::Closed,
-        should_auto_toggle_input: false,
-        listener: None,
-        remote_host: None,
-        plugin_version: None,
-        draft_text: None,
-        custom_command_prefix: None,
-        received_rich_notification: false,
-    };
-    assert!(!session.is_remote());
-}
-
-#[test]
-fn local_failure_is_shared_across_local_sessions() {
-    let mut model = CLIAgentSessionsModel::new();
-
-    model.record_plugin_auto_failure(CLIAgent::Claude, None);
-
-    assert!(model.has_plugin_auto_failed(CLIAgent::Claude, &None));
-}
-
-#[test]
-fn local_failure_does_not_affect_remote_host() {
-    let mut model = CLIAgentSessionsModel::new();
-
-    model.record_plugin_auto_failure(CLIAgent::Claude, None);
-
-    let remote = Some("user@devbox".to_owned());
-    assert!(!model.has_plugin_auto_failed(CLIAgent::Claude, &remote));
-}
-
-#[test]
-fn remote_failure_does_not_affect_local() {
-    let mut model = CLIAgentSessionsModel::new();
-
-    model.record_plugin_auto_failure(CLIAgent::Claude, Some("user@devbox".to_owned()));
-
-    assert!(!model.has_plugin_auto_failed(CLIAgent::Claude, &None));
-}
-
-#[test]
-fn remote_failures_are_independent_per_host() {
-    let mut model = CLIAgentSessionsModel::new();
-
-    let host_a = Some("user@host-a".to_owned());
-    let host_b = Some("user@host-b".to_owned());
-
-    model.record_plugin_auto_failure(CLIAgent::Claude, host_a.clone());
-
-    assert!(model.has_plugin_auto_failed(CLIAgent::Claude, &host_a));
-    assert!(!model.has_plugin_auto_failed(CLIAgent::Claude, &host_b));
-}
-
-#[test]
-fn failure_tracking_is_independent_per_agent() {
-    let mut model = CLIAgentSessionsModel::new();
-
-    model.record_plugin_auto_failure(CLIAgent::Claude, None);
-
-    assert!(model.has_plugin_auto_failed(CLIAgent::Claude, &None));
-    assert!(!model.has_plugin_auto_failed(CLIAgent::Gemini, &None));
-}
-
-#[test]
 fn session_start_sets_plugin_version() {
     let mut session = CLIAgentSession {
         agent: CLIAgent::Claude,
@@ -377,9 +246,7 @@ fn session_start_sets_plugin_version() {
         should_auto_toggle_input: false,
         listener: None,
         plugin_version: None,
-        draft_text: None,
         remote_host: None,
-        custom_command_prefix: None,
         received_rich_notification: false,
     };
 
@@ -411,9 +278,7 @@ fn session_start_without_plugin_version_leaves_none() {
         should_auto_toggle_input: false,
         listener: None,
         plugin_version: None,
-        draft_text: None,
         remote_host: None,
-        custom_command_prefix: None,
         received_rich_notification: false,
     };
 
@@ -430,52 +295,6 @@ fn session_start_without_plugin_version_leaves_none() {
 
     session.apply_event(&event);
     assert_eq!(session.plugin_version, None);
-}
-
-#[test]
-fn codex_session_not_rich_until_rich_notification() {
-    // Codex's OSC 9 fallback never sets `received_rich_notification`, so the
-    // session must not claim rich status even when a fallback listener exists.
-    let mut session = CLIAgentSession {
-        agent: CLIAgent::Codex,
-        status: CLIAgentSessionStatus::InProgress,
-        session_context: CLIAgentSessionContext::default(),
-        input_state: CLIAgentInputState::Closed,
-        should_auto_toggle_input: false,
-        listener: None,
-        plugin_version: None,
-        remote_host: None,
-        draft_text: None,
-        custom_command_prefix: None,
-        received_rich_notification: false,
-    };
-    assert!(!session.supports_rich_status());
-
-    // A structured OSC 777 notification latches the flag -> rich status.
-    session.received_rich_notification = true;
-    assert!(session.supports_rich_status());
-}
-
-#[test]
-fn non_codex_session_rich_after_rich_notification() {
-    let mut session = CLIAgentSession {
-        agent: CLIAgent::Claude,
-        status: CLIAgentSessionStatus::InProgress,
-        session_context: CLIAgentSessionContext::default(),
-        input_state: CLIAgentInputState::Closed,
-        should_auto_toggle_input: false,
-        listener: None,
-        plugin_version: None,
-        remote_host: None,
-        draft_text: None,
-        custom_command_prefix: None,
-        received_rich_notification: false,
-    };
-    // No listener and no rich notification yet.
-    assert!(!session.supports_rich_status());
-
-    session.received_rich_notification = true;
-    assert!(session.supports_rich_status());
 }
 
 /// Constructs a session with permission-scoped state already populated, as if
@@ -497,9 +316,7 @@ fn blocked_claude_session_with_permission_state() -> CLIAgentSession {
         should_auto_toggle_input: false,
         listener: None,
         plugin_version: None,
-        draft_text: None,
         remote_host: None,
-        custom_command_prefix: None,
         received_rich_notification: false,
     }
 }
@@ -616,9 +433,7 @@ fn permission_request_still_populates_summary_and_tool_fields() {
         should_auto_toggle_input: false,
         listener: None,
         plugin_version: None,
-        draft_text: None,
         remote_host: None,
-        custom_command_prefix: None,
         received_rich_notification: false,
     };
 
