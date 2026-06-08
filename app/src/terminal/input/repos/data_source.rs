@@ -24,9 +24,9 @@ impl AsyncDataSource for RepoMenuDataSource {
         query: &Query,
         app: &AppContext,
     ) -> BoxFuture<'static, Result<Vec<QueryResult<Self::Action>>, DataSourceRunErrorWrapper>> {
-        let workspace_paths: Vec<PathBuf> = PersistedWorkspace::as_ref(app)
-            .workspaces()
-            .map(|m| m.path)
+        let workspace_paths: Vec<PathBuf> = crate::projects::ProjectManagementModel::as_ref(app)
+            .all_projects()
+            .map(|project| PathBuf::from(&project.path))
             .collect();
 
         let query_text = query.text.trim().to_lowercase();

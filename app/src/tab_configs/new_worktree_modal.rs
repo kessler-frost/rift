@@ -204,10 +204,10 @@ impl NewWorktreeModal {
         // workspace so that both pickers start populated even when no
         // terminal session is active yet.
         let effective_cwd = cwd.or_else(|| {
-            PersistedWorkspace::as_ref(ctx)
-                .workspaces()
+            crate::projects::ProjectManagementModel::as_ref(ctx)
+                .all_projects()
                 .next()
-                .map(|ws| ws.path.clone())
+                .map(|project| PathBuf::from(&project.path))
         });
 
         let default_repo = effective_cwd
