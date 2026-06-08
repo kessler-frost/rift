@@ -52,7 +52,18 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### STATE (window 9 final): 124 resolution errors (234→124 this session, 47% cut). Isolated/bounded wins now EXHAUSTED —
+### ⚠️ DEEPER ENTANGLEMENT (window 9 final): even GlobalSearch (left_panel's supposed survivor) depends on deleted
+`crate::code` — its OpenMatch handler uses LocalOrRemotePath/FileTarget/resolve_file_target_with_editor_choice and
+LeftPanelEvent::OpenFileWithTarget carries crate::code::buffer_location::LocalOrRemotePath. So the left panel can't be
+trivially slimmed to "GlobalSearch-only" either. set_active_pane_group/update_coding_panel_enablement/focus_active_view_on_entry
+each do BOTH file-tree AND global-search work intermixed. SCOPE DECISION NEEDED next window: does the file-browser/global-
+search-with-file-open survive (→ recover the needed crate::code::buffer_location bits: LocalOrRemotePath, FileTarget,
+openable_file_type), or is the whole code-panels+global-search feature OUT (→ delete left_panel + right_panel + their
+workspace/view.rs hosting wholesale)? This is the crux of the remaining ~112-error code-panel unit and wants fresh context
+(and possibly a user call on whether the file browser is kept). Sidebar consts (MIN_SIDEBAR_WIDTH/MAX_SIDEBAR_WIDTH_RATIO)
+already recovered inline; WarpDrive+ConversationList tabs already gutted.
+
+### STATE (window 9 final): 122 resolution errors (234→122 this session, 48% cut). Isolated/bounded wins now EXHAUSTED —
 every remaining resolution error sits in a large coupled unit. Cleared this stretch (all committed): graphql/schema cloud
 layer; left_panel WarpDrive+ConversationList tabs; secret-detection helpers recovered into model/secrets (+ dead TextLocation
 field dropped); warpify green_check_icon inline + build_command_row for ssh; UserProperties.llms (ai::llms) removed;
