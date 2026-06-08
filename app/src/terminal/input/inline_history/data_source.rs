@@ -114,7 +114,6 @@ impl SyncDataSource for InlineHistoryMenuDataSource {
                     session_id,
                     UpArrowHistoryConfig {
                         include_commands: true,
-                        include_prompts: false,
                     },
                     app,
                 )

@@ -4921,8 +4921,9 @@ impl Input {
         &'a self,
         ctx: &'a ViewContext<Self>,
     ) -> Vec<HistoryInputSuggestion<'a>> {
-        let input_config = self.ai_input_model.as_ref(ctx).input_config();
-        let config = UpArrowHistoryConfig::for_input_config(&input_config);
+        let config = UpArrowHistoryConfig {
+            include_commands: true,
+        };
 
         History::as_ref(ctx).up_arrow_suggestions_for_terminal_view(
             self.terminal_view_id,
