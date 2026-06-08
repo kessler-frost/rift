@@ -68,12 +68,8 @@ impl InlineMenuType {
 
     pub(crate) fn from_suggestions_mode(mode: &InputSuggestionsMode) -> Option<Self> {
         match mode {
-            InputSuggestionsMode::SlashCommands => Some(InlineMenuType::SlashCommands),
             InputSuggestionsMode::ModelSelector => Some(InlineMenuType::ModelSelector),
-            InputSuggestionsMode::ConversationMenu => Some(InlineMenuType::ConversationMenu),
             InputSuggestionsMode::ProfileSelector => Some(InlineMenuType::ProfileSelector),
-            InputSuggestionsMode::PromptsMenu => Some(InlineMenuType::PromptsMenu),
-            InputSuggestionsMode::SkillMenu => Some(InlineMenuType::SkillMenu),
             InputSuggestionsMode::UserQueryMenu {
                 action: UserQueryMenuAction::ForkFrom,
                 ..
@@ -82,17 +78,12 @@ impl InlineMenuType {
                 action: UserQueryMenuAction::Rewind,
                 ..
             } => Some(InlineMenuType::RewindMenu),
-            InputSuggestionsMode::InlineHistoryMenu { .. } => {
-                Some(InlineMenuType::InlineHistoryMenu)
-            }
-            InputSuggestionsMode::IndexedReposMenu => Some(InlineMenuType::IndexedReposMenu),
             InputSuggestionsMode::PlanMenu { .. } => Some(InlineMenuType::PlanMenu),
             InputSuggestionsMode::Closed
             | InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
             | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. }
-            | InputSuggestionsMode::AIContextMenu { .. } => None,
+            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. } => None,
         }
     }
 }

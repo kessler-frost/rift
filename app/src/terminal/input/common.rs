@@ -250,27 +250,18 @@ pub(super) fn add_input_suggestions_overlays(
                 ),
             );
         }
-        InputSuggestionsMode::AIContextMenu { .. } => {
-            input.render_ai_context_menu(stack, &menu_positioning, app);
-        }
         // SlashCommandsMenu is rendered separately via inline_slash_commands_menu_view
-        InputSuggestionsMode::SlashCommands => {}
         // Conversation menu is rendered separately via inline_conversation_menu_view
-        InputSuggestionsMode::ConversationMenu => {}
         // Model selector is rendered separately via inline_model_selector_view
         InputSuggestionsMode::ModelSelector => {}
         // Profile selector is rendered separately via inline_profile_selector_view
         InputSuggestionsMode::ProfileSelector => {}
         // Prompts menu is rendered separately via inline_prompts_menu_view
-        InputSuggestionsMode::PromptsMenu => {}
         // Skill menu is rendered separately via inline_skill_selector_view
-        InputSuggestionsMode::SkillMenu => {}
         // User query menu is rendered separately via user_query_menu_view
         InputSuggestionsMode::UserQueryMenu { .. } => {}
         // Inline history menu is rendered separately via inline_history_menu_view
-        InputSuggestionsMode::InlineHistoryMenu { .. } => {}
         // Repos menu is rendered separately via inline_repos_menu_view
-        InputSuggestionsMode::IndexedReposMenu => {}
         // Plan menu is rendered separately via inline_plan_menu_view
         InputSuggestionsMode::PlanMenu { .. } => {}
         InputSuggestionsMode::Closed => {}

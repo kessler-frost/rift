@@ -1377,3 +1377,26 @@ Shared types whose variant removal must be coordinated across the excluded/paren
 `SharedSessionStatus/Source/ActionSource`, `session_settings.rs ToolbarChipSelection`/
 `AgentToolbarItemKind` (deleted). Note `terminal/model/session/active_session.rs
 ai_execution_environment()` already removed.
+
+## WINDOW 10 (2026-06-08): PHASE-2 TYPECK WAVE — RESOLUTION=0, now mechanical dead-ref deletion
+RESOLUTION ERRORS = 0 (name-resolution complete). Remaining = typeck wave (E0609 no-field,
+E0599 no-method/variant, E0282 cascade type-annotations). Total errors 1490→1088.
+- **events.rs DONE (257→0):** wrote `/tmp/strip_arms.py` — bracket-AWARE (string/char/comment-safe)
+  match-arm deleter keyed on the SURVIVING enum variant set (`/tmp/enum_variants.txt`), not a
+  hand list. Drops arms whose variants ∉ enum; rebuilds mixed OR-groups keeping survivors.
+  Gotcha the perl 1st-pass introduced: it ate `#[cfg(windows)]` attrs and the `OpenPromptEditor`
+  payload arm + nuked `contains_ugc`'s giant enumerated `=>false` group (its 1st member was a
+  deleted variant). Fix: restored OpenPromptEditor arm + cfg(windows), and `contains_ugc` now
+  `_ => false` default (faithful: original = "false unless explicitly true"). Committed.
+- **REMAINING typeck-wave files (per-file primary-error counts):** terminal/input.rs 285,
+  terminal/view.rs 242, workspace/view.rs 118, workspace/view/vertical_tabs.rs 74,
+  input/slash_commands/mod.rs 64, workspace/mod.rs 50, pane_group/mod.rs 39,
+  input/classic.rs 32, input/terminal.rs 27, view/pane_impl.rs 19, root_view.rs 15, lib.rs 10.
+  input.rs E0282(102) are CASCADES from E0609/E0599 roots — fix the dead field/method use-sites
+  and the E0282s evaporate. Dead Input fields: inline_*_view (slash_commands/prompts_menu/
+  conversation_menu/skill_selector/history_menu/repos_menu), agent_status_view, ai_input_model,
+  slash_command_model, cloud_mode_v2_slash_commands_view, deferred_remote_operations.
+  suggestions_mode_model + input_suggestions SURVIVE. render_terminal_input/render_classic_input
+  AI-menu branches must be DELETED wholesale.
+- **Method:** solo + iterative uncommitted rebuilds (parallel agents risky — cross-file method
+  deletions create errors in sibling files even w/o file overlap). Commit per file as total drops.
