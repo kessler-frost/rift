@@ -126,7 +126,6 @@ jemalloc_pprof = { version = "0.8.1", optional = true, features = [
 ] }
 lsp-types = "0.97.0"
 indexmap = { version = "2.0.2", features = ["serde"] }
-input_classifier.workspace = true
 instant.workspace = true
 ipc.workspace = true
 iso8601-duration.workspace = true
@@ -241,7 +240,6 @@ languages.workspace = true
 rift_terminal.workspace = true
 websocket.workspace = true
 wgpu = { workspace = true, optional = true }
-natural_language_detection.workspace = true
 aho-corasick = "1.1.3"
 strum.workspace = true
 strum_macros.workspace = true
@@ -692,11 +690,6 @@ grep_tool = []
 # For the most part, including GUI code in headless builds is fine; the main use case is
 # for things that pull in external dependencies.
 gui = []
-nld_classifier_v1 = ["input_classifier/nld_classifier_v1"]
-nld_classifier_v2 = ["input_classifier/nld_classifier_v2"]
-nld_classifier_v3 = ["input_classifier/nld_classifier_v3"]
-nld_heuristic_v1 = ["input_classifier/nld_heuristic_v1"]
-nld_heuristic_v2 = ["input_classifier/nld_heuristic_v2"]
 msys2_shells = []
 file_retrieval_tools = []
 welcome_tab = []

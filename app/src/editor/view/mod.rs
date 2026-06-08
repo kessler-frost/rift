@@ -86,7 +86,6 @@ use self::model::{LocalSelections, Selection, UpdateBufferOption};
 use super::soft_wrap::{ClampDirection, DisplayPointAndClampDirection};
 use super::Point;
 use crate::appearance::Appearance;
-use input_classifier::InputType;
 use crate::channel::{Channel, ChannelState};
 use crate::editor::accept_autosuggestion_keybinding_view::AcceptAutosuggestionKeybinding;
 use crate::editor::autosuggestion_ignore_view::{AutosuggestionIgnore, AutosuggestionIgnoreEvent};
@@ -138,15 +137,6 @@ pub enum AutosuggestionType {
     },
 }
 
-impl AutosuggestionType {
-    pub fn matches_input_type(&self, input_type: InputType) -> bool {
-        if input_type.is_ai() {
-            matches!(self, AutosuggestionType::AgentModeQuery { .. })
-        } else {
-            matches!(self, AutosuggestionType::Command { .. })
-        }
-    }
-}
 
 impl fmt::Display for AutosuggestionLocation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
