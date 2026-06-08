@@ -23,7 +23,6 @@ use super::section_views::{
 };
 use super::{KeybindingsView, ResourceCenterMainEvent, ResourceCenterMainView, TipsCompleted};
 use crate::appearance::Appearance;
-use crate::changelog_model::ChangelogModel;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons;
 use crate::ui_components::window_focus_dimming::WindowFocusDimming;
@@ -113,14 +112,12 @@ impl ResourceCenterView {
     pub fn new(
         ctx: &mut ViewContext<Self>,
         tips_completed: ModelHandle<TipsCompleted>,
-        changelog_model_handle: ModelHandle<ChangelogModel>,
     ) -> Self {
         let main_view = ResourceCenterPageView {
             page: ResourceCenterPage::Main,
             page_view_handle: ResourceCenterViewHandle::Main(Self::build_main_view(
                 ctx,
                 tips_completed,
-                changelog_model_handle,
             )),
         };
         let keybindings_view = ResourceCenterPageView {
@@ -153,10 +150,9 @@ impl ResourceCenterView {
     fn build_main_view(
         ctx: &mut ViewContext<Self>,
         tips_completed: ModelHandle<TipsCompleted>,
-        changelog_model_handle: ModelHandle<ChangelogModel>,
     ) -> ViewHandle<ResourceCenterMainView> {
         let main_view = ctx.add_typed_action_view(|ctx| {
-            ResourceCenterMainView::new(ctx, tips_completed.clone(), changelog_model_handle)
+            ResourceCenterMainView::new(ctx, tips_completed.clone())
         });
 
         ctx.subscribe_to_view(&main_view, move |me, _, event, ctx| {

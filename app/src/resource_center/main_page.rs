@@ -20,25 +20,22 @@ use super::section_views::{
 };
 use super::sections::sections;
 use super::{
-    ChangelogSectionView, ContentSectionData, ContentSectionView, FeatureSection,
+    ContentSectionData, ContentSectionView, FeatureSection,
     FeatureSectionData, FeatureSectionView, Section, TipsCompleted,
 };
 use crate::appearance::Appearance;
 use crate::auth::AuthStateProvider;
-use crate::changelog_model::ChangelogModel;
 use crate::channel::ChannelState;
 use crate::features::FeatureFlag;
 use crate::resource_center::skip_tips_and_write_to_user_defaults;
 use crate::send_telemetry_from_ctx;
 use crate::settings::Settings;
 use crate::themes::theme::{Blend, Fill as FillTheme};
-use crate::workspace::WorkspaceAction;
 
 const SEND_SVG_PATH: &str = "bundled/svg/send.svg";
 
 #[derive(Default)]
 struct MouseStateHandles {
-    copy_version: MouseStateHandle,
     invite_people: MouseStateHandle,
     skip_tips: MouseStateHandle,
 }
@@ -64,14 +61,12 @@ impl ResourceCenterMainView {
     pub fn new(
         ctx: &mut ViewContext<Self>,
         tips_completed: ModelHandle<TipsCompleted>,
-        changelog_model_handle: ModelHandle<ChangelogModel>,
     ) -> Self {
         let action_target = ctx.add_model(|_| ActionTarget::None);
         let section_views = Self::initialize_section_views(
             tips_completed.clone(),
             action_target.clone(),
             ctx,
-            changelog_model_handle.clone(),
         );
         Self {
             button_mouse_states: Default::default(),
@@ -85,7 +80,6 @@ impl ResourceCenterMainView {
         tips_completed: ModelHandle<TipsCompleted>,
         action_target: ModelHandle<ActionTarget>,
         ctx: &mut ViewContext<Self>,
-        changelog_model_handle: ModelHandle<ChangelogModel>,
     ) -> Vec<SectionViewHandle> {
         let sections = sections(ctx);
 
@@ -161,9 +155,6 @@ impl ResourceCenterMainView {
                 Section::Content(data) => {
                     SectionViewHandle::Content(Self::build_content_section_view(data, ctx))
                 }
-                Section::Changelog() => SectionViewHandle::Changelog(
-                    Self::build_changelog_section_view(changelog_model_handle.clone(), ctx),
-                ),
             })
             .collect()
     }
@@ -220,7 +211,6 @@ impl ResourceCenterMainView {
                             }
                         }
                         SectionViewHandle::Content(_) => {}
-                        SectionViewHandle::Changelog(_) => {}
                     }
                 }
                 ctx.notify();
@@ -233,20 +223,6 @@ impl ResourceCenterMainView {
         ctx: &mut ViewContext<ResourceCenterMainView>,
     ) -> ViewHandle<ContentSectionView> {
         ctx.add_typed_action_view(|ctx| ContentSectionView::new(section_data.clone(), false, ctx))
-    }
-
-    fn build_changelog_section_view(
-        changelog_model_handle: ModelHandle<ChangelogModel>,
-        ctx: &mut ViewContext<ResourceCenterMainView>,
-    ) -> ViewHandle<ChangelogSectionView> {
-        let showing_new_changelog = match ChannelState::app_version() {
-            Some(version) => !Settings::has_changelog_been_shown(version, ctx),
-            None => false,
-        };
-
-        ctx.add_typed_action_view(|ctx: &mut ViewContext<_>| {
-            ChangelogSectionView::new(changelog_model_handle, showing_new_changelog, ctx)
-        })
     }
 
     pub fn set_action_target(
@@ -263,7 +239,6 @@ impl ResourceCenterMainView {
                     });
                 }
                 SectionViewHandle::Content(_) => {}
-                SectionViewHandle::Changelog(_) => {}
             }
         }
     }
@@ -279,9 +254,6 @@ impl ResourceCenterMainView {
                 SectionViewHandle::Content(section_view_handle) => {
                     body.add_child(ChildView::new(section_view_handle).finish());
                 }
-                SectionViewHandle::Changelog(section_view_handle) => {
-                    body.add_child(ChildView::new(section_view_handle).finish());
-                }
             }
         }
 
@@ -295,47 +267,6 @@ impl ResourceCenterMainView {
             theme.main_text_color(theme.background()).into(),
             Fill::None,
         )
-        .finish()
-    }
-
-    fn render_current_version(&self, appearance: &Appearance) -> Box<dyn Element> {
-        // Use a dummy string for git release tag which is not available on local env
-        let version = ChannelState::app_version().unwrap_or("v0.local.testing.string_00");
-
-        let style = UiComponentStyles {
-            font_color: Some(appearance.theme().nonactive_ui_text_color().into()),
-            ..Default::default()
-        };
-
-        let text = appearance
-            .ui_builder()
-            .wrappable_text(version, true)
-            .with_style(style)
-            .build()
-            .finish();
-
-        let copy_icon = appearance
-            .ui_builder()
-            .copy_button(
-                FOOTER_ICON_SIZE,
-                self.button_mouse_states.copy_version.clone(),
-            )
-            .build()
-            .on_click(move |ctx, _, _| {
-                ctx.dispatch_typed_action(WorkspaceAction::CopyVersion(version))
-            })
-            .finish();
-
-        Container::new(
-            Flex::row()
-                .with_child(Shrinkable::new(1., Align::new(text).left().finish()).finish())
-                .with_child(Shrinkable::new(0.2, Align::new(copy_icon).finish()).finish())
-                .with_main_axis_size(MainAxisSize::Max)
-                .finish(),
-        )
-        .with_margin_left(SECTION_SPACING)
-        .with_margin_bottom(BUTTON_PADDING)
-        .with_uniform_padding(BUTTON_PADDING)
         .finish()
     }
 
@@ -522,11 +453,6 @@ impl View for ResourceCenterMainView {
         main_page = main_page
             .with_child(Shrinkable::new(20., body).finish())
             .with_child(Shrinkable::new(0.1, Empty::new().finish()).finish()); // placeholder to ensure pane extends to bottom of the window
-
-        if FeatureFlag::Autoupdate.is_enabled() && ChannelState::show_autoupdate_menu_items() {
-            let current_version = self.render_current_version(appearance);
-            main_page.add_child(current_version);
-        }
 
         main_page.finish()
     }

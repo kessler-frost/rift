@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use chrono::{DateTime, FixedOffset};
 use settings::Setting as _;
 
 use crate::report_if_error;
@@ -13,7 +12,7 @@ pub use main_page::{ResourceCenterMainEvent, ResourceCenterMainView};
 mod keybindings_page;
 pub use keybindings_page::KeybindingsView;
 mod section_views;
-pub use section_views::{ChangelogSectionView, ContentSectionView, FeatureSectionView};
+pub use section_views::{ContentSectionView, FeatureSectionView};
 pub mod sections;
 mod view;
 use riftui::keymap::Keystroke;
@@ -180,7 +179,6 @@ pub struct ContentItem {
 pub enum Section {
     Feature(FeatureSectionData),
     Content(ContentSectionData),
-    Changelog(),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -193,15 +191,6 @@ pub struct FeatureSectionData {
 pub struct ContentSectionData {
     pub section_name: FeatureSection,
     pub items: Vec<ContentItem>,
-}
-
-#[derive(Clone)]
-pub struct ChangelogSectionData {
-    pub section_name: FeatureSection,
-    pub date: DateTime<FixedOffset>,
-    pub new_features_markdown: String,
-    pub improvements_markdown: String,
-    pub coming_soon_markdown: String,
 }
 
 #[derive(Default)]

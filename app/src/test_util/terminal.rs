@@ -7,13 +7,12 @@ use repo_metadata::watcher::DirectoryWatcher;
 use repo_metadata::RepoMetadataModel;
 use rift_core::ui::appearance::Appearance;
 use riftui::platform::WindowStyle;
-use riftui::{App, SingletonEntity as _, ViewHandle, WindowId};
+use riftui::{App, ViewHandle, WindowId};
 use watcher::HomeDirectoryWatcher;
 
 use super::settings::initialize_history_persistence_for_tests;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
-use crate::changelog_model::ChangelogModel;
 use crate::context_chips::prompt::Prompt;
 use crate::network::NetworkStatus;
 use crate::pricing::PricingInfoModel;
@@ -50,7 +49,6 @@ pub fn initialize_app_for_terminal_view(app: &mut App) {
     // the singleton (e.g. the shared-session viewer network) don't panic in
     // tests. With `None` state it is an inert no-op.
     app.add_singleton_model(|ctx| IapManager::new(None, ctx));
-    app.add_singleton_model(|ctx| ChangelogModel::new(ServerApiProvider::as_ref(ctx).get()));
     app.add_singleton_model(|_| NetworkStatus::new());
     app.add_singleton_model(|_| SystemStats::new());
     app.add_singleton_model(|_| Prompt::mock());

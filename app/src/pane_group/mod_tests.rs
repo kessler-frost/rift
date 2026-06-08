@@ -15,7 +15,6 @@ use watcher::HomeDirectoryWatcher;
 use super::*;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
-use crate::changelog_model::ChangelogModel;
 use crate::context_chips::prompt::Prompt;
 use crate::launch_configs::launch_config::PaneMode;
 use crate::network::NetworkStatus;
@@ -44,7 +43,6 @@ fn initialize_app(app: &mut App) {
 
     app.add_singleton_model(|_ctx| ServerApiProvider::new_for_test());
     app.add_singleton_model(|ctx| IapManager::new(None, ctx));
-    app.add_singleton_model(|ctx| ChangelogModel::new(ServerApiProvider::as_ref(ctx).get()));
     app.add_singleton_model(|_| AuthStateProvider::new_for_test());
     app.add_singleton_model(AppTelemetryContextProvider::new_context_provider);
     app.add_singleton_model(AuthManager::new_for_test);
