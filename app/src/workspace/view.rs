@@ -2513,13 +2513,6 @@ impl Workspace {
             }
         });
 
-        ctx.subscribe_to_model(&WarpDriveSettings::handle(ctx), |me, _, event, ctx| {
-            if let WarpDriveSettingsChangedEvent::EnableWarpDrive { .. } = event {
-                me.update_left_panel_available_views(ctx);
-                ctx.notify();
-            }
-        });
-
         let toast_stack =
             ctx.add_typed_action_view(|_| DismissibleToastStack::new(Duration::from_secs(4)));
 
@@ -4895,9 +4888,6 @@ impl Workspace {
                 let pane_group = self.active_tab_pane_group().clone();
                 self.handle_file_tree_event(pane_group, pane_group_event, ctx);
             }
-            LeftPanelEvent::WarpDrive(drive_event) => {
-                self.handle_warp_drive_event(drive_event, ctx);
-            }
             LeftPanelEvent::OpenFileWithTarget {
                 location,
                 target,
@@ -4906,23 +4896,6 @@ impl Workspace {
                 if let LocalOrRemotePath::Local(path) = location {
                     self.open_file_with_target(path.clone(), target.clone(), *line_col, ctx);
                 }
-            }
-            LeftPanelEvent::NewConversationInNewTab => {
-                self.add_terminal_tab_with_new_agent_view(ctx);
-            }
-            LeftPanelEvent::ShowDeleteConfirmationDialog {
-                conversation_id,
-                conversation_title,
-                terminal_view_id,
-            } => {
-                self.show_delete_conversation_confirmation_dialog(
-                    DeleteConversationDialogSource {
-                        conversation_id: *conversation_id,
-                        conversation_title: conversation_title.clone(),
-                        terminal_view_id: *terminal_view_id,
-                    },
-                    ctx,
-                );
             }
         }
     }
@@ -15522,12 +15495,6 @@ impl Workspace {
         if cfg!(feature = "local_fs") && *CodeSettings::as_ref(ctx).show_project_explorer.value() {
             views.push(ToolPanelView::ProjectExplorer);
         }
-        if FeatureFlag::AgentViewConversationListView.is_enabled()
-            && AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
-            && *AISettings::as_ref(ctx).show_conversation_history
-        {
-            views.push(ToolPanelView::ConversationListView);
-        }
         if cfg!(feature = "local_fs")
             && FeatureFlag::GlobalSearch.is_enabled()
             && *CodeSettings::as_ref(ctx).show_global_search.value()
@@ -15535,9 +15502,6 @@ impl Workspace {
             views.push(ToolPanelView::GlobalSearch {
                 entry_focus: GlobalSearchEntryFocus::Results,
             });
-        }
-        if WarpDriveSettings::is_warp_drive_enabled(ctx) {
-            views.push(ToolPanelView::WarpDrive);
         }
         views
     }
@@ -16628,10 +16592,6 @@ impl View for Workspace {
                 }
             }
         };
-
-        if WarpDriveSettings::is_warp_drive_enabled(app) {
-            context.set.insert(flags::ENABLE_WARP_DRIVE);
-        }
 
         if AISettings::as_ref(app).is_any_ai_enabled(app)
             && *AISettings::as_ref(app).show_conversation_history
