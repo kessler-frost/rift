@@ -54,11 +54,9 @@ pub struct TerminalViewZeroStateBlock {
 
 impl TerminalViewZeroStateBlock {
     pub fn new(
-        agent_view_controller: &ModelHandle<AgentViewController>,
         model_events_dispatcher: &ModelHandle<ModelEventDispatcher>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        let controller_clone = agent_view_controller.clone();
         ctx.subscribe_to_model(
             model_events_dispatcher,
             move |me, model_events_dispatcher, event, ctx| {
@@ -66,29 +64,11 @@ impl TerminalViewZeroStateBlock {
                     if matches!(block_completed.block_type, BlockType::User(..)) {
                         me.should_hide = true;
                         ctx.unsubscribe_to_model(&model_events_dispatcher);
-                        ctx.unsubscribe_to_model(&controller_clone);
                         ctx.notify();
                     }
                 }
             },
         );
-
-        let model_events_clone = model_events_dispatcher.clone();
-        ctx.subscribe_to_model(agent_view_controller, move |me, controller, event, ctx| {
-            if let AgentViewControllerEvent::ExitedAgentView {
-                original_exchange_count,
-                final_exchange_count,
-                ..
-            } = event
-            {
-                if original_exchange_count != final_exchange_count {
-                    me.should_hide = true;
-                    ctx.unsubscribe_to_model(&model_events_clone);
-                    ctx.unsubscribe_to_model(&controller);
-                    ctx.notify()
-                }
-            }
-        });
 
         ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, event, ctx| {
             if matches!(event, AISettingsChangedEvent::IsAnyAIEnabled { .. })
@@ -176,52 +156,22 @@ impl View for TerminalViewZeroStateBlock {
                     .finish(),
             );
 
-        let mut items = vec![
-            render_standard_message(
-                Message::new(vec![MessageItem::clickable(
-                    vec![
-                        MessageItem::keystroke(ENTER_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE.clone()),
-                        MessageItem::text("start a new agent conversation"),
-                    ],
-                    |ctx| {
-                        ctx.dispatch_typed_action(TerminalAction::StartNewAgentConversation);
-                    },
-                    self.state_handles.start_new_conversation.clone(),
-                )]),
-                app,
-            ),
-            render_standard_message(
-                Message::new(vec![MessageItem::clickable(
-                    vec![
-                        MessageItem::keystroke(
-                            ENTER_CLOUD_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE.clone(),
-                        ),
-                        MessageItem::text("start a new cloud agent conversation"),
-                    ],
-                    |ctx| {
-                        ctx.dispatch_typed_action(TerminalAction::EnterCloudAgentView);
-                    },
-                    self.state_handles.start_cloud_conversation.clone(),
-                )]),
-                app,
-            ),
-            render_standard_message(
-                Message::new(vec![MessageItem::clickable(
-                    vec![
-                        MessageItem::keystroke(Keystroke {
-                            key: "up".to_owned(),
-                            ..Default::default()
-                        }),
-                        MessageItem::text("cycle past commands and conversations"),
-                    ],
-                    |ctx| {
-                        ctx.dispatch_typed_action(TerminalAction::OpenInlineHistoryMenu);
-                    },
-                    self.state_handles.open_history_menu.clone(),
-                )]),
-                app,
-            ),
-        ];
+        let mut items = vec![render_standard_message(
+            Message::new(vec![MessageItem::clickable(
+                vec![
+                    MessageItem::keystroke(Keystroke {
+                        key: "up".to_owned(),
+                        ..Default::default()
+                    }),
+                    MessageItem::text("cycle past commands and conversations"),
+                ],
+                |ctx| {
+                    ctx.dispatch_typed_action(TerminalAction::OpenInlineHistoryMenu);
+                },
+                self.state_handles.open_history_menu.clone(),
+            )]),
+            app,
+        )];
 
         if *TabSettings::as_ref(app).show_code_review_button {
             if let Some(keystroke) =

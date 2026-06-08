@@ -8140,11 +8140,7 @@ impl TerminalView {
             && !has_plugin_instructions_block
         {
             let agent_view_zero_state = ctx.add_typed_action_view(|ctx| {
-                TerminalViewZeroStateBlock::new(
-                    &self.agent_view_controller,
-                    &self.model_events_handle,
-                    ctx,
-                )
+                TerminalViewZeroStateBlock::new(&self.model_events_handle, ctx)
             });
             self.insert_rich_content(
                 Some(RichContentType::TerminalViewZeroState),
