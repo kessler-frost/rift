@@ -5230,7 +5230,6 @@ impl TerminalView {
                     self.mark_agent_init_callout_as_shown_for_directory(repo_path, ctx);
                 }
                 self.remove_agent_setup_speedbump_banner(ctx);
-                self.init_project(false, ctx)
             }
         }
     }
@@ -6077,14 +6076,7 @@ impl TerminalView {
                 let command_is_denylisted = warpify_settings
                     .is_denylisted_subshell_command(command)
                     || warpify_settings.is_denylisted_subshell_command(warpify_command);
-                // Never warpify or surface warpification for agent-requested commands.
-                let has_ai_metadata = self
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .agent_interaction_metadata()
-                    .is_some();
+                let has_ai_metadata = false;
 
                 if is_compatible_subshell_command {
                     if command_is_denylisted || has_ai_metadata {
@@ -6141,8 +6133,6 @@ impl TerminalView {
 
                         }
                     }
-
-                    self.maybe_insert_setup_command_blocks(block_id, ctx);
 
                     self.set_current_state(TerminalViewState::LongRunning, ctx);
                     ctx.emit(Event::BlockStarted {
@@ -6309,50 +6299,6 @@ impl TerminalView {
                         .is_bootstrapping_precmd_done()
                 {
                     self.refresh_warp_prompt(ctx);
-
-                    // If the completed command was a `gh` or `gt` invocation, eagerly refresh PR
-                    // info since these don't touch .git/ and won't be caught by the filesystem watcher.
-                    #[cfg(feature = "local_fs")]
-                    if (FeatureFlag::GitOperationsInCodeReview.is_enabled()
-                        || FeatureFlag::GithubPrPromptChip.is_enabled())
-                        && match &block_type {
-                            BlockType::User(user_block_completed) => {
-                                let command = user_block_completed.command.as_str();
-                                let top_level = user_block_completed
-                                    .serialized_block
-                                    .session_id
-                                    .and_then(|session_id| {
-                                        self.sessions.as_ref(ctx).get(session_id)
-                                    })
-                                    .and_then(|session| {
-                                        let escape_char = session.shell_family().escape_char();
-                                        let cmd =
-                                            rift_completer::parsers::simple::top_level_command(
-                                                command,
-                                                escape_char,
-                                            )?;
-                                        let cmd = session
-                                            .alias_value(cmd.as_str())
-                                            .and_then(|alias| {
-                                                rift_completer::parsers::simple::top_level_command(
-                                                    alias,
-                                                    escape_char,
-                                                )
-                                            })
-                                            .unwrap_or(cmd);
-                                        Some(cmd)
-                                    })
-                                    .or_else(|| {
-                                        command.split_whitespace().next().map(|cmd| cmd.to_owned())
-                                    });
-
-                                matches!(top_level.as_deref(), Some("gh" | "gt"))
-                            }
-                            _ => false,
-                        }
-                    {
-                        self.refresh_pr_info_after_gh_or_gt_command(ctx);
-                    }
                 }
 
                 if let BlockType::User(block_completed) = block_type {
@@ -6375,20 +6321,6 @@ impl TerminalView {
                         }
 
                         self.maybe_suggest_open_in_warp(block_completed, ctx);
-                    }
-
-                    // Check if the user tried to run an AWS login command but AWS CLI wasn't installed.
-                    // This runs after other suggestion checks and may add its own banner alongside them.
-                    self.maybe_show_aws_cli_not_installed_suggestion(
-                        block_completed.serialized_block.exit_code,
-                        ctx,
-                    );
-
-                    // Check for environment creation command completion during /init flow
-                    if block_completed.was_part_of_agent_interaction
-                        && self.has_active_init_project(ctx)
-                    {
-                        self.maybe_handle_environment_create_command(block_completed, ctx);
                     }
 
                     let terminal_view_state = {
@@ -7610,39 +7542,9 @@ impl TerminalView {
         });
     }
 
-    pub fn maybe_set_pending_repo_init_path(&mut self, path: PathBuf) {
-        self.on_next_block_completed(move |me, ctx| {
-            if me
-                .current_local_repo_path()
-                .is_some_and(|repo_path| repo_path == path)
-            {
-                me.init_project_and_suppress_banners(path, ctx);
-            }
-        });
-    }
 
     // Initialize project for a path and suppress the agent mode setup banner for that path. This also auto-opens
     // the code-review pane after the initialization step completes.
-    fn init_project_and_suppress_banners(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
-        log::info!("Indexing and running /init for new repo at {path:?}");
-
-        // Ensure we don't hit speedumps - Mark this as "already shown and dismissed"
-        // This method is used when opening a new repo that the user has selected directly.
-        self.mark_agent_init_callout_as_shown_for_directory(&path, ctx);
-        AISettings::handle(ctx).update(ctx, |ai_settings, ctx| {
-            let mut dismissed_paths = ai_settings
-                .codebase_index_speedbump_banner_dismissed_for_repo_paths
-                .clone();
-            if !dismissed_paths.contains(&path) {
-                dismissed_paths.push(path.clone());
-                let _ = ai_settings
-                    .codebase_index_speedbump_banner_dismissed_for_repo_paths
-                    .set_value(dismissed_paths, ctx);
-            }
-        });
-
-        self.init_project(true, ctx);
-    }
 
     // Show or hide codebase index speedbump depending when a settings change happens.
     fn check_codebase_index_speedbump_on_settings_changed(&mut self, ctx: &mut ViewContext<Self>) {
@@ -7658,10 +7560,6 @@ impl TerminalView {
     /// Try to focus the most recent init step block that's awaiting user input
     fn try_focus_active_init_step(&mut self, _ctx: &mut ViewContext<Self>) {}
 
-    /// Open the Environment Management pane.
-    fn open_environment_management_pane(&mut self, ctx: &mut ViewContext<Self>) {
-        ctx.emit(Event::OpenEnvironmentManagementPane);
-    }
 
 
 
@@ -7682,27 +7580,11 @@ impl TerminalView {
     #[cfg(feature = "local_fs")]
     fn update_agent_mode_setup_speedbump_banner(
         &mut self,
-        directory: PathBuf,
+        _directory: PathBuf,
         ctx: &mut ViewContext<Self>,
     ) {
-        let should_insert_banner = self.should_show_agent_mode_setup_for_directory(&directory, ctx)
-            && !FeatureFlag::AgentView.is_enabled();
-
-        if !should_insert_banner {
-            self.remove_agent_setup_speedbump_banner(ctx);
-            return;
-        }
-
-        if let Some(banner_state) = &self.inline_banners_state.agent_setup_speedbump_banner {
-            if banner_state.repo_path != directory {
-                // If the banner is showing for a different repo, remove it, and insert it for the new repo.
-                self.remove_agent_setup_speedbump_banner(ctx);
-                self.insert_agent_mode_setup_speedbump_banner(directory, ctx);
-            }
-        } else {
-            // If no banner exists, insert it.
-            self.insert_agent_mode_setup_speedbump_banner(directory, ctx);
-        }
+        // The agent-mode setup speedbump banner was an AI feature and has been removed.
+        self.remove_agent_setup_speedbump_banner(ctx);
     }
 
 
