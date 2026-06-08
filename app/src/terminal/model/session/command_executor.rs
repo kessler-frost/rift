@@ -32,7 +32,9 @@ pub use noop_command_executor::NoOpCommandExecutor;
 pub use remote_command_executor::RemoteCommandExecutor;
 use rift_completer::completer::CommandOutput;
 use riftui::ModelContext;
-pub use shared::{shell_escape_single_quotes, ExecutorCommandEvent};
+pub use shared::{
+    serialize_constant_vars_for_shell, shell_escape_single_quotes, ExecutorCommandEvent,
+};
 
 use super::SessionInfo;
 use crate::terminal::event::ExecutedExecutorCommandEvent;

@@ -1,4 +1,5 @@
 use async_channel::Sender;
+use rift_util::path::ShellFamily;
 
 use crate::terminal::model::session::command_executor::{
     InBandCommand, InBandCommandCancelledEvent,
@@ -43,4 +44,34 @@ pub fn shell_escape_single_quotes(command: &str, shell_type: ShellType) -> Strin
             command.replace('\'', r#"'"'"'"#)
         }
     }
+}
+
+/// Serializes `(name, value)` pairs into a shell-specific string of constant
+/// environment-variable assignments (e.g. `PATH=...` for bash/zsh, `set -x PATH ...;`
+/// for fish). Recovered inline (constant-only) from the deleted cloud env-vars
+/// serializer; used to propagate PATH/cwd into WSL and remote (ssh) sessions.
+pub fn serialize_constant_vars_for_shell<'s>(
+    pairs: impl IntoIterator<Item = (&'s str, &'s str)>,
+    shell_type: ShellType,
+) -> String {
+    let shell_family: ShellFamily = shell_type.into();
+    let (prefix, separator, postfix, delimiter) = match shell_type {
+        ShellType::Fish => ("set -x ", " ", ";", " "),
+        ShellType::Bash | ShellType::Zsh => ("", "=", "", " "),
+        ShellType::PowerShell => ("$env:", " = ", ";", " "),
+    };
+    pairs
+        .into_iter()
+        .map(|(name, value)| {
+            let serialized_value = match shell_family {
+                ShellFamily::Posix => shell_family.escape(value).into_owned(),
+                ShellFamily::PowerShell => format!("'{}'", value.replace('\'', "''")),
+            };
+            format!(
+                "{prefix}{}{separator}{serialized_value}{postfix}",
+                shell_family.escape(name),
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(delimiter)
 }
