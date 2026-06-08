@@ -4800,7 +4800,6 @@ impl Workspace {
         _path: PathBuf,
         _target: FileTarget,
         _line_col: Option<LineAndColumnArg>,
-        _code_source: CodeSource,
         _ctx: &mut ViewContext<Self>,
     ) {
     }
@@ -4811,7 +4810,6 @@ impl Workspace {
         path: PathBuf,
         target: FileTarget,
         line_col: Option<LineAndColumnArg>,
-        code_source: CodeSource,
         ctx: &mut ViewContext<Self>,
     ) {
         // Handle directories for CodeEditor(NewTab) target by opening a new terminal tab
@@ -4892,9 +4890,9 @@ impl Workspace {
 
                 crate::util::file::open_file_path_in_external_editor(line_col, path.clone(), ctx);
             }
-            FileTarget::CodeEditor(layout) => {
-                let open_as_preview = false;
-                self.open_code(code_source, layout, line_col, open_as_preview, &[], ctx);
+            FileTarget::CodeEditor(_layout) => {
+                // The built-in code editor was removed; fall back to the system default editor.
+                crate::util::file::open_file_path_with_editor(line_col, path.clone(), None, ctx);
             }
             FileTarget::ExternalEditor(editor) => {
                 crate::util::file::open_file_path_with_editor(
