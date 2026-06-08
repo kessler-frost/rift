@@ -150,37 +150,6 @@ pub(super) fn wrap_input_with_terminal_padding_and_focus_handler(
     }
 }
 
-/// Renders the selected workflow info overlay over the input.
-pub(super) fn add_workflow_info_overlay(
-    stack: &mut Stack,
-    selected_workflow_state: &super::SelectedWorkflowState,
-    pane_height_px: f32,
-    menu_positioning: MenuPositioning,
-) {
-    let workflows_info_view =
-        Container::new(ChildView::new(&selected_workflow_state.more_info_view).finish())
-            .with_margin_left(16.)
-            .with_margin_right(16.)
-            .finish();
-
-    stack.add_positioned_overlay_child(
-        ConstrainedBox::new(workflows_info_view)
-            .with_max_height(pane_height_px * 0.35)
-            .finish(),
-        OffsetPositioning::from_axes(
-            PositioningAxis::relative_to_parent(
-                ParentOffsetBounds::ParentByPosition,
-                OffsetType::Pixel(0.),
-                AnchorPair::new(XAxisAnchor::Left, XAxisAnchor::Left),
-            ),
-            PositioningAxis::relative_to_parent(
-                ParentOffsetBounds::Unbounded,
-                OffsetType::Pixel(0.),
-                menu_positioning.workflows_info_y_anchor(),
-            ),
-        ),
-    );
-}
 
 /// Renders the voltron overlay over the input.
 pub(super) fn add_voltron_overlay(
