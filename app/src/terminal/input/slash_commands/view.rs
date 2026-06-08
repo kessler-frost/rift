@@ -82,7 +82,6 @@ impl InlineSlashCommandView {
         positioner: &ModelHandle<InlineMenuPositioner>,
         slash_commands_source: ModelHandle<SlashCommandDataSource>,
         suggestions_mode_model: ModelHandle<InputSuggestionsModeModel>,
-        agent_view_controller: ModelHandle<AgentViewController>,
         input_buffer_model: ModelHandle<InputBufferModel>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
@@ -121,7 +120,6 @@ impl InlineSlashCommandView {
                 mixer.clone(),
                 positioner.clone(),
                 &suggestions_mode_model,
-                agent_view_controller,
                 ctx,
             )
         });
