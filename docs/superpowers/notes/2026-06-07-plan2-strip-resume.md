@@ -52,6 +52,25 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
+### STATE (window 9 final): 124 resolution errors (234→124 this session, 47% cut). Isolated/bounded wins now EXHAUSTED —
+every remaining resolution error sits in a large coupled unit. Cleared this stretch (all committed): graphql/schema cloud
+layer; left_panel WarpDrive+ConversationList tabs; secret-detection helpers recovered into model/secrets (+ dead TextLocation
+field dropped); warpify green_check_icon inline + build_command_row for ssh; UserProperties.llms (ai::llms) removed;
+app_menus recent-repos re-pointed to ProjectManagementModel; render_keystroke_with_color_overrides recovered into new
+ui_components/keyboard_shortcut.rs (message_bar + slash search consumers).
+REMAINING 124 by unit:
+  • CODE-REVIEW PANEL ~112: workspace/view.rs 73 + right_panel 34 + left_panel 5. ALL built on deleted crate::code (see below).
+    left_panel: finish deleting ProjectExplorer/file-tree (86 file-tree refs) → GlobalSearch-only; coupled to workspace/view.rs
+    callers (is_file_tree_active/auto_expand.../update_coding_panel_enablement/set_active_pane_group/restore_active_view_from_snapshot).
+    right_panel: 51 CodeReview/DiffState/agent refs (pure code-review → likely gut to shell or delete). workspace/view.rs hosts both
+    panels (RightPanelView/LeftPanelView fields, ctors ~2450/2461, warp_drive_view()/is_warp_drive_active() callers @3638/16472, CodeSource).
+  • input.rs ai_input_model satellites (~6): classic.rs (InputType), common.rs (SelectedWorkflowState), up_arrow.rs (InputConfig/
+    BlocklistAIHistoryModel), AgentViewController menu chain (cloud_mode_v2_history_menu/repos/view/slash_commands/view → InlineMenuView::new).
+  • voltron.rs (2): CategoriesView, coupled to input.rs select_and_refresh_voltron.
+  • voice vertical (2 visible in server/voice_transcriber.rs): TranscribeRequest/Provider; rest cfg(feature="voice_input") woven in
+    editor/view/mod.rs (VoiceTranscriptionOptions/ToggleVoiceInput/voice_input state) + lib.rs wiring. Delete as a vertical.
+  • home.rs (1): FilePane (deleted crate::code drive/file pane).
+
 ### 🚨🚨 CRITICAL SCOPE FINDING (window 9 end): `crate::code` IS FULLY DELETED 🚨🚨
 There is NO `app/src/code` dir, NO `mod code` declaration, and NO `FileTreeView`/`buffer_location`/`file_tree`
 definitions anywhere. The ENTIRE code/file-tree/project-explorer/buffer-location subsystem is gone. CONSEQUENCE:
