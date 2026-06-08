@@ -8,8 +8,8 @@ use super::GridHandler;
 use crate::terminal::model::grid::{grapheme_cursor, Dimensions as _, RespectDisplayedOutput};
 use crate::terminal::model::index::{Direction, Point};
 use crate::terminal::model::secrets::{
-    IsObfuscated, ObfuscateSecrets, Secret, SecretAndHandle, SecretHandle, SecretLevel,
-    SecretsRegex, SECRETS_REGEX,
+    find_secrets_in_text_with_levels_using_regex, IsObfuscated, ObfuscateSecrets, Secret,
+    SecretAndHandle, SecretHandle, SecretLevel, SecretsRegex, SECRETS_REGEX,
 };
 use crate::terminal::model::terminal_model::RangeInModel;
 
