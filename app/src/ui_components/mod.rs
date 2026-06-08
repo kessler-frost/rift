@@ -11,6 +11,7 @@ pub(crate) mod color_dot;
 pub(crate) mod dialog;
 pub(crate) mod icon_with_status;
 pub mod keyboard_navigable_buttons;
+pub mod keyboard_shortcut;
 pub(crate) mod item_highlight;
 pub(crate) mod menu_button;
 pub(crate) mod red_notification_dot;

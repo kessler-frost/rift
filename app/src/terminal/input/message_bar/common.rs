@@ -15,6 +15,7 @@ use riftui::{AppContext, SingletonEntity};
 use crate::terminal;
 use crate::terminal::input::message_bar::{ChipHorizontalAlignment, Message, MessageItem};
 use crate::ui_components::blended_colors;
+use crate::ui_components::keyboard_shortcut::render_keystroke_with_color_overrides;
 
 pub fn standard_message_bar_height(app: &AppContext) -> f32 {
     let appearance = Appearance::as_ref(app);
