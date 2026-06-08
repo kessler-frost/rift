@@ -21,6 +21,38 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE (window 9 continued, 2026-06-07): 183 resolution errors (552→183). After the AI-settings vertical, this
+window also cleared a long tail of isolated/bounded units:
+ - cloud UpdateManager/LLMPreferences sync removed from TeamUpdateManager (on_team_left dropped left_team_uid param too).
+ - welcome_view: deleted start_agent_mode_in_new_pane + toggle_code_review_pane launch (GitDeltaPreference/CodeReviewPaneEntrypoint).
+ - pty_controller: deleted PtyWrite::AgentInput variant + write_agent_bytes + match arm + terminal_manager_util dangling
+   WriteAgentInputToPty arm (the Event variant was already deleted).
+ - server_buffer_tracker: deleted 2 dangling GlobalBufferModel::remove calls (local bookkeeping kept).
+ - sqlite: EnablementState was just a MISSING import (lives in rift_core::telemetry) — re-added. LSPServerType was fine.
+ - compactible_action_button: recovered icon_size() inline from deleted ai::blocklist inline-action icons (line-height helper).
+ - ENV-VAR FEATURE (functional, not cloud-sync): bootstrap.rs init_subshell_command/_for_shell dropped vars/EnvVar param +
+   env-export building; view.rs dropped self.env_vars (field already deleted) use-sites + ENV_VAR_BOOTSTRAP_FAILED_DURATION const.
+   For the FUNCTIONAL WSL/remote PATH propagation (wsl/remote_command_executor used deleted serialize_variables_for_shell +
+   EnvVarValue), recovered a constant-only terminal-local `serialize_constant_vars_for_shell` in command_executor/shared.rs
+   (re-exported in command_executor.rs) replicating the original prefix/sep/postfix + ShellFamily::escape logic.
+ - REPO-PICKER PATTERN (reusable!): deleted cloud `PersistedWorkspace`/`PersistedWorkspaceEvent` → local
+   `crate::projects::ProjectManagementModel` (app/src/projects.rs): `.workspaces()`→`.all_projects()`,
+   `ws.path: PathBuf`→`project.path: String` (wrap `PathBuf::from(&project.path)`), `PersistedWorkspaceEvent::WorkspaceAdded`→
+   `ProjectEvent::Added`. Applied to repo_picker.rs, new_worktree_modal.rs, repos/data_source.rs. (Removed the now-used
+   `#[expect(unused)]` on ProjectEvent::Added.path.) ANY remaining PersistedWorkspace use-site → same re-point.
+
+### DEFERRED clusters (each its own focused unit, NOT 1-error quick wins despite showing as few errors):
+ - is_ai_ugc_telemetry_enabled: threaded as a bool param through TerminalModel::new → blocks.rs → block.rs → terminal_model.rs
+   (~14 sites) + PrivacySettingsSnapshot.should_collect_ai_ugc_telemetry field/method + create_project_view + telemetry/mod.
+   The 2 visible errors (privacy:472, terminal_manager:102) are the deleted FREE fn should_collect_ai_ugc_telemetry; the whole
+   param chain should be removed together (AI UGC collection is gone → always false).
+ - input.rs `ai_input_model` field cascade (~14 refs): gates up_arrow.rs (InputConfig/BlocklistAIHistoryModel) + collate_ai_and_command_history.
+ - voltron.rs (592 lines, VoltronFeatureViewHandle::Workflows(CategoriesView) deleted) coupled into input.rs select_and_refresh_voltron.
+ - voice transcription vertical: server/voice_transcriber.rs + voice/transcriber.rs + editor/view/voice.rs + lib.rs wiring (AI).
+ - AgentViewController param (cloud_mode_v2_history_menu/repos/view/slash_commands/view :*44 — shared fn signature param to drop).
+ - render_keystroke_with_color_overrides + its styles:: deps (recover generic helper from deleted ai/blocklist/agent_view/shortcuts).
+ - RenderableAction/inline_action_icons (ssh/warpify, warpify/render) + TextLocation (model/secrets, grid/secrets) — resume-note REIMPL items.
+
 ### STATE (window 9, 2026-06-07): 207 resolution errors (552→207). This window: (C) network_log_view DONE (CodeEditorView→
 read-only monospace Text); (B) cloud-team CloudObjectEventEntrypoint cascade DONE (dropped entrypoint param from team API
 create_team/remove_user_from_team/leave_team + TeamUpdateManager, supply rift_graphql::object::CloudObjectEventEntrypoint::Unknown
