@@ -11,7 +11,6 @@ use crate::persistence::ModelEvent;
 #[derive(Debug)]
 pub enum ProjectEvent {
     Added {
-        #[expect(unused, reason = "TODO(jparker): #pod-code-mode wip")]
         path: PathBuf,
     },
     #[expect(unused, reason = "TODO(jparker): #pod-code-mode wip")]

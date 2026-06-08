@@ -10,6 +10,7 @@ use riftui::{
 };
 
 use crate::appearance::Appearance;
+use crate::projects::{ProjectEvent, ProjectManagementModel};
 use crate::tab_configs::PickerStyle;
 use crate::view_components::{DropdownItem, FilterableDropdown};
 
@@ -59,8 +60,8 @@ impl RepoPicker {
     ) -> Self {
         // Subscribe to PersistedWorkspace so the list refreshes when the user
         // adds a repo via the folder picker.
-        ctx.subscribe_to_model(&PersistedWorkspace::handle(ctx), |me, _, event, ctx| {
-            if let PersistedWorkspaceEvent::WorkspaceAdded { path } = event {
+        ctx.subscribe_to_model(&ProjectManagementModel::handle(ctx), |me, _, event, ctx| {
+            if let ProjectEvent::Added { path } = event {
                 let path_str = path.to_string_lossy().to_string();
                 me.refresh_items(Some(&path_str), ctx);
             }
@@ -154,11 +155,11 @@ impl RepoPicker {
         // The action carries the *raw* absolute path so consumers reading
         // `RepoPickerEvent::Selected` keep getting a real filesystem path.
         let home = dirs::home_dir().map(|p| p.display().to_string());
-        let items: Vec<DropdownItem<RepoPickerAction>> = PersistedWorkspace::as_ref(ctx)
-            .workspaces()
-            .filter(|ws| ws.path.exists())
-            .map(|ws| {
-                let path_str = ws.path.to_string_lossy().into_owned();
+        let items: Vec<DropdownItem<RepoPickerAction>> = ProjectManagementModel::as_ref(ctx)
+            .all_projects()
+            .filter(|project| PathBuf::from(&project.path).exists())
+            .map(|project| {
+                let path_str = project.path.clone();
                 let display = user_friendly_path(&path_str, home.as_deref()).into_owned();
                 DropdownItem::new(display, RepoPickerAction::Select(path_str.clone()))
                     .with_clip_config(ClipConfig::start())
