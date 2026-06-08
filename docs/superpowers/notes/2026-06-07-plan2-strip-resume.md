@@ -21,6 +21,21 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 234 resolution errors (552→234 this run, ~80 commits, 29 files primary-clean — 57% reduction). Cleared the
+ENTIRE Phase-F server_api periphery this stretch: deleted harness_support module (moved generic UploadTarget types to
+presigned_upload), GlobalBufferModel remote-code-editing subsystem in remote_server/server_model, cloud-model refreshes
+in auth_manager (UpdateManager/CloudPreferencesSyncer/AIRequestUsageModel/LLMPreferences/PersistedWorkspace/
+SharedSessionManager), ForkAIConversationParams+fork/summarize global actions, AIAgentActionId block methods,
+generate_shared_block_title (server_api/block + share_block_modal title-gen), free_tier AIRequestUsageModel sub.
+REMAINING ≈234 = exactly 2 coupled units + 1 small cluster:
+  (A) CODE-REVIEW PANEL ~119: workspace/view.rs 73 + right_panel 34 + left_panel 12 (RightPanelView shell + CodeReviewView/
+      DiffStateModel content + CodeSource code-pane in workspace/view.rs).
+  (B) PHASE-F CLOUD GRAPHQL ~34: server/graphql/schema/mod 22 + util 12 (cloud-object GraphQL schema → deleted
+      cloud_object_models). Plus cloud team cluster: server_api/team 6 + workspaces/update_manager + workspaces/workspace 7 +
+      gql_convert 6 — all threaded by CloudObjectEventEntrypoint (a telemetry enum; remove the param from team API +
+      TeamUpdateManager methods + their workspace-UI callers).
+  (C) network_log_view 7: rewrite CodeEditorView display → simple read-only Text (single file).
+
 ### STATE: 286 resolution errors (552→286 this run, ~70 commits). PRIMARY-CLEAN (22): input, view, slash_commands/mod,
 data_source/mod, zero_state, rich_content, block_list_element, icon_with_status, slash_command_model, block_list_viewport,
 plugin_instructions_block, ssh_remote_server_choice_view, install_tmux, cli_agent_sessions/mod, zero_state_block,
