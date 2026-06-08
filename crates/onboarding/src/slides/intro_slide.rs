@@ -23,7 +23,6 @@ use ui_components::{button, Component as _, Options as _};
 
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;
-use crate::OnboardingEvent;
 
 #[derive(Clone, Debug)]
 pub enum IntroSlideEvent {

@@ -18,7 +18,7 @@ cfg_if::cfg_if! {
         use watcher::{BulkFilesystemWatcher, BulkFilesystemWatcherEvent};
         use riftui_core::r#async::Timer;
         use rift_core::{send_telemetry_from_ctx, report_if_error};
-        use crate::telemetry::AITelemetryEvent;
+        
         use instant::Instant;
         use rift_core::channel::ChannelState;
         use rift_core::safe_warn;
@@ -985,7 +985,7 @@ impl CodebaseIndexManager {
                     })
             {
                 if let Some(snapshot_storage) = snapshot_storage.as_ref() {
-                    let read_snapshot_start_time = Instant::now();
+                    let _read_snapshot_start_time = Instant::now();
                     match read_snapshot(
                         store_client.clone(),
                         snapshot_storage.path(),
@@ -1003,7 +1003,7 @@ impl CodebaseIndexManager {
                             );
                             return snapshot_index;
                         }
-                        Err(err) => {
+                        Err(_err) => {
                             send_telemetry_from_ctx!(
                                 AITelemetryEvent::MerkleTreeSnapshotRebuildFailed {
                                     error: err.to_string()

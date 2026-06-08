@@ -22,7 +22,6 @@ use ui_components::{button, keyboard_shortcut, Component as _, Options as _};
 use super::OnboardingSlide;
 use crate::model::OnboardingStateModel;
 use crate::slides::{bottom_nav, layout, slide_content};
-use crate::telemetry::OnboardingEvent;
 use crate::visuals::project_visual;
 
 const LEFT_COLUMN_W: f32 = 428.;

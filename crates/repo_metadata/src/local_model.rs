@@ -45,7 +45,6 @@ use crate::repository::Repository;
 use crate::standing_queries::{
     StandingQueryDefinitions, StandingQueryResults, StandingQueryResultsDelta,
 };
-use crate::telemetry::RepoMetadataTelemetryEvent;
 use crate::{gitignores_for_directory, matches_gitignores, RepoMetadataError};
 cfg_if::cfg_if! {
     if #[cfg(feature = "local_fs")] {

@@ -1,7 +1,6 @@
 use rift_core::send_telemetry_from_ctx;
 use riftui_core::{Entity, ModelContext};
 
-use crate::telemetry::OnboardingEvent;
 use crate::OnboardingIntention;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -322,7 +321,7 @@ impl OnboardingCalloutModel {
 
     fn send_callout_displayed_telemetry(
         new_state: OnboardingCalloutState,
-        ctx: &mut ModelContext<Self>,
+        _ctx: &mut ModelContext<Self>,
     ) {
         let callout_name = match new_state {
             OnboardingCalloutState::UniversalInput(UniversalInputCalloutState::MeetInput) => {
@@ -339,7 +338,7 @@ impl OnboardingCalloutModel {
             }
             _ => None,
         };
-        if let Some(callout) = callout_name {
+        if let Some(_callout) = callout_name {
             send_telemetry_from_ctx!(
                 OnboardingEvent::CalloutDisplayed {
                     callout: callout.to_string(),

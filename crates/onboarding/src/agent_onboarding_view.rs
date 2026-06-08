@@ -18,7 +18,6 @@ use crate::slides::{
     IntroSlideEvent, OnboardingModelInfo, OnboardingSlide, ProjectSlide, ThemePickerSlide,
     ThemePickerSlideEvent, ThirdPartySlide,
 };
-use crate::telemetry::OnboardingEvent;
 
 const APP_BECAME_ACTIVE_DEBOUNCE: Duration = Duration::from_secs(15);
 

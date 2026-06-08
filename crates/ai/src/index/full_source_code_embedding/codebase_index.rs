@@ -537,7 +537,7 @@ impl CodebaseIndex {
 
         let embedding_config = self.embedding_config();
         let repo_metadata = self.repo_metadata();
-        let sync_start_time = Instant::now();
+        let _sync_start_time = Instant::now();
         let sync_queue = SyncQueue::as_ref(ctx).clone();
         let sync_progress_tx = self.sync_progress_tx.clone();
         let embedding_generation_batch_size = self.embedding_generation_batch_size;
@@ -1164,7 +1164,7 @@ impl CodebaseIndex {
             }
         };
 
-        let sync_start_time = Instant::now();
+        let _sync_start_time = Instant::now();
 
         let store_client = self.store_client.clone();
         let repo_metadata = self.repo_metadata();
@@ -1257,7 +1257,7 @@ impl CodebaseIndex {
                 time_tracker,
             }) => {
                 // Emit telemetries for the initial sync result.
-                if let Some(sync_time) = time_tracker.compute_duration_for_interval(SYNC_TIME) {
+                if let Some(_sync_time) = time_tracker.compute_duration_for_interval(SYNC_TIME) {
                     send_telemetry_from_ctx!(
                         server_sync_result
                             .telemetry_event(sync_time, CodebaseContextSyncType::Initial),
@@ -1265,7 +1265,7 @@ impl CodebaseIndex {
                     );
                 }
 
-                if let Some((file_traversal_duration, merkle_tree_parse_duration)) = time_tracker
+                if let Some((_file_traversal_duration, _merkle_tree_parse_duration)) = time_tracker
                     .compute_duration_for_interval(FILE_TRAVERSAL_TIME)
                     .zip(time_tracker.compute_duration_for_interval(MERKLE_TREE_BUILD_TIME))
                 {
@@ -1773,7 +1773,7 @@ impl CodebaseIndex {
                         fragment_metadata,
                         changed_files,
                         gitignores,
-                        diff_duration,
+                        diff_duration: _,
                     }) => {
                         let tree = *boxed_tree;
                         send_telemetry_from_ctx!(

@@ -5,7 +5,6 @@ use riftui_core::{Entity, ModelContext};
 use crate::slides::{
     AgentAutonomy, AgentDevelopmentSettings, OnboardingModelInfo, ProjectOnboardingSettings,
 };
-use crate::telemetry::OnboardingEvent;
 use crate::OnboardingIntention;
 
 /// UI customization settings chosen during the "Customize your UI" onboarding slide.
@@ -631,8 +630,8 @@ impl OnboardingStateModel {
         }
     }
 
-    fn send_completion_telemetry(&self, ctx: &mut ModelContext<Self>) {
-        let (intention, model, autonomy) = match &self.intention {
+    fn send_completion_telemetry(&self, _ctx: &mut ModelContext<Self>) {
+        let (_intention, _model, _autonomy) = match &self.intention {
             OnboardingIntention::Terminal => (self.intention.to_string(), None, None),
             OnboardingIntention::AgentDrivenDevelopment => (
                 self.intention.to_string(),
@@ -641,7 +640,7 @@ impl OnboardingStateModel {
             ),
         };
 
-        let has_project_path = matches!(
+        let _has_project_path = matches!(
             self.project_settings,
             ProjectOnboardingSettings::Project { .. }
         );
