@@ -52,6 +52,27 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
+### ✅ USER DECISION (window 9 final, 2026-06-07): DELETE THE CODE-PANELS FEATURE WHOLESALE — including GlobalSearch.
+The user explicitly chose "Delete panels wholesale": remove left_panel.rs + right_panel.rs + global_search/ + their
+ENTIRE workspace/view.rs hosting, including the GlobalSearch feature. Consistent with crate::code already being fully deleted.
+SCOPE (large, all-or-nothing — the build will NOT compile until the whole sweep is done; do NOT stub):
+  • Delete files: app/src/workspace/view/{left_panel.rs, right_panel.rs} and the app/src/workspace/view/global_search/ dir
+    (+ conversation_list/ if still present). Remove `pub mod global_search; pub(crate) mod left_panel; pub(crate) mod right_panel;`
+    (workspace/view.rs lines 7/9/13).
+  • workspace/view.rs has ~441 panel/GlobalSearch/CodeReview/CodeSource refs to remove: LeftPanelView/RightPanelView fields
+    (~882/884) + ctors (~2450/2461) + LeftPanel/RightPanel actions+events, ToolPanelView, TOGGLE_RIGHT_PANEL_BINDING_NAME,
+    left_panel_open/right_panel_open/is_right_panel_maximized, warp_drive_view()/is_warp_drive_active() callers (3638/16472),
+    CodeSource code-pane, LeftPanelDisplayedTab, panel sizing (ModalSizes left/right_panel_size ~2302-2308), and the binding-name
+    consts LEFT_PANEL_*_BINDING_NAME / TOGGLE_*_BINDING_NAME defined in workspace/view.rs.
+  • GlobalSearch also referenced in ~10 other files (features.rs, app_menus.rs, app_state.rs, settings/code.rs, util/bindings.rs,
+    workspace/mod.rs, pane_group/working_directories.rs, settings_view/mod.rs, server/telemetry/events.rs) — remove its FeatureFlag,
+    settings, keybindings, telemetry events, and WorkingDirectoriesModel.{get,store}_global_search_view + global-search view cache.
+  • pane_group/working_directories.rs WorkingDirectoriesModel: drop the file_tree_view + global_search_view caches/getters/setters
+    (get_file_tree_view/store_file_tree_view/get_global_search_view/store_global_search_view).
+This is THE remaining unit (~112 of 122 resolution errors + a big chunk of the typeck wave behind it). Best done as one
+sustained sweep with FRESH context — it is the single largest, most-coupled deletion in the strip and cannot be partially
+committed. After it lands, re-measure; then the input.rs ai_input_model satellites, voltron, voice vertical, home FilePane remain.
+
 ### ⚠️ DEEPER ENTANGLEMENT (window 9 final): even GlobalSearch (left_panel's supposed survivor) depends on deleted
 `crate::code` — its OpenMatch handler uses LocalOrRemotePath/FileTarget/resolve_file_target_with_editor_choice and
 LeftPanelEvent::OpenFileWithTarget carries crate::code::buffer_location::LocalOrRemotePath. So the left panel can't be
