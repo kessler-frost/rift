@@ -3608,9 +3608,6 @@ impl Workspace {
             }
 
             // If the agent management view is open, we want to close it when we activate a new tab.
-            if FeatureFlag::AgentManagementView.is_enabled() {
-                self.set_is_agent_management_view_open(false, ctx);
-            }
 
             self.set_active_tab_index(index, ctx);
             self.focus_active_tab(ctx);
@@ -3719,9 +3716,6 @@ impl Workspace {
 
         // If the agent management view is open, we want to close it when we change focus to rename a tab.
         // This function doesn't call `activate_tab_internal`, which is why we need the extra check here.
-        if FeatureFlag::AgentManagementView.is_enabled() {
-            self.set_is_agent_management_view_open(false, ctx);
-        }
 
         self.set_active_tab_index(index, ctx);
 
@@ -5576,15 +5570,6 @@ impl Workspace {
         &mut self,
         ctx: &mut ViewContext<Self>,
     ) {
-        if FeatureFlag::GlobalAIAnalyticsBanner.is_enabled()
-            && PrivacySettings::as_ref(ctx).is_telemetry_enabled
-        {
-            if let Some(terminal_view_handle) = self.active_session_view(ctx) {
-                terminal_view_handle.update(ctx, |terminal_view, ctx| {
-                    terminal_view.insert_telemetry_banner(true, ctx);
-                });
-            }
-        }
     }
 
     fn should_trigger_get_started_onboarding(&self, ctx: &mut ViewContext<Self>) -> bool {
@@ -5642,13 +5627,6 @@ impl Workspace {
                 self.trigger_agent_onboarding(ctx);
             } else {
                 self.trigger_legacy_onboarding(ctx);
-            }
-
-            // Add telemetry banner for new users BEFORE the agentic onboarding blocks.
-            if let Some(terminal_view_handle) = self.active_session_view(ctx) {
-                terminal_view_handle.update(ctx, |terminal_view, ctx| {
-                    terminal_view.insert_telemetry_banner(false, ctx);
-                });
             }
 
             // After onboarding is triggered, mark the user as onboarded
@@ -5976,7 +5954,6 @@ impl Workspace {
 
         // Set selected object to None upon toggle close of Warp Drive
         if !self.current_workspace_state.is_warp_drive_open {
-            self.set_selected_object(None, ctx);
             self.focus_active_tab(ctx);
         }
 
