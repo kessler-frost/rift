@@ -33,7 +33,13 @@ use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::warpify::settings::{SshExtensionInstallMode, WarpifySettings};
 use crate::ui_components::blended_colors;
+use crate::ui_components::keyboard_navigable_buttons::{
+    rich_navigation_button, KeyboardNavigableButtons,
+};
 use crate::{send_telemetry_from_ctx, Appearance};
+
+/// Horizontal padding for the inline action prompt content.
+const INLINE_ACTION_HORIZONTAL_PADDING: f32 = 16.;
 
 const PROMPT_BORDER_RADIUS: f32 = 8.;
 
@@ -111,14 +117,22 @@ impl SshRemoteServerChoiceView {
     }
 
     fn render_header(&self, app: &AppContext) -> Box<dyn Element> {
-        // Match the Figma design: a plain title row, no icon / chevron /
-        // action buttons. `HeaderConfig` without an `interaction_mode` set
-        // renders exactly that.
-        HeaderConfig::new("Choose your experience for this remote session:", app)
-            .with_corner_radius_override(CornerRadius::with_top(Radius::Pixels(
-                PROMPT_BORDER_RADIUS,
-            )))
-            .render_header(app, None)
+        let appearance = Appearance::handle(app).as_ref(app);
+        let theme = appearance.theme();
+        Container::new(
+            Text::new(
+                "Choose your experience for this remote session:",
+                appearance.ui_font_family(),
+                appearance.monospace_font_size(),
+            )
+            .with_color(theme.main_text_color(theme.background()).into_solid())
+            .finish(),
+        )
+        .with_padding_left(INLINE_ACTION_HORIZONTAL_PADDING)
+        .with_padding_right(INLINE_ACTION_HORIZONTAL_PADDING)
+        .with_vertical_padding(10.)
+        .with_corner_radius(CornerRadius::with_top(Radius::Pixels(PROMPT_BORDER_RADIUS)))
+        .finish()
     }
 
     fn render_buttons(&self) -> Box<dyn Element> {

@@ -1510,6 +1510,7 @@ pub(crate) fn initialize_app(
     undo_close::init(ctx);
     tab_configs::new_worktree_modal::init(ctx);
     tab_configs::params_modal::init(ctx);
+    crate::ui_components::keyboard_navigable_buttons::init(ctx);
     terminal::ssh::install_tmux::init(ctx);
     terminal::ssh::warpify::init(ctx);
     terminal::ssh::error::init(ctx);
