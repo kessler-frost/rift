@@ -91,28 +91,6 @@ impl QuitScope<'_> {
         }
     }
 
-    /// Count of shared sessions in this scope.
-    fn shared_sessions(&self, ctx: &AppContext) -> usize {
-        match self {
-            Self::Pane { .. } => 0,
-            Self::Tabs(ref tabs) => tabs
-                .iter()
-                .filter_map(|tab| tab.upgrade(ctx))
-                .map(|tab| tab.as_ref(ctx).number_of_shared_sessions(ctx))
-                .sum(),
-            Self::Window(window_id) => ctx
-                .views_of_type::<PaneGroup>(*window_id)
-                .map(|views| {
-                    views
-                        .into_iter()
-                        .map(|view| view.as_ref(ctx).number_of_shared_sessions(ctx))
-                        .sum()
-                })
-                .unwrap_or_default(),
-            Self::App => crate::session_management::num_shared_sessions(ctx),
-        }
-    }
-
     fn close_target(&self) -> CloseTarget {
         match self {
             Self::Pane { .. } => CloseTarget::Pane,
@@ -158,21 +136,19 @@ impl<'a> UnsavedStateSummary<'a> {
         let sessions = scope.sessions(ctx);
         let sessions_summary = RunningSessionSummary::new(&sessions);
 
-        let num_shared_sessions = scope.shared_sessions(ctx);
-
         UnsavedStateSummary {
             scope,
             total_long_running_commands: sessions_summary.long_running_cmds.len(),
             windows_with_long_running_commands: sessions_summary.windows_running().len(),
             tabs_with_long_running_commands: sessions_summary.tabs_running().len(),
             terminal_sessions: sessions,
-            shared_sessions: num_shared_sessions,
+            shared_sessions: 0,
         }
     }
 
     pub fn should_display_warning(&self, ctx: &AppContext) -> bool {
         *GeneralSettings::as_ref(ctx).show_warning_before_quitting
-            && (self.total_long_running_commands > 0 || self.shared_sessions > 0)
+            && self.total_long_running_commands > 0
     }
 
     pub fn running_sessions(&self) -> RunningSessionSummary<'_> {
@@ -216,14 +192,6 @@ impl<'a> UnsavedStateSummary<'a> {
             }
             process_info_text.push_str(scope_suffix);
             info_text_lines.push(process_info_text);
-        }
-
-        if self.shared_sessions > 0 {
-            info_text_lines.push(format!(
-                "You are sharing {} {}{scope_suffix}",
-                self.shared_sessions,
-                pluralize(self.shared_sessions, "session", "sessions")
-            ));
         }
 
         info_text_lines.join("\n")

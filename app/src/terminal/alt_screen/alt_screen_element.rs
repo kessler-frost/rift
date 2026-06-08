@@ -944,12 +944,9 @@ impl ScrollableElement for AltScreenElement {
         })
     }
 
-    fn scroll(&mut self, delta: Pixels, ctx: &mut EventContext) {
+    fn scroll(&mut self, delta: Pixels, _ctx: &mut EventContext) {
         self.scroll_top = (self.scroll_top - delta.to_lines(self.line_height()))
             .max(Lines::zero())
             .min(self.max_scroll_top.unwrap());
-        ctx.dispatch_typed_action(TerminalAction::SharedSessionViewerAltScroll {
-            new_scroll_top: self.scroll_top,
-        });
     }
 }

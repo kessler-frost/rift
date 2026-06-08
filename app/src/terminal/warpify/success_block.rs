@@ -241,7 +241,7 @@ impl WarpifySuccessBlock {
             .finish(),
         )
         .with_uniform_padding(8.)
-        .with_background(theme.background_elevated())
+        .with_background(theme.surface_1())
         .finish();
 
         let semantic_selection = SemanticSelection::as_ref(app);

@@ -150,12 +150,6 @@ impl Slide for OzLaunchSlide {
                     ctx
                 );
                 ctx.emit(LaunchModalEvent::Close);
-                ctx.dispatch_typed_action(&WorkspaceAction::StartAgentOnboardingTutorial(
-                    OnboardingTutorial::NoProject {
-                        intention: OnboardingIntention::AgentDrivenDevelopment,
-                    },
-                ));
-                ctx.dispatch_typed_action(&WorkspaceAction::AddAmbientAgentTab);
             }),
         }
     }
@@ -188,12 +182,8 @@ impl Slide for OzLaunchSlide {
         ) && !matches!(ugc_setting, UgcCollectionEnablementSetting::Enable)
     }
 
-    fn on_close(&self, ctx: &mut riftui::ViewContext<super::LaunchModal<Self>>) {
-        ctx.dispatch_typed_action(&WorkspaceAction::StartAgentOnboardingTutorial(
-            OnboardingTutorial::NoProject {
-                intention: OnboardingIntention::AgentDrivenDevelopment,
-            },
-        ));
+    fn on_close(&self, _ctx: &mut riftui::ViewContext<super::LaunchModal<Self>>) {
+        // Cloud-agent onboarding tutorial was an AI feature and has been removed.
     }
 }
 

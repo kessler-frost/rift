@@ -5,7 +5,10 @@ use riftui::elements::{
     ChildView, ConstrainedBox, Container, CrossAxisAlignment, Flex, MainAxisAlignment,
     MainAxisSize, ParentElement,
 };
-use riftui::{Action, AppContext, Element, TypedActionView, View, ViewContext, ViewHandle};
+use riftui::{
+    Action, AppContext, Element, SingletonEntity as _, TypedActionView, View, ViewContext,
+    ViewHandle,
+};
 
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{

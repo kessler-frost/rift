@@ -2011,15 +2011,10 @@ impl Iterator for ViewportIter<'_> {
             }
 
             match item {
-                BlockHeightItem::RichContent(RichContentItem {
-                    agent_view_conversation_id: fullscreen_agent_view_conversation_id,
-                    ..
-                }) => {
-                    // Return the item only if it 'belongs' to the terminal mode
-                    // (represented as no `ai_conversation_id`).
-                    if fullscreen_agent_view_conversation_id.is_none() {
-                        return next;
-                    }
+                BlockHeightItem::RichContent(RichContentItem { .. }) => {
+                    // Rich content always belongs to the terminal mode now that
+                    // the agent view conversation concept has been removed.
+                    return next;
                 }
                 _ => {
                     if !FeatureFlag::AgentView.is_enabled() || block_height.as_f64() > 0. {

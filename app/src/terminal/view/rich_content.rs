@@ -143,7 +143,7 @@ impl TerminalView {
         ctx: &mut ViewContext<Self>,
     ) {
         let _ = &metadata;
-        let item = RichContentItem::new(content_type, handle.id(), None, false);
+        let item = RichContentItem::new(content_type, handle.id(), false);
 
         match position {
             RichContentInsertionPosition::Append {
@@ -178,7 +178,7 @@ impl TerminalView {
             }
         }
 
-        let mut rich_content = RichContent::new(handle, None);
+        let mut rich_content = RichContent::new(handle);
         if let Some(metadata) = metadata {
             rich_content = rich_content.with_metadata(metadata);
         }

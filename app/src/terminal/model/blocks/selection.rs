@@ -904,7 +904,6 @@ impl BlockList {
                 selection_start_cursor.seek(&BlockHeight::from(top_row), SeekBias::Right);
 
                 // Loop over each block, adding their contents to the output.
-                let agent_view_state = self.agent_view_state();
                 while bottom_row >= selection_start_cursor.start().height {
                     let Some(item) = selection_start_cursor.item() else {
                         // We reached the end of the block list.

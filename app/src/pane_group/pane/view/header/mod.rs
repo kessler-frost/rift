@@ -411,11 +411,6 @@ impl<P: BackingView> PaneHeader<P> {
             stack.add_positioned_overlay_child(
                 Dismiss::new(ChildView::new(&self.toolbelt_feature_popup).finish())
                     .on_dismiss(|ctx, _app| {
-                        ctx.dispatch_typed_action(
-                            PaneHeaderAction::<TerminalAction, TerminalAction>::CustomAction(
-                                TerminalAction::DismissCodeToolbeltTooltip,
-                            ),
-                        );
                         ctx.notify();
                     })
                     .finish(),

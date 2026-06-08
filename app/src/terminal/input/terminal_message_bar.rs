@@ -100,9 +100,6 @@ impl MessageProvider<Option<&AcceptHistoryItem>> for InlineHistoryMessageProduce
             Some(AcceptHistoryItem::AIPrompt { .. }) => {
                 vec![enter, MessageItem::text(" to send")]
             }
-            Some(AcceptHistoryItem::Conversation { title, .. }) => {
-                vec![enter, MessageItem::text(format!(" to open '{title}'"))]
-            }
             None => {
                 vec![MessageItem::text("")]
             }

@@ -369,9 +369,6 @@ impl AgentToast {
         appearance: &Appearance,
         uuid: Uuid,
     ) -> Box<dyn Element> {
-        let navigation_action = WorkspaceAction::FocusTerminalViewInWorkspace {
-            terminal_view_id: self.terminal_view_id,
-        };
         EventHandler::new(
             Hoverable::new(self.container_hover_state.clone(), |mouse_state| {
                 let container = Container::new(content)
@@ -419,7 +416,6 @@ impl AgentToast {
             // Dismiss immediately when clicked on the toast body
             ctx.dispatch_typed_action(AgentToastAction::ClickToastBody(uuid));
 
-            ctx.dispatch_typed_action(navigation_action.clone());
             DispatchEventResult::PropagateToParent
         })
         .finish()

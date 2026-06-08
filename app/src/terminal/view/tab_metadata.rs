@@ -33,21 +33,10 @@ impl TerminalView {
             .unwrap_or(fallback_title)
     }
 
-    #[cfg_attr(not(feature = "local_fs"), allow(clippy::unnecessary_lazy_evaluations))]
     pub fn current_git_branch(&self, ctx: &AppContext) -> Option<String> {
+        // Git-status metadata (AI/agent tab decoration) was removed; rely solely
+        // on the shell git-branch prompt chip.
         self.prompt_chip_value(&ContextChipKind::ShellGitBranch, ctx)
-            .or_else(|| {
-                #[cfg(feature = "local_fs")]
-                {
-                    self.git_status_metadata(ctx)
-                        .map(|metadata| metadata.current_branch_name.clone())
-                        .filter(|branch| !branch.trim().is_empty())
-                }
-                #[cfg(not(feature = "local_fs"))]
-                {
-                    None
-                }
-            })
     }
 
     pub fn last_completed_command_text(&self) -> Option<String> {

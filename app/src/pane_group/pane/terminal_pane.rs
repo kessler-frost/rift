@@ -20,7 +20,6 @@ use super::{
     ShareableLinkError, TerminalPaneId,
 };
 use crate::app_state::{LeafContents, TerminalPaneSnapshot};
-use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::pane_group::{self, Direction, PaneGroup};
 use crate::persistence::{BlockCompleted, ModelEvent};
 use crate::session_management::SessionNavigationData;
@@ -465,12 +464,6 @@ fn handle_terminal_view_event(
             }
             Event::OnboardingTutorialCompleted => {
                 ctx.emit(pane_group::Event::OnboardingTutorialCompleted);
-            }
-            Event::OpenFileInWarp { path, session } => {
-                ctx.emit(pane_group::Event::OpenFileInWarp {
-                    path: LocalOrRemotePath::Local(path.clone()),
-                    session: session.clone(),
-                });
             }
             #[cfg(feature = "local_fs")]
             #[cfg(feature = "local_fs")]

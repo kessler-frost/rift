@@ -174,10 +174,8 @@ impl TerminalManager {
         let model_events =
             ctx.add_model(|ctx| ModelEventDispatcher::new(events_rx, sessions.clone(), ctx));
 
-        // Have ApiKeyManager subscribe to block completion events for AWS credential refresh
-        ai::api_keys::ApiKeyManager::handle(ctx).update(ctx, |manager, ctx| {
-            manager.register_model_event_dispatcher(&model_events, ctx);
-        });
+        // ApiKeyManager block-completion subscription (AWS credential refresh)
+        // was an AI/cloud feature and has been removed.
 
         let preferred_shell = chosen_shell.unwrap_or_else(|| {
             AvailableShells::handle(ctx)

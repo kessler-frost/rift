@@ -67,7 +67,6 @@ pub(super) fn run_find_on_block_list(
         // In both cases we want the most recent block updated last, which means the sort direction
         // here should always be MostRecentLast
         for block_index in blocks_to_include_in_results {
-            let agent_view_state = block_list.agent_view_state();
             if let Some(block) = block_list
                 .block_at(*block_index)
                 .filter(|block| !block.is_empty())

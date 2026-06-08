@@ -399,9 +399,7 @@ impl ResourceCenterMainView {
                     .with_inner_padding(BUTTON_PADDING),
                 )
                 .build()
-                .on_click(|ctx, _, _| {
-                    ctx.dispatch_typed_action(WorkspaceAction::ShowReferralSettingsPage)
-                })
+                .on_click(|_ctx, _, _| {})
                 .finish(),
         )
         .with_margin_top(SECTION_SPACING)

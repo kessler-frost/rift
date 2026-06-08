@@ -197,21 +197,15 @@ impl ControlItemRenderer {
     }
 
     pub(crate) fn display_label(&self) -> &str {
-        if let Some(label) = &self.custom_label {
-            label
-        } else if let Some(kind) = &self.kind {
-            kind.display_label()
-        } else {
-            "Unknown"
-        }
+        // The agent-toolbar `AgentToolbarItemKind::display_label()` was removed;
+        // only custom labels remain meaningful.
+        self.custom_label.as_deref().unwrap_or("Unknown")
     }
 
     fn display_icon(&self) -> Option<crate::ui_components::icons::Icon> {
-        if let Some(icon) = self.custom_icon {
-            Some(icon)
-        } else {
-            self.kind.as_ref().and_then(|k| k.icon())
-        }
+        // The agent-toolbar `AgentToolbarItemKind::icon()` was removed; only
+        // custom icons remain.
+        self.custom_icon
     }
 
     fn render_internal(

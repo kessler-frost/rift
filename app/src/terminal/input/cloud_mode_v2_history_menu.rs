@@ -190,7 +190,7 @@ impl CloudModeV2HistoryMenuView {
             .selected_item()?
         {
             AcceptHistoryItem::AIPrompt { query_text } => Some(query_text.clone()),
-            AcceptHistoryItem::Command { .. } | AcceptHistoryItem::Conversation { .. } => None,
+            AcceptHistoryItem::Command { .. } => None,
         }
     }
 

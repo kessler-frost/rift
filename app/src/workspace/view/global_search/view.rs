@@ -2301,16 +2301,8 @@ fn icon_from_file_path(path: &str, appearance: &Appearance) -> Option<Box<dyn El
         Some("py") => bundled("bundled/svg/file_type/python.svg"),
         Some("cpp") | Some("hpp") => bundled("bundled/svg/file_type/cpp.svg"),
         Some("go") => bundled("bundled/svg/file_type/go.svg"),
-        Some("md") => Icon::new(
-            "bundled/svg/file_type/markdown.svg",
-            theme.main_text_color(theme.background()).into_solid(),
-        )
-        .finish(),
-        Some("sh") => Icon::new(
-            "bundled/svg/terminal.svg",
-            theme.main_text_color(theme.background()).into_solid(),
-        )
-        .finish(),
+        Some("md") => bundled("bundled/svg/file_type/markdown.svg"),
+        Some("sh") => bundled("bundled/svg/terminal.svg"),
         Some("kt") | Some("kts") => bundled("bundled/svg/file_type/kotlin.svg"),
         Some("php") => bundled("bundled/svg/file_type/php.svg"),
         Some("pl") | Some("pm") => bundled("bundled/svg/file_type/perl.svg"),

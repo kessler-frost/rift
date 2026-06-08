@@ -157,7 +157,7 @@ pub fn render_open_settings_file_button(
 pub fn render_settings_error_alert(
     appearance: &Appearance,
     error: &SettingsFileError,
-    ai_enabled: bool,
+    _ai_enabled: bool,
     mouse_states: &SettingsFooterMouseStates,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
@@ -243,20 +243,6 @@ pub fn render_settings_error_alert(
         .with_spacing(ALERT_BUTTON_SPACING)
         .with_run_spacing(ALERT_BUTTON_SPACING)
         .with_child(open_file_button);
-
-    if ai_enabled {
-        let error_description = error.to_string();
-        let fix_with_oz_button = render_alert_action_button(
-            ui_font_family,
-            text_color,
-            mouse_states.alert_fix_with_oz_button.clone(),
-            "Fix with Oz",
-            Some(Icon::Oz),
-            /*bordered=*/ false,
-            WorkspaceAction::FixSettingsWithOz { error_description },
-        );
-        buttons_row.add_child(fix_with_oz_button);
-    }
 
     // ── Assemble ─────────────────────────────────────────────────────────
     // Left-align the buttons with the start of the text (past the icon + gap).

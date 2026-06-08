@@ -12,7 +12,6 @@ use parking_lot::FairMutex;
 use pathfinder_color::ColorU;
 use rift_core::semantic_selection::SemanticSelection;
 use rift_core::ui::builder::UiBuilder;
-use rift_core::ui::theme::AnsiColorIdentifier;
 use rift_util::user_input::UserInput;
 use riftui::elements::new_scrollable::{NewScrollableElement, ScrollableAxis};
 use riftui::elements::{
@@ -2303,23 +2302,11 @@ impl BlockListElement {
                     ctx,
                     terminal_view_id,
                     cursor_hint_text,
-                    if block.is_agent_blocked() {
-                        AnsiColorIdentifier::Yellow
-                            .to_ansi_color(
-                                &block_grid_params
-                                    .grid_render_params
-                                    .warp_theme
-                                    .terminal_colors()
-                                    .normal,
-                            )
-                            .into()
-                    } else {
-                        block_grid_params
-                            .grid_render_params
-                            .warp_theme
-                            .cursor()
-                            .into()
-                    },
+                    block_grid_params
+                        .grid_render_params
+                        .warp_theme
+                        .cursor()
+                        .into(),
                     app,
                 );
             }
@@ -3693,7 +3680,7 @@ impl Element for BlockListElement {
                     let mut render_params = CLISubagentRenderParams {
                         block_id: block.id().clone(),
                         view_origin: None,
-                        should_clip_view: !block.is_agent_blocked(),
+                        should_clip_view: true,
                     };
 
                     if let Some(cli_subagent_view) = self.cli_subagent_views.get_mut(block.id()) {

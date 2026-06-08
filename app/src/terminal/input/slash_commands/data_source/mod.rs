@@ -28,7 +28,7 @@ use crate::settings::{
     PrivacySettingsChangedEvent,
 };
 use crate::terminal::cli_agent_sessions::{
-    CLIAgentInputState, CLIAgentSessionsModel, CLIAgentSessionsModelEvent,
+    CLIAgentSessionsModel, CLIAgentSessionsModelEvent,
 };
 use crate::terminal::model::session::active_session::{ActiveSession, ActiveSessionEvent};
 use crate::terminal::model::session::SessionType;
@@ -289,12 +289,10 @@ impl SlashCommandDataSource {
     /// CLI agent input is not open (meaning no filtering should be applied).
     pub fn active_cli_agent_providers(
         &self,
-        ctx: &AppContext,
+        _ctx: &AppContext,
     ) -> Option<&'static [ai::skills::SkillProvider]> {
-        CLIAgentSessionsModel::as_ref(ctx)
-            .session(self.terminal_view_id)
-            .filter(|s| matches!(s.input_state, CLIAgentInputState::Open { .. }))
-            .map(|s| s.agent.supported_skill_providers())
+        // Skill providers were an AI feature; no skill filtering is applied.
+        None
     }
 
 }

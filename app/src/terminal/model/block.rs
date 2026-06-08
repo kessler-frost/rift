@@ -422,7 +422,7 @@ impl From<&Block> for BlockType {
                         command_with_obfuscated_secrets,
                         output_truncated,
                         output_truncated_with_obfuscated_secrets,
-                        was_part_of_agent_interaction: block.agent_interaction_metadata().is_some(),
+                        was_part_of_agent_interaction: false,
                         started_at: block.command_start_time(),
                         num_output_lines: block.output_grid().len() as u64,
                         num_output_lines_truncated: block

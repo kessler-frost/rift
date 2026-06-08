@@ -302,7 +302,7 @@ impl HistoryEntry {
             completed_ts: block.completed_ts().copied(),
             exit_code: Some(block.exit_code()),
             is_for_restored_block: true,
-            is_agent_executed: block.requested_command_action_id().is_some(),
+            is_agent_executed: false,
         }
     }
 

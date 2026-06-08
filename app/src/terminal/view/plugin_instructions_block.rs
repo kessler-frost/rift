@@ -133,7 +133,7 @@ impl PluginInstructionsBlock {
                     .finish(),
             )
             .with_uniform_padding(8.)
-            .with_background(theme.background_elevated())
+            .with_background(theme.surface_1())
             .with_corner_radius(CornerRadius::with_all(Radius::Pixels(6.)));
             column.add_child(Container::new(code_block.finish()).with_padding_left(40.).finish());
         }

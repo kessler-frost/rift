@@ -21,10 +21,9 @@ use crate::coding_entrypoints::project_buttons::{ProjectButtons, ProjectButtonsE
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
 use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent};
-use crate::terminal::TerminalView;
 use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
 use crate::view_components::DismissibleToast;
-use crate::workspace::{ToastStack, Workspace, WorkspaceAction};
+use crate::workspace::{ToastStack, WorkspaceAction};
 use crate::{send_telemetry_from_ctx, TelemetryEvent};
 
 pub fn init(app: &mut AppContext) {
@@ -162,23 +161,19 @@ impl GetStartedView {
         }
     }
 
-    fn start_create_new_project(&mut self, prompt: String, ctx: &mut ViewContext<Self>) {
+    fn start_create_new_project(&mut self, _prompt: String, ctx: &mut ViewContext<Self>) {
+        // AI/cloud onboarding action removed; just open a plain terminal tab.
         ctx.dispatch_typed_action(&WorkspaceAction::AddTerminalTab {
             hide_homepage: true,
-        });
-        update_active_terminal(ctx, |terminal, ctx| {
-            terminal.create_new_project(prompt, ctx);
         });
 
         self.close(ctx);
     }
 
-    fn start_clone_repo(&mut self, url: String, ctx: &mut ViewContext<Self>) {
+    fn start_clone_repo(&mut self, _url: String, ctx: &mut ViewContext<Self>) {
+        // AI/cloud clone-repo action removed; just open a plain terminal tab.
         ctx.dispatch_typed_action(&WorkspaceAction::AddTerminalTab {
             hide_homepage: true,
-        });
-        update_active_terminal(ctx, |terminal, ctx| {
-            terminal.agent_clone_repository(url, ctx);
         });
 
         self.close(ctx);
@@ -369,21 +364,3 @@ impl BackingView for GetStartedView {
     }
 }
 
-fn update_active_terminal<F, S>(ctx: &mut ViewContext<GetStartedView>, func: F)
-where
-    F: FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>) -> S,
-{
-    let window_id = ctx.window_id();
-    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id) {
-        if let Some(workspace) = workspaces.into_iter().next() {
-            workspace.update(ctx, |workspace, ctx| {
-                let pane_group = workspace.active_tab_pane_group();
-                pane_group.update(ctx, |pane_group, ctx| {
-                    if let Some(active_terminal) = pane_group.active_session_view(ctx) {
-                        active_terminal.update(ctx, func);
-                    }
-                });
-            });
-        }
-    }
-}

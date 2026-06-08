@@ -53,7 +53,6 @@ use crate::editor::{
 };
 use crate::features::FeatureFlag;
 use crate::gpu_state::{GPUState, GPUStateEvent};
-use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::server::telemetry::{InputUXChangeOrigin, TelemetryEvent};
 use crate::settings::app_icon::{AppIcon, AppIconSettings};
 use crate::settings::{
@@ -3556,11 +3555,7 @@ impl SettingsWidget for PromptWidget {
                 .finish()
         })
         .with_cursor(Cursor::PointingHand)
-        .on_click(|ctx, _, _| {
-            ctx.dispatch_typed_action(WorkspaceAction::OpenPromptEditor {
-                open_source: PromptEditorOpenSource::AppearancePage,
-            })
-        })
+        .on_click(|_ctx, _, _| {})
         .finish()
     }
 }
