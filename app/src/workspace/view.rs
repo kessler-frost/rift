@@ -2462,11 +2462,6 @@ impl Workspace {
         });
 
         ctx.subscribe_to_model(
-            &AgentNotificationsModel::handle(ctx),
-            Self::handle_agent_management_event,
-        );
-
-        ctx.subscribe_to_model(
             &SessionSettings::handle(ctx),
             Self::handle_session_settings_event,
         );
@@ -2635,19 +2630,6 @@ impl Workspace {
             }
             ctx.notify();
         });
-
-        ctx.subscribe_to_model(
-            &crate::workspace::bonus_grant_notification_model::BonusGrantNotificationModel::handle(
-                ctx,
-            ),
-            |me, _, event, ctx| {
-                let BonusGrantNotificationEvent::ShowNotification { message, .. } = event;
-                me.toast_stack.update(ctx, |toast_stack, ctx| {
-                    toast_stack
-                        .add_persistent_toast(DismissibleToast::success(message.clone()), ctx);
-                });
-            },
-        );
 
         let mut ws = Self {
             tabs: Vec::new(),
@@ -4102,14 +4084,7 @@ impl Workspace {
                 ctx,
             );
         });
-        if let Some(terminal_view_id) = focused_terminal_view_id {
-            let is_active_window = ctx.windows().active_window() == Some(ctx.window_id());
-            if is_active_window {
-                AgentNotificationsModel::handle(ctx).update(ctx, |model, ctx| {
-                    model.mark_items_from_terminal_view_read(terminal_view_id, ctx);
-                });
-            }
-        }
+        let _ = focused_terminal_view_id;
     }
 
     /// Change the active tab index. This must be used instead of setting `self.active_tab_index`
@@ -13006,9 +12981,8 @@ impl Workspace {
             )
             .finish();
 
-        let unread_count = AgentNotificationsModel::as_ref(ctx)
-            .notifications()
-            .filtered_count(NotificationFilter::Unread);
+        // Agent notifications were removed; there is never an unread count.
+        let unread_count = 0usize;
         let mailbox_element = if unread_count > 0 {
             let indicator = Container::new(
                 ConstrainedBox::new(
