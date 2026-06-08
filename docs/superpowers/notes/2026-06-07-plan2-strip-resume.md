@@ -21,6 +21,15 @@ KEEP (terminal, not AI/cloud): SerializedBlockListItem (block-restore, Command-o
 RECONSIDER AgentToolbarItemKind (input chip toolbar — borderline; user said nuke AI so likely drop too).
 This is the DEEP CORE STRIP (god-struct AI field cascades). It is the bulk of real remaining work.
 
+### STATE: 286 resolution errors (552→286 this run, ~70 commits). PRIMARY-CLEAN (22): input, view, slash_commands/mod,
+data_source/mod, zero_state, rich_content, block_list_element, icon_with_status, slash_command_model, block_list_viewport,
+plugin_instructions_block, ssh_remote_server_choice_view, install_tmux, cli_agent_sessions/mod, zero_state_block,
+current_prompt, lib.rs, blocks/selection, warpify/success_block, undo_close/stack, user_config, +deleted markdown_toggle_view.
+RECOVERED: KeyboardNavigableButtons re-homed into ui_components (non-AI primitive) — see git fe469743^ for the deleted
+ai/blocklist UI modules if more primitives need recovery. UI-primitive REWRITE template (replace deleted render fn with
+monospace Text): used for plugin_instructions, install_tmux, warpify/success_block. REMAINING ≈286 is now ESSENTIALLY
+the 2 big coupled units below + small Phase-F server_api remnants (team 6, block 4, network_log_view 7, auth_manager 6).
+
 ### STATE: 352 resolution errors. PRIMARY-CLEAN (11): + block_list_viewport.rs (AgentViewState removed). The remaining
 work falls into 4 coherent units (no isolated quick-deletes left):
 1. CODE-REVIEW PANEL (workspace/view.rs 73 + right_panel 34): RightPanelView is woven into workspace/view.rs as a real
