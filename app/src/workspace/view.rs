@@ -4925,30 +4925,8 @@ impl Workspace {
                 target,
                 line_col,
             } => {
-                let code_source = CodeSource::FileTree {
-                    location: location.clone(),
-                };
-                match location {
-                    LocalOrRemotePath::Local(path) => {
-                        self.open_file_with_target(
-                            path.clone(),
-                            target.clone(),
-                            *line_col,
-                            code_source,
-                            ctx,
-                        );
-                    }
-                    LocalOrRemotePath::Remote(_) => {
-                        #[cfg(feature = "local_fs")]
-                        self.open_code(
-                            code_source,
-                            crate::util::openable_file_type::EditorLayout::SplitPane,
-                            None,
-                            false,
-                            &[],
-                            ctx,
-                        );
-                    }
+                if let LocalOrRemotePath::Local(path) = location {
+                    self.open_file_with_target(path.clone(), target.clone(), *line_col, ctx);
                 }
             }
             LeftPanelEvent::NewConversationInNewTab => {
@@ -4991,36 +4969,10 @@ impl Workspace {
                     self.toggle_right_panel_maximized(ctx);
                 }
 
-                self.open_file_with_target(
-                    path.clone(),
-                    target,
-                    line_col,
-                    CodeSource::Link {
-                        path,
-                        range_start: None,
-                        range_end: None,
-                    },
-                    ctx,
-                );
+                self.open_file_with_target(path.clone(), target, line_col, ctx);
             }
-            RightPanelEvent::OpenFileInNewTab {
-                path,
-                line_and_column,
-            } => match path {
-                LocalOrRemotePath::Local(path) => {
-                    self.add_tab_for_code_file(path, line_and_column, ctx);
-                }
-                path @ LocalOrRemotePath::Remote(_) => {
-                    self.open_code(
-                        CodeSource::FileTree { location: path },
-                        EditorLayout::NewTab,
-                        line_and_column,
-                        false,
-                        &[],
-                        ctx,
-                    );
-                }
-            },
+            // OpenFileInNewTab opened a built-in code pane, which has been removed.
+            RightPanelEvent::OpenFileInNewTab { .. } => {}
             #[cfg(not(target_family = "wasm"))]
             RightPanelEvent::OpenLspLogs { log_path } => {
                 self.open_lsp_logs(&log_path, ctx);
@@ -5503,11 +5455,6 @@ impl Workspace {
             path.clone(),
             target,
             None,
-            CodeSource::Link {
-                path,
-                range_start: None,
-                range_end: None,
-            },
             ctx,
         );
     }
@@ -5535,17 +5482,7 @@ impl Workspace {
                     *settings.open_file_layout,
                     None,
                 );
-                self.open_file_with_target(
-                    path.clone(),
-                    target,
-                    None,
-                    CodeSource::Link {
-                        path,
-                        range_start: None,
-                        range_end: None,
-                    },
-                    ctx,
-                );
+                self.open_file_with_target(path.clone(), target, None, ctx);
             }
             Err(e) => log::warn!("Failed to save tab config: {e:?}"),
         }
@@ -6533,186 +6470,6 @@ impl Workspace {
     }
 
     #[cfg(feature = "local_fs")]
-    fn open_code(
-        &mut self,
-        source: CodeSource,
-        layout: EditorLayout,
-        line_col: Option<LineAndColumnArg>,
-        preview: bool,
-        additional_paths: &[PathBuf],
-        ctx: &mut ViewContext<Self>,
-    ) {
-        send_telemetry_from_ctx!(
-            TelemetryEvent::CodePaneOpened {
-                source: source.clone(),
-                layout,
-                preview
-            },
-            ctx
-        );
-
-        let grouping_on = FeatureFlag::TabbedEditorView.is_enabled()
-            && *EditorSettings::as_ref(ctx)
-                .prefer_tabbed_editor_view
-                .value();
-
-        if grouping_on {
-            let code_view = self
-                .active_tab_pane_group()
-                .as_ref(ctx)
-                .code_panes(ctx)
-                .find(|(pane_id, _)| {
-                    !self
-                        .active_tab_pane_group()
-                        .as_ref(ctx)
-                        .is_pane_hidden_for_close(*pane_id)
-                });
-            // If the tabbed editor view is enabled and there is an existing CodeView, we should group the newly opened file into this view.
-            if let (Some(location), Some((pane_id, code_view))) = (source.location(), code_view) {
-                code_view.update(ctx, |code_view, ctx| {
-                    // Preview (single-click = light open, double-click = promote to
-                    // full tab) is only supported for local files because it relies
-                    // on `open_in_preview_or_promote` which takes a local `PathBuf`.
-                    // Remote files skip preview and open normally.
-                    if preview {
-                        if let Some(path) = location.to_local_path() {
-                            code_view.open_in_preview_or_promote_and_jump(
-                                path.to_path_buf(),
-                                line_col,
-                                ctx,
-                            );
-                        } else {
-                            code_view.open_or_focus_existing(Some(location.clone()), line_col, ctx);
-                        }
-                    } else {
-                        code_view.open_or_focus_existing(Some(location.clone()), line_col, ctx);
-                    }
-                    for extra in additional_paths {
-                        code_view.open_or_focus_existing(
-                            Some(LocalOrRemotePath::Local(extra.clone())),
-                            None,
-                            ctx,
-                        );
-                    }
-                });
-                // Only focus the pane for non-preview opens
-                if !preview {
-                    self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                        pane_group.focus_pane(pane_id, true, ctx);
-                    });
-                }
-                return;
-            }
-        } else {
-            // When grouping is off, avoid opening duplicate code panes for the same file in the
-            // current pane group. Instead, focus the existing pane and jump.
-            if let Some(location) = source.location() {
-                let pane_group_id = self.active_tab_pane_group().id();
-                let existing_locator = CodeManager::handle(ctx).read(ctx, |manager, _| {
-                    manager.get_locator_for_location_in_tab(pane_group_id, &location)
-                });
-
-                if let Some(locator) = existing_locator {
-                    self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                        pane_group.focus_pane_by_id(locator.pane_id, ctx);
-
-                        if let Some(code_view) =
-                            pane_group.code_view_from_pane_id(locator.pane_id, ctx)
-                        {
-                            code_view.update(ctx, |code_view, ctx| {
-                                // Preview is local-only (see comment above).
-                                if preview {
-                                    if let Some(path) = location.to_local_path() {
-                                        code_view.open_in_preview_or_promote_and_jump(
-                                            path.to_path_buf(),
-                                            line_col,
-                                            ctx,
-                                        );
-                                    } else {
-                                        code_view.open_or_focus_existing(
-                                            Some(location.clone()),
-                                            line_col,
-                                            ctx,
-                                        );
-                                    }
-                                } else {
-                                    code_view.open_or_focus_existing(
-                                        Some(location.clone()),
-                                        line_col,
-                                        ctx,
-                                    );
-                                }
-
-                                for extra in additional_paths {
-                                    code_view.open_or_focus_existing(
-                                        Some(LocalOrRemotePath::Local(extra.clone())),
-                                        None,
-                                        ctx,
-                                    );
-                                }
-                            });
-                        }
-                    });
-
-                    return;
-                }
-            }
-        }
-
-        let pane = if preview {
-            CodePane::new_preview(source, ctx)
-        } else {
-            CodePane::new(source, line_col, ctx)
-        };
-
-        match layout {
-            EditorLayout::NewTab => {
-                let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
-                let new_idx = match new_tab_placement_setting {
-                    NewTabPlacement::AfterAllTabs => self.tab_count(),
-                    // Add tab after current tab
-                    NewTabPlacement::AfterCurrentTab => self.active_tab_index + 1,
-                };
-                self.add_tab_from_existing_pane(Box::new(pane), new_idx, ctx);
-            }
-            EditorLayout::SplitPane => {
-                self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                    pane_group.add_pane_with_direction(
-                        Direction::Right,
-                        pane,
-                        !preview, /* focus_new_pane */
-                        ctx,
-                    );
-                });
-            }
-        }
-
-        // Open any additional paths as tabs in the code view we just created.
-        if !additional_paths.is_empty() {
-            let code_view_handle = self
-                .active_tab_pane_group()
-                .as_ref(ctx)
-                .code_panes(ctx)
-                .find(|(pane_id, _)| {
-                    !self
-                        .active_tab_pane_group()
-                        .as_ref(ctx)
-                        .is_pane_hidden_for_close(*pane_id)
-                })
-                .map(|(_, view)| view);
-            if let Some(code_view) = code_view_handle {
-                code_view.update(ctx, |code_view, ctx| {
-                    for path in additional_paths {
-                        code_view.open_or_focus_existing(
-                            Some(LocalOrRemotePath::Local(path.clone())),
-                            None,
-                            ctx,
-                        );
-                    }
-                });
-            }
-        }
-    }
 
 
 
@@ -8213,17 +7970,7 @@ impl Workspace {
                 target,
                 line_col,
             } => {
-                self.open_file_with_target(
-                    path.clone(),
-                    target.clone(),
-                    *line_col,
-                    CodeSource::Link {
-                        path: path.clone(),
-                        range_start: None,
-                        range_end: None,
-                    },
-                    ctx,
-                );
+                self.open_file_with_target(path.clone(), target.clone(), *line_col, ctx);
             }
         }
     }
@@ -10117,102 +9864,6 @@ impl Workspace {
         });
     }
 
-    /// Add a tab with a code pane open for the specified file.
-    pub fn add_tab_for_code_file(
-        &mut self,
-        file_path: PathBuf,
-        line_and_column: Option<LineAndColumnArg>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let source = CodeSource::Link {
-            path: file_path,
-            range_start: None,
-            range_end: None,
-        };
-        let pane = CodePane::new(source, line_and_column, ctx);
-
-        let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
-        let new_idx = match new_tab_placement_setting {
-            NewTabPlacement::AfterAllTabs => self.tab_count(),
-            NewTabPlacement::AfterCurrentTab => self.active_tab_index + 1,
-        };
-        self.add_tab_from_existing_pane(Box::new(pane), new_idx, ctx);
-    }
-
-    pub fn add_tab_for_new_code_file(&mut self, ctx: &mut ViewContext<Self>) {
-        #[cfg(feature = "local_fs")]
-        {
-            let default_directory = self
-                .active_session_view(ctx)
-                .and_then(|view| view.as_ref(ctx).pwd())
-                .map(PathBuf::from)
-                .or_else(dirs::home_dir);
-            let source = CodeSource::New { default_directory };
-
-            let layout = *EditorSettings::as_ref(ctx).open_file_layout.value();
-
-            // Check if we can add the new file to an existing code pane (when using split pane
-            // layout).
-            if layout == EditorLayout::SplitPane
-                && FeatureFlag::TabbedEditorView.is_enabled()
-                && *EditorSettings::as_ref(ctx)
-                    .prefer_tabbed_editor_view
-                    .value()
-            {
-                let code_view = self
-                    .active_tab_pane_group()
-                    .as_ref(ctx)
-                    .code_panes(ctx)
-                    .find(|(pane_id, _)| {
-                        !self
-                            .active_tab_pane_group()
-                            .as_ref(ctx)
-                            .is_pane_hidden_for_close(*pane_id)
-                    });
-
-                if let Some((pane_id, code_view)) = code_view {
-                    code_view.update(ctx, |code_view, ctx| {
-                        code_view.open_or_focus_existing(None, None, ctx);
-                    });
-                    self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                        pane_group.focus_pane(pane_id, true, ctx);
-                    });
-                    return;
-                }
-            }
-
-            let pane = CodePane::new(source, None, ctx);
-
-            match layout {
-                EditorLayout::NewTab => {
-                    let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
-                    let new_idx = match new_tab_placement_setting {
-                        NewTabPlacement::AfterAllTabs => self.tab_count(),
-                        NewTabPlacement::AfterCurrentTab => self.active_tab_index + 1,
-                    };
-                    self.add_tab_from_existing_pane(Box::new(pane), new_idx, ctx);
-                }
-                EditorLayout::SplitPane => {
-                    self.active_tab_pane_group().update(ctx, |pane_group, ctx| {
-                        pane_group.add_pane_with_direction(
-                            Direction::Right,
-                            pane,
-                            true, /* focus_new_pane */
-                            ctx,
-                        );
-                    });
-                }
-            }
-        }
-
-        #[cfg(not(feature = "local_fs"))]
-        {
-            let _ = ctx;
-            // Code file functionality is not available without local_fs feature
-            log::warn!("NewCodeFile action called but local_fs feature is not enabled");
-        }
-    }
-
     fn open_repository(&mut self, path: Option<&str>, ctx: &mut ViewContext<Self>) {
         match path {
             Some(path) => self.handle_open_repository(path, ctx),
@@ -11090,17 +10741,8 @@ impl Workspace {
             }
             SettingsViewEvent::OpenProjectRulesPane { rule_paths } => {
                 #[cfg(feature = "local_fs")]
-                if let Some((first, rest)) = rule_paths.split_first() {
-                    self.open_code(
-                        CodeSource::ProjectRules {
-                            location: LocalOrRemotePath::Local(first.clone()),
-                        },
-                        EditorLayout::SplitPane,
-                        None,
-                        false,
-                        rest,
-                        ctx,
-                    );
+                if let Some(first) = rule_paths.first() {
+                    crate::util::file::open_file_path_with_editor(None, first.clone(), None, ctx);
                 }
                 #[cfg(not(feature = "local_fs"))]
                 let _ = rule_paths;
@@ -16272,17 +15914,7 @@ impl TypedActionView for Workspace {
                         *settings.open_file_layout,
                         None,
                     );
-                    self.open_file_with_target(
-                        path.clone(),
-                        target,
-                        None,
-                        CodeSource::Link {
-                            path: path.clone(),
-                            range_start: None,
-                            range_end: None,
-                        },
-                        ctx,
-                    );
+                    self.open_file_with_target(path.clone(), target, None, ctx);
                 }
                 self.dismiss_older_toasts(toast_object_id, ctx);
             }
@@ -16323,17 +15955,7 @@ impl TypedActionView for Workspace {
                         *settings.open_file_layout,
                         None,
                     );
-                    self.open_file_with_target(
-                        path.clone(),
-                        target,
-                        None,
-                        CodeSource::Link {
-                            path: path.clone(),
-                            range_start: None,
-                            range_end: None,
-                        },
-                        ctx,
-                    );
+                    self.open_file_with_target(path.clone(), target, None, ctx);
                 }
                 self.close_new_session_dropdown_menu(ctx);
             }
@@ -16351,7 +15973,7 @@ impl TypedActionView for Workspace {
             }
             OpenSettingsFile => {
                 let path = crate::settings::user_preferences_toml_file_path();
-                self.add_tab_for_code_file(path, None, ctx);
+                crate::util::file::open_file_path_with_editor(None, path, None, ctx);
             }
             OpenNetworkLogPane => {
                 self.open_network_log_pane(ctx);
