@@ -231,7 +231,7 @@ use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::model::session::Session;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::resizable_data::{
-    ModalSizes, ModalType, ResizableData, DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH,
+    ModalSizes, ResizableData, DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH,
 };
 use crate::terminal::safe_mode_settings::SafeModeSettings;
 use crate::terminal::session_settings::{
@@ -3870,20 +3870,6 @@ impl Workspace {
             .collect::<Vec<_>>()
     }
 
-    pub(crate) fn terminal_view(
-        &self,
-        terminal_view_id: EntityId,
-        app: &AppContext,
-    ) -> Option<ViewHandle<TerminalView>> {
-        self.tabs.iter().find_map(|tab| {
-            tab.pane_group
-                .as_ref(app)
-                .terminal_views(app)
-                .into_iter()
-                .find(|terminal_view| terminal_view.id() == terminal_view_id)
-        })
-    }
-
     /// Focuses the given pane, revealing it first if it is hidden behind a
     /// temporary swap.
     pub fn focus_pane(&mut self, pane_view_locator: PaneViewLocator, ctx: &mut ViewContext<Self>) {
@@ -5536,24 +5522,7 @@ impl Workspace {
         );
     }
 
-    fn attach_path_as_context(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
-        let Some(view) = self.active_session_view(ctx) else {
-            log::warn!("No active terminal view session when trying to attach path as context");
-            return;
-        };
-
-        view.update(ctx, |terminal_view, ctx| {
-            terminal_view.attach_path_as_context(&path, ctx);
-        });
-    }
-
-
-
     #[cfg(feature = "local_fs")]
-
-
-
-
 
     pub(super) fn active_session_view(
         &self,
@@ -5743,28 +5712,6 @@ impl Workspace {
         ctx.notify();
     }
 
-    fn open_left_panel(&mut self, ctx: &mut ViewContext<Self>) {
-        self.left_panel_open = true;
-
-        let active_pane_group = self.active_tab_pane_group().clone();
-        active_pane_group.update(ctx, |pane_group, ctx| {
-            pane_group.set_left_panel_open(true, ctx);
-        });
-
-        ctx.notify();
-    }
-
-    fn close_left_panel(&mut self, ctx: &mut ViewContext<Self>) {
-        self.left_panel_open = false;
-
-        let active_pane_group = self.active_tab_pane_group().clone();
-        active_pane_group.update(ctx, |pane_group, ctx| {
-            pane_group.set_left_panel_open(false, ctx);
-        });
-
-        ctx.notify();
-    }
-
     fn toggle_vertical_tabs_panel(&mut self, ctx: &mut ViewContext<Self>) {
         self.vertical_tabs_panel_open = !self.vertical_tabs_panel_open;
         if !self.vertical_tabs_panel_open {
@@ -5779,55 +5726,6 @@ impl Workspace {
         self.vertical_tabs_panel.show_settings_popup = false;
     }
 
-
-    fn toggle_left_panel(&mut self, ctx: &mut ViewContext<Self>) {
-        let active_pane_group = self.active_tab_pane_group().clone();
-
-        let was_open = active_pane_group.read(ctx, |pane_group, _| pane_group.left_panel_open);
-        let new_state = !was_open;
-
-        if new_state {
-            self.open_left_panel(ctx);
-        } else {
-            self.close_left_panel(ctx);
-        }
-
-        // If we are opening the panel, set width based on the most recent tab's width if available,
-        // otherwise compute default width from current window size. Also auto-expand the project
-        // explorer if it's the active left panel view.
-        if new_state {
-            let window_id = ctx.window_id();
-            let resizable_data = ResizableData::handle(ctx);
-            if let Some(handle) = resizable_data
-                .as_ref(ctx)
-                .get_handle(window_id, ModalType::LeftPanelWidth)
-            {
-                if let Ok(mut state) = handle.lock() {
-                    // Get the current width from ResizableData - this reflects the most recent tab's width
-                    let current_width = state.size();
-
-                    // Only recompute default if the current width is at the default value
-                    // This preserves the width from the most recent tab
-                    if current_width == DEFAULT_LEFT_PANEL_WIDTH {
-                        let has_horizontal_split = active_pane_group
-                            .read(ctx, |pane_group, _| pane_group.has_horizontal_split());
-                        let (left_width, _right_width) =
-                            compute_default_panel_widths(ctx, window_id, has_horizontal_split);
-                        state.set_size(left_width);
-                    }
-                    // If current_width is not the default, it means we have a width from a previous tab,
-                    // so we don't need to do anything - the width is already preserved
-                }
-            }
-
-        }
-
-        if !new_state {
-            self.focus_active_tab(ctx);
-        }
-
-        ctx.notify();
-    }
 
 
     fn user_menu_items(&self, app: &AppContext) -> Vec<MenuItem<WorkspaceAction>> {
@@ -7227,25 +7125,6 @@ impl Workspace {
     /// Returns the pane group with the matching EntityId, or None if it doesn't exist.
     fn get_pane_group_view_with_id(&self, id: EntityId) -> Option<&ViewHandle<PaneGroup>> {
         self.tab_views().find(|view| view.id() == id)
-    }
-
-    // The workspace manages the close confirmation dialog, so it may need to close a pane after the user confirms in the dialog.
-    // The flow is:
-    // - User closes pane in pane group, which emits event to workspace
-    // - Workspace shows confirmation dialog, and calls back into pane group to close pane here if user confirms
-    fn close_pane(
-        &mut self,
-        pane_group_id: EntityId,
-        pane_id: PaneId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let Some(pane_group_view) = self.get_pane_group_view_with_id(pane_group_id) else {
-            log::error!("Could not close pane because pane group doesn't exist");
-            return;
-        };
-        pane_group_view.update(ctx, |pane_group, ctx| {
-            pane_group.close_pane(pane_id, ctx);
-        });
     }
 
     fn handle_close_session_confirmation_dialog_event(

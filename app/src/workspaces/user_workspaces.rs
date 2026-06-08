@@ -9,10 +9,10 @@ use super::team::{DiscoverableTeam, Team};
 #[cfg(test)]
 use super::workspace::WorkspaceMemberUsageInfo;
 use super::workspace::{
-    AdminEnablementSetting, CustomerType, EnterpriseSecretRegex,
+    AdminEnablementSetting, EnterpriseSecretRegex,
     UgcCollectionEnablementSetting, Workspace, WorkspaceUid,
 };
-use crate::auth::{AuthStateProvider, UserUid};
+use crate::auth::UserUid;
 use crate::channel::ChannelState;
 use crate::pricing::PricingInfoModel;
 use crate::report_error;
@@ -29,7 +29,6 @@ use crate::settings::{
 use crate::workspaces::workspace::{
     AIAutonomyPolicy, BillingMetadata, WorkspaceMember, WorkspaceSettings,
 };
-use crate::workspaces::workspace::UsageBasedPricingSettings;
 
 const STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX: &str = "/upgrade";
 
@@ -165,17 +164,6 @@ impl UserWorkspaces {
         self.workspaces.iter().find(|w| w.uid == workspace_uid)
     }
 
-    pub fn workspace_from_uid_mut(
-        &mut self,
-        workspace_uid: WorkspaceUid,
-    ) -> Option<&mut Workspace> {
-        self.workspaces.iter_mut().find(|w| w.uid == workspace_uid)
-    }
-
-
-
-
-
     /// Return the uid of user's current team (if any) without refreshing.
     pub fn current_team_uid(&self) -> Option<ServerId> {
         self.current_team().map(|t| t.uid)
@@ -199,11 +187,6 @@ impl UserWorkspaces {
             .and_then(|workspace_uid| self.workspace_from_uid(workspace_uid))
     }
 
-    pub fn current_workspace_mut(&mut self) -> Option<&mut Workspace> {
-        self.current_workspace_uid
-            .and_then(|workspace_uid| self.workspace_from_uid_mut(workspace_uid))
-    }
-
     pub fn workspaces(&self) -> &Vec<Workspace> {
         &self.workspaces
     }
@@ -215,38 +198,6 @@ impl UserWorkspaces {
     ) {
         *self.current_workspace_uid = Some(workspace_uid);
         self.notify_and_emit_teams_changed(ctx);
-    }
-
-    /// Returns `true` if active AI is allowed for the current workspace, based on billing config.
-    ///
-    /// In the future, we should store active AI enablement on the policy directly. For now, we
-    /// proxy whether active AI by checking whether any active AI feature is enabled.
-    pub fn is_active_ai_allowed(&self) -> bool {
-        self.current_team().is_none_or(|team| {
-            team.billing_metadata
-                .tier
-                .warp_ai_policy
-                .is_none_or(|policy| {
-                    policy.is_prompt_suggestions_toggleable
-                        || policy.is_next_command_enabled
-                        || policy.is_code_suggestions_toggleable
-                        || policy.is_git_operations_ai_enabled
-                })
-        })
-    }
-
-    /// Returns `true` if the current team's enterprise status allows AI features that have an
-    /// enterprise gate. Non-enterprise teams always pass; enterprise teams pass only if they
-    /// are on the Warp Plan or the build is dogfood (both our internal Warp team and dogfood
-    /// team are billed as enterprise).
-    pub fn ai_allowed_for_current_team(&self) -> bool {
-        !self
-            .current_team()
-            .is_some_and(|team| team.billing_metadata.customer_type == CustomerType::Enterprise)
-            || self
-                .current_team()
-                .is_some_and(|team| team.billing_metadata.is_warp_plan())
-            || ChannelState::channel().is_dogfood()
     }
 
     /// Whether Prompt Suggestions should be toggleable for the current user, based on the active policies.
@@ -262,19 +213,6 @@ impl UserWorkspaces {
             })
     }
 
-    /// Whether Code Suggestions should be toggleable for the current user, based on the active policies.
-    /// Note that the value may be incorrect if called before the team's billing metadata has been fetched.
-    pub fn is_code_suggestions_toggleable(&self) -> bool {
-        self.current_team()
-            // If the user has no team, they can toggle code suggestions (no restrictions).
-            .is_none_or(|team| {
-                team.billing_metadata
-                    .tier
-                    .warp_ai_policy
-                    .is_some_and(|policy| policy.is_code_suggestions_toggleable)
-            })
-    }
-
     /// Whether Next Command should be toggleable for the current user, based on the active policies.
     /// Note that the value may be incorrect if called before the team's billing metadata has been fetched.
     pub fn is_next_command_enabled(&self) -> bool {
@@ -285,19 +223,6 @@ impl UserWorkspaces {
                     .tier
                     .warp_ai_policy
                     .is_some_and(|policy| policy.is_next_command_enabled)
-            })
-    }
-
-    /// Whether Git Operations AI is enabled for the current user, based on the active policies.
-    /// Note that the value may be incorrect if called before the team's billing metadata has been fetched.
-    pub fn is_git_operations_ai_enabled(&self) -> bool {
-        self.current_team()
-            // If the user has no team, they can toggle Git Operations AI (no restrictions).
-            .is_none_or(|team| {
-                team.billing_metadata
-                    .tier
-                    .warp_ai_policy
-                    .is_some_and(|policy| policy.is_git_operations_ai_enabled)
             })
     }
 
@@ -315,55 +240,6 @@ impl UserWorkspaces {
                         .warp_ai_policy
                         .is_some_and(|policy| policy.is_voice_enabled)
                 })
-    }
-
-    /// Whether BYO API key is enabled for the current user, based on the active policies.
-    /// Note that the value may be incorrect if called before the team's billing metadata has been fetched.
-    /// For solo users (no workspace), this is controlled by the `SoloUserByok` feature flag.
-    /// Anonymous or logged-out users are not allowed to use BYO API keys.
-    pub fn is_byo_api_key_enabled(&self, app: &AppContext) -> bool {
-        if AuthStateProvider::as_ref(app)
-            .get()
-            .is_anonymous_or_logged_out()
-        {
-            return false;
-        }
-        self.current_workspace()
-            .map(|workspace| workspace.is_byo_api_key_enabled())
-            .unwrap_or(FeatureFlag::SoloUserByok.is_enabled())
-    }
-    /// Whether custom inference endpoints are enabled for the current user.
-    /// Anonymous or logged-out users are not allowed to use custom inference.
-    /// Enterprise workspaces require the enterprise custom inference flag, Warp Plan, or dogfood.
-    pub fn is_custom_inference_enabled(&self, app: &AppContext) -> bool {
-        if AuthStateProvider::as_ref(app)
-            .get()
-            .is_anonymous_or_logged_out()
-        {
-            return false;
-        }
-
-        self.current_workspace()
-            .map(|workspace| {
-                workspace.billing_metadata.customer_type != CustomerType::Enterprise
-                    || FeatureFlag::CustomInferenceEndpointsEnterprise.is_enabled()
-                    || ChannelState::channel().is_dogfood()
-            })
-            .unwrap_or(true)
-    }
-
-
-
-    pub fn has_teams(&self) -> bool {
-        if let Some(workspace) = self.current_workspace() {
-            !workspace.teams.is_empty()
-        } else {
-            false
-        }
-    }
-
-    pub fn has_workspaces(&self) -> bool {
-        !self.workspaces.is_empty()
     }
 
     pub fn update_workspaces(&mut self, workspaces: Vec<Workspace>, ctx: &mut ModelContext<Self>) {
@@ -566,12 +442,6 @@ impl UserWorkspaces {
         );
     }
 
-    pub fn usage_based_pricing_settings(&self) -> UsageBasedPricingSettings {
-        self.current_workspace()
-            .map(|workspace| workspace.settings.usage_based_pricing_settings.clone())
-            .unwrap_or_default()
-    }
-
     pub fn is_telemetry_force_enabled(&self) -> bool {
         self.current_team()
             .map(|team| team.organization_settings.telemetry_settings.force_enabled)
@@ -617,26 +487,6 @@ impl UserWorkspaces {
             .unwrap_or_default()
     }
 
-    pub fn is_anyone_with_link_sharing_enabled(&self) -> bool {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .link_sharing_settings
-                    .anyone_with_link_sharing_enabled
-            })
-            .unwrap_or(true)
-    }
-
-    pub fn is_direct_link_sharing_enabled(&self) -> bool {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .link_sharing_settings
-                    .direct_link_sharing_enabled
-            })
-            .unwrap_or(true)
-    }
-
     /// Returns the codebase context settings, taking into account the organization,
     /// global AI settings, and codebase-specific settings.
     /// Prefer this function to determine whether to show indexing-related functionality.
@@ -660,16 +510,6 @@ impl UserWorkspaces {
     pub fn default_host_slug(&self) -> Option<&str> {
         self.current_team()
             .and_then(|team| team.organization_settings.default_host_slug.as_deref())
-    }
-
-    /// Returns the team-level agent attribution setting.
-    ///
-    /// Use this to decide whether the user's attribution toggle should be locked
-    /// (`Enable`/`Disable`) or editable (`RespectUserSetting`).
-    pub fn get_agent_attribution_setting(&self) -> AdminEnablementSetting {
-        self.current_team()
-            .map(|team| team.organization_settings.enable_warp_attribution.clone())
-            .unwrap_or_default()
     }
 
     /// Returns only the organization-specific codebase context enablement setting.

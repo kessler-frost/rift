@@ -7,7 +7,6 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::context_flag::ContextFlag;
-use rift_core::telemetry::TelemetryEvent as _;
 use rift_core::ui::color::blend::Blend;
 use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::{AnsiColorIdentifier, Fill as WarpThemeFill, WarpTheme};
@@ -64,7 +63,7 @@ use crate::workspace::{
     PaneViewLocator, TabBarLocation, TabContextMenuAnchor, VerticalTabsPaneContextMenuTarget,
     VerticalTabsPaneDropTargetData, Workspace,
 };
-use crate::{send_telemetry_from_app_ctx, FeatureFlag};
+use crate::FeatureFlag;
 
 const PANEL_WIDTH: f32 = 248.;
 const MIN_PANEL_WIDTH: f32 = 200.;

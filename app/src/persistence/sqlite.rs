@@ -48,7 +48,7 @@ use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::UserUid;
 use crate::persistence::block_list::get_all_restored_blocks;
 use crate::persistence::model::{
-    NewTeamSettings, ProjectRules, UserProfile, GET_STARTED_PANE_KIND,
+    NewTeamSettings, UserProfile, GET_STARTED_PANE_KIND,
 };
 use crate::server::experiments::ServerExperiment;
 use crate::server::ids::ServerId;
