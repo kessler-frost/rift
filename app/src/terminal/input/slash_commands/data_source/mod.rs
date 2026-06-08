@@ -3,14 +3,10 @@ mod zero_state;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use ai::skills::SkillProvider;
 use fuzzy_match::FuzzyMatchResult;
 use ordered_float::OrderedFloat;
-#[cfg(not(target_family = "wasm"))]
-use rift_cli::agent::Harness;
 use rift_core::features::FeatureFlag;
 use rift_core::ui::appearance::Appearance;
-use rift_core::ui::Icon as WarpIcon;
 use riftui::fonts::FamilyId;
 use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 pub use zero_state::*;

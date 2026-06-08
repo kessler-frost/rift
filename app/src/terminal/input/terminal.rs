@@ -11,10 +11,9 @@ use super::common::{
     should_show_terminal_input_message_bar,
     wrap_input_with_terminal_padding_and_focus_handler,
 };
-use super::{Input, InputAction, InputDropTargetData};
+use super::{Input, InputDropTargetData};
 use crate::appearance::Appearance;
 use crate::context_chips::spacing;
-use crate::features::FeatureFlag;
 use crate::settings::{AppEditorSettings, InputModeSettings};
 use crate::terminal::block_list_settings::BlockListSettings;
 use crate::terminal::block_list_viewport::InputMode;

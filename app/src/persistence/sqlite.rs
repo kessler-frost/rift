@@ -1,15 +1,14 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use std::convert::TryInto;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::mpsc::SyncSender;
-use std::sync::{Arc, Once};
+use std::sync::Once;
 use std::{fs, thread};
 
 use ai::project_context::model::ProjectRulePath;
 use anyhow::{anyhow, bail, Context, Result};
-use chrono::Utc;
 use diesel::connection::{DefaultLoadingMode, SimpleConnection};
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;
@@ -28,11 +27,10 @@ use pathfinder_geometry::vector::Vector2F;
 use riftui::platform::FullscreenState;
 use riftui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
 use riftui::{AppContext, SingletonEntity};
-use uuid::Uuid;
 
 use super::block_list::{delete_blocks, save_block};
 use super::model::{
-    self, ActiveMCPServer, CurrentUserInformation, MCPEnvironmentVariables, NewActiveMCPServer,
+    self, ActiveMCPServer, CurrentUserInformation, MCPEnvironmentVariables,
     NewApp, NewCommand, NewServerExperiment, NewTab, NewTeam, NewWindow, NewWorkspace,
     NewWorkspaceMetadata, NewWorkspaceTeam, Project, Tab, Window,
     WorkspaceMetadata as WorkspaceMetadataModel, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
@@ -54,8 +52,7 @@ use crate::persistence::model::{
     NewTeamSettings, ProjectRules, UserProfile, GET_STARTED_PANE_KIND,
 };
 use crate::server::experiments::ServerExperiment;
-use crate::server::ids::{ClientId, HashableId, ServerId, SyncId};
-use crate::server::telemetry::TelemetryEvent;
+use crate::server::ids::ServerId;
 use crate::settings_view::SettingsSection;
 use crate::suggestions::ignored_suggestions_model::SuggestionType;
 use crate::tab::SelectedTabColor;
@@ -116,7 +113,7 @@ pub fn initialize(
 
 fn read_persisted_data(
     conn: &mut SqliteConnection,
-    ctx: &mut AppContext,
+    _ctx: &mut AppContext,
 ) -> Option<Box<PersistedData>> {
     match read_sqlite_data(conn) {
         Ok(app_state) => Some(Box::new(app_state)),

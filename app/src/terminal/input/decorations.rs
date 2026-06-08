@@ -7,7 +7,6 @@ use std::ops::Range;
 pub use rift_completer::completer::SuggestionTypeName;
 pub use rift_completer::util::parse_current_commands_and_tokens;
 pub use rift_completer::{ParsedTokenData, ParsedTokensSnapshot};
-use rift_core::features::FeatureFlag;
 use riftui::{AppContext, SingletonEntity, ViewContext};
 use settings::Setting as _;
 use string_offset::{ByteOffset, CharOffset};

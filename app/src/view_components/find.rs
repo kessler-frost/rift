@@ -23,7 +23,6 @@ use crate::editor::{
     TextOptions,
 };
 use crate::send_telemetry_from_ctx;
-use crate::server::telemetry::{FindOption, TelemetryEvent};
 use crate::settings::InputModeSettings;
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;

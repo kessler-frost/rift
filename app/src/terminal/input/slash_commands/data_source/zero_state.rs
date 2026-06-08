@@ -1,12 +1,10 @@
 use itertools::Itertools;
-use rift_core::features::FeatureFlag;
 use riftui::{Entity, ModelHandle, SingletonEntity};
 
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::search::SyncDataSource;
-use crate::settings::AISettings;
 use crate::terminal::input::slash_commands::{
     AcceptSlashCommandOrSavedPrompt, InlineItem, SlashCommandDataSource,
 };

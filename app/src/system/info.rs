@@ -187,7 +187,7 @@ impl SystemInfo {
         }
 
         // Collect a detailed memory breakdown for diagnostics.
-        let memory_breakdown = memory_footprint::memory_breakdown();
+        let _memory_breakdown = memory_footprint::memory_breakdown();
 
         // If we're tracking heap usage and detect excessive memory usage,
         // dump and upload the current heap profiling data.
@@ -202,7 +202,7 @@ impl SystemInfo {
 
         // Send a telemetry event indicating that memory usage is extreme.
         // Report RSS here to keep Rudderstack dashboards consistent.
-        let total_application_usage_bytes = rss.as_u64();
+        let _total_application_usage_bytes = rss.as_u64();
         send_telemetry_sync_from_ctx!(
             TelemetryEvent::MemoryUsageHigh {
                 total_application_usage_bytes,
@@ -334,8 +334,8 @@ impl ResourceUsageReporter {
         samples: impl Iterator<Item = &'a Sample>,
         ctx: &mut AppContext,
     ) {
-        let cpu_usage_stats = Self::compute_cpu_usage_stats(samples);
-        let memory_usage_stats = Self::compute_memory_usage_stats(total_application_usage, ctx);
+        let _cpu_usage_stats = Self::compute_cpu_usage_stats(samples);
+        let _memory_usage_stats = Self::compute_memory_usage_stats(total_application_usage, ctx);
 
         // We send two different events at the moment, as one contains general
         // resource usage information, and one contains more detailed info

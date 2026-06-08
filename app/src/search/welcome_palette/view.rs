@@ -226,7 +226,7 @@ impl WelcomePalette {
                 .with_allowed_kinds(AllowedSessionKinds::tabs_only())
         });
 
-        let mixer = ctx.add_model(|ctx| {
+        let mixer = ctx.add_model(|_ctx| {
             let mut mixer = CommandPaletteMixer::new();
             mixer.add_sync_source(actions_data_source.clone(), HashSet::new());
             mixer.add_sync_source(project_data_source.clone(), HashSet::new());
@@ -540,7 +540,7 @@ impl WelcomePalette {
     fn close(&mut self, ctx: &mut ViewContext<Self>, accepted_action_type: Option<&'static str>) {
         let buffer_length = self.search_bar.as_ref(ctx).query(ctx).len();
         let filter = self.active_query_filter(ctx);
-        let event = if let Some(result_type) = accepted_action_type {
+        let _event = if let Some(result_type) = accepted_action_type {
             TelemetryEvent::PaletteSearchResultAccepted {
                 result_type,
                 filter,

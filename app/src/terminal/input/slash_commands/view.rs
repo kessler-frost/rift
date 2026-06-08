@@ -6,7 +6,7 @@ use riftui::elements::ChildView;
 use riftui::{AppContext, Element, Entity, ModelHandle, View, ViewContext, ViewHandle};
 
 use crate::search::data_source::{Query, QueryFilter};
-use crate::search::mixer::{AddAsyncSourceOptions, SearchMixer};
+use crate::search::mixer::SearchMixer;
 use crate::search::slash_command_menu::SlashCommandId;
 use crate::server::ids::SyncId;
 use crate::terminal::input::buffer_model::InputBufferModel;

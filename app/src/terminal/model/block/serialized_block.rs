@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 
 use chrono::{DateTime, Local, TimeZone as _};
 use rift_core::command::ExitCode;

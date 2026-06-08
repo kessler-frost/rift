@@ -25,7 +25,6 @@ use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 use crate::workspaces::user_workspaces::UserWorkspaces;
-use crate::TelemetryEvent;
 
 const BUTTON_DIAMETER: f32 = 20.;
 const MODAL_HEIGHT: f32 = 440.;

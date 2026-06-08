@@ -10,7 +10,7 @@ use crate::server::telemetry::CloseTarget;
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::terminal::general_settings::GeneralSettings;
 use crate::workspace::Workspace;
-use crate::{report_if_error, send_telemetry_from_app_ctx, TelemetryEvent};
+use crate::{report_if_error, send_telemetry_from_app_ctx};
 
 /// Scope of what's being quit/closed.
 #[derive(Clone)]

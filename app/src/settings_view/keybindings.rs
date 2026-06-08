@@ -33,7 +33,7 @@ use crate::util::bindings::{
     filter_bindings_including_keystroke, reset_keybinding_to_default, set_custom_keybinding,
     CommandBinding,
 };
-use crate::{send_telemetry_from_ctx, themes, TelemetryEvent};
+use crate::{send_telemetry_from_ctx, themes};
 
 const FONT_DELTA: f32 = 2.;
 const CANCEL_SAVE_BUTTONS_SPACING: f32 = 4.0;

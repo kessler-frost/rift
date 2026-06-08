@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use regex::Regex;
 use rift_core::features::FeatureFlag;
 use rift_core::settings::{ChangeEventReason, Setting};
 use rift_graphql::workspace::FeatureModelChoice;
@@ -11,7 +10,7 @@ use super::team::{DiscoverableTeam, MembershipRole, Team};
 #[cfg(test)]
 use super::workspace::WorkspaceMemberUsageInfo;
 use super::workspace::{
-    AdminEnablementSetting, CustomerType, EnterpriseSecretRegex, HostEnablementSetting,
+    AdminEnablementSetting, CustomerType, EnterpriseSecretRegex,
     UgcCollectionEnablementSetting, Workspace, WorkspaceUid,
 };
 use crate::auth::{AuthStateProvider, UserUid};

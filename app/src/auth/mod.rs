@@ -14,27 +14,21 @@ pub use rift_server_auth::{auth_state, credentials, user, user_uid};
 #[cfg(target_family = "wasm")]
 pub mod web_handoff;
 
-use ::settings::{Setting, SettingsManager, ToggleableSetting};
+use ::settings::{Setting, ToggleableSetting};
 use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
 pub use auth_manager::AuthManager;
 pub use auth_state::AuthStateProvider;
 use itertools::Itertools;
 pub use login_failure_notification::LoginFailureReason;
-use rift_core::user_preferences::GetUserPreferences as _;
 use riftui::modals::{AlertDialogWithCallbacks, ModalButton};
 use riftui::{AppContext, SingletonEntity};
 pub use user_uid::UserUid;
 
 use crate::palette::PaletteMode;
-use crate::server::telemetry::{PaletteSource, TelemetryEvent};
+use crate::server::telemetry::PaletteSource;
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
-use crate::settings::{
-    PrivacySettings, CRASH_REPORTING_ENABLED_DEFAULTS_KEY,
-    TELEMETRY_ENABLED_DEFAULTS_KEY,
-};
 use crate::terminal::general_settings::GeneralSettings;
 use crate::workspace::{Workspace, WorkspaceAction};
-use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::{
     focus_running_window_and_show_native_modal, persistence, report_if_error,
     send_telemetry_sync_from_app_ctx, GlobalResourceHandlesProvider,
@@ -151,7 +145,7 @@ pub fn maybe_log_out(app: &mut AppContext) {
             ));
         }
 
-        button_data.push(ModalButton::for_app("Cancel", move |ctx| {
+        button_data.push(ModalButton::for_app("Cancel", move |_ctx| {
             send_telemetry_sync_from_app_ctx!(
                 TelemetryEvent::LogOutModalCancel { nav_palette: false },
                 ctx

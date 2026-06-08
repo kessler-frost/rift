@@ -12,7 +12,6 @@ use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::context_flag::ContextFlag;
 use rift_core::telemetry::TelemetryEvent as _;
 use rift_core::ui::color::blend::Blend;
-use rift_core::ui::color::coloru_with_opacity;
 use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::{AnsiColorIdentifier, Fill as WarpThemeFill, WarpTheme};
 use rift_core::ui::Icon as WarpIcon;
@@ -64,9 +63,7 @@ use crate::workspace::tab_settings::{
     TabSettings, VerticalTabsCompactSubtitle, VerticalTabsDisplayGranularity,
     VerticalTabsPrimaryInfo, VerticalTabsTabItemMode, VerticalTabsViewMode,
 };
-use crate::workspace::view::vertical_tabs::telemetry::{
-    VerticalTabsChipEntrypoint, VerticalTabsTelemetryEvent,
-};
+use crate::workspace::view::vertical_tabs::telemetry::VerticalTabsChipEntrypoint;
 use crate::workspace::{
     PaneViewLocator, TabBarLocation, TabContextMenuAnchor, VerticalTabsPaneContextMenuTarget,
     VerticalTabsPaneDropTargetData, Workspace,
@@ -2953,7 +2950,7 @@ enum TypedPane<'a> {
 }
 
 impl TypedPane<'_> {
-    fn summary_pane_kind(&self, title: &str, app: &AppContext) -> SummaryPaneKind {
+    fn summary_pane_kind(&self, _title: &str, app: &AppContext) -> SummaryPaneKind {
         match self {
             TypedPane::Terminal(terminal_pane) => {
                 let terminal_view = terminal_pane.terminal_view(app);
@@ -2986,7 +2983,7 @@ impl TypedPane<'_> {
         }
     }
 
-    fn badge(&self, app: &AppContext) -> Option<String> {
+    fn badge(&self, _app: &AppContext) -> Option<String> {
         match self {
             TypedPane::Terminal(_)
             | TypedPane::Settings
@@ -3044,7 +3041,7 @@ fn build_vertical_tabs_summary_data(
     let mut working_directories = Vec::new();
     let mut working_directory_seen = HashMap::new();
     let mut branch_entries = Vec::new();
-    let mut has_unread_activity = false;
+    let has_unread_activity = false;
 
     for pane_id in visible_pane_ids {
         let Some(pane) = pane_group.pane_by_id(*pane_id) else {
@@ -3053,7 +3050,7 @@ fn build_vertical_tabs_summary_data(
         let pane_configuration = pane.pane_configuration();
         let pane_configuration = pane_configuration.as_ref(app);
         let typed = pane_group.resolve_pane_type(*pane_id, app);
-        let (pane_title, pane_subtitle) = pane_display_title_and_subtitle(
+        let (pane_title, _pane_subtitle) = pane_display_title_and_subtitle(
             &typed,
             pane_configuration.title().trim(),
             pane_configuration.title_secondary().trim(),
@@ -4529,7 +4526,7 @@ fn render_terminal_diff_stats_badge(
     git_line_changes: &GitLineChanges,
     pane_group_id: EntityId,
     pane_id: PaneId,
-    entrypoint: VerticalTabsChipEntrypoint,
+    _entrypoint: VerticalTabsChipEntrypoint,
     mouse_state: MouseStateHandle,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -4546,7 +4543,7 @@ fn render_terminal_diff_stats_badge(
             bg,
         )
     })
-    .on_click(move |ctx, app, _| {
+    .on_click(move |ctx, _app, _| {
         send_telemetry_from_app_ctx!(
             VerticalTabsTelemetryEvent::DiffStatsChipClicked { entrypoint },
             app
@@ -4564,7 +4561,7 @@ fn render_terminal_diff_stats_badge(
 fn render_terminal_pull_request_badge(
     label: String,
     url: String,
-    entrypoint: VerticalTabsChipEntrypoint,
+    _entrypoint: VerticalTabsChipEntrypoint,
     mouse_state: MouseStateHandle,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -4578,7 +4575,7 @@ fn render_terminal_pull_request_badge(
         };
         render_badge_container(render_pull_request_badge_content(&label, appearance), bg)
     })
-    .on_click(move |ctx, app, _| {
+    .on_click(move |ctx, _app, _| {
         send_telemetry_from_app_ctx!(
             VerticalTabsTelemetryEvent::PrChipClicked { entrypoint },
             app
@@ -4601,7 +4598,7 @@ fn render_passive_terminal_pull_request_badge(
 
 fn render_compact_non_terminal_title(
     title: &str,
-    typed: &TypedPane<'_>,
+    _typed: &TypedPane<'_>,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
@@ -5816,7 +5813,7 @@ fn render_terminal_detail_section(
     let text_colors = detail_sidecar_text_colors(theme);
     let working_directory = resolved_terminal_working_directory(terminal_view, app);
     let git_branch = terminal_view.current_git_branch(app);
-    let cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
+    let _cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
     let agent_text = terminal_agent_text(terminal_view, app);
     let (conversation_display_title, cli_agent_title) =
         preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));

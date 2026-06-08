@@ -5,10 +5,8 @@ mod bookmarks;
 mod context_menu;
 pub mod init;
 pub mod inline_banner;
-use onboarding::callout::{FinalState, OnboardingCalloutViewEvent, OnboardingQuery};
-use onboarding::{OnboardingCalloutView, OnboardingKeybindings};
+use onboarding::OnboardingKeybindings;
 
-use crate::global_resource_handles::GlobalResourceHandlesProvider;
 mod link_detection;
 mod open_in_warp;
 mod pane_impl;
@@ -43,7 +41,6 @@ use std::time::Duration;
 
 use action::RememberForWarpification;
 pub use action::{AgentOnboardingVersion, OnboardingIntention, OnboardingVersion, TerminalAction};
-use ai::api_keys::{ApiKeyManager, AwsCredentialsState};
 use ai::index::full_source_code_embedding::manager::{BuildSource, CodebaseIndexManager};
 use async_channel::{Receiver, Sender};
 use base64::Engine as _;
@@ -99,9 +96,9 @@ use riftui::elements::new_scrollable::{
 };
 use riftui::elements::shimmering_text::ShimmeringTextStateHandle;
 use riftui::elements::{
-    get_rich_content_position_id, Align, Border, ChildAnchor, ChildView, Clipped,
+    get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped,
     ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Expanded, Fill, Flex,
+    DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Fill, Flex,
     Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
     Radius, Rect, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth,
@@ -115,7 +112,7 @@ use riftui::keymap::Keystroke;
 use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
 use riftui::platform::{Cursor, OperatingSystem};
 use riftui::r#async::executor::Background;
-use riftui::r#async::{SpawnedFutureHandle, Timer};
+use riftui::r#async::Timer;
 use riftui::text::SelectionType;
 use riftui::ui_components::components::UiComponent;
 use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
@@ -127,19 +124,9 @@ use riftui::{
     ViewHandle, WeakModelHandle, WeakViewHandle, WindowId,
 };
 use serde::Serialize;
-use serde_json::json;
-use session_sharing_protocol::common::{
-    AgentAttachment, LongRunningCommandAgentInteractionState, ParticipantId, Role, RoleRequestId,
-    RoleRequestResponse, ServerConversationToken as SessionSharingServerConversationToken,
-    WindowSize as SessionSharingWindowSize,
-};
-use session_sharing_protocol::sharer::{
-    RoleUpdateReason, SessionEndedReason, SessionRetentionReason,
-};
 use settings::{Setting, ToggleableSetting};
 use ssh_file_upload::{FileUpload, FileUploadEvent};
 use sum_tree::SeekBias;
-use uuid::Uuid;
 use vec1::vec1;
 
 use self::link_detection::HighlightedLinkOption;
@@ -149,10 +136,7 @@ use super::block_list_viewport::FindMatchScrollLocation;
 use super::event::SshLoginStatus;
 use super::find::FindOptions;
 use super::model::ansi::{SystemDetails, WarpificationUnavailableReason};
-use super::model::block::{
-    BlockSection, BlocklistEnvVarMetadata, LONG_RUNNING_COMMAND_DURATION_MS,
-};
-use super::model::blocks::RichContentItem;
+use super::model::block::BlockSection;
 use super::model::completions::ShellCompletion;
 use super::model::rich_content::RichContentType;
 use super::model::secrets::RichContentSecretTooltipInfo;
@@ -178,13 +162,13 @@ use super::ssh::SSH_WARPIFY_TIMEOUT_DURATION;
 use super::warpify::success_block::{WarpifySuccessBlock, WarpifySuccessBlockEvent};
 use super::warpify::trigger_state::{SshBlockState, WarpifyState};
 use super::warpify::WarpificationSource;
-use super::{cli_agent, CLIAgent, GridType, HistoryEvent};
+use super::{cli_agent, CLIAgent, GridType};
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
 use crate::auth::auth_view_modal::AuthViewVariant;
-use crate::auth::{AuthStateProvider, UserUid};
+use crate::auth::AuthStateProvider;
 use crate::autoupdate::{self, get_update_state, AutoupdateStage};
 use crate::banner::{
     Banner, BannerAction, BannerEvent, BannerState, BannerTextButton, BannerTextContent,
@@ -195,31 +179,26 @@ use crate::context_chips::prompt::Prompt;
 use crate::context_chips::prompt::PromptSelection;
 use crate::context_chips::prompt_type::PromptType;
 use crate::context_chips::ContextChipKind;
-use crate::editor::{AutosuggestionType, CrdtOperation, EditorAction};
+use crate::editor::{AutosuggestionType, EditorAction};
 use crate::features::FeatureFlag;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::{
-    PaneConfiguration, PaneEvent, PaneGroupAction, PaneHeaderAction,
+    PaneConfiguration, PaneEvent, PaneGroupAction,
     SplitPaneState, TerminalViewResources,
 };
 use crate::persistence::{self, FinishedCommandMetadata};
-use crate::projects::ProjectManagementModel;
 use crate::remote_server::manager::{
-    RemoteServerInitPhase, RemoteServerManager, RemoteServerManagerEvent,
+    RemoteServerManager, RemoteServerManagerEvent,
 };
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
-use crate::search::slash_command_menu::static_commands::commands;
-use crate::server::ids::{ObjectUid, SyncId};
+use crate::server::ids::SyncId;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
-    self, AgentModeAttachContextMethod, AgentModeEntrypoint, AgentModeRewindEntrypoint,
-    AnonymousUserSignupEntrypoint, BlockLatencyInfo, BootstrappingInfo,
-    CommandCorrectionAcceptedType, CommandCorrectionEvent, InteractionSource, LinkOpenMethod,
-    NotificationsTurnedOnSource, PaletteSource, PromptSuggestionViewType,
-    SaveAsWorkflowModalSource, SecretInteraction, SharingDialogSource, SlowBootstrapInfo,
+    self, BlockLatencyInfo, LinkOpenMethod,
+    SaveAsWorkflowModalSource,
     TelemetryEvent, ToggleBlockFilterSource, 
 };
 use crate::session_management::{CommandContext, SessionNavigationPromptElements};
@@ -228,8 +207,8 @@ use crate::settings::ai::FocusedTerminalInfo;
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::import::view::{SettingsImportEvent, SettingsImportView};
 use crate::settings::{
-    AISettings, AISettingsChangedEvent, AliasExpansionSettings, AppEditorSettings,
-    BlockVisibilitySettings, BlockVisibilitySettingsChangedEvent, CodeSettings, DebugSettings,
+    AISettings, AliasExpansionSettings, AppEditorSettings,
+    BlockVisibilitySettings, BlockVisibilitySettingsChangedEvent, DebugSettings,
     DebugSettingsChangedEvent, EmacsBindingsSettings, FontSettings, FontSettingsChangedEvent,
     InputModeSettings, InputModeSettingsChangedEvent, InputSettings, PaneSettings,
     PaneSettingsChangedEvent, PrivacySettings, PrivacySettingsChangedEvent,
@@ -261,11 +240,9 @@ use crate::terminal::cli_agent_sessions::event::{
 };
 use crate::terminal::cli_agent_sessions::listener::{is_agent_supported, CLIAgentSessionListener};
 #[cfg(not(target_family = "wasm"))]
-use crate::terminal::cli_agent_sessions::plugin_manager::{plugin_manager_for, PluginModalKind};
+use crate::terminal::cli_agent_sessions::plugin_manager::plugin_manager_for;
 use crate::terminal::cli_agent_sessions::{
-    CLIAgentInputEntrypoint, CLIAgentInputState, CLIAgentRichInputCloseReason, CLIAgentSession,
-    CLIAgentSessionContext, CLIAgentSessionStatus, CLIAgentSessionsModel,
-    CLIAgentSessionsModelEvent,
+    CLIAgentInputState, CLIAgentSessionsModel,
 };
 use crate::terminal::color::List;
 use crate::terminal::command_corrections_denylist::COMMAND_CORRECTIONS_PREFERRED_DENYLIST;
@@ -279,7 +256,7 @@ use crate::terminal::grid_size_util::grid_cell_dimensions;
 use crate::terminal::input::decorations::InputBackgroundJobOptions;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
 use crate::terminal::input::{
-    CommandExecutionSource, InputAction, InputEmptyStateChangeReason, InputState, MenuPositioning,
+    CommandExecutionSource, InputAction, InputState, MenuPositioning,
     MenuPositioningProvider,
 };
 use crate::terminal::keys::TerminalKeybindings;
@@ -298,8 +275,7 @@ use crate::terminal::model::block::{
 };
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::model::blocks::{
-    BlockFilter, BlockHeight, BlockHeightItem, BlockHeightSummary, BlockList, BlockListPoint, Gap,
-    RemovableBlocklistItem,
+    BlockHeight, BlockHeightSummary, BlockList, BlockListPoint, Gap,
 };
 use crate::terminal::model::escape_sequences::{self, EscCodes, ToEscapeSequence, C1};
 use crate::terminal::model::grid::grid_handler::{FragmentBoundary, TermMode};
@@ -338,7 +314,6 @@ use crate::terminal::view::ssh_remote_server_choice_view::{
 use crate::terminal::view::ssh_remote_server_failed_banner::{
     SshRemoteServerFailedBanner, SshRemoteServerFailedBannerEvent,
 };
-use crate::terminal::view::telemetry::PromptSuggestionFallbackReason;
 use crate::terminal::view::zero_state_block::TerminalViewZeroStateBlock;
 use crate::terminal::warpify::render::render_subshell_separator;
 use crate::terminal::warpify::settings::WarpifySettings;
@@ -369,24 +344,17 @@ use crate::util::bindings::{
 use crate::util::clipboard::clipboard_content_with_escaped_paths;
 use crate::util::color::darken;
 #[cfg(feature = "local_fs")]
-use crate::util::file::external_editor::{settings::EditorLayout, EditorSettings};
-#[cfg(feature = "local_fs")]
-use crate::util::openable_file_type::{is_markdown_file, resolve_file_target, FileTarget};
+use crate::util::openable_file_type::{is_markdown_file, FileTarget};
 use crate::util::repo_detection::{detect_possible_git_repo, RepoDetectionSessionType};
-use crate::util::truncation::truncate_from_end;
-use crate::view_components::action_button::{ActionButton, ButtonSize, KeystrokeSource};
 use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
 use crate::view_components::{DismissibleToast, ToastFlavor};
 use crate::workspace::sync_inputs::SyncedInputState;
-use crate::workspace::view::cloud_agent_capacity_modal::CloudAgentCapacityModalVariant;
 use crate::workspace::{
-    CommandSearchOptions, ForkedConversationDestination, OneTimeModalModel, ToastStack,
-    WorkspaceAction,
+    CommandSearchOptions, OneTimeModalModel, ToastStack,
 };
 use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
-use crate::workspaces::workspace::CustomerType;
 use crate::{
-    report_if_error, safe_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
+    report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
     send_telemetry_sync_from_ctx,
     ActiveSession as WindowActiveSession,
 };
@@ -2599,7 +2567,7 @@ impl TerminalView {
         });
         // Re-evaluate git status subscription when the prompt configuration
         // changes (e.g. chips added/removed, input type toggled).
-        ctx.subscribe_to_model(&Prompt::handle(ctx), |me, _, _, ctx| {
+        ctx.subscribe_to_model(&Prompt::handle(ctx), |_me, _, _, _ctx| {
         });
 
         ctx.subscribe_to_model(&AltScreenReporting::handle(ctx), move |me, _, evt, ctx| {
@@ -2811,7 +2779,7 @@ impl TerminalView {
                                 session_id: *session_id,
                             },
                         );
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -2836,10 +2804,10 @@ impl TerminalView {
                     }
                     RemoteServerManagerEvent::SessionConnectionFailed {
                         session_id,
-                        phase,
+                        phase: _,
                         error,
-                        exit_status,
-                        proxy_stderr,
+                        exit_status: _,
+                        proxy_stderr: _,
                         is_cancelled,
                     } => {
                         me.model.lock().event_proxy.send_terminal_event(
@@ -2850,7 +2818,7 @@ impl TerminalView {
                         );
 
                         if !is_cancelled {
-                            let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                            let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                                 .as_ref(ctx)
                                 .platform_for_session(*session_id)
                                 .map(|p| {
@@ -2888,11 +2856,11 @@ impl TerminalView {
                     }
                     RemoteServerManagerEvent::SessionDisconnected {
                         session_id,
-                        exit_status,
+                        exit_status: _,
                         was_reconnect_attempt,
                         ..
                     } => {
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -2933,9 +2901,9 @@ impl TerminalView {
                     RemoteServerManagerEvent::BinaryInstallComplete {
                         session_id,
                         result,
-                        install_source,
+                        install_source: _,
                     } => {
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -2971,7 +2939,7 @@ impl TerminalView {
                         remote_platform,
                         ..
                     } => {
-                        let (remote_os, remote_arch) = remote_platform
+                        let (_remote_os, _remote_arch) = remote_platform
                             .as_ref()
                             .map(|p| {
                                 (
@@ -3002,10 +2970,10 @@ impl TerminalView {
                     }
                     RemoteServerManagerEvent::ClientRequestFailed {
                         session_id,
-                        operation,
-                        error_kind,
+                        operation: _,
+                        error_kind: _,
                     } => {
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -3026,7 +2994,7 @@ impl TerminalView {
                         );
                     }
                     RemoteServerManagerEvent::ServerMessageDecodingError { session_id } => {
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -3064,10 +3032,10 @@ impl TerminalView {
                     }
                     RemoteServerManagerEvent::SessionReconnected {
                         session_id,
-                        attempt,
+                        attempt: _,
                         ..
                     } => {
-                        let (remote_os, remote_arch) = RemoteServerManager::handle(ctx)
+                        let (_remote_os, _remote_arch) = RemoteServerManager::handle(ctx)
                             .as_ref(ctx)
                             .platform_for_session(*session_id)
                             .map(|p| {
@@ -4310,7 +4278,7 @@ impl TerminalView {
     fn trigger_subshell_bootstrap(
         &mut self,
         shell_type: Option<ShellType>,
-        triggered_by_rc_file_snippet: bool,
+        _triggered_by_rc_file_snippet: bool,
         ctx: &mut ViewContext<Self>,
     ) {
         self.dismiss_warpify_banner(&RememberForWarpification::DoNotRememberSubshellCommand, ctx);
@@ -4873,7 +4841,7 @@ impl TerminalView {
         title: &str,
         lowercase_title: &str,
         warpify_keybinding: Option<Keystroke>,
-        telemetry_event: TelemetryEvent,
+        _telemetry_event: TelemetryEvent,
         ctx: &mut ViewContext<Self>,
     ) {
         if FeatureFlag::WarpifyFooter.is_enabled() {
@@ -5210,7 +5178,7 @@ impl TerminalView {
                     InlineBannerItem::new(banner_id, InlineBannerType::ShellProcessTerminated),
                 );
         } else {
-            let (termination_reason, termination_details, exit_reason) = match &termination_type {
+            let (termination_reason, _termination_details, _exit_reason) = match &termination_type {
                 shell_terminated_banner::TerminationType::PtySpawnFailure { .. } => {
                     (Some("PtySpawnFailure".to_string()), None::<String>, None)
                 }
@@ -5225,11 +5193,11 @@ impl TerminalView {
                 _ => (None, None, None),
             };
 
-            if let Some(termination_reason) = termination_reason {
-                let (shell_path, shell_type) = self.get_shell_starter_local(ctx).unzip();
-                let antivirus_name = AntivirusInfo::as_ref(ctx).get();
+            if let Some(_termination_reason) = termination_reason {
+                let (_shell_path, _shell_type) = self.get_shell_starter_local(ctx).unzip();
+                let _antivirus_name = AntivirusInfo::as_ref(ctx).get();
 
-                let long_os_version = crate::system::long_os_version(ctx);
+                let _long_os_version = crate::system::long_os_version(ctx);
 
                 send_telemetry_from_ctx!(
                     TelemetryEvent::ShellTerminatedPrematurely {
@@ -5348,7 +5316,7 @@ impl TerminalView {
         }
     }
 
-    fn on_user_block_completed(&mut self, block_id: &BlockId, ctx: &mut ViewContext<Self>) {
+    fn on_user_block_completed(&mut self, block_id: &BlockId, _ctx: &mut ViewContext<Self>) {
         {
             self.model
                 .lock()
@@ -5768,7 +5736,7 @@ impl TerminalView {
             ModelEvent::AfterBlockStarted {
                 command,
                 is_for_in_band_command,
-                block_id,
+                block_id: _,
                 ..
             } => {
                 let did_any_session_contains_remote_blocks =
@@ -5886,9 +5854,9 @@ impl TerminalView {
             ModelEvent::AfterBlockCompleted(AfterBlockCompletedEvent {
                 command_finished_to_precmd_delay,
                 block_type,
-                num_secrets_obfuscated,
-                cloud_workflow_id,
-                cloud_env_var_collection_id,
+                num_secrets_obfuscated: _,
+                cloud_workflow_id: _,
+                cloud_env_var_collection_id: _,
             }) => {
                 // To automatically warpify a subshell, we run the relevant command to open the
                 // subshell and create a future to delay bootstrapping the subshell long enough for
@@ -5911,8 +5879,8 @@ impl TerminalView {
                 }
 
                 if let Some(delay) = command_finished_to_precmd_delay {
-                    let delay_ms = delay.as_millis() as u64;
-                    let honor_ps1_enabled = match &block_type {
+                    let _delay_ms = delay.as_millis() as u64;
+                    let _honor_ps1_enabled = match &block_type {
                         // If we have access to the value of honor_ps1 that the
                         // block was holding, use that.
                         BlockType::User(UserBlockCompleted {
@@ -5924,10 +5892,10 @@ impl TerminalView {
                         // Otherwise, grab the current value.
                         _ => *SessionSettings::as_ref(ctx).honor_ps1,
                     };
-                    if let BlockType::User(user_block_completed) = block_type {
-                        let is_universal_developer_input_enabled =
+                    if let BlockType::User(_user_block_completed) = block_type {
+                        let _is_universal_developer_input_enabled =
                             InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-                        let is_in_agent_view = false;
+                        let _is_in_agent_view = false;
                         send_telemetry_from_ctx!(
                             TelemetryEvent::BlockCompleted {
                                 block_finished_to_precmd_delay_ms: delay_ms,
@@ -6439,7 +6407,7 @@ impl TerminalView {
             ModelEvent::ImageReceived {
                 image_id,
                 image_data,
-                image_protocol,
+                image_protocol: _,
             } => {
                 AssetCache::handle(ctx).update(ctx, |asset_cache, ctx| {
                     asset_cache.insert_raw_asset_bytes::<ImageType>(
@@ -7889,7 +7857,7 @@ impl TerminalView {
     /// Will send telemetry if the current session is not bootstrapped and will show a banner to
     /// the user if this is the first bootstrap in the session.
     fn on_bootstrap_failed_timer_complete(&mut self, _: (), ctx: &mut ViewContext<Self>) {
-        let (is_ssh, shell, is_subshell, was_triggered_by_rc_file, is_wsl, is_msys2) = {
+        let (is_ssh, shell, _is_subshell, _was_triggered_by_rc_file, _is_wsl, _is_msys2) = {
             let model = self.model.lock();
 
             // If we did actually bootstrap, or if the session is no longer usable
@@ -7948,7 +7916,7 @@ impl TerminalView {
             ctx
         );
 
-        let bootstrap_block_contents = {
+        let _bootstrap_block_contents = {
             let model = self.model.lock();
             model.block_list().bootstrap_block_contents()
         };
@@ -8443,7 +8411,7 @@ impl TerminalView {
                 None,
                 true,
             ) => {
-                let mut fields = vec![
+                let fields = vec![
                     MenuItemFields::new("Copy")
                         .with_on_select_action(TerminalAction::ContextMenu(
                             ContextMenuAction::CopySelectedText,
@@ -8512,17 +8480,17 @@ impl TerminalView {
                 };
 
                 // currently, we don't support share for multi selections
-                let is_share_disabled =
+                let _is_share_disabled =
                     !is_single_selection || (is_active_block_selected && is_active_block_running);
 
-                let is_ask_ai_disabled = !is_single_selection;
+                let _is_ask_ai_disabled = !is_single_selection;
 
                 let is_copy_commands_disabled =
                     is_single_selection && tail_block.command_to_string().trim().is_empty();
                 let is_copy_both_disabled =
                     is_copy_commands_disabled && tail_block.output_to_string().trim().is_empty();
 
-                let share_block_label = if FeatureFlag::CreatingSharedSessions.is_enabled()
+                let _share_block_label = if FeatureFlag::CreatingSharedSessions.is_enabled()
                     && ContextFlag::CreateSharedSession.is_enabled()
                 {
                     "Share block..."
@@ -8654,7 +8622,7 @@ impl TerminalView {
                 true,
             ) => {
                 // If selection is empty, only show non-block related options
-                let mut items = Vec::new();
+                let items = Vec::new();
 
                 items
             }
@@ -9331,7 +9299,7 @@ impl TerminalView {
     /// Updates the [`BlocklistAIContextModel`]'s pending context to match currently selected blocks.
     /// Be careful about calling `set_pending_context_block_ids` outside of this function, as invoking
     /// `set_pending_context_block_ids` in multiple places will increase the likelihood of desync.
-    fn sync_pending_context_block_ids(&mut self, ctx: &mut ViewContext<Self>) {
+    fn sync_pending_context_block_ids(&mut self, _ctx: &mut ViewContext<Self>) {
         let selected_block_ids = {
             let model = self.model.lock();
             self.selected_blocks
@@ -9661,7 +9629,7 @@ impl TerminalView {
 
     fn maybe_open_link(
         &mut self,
-        link_open_method: LinkOpenMethod,
+        _link_open_method: LinkOpenMethod,
         position: &WithinModel<Point>,
         ctx: &mut ViewContext<Self>,
     ) {
@@ -9900,7 +9868,7 @@ impl TerminalView {
             return;
         }
 
-        let is_inverted_blocklist = self.is_inverted_blocklist(ctx);
+        let _is_inverted_blocklist = self.is_inverted_blocklist(ctx);
         let terminal_model = self.model.lock();
         let block_list = terminal_model.block_list();
         let mut block_cursor = block_list
@@ -9908,7 +9876,7 @@ impl TerminalView {
             .cursor::<BlockHeight, BlockHeightSummary>();
         block_cursor.seek(&BlockHeight::from(0.), SeekBias::Right);
 
-        let selection_start_total_index = {
+        let _selection_start_total_index = {
             let mut click_cursor = block_list
                 .block_heights()
                 .cursor::<BlockHeight, BlockHeightSummary>();
@@ -10148,7 +10116,7 @@ impl TerminalView {
         self.input.as_ref(app).create_prompt_elements(app)
     }
 
-    pub fn session_command_context(&self, app: &AppContext) -> CommandContext {
+    pub fn session_command_context(&self, _app: &AppContext) -> CommandContext {
         let model = self.model.lock();
         let block_list = model.block_list();
 
@@ -10254,7 +10222,7 @@ impl TerminalView {
     }
 
     fn toggle_input_hint_text(&mut self, ctx: &mut ViewContext<Self>) {
-        let new_val = InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
+        let _new_val = InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
             report_if_error!(input_settings.show_hint_text.toggle_and_save_value(ctx));
             *input_settings.show_hint_text
         });
@@ -10273,8 +10241,8 @@ impl TerminalView {
     fn open_workflow_modal_with_command(
         &mut self,
         command: String,
-        source: SaveAsWorkflowModalSource,
-        ctx: &mut ViewContext<Self>,
+        _source: SaveAsWorkflowModalSource,
+        _ctx: &mut ViewContext<Self>,
     ) {
         let _ = command;
         send_telemetry_from_ctx!(TelemetryEvent::SaveAsWorkflowModal { source }, ctx);
@@ -11261,7 +11229,7 @@ impl TerminalView {
     }
 
     fn bookmark_block(&mut self, index: &BlockIndex, ctx: &mut ViewContext<Self>) {
-        let enable_bookmark = match self.bookmarked_blocks.entry(*index) {
+        let _enable_bookmark = match self.bookmarked_blocks.entry(*index) {
             Entry::Occupied(occupied) => {
                 occupied.remove();
                 false
@@ -11382,7 +11350,7 @@ impl TerminalView {
                 self.select_most_recent_blocks(*count, ctx)
             }
             InputEvent::Copy => self.copy(ctx),
-            InputEvent::UnhandledModifierKeyOnEditor(keystroke) => {
+            InputEvent::UnhandledModifierKeyOnEditor(_keystroke) => {
                 send_telemetry_from_ctx!(
                     TelemetryEvent::EditorUnhandledModifierKey(keystroke.as_ref().to_owned()),
                     ctx
@@ -12988,13 +12956,13 @@ impl TerminalView {
             alt_screen_element = alt_screen_element.with_hide_cursor_cell();
         }
 
-        let required_terminal_height = self.size_info.cell_height_px.as_f32() * (rows as f32)
+        let _required_terminal_height = self.size_info.cell_height_px.as_f32() * (rows as f32)
             + 2. * self.size_info.padding_y_px().as_f32();
-        let pane_height = self.content_element_height_px(app);
+        let _pane_height = self.content_element_height_px(app);
 
         let required_terminal_width = self.size_info.cell_width_px.as_f32() * (columns as f32)
             + 2. * self.size_info.padding_x_px().as_f32();
-        let pane_width = self.content_element_width_px(app);
+        let _pane_width = self.content_element_width_px(app);
 
         let should_be_vertical_scrollable = false;
         let should_be_horizontal_scrollable = false;
@@ -13296,7 +13264,7 @@ impl TerminalView {
         let required_terminal_width = self.size_info.cell_width_px.as_f32()
             * (columns_needed as f32)
             + 2. * self.size_info.padding_x_px().as_f32();
-        let pane_width = self.content_element_width_px(app);
+        let _pane_width = self.content_element_width_px(app);
 
         let should_be_vertical_scrollable =
             heights_approx_gt(total_height, visible_rows) && is_scrollable;
@@ -13810,7 +13778,7 @@ impl TerminalView {
             Troubleshoot => {
                 ctx.open_url(NOTIFICATIONS_TROUBLESHOOT_URL);
             }
-            TurnOn(trigger) => {
+            TurnOn(_trigger) => {
                 let current_settings = SessionSettings::as_ref(ctx).notifications.value().clone();
                 let new_settings = NotificationsSettings {
                     mode: NotificationsMode::Enabled,
@@ -13933,10 +13901,10 @@ impl TerminalView {
             });
 
         if let Some((is_ssh, shell)) = session_info {
-            let auth_state = self.auth_state.clone();
-            let executor = ctx.background_executor().clone();
+            let _auth_state = self.auth_state.clone();
+            let _executor = ctx.background_executor().clone();
             ctx.on_next_frame_drawn(move || {
-                let block_event = TelemetryEvent::BaselineCommandLatency(BlockLatencyInfo {
+                let _block_event = TelemetryEvent::BaselineCommandLatency(BlockLatencyInfo {
                     command: block_latency_data.command,
                     shell,
                     is_ssh,
@@ -13960,7 +13928,7 @@ impl TerminalView {
     /// inactive query, toggling on a filter will simply open the filter editor.
     fn toggle_block_filter_on_selected_or_last_block(
         &mut self,
-        source: ToggleBlockFilterSource,
+        _source: ToggleBlockFilterSource,
         ctx: &mut ViewContext<Self>,
     ) {
         let model = self.model.lock();
@@ -14443,7 +14411,7 @@ impl TerminalView {
     }
 
     /// Shows the warpify footer for a detected subshell/SSH command.
-    fn show_warpify_footer(&mut self, mode: WarpificationMode, ctx: &mut ViewContext<Self>) {
+    fn show_warpify_footer(&mut self, mode: WarpificationMode, _ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
 
         // Don't show the warpify footer when an agent is monitoring the command.
@@ -14452,7 +14420,7 @@ impl TerminalView {
         }
         drop(model);
 
-        let is_ssh = mode.is_ssh();
+        let _is_ssh = mode.is_ssh();
         send_telemetry_from_ctx!(TelemetryEvent::WarpifyFooterShown { is_ssh }, ctx);
     }
 

@@ -9,7 +9,6 @@ use settings::Setting;
 
 use super::{should_render_prompt_using_editor_decorator_elements, Input, SubshellRenderState};
 use crate::appearance::Appearance;
-use crate::context_chips::spacing;
 use crate::features::FeatureFlag;
 use crate::settings::{AppEditorSettings, InputModeSettings};
 use crate::terminal::block_list_settings::BlockListSettings;

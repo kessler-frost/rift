@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use rift_editor::content::buffer::Buffer;
 use rift_util::file::FileId;
-use riftui::{ModelContext, ModelHandle, SingletonEntity};
+use riftui::{ModelContext, ModelHandle};
 
 use super::server_model::{ConnectionId, ServerModel};
 use crate::remote_server::protocol::RequestId;
@@ -109,7 +109,7 @@ impl ServerBufferTracker {
     pub fn remove_connection(
         &mut self,
         conn_id: ConnectionId,
-        ctx: &mut ModelContext<ServerModel>,
+        _ctx: &mut ModelContext<ServerModel>,
     ) -> Vec<FileId> {
         let orphaned: Vec<FileId> = self
             .buffer_connections
@@ -139,7 +139,7 @@ impl ServerBufferTracker {
         &mut self,
         path: &str,
         conn_id: ConnectionId,
-        ctx: &mut ModelContext<ServerModel>,
+        _ctx: &mut ModelContext<ServerModel>,
     ) {
         let Some(&file_id) = self.open_buffers.get(path) else {
             return;

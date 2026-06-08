@@ -11,7 +11,7 @@ use super::config::HotkeyError;
 use super::config::{SettingType, ThemeType};
 use crate::interval_timer::IntervalTimer;
 use crate::settings::import::config::{Config, ConfigError};
-use crate::{send_telemetry_from_ctx, TelemetryEvent};
+use crate::send_telemetry_from_ctx;
 
 #[derive(Clone, Copy, Debug, EnumDiscriminants, Eq, Hash, PartialEq)]
 #[strum_discriminants(derive(EnumIter, Hash, Serialize))]
@@ -83,7 +83,7 @@ impl ImportedConfigModel {
         &self,
         terminal_type: &TerminalType,
         configs: &Result<Vec<Config>, ConfigError>,
-        ctx: &mut ModelContext<Self>,
+        _ctx: &mut ModelContext<Self>,
     ) {
         if let TerminalType::ITerm = terminal_type {
             if let Ok(configs) = configs {
@@ -102,7 +102,7 @@ impl ImportedConfigModel {
     pub fn write_parse_results(
         &mut self,
         terminal_type: TerminalType,
-        (configs, timer): (Result<Vec<Config>, ConfigError>, IntervalTimer),
+        (configs, _timer): (Result<Vec<Config>, ConfigError>, IntervalTimer),
         ctx: &mut ModelContext<Self>,
     ) {
         send_telemetry_from_ctx!(

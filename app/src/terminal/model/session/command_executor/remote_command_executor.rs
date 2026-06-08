@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use command::r#async::Command;
-use itertools::Itertools as _;
 
 use super::{CommandExecutor, CommandOutput, ExecuteCommandOptions};
 use crate::terminal::shell::Shell;

@@ -3,7 +3,6 @@ use std::future::Future;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use remote_server::proto::OpenBufferSuccess;
 use repo_metadata::repositories::{DetectedRepositories, RepoDetectionSource};
 use repo_metadata::{RepoMetadataEvent, RepoMetadataModel, RepositoryIdentifier};
 use rift_core::channel::ChannelState;
@@ -17,21 +16,16 @@ use riftui::r#async::{Spawnable, SpawnableOutput, SpawnedFutureHandle};
 use riftui::{Entity, ModelContext, SingletonEntity};
 
 use super::proto::{
-    client_message, delete_file_response, host_scoped_request, notification,
-    resolve_conflict_response, run_command_response, save_buffer_response, server_message,
-    session_scoped_request, write_file_response, Abort, Authenticate, BranchInfo, BufferEdit,
-    BufferUpdatedPush, ClientMessage, CloseBuffer, DeleteFile,
+    client_message, delete_file_response, host_scoped_request, notification, run_command_response, server_message,
+    session_scoped_request, write_file_response, Abort, Authenticate, BranchInfo, ClientMessage, CloseBuffer, DeleteFile,
     DeleteFileResponse, DeleteFileSuccess, ErrorCode, ErrorResponse,
     FileOperationError, GetBranchesError, GetBranchesResponse, GetBranchesSuccess,
     Initialize, InitializeResponse,
-    NavigatedToDirectory, NavigatedToDirectoryResponse, OpenBuffer,
-    OpenBufferResponse, ResolveConflict, ResolveConflictResponse,
-    ResolveConflictSuccess, RunCommandError, RunCommandErrorCode,
-    RunCommandRequest, RunCommandResponse, RunCommandSuccess, SaveBuffer, SaveBufferResponse,
-    SaveBufferSuccess, ServerMessage, SessionBootstrapped, TextEdit,
+    NavigatedToDirectory, NavigatedToDirectoryResponse, RunCommandError, RunCommandErrorCode,
+    RunCommandRequest, RunCommandResponse, RunCommandSuccess, ServerMessage, SessionBootstrapped,
     WriteFile, WriteFileResponse, WriteFileSuccess,
 };
-use super::server_buffer_tracker::{PendingBufferRequestKind, ServerBufferTracker};
+use super::server_buffer_tracker::ServerBufferTracker;
 use crate::terminal::shell::ShellType;
 
 /// How long the daemon waits with no connections before exiting.

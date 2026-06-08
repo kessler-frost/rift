@@ -844,7 +844,7 @@ impl<'a> TabComponent<'a> {
 
     /// Get the tooltip message for tabs - handles both agent tasks and regular tab titles
     fn get_tooltip_message(
-        indicator: &Indicator,
+        _indicator: &Indicator,
         tab: &TabData,
         ctx: &AppContext,
     ) -> Option<String> {

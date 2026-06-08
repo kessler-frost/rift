@@ -323,7 +323,7 @@ impl AuthManager {
                 let FetchUserResult {
                     user_output,
                     credentials,
-                    from_refresh,
+                    from_refresh: _,
                 } = fetch_user_result;
                 let UserProperties {
                     user,
@@ -441,8 +441,8 @@ impl AuthManager {
                 // Once the user is authenticated, attempt to report the sandbox that Warp is running in, if any.
                 ctx.spawn(
                     async { rift_isolation_platform::detect() },
-                    |_, platform, ctx| {
-                        if let Some(platform) = platform {
+                    |_, platform, _ctx| {
+                        if let Some(_platform) = platform {
                             send_telemetry_from_ctx!(
                                 TelemetryEvent::DetectedIsolationPlatform { platform },
                                 ctx
@@ -591,7 +591,7 @@ impl AuthManager {
 
     pub fn attempt_login_gated_feature(
         &self,
-        feature: LoginGatedFeature,
+        _feature: LoginGatedFeature,
         auth_view_variant: AuthViewVariant,
         ctx: &mut ModelContext<Self>,
     ) {
@@ -615,7 +615,7 @@ impl AuthManager {
 
     pub fn initiate_anonymous_user_linking(
         &self,
-        entrypoint: AnonymousUserSignupEntrypoint,
+        _entrypoint: AnonymousUserSignupEntrypoint,
         ctx: &mut ModelContext<Self>,
     ) {
         let auth_client = self.auth_client.clone();

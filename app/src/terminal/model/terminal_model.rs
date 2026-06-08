@@ -6,13 +6,11 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use async_channel::Sender;
 use base64::Engine;
 use hex::FromHexError;
 use instant::Instant;
 use itertools::{Either, Itertools};
 use rift_core::features::FeatureFlag;
-use rift_core::report_error;
 use rift_core::semantic_selection::SemanticSelection;
 pub use rift_terminal::model::BlockIndex;
 use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
@@ -23,10 +21,6 @@ use riftui::r#async::executor::Background;
 use riftui::util::save_as_file;
 use riftui::AppContext;
 use serde::Serialize;
-use session_sharing_protocol::common::{
-    AICommandMetadata, OrderedTerminalEventType, ParticipantId,
-};
-use session_sharing_protocol::sharer::SessionSourceType;
 
 use super::super::{AltScreen, BlockList};
 use super::ansi::{
@@ -35,7 +29,7 @@ use super::ansi::{
 };
 use super::block::{
     Block, BlockId, BlockMetadata, BlockSize, BlockState,
-    BlocklistEnvVarMetadata, SerializedBlock, SerializedBlockListItem,
+    BlocklistEnvVarMetadata, SerializedBlockListItem,
 };
 use super::blockgrid::BlockGrid;
 use super::grid::grid_handler::{
@@ -77,7 +71,7 @@ use crate::terminal::model::index::VisibleRow;
 use crate::terminal::model::iterm_image::{ITermImage, ITermImageMetadata};
 use crate::terminal::model::secrets::ObfuscateSecrets;
 use crate::terminal::model::session::SessionInfo;
-use crate::terminal::shell::{ShellName, ShellType};
+use crate::terminal::shell::ShellType;
 use crate::terminal::ssh::util::{InteractiveSshCommand, SshLoginState};
 use crate::terminal::{
     color, ssh, BlockPadding, ShellHost, ShellLaunchData, ShellLaunchState, SizeUpdate,

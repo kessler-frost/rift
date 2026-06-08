@@ -1,9 +1,7 @@
 use std::any::Any;
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use std::rc::Rc;
 use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
 
@@ -13,7 +11,6 @@ use markdown_parser::FormattedTextFragment;
 use parking_lot::FairMutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use rift_cli::agent::Harness;
 use rift_core::command::ExitCode;
 use rift_core::context_flag::ContextFlag;
 use rift_terminal::shell::{ShellName, ShellType};
@@ -31,14 +28,10 @@ use riftui::notification::NotificationSendError;
 use riftui::windowing::WindowManager;
 use riftui::{
     AppContext, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
-    ViewHandle, WeakViewHandle, WindowId,
+    ViewHandle, WindowId,
 };
 use serde::{Deserialize, Serialize};
-use session_sharing_protocol::common::{
-    ParticipantId, Role, RoleRequestId, RoleRequestRejectedReason, RoleRequestResponse, SessionId,
-};
 use settings::Setting as _;
-use tree::DEFAULT_FLEX_VALUE;
 use typed_path::TypedPath;
 use url::Url;
 use uuid::Uuid;
@@ -48,13 +41,10 @@ use crate::app_state::{
     SettingsPaneSnapshot, TerminalPaneSnapshot,
 };
 use crate::appearance::Appearance;
-use crate::auth::auth_manager::AuthManager;
-use crate::auth::auth_view_modal::AuthViewVariant;
-use crate::auth::AuthStateProvider;
 use crate::banner::{Banner, BannerEvent, BannerState, BannerTextContent, DismissalType};
 use crate::channel::{Channel, ChannelState};
 use crate::features::FeatureFlag;
-use crate::launch_configs::launch_config::{self, PaneMode, PaneTemplateType};
+use crate::launch_configs::launch_config::{self, PaneTemplateType};
 use crate::palette::PaletteMode;
 use crate::pane_group::focus_state::PaneGroupFocusEvent;
 use crate::pane_group::pane::get_started_pane::GetStartedPane;
@@ -65,13 +55,12 @@ use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
 };
-use crate::server::ids::{ObjectUid, SyncId};
 use crate::server::server_api::{ServerApi, ServerApiProvider};
 use crate::server::telemetry::{
-    AnonymousUserSignupEntrypoint, PaletteSource, SharingDialogSource, TelemetryEvent,
+    AnonymousUserSignupEntrypoint, PaletteSource,
 };
 use crate::session_management::SessionNavigationData;
-use crate::settings::{AISettings, DefaultSessionMode, PaneSettings};
+use crate::settings::PaneSettings;
 use crate::settings_view::SettingsSection;
 use crate::shell_indicator::ShellIndicatorType;
 use crate::terminal::available_shells::{AvailableShell, AvailableShells};
@@ -81,7 +70,6 @@ use crate::terminal::focus_env::add_session_focus_env_vars;
 use crate::terminal::general_settings::{GeneralSettings, GeneralSettingsChangedEvent};
 #[cfg(feature = "local_tty")]
 use crate::terminal::local_tty;
-use crate::terminal::model::session::Session;
 use crate::terminal::model::terminal_model::ConversationTranscriptViewerStatus;
 use crate::terminal::session_settings::{NewSessionSource, SessionSettings};
 use crate::terminal::view::ssh_file_upload::FileUploadId;
@@ -100,7 +88,7 @@ use crate::util::bindings::{is_binding_pty_compliant, CustomAction};
 use crate::util::openable_file_type::FileTarget;
 use crate::view_components::ToastFlavor;
 use crate::workspace::{
-    self, CommandSearchOptions, PaneViewLocator, TabBarLocation, WorkspaceAction,
+    self, CommandSearchOptions, PaneViewLocator, TabBarLocation,
 };
 use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
@@ -1021,7 +1009,7 @@ impl PaneGroup {
                 cwd,
                 commands,
                 is_focused,
-                pane_mode,
+                pane_mode: _,
                 shell,
             } => {
                 let uuid = Uuid::new_v4();
@@ -2509,7 +2497,7 @@ impl PaneGroup {
     fn revert_swap_clearing_split_off(
         &mut self,
         replacement_id: PaneId,
-        ctx: &mut ViewContext<Self>,
+        _ctx: &mut ViewContext<Self>,
     ) {
         self.panes.revert_temporary_replacement(replacement_id);
     }

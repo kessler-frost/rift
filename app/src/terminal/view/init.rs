@@ -1,31 +1,22 @@
-use rift_core::context_flag::ContextFlag;
 use riftui::keymap::{
-    BindingDescription, ContextPredicate, EditableBinding, FixedBinding, PerPlatformKeystroke,
+    EditableBinding, FixedBinding, PerPlatformKeystroke,
 };
 use riftui::platform::OperatingSystem;
 use riftui::units::IntoLines;
 use riftui::AppContext;
 
 use super::{
-    AgentOnboardingVersion, ContextMenuAction, OnboardingIntention, OnboardingVersion,
+    AgentOnboardingVersion, OnboardingIntention, OnboardingVersion,
     TerminalAction,
 };
 use crate::channel::{Channel, ChannelState};
 use crate::features::FeatureFlag;
-use crate::server::telemetry::{InteractionSource, ToggleBlockFilterSource};
+use crate::server::telemetry::ToggleBlockFilterSource;
 use crate::settings_view::flags;
-use crate::terminal::input::{
-    SET_INPUT_MODE_AGENT_ACTION_NAME, SET_INPUT_MODE_TERMINAL_ACTION_NAME,
-};
 use crate::terminal::model::escape_sequences::{self, EscCodes};
 use crate::terminal::model::selection::SelectionDirection;
 use crate::terminal::ssh::error::{SshErrorBlockAction, SSH_ERROR_BLOCK_VISIBLE_KEY};
-use crate::terminal::view::{
-    LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY,
-    LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY,
-};
 use crate::terminal::TerminalView;
-use crate::util::bindings;
 use crate::util::bindings::{cmd_or_ctrl_shift, is_binding_pty_compliant, CustomAction};
 
 pub const TOGGLE_BLOCK_FILTER_KEYBINDING: &str =

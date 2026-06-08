@@ -10,9 +10,8 @@ use riftui::elements::{
     Shrinkable, Stack, Text, XAxisAnchor,
 };
 use riftui::fonts::Weight;
-use riftui::presenter::ChildView;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
-use riftui::{AppContext, EntityId, SingletonEntity, ViewHandle};
+use riftui::{AppContext, SingletonEntity};
 use vim::vim::{VimMode, VimState};
 
 use crate::appearance::Appearance;

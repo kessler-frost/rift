@@ -24,7 +24,7 @@ use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent};
 use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
 use crate::view_components::DismissibleToast;
 use crate::workspace::{ToastStack, WorkspaceAction};
-use crate::{send_telemetry_from_ctx, TelemetryEvent};
+use crate::send_telemetry_from_ctx;
 
 pub fn init(app: &mut AppContext) {
     use riftui::keymap::macros::*;

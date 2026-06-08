@@ -14,7 +14,6 @@ use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
-use crate::server::telemetry::TelemetryEvent;
 use crate::settings::{active_theme_kind, ThemeSettings};
 use crate::themes::theme::{ThemeKind, WarpTheme};
 use crate::user_config::util::from_yaml;

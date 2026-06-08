@@ -20,7 +20,7 @@ use riftui::r#async::executor;
 use riftui::SingletonEntity;
 
 use super::server_model::{ConnectionId, ServerModel};
-use crate::{send_telemetry_from_app_ctx, TelemetryEvent};
+use crate::send_telemetry_from_app_ctx;
 
 /// Run the `remote-server-daemon` subcommand.
 ///
@@ -82,7 +82,7 @@ pub(crate) fn launch_daemon(identity_key: &str, ctx: &mut riftui::AppContext) {
     // and `TelemetryCollector` is already running its periodic flush.
     // The flush sends directly to Rudderstack using a baked-in write
     // key — no user auth token is required.
-    let timing_data =
+    let _timing_data =
         rift_core::interval_timer::IntervalTimer::handle(ctx).update(ctx, |timer, _| {
             timer.mark_interval_end("DAEMON_SOCKET_BOUND");
             timer.compute_stats()

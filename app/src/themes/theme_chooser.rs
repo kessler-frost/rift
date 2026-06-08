@@ -29,7 +29,6 @@ use crate::editor::{
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
 };
-use crate::server::telemetry::TelemetryEvent;
 use crate::settings::{respect_system_theme, ThemeSettings};
 use crate::themes::theme::{
     RespectSystemTheme, SelectedSystemThemes, ThemeKind, WarpTheme, WarpThemeConfig,
@@ -335,7 +334,7 @@ impl ThemeChooser {
         }
     }
 
-    pub fn record_open_theme(&mut self, ctx: &mut ViewContext<Self>) -> bool {
+    pub fn record_open_theme(&mut self, _ctx: &mut ViewContext<Self>) -> bool {
         send_telemetry_from_ctx!(TelemetryEvent::OpenThemeChooser, ctx);
         true
     }

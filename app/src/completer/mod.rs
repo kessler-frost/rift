@@ -16,7 +16,7 @@ use rift_completer::completer::{
 use rift_completer::signatures::CommandRegistry;
 use rift_core::features::FeatureFlag;
 use rift_util::path::{EscapeChar, ShellFamily};
-use riftui::{AppContext, SingletonEntity};
+use riftui::AppContext;
 use smol_str::SmolStr;
 use typed_path::{TypedPath, TypedPathBuf};
 

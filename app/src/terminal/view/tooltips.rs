@@ -46,7 +46,7 @@ fn open_in_warp_tooltip(
     use settings::Setting as _;
 
     use crate::settings::CodeSettings;
-    use crate::util::file::external_editor::EditorSettings;
+    
     use crate::util::tooltips::should_show_open_in_warp_link;
 
     if !should_show_open_in_warp_link(&path, app) {

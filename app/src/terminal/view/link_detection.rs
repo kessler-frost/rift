@@ -5,7 +5,6 @@ use riftui::ViewContext;
 use serde::{Serialize, Serializer};
 
 use crate::send_telemetry_from_ctx;
-use crate::server::telemetry::{LinkOpenMethod, TelemetryEvent};
 use crate::terminal::model::grid::grid_handler::Link;
 use crate::terminal::model::index::Point;
 use crate::terminal::model::terminal_model::{WithinBlock, WithinModel};

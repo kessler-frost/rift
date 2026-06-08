@@ -28,7 +28,7 @@ use crate::themes::theme::{InMemoryThemeOptions, ThemeKind};
 use crate::user_config;
 #[cfg(feature = "local_fs")]
 use crate::{
-    send_telemetry_from_ctx, server::telemetry::TelemetryEvent, themes::theme::CustomTheme,
+    send_telemetry_from_ctx, themes::theme::CustomTheme,
 };
 
 const BUTTON_PADDING: f32 = 12.;

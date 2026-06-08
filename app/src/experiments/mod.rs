@@ -319,7 +319,7 @@ pub trait Experiment<T: Experiment<T>>: FromStr {
             assigned_group = Self::layer().get_assigned_group(&anonymous_id);
 
             if let Some(group) = assigned_group.as_ref() {
-                let group_assignment = group.variant();
+                let _group_assignment = group.variant();
                 // Send synchronously since this we rely on this event to collect experiment data.
                 send_telemetry_sync_from_app_ctx!(
                     crate::server::telemetry::TelemetryEvent::ExperimentTriggered {

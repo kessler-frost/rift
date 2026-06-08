@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use ::settings::{Setting, ToggleableSetting};
+use ::settings::Setting;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use rift_core::channel::ChannelState;
@@ -24,7 +24,7 @@ use riftui::{
 };
 
 use super::settings_page::{
-    render_body_item, render_customer_type_badge, AdditionalInfo, MatchData, PageType,
+    render_customer_type_badge, MatchData, PageType,
     SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, HEADER_PADDING,
 };
 use super::{SettingsAction, SettingsSection};

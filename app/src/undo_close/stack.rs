@@ -1,6 +1,6 @@
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::{
-    AppContext, ClosedWindowData, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity,
+    AppContext, ClosedWindowData, Entity, EntityId, ModelContext, SingletonEntity,
     ViewHandle, WeakViewHandle, WindowId,
 };
 use uuid::Uuid;
@@ -9,7 +9,6 @@ use super::settings::UndoCloseSettingsChangedEvent;
 use super::UndoCloseSettings;
 use crate::pane_group::{PaneGroup, PaneId};
 use crate::send_telemetry_from_app_ctx;
-use crate::server::telemetry::{TelemetryEvent, UndoCloseItemType};
 use crate::tab::TabData;
 use crate::workspace::Workspace;
 

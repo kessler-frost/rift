@@ -5,7 +5,6 @@ use riftui::{
 };
 
 use crate::coding_entrypoints::glowing_editor::{GlowingEditor, GlowingEditorEvent};
-use crate::TelemetryEvent;
 
 pub struct CloneRepoView {
     editor: ViewHandle<GlowingEditor>,

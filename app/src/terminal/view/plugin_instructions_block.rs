@@ -1,4 +1,3 @@
-use std::iter;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_geometry::vector::vec2f;
@@ -19,7 +18,7 @@ use crate::terminal::CLIAgent;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{ActionButton, ButtonSize, NakedTheme};
 use crate::view_components::DismissibleToast;
-use crate::workspace::{ToastStack, WorkspaceAction};
+use crate::workspace::ToastStack;
 
 pub(crate) struct PluginInstructionsBlock {
     instructions: &'static PluginInstructions,

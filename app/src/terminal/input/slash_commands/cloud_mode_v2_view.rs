@@ -18,7 +18,7 @@ use riftui::{
 
 use crate::search::data_source::QueryFilter;
 use crate::search::item::SearchItemDetail;
-use crate::search::mixer::{AddAsyncSourceOptions, SearchMixer, SearchMixerEvent};
+use crate::search::mixer::{SearchMixer, SearchMixerEvent};
 use crate::search::result_renderer::{QueryResultRenderer, QueryResultRendererStyles};
 use crate::search::slash_command_menu::static_commands::commands::COMMAND_REGISTRY;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};

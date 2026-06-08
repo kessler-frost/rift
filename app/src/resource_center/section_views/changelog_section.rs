@@ -20,7 +20,6 @@ use crate::changelog_model::{
     ChangelogHeader, ChangelogModel, ChangelogState, Event as ChangelogEvent,
 };
 use crate::send_telemetry_from_ctx;
-use crate::server::telemetry::TelemetryEvent;
 use crate::themes::theme::Fill;
 use crate::ui_components::icons;
 

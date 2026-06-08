@@ -1,11 +1,7 @@
-use std::path::PathBuf;
 
-use anyhow::{anyhow, bail, Result};
-use regex::Regex;
+use anyhow::{anyhow, Result};
 use rift_graphql::billing::{
-    AiAutonomyPolicy as GqlAiAutonomyPolicy, AmbientAgentsPolicy as GqlAmbientAgentsPolicy,
-    BillingCycleUsageHistory as GqlBillingCycleUsageHistory, BillingMetadata as GqlBillingMetadata,
-    BonusGrant as GqlBonusGrant, ByoApiKeyPolicy as GqlByoApiKeyPolicy,
+    AiAutonomyPolicy as GqlAiAutonomyPolicy, AmbientAgentsPolicy as GqlAmbientAgentsPolicy, BillingMetadata as GqlBillingMetadata, ByoApiKeyPolicy as GqlByoApiKeyPolicy,
     CodebaseContextPolicy as GqlCodebaseContextPolicy, CustomerType as GqlCustomerType,
     DelinquencyStatus as GqlDelinquencyStatus,
     EnterpriseCreditsAutoReloadPolicy as GqlEnterpriseCreditsAutoReloadPolicy,
@@ -22,9 +18,7 @@ use rift_graphql::billing::{
     UsageVisibilityGranularity as GqlUsageVisibilityGranularity,
     UsageVisibilityPolicy as GqlUsageVisibilityPolicy, WarpAiPolicy as GqlWarpAiPolicy,
 };
-use rift_graphql::queries::get_conversation_usage as gql_usage;
 use rift_graphql::queries::get_workspaces_metadata_for_user::User as GqlUser;
-use rift_graphql::subscriptions::get_warp_drive_updates::WarpDriveUpdate;
 use rift_graphql::user::DiscoverableTeamData as GqlDiscoverableTeamData;
 use rift_graphql::workspace::{
     AddonCreditsSettings as GqlAddonCreditsSettings,
@@ -40,9 +34,7 @@ use rift_graphql::workspace::{
 use super::team::{DiscoverableTeam, MembershipRole, Team, TeamMember};
 use super::user_workspaces::WorkspacesMetadataResponse;
 use super::workspace::{
-    AIAutonomyPolicy, AddonCreditsSettings, AdminEnablementSetting, AmbientAgentsPolicy,
-    BillingCycleUsageData, BillingCycleUsageEntry,
-    BillingCycleUsageSummary, BillingMetadata, CloudConversationStorageSettings,
+    AIAutonomyPolicy, AddonCreditsSettings, AdminEnablementSetting, AmbientAgentsPolicy, BillingMetadata, CloudConversationStorageSettings,
     CodebaseContextSettings, CustomerType, DelinquencyStatus, EmailInvite, EnterpriseSecretRegex,
     HostEnablementSetting, InstanceShape, InviteLinkDomainRestriction, LinkSharingSettings,
     MaxPriorCycles, SecretRedactionSettings,
@@ -56,7 +48,6 @@ use super::workspace::{
 use crate::auth::UserUid;
 use crate::server::experiments::ServerExperiment;
 use crate::server::ids::ServerId;
-use crate::settings::AgentModeCommandExecutionPredicate;
 use crate::workspaces::workspace::{
     AiOverages, BonusGrantsPurchased, ByoApiKeyPolicy, CodebaseContextPolicy,
     EnterpriseCreditsAutoReloadPolicy, EnterprisePayAsYouGoPolicy, MultiAdminPolicy,

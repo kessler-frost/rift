@@ -4,7 +4,6 @@ use std::sync::Arc;
 use anyhow::Result;
 use regex::Regex;
 use rift_core::features::FeatureFlag;
-use rift_core::report_if_error;
 use rift_graphql::mutations::update_user_settings::UpdateUserSettingsInput;
 use riftui::{AppContext, Entity, ModelContext, SingletonEntity, UpdateModel};
 use serde::{Deserialize, Serialize};

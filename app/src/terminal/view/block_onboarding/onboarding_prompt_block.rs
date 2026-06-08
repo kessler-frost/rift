@@ -12,7 +12,6 @@ use settings::Setting as _;
 
 use crate::appearance::Appearance;
 use crate::context_chips::prompt::Prompt;
-use crate::server::telemetry::{PromptChoice, TelemetryEvent};
 use crate::settings::EnforceMinimumContrast;
 use crate::terminal::blockgrid_element::BlockGridElement;
 use crate::terminal::model::blockgrid::BlockGrid;

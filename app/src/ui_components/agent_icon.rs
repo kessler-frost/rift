@@ -8,12 +8,9 @@
 //! whichever source they hold and feed the resulting variant into
 //! [`render_icon_with_status`]. The pure inner functions in this module are exercised
 //! directly by the cross-surface consistency tests in `agent_icon_tests.rs`.
-use rift_cli::agent::Harness;
-use riftui::{AppContext, SingletonEntity};
+use riftui::AppContext;
 
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::view::TerminalView;
-use crate::terminal::CLIAgent;
 use crate::ui_components::icon_with_status::IconWithStatusVariant;
 
 /// Returns the agent-icon variant for a live [`TerminalView`], or `None` when the terminal is

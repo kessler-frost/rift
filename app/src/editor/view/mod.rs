@@ -19,10 +19,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 use async_fs;
-use base64::engine::general_purpose;
 use base64::Engine as _;
 use element::CommandXRayMouseStateHandle;
-use figma_utils::is_figma_png;
 use itertools::{Either, Itertools};
 use mime_guess::from_path;
 use model::{
@@ -44,7 +42,7 @@ use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, Wa
 use riftui::actions::StandardAction;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    ChildView, Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable, MainAxisSize,
+    Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable, MainAxisSize,
     MouseStateHandle, ParentElement, Radius, Shrinkable, DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties, Weight};
@@ -99,7 +97,6 @@ use crate::editor::accept_autosuggestion_keybinding_view::AcceptAutosuggestionKe
 use crate::editor::autosuggestion_ignore_view::{AutosuggestionIgnore, AutosuggestionIgnoreEvent};
 use crate::editor::RangeExt;
 use crate::features::FeatureFlag;
-use crate::server::telemetry::TelemetryEvent;
 #[cfg(feature = "voice_input")]
 use crate::settings::AISettingsChangedEvent;
 use crate::settings::{
@@ -107,7 +104,6 @@ use crate::settings::{
     InputSettings, SelectionSettings,
 };
 use crate::settings_view::flags;
-use crate::suggestions::ignored_suggestions_model::{IgnoredSuggestionsModel, SuggestionType};
 use crate::terminal::grid_size_util::grid_cell_dimensions;
 use crate::terminal::model::block::BlockId;
 use crate::themes::theme::Fill;
@@ -123,7 +119,7 @@ use crate::view_components::DismissibleToast;
 #[cfg(feature = "voice_input")]
 use crate::view_components::FeaturePopup;
 use crate::vim_registers::{RegisterContent, VimRegisters};
-use crate::workspace::{ToastStack, Workspace};
+use crate::workspace::ToastStack;
 
 const CURSOR_BLINK_INTERVAL: Duration = Duration::from_millis(500);
 const DEFAULT_TAB_SIZE: usize = 4;
@@ -4966,7 +4962,7 @@ impl EditorView {
             return;
         }
 
-        let is_udi_enabled = InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
+        let _is_udi_enabled = InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
 
         send_telemetry_from_ctx!(
             TelemetryEvent::AttachedImagesToAgentModeQuery {

@@ -12,7 +12,7 @@ use riftui::rendering::ThinStrokes;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use session_sharing_protocol::common::{ParticipantId, Role, SessionId as SharedSessionId};
-use session_sharing_protocol::sharer::{SessionEndedReason, SessionSourceType};
+use session_sharing_protocol::sharer::SessionSourceType;
 use strum_macros::{EnumDiscriminants, EnumIter};
 
 use crate::auth::auth_manager::LoginGatedFeature;
@@ -25,7 +25,7 @@ use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::QueryFilter;
 use crate::server::block::DisplaySetting;
-use crate::server::ids::{ObjectUid, ServerId};
+use crate::server::ids::ServerId;
 use crate::settings::import::config::{ParsedTerminalSetting, SettingType};
 use crate::settings::import::model::TerminalType;
 use crate::settings::AgentModeCodingPermissionsType;
@@ -34,7 +34,6 @@ use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::cli_agent_sessions::{CLIAgentInputEntrypoint, CLIAgentRichInputCloseReason};
 use crate::terminal::input::TelemetryInputSuggestionsMode;
 use crate::terminal::model::ansi::WarpificationUnavailableReason;
-use crate::terminal::model::block::BlockId;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::model::terminal_model::{BlockSelectionCardinality, TmuxInstallationState};
 use crate::terminal::settings::AltScreenPaddingMode;
@@ -47,8 +46,6 @@ use crate::terminal::view::{
 };
 use crate::terminal::ShareBlockType;
 use crate::tips::WelcomeTipFeature;
-#[cfg(feature = "local_fs")]
-use crate::util::file::external_editor::settings::EditorLayout;
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
 use crate::workspace::tab_settings::{TabCloseButtonPosition, WorkspaceDecorationVisibility};
@@ -380,8 +377,8 @@ impl From<&CommandSearchItemAction> for CommandSearchResultType {
         use crate::search::command_search::searcher::CommandSearchItemAction::*;
         match action {
             AcceptHistory(_) | ExecuteHistory(_) => Self::History,
-            OpenWarpAI => Self::OpenWarpAI,
-            TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
+            _OpenWarpAI => Self::OpenWarpAI,
+            _TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
         }
     }
 }

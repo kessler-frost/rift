@@ -77,7 +77,7 @@ impl SearchItem for HistorySearchItem {
         .left()
         .finish();
 
-        let mut command_and_workflow = Flex::column()
+        let command_and_workflow = Flex::column()
             .with_main_axis_alignment(MainAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Max)
             .with_child(command);

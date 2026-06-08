@@ -13,7 +13,6 @@ use riftui::{
 use crate::appearance::Appearance;
 use crate::search::command_palette::FilterChipRenderer;
 use crate::search::QueryFilter;
-use crate::workspace::Workspace;
 
 /// A zero-state view for the command palette.
 pub struct ZeroState {
@@ -76,8 +75,8 @@ impl ZeroState {
 
     /// Returns the set of valid query filters for this zero state view.
     fn valid_query_filters(
-        app: &AppContext,
-        window_id: WindowId,
+        _app: &AppContext,
+        _window_id: WindowId,
     ) -> impl Iterator<Item = QueryFilter> {
         let mut valid_filters = vec![];
 

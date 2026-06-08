@@ -16,7 +16,7 @@ pub use view::{
     InlineMenuHeaderConfig, InlineMenuRowAction, InlineMenuView, QueryResultRendererExt,
 };
 
-use super::{InputSuggestionsMode, UserQueryMenuAction};
+use super::InputSuggestionsMode;
 
 /// Identifies a specific inline menu type.
 #[derive(

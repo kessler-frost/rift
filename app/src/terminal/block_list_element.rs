@@ -33,7 +33,6 @@ use riftui::{
     AfterLayoutContext, AppContext, ClipBounds, Element, EntityId, Event, EventContext,
     LayoutContext, ModelHandle, PaintContext, SingletonEntity as _, SizeConstraint,
 };
-use session_sharing_protocol::common::{ParticipantId, Selection};
 use vec1::Vec1;
 
 use super::block_list_viewport::{ClampingMode, InputMode, ScrollPosition, ViewportState};
@@ -59,7 +58,7 @@ use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
 use crate::pane_group::SplitPaneState;
 use crate::settings::{
-    AISettings, DebugSettings, EnforceMinimumContrast, PrivacySettings, TerminalSpacing,
+    DebugSettings, EnforceMinimumContrast, TerminalSpacing,
 };
 use crate::terminal::alt_screen::{should_intercept_mouse, should_intercept_scroll};
 use crate::terminal::block_list_viewport::AutoscrollBehavior;
@@ -79,8 +78,8 @@ use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 use crate::terminal::view::TerminalAction;
 use crate::terminal::warpify::SubshellSource;
 use crate::terminal::{grid_renderer, SizeInfo};
-use crate::themes::theme::{Fill, WarpTheme};
-use crate::ui_components::{self, icons as UIIcon};
+use crate::themes::theme::WarpTheme;
+use crate::ui_components::icons as UIIcon;
 use crate::util::color::Opacity;
 
 /// The number of pixels at the bottom of padding where selection scrolling is performed.
@@ -1043,9 +1042,9 @@ impl BlockListElement {
     pub fn with_hovered_index(
         mut self,
         block_index: BlockIndex,
-        model: &TerminalModel,
-        should_render_tooltip_below_button: bool,
-        app: &AppContext,
+        _model: &TerminalModel,
+        _should_render_tooltip_below_button: bool,
+        _app: &AppContext,
     ) -> Self {
         self.hovered_block_index = Some(block_index);
         let icon_color = self
@@ -1372,7 +1371,7 @@ impl BlockListElement {
 
         if self.is_mouse_position_within_bounds(position) {
             ctx.dispatch_typed_action(TerminalAction::CloseContextMenu);
-            let mut should_redetermine_focus = true;
+            let should_redetermine_focus = true;
 
             match self.coord_to_point(
                 SnackbarPoint::within_snackbar(position),
@@ -1480,7 +1479,7 @@ impl BlockListElement {
                         }
                         // While rich content blocks can't be selected like command blocks,
                         // text selections can still originate in them (i.e. with AI blocks)
-                        Some(BlockHeightItem::RichContent(RichContentItem { view_id, .. })) => {
+                        Some(BlockHeightItem::RichContent(RichContentItem { view_id: _, .. })) => {
                             let bounds = self
                                 .bounds
                                 .expect("Bounds should be set before event dispatching");
@@ -1962,7 +1961,7 @@ impl BlockListElement {
         snackbar_header: &Option<SnackbarHeader>,
         ai_render_context: &BlocklistAIRenderContext,
         ctx: &mut PaintContext,
-        app: &AppContext,
+        _app: &AppContext,
     ) {
         let block_height = block.height().as_f64() as f32 * cell_size.y();
         if block.is_restored() {

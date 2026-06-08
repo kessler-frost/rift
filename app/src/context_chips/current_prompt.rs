@@ -9,8 +9,6 @@ use rift_completer::completer::CommandExitStatus;
 use rift_core::r#async::debounce;
 use rift_core::user_preferences::GetUserPreferences;
 use riftui::r#async::{SpawnedFutureHandle, Timer};
-#[cfg(feature = "local_fs")]
-use riftui::WeakModelHandle;
 use riftui::{
     AppContext, Entity, ModelAsRef, ModelContext, ModelHandle, SingletonEntity, ViewHandle,
 };
@@ -23,8 +21,6 @@ use super::context_chip::{
 use super::logging::{ChipCommandLogEntry, PromptChipExecutionPhase, PromptChipLogger};
 use super::prompt::Prompt;
 use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
-#[cfg(feature = "local_fs")]
-use crate::context_chips::display_chip::GitLineChanges;
 use crate::editor::EditorView;
 use crate::features::FeatureFlag;
 use crate::menu::{MenuItem, MenuItemFields};

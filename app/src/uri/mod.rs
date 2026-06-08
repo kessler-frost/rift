@@ -14,7 +14,7 @@ use itertools::Itertools;
 use rift_util::path::LineAndColumnArg;
 use riftui::notification::UserNotification;
 use riftui::platform::TerminationMode;
-use riftui::{AppContext, EntityId, SingletonEntity as _, TypedActionView, ViewHandle, WindowId};
+use riftui::{AppContext, SingletonEntity as _, TypedActionView, WindowId};
 use session_sharing_protocol::common::SessionId;
 use url::Url;
 
@@ -23,10 +23,10 @@ use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::linear::{LinearAction, LinearIssueWork};
 use crate::root_view::{
-    open_new_window_get_handles, open_new_with_workspace_source, NewWorkspaceSource,
+    open_new_window_get_handles,
     OpenLaunchConfigArg,
 };
-use crate::server::telemetry::{LaunchConfigUiLocation, TelemetryEvent};
+use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings_view::SettingsSection;
 use crate::tab_configs::TabConfig;
 use crate::user_config::{load_launch_configs, load_tab_configs, tab_configs_dir};

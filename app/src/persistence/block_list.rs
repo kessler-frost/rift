@@ -6,7 +6,6 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;
 
-use super::model::Block;
 use super::{model, schema};
 use crate::app_state::PaneUuid;
 use crate::terminal::model::block::{SerializedBlock, SerializedBlockListItem};

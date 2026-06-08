@@ -9,41 +9,29 @@ use std::path::PathBuf;
 use ai::skills::SkillReference;
 pub use cloud_mode_v2_view::{CloudModeV2SlashCommandView, Section as CloudModeV2Section};
 pub use data_source::*;
-#[cfg(not(target_family = "wasm"))]
-use rift_cli::agent::Harness;
 use rift_core::features::FeatureFlag;
 use rift_core::send_telemetry_from_ctx;
-use rift_core::ui::appearance::Appearance;
 use rift_core::ui::theme::AnsiColorIdentifier;
 #[cfg(feature = "local_fs")]
 use rift_util::path::{CleanPathResult, LineAndColumnArg};
-use riftui::clipboard::ClipboardContent;
 use riftui::{AppContext, SingletonEntity, ViewContext};
 pub use view::{CloseReason, InlineSlashCommandView, SlashCommandsEvent};
 
-use crate::search::slash_command_menu::static_commands::commands::{self, COMMAND_REGISTRY};
+use crate::search::slash_command_menu::static_commands::commands::{self};
 use crate::search::slash_command_menu::static_commands::Availability;
 use crate::search::slash_command_menu::{SlashCommandId, StaticCommand};
 use crate::server::ids::SyncId;
-use crate::server::telemetry::SlashCommandAcceptedDetails;
 use crate::settings::AISettings;
 use crate::tab::SelectedTabColor;
-use crate::terminal::input::decorations::InputBackgroundJobOptions;
 use crate::terminal::input::inline_menu::{InlineMenuAction, InlineMenuType};
-use crate::terminal::input::message_bar::Message;
-use crate::terminal::input::slash_command_model::{
-    SlashCommandEntryState, UpdatedSlashCommandModel,
-};
 use crate::terminal::input::{
-    CompletionsTrigger, Event, Input, InputAction, InputSuggestionsMode, UserQueryMenuAction,
+    Input, InputSuggestionsMode,
 };
 #[cfg(feature = "local_fs")]
 use crate::terminal::model::session::Session;
-use crate::terminal::view::TerminalAction;
 use crate::ui_components::color_dot;
 use crate::view_components::DismissibleToast;
-use crate::workspace::{ForkedConversationDestination, ToastStack, WorkspaceAction};
-use crate::TelemetryEvent;
+use crate::workspace::{ToastStack, WorkspaceAction};
 
 #[derive(Debug, Clone)]
 pub enum AcceptSlashCommandOrSavedPrompt {
@@ -194,7 +182,7 @@ impl Input {
         &mut self,
         command: &StaticCommand,
         argument: Option<&String>,
-        trigger: SlashCommandTrigger,
+        _trigger: SlashCommandTrigger,
         is_queued_prompt: bool,
         ctx: &mut ViewContext<Self>,
     ) -> bool {

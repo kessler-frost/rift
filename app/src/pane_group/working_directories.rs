@@ -9,15 +9,12 @@ use std::path::PathBuf;
 #[cfg(feature = "local_fs")]
 use indexmap::IndexSet;
 #[cfg(feature = "local_fs")]
-use remote_server::manager::RemoteServerManager;
-#[cfg(feature = "local_fs")]
 use repo_metadata::repositories::DetectedRepositories;
-use rift_core::SessionId;
 #[cfg(feature = "local_fs")]
 use rift_util::remote_path::RemotePath;
 #[cfg(feature = "local_fs")]
 use riftui::{AppContext, SingletonEntity as _};
-use riftui::{Entity, EntityId, ModelContext, ModelHandle, ViewHandle};
+use riftui::{Entity, EntityId, ModelContext, ViewHandle};
 
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::workspace::view::global_search::view::GlobalSearchView;

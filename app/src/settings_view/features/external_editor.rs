@@ -9,7 +9,6 @@ use riftui::{Element, Entity, SingletonEntity, TypedActionView, View, ViewContex
 use settings::{Setting, ToggleableSetting};
 
 use crate::appearance::Appearance;
-use crate::server::telemetry::TelemetryEvent;
 use crate::settings_view::settings_page::{
     render_body_item, render_dropdown_item, AdditionalInfo, LocalOnlyIconState, ToggleState,
 };
@@ -227,7 +226,7 @@ impl ExternalEditorView {
     /// Handles [`ExternalEditorAction::TogglePreferMarkdownViewer`]
     /// preference.
     fn toggle_prefer_markdown_viewer(&mut self, ctx: &mut ViewContext<Self>) {
-        let new_value = EditorSettings::handle(ctx).update(ctx, |settings, ctx| {
+        let _new_value = EditorSettings::handle(ctx).update(ctx, |settings, ctx| {
             let new_value = settings.prefer_markdown_viewer.toggle_and_save_value(ctx);
             report_if_error!(new_value);
             new_value.unwrap_or(PreferMarkdownViewer::default_value())
@@ -244,7 +243,7 @@ impl ExternalEditorView {
 
     /// Handles [`ExternalEditorAction::TogglePreferTabbedEditorView`] by updating the tabbed file viewer preference.
     fn toggle_prefer_tabbed_editor_view(&mut self, ctx: &mut ViewContext<Self>) {
-        let new_value = EditorSettings::handle(ctx).update(ctx, |settings, ctx| {
+        let _new_value = EditorSettings::handle(ctx).update(ctx, |settings, ctx| {
             let new_value = settings
                 .prefer_tabbed_editor_view
                 .toggle_and_save_value(ctx);

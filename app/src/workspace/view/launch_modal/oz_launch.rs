@@ -5,10 +5,7 @@ use riftui::assets::asset_cache::AssetSource;
 use riftui::{AppContext, SingletonEntity};
 
 use super::{CTAButton, CheckboxConfig, LaunchModalEvent, Slide};
-use crate::terminal::view::OnboardingIntention;
 use crate::ui_components::icons::Icon;
-use crate::workspace::action::WorkspaceAction;
-use crate::workspace::view::OnboardingTutorial;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::workspaces::workspace::{AdminEnablementSetting, UgcCollectionEnablementSetting};
 

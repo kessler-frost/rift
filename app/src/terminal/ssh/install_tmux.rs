@@ -1,4 +1,3 @@
-use std::rc::Rc;
 
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use rift_core::ui::theme::WarpTheme;

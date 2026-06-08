@@ -48,7 +48,6 @@ use crate::ui_components::render_file_search_row::{render_file_search_row, FileS
 use crate::view_components::action_button::{ActionButton, ButtonSize, NakedTheme};
 use crate::workspace::view::global_search::model::GlobalSearch;
 use crate::workspace::view::global_search::SearchConfig;
-use crate::TelemetryEvent;
 
 const BORDER_RADIUS: f32 = 6.;
 const BORDER_WIDTH: f32 = 1.;
@@ -2285,7 +2284,7 @@ fn icon_from_file_path(path: &str, appearance: &Appearance) -> Option<Box<dyn El
     use riftui::assets::asset_cache::AssetSource;
     use riftui::elements::{CacheOption, Image};
 
-    let theme = appearance.theme();
+    let _theme = appearance.theme();
     let parsed_path = Path::new(path);
     let extension = parsed_path.extension().and_then(|ext| ext.to_str());
 

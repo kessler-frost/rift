@@ -20,7 +20,6 @@ use crate::terminal::model::terminal_model::SubshellInitializationInfo;
 use crate::terminal::shell::{Shell, ShellType};
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon as UiIcon;
-use crate::workspace::WorkspaceAction;
 
 const VERTICAL_TEXT_MARGIN: f32 = 16.;
 

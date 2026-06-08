@@ -20,12 +20,10 @@ use std::collections::HashMap;
 use std::fmt::Write;
 use std::ops::Range;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 
-use ai::skills::SkillReference;
 use async_channel::Sender;
 use base64::Engine as _;
 #[cfg(feature = "local_fs")]
@@ -39,7 +37,6 @@ use parking_lot::FairMutex;
 #[cfg(feature = "local_fs")]
 use parking_lot::Mutex;
 use regex::Regex;
-use rift_cli::agent::Harness;
 use rift_completer::completer::{
     self, CompleterOptions, CompletionContext, CompletionsFallbackStrategy, Description, Match,
     MatchStrategy, MatchType, PathSeparators, SuggestionResults,
@@ -48,36 +45,27 @@ use rift_completer::meta::{HasSpan, Spanned};
 use rift_completer::parsers::simple::command_at_cursor_position;
 use rift_completer::parsers::LiteCommand;
 use rift_completer::signatures::CommandRegistry;
-use rift_completer::util::parse_current_commands_and_tokens;
 use rift_core::context_flag::ContextFlag;
 use rift_core::r#async::debounce;
-use rift_core::ui::theme::color::internal_colors;
-use rift_core::ui::theme::AnsiColorIdentifier;
 use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
 use rift_util::path::ShellFamily;
 use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
 use riftui::clipboard::{ClipboardContent, ImageData};
 use riftui::clipboard_utils::CLIPBOARD_IMAGE_MIME_TYPES;
-use riftui::color::ColorU;
 use riftui::elements::{
-    resizable_state_handle, Align, AnchorPair, ChildAnchor, Clipped, ConstrainedBox, Container,
-    CornerRadius, CrossAxisAlignment, DispatchEventResult, DropTargetData, Element, EventHandler,
-    Flex, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, OffsetType,
-    ParentAnchor, ParentElement, PositionedElementOffsetBounds, PositioningAxis, Radius,
-    ResizableStateHandle, SavePosition, SelectionHandle, Text, Wrap, XAxisAnchor, YAxisAnchor,
+    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType, ParentElement,
+    ResizableStateHandle, SavePosition, SelectionHandle, YAxisAnchor,
 };
 pub use riftui::elements::{ParentElement as _, Stack};
 pub use riftui::geometry::vector::{vec2f, Vector2F};
-use riftui::keymap::{BindingDescription, EditableBinding, FixedBinding, Keystroke};
+use riftui::keymap::{EditableBinding, FixedBinding, Keystroke};
 use riftui::platform::OperatingSystem;
 use riftui::presenter::ChildView;
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 use riftui::r#async::FutureExt as _;
 use riftui::r#async::SpawnedFutureHandle;
-use riftui::text_layout::TextStyle;
-use riftui::ui_components::chip::Chip;
-use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::components::UiComponent;
 use riftui::units::IntoPixels;
 pub use riftui::WindowId;
 use riftui::{
@@ -85,11 +73,8 @@ use riftui::{
     SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use session_sharing_protocol::common::{AgentAttachment, ParticipantId, ServerConversationToken};
 use settings::{Setting as _, ToggleableSetting};
 use string_offset::{ByteOffset, CharOffset};
-use vec1::Vec1;
 use vim::vim::{VimHandler, VimMode};
 
 use self::decorations::InputBackgroundJobOptions;
@@ -108,106 +93,71 @@ use super::safe_mode_settings::{
 };
 use super::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use super::settings::{SpacingMode, TerminalSettings, TerminalSettingsChangedEvent};
-use super::shell::ShellType;
 use super::view::{
     ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
 };
 use super::warpify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
 use crate::appearance::{Appearance, AppearanceEvent};
-use crate::channel::{Channel, ChannelState};
 use crate::completer::SessionContext;
-use crate::context_chips::display::{PromptDisplay, PromptDisplayEvent};
-use crate::context_chips::display_chip::DisplayChipConfig;
+use crate::context_chips::display::PromptDisplay;
 use crate::context_chips::prompt_type::PromptType;
-use crate::context_chips::spacing;
 use crate::editor::{
     default_cursor_colors, position_id_for_cached_point, position_id_for_cursor,
     position_id_for_first_cursor, AttachedImage as AttachedImageRawData, AutosuggestionLocation,
-    AutosuggestionType, BaselinePositionComputationMethod, CommandXRayAnchor, CrdtOperation,
-    CursorColors, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements, EditorOptions,
-    EditorSnapshot, EditorView, Event as EditorEvent, ImageContextOptions, InteractionState,
+    AutosuggestionType, BaselinePositionComputationMethod, CommandXRayAnchor, CrdtOperation, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements, EditorOptions,
+    EditorSnapshot, EditorView, Event as EditorEvent, InteractionState,
     PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint, PropagateAndNoOpEscapeKey,
-    PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, ReplicaId, TextColors,
-    TextRun, MAX_IMAGES_PER_CONVERSATION,
+    PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextColors, MAX_IMAGES_PER_CONVERSATION,
 };
 use crate::features::FeatureFlag;
 use crate::input_suggestions::{
-    Event as InputSuggestionsEvent, HistoryInputSuggestion, InputSuggestions,
+    HistoryInputSuggestion, InputSuggestions,
     TabCompletionsPreselectOption,
 };
-use crate::network::NetworkStatus;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::PaneGroupAction;
 #[cfg(feature = "local_fs")]
 use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};
 use crate::prefix::longest_common_prefix;
-use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipHint, TipsCompleted,
 };
-use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
-use crate::search::ai_context_menu::search::is_valid_search_query;
-use crate::search::ai_context_menu::view::AIContextMenuAction;
-use crate::search::slash_command_menu::static_commands::commands::{self, COMMAND_REGISTRY};
+use crate::search::slash_command_menu::static_commands::commands::COMMAND_REGISTRY;
 use crate::search::QueryFilter;
-use crate::server::ids::SyncId;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
-    AICommandSearchEntrypoint, AgentModeAutoDetectionFalsePositivePayload,
-    AgentModeAutoDetectionSettingOrigin, AnonymousUserSignupEntrypoint, CommandXRayTrigger,
-    PaletteSource, SlashCommandAcceptedDetails, SlashMenuSource,
+    AICommandSearchEntrypoint, CommandXRayTrigger,
     TelemetryEvent, 
 };
 use crate::session_management::SessionNavigationPromptElements;
 use crate::settings::{
-    AISettings, AISettingsChangedEvent, AliasExpansionSettings, AppEditorSettings,
-    AppEditorSettingsChangedEvent, InputModeSettings, InputSettings, InputSettingsChangedEvent,
-    PrivacySettings, MAX_TIMES_TO_SHOW_AUTOSUGGESTION_HINT,
+    AISettings, AliasExpansionSettings, AppEditorSettings,
+    AppEditorSettingsChangedEvent, InputModeSettings, InputSettings, InputSettingsChangedEvent, MAX_TIMES_TO_SHOW_AUTOSUGGESTION_HINT,
 };
 use crate::settings_view::{flags, SettingsSection};
 use crate::suggestions::ignored_suggestions_model::{
     IgnoredSuggestionsModel, IgnoredSuggestionsModelEvent, SuggestionType,
 };
-#[cfg(not(target_family = "wasm"))]
-use crate::terminal::cli_agent_sessions::plugin_manager::PluginModalKind;
-use crate::terminal::cli_agent_sessions::{
-    CLIAgentInputState, CLIAgentSessionsModel, CLIAgentSessionsModelEvent,
-};
+use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::buffer_model::InputBufferModel;
-use crate::terminal::input::cloud_mode_v2_history_menu::CloudModeV2HistoryMenuView;
-use crate::terminal::input::inline_history::InlineHistoryMenuView;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
-use crate::terminal::input::repos::{InlineReposMenuEvent, InlineReposMenuView};
-use crate::terminal::input::slash_command_model::{SlashCommandEntryState, SlashCommandModel};
-use crate::terminal::input::slash_commands::{
-    CloudModeV2SlashCommandView, InlineSlashCommandView, SlashCommandDataSource,
-    SlashCommandTrigger,
-};
+use crate::terminal::input::repos::InlineReposMenuEvent;
+use crate::terminal::input::slash_commands::SlashCommandTrigger;
 use crate::terminal::input::suggestions_mode_model::{
     InputSuggestionsModeEvent, InputSuggestionsModeModel,
 };
 use crate::terminal::input::terminal_message_bar::TerminalInputMessageBar;
 use crate::terminal::model::session::active_session::ActiveSession;
-use crate::terminal::package_installers::command_at_cursor_has_common_package_installer_prefix;
-use crate::terminal::prompt_render_helper::should_render_ps1_prompt;
-use crate::terminal::view::CodeDiffAction;
-use crate::terminal::CLIAgent;
-use crate::ui_components::blended_colors;
-use crate::ui_components::icons::Icon;
-use crate::user_config::WarpConfig;
-use crate::util::bindings::{self, keybinding_name_to_normalized_string, CustomAction};
-#[cfg(feature = "local_fs")]
-use crate::util::file::external_editor;
+use crate::util::bindings::{self, CustomAction};
 use crate::util::image::MAX_IMAGE_COUNT_FOR_QUERY;
 use crate::util::truncation::truncate_from_end;
 use crate::view_components::{DismissibleToast, ToastFlavor};
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
-    CommandSearchOptions, ForkedConversationDestination, InitContent, RestoreConversationLayout,
+    CommandSearchOptions, InitContent,
     ToastStack, WorkspaceAction,
 };
-use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
 #[allow(unused_imports)]
 use crate::ASSETS;
 #[allow(unused_imports)]
@@ -1333,8 +1283,8 @@ impl Input {
             let prompt_render_helper_clone = prompt_render_helper.clone();
             let model_clone = model.clone();
             // Clone used in keymap_context_modifier closure below.
-            let terminal_model_for_keymap_context = model.clone();
-            let has_prompt_suggestion_banner_for_keymap = has_prompt_suggestion_banner.clone();
+            let _terminal_model_for_keymap_context = model.clone();
+            let _has_prompt_suggestion_banner_for_keymap = has_prompt_suggestion_banner.clone();
             let input_render_state_model_handle_clone = input_render_state_model_handle.clone();
 
             ctx.add_typed_action_view(|ctx| {
@@ -2536,7 +2486,7 @@ impl Input {
 
     // TODO - Implement PageUp functionality for input suggestions menu
     fn editor_page_up(&mut self, ctx: &mut ViewContext<Self>) {
-        let event = self.editor.read(ctx, |editor, ctx| {
+        let _event = self.editor.read(ctx, |editor, ctx| {
             TelemetryEvent::PageUpDownInEditorPressed {
                 is_empty_editor: editor.is_empty(ctx),
                 is_down: false,
@@ -2637,7 +2587,7 @@ impl Input {
 
     // TODO - Implement PageDown functionality for input suggestions menu
     fn editor_page_down(&mut self, ctx: &mut ViewContext<Self>) {
-        let event = self.editor.read(ctx, |editor, ctx| {
+        let _event = self.editor.read(ctx, |editor, ctx| {
             TelemetryEvent::PageUpDownInEditorPressed {
                 is_empty_editor: editor.is_empty(ctx),
                 is_down: true,
@@ -2694,7 +2644,7 @@ impl Input {
         let ignored_suggestions = IgnoredSuggestionsModel::as_ref(ctx)
             .get_ignored_suggestions_for_type(SuggestionType::ShellCommand);
         #[cfg(feature = "local_fs")]
-        let conn = self.conn.clone();
+        let _conn = self.conn.clone();
         let abort_handle = ctx
             .spawn_abortable(
                 async move {
@@ -3153,7 +3103,7 @@ impl Input {
                         }
 
                         let editor = self.editor.as_ref(ctx);
-                        let buffer_text = editor.buffer_text(ctx);
+                        let _buffer_text = editor.buffer_text(ctx);
 
                         self.maybe_generate_autosuggestion(ctx);
 
@@ -3219,8 +3169,8 @@ impl Input {
                 }
             }
             EditorEvent::AutosuggestionAccepted {
-                insertion_length,
-                buffer_char_length,
+                insertion_length: _,
+                buffer_char_length: _,
                 autosuggestion_type,
             } => {
                 send_telemetry_from_ctx!(
@@ -5402,7 +5352,7 @@ impl Input {
 
         ctx.emit(Event::ShowCommandSearch(Default::default()));
 
-        let entrypoint = if buffer_starts_with_trigger {
+        let _entrypoint = if buffer_starts_with_trigger {
             AICommandSearchEntrypoint::ShortHandTrigger
         } else {
             AICommandSearchEntrypoint::Keybinding

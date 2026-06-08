@@ -8,7 +8,6 @@ use riftui::r#async::executor::Background;
 
 use crate::auth::auth_state::AuthState;
 use crate::send_telemetry_on_executor;
-use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::TerminalModel;
 
 /// We want to measure throughput as bytes / sec.
@@ -22,7 +21,7 @@ const PTY_THROUGHPUT_METRIC_INTERVAL: Duration = Duration::from_secs(10);
 pub fn record_pty_throughput(
     mut pty_reads_rx: Receiver<Arc<Vec<u8>>>,
     model: Arc<FairMutex<TerminalModel>>,
-    auth_state: Arc<AuthState>,
+    _auth_state: Arc<AuthState>,
     executor: Arc<Background>,
 ) {
     let num_bytes_read_in_last_second = Arc::new(Mutex::new(0));
@@ -50,7 +49,7 @@ pub fn record_pty_throughput(
         .detach();
 
     // Every second, update the max throughput and check if it's time to emit an event.
-    let executor_clone = executor.clone();
+    let _executor_clone = executor.clone();
     executor
         .spawn(async move {
             while async_io::Timer::interval(PTY_THROUGHPUT_TIME_INTERVAL)

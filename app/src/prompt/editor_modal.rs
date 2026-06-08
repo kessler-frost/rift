@@ -22,7 +22,7 @@ use crate::context_chips::renderer::Renderer as ContextChipRenderer;
 use crate::context_chips::{
     available_chips, ChipAvailability, ChipRuntimeCapabilities, ContextChipKind,
 };
-use crate::server::telemetry::{PromptChoice, TelemetryEvent};
+use crate::server::telemetry::PromptChoice;
 use crate::settings::{FontSettings, WarpPromptSeparator};
 use crate::terminal::blockgrid_element::BlockGridElement;
 use crate::terminal::model::blockgrid::BlockGrid;
@@ -348,7 +348,7 @@ impl EditorModal {
                 }
             }
 
-            let prompt_info = match self.prompt_type {
+            let _prompt_info = match self.prompt_type {
                 PromptType::PS1 => PromptChoice::PS1,
                 PromptType::WarpDefault => PromptChoice::Default,
                 PromptType::Warp => PromptChoice::Custom {

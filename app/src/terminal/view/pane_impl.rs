@@ -1,15 +1,11 @@
 //! This module contains the implementation of `BackingView` for `TerminalView`, as well as
 //! business logic for integrating the terminal view with the pane infra (`crate::pane_group`).
-use rift_core::context_flag::ContextFlag;
 use riftui::elements::{
-    ConstrainedBox, CrossAxisAlignment, Empty, Flex, MainAxisAlignment, MainAxisSize,
+    ConstrainedBox, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize,
     ParentElement, Shrinkable,
 };
-use riftui::prelude::{ChildView, Container};
+use riftui::prelude::Container;
 use riftui::text_layout::ClipConfig;
-use riftui::ui_components::components::UiComponent;
-#[cfg(not(target_arch = "wasm32"))]
-use riftui::ui_components::components::UiComponentStyles;
 use riftui::{
     AppContext, Element, ModelHandle, SingletonEntity, TypedActionView, ViewContext,
     WeakModelHandle,
@@ -25,17 +21,11 @@ use crate::pane_group::pane::view::header::components::{
     header_edge_min_width, render_pane_header_buttons, render_pane_header_title_text,
     render_three_column_header, CenteredHeaderEdgeWidth,
 };
-use crate::pane_group::pane::view::header::{render_pane_header_draggable, PANE_HEADER_HEIGHT};
-use crate::pane_group::pane::view::PaneHeaderAction;
+use crate::pane_group::pane::view::header::render_pane_header_draggable;
 use crate::pane_group::pane::{view, PaneStack};
 use crate::pane_group::{BackingView, SplitPaneState};
-use crate::settings::app_installation_detection::{
-    UserAppInstallDetectionSettings, UserAppInstallStatus,
-};
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::{TerminalManager, TerminalView};
-use crate::ui_components::agent_icon::terminal_view_agent_icon_variant;
-use crate::ui_components::buttons::icon_button_with_color;
 use crate::ui_components::icon_with_status::render_icon_with_status;
 use crate::ui_components::{blended_colors, icons};
 use crate::workspace::tab_settings::TabSettings;
@@ -143,7 +133,7 @@ impl TerminalView {
 
     fn render_header_title(
         &self,
-        is_fullscreen_agent_view: bool,
+        _is_fullscreen_agent_view: bool,
         header_ctx: &view::HeaderRenderContext,
         app: &AppContext,
     ) -> Box<dyn Element> {
@@ -164,7 +154,7 @@ impl TerminalView {
         let should_render_ambient_agent_indicator =
             self.model.lock().is_shared_ambient_agent_session();
         let theme = appearance.theme();
-        let render_agent_circle = |variant| {
+        let _render_agent_circle = |variant| {
             render_icon_with_status(
                 variant,
                 PANE_HEADER_AGENT_SIZE,
@@ -273,7 +263,7 @@ impl TerminalView {
         &self,
         header: Box<dyn Element>,
         parent_conversation_header_card: Option<Box<dyn Element>>,
-        app: &AppContext,
+        _app: &AppContext,
     ) -> Box<dyn Element> {
         // The pill bar is shown for the orchestrator and swap-target child panes.
         // Split-off panes ("Open in new pane" / "Open in new tab") render a
@@ -382,7 +372,7 @@ impl BackingView for TerminalView {
         &self,
         ctx: &AppContext,
     ) -> Vec<MenuItem<Self::PaneHeaderOverflowMenuAction>> {
-        let model = self.model.lock();
+        let _model = self.model.lock();
         let mut items = vec![];
 
         // Split-pane related items.

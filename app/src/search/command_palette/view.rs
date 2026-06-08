@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use rift_core::send_telemetry_from_app_ctx;
 use rift_util::path::LineAndColumnArg;
 use riftui::elements::{
     Align, Border, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
@@ -592,7 +591,7 @@ impl View {
     fn close(&mut self, ctx: &mut ViewContext<Self>, accepted_action_type: Option<&'static str>) {
         let buffer_length = self.search_bar.as_ref(ctx).query(ctx).len();
         let filter = self.active_query_filter(ctx);
-        let event = if let Some(result_type) = accepted_action_type {
+        let _event = if let Some(result_type) = accepted_action_type {
             TelemetryEvent::PaletteSearchResultAccepted {
                 result_type,
                 filter,

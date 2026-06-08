@@ -22,7 +22,7 @@ use channel_versions::ChannelVersions;
 use chrono::{DateTime, FixedOffset};
 use futures::StreamExt;
 use instant::Instant;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::Mutex;
 use prost::Message;
 use reqwest::StatusCode;
 use rift_core::context_flag::ContextFlag;

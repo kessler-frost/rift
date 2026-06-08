@@ -1,30 +1,21 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::Arc;
 
-use rift_util::path::LineAndColumnArg;
 use riftui::accessibility::AccessibilityVerbosity;
 use riftui::geometry::rect::RectF;
 use riftui::geometry::vector::Vector2F;
 use riftui::platform::Cursor;
-use riftui::{EntityId, WeakViewHandle, WindowId};
-use session_sharing_protocol::common::SessionId;
 use ui_components::lightbox;
 
-use super::global_actions::ForkedConversationDestination;
 use super::tab_settings::{
     VerticalTabsCompactSubtitle, VerticalTabsDisplayGranularity, VerticalTabsPrimaryInfo,
     VerticalTabsTabItemMode, VerticalTabsViewMode,
 };
-use super::view::{OnboardingTutorial, WorkspaceBanner};
+use super::view::WorkspaceBanner;
 use crate::auth::auth_manager::LoginGatedFeature;
 use crate::palette::PaletteMode;
-use crate::pane_group::PaneGroup;
-use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::search;
-use crate::server::ids::SyncId;
 use crate::server::telemetry::{
-    AddTabWithShellSource, AgentModeEntrypoint, PaletteSource, SharingDialogSource,
+    AddTabWithShellSource, PaletteSource,
 };
 use crate::settings_view::{SettingsAction as SettingsTabAction, SettingsSection};
 use crate::tab::{NewSessionMenuItem, SelectedTabColor};

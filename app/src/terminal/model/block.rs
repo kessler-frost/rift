@@ -19,7 +19,6 @@ use lazy_static::lazy_static;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
 use rift_core::command::ExitCode;
-use rift_core::features::FeatureFlag;
 use rift_terminal::model::grid::Dimensions as _;
 use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
 use rift_util::path::user_friendly_path;

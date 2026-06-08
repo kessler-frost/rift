@@ -2,7 +2,6 @@ use std::fmt;
 use std::ops::Range;
 use std::path::PathBuf;
 
-use ai::skills::SkillReference;
 use command_corrections::Correction;
 pub use onboarding::OnboardingIntention;
 use pathfinder_geometry::vector::Vector2F;
@@ -10,9 +9,6 @@ use rift_util::user_input::UserInput;
 use riftui::elements::HyperlinkUrl;
 use riftui::event::ModifiersState;
 use riftui::units::Lines;
-use riftui::EntityId;
-use session_sharing_protocol::common::Role;
-use session_sharing_protocol::sharer::RoleUpdateReason;
 
 use super::inline_banner::{OpenInWarpBannerAction, VimModeBannerAction};
 use super::{
@@ -20,8 +16,7 @@ use super::{
     NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction, RichContentLink,
     SSHBannerAction, TerminalEditor,
 };
-use crate::server::ids::SyncId;
-use crate::server::telemetry::{AgentModeRewindEntrypoint, PaletteSource, ToggleBlockFilterSource};
+use crate::server::telemetry::ToggleBlockFilterSource;
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::block_list_element::{
     BlockHoverAction, BlockListMenuSource, BlockSelectAction, BlockTextSelectAction,

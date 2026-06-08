@@ -1,19 +1,12 @@
 //! Implementation of terminal panes.
-#[cfg(not(target_family = "wasm"))]
-use std::collections::HashMap;
 use std::sync::mpsc::SyncSender;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
-use rift_cli::agent::Harness;
 use rift_core::execution_mode::AppExecutionMode;
-use rift_multi_agent_api as multi_agent_api;
 use riftui::{
     AppContext, EntityId, ModelHandle, SingletonEntity, ViewContext, ViewHandle, WindowId,
 };
-#[cfg(not(target_family = "wasm"))]
-use session_sharing_protocol::sharer::SessionSourceType;
-use url::Url;
 
 use super::{
     DetachType, PaneConfiguration, PaneContent, PaneId, PaneStackEvent, PaneView, ShareableLink,
