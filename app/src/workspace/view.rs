@@ -6245,42 +6245,6 @@ impl Workspace {
             MenuItem::Separator,
         ]);
 
-        if self.auth_state.is_anonymous_or_logged_out() {
-            items.push(
-                MenuItemFields::new("Sign up")
-                    .with_on_select_action(WorkspaceAction::SignupAnonymousUser)
-                    .into_item(),
-            );
-        }
-
-        // Check if the user is on any paid plan to determine whether to show "Billing and Usage" or "Upgrade"
-        let is_on_paid_plan = UserWorkspaces::as_ref(app)
-            .current_workspace()
-            .map(|workspace| workspace.billing_metadata.is_user_on_paid_plan())
-            .unwrap_or(false);
-
-        if is_on_paid_plan {
-            items.push(
-                MenuItemFields::new("Billing and usage")
-                    .with_on_select_action(WorkspaceAction::ShowSettingsPage(
-                        SettingsSection::BillingAndUsage,
-                    ))
-                    .into_item(),
-            );
-        } else {
-            items.push(
-                MenuItemFields::new("Upgrade")
-                    .with_on_select_action(WorkspaceAction::ShowUpgrade)
-                    .into_item(),
-            );
-        }
-
-        items.push(
-            MenuItemFields::new("Invite a friend")
-                .with_on_select_action(WorkspaceAction::ShowReferralSettingsPage)
-                .into_item(),
-        );
-
         if !self.auth_state.is_anonymous_or_logged_out() {
             items.push(
                 MenuItemFields::new("Log out")
@@ -6859,16 +6823,6 @@ impl Workspace {
             Some(WorkspaceAction::SelectTabConfig(config)) => SidecarItemKind::UserTabConfig {
                 config: config.clone(),
             },
-            Some(WorkspaceAction::AddAgentTab) => SidecarItemKind::BuiltIn {
-                name: label.to_string(),
-                default_mode: DefaultSessionMode::Agent,
-                shell: None,
-            },
-            Some(WorkspaceAction::AddAmbientAgentTab) => SidecarItemKind::BuiltIn {
-                name: label.to_string(),
-                default_mode: DefaultSessionMode::CloudAgent,
-                shell: None,
-            },
             Some(WorkspaceAction::AddTerminalTab { .. }) => SidecarItemKind::BuiltIn {
                 name: label.to_string(),
                 default_mode: DefaultSessionMode::Terminal,
@@ -6878,11 +6832,6 @@ impl Workspace {
                 name: label.to_string(),
                 default_mode: DefaultSessionMode::Terminal,
                 shell: Some(shell.clone()),
-            },
-            Some(WorkspaceAction::AddDockerSandboxTab) => SidecarItemKind::BuiltIn {
-                name: label.to_string(),
-                default_mode: DefaultSessionMode::DockerSandbox,
-                shell: None,
             },
             _ => {
                 // Hovered item has no associated sidecar. Clear any stale
@@ -9687,46 +9636,12 @@ impl Workspace {
             SettingsViewEvent::LaunchNetworkLogging => {
                 self.open_network_log_pane(ctx);
             }
-            SettingsViewEvent::OpenWarpDrive => {
-                self.close_all_overlays(ctx);
-                self.open_or_toggle_warp_drive(
-                    false, /* toggle */
-                    false, /* explicit_user_action */
-                    ctx,
-                );
-                ctx.notify();
-            }
-            SettingsViewEvent::SignupAnonymousUser => {
-                self.initiate_user_signup(AnonymousUserSignupEntrypoint::SignUpButton, ctx);
-            }
             SettingsViewEvent::Pane(_) | SettingsViewEvent::StartResize => {}
             SettingsViewEvent::ShowToast { message, flavor } => {
                 self.toast_stack.update(ctx, |toast_stack, ctx| {
                     toast_stack
                         .add_ephemeral_toast(DismissibleToast::new(message.clone(), *flavor), ctx);
                 });
-            }
-            SettingsViewEvent::OpenAIFactCollection => {
-                self.open_ai_fact_collection_pane(Some(Direction::Right), None, ctx);
-                send_telemetry_from_ctx!(
-                    TelemetryEvent::KnowledgePaneOpened {
-                        entrypoint: KnowledgePaneEntrypoint::Settings,
-                    },
-                    ctx
-                );
-            }
-            SettingsViewEvent::OpenMCPServerCollection => {
-                self.show_settings_with_section(Some(SettingsSection::MCPServers), ctx);
-
-                send_telemetry_from_ctx!(
-                    TelemetryEvent::MCPServerCollectionPaneOpened {
-                        entrypoint: MCPServerCollectionPaneEntrypoint::Settings,
-                    },
-                    ctx
-                );
-            }
-            SettingsViewEvent::OpenExecutionProfileEditor(profile_id) => {
-                self.open_execution_profile_editor_pane(None, *profile_id, ctx);
             }
             SettingsViewEvent::OpenLspLogs { log_path } => {
                 self.open_lsp_logs(log_path, ctx);
@@ -9753,26 +9668,8 @@ impl Workspace {
             .terminal_view_working_directories(ctx)
             .filter_map(|(id, cwd)| cwd.map(|c| (id, c)))
             .collect();
-        let code_paths: Vec<(EntityId, LocalOrRemotePath)> = pane_group
-            .as_ref(ctx)
-            .code_view_paths(ctx)
-            .filter_map(|(id, cwd)| cwd.map(|c| (id, c)))
-            .collect();
-        let code_diff_paths: Vec<(EntityId, LocalOrRemotePath)> = pane_group
-            .as_ref(ctx)
-            .code_diff_view_paths(ctx)
-            .filter_map(|(id, cwd)| cwd.map(|c| (id, c)))
-            .collect();
-        let notebook_paths: Vec<(EntityId, LocalOrRemotePath)> = pane_group
-            .as_ref(ctx)
-            .file_notebook_paths(ctx)
-            .filter_map(|(id, path)| path.map(|p| (id, p)))
-            .collect();
-        let local_paths: Vec<(EntityId, LocalOrRemotePath)> = code_paths
-            .into_iter()
-            .chain(notebook_paths)
-            .chain(code_diff_paths)
-            .collect();
+        // Code/diff/notebook panes were AI features and have been removed.
+        let local_paths: Vec<(EntityId, LocalOrRemotePath)> = Vec::new();
 
         // Get the focused terminal ID to prioritize it in the repo_to_terminal map
         let focused_terminal_id = pane_group
