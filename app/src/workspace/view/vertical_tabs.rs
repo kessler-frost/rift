@@ -4281,16 +4281,14 @@ fn render_summary_pane_kind_icon_circle(
 /// other pane kinds) return `None` so the caller falls back to its inline rendering.
 fn ambient_agent_variant(kind: &SummaryPaneKind) -> Option<IconWithStatusVariant> {
     match kind {
-        SummaryPaneKind::OzAgent { is_ambient: true } => Some(IconWithStatusVariant::OzAgent {
-            status: None,
-            is_ambient: true,
-        }),
+        SummaryPaneKind::OzAgent { is_ambient: true } => {
+            Some(IconWithStatusVariant::OzAgent { is_ambient: true })
+        }
         SummaryPaneKind::CLIAgent {
             agent,
             is_ambient: true,
         } => Some(IconWithStatusVariant::CLIAgent {
             agent: *agent,
-            status: None,
             is_ambient: true,
         }),
         _ => None,
