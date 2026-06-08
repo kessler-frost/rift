@@ -328,7 +328,6 @@ impl AuthManager {
                 let UserProperties {
                     user,
                     server_experiments,
-                    llms,
                 } = user_output.into();
 
                 self.set_and_persist(Some(user.clone()), Some(credentials), ctx);
@@ -357,8 +356,6 @@ impl AuthManager {
                 TeamTesterStatus::handle(ctx).update(ctx, |model, ctx| {
                     model.initiate_data_pollers(false, ctx);
                 });
-
-                let _ = &llms;
 
                 if !user.is_user_anonymous() {
                     GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {

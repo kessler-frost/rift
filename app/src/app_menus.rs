@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::path::PathBuf;
 
-use ai::workspace::WorkspaceMetadata;
 use csv::Writer;
 use enclose::enclose;
 use itertools::Itertools;
@@ -1138,12 +1137,12 @@ fn make_recent_repos_menu_items(ctx: &AppContext) -> Vec<MenuItem> {
 }
 
 fn generate_recent_repos_for_menu(ctx: &AppContext) -> Vec<PathBuf> {
-    PersistedWorkspace::handle(ctx)
+    crate::projects::ProjectManagementModel::handle(ctx)
         .as_ref(ctx)
-        .workspaces()
-        .sorted_by(WorkspaceMetadata::most_recently_navigated)
+        .all_projects()
+        .sorted_by(|a, b| b.last_opened_ts.cmp(&a.last_opened_ts))
         .take(MAX_RECENT_REPOS_IN_MENU)
-        .map(|cbm| cbm.path)
+        .map(|project| PathBuf::from(&project.path))
         .collect::<Vec<_>>()
 }
 
