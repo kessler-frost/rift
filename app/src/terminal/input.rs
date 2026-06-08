@@ -520,19 +520,6 @@ pub enum InputSuggestionsMode {
         command: String,
     },
 
-    /// Model selector mode for selecting the Agent base model.
-    ModelSelector,
-    /// Profile selector mode for selecting an execution profile.
-    ProfileSelector,
-
-    /// User query menu mode for selecting a query point (e.g., fork-from, rewind).
-    UserQueryMenu {
-        action: UserQueryMenuAction,
-    },
-
-    /// Plan menu mode for selecting among multiple AI document plans.
-    PlanMenu {},
-
     /// Mode indicating that no suggestion UI is being shown.
     Closed,
 }
@@ -561,19 +548,7 @@ impl InputSuggestionsMode {
     }
 
     pub fn is_inline_menu(&self) -> bool {
-        matches!(
-            self,
-            Self::SlashCommands
-                | Self::ConversationMenu
-                | Self::ModelSelector
-                | Self::PromptsMenu
-                | Self::UserQueryMenu { .. }
-                | Self::InlineHistoryMenu { .. }
-                | Self::PlanMenu { .. }
-        ) || (FeatureFlag::InlineProfileSelector.is_enabled()
-            && matches!(self, Self::ProfileSelector))
-            || (FeatureFlag::ListSkills.is_enabled() && matches!(self, Self::SkillMenu))
-            || (FeatureFlag::InlineRepoMenu.is_enabled() && matches!(self, Self::IndexedReposMenu))
+        false
     }
 
     /// Whether this mode should snapshot the input buffer on open and restore it on dismiss.
@@ -586,20 +561,7 @@ impl InputSuggestionsMode {
 
     /// Returns the placeholder text for this mode, if it has a custom one.
     pub fn placeholder_text(&self) -> Option<&'static str> {
-        match self {
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::ForkFrom,
-                ..
-            } => Some("Search queries"),
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::Rewind,
-                ..
-            } => Some("Search queries to rewind to"),
-            InputSuggestionsMode::ModelSelector => Some("Search models"),
-            InputSuggestionsMode::ProfileSelector => Some("Search profiles"),
-            InputSuggestionsMode::PlanMenu { .. } => Some("Search plans"),
-            _ => None,
-        }
+        None
     }
 
 }
@@ -1179,21 +1141,6 @@ pub fn init(app: &mut AppContext) {
         .with_key_binding("pagedown"),
     ]);
 
-    app.register_editable_bindings([EditableBinding::new(
-        "workspace:edit_prompt",
-        BindingDescription::new("Edit Prompt")
-            .with_custom_description(bindings::MAC_MENUS_CONTEXT, "Edit Prompt"),
-        WorkspaceAction::OpenPromptEditor {
-            open_source: PromptEditorOpenSource::CommandPalette,
-        },
-    )
-    .with_group(bindings::BindingGroup::Settings.as_str())
-    .with_context_predicate(
-        id!("Input")
-            & !id!("LongRunningCommand")
-            & !id!(flags::ACTIVE_AGENT_VIEW)
-            & !id!(flags::ACTIVE_INLINE_AGENT_VIEW),
-    )]);
 
     if FeatureFlag::ClassicCompletions.is_enabled()
         && !FeatureFlag::ForceClassicCompletions.is_enabled()
@@ -1244,55 +1191,6 @@ pub fn init(app: &mut AppContext) {
 
 
 
-    app.register_editable_bindings([
-        EditableBinding::new(
-            "input:toggle_natural_language_command_search",
-            "Open AI Command Suggestions",
-            InputAction::ShowAiCommandSearch,
-        )
-        .with_context_predicate(
-            id!("Input")
-                & id!(flags::IS_ANY_AI_ENABLED)
-                & !id!("AIInput"),
-        )
-        .with_group(bindings::BindingGroup::WarpAi.as_str())
-        .with_custom_action(CustomAction::AISearch),
-        EditableBinding::new(
-            START_NEW_CONVERSATION_KEYBINDING_NAME,
-            "New agent conversation",
-            InputAction::StartNewAgentConversation,
-        )
-        .with_enabled(|| !FeatureFlag::AgentView.is_enabled())
-        .with_group(bindings::BindingGroup::WarpAi.as_str())
-        .with_context_predicate(
-            id!("Input") & id!(flags::IS_ANY_AI_ENABLED) & id!("TerminalView_NonEmptyBlockList"),
-        )
-        .with_mac_key_binding("cmd-shift-N")
-        .with_linux_or_windows_key_binding("ctrl-alt-shift-N"),
-        EditableBinding::new(
-            "input:enable_auto_detection",
-            "Trigger Auto Detection",
-            InputAction::EnableAutoDetection,
-        )
-        .with_enabled(|| FeatureFlag::AgentMode.is_enabled())
-        .with_group(bindings::BindingGroup::WarpAi.as_str())
-        .with_context_predicate(
-            id!("Input")
-                & id!("UniversalDeveloperInput")
-                & id!(flags::IS_ANY_AI_ENABLED)
-                & !id!("IMEOpen"),
-        )
-        .with_key_binding("alt-shift-I"),
-        EditableBinding::new(
-            "input:clear_and_reset_ai_context_menu_query",
-            "Clear and reset AI context menu query",
-            InputAction::ClearAndResetAIContextMenuQuery,
-        )
-        .with_context_predicate(id!("Input") & id!("AIContextMenuOpen") & !id!("IMEOpen"))
-        .with_mac_key_binding("cmd-shift-backspace")
-        .with_linux_or_windows_key_binding("ctrl-shift-backspace"),
-    ]);
-
     let slash_command_bindings = COMMAND_REGISTRY
         .all_commands()
         .map(|command| {
@@ -1327,27 +1225,6 @@ pub fn init(app: &mut AppContext) {
 
     app.register_editable_bindings(slash_command_bindings);
 
-    // Fixed bindings for passive code diffs
-    app.register_fixed_bindings([FixedBinding::new(
-        cmd_or_ctrl_shift("e"),
-        InputAction::TryHandlePassiveCodeDiff(CodeDiffAction::Edit),
-        id!("Input")
-            & id!(flags::CODE_SUGGESTIONS_FLAG)
-            & id!(flags::PASSIVE_CODE_DIFF_KEYBINDINGS_ENABLED),
-    )]);
-
-    if FeatureFlag::AgentView.is_enabled() {
-        app.register_fixed_bindings([FixedBinding::new(
-            "shift-?",
-            InputAction::ToggleAgentViewShortcuts,
-            id!("Input")
-                & !id!("IMEOpen")
-                & id!(flags::EMPTY_INPUT_BUFFER)
-                & id!(flags::ACTIVE_AGENT_VIEW)
-                & !id!("LongRunningCommand")
-                & !(id!(flags::TERMINAL_MODE_INPUT) & id!(flags::LOCKED_INPUT)),
-        )]);
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -1529,7 +1406,6 @@ impl Input {
                     // and we don't want to double-paste.
                     middle_click_paste: false,
                     allow_user_cursor_preference: true,
-                    include_ai_context_menu: false,
                     delegate_paste_handling: true,
                     keymap_context_modifier: Some(Box::new(move |context, _app| {
                         context
@@ -1575,14 +1451,6 @@ impl Input {
                 )
             }
         });
-        if FeatureFlag::InlineHistoryMenu.is_enabled() {
-            ctx.subscribe_to_view(&inline_history_menu_view, |me, _, event, ctx| {
-                if me.is_cloud_mode_input_v2_composing(ctx) {
-                    return;
-                }
-                me.handle_inline_history_menu_event(event, ctx);
-            });
-        }
         let inline_history_model = inline_history_menu_view.as_ref(ctx).model().clone();
 
         let terminal_input_message_bar = ctx.add_view(|ctx| {
@@ -1608,9 +1476,6 @@ impl Input {
         });
 
         let input_suggestions = ctx.add_typed_action_view(InputSuggestions::new);
-        ctx.subscribe_to_view(&input_suggestions, move |me, _, event, ctx| {
-            me.handle_suggestions_event(event, ctx);
-        });
 
         let safe_mode_settings = SafeModeSettings::handle(ctx);
         ctx.subscribe_to_model(&safe_mode_settings, |me, _, event, ctx| {
@@ -1663,12 +1528,7 @@ impl Input {
                 me.restore_buffer_state(buffer_state, ctx);
             }
 
-            me.set_zero_state_hint_text(ctx);
             ctx.notify();
-        });
-
-        ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, event, ctx| {
-            me.handle_ai_settings_changed_event(event, ctx)
         });
 
         ctx.subscribe_to_model(
@@ -1732,12 +1592,8 @@ impl Input {
             }
         }
 
-        input.set_zero_state_hint_text(ctx);
-
         #[cfg(feature = "voice_input")]
         input.update_voice_transcription_options(ctx);
-        input.update_image_context_options(ctx);
-        input.update_ai_context_menu(ctx);
         input
     }
 
@@ -1752,25 +1608,6 @@ impl Input {
 
 
 
-    /// Opens the V2 cloud-mode host selector popover, if the feature is enabled and the
-    /// selector is constructed. No-op otherwise. Used by the `/host` slash command to
-    /// programmatically open the same popover that the V2 footer's host button toggles.
-    pub(super) fn open_v2_host_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        let Some(host_selector) = self.host_selector().cloned() else {
-            return;
-        };
-        host_selector.update(ctx, |selector, ctx| selector.open_menu(ctx));
-    }
-
-    /// Opens the V2 cloud-mode harness selector popover, if the feature is enabled and the
-    /// selector is constructed. No-op otherwise. Used by the `/harness` slash command to
-    /// programmatically open the same popover that the V2 footer's harness button toggles.
-    pub(super) fn open_v2_harness_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        let Some(harness_selector) = self.harness_selector().cloned() else {
-            return;
-        };
-        harness_selector.update(ctx, |selector, ctx| selector.open_menu(ctx));
-    }
 
 
 
@@ -2514,22 +2351,6 @@ impl Input {
                 });
                 true
             }
-            InputSuggestionsMode::ModelSelector => {
-                // Model selector selection is handled separately
-                false
-            }
-            InputSuggestionsMode::ProfileSelector => {
-                // Profile selector selection is handled separately
-                false
-            }
-            InputSuggestionsMode::UserQueryMenu { .. } => {
-                // User query menu selection is handled separately
-                false
-            }
-            InputSuggestionsMode::PlanMenu { .. } => {
-                // Plan menu selection is handled via InlinePlanMenuView
-                false
-            }
         }
     }
 
@@ -2726,42 +2547,6 @@ impl Input {
 
         // For some input suggestion modes, the menu handles its own actions.
         let handled = match self.suggestions_mode_model.as_ref(ctx).mode() {
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::ForkFrom,
-                ..
-            } => {
-                self.user_query_menu_view.update(ctx, |view, ctx| {
-                    view.select_up(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::Rewind,
-                ..
-            } => {
-                self.rewind_menu_view.update(ctx, |view, ctx| {
-                    view.select_up(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::ModelSelector => {
-                self.inline_model_selector_view.update(ctx, |view, ctx| {
-                    view.select_up(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::ProfileSelector => {
-                self.inline_profile_selector_view.update(ctx, |view, ctx| {
-                    view.select_up(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::PlanMenu { .. } => {
-                self.inline_plan_menu_view.update(ctx, |view, ctx| {
-                    view.select_up(ctx);
-                });
-                true
-            }
             InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
             | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
@@ -2854,10 +2639,6 @@ impl Input {
             // If the input is not being used as a search on the model menu
             // we should not restore/revert the changes to the input on-dismiss,
             // unless we parked a prompt to search (then we restore that prompt).
-            InputSuggestionsMode::ModelSelector => {
-                let view = self.inline_model_selector_view.as_ref(ctx);
-                view.prompt_parked_for_search() || view.filter_results_by_input()
-            }
             _ => true,
         }
     }
@@ -2920,42 +2701,6 @@ impl Input {
     fn editor_down(&mut self, ctx: &mut ViewContext<Self>) {
         // For some input suggestion modes, the menu handles its own actions.
         let handled = match self.suggestions_mode_model.as_ref(ctx).mode() {
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::ForkFrom,
-                ..
-            } => {
-                self.user_query_menu_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::Rewind,
-                ..
-            } => {
-                self.rewind_menu_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::ModelSelector => {
-                self.inline_model_selector_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::ProfileSelector => {
-                self.inline_profile_selector_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-                true
-            }
-            InputSuggestionsMode::PlanMenu { .. } => {
-                self.inline_plan_menu_view.update(ctx, |view, ctx| {
-                    view.select_down(ctx);
-                });
-                true
-            }
             InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
             | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
@@ -3632,18 +3377,6 @@ impl Input {
                             self.open_completion_suggestions(CompletionsTrigger::AsYouType, ctx);
                         }
                     }
-                    InputSuggestionsMode::ModelSelector => {
-                        // Model selector handles its own state
-                    }
-                    InputSuggestionsMode::ProfileSelector => {
-                        // Profile selector handles its own state
-                    }
-                    InputSuggestionsMode::UserQueryMenu { .. } => {
-                        // User query menu handles its own state
-                    }
-                    InputSuggestionsMode::PlanMenu { .. } => {
-                        // Plan menu handles its own state
-                    }
                 }
             }
             EditorEvent::BufferReplaced => {
@@ -3714,18 +3447,6 @@ impl Input {
                                     /*should_focus_input=*/ true, ctx,
                                 );
                             }
-                        }
-                        InputSuggestionsMode::ModelSelector => {
-                            // Model selector handles its own selection state
-                        }
-                        InputSuggestionsMode::ProfileSelector => {
-                            // Profile selector handles its own selection state
-                        }
-                        InputSuggestionsMode::UserQueryMenu { .. } => {
-                            // User query menu handles its own selection state
-                        }
-                        InputSuggestionsMode::PlanMenu { .. } => {
-                            // Plan menu handles its own selection state
                         }
                     }
                 }
@@ -5116,14 +4837,6 @@ impl Input {
         match self.suggestions_mode_model.as_ref(ctx).mode() {
             // If the model selector is open and has multiple tabs,
             // shift + tab should cycle between them.
-            InputSuggestionsMode::ModelSelector => {
-                if self
-                    .inline_model_selector_view
-                    .update(ctx, |view, ctx| view.select_next_tab(ctx))
-                {
-                    return;
-                }
-            }
             // If the inline history menu is open and has multiple tabs,
             // shift + tab should cycle between them.
             // If the conversation menu is open and has multiple tabs,
@@ -5759,16 +5472,6 @@ impl Input {
             } => {
                 let editor_model = self.editor.read(ctx, |view, ctx| view.snapshot_model(ctx));
                 self.get_enum_suggestions_async(command.clone(), editor_model, ctx);
-            }
-            InputSuggestionsMode::ModelSelector
-                if FeatureFlag::InlineMenuHeaders.is_enabled() =>
-            {
-                self.inline_model_selector_view
-                    .update(ctx, |view, ctx| view.accept_selected_item(true, ctx));
-            }
-            InputSuggestionsMode::UserQueryMenu { .. } => {
-                self.user_query_menu_view
-                    .update(ctx, |view, ctx| view.accept_selected_item(true, ctx));
             }
             _ => {
                 if FeatureFlag::AgentView.is_enabled()

@@ -68,17 +68,6 @@ impl InlineMenuType {
 
     pub(crate) fn from_suggestions_mode(mode: &InputSuggestionsMode) -> Option<Self> {
         match mode {
-            InputSuggestionsMode::ModelSelector => Some(InlineMenuType::ModelSelector),
-            InputSuggestionsMode::ProfileSelector => Some(InlineMenuType::ProfileSelector),
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::ForkFrom,
-                ..
-            } => Some(InlineMenuType::UserQueryMenu),
-            InputSuggestionsMode::UserQueryMenu {
-                action: UserQueryMenuAction::Rewind,
-                ..
-            } => Some(InlineMenuType::RewindMenu),
-            InputSuggestionsMode::PlanMenu { .. } => Some(InlineMenuType::PlanMenu),
             InputSuggestionsMode::Closed
             | InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
