@@ -835,9 +835,9 @@ impl PaneGroup {
 
 
 
-    /// Returns true iff one of the terminal panes in this group is being shared.
-    pub fn is_terminal_pane_being_shared(&self, ctx: &AppContext) -> bool {
-        self.number_of_shared_sessions(ctx) > 0
+    /// Session sharing was a cloud feature and has been removed.
+    pub fn is_terminal_pane_being_shared(&self, _ctx: &AppContext) -> bool {
+        false
     }
 
     pub fn smart_split_direction(
@@ -1612,33 +1612,16 @@ impl PaneGroup {
     }
 
 
+    // Session sharing was a cloud feature and has been removed.
     fn open_share_session_denied_modal(
         &mut self,
-        terminal_pane_id: TerminalPaneId,
-        ctx: &mut ViewContext<Self>,
+        _terminal_pane_id: TerminalPaneId,
+        _ctx: &mut ViewContext<Self>,
     ) {
-        self.share_session_modal.update(ctx, |modal, ctx| {
-            modal.open_denied(terminal_pane_id, ctx);
-        });
-        self.terminal_with_open_share_session_modal = Some(terminal_pane_id);
-        ctx.focus(&self.share_session_modal);
-        ctx.notify();
     }
 
-    /// Closes the share session modal if it is open. Does nothing otherwise. Does not change
-    /// which element is focused.
-    fn close_share_session_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        let Some(terminal_pane_id) = self.terminal_with_open_share_session_modal.take() else {
-            return;
-        };
-
-        if let Some(terminal_view) = self.terminal_view_from_pane_id(terminal_pane_id, ctx) {
-            terminal_view.update(ctx, |view, ctx| {
-                view.set_show_pane_accent_border(false, ctx)
-            });
-        }
-        ctx.notify();
-    }
+    /// Session sharing was a cloud feature and has been removed.
+    fn close_share_session_modal(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
 
@@ -2074,16 +2057,8 @@ impl PaneGroup {
 
 
 
-    /// Removes `pane_id` from the transitive-share tracking map.
-    fn forget_transitively_shared_pane(&mut self, pane_id: PaneId) {
-        // The pane may be a host (key) or a transitively-shared child (value).
-        self.transitively_shared_child_panes.remove(&pane_id);
-        self.transitively_shared_child_panes
-            .retain(|_host, children| {
-                children.remove(&pane_id);
-                !children.is_empty()
-            });
-    }
+    /// Transitive share tracking was a cloud feature and has been removed.
+    fn forget_transitively_shared_pane(&mut self, _pane_id: PaneId) {}
 
 
     /// Inserts `pane` into `pane_contents` and attaches it (so subscriptions,
@@ -2289,17 +2264,12 @@ impl PaneGroup {
     /// Returns the removed tab as a CodePane if the operation succeeds.
     pub fn remove_editor_tab_for_move(
         &mut self,
-        pane_id: PaneId,
-        editor_tab_index: usize,
-        ctx: &mut ViewContext<Self>,
+        _pane_id: PaneId,
+        _editor_tab_index: usize,
+        _ctx: &mut ViewContext<Self>,
     ) -> Option<Box<dyn AnyPaneContent>> {
-        self.code_pane_by_id(pane_id)
-            .and_then(|pane| {
-                pane.file_view(ctx).update(ctx, |file_view, ctx| {
-                    file_view.remove_tab_for_move(editor_tab_index, ctx)
-                })
-            })
-            .map(|p| Box::new(p) as Box<dyn AnyPaneContent>)
+        // Code panes were an AI feature and have been removed.
+        None
     }
 
     /// The generic pane at `index`, if it exists.
@@ -2455,9 +2425,6 @@ impl PaneGroup {
             if self.pane_with_open_auth_secret_delete_confirmation_dialog == Some(pane_id) {
                 self.pane_with_open_auth_secret_delete_confirmation_dialog = None;
             }
-            if self.pane_with_open_agent_assisted_environment_modal == Some(pane_id) {
-                self.pane_with_open_agent_assisted_environment_modal = None;
-            }
 
             self.focus_next_terminal_pane_and_activate_session(
                 pane_id,
@@ -2486,9 +2453,6 @@ impl PaneGroup {
 
             if self.pane_with_open_environment_setup_mode_selector == Some(pane_id) {
                 self.pane_with_open_environment_setup_mode_selector = None;
-            }
-            if self.pane_with_open_agent_assisted_environment_modal == Some(pane_id) {
-                self.pane_with_open_agent_assisted_environment_modal = None;
             }
 
             self.focus_next_terminal_pane_and_activate_session(
@@ -2678,18 +2642,7 @@ impl PaneGroup {
             PaneEvent::AppStateChanged => {
                 ctx.emit(Event::AppStateChanged);
             }
-            PaneEvent::NewPaneInAIMode { initial_query } => {
-                self.add_terminal_pane_in_agent_mode(initial_query.as_deref(), None, ctx)
-            }
             PaneEvent::ClearHoveredTabIndex => ctx.emit(Event::ClearHoveredTabIndex),
-            #[cfg(feature = "local_fs")]
-            PaneEvent::ReplaceWithCodePane { path, source } => {
-                self.replace_file_pane_with_code_pane(pane_id, path.clone(), source.clone(), ctx);
-            }
-            #[cfg(feature = "local_fs")]
-            PaneEvent::ReplaceWithFilePane { path, source } => {
-                self.replace_code_pane_with_file_pane(pane_id, path.clone(), source.clone(), ctx);
-            }
             PaneEvent::RepoChanged => {
                 ctx.emit(Event::RepoChanged);
             }
@@ -3448,8 +3401,6 @@ impl PaneGroup {
                 shell_type: ShellType::Zsh,
             },
             resources,
-            None, // No restored blocks
-            None, // No conversation restoration
             view_bounds_size,
             window_id,
             ctx,
@@ -4429,40 +4380,6 @@ impl View for PaneGroup {
         if self.terminal_with_open_share_block_modal.is_some() {
             stack
                 .add_child(Clipped::new(ChildView::new(&self.share_block_modal).finish()).finish());
-        } else if FeatureFlag::CreatingSharedSessions.is_enabled()
-            && self.terminal_with_open_share_session_modal.is_some()
-        {
-            stack.add_child(ChildView::new(&self.share_session_modal).finish());
-        } else if self
-            .terminal_with_shared_session_role_change_modal_open
-            .is_some()
-        {
-            stack.add_child(ChildView::new(&self.shared_session_role_change_modal).finish());
-        }
-
-        // Render the summarization cancel dialog at tab level when open.
-        if let Some(terminal_pane_id) = self.terminal_with_open_summarization_dialog {
-            if let Some(terminal_view) = self.terminal_view_from_pane_id(terminal_pane_id, app) {
-                if let Some(dialog_handle) = terminal_view.read(app, |view, ctx| {
-                    view.summarization_cancel_dialog_handle(ctx)
-                }) {
-                    stack.add_child(ChildView::new(&dialog_handle).finish());
-                }
-            }
-        }
-
-        // Render environment setup mode selector at tab level when open.
-        if let Some(pane_id) = self.pane_with_open_environment_setup_mode_selector {
-            let selector_handle = self
-                .terminal_view_from_pane_id(pane_id, app)
-                .and_then(|tv| {
-                    tv.as_ref(app)
-                        .environment_setup_mode_selector_handle()
-                        .cloned()
-                });
-            if let Some(handle) = selector_handle {
-                stack.add_child(ChildView::new(&handle).finish());
-            }
         }
 
         // Render auth-secret delete confirmation at tab level when open.
