@@ -1,6 +1,5 @@
 pub mod buffer_model;
 mod classic;
-mod cloud_mode_v2_history_menu;
 mod common;
 pub mod decorations;
 pub mod inline_history;
@@ -36,7 +35,6 @@ use ordered_float::Float;
 use parking_lot::FairMutex;
 #[cfg(feature = "local_fs")]
 use parking_lot::Mutex;
-use regex::Regex;
 use rift_completer::completer::{
     self, CompleterOptions, CompletionContext, CompletionsFallbackStrategy, Description, Match,
     MatchStrategy, MatchType, PathSeparators, SuggestionResults,
@@ -80,9 +78,9 @@ use vim::vim::{VimHandler, VimMode};
 use self::decorations::InputBackgroundJobOptions;
 use super::alias::is_expandable_alias;
 use super::block_list_viewport::InputMode;
-use super::event::{BlockCompletedEvent, BlockType, UserBlockCompleted};
+use super::event::{BlockCompletedEvent, BlockType};
 use super::ligature_settings::LigatureSettings;
-use super::model::block::{BlockId, BlockMetadata, BlocklistEnvVarMetadata};
+use super::model::block::{BlockMetadata, BlocklistEnvVarMetadata};
 use super::model::session::{Session, SessionId, SessionType, Sessions};
 use super::prompt_render_helper::{
     should_render_prompt_on_same_line, should_render_prompt_using_editor_decorator_elements,
@@ -105,7 +103,7 @@ use crate::context_chips::prompt_type::PromptType;
 use crate::editor::{
     default_cursor_colors, position_id_for_cached_point, position_id_for_cursor,
     position_id_for_first_cursor, AttachedImage as AttachedImageRawData, AutosuggestionLocation,
-    AutosuggestionType, BaselinePositionComputationMethod, CommandXRayAnchor, CrdtOperation, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements, EditorOptions,
+    AutosuggestionType, BaselinePositionComputationMethod, CommandXRayAnchor, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements, EditorOptions,
     EditorSnapshot, EditorView, Event as EditorEvent, InteractionState,
     PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint, PropagateAndNoOpEscapeKey,
     PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextColors, MAX_IMAGES_PER_CONVERSATION,
@@ -190,12 +188,6 @@ impl DropTargetData for InputDropTargetData {
 
 pub const DEBOUNCE_INPUT_DECORATION_PERIOD: Duration = Duration::from_millis(10);
 pub const DEBOUNCE_AI_QUERY_PREDICTION_PERIOD: Duration = Duration::from_millis(250);
-pub(super) const CLI_AGENT_RICH_INPUT_EDITOR_MAX_HEIGHT: f32 = 236.;
-pub(super) const CLI_AGENT_RICH_INPUT_EDITOR_TOP_PADDING: f32 = 10.;
-pub(super) const CLI_AGENT_RICH_INPUT_EDITOR_BOTTOM_PADDING: f32 = 8.;
-pub(super) const CLI_AGENT_RICH_INPUT_HINT_TEXT: &str = "Tell the agent what to build...";
-
-const CLOUD_MODE_V2_HINT_TEXT: &str = "Kick off a cloud agent";
 const SHORT_CIRCUIT_HIGHLIGHTING_ACTIONS: [Option<PlainTextEditorViewAction>; 7] = [
     Some(PlainTextEditorViewAction::Space),
     Some(PlainTextEditorViewAction::NonExpandingSpace),
@@ -221,57 +213,6 @@ pub const INPUT_A11Y_LABEL: &str = "Command Input.";
 pub const INPUT_A11Y_HELPER: &str = "Input your shell command, press enter to execute. Press cmd-up to navigate to output of previously executed commands. Press cmd-l to re-focus command input.";
 pub const AI_COMMAND_SEARCH_HINT_TEXT: &str = "Type '#' for AI command suggestions";
 
-const AGENT_MODE_AI_DISABLED_AUTODETECTION_DISABLED_HINT_TEXT: &str = "Run commands";
-
-// Rotating hint text options for new Agent Mode conversations
-const AGENT_MODE_HINT_OPTIONS: &[&str] = &[
-    "Warp anything e.g. Deploy my React app to Vercel and set up environment variables",
-    "Warp anything e.g. Help me debug why my Python tests are failing in CI",
-    "Warp anything e.g. Set up a new microservice with Docker and create the deployment pipeline",
-    "Warp anything e.g. Find and fix the memory leak in my Node.js application",
-    "Warp anything e.g. Create a backup script for my PostgreSQL database and schedule it",
-    "Warp anything e.g. Help me migrate my data from MySQL to PostgreSQL",
-    "Warp anything e.g. Set up monitoring and alerts for my AWS infrastructure",
-    "Warp anything e.g. Build a REST API for my mobile app using FastAPI",
-    "Warp anything e.g. Help me optimize my SQL queries that are running slowly",
-    "Warp anything e.g. Create a GitHub Actions workflow to automatically deploy on merge",
-    "Warp anything e.g. Set up Redis caching for my web application",
-    "Warp anything e.g. Help me troubleshoot why my Kubernetes pods keep crashing",
-    "Warp anything e.g. Build a data pipeline to process CSV files and load them into BigQuery",
-    "Warp anything e.g. Set up SSL certificates and configure HTTPS for my domain",
-    "Warp anything e.g. Help me refactor this legacy code to use modern design patterns",
-    "Warp anything e.g. Create unit tests for my authentication service",
-    "Warp anything e.g. Set up log aggregation with ELK stack for my distributed system",
-    "Warp anything e.g. Help me implement OAuth2 authentication in my Express.js app",
-    "Warp anything e.g. Optimize my Docker images to reduce build times and size",
-    "Warp anything e.g. Set up A/B testing infrastructure for my web application",
-];
-
-fn get_agent_mode_new_conversation_hint_text() -> &'static str {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    static HINT_INDEX: AtomicUsize = AtomicUsize::new(0);
-
-    let index = HINT_INDEX.fetch_add(1, Ordering::Relaxed) % AGENT_MODE_HINT_OPTIONS.len();
-    AGENT_MODE_HINT_OPTIONS[index]
-}
-
-fn get_stable_agent_mode_hint_text(cached_hint: &mut Option<&'static str>) -> &'static str {
-    if let Some(hint) = cached_hint {
-        hint
-    } else {
-        let new_hint = get_agent_mode_new_conversation_hint_text();
-        *cached_hint = Some(new_hint);
-        new_hint
-    }
-}
-
-const AGENT_MODE_AI_ENABLED_STEER_HINT_TEXT_UDI: &str = "Steer the running agent";
-const AGENT_MODE_AI_ENABLED_STEER_HINT_TEXT_CLASSIC: &str =
-    "Steer the running agent, or backspace to exit";
-const AGENT_MODE_AI_ENABLED_FOLLOW_UP_HINT_TEXT_UDI: &str = "Ask a follow up";
-const AGENT_MODE_AI_ENABLED_FOLLOW_UP_HINT_TEXT_CLASSIC: &str =
-    "Ask a follow up, or backspace to exit";
-
 /// Action name for setting input mode to agent mode
 pub const SET_INPUT_MODE_AGENT_ACTION_NAME: &str = "input:set_mode_agent";
 
@@ -284,8 +225,6 @@ pub const SET_INPUT_MODE_UNLOCKED_AGENT_ACTION_NAME: &str = "input:set_mode_unlo
 /// Action name for setting input mode to unlocked terminal mode (with natural language detection)
 pub const SET_INPUT_MODE_UNLOCKED_TERMINAL_ACTION_NAME: &str = "input:set_mode_unlocked_terminal";
 
-const START_NEW_CONVERSATION_KEYBINDING_NAME: &str = "input:start_new_agent_conversation";
-
 /// The position ID used to identify the start of the replacement span for completions.
 const COMPLETIONS_START_OF_REPLACEMENT_SPAN_POSITION_ID: &str =
     "start_of_completions_replacement_span";
@@ -296,11 +235,6 @@ const MIN_BUFFER_LEN_TO_SHOW_COMPLETIONS_WHILE_TYPING: usize = 2;
 
 const AI_COMMAND_SEARCH_TRIGGER: &str = "#";
 
-/// If the editor buffer matches this prefix, AI input is enabled.
-const AI_INPUT_PREFIX: &str = "* ";
-
-/// If the editor buffer matches this prefix, terminal input is enabled and locked.
-const TERMINAL_INPUT_PREFIX: &str = "!";
 const VIM_STATUS_BAR_BOTTOM_PADDING: f32 = 20.;
 
 const DYNAMIC_ENUM_GENERATE_MESSAGE: &str = "Run the following command to generate variants:";
@@ -311,15 +245,6 @@ const DYNAMIC_ENUM_NO_RESULTS_MESSAGE: &str = "Command returned no results";
 const DYNAMIC_ENUM_MENU_PADDING: f32 = 10.;
 const DYNAMIC_ENUM_MENU_HEIGHT_OFFSET: f32 = 25.;
 const DYNAMIC_ENUM_HORIZONTAL_TEXT_PADDING: f32 = 5.;
-
-cfg_if::cfg_if! {
-    if #[cfg(target_os = "macos")] {
-        const CMD_ENTER_KEYBINDING: &str = "cmd-enter";
-    } else {
-        // On linux and windows, the CmdEnter EditorAction is bound to ctrl-shift-enter.
-        const CMD_ENTER_KEYBINDING: &str =  "ctrl-shift-enter";
-    }
-}
 
 lazy_static! {
     static ref RUN_DYNAMIC_ENUM_COMMAND_KEYSTROKE: Keystroke = if OperatingSystem::get().is_mac() {
@@ -723,8 +648,6 @@ pub struct CompleterData {
     pub sessions: ModelHandle<Sessions>,
     pub active_block_metadata: Option<BlockMetadata>,
     command_registry: Arc<CommandRegistry>,
-    #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
-    last_user_block_completed: Option<UserBlockCompleted>,
 }
 
 impl CompleterData {
@@ -732,13 +655,11 @@ impl CompleterData {
         sessions: ModelHandle<Sessions>,
         active_block_metadata: Option<BlockMetadata>,
         command_registry: Arc<CommandRegistry>,
-        last_user_block_completed: Option<UserBlockCompleted>,
     ) -> Self {
         Self {
             sessions,
             active_block_metadata,
             command_registry,
-            last_user_block_completed,
         }
     }
 
@@ -848,37 +769,6 @@ impl Entity for InputRenderStateModel {
     type Event = ();
 }
 
-lazy_static! {
-    /// Define the regex patterns that we show completions-as-you-type in AI input on.
-    /// We only show file completions - as such, we match on the following patterns:
-    /// 1. "/": The last word starts with a slash
-    /// 2. "./": The last word starts with "./"
-    /// 3. "../": The last word starts with "../"
-    /// 4. "{text}/": The last word contains a slash after some text
-    /// We combine all the regex patterns for performance reasons (one string scan).
-    /// NOTE: this assumes Unix-style paths. When we expand to Windows, we'll want to update this!
-    static ref FILEPATH_PATTERN: Regex = Regex::new(
-        r"^(?:/|\.\/|\.\./|[^/]+/)"
-    ).expect("Expect regex to be valid");
-}
-
-/// Returns boolean indicating whether completions-as-you-type should pop up, while in AI input.
-/// This is primarily based on the last word in the buffer text, and whether it makes sense to show
-/// filepath completions.
-fn should_show_completions_in_ai_input(buffer_text: &str) -> bool {
-    if buffer_text.ends_with(char::is_whitespace) {
-        return false;
-    }
-
-    let last_word = buffer_text.split_whitespace().last();
-
-    if let Some(last_word) = last_word {
-        FILEPATH_PATTERN.is_match(last_word)
-    } else {
-        false
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DenyExecutionReason {
     /// Can't execute command because shell bootstrapping is still underway; shell isn't ready to
@@ -923,7 +813,6 @@ pub struct Input {
     menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
     tips_completed: ModelHandle<TipsCompleted>,
     editor: ViewHandle<EditorView>,
-    server_api: Arc<ServerApi>,
     input_suggestions: ViewHandle<InputSuggestions>,
     suggestions_mode_model: ModelHandle<InputSuggestionsModeModel>,
     completions_menu_resizable_width: ResizableStateHandle,
@@ -957,11 +846,6 @@ pub struct Input {
     // a settings read on every typed character).
     enable_autosuggestions_setting: bool,
 
-
-    /// The last block that the user ran. This is used for generating autosuggestions.
-    #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
-    last_user_block_completed: Option<UserBlockCompleted>,
-
     hoverable_handle: MouseStateHandle,
 
     #[cfg(feature = "local_fs")]
@@ -988,39 +872,6 @@ pub struct Input {
     /// we snapshot the current input contents here so we can restore them after the command
     /// completes and the buffer would normally be cleared.
     input_contents_before_prompt_chip_command: Option<String>,
-}
-
-/// A map of remote buffer operations that were deferred because
-/// the corresponding block ID was not active when these operations
-/// were received.
-struct DeferredRemoteOperations {
-    /// The latest block ID that we flushed for.
-    latest_block_id: BlockId,
-
-    /// The deferred operations.
-    deferred_ops: HashMap<BlockId, Vec<CrdtOperation>>,
-}
-
-impl DeferredRemoteOperations {
-    fn new(latest_block_id: BlockId) -> Self {
-        Self {
-            latest_block_id,
-            deferred_ops: HashMap::new(),
-        }
-    }
-
-    /// Defers the `operations` corresponding to the `block_id`.
-    fn defer(&mut self, block_id: BlockId, operations: Vec<CrdtOperation>) {
-        self.deferred_ops
-            .entry(block_id)
-            .or_default()
-            .extend(operations);
-    }
-
-    /// Removes and returns the deferred operations for the latest block ID, if any.
-    fn flush(&mut self) -> Option<Vec<CrdtOperation>> {
-        self.deferred_ops.remove(&self.latest_block_id)
-    }
 }
 
 pub fn init(app: &mut AppContext) {
@@ -1221,7 +1072,7 @@ impl Input {
     pub(crate) fn new(
         model: Arc<FairMutex<TerminalModel>>,
         tips_completed: ModelHandle<TipsCompleted>,
-        server_api: Arc<ServerApi>,
+        _server_api: Arc<ServerApi>,
         sessions: ModelHandle<Sessions>,
         size_info: SizeInfo,
         menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
@@ -1237,7 +1088,6 @@ impl Input {
                 sessions.clone(),
                 None, // active_block_metadata will be set later when blocks are available
                 CommandRegistry::global_instance(),
-                None, // last_user_block_completed will be set later
             );
             completer_data.completion_session_context(ctx)
         };
@@ -1491,7 +1341,6 @@ impl Input {
             tips_completed,
             editor,
             model,
-            server_api,
             sessions,
             focus_handle: None,
             active_block_metadata: None,
@@ -1512,7 +1361,6 @@ impl Input {
             enable_autosuggestions_setting: *editor_settings_handle
                 .as_ref(ctx)
                 .enable_autosuggestions,
-            last_user_block_completed: None,
             hoverable_handle: Default::default(),
             terminal_view_id,
             #[cfg(feature = "local_fs")]
@@ -1732,7 +1580,6 @@ impl Input {
             self.sessions.clone(),
             self.active_block_metadata.clone(),
             CommandRegistry::global_instance(),
-            self.last_user_block_completed.clone(),
         )
     }
 
@@ -5002,9 +4849,7 @@ impl Input {
         block: BlockType,
         ctx: &mut ViewContext<Self>,
     ) {
-        if let BlockType::User(block_completed) = block {
-            self.last_user_block_completed = Some(block_completed.clone());
-
+        if let BlockType::User(_) = block {
             ctx.emit(Event::InputStateChanged(InputState::Enabled));
         } else if block.is_bootstrap_block()
             && self

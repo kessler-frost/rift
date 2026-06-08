@@ -1,5 +1,4 @@
 mod element;
-mod figma_utils;
 mod model;
 mod movement;
 mod snapshot;

@@ -142,7 +142,6 @@ pub struct InlineHistoryMenuView {
     model: ModelHandle<InlineMenuModel<AcceptHistoryItem, HistoryTab>>,
     buffer_model: ModelHandle<InputBufferModel>,
     pending_tab_switch_selection: Option<HistoryItemIdentity>,
-    caller_supplied_tabs: bool,
     pending_initial_buffer_sync: bool,
 }
 
@@ -164,7 +163,6 @@ impl InlineHistoryMenuView {
             positioner,
             buffer_model,
             tab_configs,
-            /* caller_supplied_tabs */ false,
             ctx,
         )
     }
@@ -186,7 +184,6 @@ impl InlineHistoryMenuView {
             positioner,
             buffer_model,
             tab_configs,
-            /* caller_supplied_tabs */ true,
             ctx,
         )
     }
@@ -199,7 +196,6 @@ impl InlineHistoryMenuView {
         positioner: &ModelHandle<InlineMenuPositioner>,
         buffer_model: ModelHandle<InputBufferModel>,
         tab_configs: Vec<InlineMenuTabConfig<HistoryTab>>,
-        caller_supplied_tabs: bool,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
         let data_source = ctx.add_model(|_| {
@@ -367,7 +363,6 @@ impl InlineHistoryMenuView {
             model,
             buffer_model,
             pending_tab_switch_selection: None,
-            caller_supplied_tabs,
             pending_initial_buffer_sync: false,
         }
     }

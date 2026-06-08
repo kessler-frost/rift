@@ -163,7 +163,7 @@ use crate::pane_group::{
     self, AnyPaneContent,
     Direction as PaneGroupDirection, Direction,
     NetworkLogPane, NewTerminalOptions, PaneGroup, PaneId, PanesLayout,
-    TabBarHoverIndex, TerminalPaneId,
+    TabBarHoverIndex,
 };
 use crate::persistence::ModelEvent;
 use crate::projects::ProjectManagementModel;
@@ -245,7 +245,6 @@ use crate::terminal::session_settings::{
 };
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
 use crate::terminal::shell::ShellType;
-use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{
     AgentOnboardingVersion,
     OnboardingIntention, OnboardingVersion, SyncEvent, SyncInputType, TerminalAction,
@@ -394,8 +393,6 @@ const TAB_CONTENT_POSITION_ID: &str = "workspace_view:tab_content";
 const WELCOME_TIPS_POSITION_ID: &str = "welcome_tips_pill";
 const ELLIPSE_SVG_PATH: &str = "bundled/svg/ellipse.svg";
 
-const AI_ASSISTANT_BUTTON_ID: &str = "workspace_view:ai_assistant_button";
-
 const VERSION_DEPRECATION_BANNER_TEXT: &str = "Your app is out of date and some features may not work as expected. Please update immediately.";
 
 const VERSION_DEPRECATION_WITHOUT_PERMISSIONS_BANNER_TEXT: &str = "Some Warp features may not work as expected without updating immediately, but Warp is unable to perform the update.";
@@ -425,32 +422,15 @@ pub const TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME: &str = "workspace:toggle_comma
 
 const USER_AVATAR_BUTTON_POSITION_ID: &str = "workspace:user_avatar_button";
 const NOTIFICATIONS_MAILBOX_POSITION_ID: &str = "workspace:notifications_mailbox";
-pub(crate) const JUMP_TO_LATEST_TOAST_BINDING_NAME: &str = "workspace:jump_to_latest_toast";
 pub(crate) const TOGGLE_NOTIFICATION_MAILBOX_BINDING_NAME: &str =
     "workspace:toggle_notification_mailbox";
 
-// these won't have to be public after we deprecate the code mode v1 project explorer which is defined in terminal
-pub(crate) const TOGGLE_PROJECT_EXPLORER_BINDING_NAME: &str = "workspace:toggle_project_explorer";
-pub(crate) const TOGGLE_WARP_DRIVE_BINDING_NAME: &str = "workspace:toggle_warp_drive";
 pub(crate) const TOGGLE_RIGHT_PANEL_BINDING_NAME: &str = "workspace:toggle_right_panel";
 pub(crate) const TOGGLE_VERTICAL_TABS_PANEL_BINDING_NAME: &str =
     "workspace:toggle_vertical_tabs_panel";
-pub(crate) const OPEN_GLOBAL_SEARCH_BINDING_NAME: &str = "workspace:open_global_search";
-pub(crate) const TOGGLE_CONVERSATION_LIST_VIEW_BINDING_NAME: &str =
-    "workspace:toggle_conversation_list_view";
 pub(crate) const NEW_TAB_BINDING_NAME: &str = "workspace:new_tab";
 pub(crate) const NEW_TERMINAL_TAB_BINDING_NAME: &str = "workspace:new_terminal_tab";
-pub(crate) const NEW_AGENT_TAB_BINDING_NAME: &str = "workspace:new_agent_tab";
-pub(crate) const NEW_AMBIENT_AGENT_TAB_BINDING_NAME: &str = "workspace:new_ambient_agent_tab";
 pub(crate) const TOGGLE_TAB_CONFIGS_MENU_BINDING_NAME: &str = "workspace:toggle_tab_configs_menu";
-
-// Editable left panel toolbelt keybindings.
-pub(crate) const LEFT_PANEL_PROJECT_EXPLORER_BINDING_NAME: &str =
-    "workspace:left_panel_project_explorer";
-pub(crate) const LEFT_PANEL_GLOBAL_SEARCH_BINDING_NAME: &str = "workspace:left_panel_global_search";
-pub(crate) const LEFT_PANEL_WARP_DRIVE_BINDING_NAME: &str = "workspace:left_panel_warp_drive";
-pub(crate) const LEFT_PANEL_AGENT_CONVERSATIONS_BINDING_NAME: &str =
-    "workspace:left_panel_agent_conversations";
 
 const KEYBINDINGS_TO_CACHE: [&str; 4] = [
     ASK_AI_ASSISTANT_KEYBINDING_NAME,
@@ -458,9 +438,6 @@ const KEYBINDINGS_TO_CACHE: [&str; 4] = [
     SHOW_SETTINGS_KEYBINDING_NAME,
     TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME,
 ];
-
-const WORKFLOW_AND_ENV_VAR_SPLIT_RATIO: f32 = 0.56;
-const NOTEBOOK_SMART_SPLIT_RATIO: f32 = 0.42;
 
 #[cfg(target_family = "wasm")]
 const MOBILE_OVERLAY_PANEL_WIDTH_RATIO: f32 = 0.9;
@@ -470,15 +447,8 @@ const MOBILE_OVERLAY_SCRIM_ALPHA: u8 = 128;
 pub const NEW_TAB_BUTTON_POSITION_ID: &str = "new_tab_button";
 pub const NEW_SESSION_MENU_BUTTON_POSITION_ID: &str = "new_session_menu_button";
 
-// The max length of the title of a fork toast (after which we truncate it).
-const MAX_FORK_TOAST_TITLE_LENGTH: usize = 100;
-
 // The max length of the window title (matching conversation title truncation).
 const MAX_WINDOW_TITLE_LENGTH: usize = 80;
-
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-const AUTO_CLOUD_HANDOFF_PROMPT: &str =
-    "Continue this local Warp Agent task in the cloud from the current conversation state.";
 
 /// The default display name used for the user if they have no associated display name.
 pub const DEFAULT_USER_DISPLAY_NAME: &str = "User";
@@ -597,7 +567,6 @@ enum SimplifiedWasmTabBarContent {
     ConversationTranscript,
 }
 
-type RemoteUploadId = (TerminalPaneId, FileUploadId);
 type WorkspaceMenuHandles = (
     ViewHandle<Menu<WorkspaceAction>>,
     ViewHandle<Menu<WorkspaceAction>>,
@@ -608,16 +577,6 @@ type WorkspaceMenuHandles = (
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum NewSessionSidecarSelection {
     OpenWorktreeRepo { repo_path: String },
-}
-
-#[derive(Debug, Default)]
-struct FileUploadSessions {
-    /// Maps a local session pane handling a file upload
-    /// to the remote session pane through which the upload was initiated.
-    local_to_remote_map: HashMap<TerminalPaneId, TerminalPaneId>,
-    /// Maps a local pane to the ID of the file upload it is responsible for.
-    local_to_upload_id_map: HashMap<TerminalPaneId, RemoteUploadId>,
-    upload_id_to_local_map: HashMap<RemoteUploadId, TerminalPaneId>,
 }
 
 /// Controls the color palette used for a workspace banner.
@@ -632,9 +591,6 @@ pub enum BannerSeverity {
 /// Visual style for an individual banner action button.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum BannerButtonVariant {
-    /// No fill, no border, just text (and optional icon). Used for the primary
-    /// action in the Figma design (e.g. "Fix with Oz").
-    Naked,
     /// Border-only, no fill (e.g. "Open file").
     Outlined,
 }
@@ -781,7 +737,6 @@ pub struct Workspace {
     settings_file_error: Option<crate::settings::SettingsFileError>,
     settings_error_banner_dismissed: bool,
     should_show_ai_assistant_warm_welcome: bool,
-    ai_assistant_close_warm_welcome_mouse_state_handle: MouseStateHandle,
     auth_override_warning_modal: ViewHandle<AuthOverrideWarningModal>,
     require_login_modal: ViewHandle<AuthView>,
     prompt_editor_modal: ViewHandle<PromptEditorModal>,
@@ -826,7 +781,6 @@ pub struct Workspace {
     #[cfg(target_family = "wasm")]
     transcript_details_panel: ViewHandle<ConversationDetailsPanel>,
 
-    file_upload_sessions: FileUploadSessions,
     left_panel_open: bool,
     vertical_tabs_panel_open: bool,
     vertical_tabs_panel: VerticalTabsPanelState,
@@ -2595,7 +2549,6 @@ impl Workspace {
             settings_file_error,
             settings_error_banner_dismissed: false,
             should_show_ai_assistant_warm_welcome,
-            ai_assistant_close_warm_welcome_mouse_state_handle: Default::default(),
             auth_override_warning_modal,
             build_plan_migration_modal,
             require_login_modal,
@@ -2614,7 +2567,6 @@ impl Workspace {
             tab_bar_pinned_by_popup: false,
             user_menu,
             native_modal,
-            file_upload_sessions: Default::default(),
             left_panel_open: false,
             vertical_tabs_panel_open: false,
             vertical_tabs_panel: Default::default(),
@@ -7526,12 +7478,6 @@ impl Workspace {
                     OpenDialogSource::CloseTab { tab_index } => {
                         self.remove_tab(tab_index, true, true, ctx);
                     }
-                    OpenDialogSource::ClosePane {
-                        pane_group_id,
-                        pane_id,
-                    } => {
-                        self.close_pane(pane_group_id, pane_id, ctx);
-                    }
                     OpenDialogSource::CloseTabsDirection {
                         tab_index,
                         direction,
@@ -10670,13 +10616,6 @@ impl Workspace {
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            FreeTierLimitHitModalEvent::MaybeOpen => {
-                if self.free_tier_limit_check_triggered
-                    && self.check_and_open_free_tier_limit_modal(ctx)
-                {
-                    self.free_tier_limit_check_triggered = false;
-                }
-            }
             FreeTierLimitHitModalEvent::Close => {
                 self.current_workspace_state
                     .is_free_tier_limit_hit_modal_open = false;
@@ -17021,62 +16960,5 @@ fn compute_default_panel_widths(
         (left, right)
     } else {
         (DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH)
-    }
-}
-
-/// Idempotently sets the opencode-warp plugin entry in `~/.config/opencode/opencode.json`.
-/// Removes any existing opencode-warp plugin entries (both local file:// and github:) and adds
-/// the given `new_entry`. Creates the config file with a default structure if it doesn't exist.
-#[cfg(debug_assertions)]
-fn set_opencode_warp_plugin(new_entry: &str) -> String {
-    let Some(home) = dirs::home_dir() else {
-        return "Failed to determine home directory".to_string();
-    };
-
-    let config_dir = home.join(".config/opencode");
-    let config_path = config_dir.join("opencode.json");
-
-    let mut config: serde_json::Value = if config_path.exists() {
-        match std::fs::read_to_string(&config_path) {
-            Ok(contents) => match serde_json::from_str(&contents) {
-                Ok(val) => val,
-                Err(e) => return format!("Failed to parse opencode.json: {e}"),
-            },
-            Err(e) => return format!("Failed to read opencode.json: {e}"),
-        }
-    } else {
-        serde_json::json!({
-            "$schema": "https://opencode.ai/config.json"
-        })
-    };
-
-    let plugins = config.as_object_mut().and_then(|obj| {
-        obj.entry("plugin")
-            .or_insert_with(|| serde_json::json!([]))
-            .as_array_mut()
-    });
-
-    let Some(plugins) = plugins else {
-        return "opencode.json has unexpected structure (plugin is not an array)".to_string();
-    };
-
-    // Remove any existing opencode-warp entries
-    plugins.retain(|entry| {
-        let s = entry.as_str().unwrap_or("");
-        !s.contains("opencode-warp")
-    });
-
-    plugins.push(serde_json::Value::String(new_entry.to_string()));
-
-    if let Err(e) = std::fs::create_dir_all(&config_dir) {
-        return format!("Failed to create config directory: {e}");
-    }
-
-    match serde_json::to_string_pretty(&config) {
-        Ok(json_str) => match std::fs::write(&config_path, format!("{json_str}\n")) {
-            Ok(()) => format!("OpenCode plugin set to: {new_entry}"),
-            Err(e) => format!("Failed to write opencode.json: {e}"),
-        },
-        Err(e) => format!("Failed to serialize opencode.json: {e}"),
     }
 }

@@ -246,11 +246,6 @@ impl SlashCommandDataSource {
         true
     }
 
-    pub(crate) fn command_is_active(&self, command: &StaticCommand, ctx: &AppContext) -> bool {
-        let active_commands_context = self.active_commands_context(ctx);
-        self.command_is_active_in_context(command, &active_commands_context)
-    }
-
     /// Update the active repository root for this terminal. Called by the parent when
     /// the terminal navigates into or out of a git repository.
     pub fn set_active_repo_root(

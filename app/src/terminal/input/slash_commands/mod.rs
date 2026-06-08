@@ -3,17 +3,12 @@ mod data_source;
 mod search_item;
 pub(super) mod view;
 
-#[cfg(feature = "local_fs")]
-use std::path::PathBuf;
-
 use ai::skills::SkillReference;
 pub use cloud_mode_v2_view::{CloudModeV2SlashCommandView, Section as CloudModeV2Section};
 pub use data_source::*;
 use rift_core::features::FeatureFlag;
 use rift_core::send_telemetry_from_ctx;
 use rift_core::ui::theme::AnsiColorIdentifier;
-#[cfg(feature = "local_fs")]
-use rift_util::path::{CleanPathResult, LineAndColumnArg};
 use riftui::{AppContext, SingletonEntity, ViewContext};
 pub use view::{CloseReason, InlineSlashCommandView, SlashCommandsEvent};
 
@@ -27,8 +22,6 @@ use crate::terminal::input::inline_menu::{InlineMenuAction, InlineMenuType};
 use crate::terminal::input::{
     Input, InputSuggestionsMode,
 };
-#[cfg(feature = "local_fs")]
-use crate::terminal::model::session::Session;
 use crate::ui_components::color_dot;
 use crate::view_components::DismissibleToast;
 use crate::workspace::{ToastStack, WorkspaceAction};
@@ -58,12 +51,6 @@ pub enum SlashCommandTrigger {
 }
 
 impl SlashCommandTrigger {
-    fn cmd_or_ctrl_enter() -> Self {
-        Self::Input {
-            cmd_or_ctrl_enter: true,
-        }
-    }
-
     pub fn input() -> Self {
         Self::Input {
             cmd_or_ctrl_enter: false,
@@ -77,42 +64,6 @@ impl SlashCommandTrigger {
     pub fn is_keybinding(&self) -> bool {
         matches!(self, Self::Keybinding)
     }
-
-    fn is_cmd_or_ctrl_enter(&self) -> bool {
-        matches!(
-            self,
-            Self::Input {
-                cmd_or_ctrl_enter: true
-            }
-        )
-    }
-}
-
-#[cfg(feature = "local_fs")]
-fn open_file_command_path(
-    session: &Session,
-    current_dir: &str,
-    raw_arg: &str,
-) -> (PathBuf, Option<LineAndColumnArg>) {
-    let parsed_path = CleanPathResult::with_line_and_column_number(raw_arg.trim());
-    // The argument may contain shell-escaped characters (e.g. `\ ` for spaces) from auto-suggest.
-    // Unescape them so the path matches the actual filesystem entry.
-    let unescaped_path = session.shell_family().unescape(&parsed_path.path);
-    // Expand `~` to the user's home directory.
-    let expanded_path = shellexpand::tilde(&unescaped_path);
-
-    let shell_path = session
-        .convert_directory_to_typed_path_buf(current_dir.to_owned())
-        .join(session.convert_directory_to_typed_path_buf(expanded_path.into_owned()))
-        .normalize();
-    let file_path = session
-        .maybe_convert_to_native_path(&shell_path.to_path())
-        .unwrap_or_else(|err| {
-            log::warn!("unable to convert /open-file path to native path: {err:?}");
-            PathBuf::from(shell_path.to_string_lossy().into_owned())
-        });
-
-    (file_path, parsed_path.line_and_column_num)
 }
 
 impl Input {

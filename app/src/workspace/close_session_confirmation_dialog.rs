@@ -10,11 +10,10 @@ use riftui::ui_components::button::ButtonVariant;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::ui_components::text::Span;
 use riftui::{
-    AppContext, Element, Entity, EntityId, SingletonEntity, TypedActionView, View, ViewContext,
+    AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext,
 };
 
 use crate::appearance::Appearance;
-use crate::pane_group::PaneId;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::workspace::TabMovement;
 
@@ -22,11 +21,6 @@ use crate::workspace::TabMovement;
 #[derive(Copy, Clone)]
 /// Describes the action which opened the close session confirmation dialog
 pub enum OpenDialogSource {
-    /// Close a specific pane
-    ClosePane {
-        pane_group_id: EntityId,
-        pane_id: PaneId,
-    },
     /// Close a specific tab
     CloseTab { tab_index: usize },
     /// Close all tabs other than the tab_index

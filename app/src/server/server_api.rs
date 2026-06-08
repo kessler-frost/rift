@@ -1,7 +1,6 @@
 pub mod auth;
 mod base_client;
 pub mod block;
-pub mod integrations;
 pub mod managed_secrets;
 pub(crate) mod presigned_upload;
 pub mod team;
@@ -61,9 +60,6 @@ const RIFT_ERROR_CODE_HEADER: &str = "X-Warp-Error-Code";
 /// So we use this to distinguish between the two cases.
 const RIFT_ERROR_CODE_OUT_OF_CREDITS: &str = "OUT_OF_CREDITS";
 
-/// Error code indicating the user has reached their cloud agent concurrency limit.
-const RIFT_ERROR_CODE_AT_CAPACITY: &str = "AT_CLOUD_AGENT_CAPACITY";
-
 /// Header used to communicate the source of an agent run (e.g. "CLI", "GITHUB_ACTION").
 pub(crate) const AGENT_SOURCE_HEADER: &str = "X-Oz-Api-Source";
 
@@ -93,14 +89,6 @@ pub struct ClientError {
     // See REMOTE-666
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auth_url: Option<String>,
-}
-
-/// Error when the user is at their cloud agent concurrency limit.
-#[derive(thiserror::Error, Debug, Clone, Deserialize)]
-#[error("{error} (running agents: {running_agents})")]
-pub struct CloudAgentCapacityError {
-    pub error: String,
-    pub running_agents: i32,
 }
 
 #[derive(Deserialize, Debug)]
@@ -550,24 +538,6 @@ impl ServerApi {
         }
     }
 
-    /// Inspects a websocket *handshake* connect error for an IAP challenge and
-    /// enqueues an `IapChallengeReceived` event if detected.
-    #[cfg(not(target_family = "wasm"))]
-    fn report_ws_iap_challenge(&self, err: &anyhow::Error) {
-        if self.iap_state.is_none() {
-            return;
-        }
-        if super::iap::ws_connect_is_iap_challenge(err) {
-            log::warn!("Received IAP challenge on websocket handshake; notifying IapManager");
-            if let Err(err) = self.event_sender.try_send(AuthEvent::IapChallengeReceived) {
-                log::warn!("Failed to enqueue IapChallengeReceived: {err}");
-            }
-        }
-    }
-
-    #[cfg(target_family = "wasm")]
-    fn report_ws_iap_challenge(&self, _err: &anyhow::Error) {}
-
     /// Returns ambient agent headers to attach to requests.
     async fn ambient_agent_headers(&self) -> Result<Vec<(&'static str, String)>> {
         let workload_token = self
@@ -644,9 +614,8 @@ impl ServerApi {
             Ok(response)
         } else {
             self.check_for_iap_challenge(&response);
-            // Put `HttpStatusError` in the error chain so shared retry classifiers
-            // (`is_transient_http_error`) can distinguish transient 5xx / 408 / 429
-            // from permanent 4xx without string-matching the Display output.
+            // Put `HttpStatusError` in the error chain so callers can distinguish transient
+            // 5xx / 408 / 429 from permanent 4xx without string-matching the Display output.
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
             let status_err = HttpStatusError {
@@ -786,11 +755,6 @@ impl ServerApi {
     /// Converts a non-success public API response into the most specific client error available.
     async fn error_from_response(response: http_client::Response) -> anyhow::Error {
         let status = response.status();
-        let is_at_capacity = response
-            .headers()
-            .get(RIFT_ERROR_CODE_HEADER)
-            .and_then(|v| v.to_str().ok())
-            == Some(RIFT_ERROR_CODE_AT_CAPACITY);
         let is_out_of_credits = response
             .headers()
             .get(RIFT_ERROR_CODE_HEADER)
@@ -800,14 +764,6 @@ impl ServerApi {
         // Get the response text first since we may need to try multiple deserializations.
         let response_text = response.text().await.unwrap_or_default();
 
-        // Check for AT_CAPACITY error code header.
-        if is_at_capacity {
-            if let Ok(capacity_error) =
-                serde_json::from_str::<CloudAgentCapacityError>(&response_text)
-            {
-                return capacity_error.into();
-            }
-        }
         if status == StatusCode::TOO_MANY_REQUESTS && is_out_of_credits {
             let user_display_message = serde_json::from_str::<OutOfCreditsResponse>(&response_text)
                 .ok()
@@ -1373,20 +1329,9 @@ impl ServerApiProvider {
 
 
 
-    pub fn get_integrations_client(&self) -> Arc<dyn integrations::IntegrationsClient> {
-        self.server_api.clone()
-    }
-
     pub fn get_managed_secrets_client(&self) -> Arc<dyn ManagedSecretsClient> {
         self.server_api.clone()
     }
-
-    /// Returns the shared HTTP client. This client is wired into network logging
-    /// and includes standard Warp request headers.
-    pub fn get_http_client(&self) -> Arc<http_client::Client> {
-        self.server_api.client.clone()
-    }
-
 }
 
 impl Entity for ServerApiProvider {

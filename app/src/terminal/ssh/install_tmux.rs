@@ -115,7 +115,6 @@ pub struct SshInstallTmuxBlock {
 pub struct SystemInstallState {
     /// The script to install tmux via a package manager, which requires root access
     tmux_system_install_script: String,
-    toggle_menu_mouse_states: Vec<MouseStateHandle>,
     toggle_menu_state_handle: ToggleMenuStateHandle,
     is_first_script_active: bool,
 }
@@ -190,7 +189,6 @@ impl SshInstallTmuxBlock {
             system_install_state: tmux_system_install_script.map(|tmux_root_install_script| {
                 SystemInstallState {
                     tmux_system_install_script: tmux_root_install_script,
-                    toggle_menu_mouse_states: vec![Default::default(), Default::default()],
                     toggle_menu_state_handle: Default::default(),
                     is_first_script_active: true,
                 }

@@ -5,7 +5,6 @@ mod bookmarks;
 mod context_menu;
 pub mod init;
 pub mod inline_banner;
-use onboarding::OnboardingKeybindings;
 
 mod link_detection;
 mod open_in_warp;
@@ -94,7 +93,6 @@ use riftui::elements::new_scrollable::{
     AxisConfiguration, ClippedAxisConfiguration, DualAxisConfig, NewScrollableElement,
     ScrollableAppearance, SingleAxisConfig,
 };
-use riftui::elements::shimmering_text::ShimmeringTextStateHandle;
 use riftui::elements::{
     get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped,
     ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
@@ -489,11 +487,7 @@ const SELECT_ALL_BINDING_NAME: &str = "editor_view:select_all";
 const MOVE_LINE_START_BINDING_NAME: &str = "editor_view:move_to_line_start";
 const MOVE_LINE_END_BINDING_NAME: &str = "editor_view:move_to_line_end";
 
-const DEFAULT_AI_BLOCK_HEIGHT: f32 = 96.;
-
 pub const DEFAULT_ASK_AI_AUTOSUGGESTION_TEXT: &str = "What happened here?";
-
-const RIFT_MD_PATH: &str = "WARP.md";
 
 pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY: &str = "LongRunningRequestedCommand";
 pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY: &str =
@@ -921,25 +915,6 @@ impl SizeUpdateBuilder {
         // Refreshing doesn't actually change pane size or content element size.
         Self {
             update_reason: SizeUpdateReason::Refresh,
-            last_size,
-            new_pane_size_px: last_size.pane_size_px(),
-        }
-    }
-
-    fn for_shared_session_update(last_size: SizeInfo, num_rows: usize, num_cols: usize) -> Self {
-        // Shared session updates don't change the actual pane / content sizes.
-        Self {
-            update_reason: SizeUpdateReason::SharerSizeChanged { num_rows, num_cols },
-            last_size,
-            new_pane_size_px: last_size.pane_size_px(),
-        }
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    fn for_viewer_size_report(last_size: SizeInfo, num_rows: usize, num_cols: usize) -> Self {
-        // Viewer size reports don't change the sharer's actual pane size.
-        Self {
-            update_reason: SizeUpdateReason::ViewerSizeReported { num_rows, num_cols },
             last_size,
             new_pane_size_px: last_size.pane_size_px(),
         }
@@ -1617,15 +1592,6 @@ struct TerminalViewMouseStates {
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
     show_in_file_explorer_tooltip: MouseStateHandle,
     jump_to_bottom_of_block_button: MouseStateHandle,
-
-    parent_conversation_header_link: MouseStateHandle,
-    /// Persistent horizontal scroll state for the orchestration breadcrumb
-    /// row. Lives here (rather than as a `MouseStateHandle`) so the user's
-    /// scroll position survives across renders — in narrow split-off panes
-    /// the breadcrumb row often overflows the title slot, and we wrap it
-    /// in a `NewScrollable::horizontal` keyed on this handle so the user
-    /// can pan to read clipped labels.
-    breadcrumbs_horizontal_scroll: ClippedScrollStateHandle,
 }
 
 /// Where content was routed when sent to a CLI agent.
@@ -1652,13 +1618,6 @@ pub enum TerminalViewState {
     /// Not running any commands, and the last command it ran (if any) was
     /// successful.
     Normal,
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(in crate::terminal::view) enum ConversationDetailsPanelAutoOpenPolicy {
-    #[default]
-    DefaultOpen,
-    DefaultClosed,
 }
 
 /// A struct containing information about a state change event for a particular
@@ -1703,12 +1662,6 @@ pub fn is_prompt_suggestions_enabled(app: &AppContext) -> bool {
 }
 
 type TerminalViewCallback = Box<dyn FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>)>;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(in crate::terminal::view) enum PendingUserQueryKind {
-    QueuedPrompt,
-    CloudMode,
-}
 
 #[derive(Debug, Clone)]
 pub struct TerminalDropTargetData {
@@ -2023,10 +1976,6 @@ pub struct TerminalView {
 
     /// Per-session PTY recorder for writing PTY bytes to a file.
     pty_recorder: ModelHandle<PtyRecorder>,
-
-    /// State handle for the shimmering text animation in the remote server loading footer.
-    /// Persisted across renders so the animation doesn't restart.
-    remote_server_shimmer_handle: ShimmeringTextStateHandle,
 }
 
 #[derive(Copy, Clone, Serialize)]
@@ -2698,7 +2647,6 @@ impl TerminalView {
             pane_configuration,
             focus_handle: None,
             sessions,
-            remote_server_shimmer_handle: ShimmeringTextStateHandle::new(),
             active_block_metadata: None,
             block_text_selection_start_position: None,
             background_executor: ctx.background_executor().clone(),
@@ -7268,70 +7216,6 @@ impl TerminalView {
         } else {
             Some(text)
         }
-    }
-}
-
-/// Constructs the keybindings struct for the onboarding callout.
-///
-/// Gets display strings for:
-/// - Toggle input mode: from TerminalKeybindings (editable binding)
-/// - Submit to local agent: fixed binding (cmd-enter / ctrl-shift-enter)
-/// - Submit to cloud agent: fixed binding (cmd-alt-enter / ctrl-alt-enter)
-fn build_onboarding_keybindings(ctx: &AppContext) -> OnboardingKeybindings {
-    let toggle_input_mode = TerminalKeybindings::handle(ctx)
-        .as_ref(ctx)
-        .set_input_mode_agent_keybinding()
-        .unwrap_or_else(|| {
-            if OperatingSystem::get().is_mac() {
-                "⌘-I".to_string()
-            } else {
-                "Ctrl-I".to_string()
-            }
-        });
-
-    // EditorAction::CmdEnter is a fixed binding, not editable
-    let submit_to_local_agent = if OperatingSystem::get().is_mac() {
-        Keystroke::parse("cmd-enter")
-    } else {
-        Keystroke::parse("ctrl-shift-enter")
-    }
-    .map(|k| k.displayed())
-    .unwrap_or_else(|_| "⌘-⏎".to_string());
-
-    // TerminalAction::EnterCloudAgentView is a fixed binding, not editable
-    let submit_to_cloud_agent = if OperatingSystem::get().is_mac() {
-        Keystroke::parse("cmd-alt-enter")
-    } else {
-        Keystroke::parse("ctrl-alt-enter")
-    }
-    .map(|k| k.displayed())
-    .unwrap_or_else(|_| "⌘-⌥-⏎".to_string());
-
-    let return_to_terminal_mode = Keystroke::parse("escape")
-        .map(|k| k.displayed())
-        .unwrap_or_else(|_| "ESC".to_string());
-
-    OnboardingKeybindings {
-        toggle_input_mode,
-        submit_to_local_agent,
-        submit_to_cloud_agent,
-        return_to_terminal_mode,
-    }
-}
-
-/// Builds the context-menu label for forking an AI conversation from a given query.
-fn fork_label_for_query(query: &str) -> String {
-    if query.is_empty() {
-        "Fork from last query".to_string()
-    } else {
-        let first_line = query.lines().next().unwrap_or(query).trim();
-        let chars: Vec<char> = first_line.chars().take(21).collect();
-        let (truncated, suffix) = if chars.len() > 20 {
-            (chars[..20].iter().collect::<String>(), "…")
-        } else {
-            (chars.iter().collect::<String>(), "")
-        };
-        format!("Fork from \"{truncated}{suffix}\"")
     }
 }
 
@@ -15598,13 +15482,6 @@ impl View for TerminalView {
             content: terminal_session_content,
         })
     }
-}
-
-/// Readable summary for an AI block.
-struct AIBlockNotificationSummary {
-    title: String,
-    description: String,
-    success: bool,
 }
 
 /// A menu positioning provider for when the input is rendered within the terminal.

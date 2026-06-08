@@ -21,7 +21,6 @@ const SUGGESTION_ITEM_PADDING: f32 = 12.;
 pub struct CreateProjectView {
     editor: ViewHandle<GlowingEditor>,
     suggestions: Vec<BuildSuggestion>,
-    is_ftux: bool,
 }
 
 struct BuildSuggestion {
@@ -30,7 +29,7 @@ struct BuildSuggestion {
 }
 
 impl CreateProjectView {
-    pub fn new(is_ftux: bool, ctx: &mut ViewContext<Self>) -> Self {
+    pub fn new(_is_ftux: bool, ctx: &mut ViewContext<Self>) -> Self {
         let editor =
             ctx.add_typed_action_view(|ctx| GlowingEditor::new("What do you want to build?", ctx));
 
@@ -61,11 +60,7 @@ impl CreateProjectView {
             },
         ];
 
-        Self {
-            editor,
-            suggestions,
-            is_ftux,
-        }
+        Self { editor, suggestions }
     }
 
     fn handle_editor_event(&mut self, event: &GlowingEditorEvent, ctx: &mut ViewContext<Self>) {
@@ -76,7 +71,7 @@ impl CreateProjectView {
                     TelemetryEvent::CreateProjectPromptSubmitted {
                         is_custom_prompt: true,
                         suggested_prompt: None,
-                        is_ftux: self.is_ftux,
+                        is_ftux: true,
                     },
                     ctx
                 );
@@ -178,7 +173,7 @@ impl TypedActionView for CreateProjectView {
                     TelemetryEvent::CreateProjectPromptSubmitted {
                         is_custom_prompt: false,
                         suggested_prompt: Some(prompt.clone()),
-                        is_ftux: self.is_ftux,
+                        is_ftux: true,
                     },
                     ctx
                 );

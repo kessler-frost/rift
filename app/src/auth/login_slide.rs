@@ -32,7 +32,7 @@ use crate::auth::auth_view_shared_helpers::{
     render_privacy_settings_toggles, PrivacySettingsActions, PrivacySettingsHandles,
 };
 use crate::auth::login_failure_notification::{self, LoginFailureReason};
-use crate::editor::{EditorView, SingleLineEditorOptions, TextColors, TextOptions};
+use crate::editor::EditorView;
 use crate::settings::PrivacySettings;
 use crate::themes::theme::Fill as ThemeFill;
 use crate::util::bindings::CustomAction;
@@ -117,15 +117,7 @@ pub enum LoginSlideEvent {
 /// How the user arrived at the login slide. Controls which step is shown first
 /// and how "Back" is routed when the user backs out of the privacy-settings step.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum LoginSlideSource {
-    /// Reached via the normal onboarding flow (e.g. agent intention requires an account).
-    OnboardingFlow,
-    /// Reached via the "Log in" link on the intro / welcome slide.
-    LoginExistingUserFromWelcome,
-    /// Reached via the "Privacy Settings" link on the terminal-intention theme slide.
-    /// Starts directly in the privacy settings step and routes Back to onboarding.
-    PrivacySettingsFromTerminalIntentionTheme,
-}
+pub enum LoginSlideSource {}
 
 // ---------------------------------------------------------------------------
 // Login step
@@ -200,176 +192,11 @@ pub struct LoginSlideView {
     highlighted_hyperlink_state: HighlightedHyperlink,
 }
 
-/// All image paths used by the login slide visual. These mirror the set in
-/// `ThemePickerSlide::VISUAL_IMAGE_PATHS` so the login slide can keep showing
-/// the same themed right panel the user was looking at on the theme slide.
-const VISUAL_IMAGE_PATHS: &[&str] = &[
-    // Terminal intention
-    "async/png/onboarding/terminal_intention/theme/theme_phenomenon_vertical.png",
-    "async/png/onboarding/terminal_intention/theme/theme_phenomenon_horizontal.png",
-    "async/png/onboarding/terminal_intention/theme/theme_dark_vertical.png",
-    "async/png/onboarding/terminal_intention/theme/theme_dark_horizontal.png",
-    "async/png/onboarding/terminal_intention/theme/theme_light_vertical.png",
-    "async/png/onboarding/terminal_intention/theme/theme_light_horizontal.png",
-    "async/png/onboarding/terminal_intention/theme/theme_adeberry_vertical.png",
-    "async/png/onboarding/terminal_intention/theme/theme_adeberry_horizontal.png",
-    // Agent intention
-    "async/png/onboarding/agent_intention/theme/theme_phenomenon_vertical.png",
-    "async/png/onboarding/agent_intention/theme/theme_phenomenon_horizontal.png",
-    "async/png/onboarding/agent_intention/theme/theme_dark_vertical.png",
-    "async/png/onboarding/agent_intention/theme/theme_dark_horizontal.png",
-    "async/png/onboarding/agent_intention/theme/theme_light_vertical.png",
-    "async/png/onboarding/agent_intention/theme/theme_light_horizontal.png",
-    "async/png/onboarding/agent_intention/theme/theme_adeberry_vertical.png",
-    "async/png/onboarding/agent_intention/theme/theme_adeberry_horizontal.png",
-];
-
-fn resolve_visual_path(
-    intention: OnboardingIntention,
-    theme_name: &str,
-    use_vertical_tabs: bool,
-) -> &'static str {
-    let intention_dir = match intention {
-        OnboardingIntention::AgentDrivenDevelopment => "agent_intention",
-        OnboardingIntention::Terminal => "terminal_intention",
-    };
-    let name_key = match theme_name {
-        "Phenomenon" => "phenomenon",
-        "Dark" => "dark",
-        "Light" => "light",
-        "Adeberry" => "adeberry",
-        _ => "dark",
-    };
-    let orientation = if use_vertical_tabs {
-        "vertical"
-    } else {
-        "horizontal"
-    };
-    VISUAL_IMAGE_PATHS
-        .iter()
-        .find(|p| p.contains(intention_dir) && p.contains(name_key) && p.contains(orientation))
-        .unwrap_or(&VISUAL_IMAGE_PATHS[0])
-}
-
 impl LoginSlideView {
     /// Whether the auth token input editor is currently rendered and should be focusable.
     /// This is only true on the BrowserOpen step after the user clicks to paste their token.
     pub fn is_auth_token_input_visible(&self) -> bool {
         matches!(self.step, LoginStep::BrowserOpen) && self.show_auth_token_input
-    }
-
-    pub fn new(
-        ai_enabled: bool,
-        theme_name: &str,
-        use_vertical_tabs: bool,
-        intention: OnboardingIntention,
-        source: LoginSlideSource,
-        ctx: &mut ViewContext<Self>,
-    ) -> Self {
-        let auth_manager = AuthManager::handle(ctx);
-        ctx.subscribe_to_model(&auth_manager, |me, _, event, ctx| {
-            me.handle_auth_manager_event(event, ctx);
-        });
-
-        let auth_token_input = ctx.add_typed_action_view(|ctx| {
-            let appearance = Appearance::as_ref(ctx);
-            let text_color = ThemeFill::Solid(ColorU::black());
-            let mut editor = EditorView::single_line(
-                SingleLineEditorOptions {
-                    text: TextOptions {
-                        font_size_override: Some(12.),
-                        font_family_override: Some(appearance.ui_font_family()),
-                        text_colors_override: Some(TextColors {
-                            default_color: text_color,
-                            disabled_color: text_color.with_opacity(20),
-                            hint_color: text_color.with_opacity(40),
-                        }),
-                        ..Default::default()
-                    },
-                    soft_wrap: false,
-                    ..Default::default()
-                },
-                ctx,
-            );
-            editor.set_placeholder_text("Auth Token", ctx);
-            editor
-        });
-
-        ctx.subscribe_to_view(&auth_token_input, |me, _, event, ctx| {
-            use crate::editor::Event::{AltEnter, CmdEnter, Enter, Paste, ShiftEnter};
-            match event {
-                AltEnter | CmdEnter | Enter | Paste | ShiftEnter => {
-                    let text = me.auth_token_input.as_ref(ctx).buffer_text(ctx);
-                    me.handle_pasted_auth_url(text, ctx);
-                }
-                _ => {}
-            };
-            ctx.notify();
-        });
-
-        Self {
-            ai_enabled,
-            intention,
-            theme_visual_path: resolve_visual_path(intention, theme_name, use_vertical_tabs),
-            step: match source {
-                LoginSlideSource::OnboardingFlow => LoginStep::SelectAuthPathway,
-                LoginSlideSource::LoginExistingUserFromWelcome => LoginStep::BrowserOpen,
-                LoginSlideSource::PrivacySettingsFromTerminalIntentionTheme => {
-                    LoginStep::PrivacySettings
-                }
-            },
-            active_overlay: None,
-            last_login_failure_reason: None,
-            source,
-            auth_token_input,
-            show_auth_token_input: false,
-            back_button: button::Button::default(),
-            skip_button: button::Button::default(),
-            login_button: button::Button::default(),
-            browser_back_button: button::Button::default(),
-            done_button: button::Button::default(),
-            dialog_login_button: button::Button::default(),
-            dialog_skip_button: button::Button::default(),
-            dialog_close_button: button::Button::default(),
-            tos_mouse_state: MouseStateHandle::default(),
-            privacy_settings_mouse_state: MouseStateHandle::default(),
-            copy_url_mouse_state: MouseStateHandle::default(),
-            enter_token_mouse_state: MouseStateHandle::default(),
-            privacy_settings_handles: PrivacySettingsHandles::default(),
-            scroll_state: ClippedScrollStateHandle::new(),
-            close_login_notification_mouse_state: MouseStateHandle::default(),
-            highlighted_hyperlink_state: HighlightedHyperlink::default(),
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Auth manager
-    // ------------------------------------------------------------------
-
-    fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, ctx: &mut ViewContext<Self>) {
-        match event {
-            AuthManagerEvent::AuthFailed(err) => {
-                use crate::server::server_api::auth::UserAuthenticationError;
-                if let UserAuthenticationError::InvalidStateParameter = err {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::InvalidStateParameter);
-                } else if let UserAuthenticationError::MissingStateParameter = err {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::MissingStateParameter);
-                } else {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::FailedUserAuthentication);
-                }
-            }
-            AuthManagerEvent::CreateAnonymousUserFailed => {
-                self.last_login_failure_reason = Some(LoginFailureReason::FailedUserAuthentication);
-            }
-            AuthManagerEvent::MintCustomTokenFailed(_) => {
-                self.last_login_failure_reason = Some(LoginFailureReason::FailedMintCustomToken);
-            }
-            _ => {}
-        }
-        ctx.notify();
     }
 
     fn handle_pasted_auth_url(&mut self, pasted_url: String, ctx: &mut ViewContext<Self>) {
@@ -1216,33 +1043,9 @@ impl TypedActionView for LoginSlideView {
                     self.active_overlay = None;
                     ctx.notify();
                 } else if matches!(self.step, LoginStep::PrivacySettings) {
-                    match self.source {
-                        LoginSlideSource::PrivacySettingsFromTerminalIntentionTheme => {
-                            ctx.emit(LoginSlideEvent::BackToOnboarding);
-                        }
-                        LoginSlideSource::OnboardingFlow
-                        | LoginSlideSource::LoginExistingUserFromWelcome => {
-                            self.step = LoginStep::SelectAuthPathway;
-                            ctx.focus_self();
-                            ctx.notify();
-                        }
-                    }
+                    match self.source {}
                 } else if matches!(self.step, LoginStep::BrowserOpen) {
-                    // PrivacySettingsFromTerminalIntentionTheme starts on the
-                    // privacy-settings step and should never transition into the
-                    // select-auth-pathway step. If this branch is ever reached
-                    // for that source, route back to onboarding instead.
-                    match self.source {
-                        LoginSlideSource::LoginExistingUserFromWelcome
-                        | LoginSlideSource::PrivacySettingsFromTerminalIntentionTheme => {
-                            ctx.emit(LoginSlideEvent::BackToOnboarding);
-                        }
-                        LoginSlideSource::OnboardingFlow => {
-                            self.step = LoginStep::SelectAuthPathway;
-                            ctx.focus_self();
-                            ctx.notify();
-                        }
-                    }
+                    match self.source {}
                 } else {
                     ctx.emit(LoginSlideEvent::BackToOnboarding);
                 }
@@ -1250,21 +1053,7 @@ impl TypedActionView for LoginSlideView {
             LoginSlideAction::Back => {
                 ctx.emit(LoginSlideEvent::BackToOnboarding);
             }
-            LoginSlideAction::BackToSelectAuthPathway => match self.source {
-                // PrivacySettingsFromTerminalIntentionTheme only ever shows the
-                // privacy-settings step; treat "back" the same as login-from-
-                // welcome and return to onboarding rather than falling through
-                // to a step this source was designed to skip.
-                LoginSlideSource::LoginExistingUserFromWelcome
-                | LoginSlideSource::PrivacySettingsFromTerminalIntentionTheme => {
-                    ctx.emit(LoginSlideEvent::BackToOnboarding);
-                }
-                LoginSlideSource::OnboardingFlow => {
-                    self.step = LoginStep::SelectAuthPathway;
-                    ctx.focus_self();
-                    ctx.notify();
-                }
-            },
+            LoginSlideAction::BackToSelectAuthPathway => match self.source {},
             LoginSlideAction::CopyLoginUrl => {
                 AuthManager::handle(ctx).update(ctx, |auth_manager, inner_ctx| {
                     let sign_in_url = auth_manager.sign_in_url();
@@ -1296,17 +1085,7 @@ impl TypedActionView for LoginSlideView {
                 // except when the user entered the slide via the terminal-intention theme slide's
                 // Privacy Settings link — in that case Back returns to the onboarding view.
                 self.active_overlay = None;
-                match self.source {
-                    LoginSlideSource::PrivacySettingsFromTerminalIntentionTheme => {
-                        ctx.emit(LoginSlideEvent::BackToOnboarding);
-                    }
-                    LoginSlideSource::OnboardingFlow
-                    | LoginSlideSource::LoginExistingUserFromWelcome => {
-                        self.step = LoginStep::SelectAuthPathway;
-                        ctx.focus_self();
-                        ctx.notify();
-                    }
-                }
+                match self.source {}
             }
             LoginSlideAction::ToggleTelemetry => {
                 let handle = PrivacySettings::handle(ctx);

@@ -449,7 +449,6 @@ impl TypedActionView for FreeTierLimitHitModal {
 
 #[derive(Copy, Clone, Debug)]
 pub enum FreeTierLimitHitModalEvent {
-    MaybeOpen,
     Close,
 }
 

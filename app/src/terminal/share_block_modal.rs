@@ -5,7 +5,6 @@ use anyhow::Result;
 use parking_lot::FairMutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
-use rift_core::features::FeatureFlag;
 use rift_core::ui::theme::Fill;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
@@ -41,7 +40,7 @@ use crate::send_telemetry_from_ctx;
 use crate::server::block::{Block as ServerBlock, DisplaySetting};
 use crate::server::server_api::block::BlockClient;
 use crate::settings::{
-    AISettings, EnforceMinimumContrast, FontSettings, FontSettingsChangedEvent, PrivacySettings,
+    EnforceMinimumContrast, FontSettings, FontSettingsChangedEvent, PrivacySettings,
 };
 use crate::settings_view::SettingsSection;
 use crate::terminal::grid_renderer::{self};
@@ -55,7 +54,6 @@ use crate::ui_components::icons::Icon;
 use crate::util::bindings::CustomAction;
 use crate::view_components::ToastFlavor;
 use crate::workspace::WorkspaceAction;
-use crate::workspaces::user_workspaces::UserWorkspaces;
 
 const PADDING: f32 = 30.;
 const INNER_MARGIN: f32 = 20.;
@@ -1111,12 +1109,6 @@ impl View for ShareBlockModal {
             .with_background_color(Fill::blur().into())
             .finish()
     }
-}
-
-fn should_send_title_gen_request(ctx: &ViewContext<ShareBlockModal>) -> bool {
-    FeatureFlag::SharedBlockTitleGeneration.is_enabled()
-        && AISettings::as_ref(ctx).is_shared_block_title_generation_enabled(ctx)
-        && UserWorkspaces::as_ref(ctx).ai_allowed_for_current_team()
 }
 
 struct SingleBlock {

@@ -44,8 +44,6 @@ pub struct AgentToastStack {
     toasts: Vec<AgentToastData>,
     /// Cached keystroke for the jump to latest toast action
     jump_to_toast_shortcut: Option<Keystroke>,
-    /// Navigation data for the most recent toast. Persists even after toast is dismissed
-    latest_toast_navigation_data: Option<(WindowId, usize, EntityId)>,
 }
 
 impl AgentToastStack {
@@ -73,29 +71,7 @@ impl AgentToastStack {
             timeout,
             toasts: Vec::new(),
             jump_to_toast_shortcut,
-            latest_toast_navigation_data: None,
         }
-    }
-
-    /// Add a new agent toast to the stack
-    pub fn add_toast(&mut self, toast: AgentToast, ctx: &mut ViewContext<Self>) {
-        let uuid = Uuid::new_v4();
-        let abort_handle = ctx.spawn_abortable(
-            Timer::after(self.timeout),
-            move |view, _, ctx| view.dismiss_toast_by_uuid(&uuid, ctx),
-            |_, _| {},
-        );
-
-        self.latest_toast_navigation_data =
-            Some((toast.window_id, toast.tab_index, toast.terminal_view_id));
-
-        self.toasts.push(AgentToastData {
-            toast,
-            abort_handle: Some(abort_handle),
-            uuid,
-        });
-
-        ctx.notify();
     }
 
     /// Dismiss a toast by its UUID
@@ -137,14 +113,6 @@ impl AgentToastStack {
         }
     }
 
-    /// Get the UUID of the most recent (latest) toast
-    pub fn latest_toast_uuid(&self) -> Option<Uuid> {
-        self.toasts.last().map(|toast_data| toast_data.uuid)
-    }
-
-    pub fn get_latest_toast_navigation_data(&self) -> Option<(WindowId, usize, EntityId)> {
-        self.latest_toast_navigation_data
-    }
 }
 
 impl View for AgentToastStack {
@@ -258,25 +226,6 @@ pub struct AgentToast {
 }
 
 impl AgentToast {
-    pub fn new(
-        task_name: String,
-        icon: Icon,
-        window_id: WindowId,
-        tab_index: usize,
-        terminal_view_id: EntityId,
-    ) -> Self {
-        Self {
-            task_name,
-            icon,
-            window_id,
-            tab_index,
-            terminal_view_id,
-            close_button_mouse_state: Default::default(),
-            container_hover_state: Default::default(),
-            close_button_hover_state: Default::default(),
-        }
-    }
-
     fn text_color(&self, appearance: &Appearance) -> ColorU {
         appearance
             .theme()

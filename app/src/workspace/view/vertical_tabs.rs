@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use languages::language_by_local_filename;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
@@ -105,10 +104,6 @@ pub(super) const VERTICAL_TABS_DETAIL_SIDECAR_POSITION_ID: &str = "vertical_tabs
 /// Total size of the icon-with-status component rendered for each vertical-tabs row.
 /// Sub-components (circle, badge, cloud) are derived inside `render_icon_with_status`.
 const VERTICAL_TABS_ICON_SIZE: f32 = 24.;
-
-/// Icon size for the per-line conversation status pill in Summary mode. Pairs with
-/// `STATUS_ELEMENT_PADDING` (2px) for an overall ~14px element next to a 12pt title.
-const VERTICAL_TABS_SUMMARY_STATUS_ICON_SIZE: f32 = 10.;
 
 fn vtab_pane_row_position_id(pane_group_id: EntityId, pane_id: PaneId) -> String {
     format!("vertical_tabs:pane_row:{pane_group_id:?}:{pane_id}")
@@ -754,17 +749,7 @@ enum SummaryPaneKind {
     Terminal,
     OzAgent { is_ambient: bool },
     CLIAgent { agent: CLIAgent, is_ambient: bool },
-    Code { title: String },
-    CodeDiff,
-    File,
-    Notebook { is_plan: bool },
-    Workflow { is_ai_prompt: bool },
     Settings,
-    EnvVarCollection,
-    EnvironmentManagement,
-    AIFact,
-    AIDocument,
-    ExecutionProfileEditor,
     Other,
 }
 
@@ -4171,25 +4156,8 @@ fn render_summary_pane_kind_icon_circle(
                 .into(),
             )
         }
-        SummaryPaneKind::Code { title } => (
-            icon_from_file_path(&title, appearance).unwrap_or_else(|| {
-                WarpIcon::Code2
-                    .to_warpui_icon(theme.sub_text_color(theme.background()))
-                    .finish()
-            }),
-            internal_colors::fg_overlay_2(theme).into(),
-        ),
         SummaryPaneKind::Terminal
-        | SummaryPaneKind::CodeDiff
-        | SummaryPaneKind::File
-        | SummaryPaneKind::Notebook { .. }
-        | SummaryPaneKind::Workflow { .. }
         | SummaryPaneKind::Settings
-        | SummaryPaneKind::EnvVarCollection
-        | SummaryPaneKind::EnvironmentManagement
-        | SummaryPaneKind::AIFact
-        | SummaryPaneKind::AIDocument
-        | SummaryPaneKind::ExecutionProfileEditor
         | SummaryPaneKind::Other => {
             let (icon, icon_color) = summary_pane_kind_icon(kind, appearance);
             (
@@ -4246,32 +4214,7 @@ fn summary_pane_kind_icon(
             agent.icon().unwrap_or(WarpIcon::Terminal),
             WarpThemeFill::Solid(agent.brand_icon_color()),
         ),
-        SummaryPaneKind::Code { .. } => (WarpIcon::Code2, sub_text),
-        SummaryPaneKind::CodeDiff => (WarpIcon::Diff, sub_text),
-        SummaryPaneKind::File => (WarpIcon::File, sub_text),
-        SummaryPaneKind::Notebook { is_plan } => (
-            if is_plan {
-                WarpIcon::Compass
-            } else {
-                WarpIcon::Notebook
-            },
-            sub_text,
-        ),
-        SummaryPaneKind::Workflow { is_ai_prompt } => (
-            if is_ai_prompt {
-                WarpIcon::Prompt
-            } else {
-                WarpIcon::Workflow
-            },
-            sub_text,
-        ),
-        SummaryPaneKind::Settings | SummaryPaneKind::EnvironmentManagement => {
-            (WarpIcon::Gear, main_text)
-        }
-        SummaryPaneKind::EnvVarCollection => (WarpIcon::EnvVarCollection, sub_text),
-        SummaryPaneKind::AIFact => (WarpIcon::BookOpen, sub_text),
-        SummaryPaneKind::AIDocument => (WarpIcon::Compass, sub_text),
-        SummaryPaneKind::ExecutionProfileEditor => (WarpIcon::Lightning, sub_text),
+        SummaryPaneKind::Settings => (WarpIcon::Gear, main_text),
         SummaryPaneKind::Other => (WarpIcon::File, sub_text),
     }
 }
@@ -5904,51 +5847,6 @@ fn render_terminal_detail_section(
         .finish()
 }
 
-fn render_code_detail_section(
-    _props: &PaneProps<'_>,
-    _appearance: &Appearance,
-    _app: &AppContext,
-) -> Box<dyn Element> {
-    // Code panes were an AI feature and have been removed.
-    Empty::new().finish()
-}
-
-fn render_warp_drive_object_detail_section(
-    props: &PaneProps<'_>,
-    appearance: &Appearance,
-    app: &AppContext,
-) -> Box<dyn Element> {
-    let theme = appearance.theme();
-    let text_colors = detail_sidecar_text_colors(theme);
-
-    let mut section = Flex::column()
-        .with_cross_axis_alignment(CrossAxisAlignment::Start)
-        .with_spacing(DETAIL_SIDECAR_SECTION_GAP);
-    section.add_child(render_detail_wrapping_text(
-        props.title.clone(),
-        12.,
-        text_colors.main,
-        None,
-        appearance,
-    ));
-    section.add_child(render_detail_badge(
-        props.typed.kind_label(),
-        Some(render_detail_kind_badge_icon(props, appearance, app)),
-        None,
-        text_colors.disabled,
-        appearance,
-    ));
-
-    Container::new(section.finish())
-        .with_padding(Padding::uniform(DETAIL_SIDECAR_SECTION_PADDING))
-        .finish()
-}
-
-fn code_detail_kind_label(file_name: &str) -> Option<String> {
-    language_by_local_filename(Path::new(file_name))
-        .map(|language| language.display_name().to_string())
-}
-
 fn render_detail_section(
     props: &PaneProps<'_>,
     appearance: &Appearance,
@@ -6357,56 +6255,6 @@ fn remove_color(appearance: &Appearance) -> ColorU {
     AnsiColorIdentifier::Red
         .to_ansi_color(&appearance.theme().terminal_colors().normal)
         .into()
-}
-
-/// Returns a special icon for the given file path, if any. Inlined from the
-/// removed `crate::code::icon` module (the IDE code editor subtree was deleted).
-fn icon_from_file_path(path: &str, appearance: &Appearance) -> Option<Box<dyn Element>> {
-    use riftui::assets::asset_cache::AssetSource;
-    use riftui::elements::{CacheOption, Icon as ElementIcon, Image};
-
-    let theme = appearance.theme();
-    let parsed_path = Path::new(path);
-    let extension = parsed_path.extension().and_then(|ext| ext.to_str());
-
-    let bundled = |path: &'static str| {
-        Image::new(AssetSource::Bundled { path }, CacheOption::BySize).finish()
-    };
-
-    let image = match extension {
-        Some("rs") => bundled("bundled/svg/file_type/rust.svg"),
-        Some("json") => bundled("bundled/svg/file_type/json.svg"),
-        Some("ts") | Some("tsx") => bundled("bundled/svg/file_type/typescript.svg"),
-        Some("js") | Some("jsx") => bundled("bundled/svg/file_type/javascript.svg"),
-        Some("py") => bundled("bundled/svg/file_type/python.svg"),
-        Some("cpp") | Some("hpp") => bundled("bundled/svg/file_type/cpp.svg"),
-        Some("go") => bundled("bundled/svg/file_type/go.svg"),
-        Some("md") => ElementIcon::new(
-            "bundled/svg/file_type/markdown.svg",
-            theme.main_text_color(theme.background()).into_solid(),
-        )
-        .finish(),
-        Some("sh") => ElementIcon::new(
-            "bundled/svg/terminal.svg",
-            theme.main_text_color(theme.background()).into_solid(),
-        )
-        .finish(),
-        Some("kt") | Some("kts") => bundled("bundled/svg/file_type/kotlin.svg"),
-        Some("php") => bundled("bundled/svg/file_type/php.svg"),
-        Some("pl") | Some("pm") => bundled("bundled/svg/file_type/perl.svg"),
-        Some("c") | Some("h") => bundled("bundled/svg/file_type/c.svg"),
-        Some("pyx") | Some("pxd") => bundled("bundled/svg/file_type/cython.svg"),
-        Some("swf") => bundled("bundled/svg/file_type/flash.svg"),
-        Some("wasm") => bundled("bundled/svg/file_type/wasm.svg"),
-        Some("zig") => bundled("bundled/svg/file_type/zig.svg"),
-        Some("sql") => bundled("bundled/svg/file_type/sql.svg"),
-        Some("ng") | Some("ngml") => bundled("bundled/svg/file_type/angular.svg"),
-        Some("tf") | Some("hcl") | Some("tfvars") => bundled("bundled/svg/file_type/terraform.svg"),
-        _ => {
-            return None;
-        }
-    };
-    Some(image)
 }
 
 #[cfg(test)]

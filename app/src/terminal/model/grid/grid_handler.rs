@@ -487,10 +487,6 @@ impl GridHandler {
         }
     }
 
-    pub(in crate::terminal) fn enable_full_grid_clear_behavior(&mut self) {
-        self.full_grid_clear_behavior = FullGridClearBehavior::Clear;
-    }
-
     pub(crate) fn set_supports_emoji_presentation_selector(
         &mut self,
         supports_emoji_presentation_selector: bool,

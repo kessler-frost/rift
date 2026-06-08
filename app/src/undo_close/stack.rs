@@ -1,6 +1,6 @@
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::{
-    AppContext, ClosedWindowData, Entity, EntityId, ModelContext, SingletonEntity,
+    AppContext, ClosedWindowData, Entity, ModelContext, SingletonEntity,
     ViewHandle, WeakViewHandle, WindowId,
 };
 use uuid::Uuid;
@@ -123,34 +123,6 @@ impl UndoCloseStack {
     #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     pub fn is_empty(&self) -> bool {
         self.stack.is_empty()
-    }
-
-    /// Returns true only if the pane group is present in the undo close stack as part of a closed tab.
-    pub fn is_pane_group_tab_in_stack(&self, pane_group_id: EntityId) -> bool {
-        self.stack
-            .iter()
-            .any(|undo_data| matches!(&undo_data.closed_item, ClosedItem::Tab { data, .. } if data.pane_group.id() == pane_group_id))
-    }
-
-    /// Discards a pane group from the undo close stack early.
-    pub fn discard_pane_group_parent(
-        &mut self,
-        pane_group_id: EntityId,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        if let Some(pos) = self
-            .stack
-            .iter()
-            .position(|undo_data| match &undo_data.closed_item {
-                ClosedItem::Tab { data, .. } => data.pane_group.id() == pane_group_id,
-                ClosedItem::Pane { data } => data.pane_group.id() == pane_group_id,
-                _ => false,
-            })
-        {
-            let removed_item = self.stack.remove(pos);
-            removed_item.expiry_data.task_handle.abort();
-            removed_item.closed_item.discard(ctx);
-        }
     }
 
     /// Handles a window being closed, adding the necessary data to the undo

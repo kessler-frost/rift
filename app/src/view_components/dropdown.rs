@@ -15,7 +15,7 @@ use riftui::ui_components::button::{ButtonVariant, TextAndIcon, TextAndIconAlign
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
     Action, AppContext, BlurContext, Entity, SingletonEntity, TypedActionView, View, ViewContext,
-    ViewHandle, WeakViewHandle,
+    ViewHandle,
 };
 
 use crate::appearance::Appearance;
@@ -66,16 +66,12 @@ pub enum DropdownStyle {
     /// No border, smaller text, smaller padding
     #[allow(dead_code)]
     Naked,
-    /// Similar to Secondary but with ActionButton-like hover behavior:
-    /// background fill on hover instead of border color change.
-    /// TODO this should probably replace the default `Secondary` theme
-    ActionButtonSecondary,
 }
 
 impl DropdownStyle {
     fn ui_component_styles(&self) -> UiComponentStyles {
         match self {
-            DropdownStyle::Secondary | DropdownStyle::ActionButtonSecondary => UiComponentStyles {
+            DropdownStyle::Secondary => UiComponentStyles {
                 padding: Some(Coords {
                     top: 5.,
                     bottom: 5.,
@@ -95,9 +91,7 @@ impl DropdownStyle {
 /// on_click_action_name is dispatched, with the value of the corresponding menu item.
 ///
 /// The item action type powers typed item helpers like `set_items` and
-/// `set_selected_by_action`. Callers that populate the menu with already-erased rich
-/// [`MenuItem<DropdownAction>`] values through `set_rich_items` do not need to name a concrete
-/// item action type.
+/// `set_selected_by_action`.
 pub struct Dropdown<A: DropdownItemAction = ()> {
     is_expanded: bool,
     disabled: bool,
@@ -111,7 +105,6 @@ pub struct Dropdown<A: DropdownItemAction = ()> {
     selected_item: Option<MenuItem<DropdownAction>>,
     // Function for overriding the default closed-state text (the selected item)
     menu_header_text_override: Option<MenuHeaderTextFormatter>,
-    self_handle: WeakViewHandle<Self>,
     style: DropdownStyle,
     use_drop_shadow: bool,
     font_color: Option<ColorU>,
@@ -284,7 +277,6 @@ where
             top_bar_max_width: TOP_MENU_BAR_MAX_WIDTH,
             selected_item: None,
             menu_header_text_override: None,
-            self_handle: ctx.handle(),
             style: Default::default(),
             element_anchor: PositionedElementAnchor::BottomLeft,
             child_anchor: ChildAnchor::TopLeft,
@@ -302,15 +294,6 @@ where
             match_menu_width_to_top_bar: false,
             _item_action_type: PhantomData,
         }
-    }
-
-    /// Controls whether the open menu is rendered in an `Overlay`
-    /// layer (default) or attached as a positioned child in the
-    /// dropdown stack's Normal layer. See the field-level docs on
-    /// `use_overlay_layer` for when each is appropriate.
-    pub fn set_use_overlay_layer(&mut self, use_overlay_layer: bool, ctx: &mut ViewContext<Self>) {
-        self.use_overlay_layer = use_overlay_layer;
-        ctx.notify();
     }
 
     pub fn set_background(&mut self, background: Fill, ctx: &mut ViewContext<Self>) {
@@ -343,55 +326,8 @@ where
         ctx.notify();
     }
 
-    pub fn set_vertical_margin(&mut self, margin: f32, ctx: &mut ViewContext<Self>) {
-        self.vertical_margin = margin;
-        ctx.notify();
-    }
-
-    pub fn set_top_bar_height(&mut self, height: f32, ctx: &mut ViewContext<Self>) {
-        self.top_bar_height = height;
-        ctx.notify();
-    }
-
     pub fn set_padding(&mut self, padding: Coords, ctx: &mut ViewContext<Self>) {
         self.padding = Some(padding);
-        ctx.notify();
-    }
-
-    #[allow(dead_code)]
-    pub fn set_style(&mut self, style: DropdownStyle, ctx: &mut ViewContext<Self>) {
-        self.style = style;
-        ctx.notify();
-    }
-
-    /// Set the main_axis_size behavior for the dropdown header button.
-    ///
-    /// Default is MainAxisSize::Max, set to MainAxisSize::Min if you want to wrap the dropdown to
-    /// the text that's filling it.
-    pub fn set_main_axis_size(
-        &mut self,
-        main_axis_size: MainAxisSize,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.main_axis_size = main_axis_size;
-        ctx.notify();
-    }
-
-    pub fn set_menu_header_text_override<F>(&mut self, formatter: F)
-    where
-        F: Fn(&str) -> String + 'static,
-    {
-        self.menu_header_text_override = Some(Box::new(formatter));
-    }
-
-    pub fn set_menu_position(
-        &mut self,
-        element_anchor: PositionedElementAnchor,
-        child_anchor: ChildAnchor,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.element_anchor = element_anchor;
-        self.child_anchor = child_anchor;
         ctx.notify();
     }
 
@@ -419,41 +355,9 @@ where
         ctx.notify();
     }
 
-    pub fn is_focused(&self, ctx: &AppContext) -> bool {
-        let Some(handle) = self.self_handle.upgrade(ctx) else {
-            return false;
-        };
-
-        if handle.is_focused(ctx) {
-            return true;
-        }
-
-        if self.dropdown.is_focused(ctx) {
-            return true;
-        }
-
-        false
-    }
-
     pub fn set_items(&mut self, items: Vec<DropdownItem<A>>, ctx: &mut ViewContext<Self>) {
         self.dropdown.update(ctx, |dropdown, ctx| {
             dropdown.set_items(items.iter().map(|item| item.into()), ctx);
-        });
-        ctx.notify();
-    }
-
-    /// Set items from rich menu items.
-    ///
-    /// Rich menu items already carry erased [`DropdownAction`]s. The dropdown dispatches selected
-    /// item actions through normal action propagation, so callers should ensure each action is
-    /// handled by an appropriate view in the containing view hierarchy.
-    pub fn set_rich_items(
-        &mut self,
-        items: impl IntoIterator<Item = MenuItem<DropdownAction>>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.dropdown.update(ctx, |dropdown, ctx| {
-            dropdown.set_items(items, ctx);
         });
         ctx.notify();
     }
@@ -506,11 +410,6 @@ where
         ctx.notify();
     }
 
-    pub fn set_selected_to_none(&mut self, ctx: &mut ViewContext<Self>) {
-        self.selected_item = None;
-        ctx.notify();
-    }
-
     pub fn set_top_bar_max_width(&mut self, max_width: f32) {
         self.top_bar_max_width = max_width;
     }
@@ -518,13 +417,6 @@ where
     pub fn set_menu_width(&mut self, width: f32, ctx: &mut ViewContext<Self>) {
         self.dropdown.update(ctx, |menu, ctx| {
             menu.set_width(width);
-            ctx.notify();
-        })
-    }
-
-    pub fn set_menu_max_height(&mut self, height: f32, ctx: &mut ViewContext<Self>) {
-        self.dropdown.update(ctx, |menu, ctx| {
-            menu.set_height(height);
             ctx.notify();
         })
     }
@@ -589,7 +481,6 @@ where
                 match self.style {
                     DropdownStyle::Secondary => ButtonVariant::Outlined,
                     DropdownStyle::Naked => ButtonVariant::Text,
-                    DropdownStyle::ActionButtonSecondary => ButtonVariant::Secondary,
                 },
                 self.top_bar_mouse_state.clone(),
             )
@@ -607,7 +498,7 @@ where
                     vec2f(15., 15.),
                 )
                 .with_inner_padding(match self.style {
-                    DropdownStyle::Secondary | DropdownStyle::ActionButtonSecondary => 10.,
+                    DropdownStyle::Secondary => 10.,
                     DropdownStyle::Naked => 6.,
                 }),
             )

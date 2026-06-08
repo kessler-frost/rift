@@ -202,26 +202,8 @@ impl<T: View> Modal<T> {
         self
     }
 
-    /// Set the keystroke to display alongside the close button.
-    pub fn with_dismiss_keystroke(mut self, keystroke: Keystroke) -> Self {
-        self.dismiss_keystroke = Some(keystroke);
-        self
-    }
-
     pub fn set_title(&mut self, title: Option<String>) {
         self.title = title;
-    }
-
-    pub fn set_header_icon(&mut self, icon: Option<icons::Icon>) {
-        self.header_icon = icon;
-    }
-
-    pub fn set_header_icon_color(&mut self, color: Option<Fill>) {
-        self.header_icon_color = color;
-    }
-
-    pub fn set_offset_positioning(&mut self, offset_positioning: OffsetPositioning) {
-        self.offset_positioning = offset_positioning;
     }
 
     fn handle_appearance_update(

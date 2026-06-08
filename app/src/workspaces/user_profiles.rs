@@ -22,8 +22,6 @@ pub fn user_profile_from_persistence(
 /// Private struct for internal mapping between the user's uid and the important information we might
 /// want to query about them.
 pub struct UserProfileData {
-    pub display_name: Option<String>,
-    pub email: String,
     #[allow(dead_code)]
     pub photo_url: String,
 }
@@ -54,46 +52,12 @@ impl UserProfiles {
             self.users_by_id.insert(
                 user_profile.firebase_uid,
                 UserProfileData {
-                    display_name: user_profile.display_name.clone(),
-                    email: user_profile.email.clone(),
                     photo_url: user_profile.photo_url.clone(),
                 },
             );
         }
     }
 
-    pub fn clear_profiles(&mut self) {
-        self.users_by_id.clear()
-    }
-
-    pub fn profile_for_uid(&self, uid: UserUid) -> Option<&UserProfileData> {
-        self.users_by_id.get(&uid)
-    }
-
-    pub fn displayable_identifier_for_uid(&self, uid: UserUid) -> Option<String> {
-        self.users_by_id
-            .get(&uid)
-            .map(UserProfileData::displayable_identifier)
-    }
-
-    /// Get the display name for the user with the given email address. If the user is unknown,
-    /// returns `None`.
-    pub fn displayable_identifier_for_email(&self, email: &str) -> Option<String> {
-        self.users_by_id
-            .values()
-            .find(|profile| profile.email == email)
-            .map(UserProfileData::displayable_identifier)
-    }
-}
-
-impl UserProfileData {
-    pub fn displayable_identifier(&self) -> String {
-        self.display_name
-            .as_ref()
-            .filter(|name| !name.is_empty())
-            .unwrap_or(&self.email)
-            .clone()
-    }
 }
 
 impl Entity for UserProfiles {

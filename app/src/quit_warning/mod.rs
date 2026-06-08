@@ -39,9 +39,6 @@ pub struct UnsavedStateSummary<'a> {
 
     /// All terminal sessions in this scope.
     terminal_sessions: Vec<SessionNavigationData>,
-
-    /// The number of live shared sessions.
-    pub shared_sessions: usize,
 }
 
 /// Builder for a warning dialog that displays unsaved state.
@@ -91,14 +88,6 @@ impl QuitScope<'_> {
         }
     }
 
-    fn close_target(&self) -> CloseTarget {
-        match self {
-            Self::Pane { .. } => CloseTarget::Pane,
-            Self::Tabs(_) => CloseTarget::Tab,
-            Self::Window(_) => CloseTarget::Window,
-            Self::App => CloseTarget::App,
-        }
-    }
 }
 
 impl UnsavedStateSummary<'static> {
@@ -142,7 +131,6 @@ impl<'a> UnsavedStateSummary<'a> {
             windows_with_long_running_commands: sessions_summary.windows_running().len(),
             tabs_with_long_running_commands: sessions_summary.tabs_running().len(),
             terminal_sessions: sessions,
-            shared_sessions: 0,
         }
     }
 
@@ -308,8 +296,13 @@ impl<'a> QuitWarningDialog<'a> {
         send_telemetry_from_app_ctx!(
             TelemetryEvent::QuitModalShown {
                 running_processes: self.state.total_long_running_commands as u32,
-                shared_sessions: self.state.shared_sessions as u32,
-                modal_for: self.state.scope.close_target()
+                shared_sessions: 0,
+                modal_for: match self.state.scope {
+                    QuitScope::Pane { .. } => CloseTarget::Pane,
+                    QuitScope::Tabs(_) => CloseTarget::Tab,
+                    QuitScope::Window(_) => CloseTarget::Window,
+                    QuitScope::App => CloseTarget::App,
+                }
             },
             ctx
         );

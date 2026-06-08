@@ -17,7 +17,7 @@ use super::settings::WarpifySettings;
 use super::{render, subshell_bootstrap_success_block_bytes, WarpificationSource};
 use crate::appearance::Appearance;
 use crate::terminal::model::terminal_model::SubshellInitializationInfo;
-use crate::terminal::shell::{Shell, ShellType};
+use crate::terminal::shell::Shell;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon as UiIcon;
 
@@ -43,9 +43,7 @@ struct AutoWarpifySnippet {
     selection_handle: SelectionHandle,
     selected_text: Arc<RwLock<Option<String>>>,
 
-    shell_type: ShellType,
     description: Cow<'static, str>,
-    can_write_to_rc: bool,
 }
 
 pub struct WarpifySuccessBlock {
@@ -106,7 +104,7 @@ impl WarpifySuccessBlock {
                 })
             })
         };
-        let auto_warpify_snippet = auto_warpify_snippet.map(|(output_grid, can_write_to_rc)| {
+        let auto_warpify_snippet = auto_warpify_snippet.map(|(output_grid, _can_write_to_rc)| {
             AutoWarpifySnippet {
                 description: (if !output_grid.is_empty() {
                     "Run the following to automatically Warpify in the future:"
@@ -116,8 +114,6 @@ impl WarpifySuccessBlock {
                 output_grid: output_grid.into(),
                 selection_handle: Default::default(),
                 selected_text: Default::default(),
-                shell_type: shell.shell_type(),
-                can_write_to_rc,
             }
         });
 

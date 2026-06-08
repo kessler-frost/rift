@@ -1,6 +1,5 @@
 use std::result::Result as StdResult;
 use std::sync::Arc;
-use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use rift_core::channel::ChannelState;
@@ -65,15 +64,6 @@ pub enum AuthManagerEvent {
     LoginOverrideDetected(AuthRedirectPayload),
     /// Failed to mint a new custom token for an anonymous user.
     MintCustomTokenFailed(MintCustomTokenError),
-    /// Received a device authorization code as part of the device auth flow.
-    ReceivedDeviceAuthorizationCode {
-        #[cfg_attr(target_family = "wasm", allow(unused))]
-        verification_url: String,
-        #[cfg_attr(target_family = "wasm", allow(unused))]
-        verification_url_complete: Option<String>,
-        #[cfg_attr(target_family = "wasm", allow(unused))]
-        user_code: String,
-    },
 }
 
 pub type LoginGatedFeature = &'static str;
@@ -253,60 +243,6 @@ impl AuthManager {
             async move { auth_client.fetch_user(token, true).await },
             Self::on_user_fetched,
         );
-    }
-
-    /// Authenticate asynchronously using the OAuth2 device authorization flow.
-    ///
-    /// This is only used by the Warp CLI if running on a device that does not have the Warp app installed.
-    #[cfg_attr(target_family = "wasm", allow(dead_code))]
-    pub fn authorize_device(&self, ctx: &mut ModelContext<Self>) {
-        // Clear any stale user state so old credentials don't interfere
-        // with the fresh device auth flow.
-        self.auth_state.set_credentials(None);
-
-        let auth_client = self.auth_client.clone();
-        // Request a device code the user can enter in their browser.
-        ctx.spawn(
-            async move { auth_client.request_device_code().await },
-            Self::on_device_code_received,
-        );
-    }
-
-    #[cfg_attr(target_family = "wasm", allow(dead_code))]
-    fn on_device_code_received(
-        &mut self,
-        result: Result<oauth2::StandardDeviceAuthorizationResponse, UserAuthenticationError>,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        match result {
-            Ok(details) => {
-                // Emit the device authorization details so that they can be shown to the user.
-                ctx.emit(AuthManagerEvent::ReceivedDeviceAuthorizationCode {
-                    verification_url: details.verification_uri().to_string(),
-                    verification_url_complete: details
-                        .verification_uri_complete()
-                        .map(|complete| complete.secret().to_string()),
-                    user_code: details.user_code().secret().to_string(),
-                });
-
-                let auth_client = self.auth_client.clone();
-                ctx.spawn(
-                    async move {
-                        // Wait for the user to approve the device authorization request.
-                        let token = auth_client
-                            .exchange_device_access_token(&details, Duration::from_secs(600))
-                            .await?;
-
-                        // Exchange the custom access token for Firebase auth tokens and fetch the user.
-                        auth_client
-                            .fetch_user(LoginToken::Firebase(token), false)
-                            .await
-                    },
-                    Self::on_user_fetched,
-                );
-            }
-            Err(err) => ctx.emit(AuthManagerEvent::AuthFailed(err)),
-        }
     }
 
     /// Callback for handling a successful fetch of a user from warp-server and Firebase.
@@ -604,15 +540,6 @@ impl AuthManager {
         };
     }
 
-    pub fn anonymous_user_hit_drive_object_limit(&self, ctx: &mut ModelContext<Self>) {
-        if self.auth_state.is_anonymous_or_logged_out() {
-            send_telemetry_from_ctx!(TelemetryEvent::AnonymousUserHitCloudObjectLimit, ctx);
-            ctx.emit(AuthManagerEvent::AttemptedLoginGatedFeature {
-                auth_view_variant: AuthViewVariant::HitDriveObjectLimitCloseable,
-            });
-        };
-    }
-
     pub fn initiate_anonymous_user_linking(
         &self,
         _entrypoint: AnonymousUserSignupEntrypoint,
@@ -745,18 +672,6 @@ impl AuthManager {
         let state = self.generate_auth_state();
         format!(
             "{}/login/remote?scheme={}&state={}",
-            ChannelState::server_root_url(),
-            ChannelState::url_scheme(),
-            state,
-        )
-    }
-
-    /// The upgrade confirmation page will kick the user back to the app with a refresh token
-    /// if we send a `state` query param to /upgrade
-    pub fn upgrade_url(&mut self) -> String {
-        let state = self.generate_auth_state();
-        format!(
-            "{}/upgrade?scheme={}&state={}",
             ChannelState::server_root_url(),
             ChannelState::url_scheme(),
             state,

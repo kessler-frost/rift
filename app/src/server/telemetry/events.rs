@@ -125,14 +125,6 @@ pub struct BlockLatencyInfo {
 
 
 #[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-pub enum MCPTemplateCreationSource {
-    #[serde(rename = "json")]
-    Json,
-    #[serde(rename = "conversion")]
-    Conversion,
-}
-
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
 pub enum MCPTemplateInstallationSource {
     #[serde(rename = "local")]
     Local,
@@ -755,15 +747,6 @@ pub enum AgentModeAutoDetectionFalsePositivePayload {
     ExternalUsers,
 }
 
-/// How the user triggered the [`AgentModeCodeFilesNavigated`] event.
-#[derive(Clone, Copy, Debug, Serialize)]
-pub enum AgentModeCodeFileNavigationSource {
-    /// User used the next/previous actions.
-    NavigationCommand,
-    /// User directly selected the file's tab.
-    SelectedFileTab,
-}
-
 /// How the user triggered the [`AddTabWithShell`] event.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub enum AddTabWithShellSource {
@@ -838,14 +821,6 @@ pub enum OutOfCreditsBannerAction {
     CreditsPurchased,
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CLISubagentControlState {
-    AgentInControl,
-    UserInControl,
-    AgentTaggedIn,
-    AgentTaggedOut,
-}
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RemoteCodebaseIndexStatusTelemetrySource {

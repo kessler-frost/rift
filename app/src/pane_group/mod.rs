@@ -645,9 +645,6 @@ pub struct PaneGroup {
     dragged_border: Option<DraggedBorder>,
     user_default_shell_changed_banner: ViewHandle<Banner<PaneGroupAction>>,
 
-    /// If there is an open summarization cancel dialog, the terminal pane ID where summarization is active.
-    terminal_with_open_summarization_dialog: Option<TerminalPaneId>,
-
     /// Pane with an open environment setup mode selector modal (rendered at tab level).
     pane_with_open_environment_setup_mode_selector: Option<PaneId>,
     /// Pane with an open auth-secret delete confirmation dialog (rendered at tab level).
@@ -775,18 +772,6 @@ type InitialLayoutCallback = Box<
         &mut ViewContext<PaneGroup>,
     ) -> (PaneData, InitialFocus),
 >;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum AIDocumentPaneVisibilityAction {
-    /// Ensure the requested AI document pane is visible.
-    ///
-    /// If the requested pane is already open, this will keep it open.
-    Open,
-    /// Toggle visibility of the requested AI document pane.
-    ///
-    /// If the requested pane is open, this will close it. Otherwise it will open it.
-    Toggle,
-}
 
 impl PaneGroup {
     /// Executes the provided callback for each TerminalView contained within
@@ -1734,7 +1719,6 @@ impl PaneGroup {
             share_block_modal: share_modal,
             dragged_border: None,
             user_default_shell_changed_banner,
-            terminal_with_open_summarization_dialog: None,
             pane_with_open_environment_setup_mode_selector: None,
             pane_with_open_auth_secret_delete_confirmation_dialog: None,
             right_panel_open: false,

@@ -83,7 +83,6 @@ mod warp_managed_paths_watcher;
 #[cfg(target_family = "wasm")]
 mod wasm_nux_dialog;
 mod window_settings;
-mod word_block_editor;
 mod workspaces;
 
 // PLEASE DO NOT ADD MORE PUBLIC MODULES!
@@ -355,19 +354,6 @@ impl LaunchMode {
         }
     }
 
-    /// Returns `true` if this process can build and sync codebase indices.
-    fn supports_indexing(&self) -> bool {
-        match self {
-            LaunchMode::CommandLine { command, .. } => {
-                matches!(command, CliCommand::Agent(AgentCommand::Run { .. }))
-            }
-            LaunchMode::RemoteServerDaemon { .. } => {
-                FeatureFlag::RemoteCodebaseIndexing.is_enabled()
-            }
-            LaunchMode::App { .. } | LaunchMode::Test { .. } => true,
-            LaunchMode::RemoteServerProxy => false,
-        }
-    }
 
     /// Whether or not to start a crash recovery process (on platforms that support it).
     #[cfg(enable_crash_recovery)]
@@ -1107,7 +1093,6 @@ pub(crate) fn initialize_app(
         persisted_workspaces,
         mut workspace_language_servers,
         mut persisted_projects,
-        mut persisted_project_rules,
         mut persisted_ignored_suggestions,
     ) = sqlite_data
         .map(|sqlite_data| {
@@ -1121,13 +1106,11 @@ pub(crate) fn initialize_app(
                 sqlite_data.codebase_indices,
                 sqlite_data.workspace_language_servers,
                 sqlite_data.projects,
-                sqlite_data.project_rules,
                 sqlite_data.ignored_suggestions,
             )
         })
         .unwrap_or_else(|| {
             (
-                Default::default(),
                 Default::default(),
                 Default::default(),
                 Default::default(),
@@ -1154,7 +1137,6 @@ pub(crate) fn initialize_app(
         experiments = Default::default();
         workspace_language_servers = Default::default();
         persisted_projects = Default::default();
-        persisted_project_rules = Default::default();
         persisted_ignored_suggestions = Default::default();
     }
 

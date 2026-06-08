@@ -1117,61 +1117,6 @@ pub fn sort_branches_main_first(branches: &[BranchEntry]) -> impl Iterator<Item 
         .chain(branches.iter().filter(|entry| !entry.is_main))
 }
 
-/// Represents a parsed unified diff header.
-/// Format: `@@ -old_start,old_count +new_start,new_count @@ [optional context]`
-#[derive(Clone, Debug, PartialEq)]
-pub struct UnifiedDiffHeader {
-    pub old_start_line: usize,
-    pub old_line_count: usize,
-    pub new_start_line: usize,
-    pub new_line_count: usize,
-}
-
-/// Parses a range string like "1,5" or "1" into (start, count).
-pub(crate) fn parse_range(range_str: &str) -> Result<(usize, usize)> {
-    if let Some(comma_pos) = range_str.find(',') {
-        let start: usize = range_str[..comma_pos]
-            .parse()
-            .map_err(|_| anyhow!("Invalid range start: {range_str}"))?;
-        let count: usize = range_str[comma_pos + 1..]
-            .parse()
-            .map_err(|_| anyhow!("Invalid range count: {range_str}"))?;
-        Ok((start, count))
-    } else {
-        let start: usize = range_str
-            .parse()
-            .map_err(|_| anyhow!("Invalid range: {range_str}"))?;
-        Ok((start, 1))
-    }
-}
-
-/// Parses a unified diff header line.
-/// Format: `@@ -old_start,old_count +new_start,new_count @@ [optional context]`
-pub(crate) fn parse_unified_diff_header(header_line: &str) -> Result<UnifiedDiffHeader> {
-    if !header_line.starts_with("@@") {
-        return Err(anyhow!("Invalid unified diff header: {header_line}"));
-    }
-
-    // Split by whitespace and take only the first 3 tokens to ignore optional context
-    let header_parts: Vec<&str> = header_line.split_whitespace().take(3).collect();
-    if header_parts.len() < 3 {
-        return Err(anyhow!("Invalid unified diff header format: {header_line}"));
-    }
-
-    let old_range = &header_parts[1][1..]; // Remove the '-'
-    let new_range = &header_parts[2][1..]; // Remove the '+'
-
-    let (old_start_line, old_line_count) = parse_range(old_range)?;
-    let (new_start_line, new_line_count) = parse_range(new_range)?;
-
-    Ok(UnifiedDiffHeader {
-        old_start_line,
-        old_line_count,
-        new_start_line,
-        new_line_count,
-    })
-}
-
 /// Counts newlines in a file, returning 0 for binary or oversized files.
 #[cfg(feature = "local_fs")]
 fn count_lines_if_text_file(path: &Path) -> u32 {

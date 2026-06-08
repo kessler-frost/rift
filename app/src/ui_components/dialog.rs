@@ -65,35 +65,8 @@ impl Dialog {
         self
     }
 
-    pub fn with_close_button(mut self, close_button: Box<dyn Element>) -> Self {
-        self.close_button = Some(close_button);
-        self
-    }
-
-    /// Sets an icon element rendered in the top row alongside the close button,
-    /// with the dialog title displayed below that row.
-    pub fn with_header_icon(mut self, icon: Box<dyn Element>) -> Self {
-        self.header_icon = Some(icon);
-        self
-    }
-
     pub fn with_bottom_row_child(mut self, child: Box<dyn Element>) -> Self {
         self.bottom_row.push(child);
-        self
-    }
-
-    pub fn with_bottom_row_left_child(mut self, child: Box<dyn Element>) -> Self {
-        self.bottom_row_left.push(child);
-        self
-    }
-
-    pub fn with_width(mut self, width: f32) -> Self {
-        self.styles.width = Some(width);
-        self
-    }
-
-    pub fn with_separator(mut self) -> Self {
-        self.show_separator = true;
         self
     }
 }

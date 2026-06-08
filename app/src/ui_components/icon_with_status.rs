@@ -27,33 +27,14 @@ const OZ_AMBIENT_BACKGROUND_COLOR: ColorU = ColorU {
 // pre-render their own avatar can size it consistently with the other variants.
 pub(crate) const CIRCLE_RATIO: f32 = 0.76;
 const ICON_RATIO: f32 = 0.43;
-const DEFAULT_BADGE_RATIO: f32 = 0.57;
-const DEFAULT_BADGE_ICON_RATIO: f32 = 0.34;
 const CLOUD_RATIO: f32 = 0.57;
-const STATUS_IN_CLOUD_RATIO: f32 = 0.285;
 
 /// Status-badge geometry override. Pass [`StatusBadgeStyle::DEFAULT`] for today's look.
 #[derive(Clone, Copy)]
-pub(crate) struct StatusBadgeStyle {
-    /// Cutout-ring diameter as a fraction of `total_size`.
-    pub ring_ratio: f32,
-    /// Status-icon glyph diameter as a fraction of `total_size`.
-    pub icon_ratio: f32,
-    pub inner_shape: BadgeInnerShape,
-}
-
-#[derive(Clone, Copy)]
-pub(crate) enum BadgeInnerShape {
-    Circle,
-    RoundedSquare { radius_px: f32 },
-}
+pub(crate) struct StatusBadgeStyle {}
 
 impl StatusBadgeStyle {
-    pub(crate) const DEFAULT: Self = Self {
-        ring_ratio: DEFAULT_BADGE_RATIO,
-        icon_ratio: DEFAULT_BADGE_ICON_RATIO,
-        inner_shape: BadgeInnerShape::Circle,
-    };
+    pub(crate) const DEFAULT: Self = Self {};
 }
 
 // Neutral variants have no overlay, so they fill the full `total_size` bounding box. The
@@ -74,24 +55,8 @@ fn circle_padding(total: f32) -> f32 {
     (circle_size(total) - icon_size(total)) / 2.
 }
 
-fn badge_size(total: f32, style: StatusBadgeStyle) -> f32 {
-    total * style.ring_ratio
-}
-
-fn badge_icon_size(total: f32, style: StatusBadgeStyle) -> f32 {
-    total * style.icon_ratio
-}
-
-fn badge_padding(total: f32, style: StatusBadgeStyle) -> f32 {
-    (badge_size(total, style) - badge_icon_size(total, style)) / 4.
-}
-
 fn cloud_icon_size(total: f32) -> f32 {
     total * CLOUD_RATIO
-}
-
-fn status_in_cloud_size(total: f32) -> f32 {
-    total * STATUS_IN_CLOUD_RATIO
 }
 
 /// Default overhang of the overlay's BR past the circle's BR edge (toward the box's
@@ -125,8 +90,6 @@ pub(crate) enum IconWithStatusVariant {
         icon: WarpIcon,
         icon_color: WarpThemeFill,
     },
-    /// A pre-built icon element on an overlay background.
-    NeutralElement { icon_element: Box<dyn Element> },
     /// An Oz agent icon on the theme background.
     OzAgent {
         is_ambient: bool,
@@ -134,13 +97,6 @@ pub(crate) enum IconWithStatusVariant {
     /// A CLI agent icon on the agent's brand color background.
     CLIAgent {
         agent: CLIAgent,
-        is_ambient: bool,
-    },
-    /// A pre-rendered avatar with an optional status overlay (cloud lobe when
-    /// ambient). Caller must size `avatar` to `circle_size(total_size)` so the
-    /// overlay's overhang matches the other variants.
-    CustomAvatar {
-        avatar: Box<dyn Element>,
         is_ambient: bool,
     },
 }
@@ -188,11 +144,6 @@ pub(crate) fn render_icon_with_status_with_badge_style(
     match variant {
         IconWithStatusVariant::Neutral { icon, icon_color } => render_neutral_circle(
             icon.to_warpui_icon(icon_color).finish(),
-            internal_colors::fg_overlay_2(theme),
-            total_size,
-        ),
-        IconWithStatusVariant::NeutralElement { icon_element } => render_neutral_circle(
-            icon_element,
             internal_colors::fg_overlay_2(theme),
             total_size,
         ),
@@ -255,15 +206,6 @@ pub(crate) fn render_icon_with_status_with_badge_style(
                 status_container_background,
             )
         }
-        IconWithStatusVariant::CustomAvatar { avatar, is_ambient } => attach_status_overlay(
-            avatar,
-            is_ambient,
-            total_size,
-            overlay_extra_overhang_ratio,
-            badge_style,
-            theme,
-            status_container_background,
-        ),
     }
 }
 

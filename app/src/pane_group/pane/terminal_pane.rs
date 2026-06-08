@@ -1,8 +1,6 @@
 //! Implementation of terminal panes.
 use std::sync::mpsc::SyncSender;
 
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
-use base64::Engine as _;
 use rift_core::execution_mode::AppExecutionMode;
 use riftui::{
     AppContext, EntityId, ModelHandle, SingletonEntity, ViewContext, ViewHandle, WindowId,
@@ -22,7 +20,7 @@ use crate::terminal::view::Event;
 use crate::terminal::{TerminalManager, TerminalView};
 use crate::view_components::ToastFlavor;
 use crate::workspace::sync_inputs::SyncedInputState;
-use crate::workspace::{PaneViewLocator, WorkspaceRegistry};
+use crate::workspace::PaneViewLocator;
 
 pub type TerminalPaneView = PaneView<TerminalView>;
 
@@ -42,13 +40,6 @@ pub struct TerminalPane {
     /// the backing pane view.
     view: ViewHandle<TerminalPaneView>,
 }
-
-
-fn serialize_proto_to_base64<M: prost::Message>(message: &M) -> String {
-    BASE64_STANDARD.encode(message.encode_to_vec())
-}
-
-
 
 
 impl TerminalPane {
@@ -270,33 +261,6 @@ impl PaneContent for TerminalPane {
 
 
 
-fn terminal_view_for_owner_in_group(
-    group: &PaneGroup,
-    owner_terminal_view_id: EntityId,
-    ctx: &AppContext,
-) -> Option<ViewHandle<TerminalView>> {
-    let pane_id = group.find_pane_id_for_terminal_view(owner_terminal_view_id, ctx)?;
-    group.terminal_view_from_pane_id(pane_id, ctx)
-}
-
-fn pane_group_and_terminal_view_for_owner(
-    owner_terminal_view_id: EntityId,
-    ctx: &AppContext,
-) -> Option<(ViewHandle<PaneGroup>, ViewHandle<TerminalView>)> {
-    WorkspaceRegistry::as_ref(ctx)
-        .all_workspaces(ctx)
-        .into_iter()
-        .find_map(|(_, workspace)| {
-            workspace.as_ref(ctx).tab_views().find_map(|pane_group| {
-                terminal_view_for_owner_in_group(
-                    pane_group.as_ref(ctx),
-                    owner_terminal_view_id,
-                    ctx,
-                )
-                .map(|terminal_view| (pane_group.clone(), terminal_view))
-            })
-        })
-}
 
 
 
@@ -553,24 +517,6 @@ fn handle_terminal_view_event(
     }
 }
 
-
-
-
-/// Fields destructured from `StartAgentExecutionMode::Remote` so they can be
-/// passed through to [`launch_remote_child`] as a single argument cluster.
-struct RemoteLaunchFields {
-    environment_id: String,
-    skill_references: Vec<ai::skills::SkillReference>,
-    model_id: String,
-    computer_use_enabled: bool,
-    worker_host: String,
-    harness_type: String,
-    title: String,
-    /// Managed-secret name forwarded from the orchestration UI for non-Oz
-    /// harness credentials. Resolved to `AgentConfigSnapshot.harness_auth_secrets`
-    /// when applicable.
-    auth_secret_name: Option<String>,
-}
 
 
 

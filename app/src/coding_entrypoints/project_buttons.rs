@@ -13,7 +13,6 @@ use riftui::elements::{
     ParentOffsetBounds, Radius, Stack,
 };
 use riftui::fonts::Weight;
-use riftui::keymap::EditableBinding;
 use riftui::platform::file_picker::FilePickerError;
 use riftui::platform::{Cursor, FilePickerConfiguration};
 use riftui::ui_components::components::{UiComponent as _, UiComponentStyles};
@@ -21,33 +20,9 @@ use riftui::{
     AppContext, Element, Entity, SingletonEntity as _, TypedActionView, View, ViewContext,
 };
 
-use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
+use crate::util::bindings::keybinding_name_to_display_string;
 
 const BUTTON_MIN_WIDTH: f32 = 149.;
-
-pub fn init(app: &mut AppContext) {
-    use riftui::keymap::macros::*;
-
-    app.register_editable_bindings([
-        EditableBinding::new(
-            "project_buttons:open_repository",
-            "Open repository",
-            ProjectButtonsAction::OpenRepository,
-        )
-        .with_context_predicate(id!("ProjectButons"))
-        .with_group(BindingGroup::Folders.as_str())
-        .with_custom_action(CustomAction::OpenRepository),
-        EditableBinding::new(
-            "project_buttons:create_new_project",
-            "Create new project",
-            ProjectButtonsAction::CreateProject,
-        )
-        .with_context_predicate(id!("ProjectButons"))
-        .with_enabled(|| FeatureFlag::CreateProjectFlow.is_enabled())
-        .with_mac_key_binding("cmd-shift-N")
-        .with_linux_or_windows_key_binding("alt-shift-N"),
-    ]);
-}
 
 #[derive(Default)]
 struct StateHandles {

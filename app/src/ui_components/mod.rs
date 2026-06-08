@@ -5,7 +5,6 @@
 pub(crate) mod agent_icon;
 pub(crate) mod avatar;
 pub(crate) mod blended_colors;
-pub(crate) mod breadcrumb;
 pub mod buttons;
 pub(crate) mod color_dot;
 pub(crate) mod dialog;
@@ -13,10 +12,8 @@ pub(crate) mod icon_with_status;
 pub mod keyboard_navigable_buttons;
 pub mod keyboard_shortcut;
 pub(crate) mod item_highlight;
-pub(crate) mod menu_button;
 pub(crate) mod red_notification_dot;
 pub(crate) mod render_file_search_row;
-pub mod tab_selector;
 pub(crate) mod window_focus_dimming;
 
 pub use rift_core::ui::icons;

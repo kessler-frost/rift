@@ -8,8 +8,6 @@ use instant::Instant;
 use rift_core::channel::IapConfig;
 use riftui::r#async::{FutureExt as _, Timer};
 use riftui::{Entity, ModelContext, SingletonEntity};
-#[cfg(not(target_family = "wasm"))]
-use websocket::connect_error_http_response;
 
 #[cfg(feature = "local_tty")]
 use crate::terminal::local_shell::LocalShellState;
@@ -114,11 +112,6 @@ impl IapState {
         }
     }
 
-    pub fn proxy_auth_header(&self) -> Option<(&'static str, String)> {
-        self.get_cached()
-            .map(|token| http_client::iap::proxy_auth_header(&token))
-    }
-
     pub fn state(&self) -> IapCredentialsState {
         self.inner.read().expect("IAP state lock poisoned").clone()
     }
@@ -187,14 +180,6 @@ impl IapManager {
 
     pub fn state(&self) -> Option<IapCredentialsState> {
         self.state.as_ref().map(|s| s.state())
-    }
-
-    /// Returns a handle to the shared IAP credential state, if IAP is active.
-    /// Mirrors how `AuthStateProvider` hands out the `Arc<AuthState>`, letting
-    /// callers read cached credentials (e.g. to build a proxy-auth header) off
-    /// a `ModelContext` without reaching through `ServerApi`.
-    pub fn iap_state(&self) -> Option<Arc<IapState>> {
-        self.state.clone()
     }
 
     pub fn handle_challenge(&mut self, ctx: &mut ModelContext<Self>) {
@@ -354,26 +339,6 @@ impl IapManager {
         });
     }
 
-    /// Inspects a websocket *handshake* connect error for an IAP challenge.
-    /// If detected, triggers a refresh so the caller's retry loop can pick up
-    /// a fresh token on the next attempt.
-    #[cfg(not(target_family = "wasm"))]
-    pub fn check_ws_connect_error(&mut self, err: &anyhow::Error, ctx: &mut ModelContext<Self>) {
-        if ws_connect_is_iap_challenge(err) {
-            log::warn!("Received IAP challenge on websocket handshake; triggering refresh");
-            self.handle_challenge(ctx);
-        }
-    }
-
-    #[cfg(target_family = "wasm")]
-    pub fn check_ws_connect_error(&mut self, _err: &anyhow::Error, _ctx: &mut ModelContext<Self>) {}
-}
-
-#[cfg(not(target_family = "wasm"))]
-pub(crate) fn ws_connect_is_iap_challenge(err: &anyhow::Error) -> bool {
-    connect_error_http_response(err).is_some_and(|response| {
-        http_client::iap::is_iap_challenge(response.status(), response.headers())
-    })
 }
 
 impl Entity for IapManager {

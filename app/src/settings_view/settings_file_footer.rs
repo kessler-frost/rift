@@ -80,14 +80,13 @@ impl SettingsFooterKind {
 }
 
 /// Per-render-persistent handles for the footer. The `MouseStateHandle`s
-/// back the three clickable surfaces and must be created once and reused
+/// back the clickable surfaces and must be created once and reused
 /// across renders per `WARP.md`; the scroll state handle serves the same
 /// purpose for the error alert's scrollable text region.
 #[derive(Clone, Default)]
 pub struct SettingsFooterMouseStates {
     pub open_settings_file_button: MouseStateHandle,
     pub alert_open_file_button: MouseStateHandle,
-    pub alert_fix_with_oz_button: MouseStateHandle,
     /// Scroll state for the error alert's text region (heading +
     /// description), so scroll position survives renders.
     pub alert_text_scroll_state: ClippedScrollStateHandle,

@@ -105,9 +105,6 @@ impl TerminalView {
         });
     }
 
-    /// Agent-view shareable object / sharing was removed; nothing to update.
-    pub(super) fn update_agent_view_pane_header(&mut self, _ctx: &mut ViewContext<Self>) {}
-
     pub(super) fn is_pane_focused(&self, app: &AppContext) -> bool {
         self.focus_handle.as_ref().is_none_or(|h| h.is_focused(app))
     }
@@ -495,13 +492,5 @@ impl TerminalView {
         } else {
             session.session_context.title_like_text()
         }
-    }
-}
-
-fn default_agent_conversation_title(is_ambient_agent: bool) -> String {
-    if is_ambient_agent {
-        "New cloud agent".to_owned()
-    } else {
-        "New agent conversation".to_owned()
     }
 }

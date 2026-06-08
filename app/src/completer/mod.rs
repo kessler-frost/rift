@@ -372,48 +372,6 @@ impl SessionContext {
     }
 }
 
-/// `CompletionContext` implementation for "global" completions, that provide completions on all
-/// commands in the `command_registry` rather than providing session-specific completions.
-///
-/// This `CompletionContext` is not coupled to a specific session and thus does not provide path or
-/// generator execution, which wouldn't have clear semantics without being coupled to a session.
-#[derive(Clone)]
-pub struct SessionAgnosticContext {
-    command_registry: Arc<CommandRegistry>,
-}
-
-impl SessionAgnosticContext {
-    pub fn new(command_registry: Arc<CommandRegistry>) -> Self {
-        Self { command_registry }
-    }
-}
-
-impl CompletionContext for SessionAgnosticContext {
-    fn top_level_commands(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        Box::new(self.command_registry.registered_commands())
-    }
-
-    fn command_registry(&self) -> &CommandRegistry {
-        &self.command_registry
-    }
-
-    fn environment_variable_names(&self) -> Option<&HashSet<SmolStr>> {
-        None
-    }
-
-    fn shell_supports_autocd(&self) -> Option<bool> {
-        None
-    }
-
-    fn path_completion_context(&self) -> Option<&dyn PathCompletionContext> {
-        None
-    }
-
-    fn generator_context(&self) -> Option<&dyn GeneratorContext> {
-        None
-    }
-}
-
 /// Empty `CompletionContext` used in places without a live shell session
 /// (i.e. shared session viewers without a real terminal instance).
 #[derive(Clone)]

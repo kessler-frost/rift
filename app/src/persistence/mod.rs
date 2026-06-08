@@ -4,7 +4,6 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "local_fs")] {
         mod block_list;
         mod sqlite;
-        pub mod commands;
     }
 }
 

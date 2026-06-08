@@ -33,9 +33,6 @@ enum HistoryItemType {
         command: String,
         linked_workflow_data: Option<LinkedWorkflowData>,
     },
-    AIPrompt {
-        query_text: String,
-    },
 }
 
 impl InlineHistoryItem {
@@ -49,15 +46,6 @@ impl InlineHistoryItem {
                 command,
                 linked_workflow_data,
             },
-            prefix_match_len: 0,
-            score: OrderedFloat(f64::MIN),
-            timestamp,
-        }
-    }
-
-    pub fn ai_prompt(query_text: String, timestamp: DateTime<Local>) -> Self {
-        Self {
-            item_type: HistoryItemType::AIPrompt { query_text },
             prefix_match_len: 0,
             score: OrderedFloat(f64::MIN),
             timestamp,
@@ -100,21 +88,6 @@ impl SearchItem for InlineHistoryItem {
                 )))
                 .finish()
             }
-            HistoryItemType::AIPrompt { .. } => {
-                let icon_color = inline_styles::icon_color(appearance);
-                Container::new(
-                    ConstrainedBox::new(Icon::Prompt.to_warpui_icon(icon_color).finish())
-                        .with_width(icon_size)
-                        .with_height(icon_size)
-                        .finish(),
-                )
-                .with_uniform_padding(STATUS_ELEMENT_PADDING)
-                .with_background(coloru_with_opacity(icon_color.into(), 10))
-                .with_corner_radius(CornerRadius::with_all(Radius::Pixels(
-                    inline_styles::ITEM_CORNER_RADIUS,
-                )))
-                .finish()
-            }
         };
 
         Container::new(icon)
@@ -144,14 +117,6 @@ impl SearchItem for InlineHistoryItem {
                     vec![]
                 };
                 (command.clone(), indices, appearance.monospace_font_family())
-            }
-            HistoryItemType::AIPrompt { query_text } => {
-                let indices = if self.prefix_match_len > 0 {
-                    (0..self.prefix_match_len).collect()
-                } else {
-                    vec![]
-                };
-                (query_text.clone(), indices, appearance.ui_font_family())
             }
         };
 
@@ -214,9 +179,6 @@ impl SearchItem for InlineHistoryItem {
                 command: command.clone(),
                 linked_workflow_data: linked_workflow_data.clone(),
             },
-            HistoryItemType::AIPrompt { query_text } => AcceptHistoryItem::AIPrompt {
-                query_text: query_text.clone(),
-            },
         }
     }
 
@@ -227,7 +189,6 @@ impl SearchItem for InlineHistoryItem {
     fn accessibility_label(&self) -> String {
         match &self.item_type {
             HistoryItemType::Command { command, .. } => format!("Command: {command}"),
-            HistoryItemType::AIPrompt { query_text } => format!("AI prompt: {query_text}"),
         }
     }
 }

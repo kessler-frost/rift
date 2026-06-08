@@ -10,7 +10,7 @@ use chrono::{DateTime, Local};
 use ordered_float::OrderedFloat;
 use riftui::{AppContext, Entity, EntityId, ModelHandle, SingletonEntity};
 
-use crate::input_suggestions::{HistoryInputSuggestion, HistoryOrder};
+use crate::input_suggestions::HistoryInputSuggestion;
 use crate::search::data_source::{Query, QueryFilter, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::SyncDataSource;
@@ -73,8 +73,6 @@ impl InlineHistoryMenuDataSource {
 
 #[derive(Clone)]
 struct MenuEntry {
-    order: HistoryOrder,
-    sort_timestamp: DateTime<Local>,
     item: MenuItem,
 }
 
@@ -105,7 +103,6 @@ impl SyncDataSource for InlineHistoryMenuDataSource {
             query.filters.is_empty() || query.filters.contains(&QueryFilter::Commands);
 
         let history = History::handle(app).as_ref(app);
-        let all_live_session_ids = history.all_live_session_ids();
 
         let command_entries = if include_commands {
             history
@@ -131,13 +128,9 @@ impl SyncDataSource for InlineHistoryMenuDataSource {
                         return None;
                     }
 
-                    let order = suggestion.history_order(session_id, &all_live_session_ids);
-                    let sort_timestamp = entry.start_ts.unwrap_or_default();
                     let display_timestamp = entry.start_ts.unwrap_or_else(Local::now);
 
                     Some(MenuEntry {
-                        order,
-                        sort_timestamp,
                         item: MenuItem::Command {
                             command: command.to_string(),
                             linked_workflow_data: entry.linked_workflow_data(),

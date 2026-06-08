@@ -7,15 +7,13 @@ use anyhow::Result;
 use cfg_if::cfg_if;
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use onboarding::{
-    AgentOnboardingView, OnboardingIntention, SelectedSettings,
-};
+use onboarding::OnboardingIntention;
 use parking_lot::Mutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::context_flag::ContextFlag;
+use rift_core::ui::color::blend::Blend as _;
 use rift_core::user_preferences::GetUserPreferences as _;
-use rift_graphql::billing::StripeSubscriptionPlan;
 use riftui::elements::{
     Border, ChildAnchor, OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, Stack,
 };
@@ -42,7 +40,6 @@ use crate::auth::auth_override_warning_modal::{
 };
 use crate::auth::auth_state::AuthState;
 use crate::auth::auth_view_modal::{AuthRedirectPayload, AuthView, AuthViewVariant};
-use crate::auth::login_slide::{LoginSlideEvent, LoginSlideView};
 use crate::auth::needs_sso_link_view::NeedsSsoLinkView;
 use crate::auth::paste_auth_token_modal::PasteAuthTokenModalView;
 #[cfg(target_family = "wasm")]
@@ -57,11 +54,10 @@ use crate::launch_configs::launch_config;
 use crate::linear::LinearIssueWork;
 use crate::pane_group::{NewTerminalOptions, PanesLayout};
 use crate::persistence::ModelEvent;
-use crate::pricing::PricingInfoModel;
 use crate::server::server_api::auth::UserAuthenticationError;
 use crate::server::server_api::{ServerApi, ServerApiProvider, ServerTime};
 use crate::server::telemetry::LaunchConfigUiLocation;
-use crate::settings::{apply_onboarding_settings, AISettings, QuakeModeSettings};
+use crate::settings::{AISettings, QuakeModeSettings};
 use crate::settings_view::{flags, SettingsSection};
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::model::block::SerializedBlockListItem;
@@ -69,10 +65,9 @@ use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
 use crate::terminal::shell::ShellType;
 use crate::terminal::view::cell_size_and_padding;
-use crate::themes::theme::{AnsiColorIdentifier, Blend, Fill, ThemeKind, WarpThemeConfig};
+use crate::themes::theme::{AnsiColorIdentifier, Fill};
 use crate::util::bindings::{self, is_binding_pty_compliant};
 use crate::util::traffic_lights::{traffic_light_data, TrafficLightData, TrafficLightMouseStates};
-use crate::view_components::DismissibleToast;
 use crate::window_settings::WindowSettings;
 use crate::workspace::view::OnboardingTutorial;
 use crate::workspace::{PaneViewLocator, Workspace, WorkspaceAction, WorkspaceRegistry};
@@ -836,15 +831,6 @@ fn open_settings_page_in_new_window(section: &SettingsSection, ctx: &mut AppCont
 
 
 
-fn display_object_missing_error_in_window(window_id: WindowId, ctx: &mut AppContext) {
-    crate::workspace::ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-        let toast = DismissibleToast::error(String::from("Resource not found or access denied"));
-        toast_stack.add_ephemeral_toast(toast, window_id, ctx);
-    });
-}
-
-
-
 /// Opens a new window with a file-based notebook open.
 fn open_new_with_file_notebook(arg: &PathBuf, ctx: &mut AppContext) {
     open_new_with_workspace_source(
@@ -1312,14 +1298,6 @@ pub(crate) fn has_completed_local_onboarding(ctx: &AppContext) -> bool {
         .unwrap_or(false)
 }
 
-/// Persists the local onboarding-completed flag so we don't show onboarding again.
-fn mark_local_onboarding_completed(ctx: &AppContext) {
-    let _ = ctx.private_user_preferences().write_value(
-        HAS_COMPLETED_ONBOARDING_KEY,
-        serde_json::to_string(&true).expect("bool serializes to JSON"),
-    );
-}
-
 /// Whether auth and onboarding have completed and we should render the `Workspace`.
 enum AuthOnboardingState {
     Auth(Box<WorkspaceArgs>),
@@ -1328,16 +1306,6 @@ enum AuthOnboardingState {
     #[cfg(target_family = "wasm")]
     WebImport(AuthOnboardingTarget),
     NeedsSsoLink(AuthOnboardingTarget),
-    Onboarding {
-        onboarding_view: ViewHandle<AgentOnboardingView>,
-        target: AuthOnboardingTarget,
-    },
-    /// Post-onboarding login slide (full-screen, onboarding-style).
-    LoginSlide {
-        login_slide_view: ViewHandle<LoginSlideView>,
-        onboarding_view: ViewHandle<AgentOnboardingView>,
-        target: AuthOnboardingTarget,
-    },
     Terminal(ViewHandle<Workspace>),
 }
 
@@ -1360,8 +1328,6 @@ pub struct RootView {
     /// Stores the tutorial from onboarding when the user needs to log in before
     /// the guided tour can start. Consumed after auth completes.
     pending_tutorial: Option<OnboardingTutorial>,
-    /// settings to apply after a new user login / initial cloud load completes
-    pending_post_auth_onboarding_settings: Option<SelectedSettings>,
     paste_auth_token_modal: Option<ViewHandle<PasteAuthTokenModalView>>,
 }
 
@@ -1442,7 +1408,6 @@ impl RootView {
             mouse_states: Default::default(),
             window_id: ctx.window_id(),
             pending_tutorial: None,
-            pending_post_auth_onboarding_settings: None,
             paste_auth_token_modal: None,
         };
 
@@ -1498,16 +1463,6 @@ impl RootView {
                 root_view.polling_update_check_complete(result, ctx)
             }
         });
-
-        // Ensure the onboarding view has focus after all views are created.
-        // The auth_view's internal editor may have grabbed focus during construction;
-        // this overrides that so keyboard input (Enter, arrow keys) routes to onboarding.
-        if let AuthOnboardingState::Onboarding {
-            onboarding_view, ..
-        } = &root_view.auth_onboarding_state
-        {
-            ctx.focus(onboarding_view);
-        }
 
         // For users who bypass onboarding (already logged in, or onboarding flags not active),
         // start autoupdate polling immediately. For new users in onboarding, this is a no-op;
@@ -1625,13 +1580,6 @@ impl RootView {
         true
     }
 
-    fn build_plan_yearly_price_cents(ctx: &AppContext) -> Option<i32> {
-        PricingInfoModel::as_ref(ctx)
-            .plan_pricing(&StripeSubscriptionPlan::Build)
-            .map(|p| p.yearly_plan_price_per_month_usd_cents)
-    }
-
-
     /// Debug method to enter the onboarding state.
     fn debug_enter_onboarding_state(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
         if !ChannelState::enable_debug_features() {
@@ -1650,58 +1598,6 @@ impl RootView {
         ctx.notify();
         true
     }
-
-    fn onboarding_theme_kind(theme_name: &str) -> Option<ThemeKind> {
-        WarpThemeConfig::new()
-            .theme_items()
-            .find_map(|(kind, theme)| {
-                (theme.name().as_deref() == Some(theme_name)).then(|| kind.clone())
-            })
-    }
-
-    fn handle_login_slide_event(&mut self, event: &LoginSlideEvent, ctx: &mut ViewContext<Self>) {
-        match event {
-            LoginSlideEvent::BackToOnboarding => {
-                let AuthOnboardingState::LoginSlide {
-                    onboarding_view,
-                    target,
-                    ..
-                } = &self.auth_onboarding_state
-                else {
-                    return;
-                };
-                let onboarding_view = onboarding_view.clone();
-                let target = target.clone();
-                self.auth_onboarding_state = AuthOnboardingState::Onboarding {
-                    onboarding_view,
-                    target,
-                };
-                self.pending_tutorial = None;
-                self.pending_post_auth_onboarding_settings = None;
-                ctx.emit(RootViewEvent::AuthOnboardingStateChanged);
-                self.focus(ctx);
-                ctx.notify();
-            }
-            LoginSlideEvent::LoginLaterConfirmed => {
-                let AuthOnboardingState::LoginSlide { target, .. } = &self.auth_onboarding_state
-                else {
-                    return;
-                };
-                let workspace = target.to_workspace(ctx);
-                // User opted out of login: apply locally (no cloud race).
-                if let Some(selected_settings) = self.pending_post_auth_onboarding_settings.take() {
-                    apply_onboarding_settings(&selected_settings, ctx);
-                }
-                self.auth_onboarding_state = AuthOnboardingState::Terminal(workspace);
-                ctx.emit(RootViewEvent::AuthOnboardingStateChanged);
-                self.start_pending_tutorial(ctx);
-                self.start_autoupdate_polling(ctx);
-                self.focus(ctx);
-                ctx.notify();
-            }
-        }
-    }
-
 
     fn minimize_window(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
         ctx.minimize_window();
@@ -2041,10 +1937,6 @@ impl RootView {
                     self.auth_onboarding_state
                         .complete_auth_and_create_workspace(ctx);
                     self.start_pending_tutorial(ctx);
-                } else if let AuthOnboardingState::LoginSlide { .. } = &self.auth_onboarding_state {
-                    self.auth_onboarding_state
-                        .complete_auth_and_create_workspace(ctx);
-                    self.start_pending_tutorial(ctx);
                 } else if let AuthOnboardingState::NeedsSsoLink { .. } = &self.auth_onboarding_state
                 {
                     // We should be able to access their SSO state; if not, default to true,
@@ -2103,18 +1995,6 @@ impl RootView {
                 {
                     self.auth_onboarding_state
                         .complete_auth_and_create_workspace(ctx);
-                    self.start_pending_tutorial(ctx);
-                } else if let AuthOnboardingState::LoginSlide { target, .. } =
-                    &self.auth_onboarding_state
-                {
-                    let workspace = target.to_workspace(ctx);
-                    if let Some(selected_settings) =
-                        self.pending_post_auth_onboarding_settings.take()
-                    {
-                        apply_onboarding_settings(&selected_settings, ctx);
-                    }
-                    self.auth_onboarding_state = AuthOnboardingState::Terminal(workspace);
-                    ctx.emit(RootViewEvent::AuthOnboardingStateChanged);
                     self.start_pending_tutorial(ctx);
                 }
                 self.start_autoupdate_polling(ctx);
@@ -2225,16 +2105,6 @@ impl RootView {
             }
             AuthOnboardingState::NeedsSsoLink { .. } => {
                 ctx.focus(&self.needs_sso_link_view);
-            }
-            AuthOnboardingState::Onboarding {
-                onboarding_view, ..
-            } => {
-                ctx.focus(onboarding_view);
-            }
-            AuthOnboardingState::LoginSlide {
-                login_slide_view, ..
-            } => {
-                ctx.focus(login_slide_view);
             }
             AuthOnboardingState::Terminal(workspace) => {
                 ctx.focus(workspace);
@@ -2349,23 +2219,6 @@ impl View for RootView {
             self.focus(ctx);
         } else if self.paste_auth_token_modal.is_some() {
             // Modal is open — focus belongs to the editor inside it.
-        } else if matches!(
-            self.auth_onboarding_state,
-            AuthOnboardingState::Onboarding { .. }
-        ) {
-            // During onboarding, aggressively redirect focus.
-            // This ensures keystrokes (Enter) are handled by the correct view rather
-            // than something hidden like the input editor.
-            self.focus(ctx);
-        } else if let AuthOnboardingState::LoginSlide {
-            login_slide_view, ..
-        } = &self.auth_onboarding_state
-        {
-            // Redirect focus unless the auth token editor is visible and should
-            // accept user input.
-            if !login_slide_view.as_ref(ctx).is_auth_token_input_visible() {
-                self.focus(ctx);
-            }
         }
     }
 
@@ -2380,12 +2233,6 @@ impl View for RootView {
             AuthOnboardingState::NeedsSsoLink { .. } => {
                 ChildView::new(&self.needs_sso_link_view).finish()
             }
-            AuthOnboardingState::Onboarding {
-                onboarding_view, ..
-            } => ChildView::new(onboarding_view).finish(),
-            AuthOnboardingState::LoginSlide {
-                login_slide_view, ..
-            } => ChildView::new(login_slide_view).finish(),
             AuthOnboardingState::Terminal(workspace) => ChildView::new(workspace).finish(),
         };
 
@@ -2519,10 +2366,6 @@ impl AuthOnboardingState {
                 let workspace = args.clone().create_workspace(ctx);
                 *self = AuthOnboardingState::Terminal(workspace);
             }
-            AuthOnboardingState::LoginSlide { ref target, .. } => {
-                let workspace = target.to_workspace(ctx);
-                *self = AuthOnboardingState::Terminal(workspace);
-            }
             _ => {}
         };
         ctx.emit(RootViewEvent::AuthOnboardingStateChanged);
@@ -2564,10 +2407,6 @@ impl AuthOnboardingState {
             AuthOnboardingState::NeedsSsoLink(target) => {
                 *self = AuthOnboardingState::WebImport(target.clone())
             }
-            AuthOnboardingState::Onboarding { .. } | AuthOnboardingState::LoginSlide { .. } => {
-                // For onboarding/login slide, we don't have a workspace yet, so we can't convert to web import
-                // This case shouldn't normally occur
-            }
             AuthOnboardingState::Terminal(view) => {
                 *self = AuthOnboardingState::WebImport(AuthOnboardingTarget::Terminal(view.clone()))
             }
@@ -2597,10 +2436,6 @@ impl AuthOnboardingState {
                 log::error!("SSO link required after web user import");
             }
             AuthOnboardingState::NeedsSsoLink { .. } => (),
-            AuthOnboardingState::Onboarding { .. } | AuthOnboardingState::LoginSlide { .. } => {
-                // For onboarding/login slide, we don't have a workspace yet, so we can't convert to SSO link
-                // This case shouldn't normally occur
-            }
             AuthOnboardingState::Terminal(terminal_view_handle) => {
                 *self = AuthOnboardingState::NeedsSsoLink(AuthOnboardingTarget::Terminal(
                     terminal_view_handle.clone(),
@@ -2628,9 +2463,6 @@ impl AuthOnboardingState {
                 }
                 AuthOnboardingTarget::Terminal(_) => {}
             },
-            AuthOnboardingState::Onboarding { .. } | AuthOnboardingState::LoginSlide { .. } => {
-                // No workspace to clean up for onboarding/login slide state
-            }
             AuthOnboardingState::Terminal(workspace) => {
                 // Clean up current workspace before resetting.
                 workspace.update(ctx, |workspace, ctx| {

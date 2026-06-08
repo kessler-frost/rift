@@ -623,7 +623,6 @@ pub struct TabBarState {
 #[derive(Clone)]
 enum Indicator {
     None,
-    UnsavedChanges,
     /// This pane's inputs are being synced.
     Synced,
     Error,
@@ -1066,21 +1065,6 @@ impl<'a> TabComponent<'a> {
 
     fn render_indicator(&self) -> Option<Box<dyn Element>> {
         let icon = match &self.indicator {
-            Indicator::UnsavedChanges => Some(
-                Container::new(
-                    Rect::new()
-                        .with_background_color(
-                            self.appearance
-                                .theme()
-                                .main_text_color(self.appearance.theme().background())
-                                .into(),
-                        )
-                        .with_corner_radius(CornerRadius::with_all(Radius::Percentage(50.)))
-                        .finish(),
-                )
-                .with_uniform_margin(3.)
-                .finish(),
-            ),
             Indicator::None => None,
             Indicator::Synced => Some(
                 Icon::LinkHorizontal

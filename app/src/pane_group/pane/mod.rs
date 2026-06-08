@@ -204,14 +204,6 @@ impl PaneId {
         Self::new(IPaneType::NetworkLog, network_log_pane_view)
     }
 
-    #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
-    pub(super) fn deferred_placeholder_pane_id() -> Self {
-        Self(IPaneId {
-            pane_type: IPaneType::DeferredPlaceholder,
-            pane_view_id: riftui::EntityId::new(),
-        })
-    }
-
     /// Creates a [`PaneId`] for a dummy pane.
     #[cfg(test)]
     pub fn dummy_pane_id() -> Self {

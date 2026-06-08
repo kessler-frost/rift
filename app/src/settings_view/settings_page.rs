@@ -14,7 +14,7 @@ use riftui::elements::new_scrollable::{
 use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, ClippedScrollStateHandle, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Element, Empty, Expanded, Flex, Hoverable,
-    MainAxisSize, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor, ParentElement,
+    MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor, ParentElement,
     ParentOffsetBounds, Radius, SavePosition, ScrollTarget, ScrollToPositionMode, Shrinkable,
     SizeConstraintCondition, SizeConstraintSwitch, Stack, Text,
 };
@@ -161,16 +161,6 @@ impl SettingsPage {
 #[derive(PartialEq, Eq)]
 pub enum SettingsPageEvent {
     FocusModal,
-    Pane(PaneEventWrapper),
-    EnvironmentSetupModeSelectorToggled { is_open: bool },
-    AgentAssistedEnvironmentModalToggled { is_open: bool },
-}
-
-/// Wrapper for pane events to avoid circular dependency with pane module.
-/// The actual handling converts this to the real PaneEvent.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PaneEventWrapper {
-    Close,
 }
 
 pub fn render_customer_type_badge(appearance: &Appearance, text: String) -> Box<dyn Element> {
@@ -313,34 +303,6 @@ pub fn render_sub_sub_header(
         ));
     }
     sub_sub_header.finish()
-}
-
-pub fn render_custom_size_header(
-    appearance: &Appearance,
-    text_name: impl Into<Cow<'static, str>>,
-    font_size: f32,
-    color_override: Option<Fill>,
-) -> Box<dyn Element> {
-    Flex::row()
-        .with_child(
-            Container::new(
-                Align::new(
-                    Text::new_inline(text_name, appearance.ui_font_family(), font_size)
-                        .with_style(Properties::default().weight(Weight::Bold))
-                        .with_color(
-                            color_override
-                                .unwrap_or(appearance.theme().active_ui_text_color())
-                                .into(),
-                        )
-                        .finish(),
-                )
-                .left()
-                .finish(),
-            )
-            .with_padding_bottom(4.)
-            .finish(),
-        )
-        .finish()
 }
 
 pub fn render_separator(appearance: &Appearance) -> Box<dyn Element> {
@@ -498,26 +460,6 @@ pub fn render_body_item_label<T: Clone + Action>(
     render_body_item_label_internal(
         label_text,
         None,
-        label_color_override,
-        additional_info,
-        local_only_icon_state,
-        toggle_state,
-        appearance,
-    )
-}
-
-pub fn render_body_item_label_with_icon<T: Clone + Action>(
-    label_text: String,
-    icon: Icon,
-    label_color_override: Option<Fill>,
-    additional_info: Option<AdditionalInfo<T>>,
-    local_only_icon_state: LocalOnlyIconState,
-    toggle_state: ToggleState,
-    appearance: &Appearance,
-) -> Box<dyn Element> {
-    render_body_item_label_internal(
-        label_text,
-        Some(icon),
         label_color_override,
         additional_info,
         local_only_icon_state,
@@ -825,72 +767,6 @@ pub(crate) fn render_dropdown_item<T: DropdownItemAction>(
         .finish(),
     )
     .with_child(dropdown.finish())
-    .finish()
-}
-
-pub(crate) fn render_settings_info_banner(
-    text: &str,
-    subtext: Option<&str>,
-    appearance: &Appearance,
-) -> Box<dyn Element> {
-    let icon = Container::new(
-        ConstrainedBox::new(
-            Icon::AlertCircle
-                .to_warpui_icon(appearance.theme().active_ui_text_color())
-                .finish(),
-        )
-        .with_width(16.)
-        .with_height(16.)
-        .finish(),
-    )
-    .with_margin_right(8.)
-    .finish();
-
-    let text = {
-        let mut children = vec![Container::new(
-            Text::new(
-                text.to_string(),
-                appearance.ui_font_family(),
-                appearance.ui_font_size(),
-            )
-            .with_color(appearance.theme().active_ui_text_color().into())
-            .finish(),
-        )
-        .finish()];
-
-        if let Some(subtext) = subtext {
-            children.push(
-                Container::new(
-                    Text::new(
-                        subtext.to_string(),
-                        appearance.ui_font_family(),
-                        appearance.ui_font_size() - 1.,
-                    )
-                    .with_color(
-                        appearance
-                            .theme()
-                            .sub_text_color(appearance.theme().background())
-                            .into(),
-                    )
-                    .finish(),
-                )
-                .with_margin_top(4.)
-                .finish(),
-            );
-        }
-
-        Shrinkable::new(1.0, Flex::column().with_children(children).finish()).finish()
-    };
-
-    Container::new(
-        Flex::row()
-            .with_children(vec![icon, text])
-            .with_main_axis_size(MainAxisSize::Max)
-            .finish(),
-    )
-    .with_background_color(appearance.theme().accent_overlay().into())
-    .with_uniform_padding(12.)
-    .with_corner_radius(CornerRadius::with_all(Radius::Pixels(4.)))
     .finish()
 }
 
@@ -1368,17 +1244,6 @@ impl<V: riftui::View> PageType<V> {
                 ..
             } => {
                 *highlighted_widget_id = None;
-            }
-        }
-    }
-
-    /// Set the minimum page width for narrow panes.
-    pub fn set_min_page_width(&mut self, width: f32) {
-        match self {
-            Self::Monolith { min_page_width, .. }
-            | Self::Uncategorized { min_page_width, .. }
-            | Self::Categorized { min_page_width, .. } => {
-                *min_page_width = width;
             }
         }
     }

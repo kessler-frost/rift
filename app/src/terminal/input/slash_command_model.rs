@@ -6,7 +6,6 @@ use crate::search::slash_command_menu::StaticCommand;
 use crate::settings::InputSettings;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};
 use crate::terminal::input::slash_commands::SlashCommandDataSource;
-use crate::terminal::model::session::active_session::ActiveSession;
 
 /// Event emitted by the slash command model when its entry state is updated.
 #[derive(Debug, Clone)]
@@ -113,7 +112,6 @@ impl SlashCommandEntryState {
 
 pub struct SlashCommandModel {
     input_buffer_model: ModelHandle<InputBufferModel>,
-    active_session: ModelHandle<ActiveSession>,
     state: SlashCommandEntryState,
     data_source: ModelHandle<SlashCommandDataSource>,
 }
@@ -121,7 +119,6 @@ pub struct SlashCommandModel {
 impl SlashCommandModel {
     pub fn new(
         buffer_model: &ModelHandle<InputBufferModel>,
-        active_session: ModelHandle<ActiveSession>,
         data_source: ModelHandle<SlashCommandDataSource>,
         ctx: &mut ModelContext<Self>,
     ) -> Self {
@@ -131,7 +128,6 @@ impl SlashCommandModel {
 
         Self {
             input_buffer_model: buffer_model.clone(),
-            active_session,
             data_source,
             state: SlashCommandEntryState::None,
         }

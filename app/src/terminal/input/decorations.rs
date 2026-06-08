@@ -108,17 +108,6 @@ impl Input {
         // AI input-mode detection was removed.
     }
 
-    /// Applies background highlighting to slash command and skill command prefixes that should be
-    /// syntax highlighted.
-    fn apply_slash_command_prefix_highlighting(
-        &mut self,
-        _buffer_text: &str,
-        _ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        // The slash-command model was removed; no prefix highlighting.
-        false
-    }
-
     /// Computes information about the currently-entered command in a background
     /// task and then uses it to decorate the input, specifically applying
     /// styles for syntax highlighting and error underlining.

@@ -25,14 +25,10 @@ use riftui::{
 use ui_components::{button, Component as _, Options as _};
 
 use crate::appearance::Appearance;
-use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
+use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_view_modal::AuthRedirectPayload;
 use crate::auth::login_failure_notification::LoginFailureReason;
-use crate::editor::{
-    EditorView, InteractionState, SingleLineEditorOptions, TextColors, TextOptions,
-};
-use crate::server::server_api::auth::UserAuthenticationError;
-use crate::themes::theme::Fill as ThemeFill;
+use crate::editor::{EditorView, InteractionState};
 use crate::util::bindings::CustomAction;
 
 const MODAL_WIDTH: f32 = 460.;
@@ -96,81 +92,6 @@ pub struct PasteAuthTokenModalView {
 }
 
 impl PasteAuthTokenModalView {
-    pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        let auth_token_input = ctx.add_typed_action_view(|ctx| {
-            let appearance = Appearance::as_ref(ctx);
-            let theme = appearance.theme();
-            let bg_solid = theme.surface_2().into_solid();
-            let default_color = ThemeFill::Solid(internal_colors::text_main(theme, bg_solid));
-            let disabled_color = ThemeFill::Solid(internal_colors::text_disabled(theme, bg_solid));
-            let hint_color = ThemeFill::Solid(internal_colors::text_sub(theme, bg_solid));
-            let mut editor = EditorView::single_line(
-                SingleLineEditorOptions {
-                    text: TextOptions {
-                        font_size_override: Some(12.),
-                        font_family_override: Some(appearance.ui_font_family()),
-                        text_colors_override: Some(TextColors {
-                            default_color,
-                            disabled_color,
-                            hint_color,
-                        }),
-                        ..Default::default()
-                    },
-                    soft_wrap: false,
-                    ..Default::default()
-                },
-                ctx,
-            );
-            editor.set_placeholder_text("Enter auth token", ctx);
-            editor
-        });
-
-        // When the editor sees an Enter/Paste/etc. commit, submit the current
-        // buffer text upward. This matches the semantics of the inline editor
-        // in `login_slide.rs`.
-        ctx.subscribe_to_view(&auth_token_input, |me, _, event, ctx| {
-            use crate::editor::Event::{AltEnter, CmdEnter, Enter, Paste, ShiftEnter};
-            match event {
-                AltEnter | CmdEnter | Enter | Paste | ShiftEnter => {
-                    me.submit(ctx);
-                }
-                _ => {}
-            };
-            ctx.notify();
-        });
-
-        // Handle AuthFailed for attempts that originated from this modal: show
-        // an inline error and re-enable the editor so the user can try again.
-        ctx.subscribe_to_model(&AuthManager::handle(ctx), |me, _, event, ctx| {
-            if let AuthManagerEvent::AuthFailed(err) = event {
-                me.last_failure_reason = Some(match err {
-                    UserAuthenticationError::InvalidStateParameter => {
-                        LoginFailureReason::InvalidStateParameter
-                    }
-                    UserAuthenticationError::MissingStateParameter => {
-                        LoginFailureReason::MissingStateParameter
-                    }
-                    UserAuthenticationError::DeniedAccessToken(_)
-                    | UserAuthenticationError::UserAccountDisabled(_)
-                    | UserAuthenticationError::Unexpected(_) => {
-                        LoginFailureReason::FailedUserAuthentication
-                    }
-                });
-                me.set_editor_enabled(true, ctx);
-                ctx.notify();
-            }
-        });
-
-        Self {
-            auth_token_input,
-            cancel_button: button::Button::default(),
-            continue_button: button::Button::default(),
-            close_mouse_state: MouseStateHandle::default(),
-            last_failure_reason: None,
-            highlighted_hyperlink_state: HighlightedHyperlink::default(),
-        }
-    }
-
     /// Disables the editor while the auth request is in flight. Re-enabled
     /// automatically on `AuthManagerEvent::AuthFailed` or on local parse
     /// failure in `submit`.

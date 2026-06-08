@@ -1,16 +1,13 @@
 use std::sync::Arc;
 
 use futures_lite::future::yield_now;
-use riftui::{AppContext, SingletonEntity};
+use riftui::AppContext;
 
 use super::HistorySearchItem;
 use crate::search::async_snapshot_data_source::AsyncSnapshotDataSource;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{BoxFuture, DataSourceRunErrorWrapper};
-use crate::settings::AISettings;
-use crate::terminal;
-use crate::terminal::model::session::SessionId;
 use crate::terminal::HistoryEntry;
 
 pub(crate) struct HistorySnapshot {
@@ -39,21 +36,6 @@ fn history_data_source_from_shared(
         },
         fuzzy_match_history,
     )
-}
-
-pub(crate) fn history_data_source_for_session(
-    session_id: SessionId,
-    history_model: &terminal::History,
-    app: &AppContext,
-) -> AsyncSnapshotDataSource<HistorySnapshot, CommandSearchItemAction> {
-    let include_agent_commands = *AISettings::as_ref(app).include_agent_commands_in_history;
-    let commands: Arc<[Arc<HistoryEntry>]> = history_model
-        .commands_shared(session_id)
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|entry| include_agent_commands || !entry.is_agent_executed)
-        .collect();
-    history_data_source_from_shared(commands)
 }
 
 pub(crate) fn fuzzy_match_history(

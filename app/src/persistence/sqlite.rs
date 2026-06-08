@@ -1,6 +1,5 @@
 use std::collections::{HashMap, VecDeque};
 use std::convert::TryInto;
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::mpsc::SyncSender;
@@ -30,7 +29,7 @@ use riftui::{AppContext, SingletonEntity};
 
 use super::block_list::{delete_blocks, save_block};
 use super::model::{
-    self, ActiveMCPServer, CurrentUserInformation, MCPEnvironmentVariables,
+    self, CurrentUserInformation, MCPEnvironmentVariables,
     NewApp, NewCommand, NewServerExperiment, NewTab, NewTeam, NewWindow, NewWorkspace,
     NewWorkspaceMetadata, NewWorkspaceTeam, Project, Tab, Window,
     WorkspaceMetadata as WorkspaceMetadataModel, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
@@ -994,49 +993,6 @@ fn save_pane_state(
     }
 
     Ok(())
-}
-
-/// Encode a path into a platform-specific byte representation for persistence.
-fn encode_path(path: PathBuf) -> Vec<u8> {
-    if path == PathBuf::new() {
-        // bytemuck will throw a TargetAlignmentGreaterAndInputNotAligned error
-        // if we don't special-case the empty path.
-        return Vec::new();
-    }
-
-    cfg_if::cfg_if! {
-        if #[cfg(unix)] {
-            use std::os::unix::ffi::OsStringExt;
-            path.into_os_string().into_vec()
-        } else if #[cfg(windows)] {
-            use std::os::windows::ffi::OsStrExt;
-            let wide_char_sequence: Vec<u16> = path.into_os_string().encode_wide().collect();
-            // We need to deal with slices (not Vec) because otherwise we will get a PodCastError::AlignmentMismatch.
-            let slice: &[u8] = bytemuck::cast_slice(wide_char_sequence.as_slice());
-            slice.to_vec()
-        }
-    }
-}
-
-/// Decode a path from its platform-specific byte representation.
-fn decode_path(bytes: Vec<u8>) -> PathBuf {
-    if bytes.is_empty() {
-        // bytemuck will throw a TargetAlignmentGreaterAndInputNotAligned error
-        // if we don't special-case the empty path.
-        return PathBuf::new();
-    }
-
-    cfg_if::cfg_if! {
-        if #[cfg(unix)] {
-            use std::os::unix::ffi::OsStringExt;
-            OsString::from_vec(bytes).into()
-        } else if #[cfg(windows)] {
-            use std::os::windows::ffi::OsStringExt;
-            // We need to deal with slices (not Vec) because otherwise we will get a PodCastError::AlignmentMismatch.
-            let wide_char_sequence: &[u16] = bytemuck::cast_slice(bytes.as_slice());
-            OsString::from_wide(wide_char_sequence).into()
-        }
-    }
 }
 
 fn save_codebase_index_metadata(
@@ -2127,16 +2083,6 @@ fn upsert_mcp_server_environment_variables(
             .execute(conn)?;
         Ok(())
     })
-}
-
-fn load_active_mcp_servers(conn: &mut SqliteConnection) -> Result<Vec<uuid::Uuid>, Error> {
-    use schema::active_mcp_servers::dsl::*;
-
-    Ok(active_mcp_servers
-        .load::<ActiveMCPServer>(conn)?
-        .into_iter()
-        .filter_map(|active_server| uuid::Uuid::parse_str(&active_server.mcp_server_uuid).ok())
-        .collect())
 }
 
 #[cfg(test)]

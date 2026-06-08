@@ -39,8 +39,6 @@ pub enum TerminalViewZeroStateAction {
 #[derive(Default)]
 struct StateHandles {
     dismiss_button: MouseStateHandle,
-    start_new_conversation: MouseStateHandle,
-    start_cloud_conversation: MouseStateHandle,
     open_history_menu: MouseStateHandle,
     open_code_review: MouseStateHandle,
     nld_checkbox: MouseStateHandle,

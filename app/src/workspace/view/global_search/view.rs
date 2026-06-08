@@ -998,18 +998,6 @@ impl GlobalSearchView {
         ctx.notify();
     }
 
-    pub(crate) fn set_enablement_state(
-        &mut self,
-        enablement: CodingPanelEnablementState,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if self.enablement == enablement {
-            return;
-        }
-        self.enablement = enablement;
-        ctx.notify();
-    }
-
     fn render_row_at_index(&self, index: usize, app: &AppContext) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();

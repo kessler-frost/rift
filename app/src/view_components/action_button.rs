@@ -1016,50 +1016,6 @@ impl ActionButtonTheme for DangerPrimaryTheme {
     }
 }
 
-/// "DangerSecondary" buttons have no fill and a colorful border.
-///
-/// [Figma spec](https://www.figma.com/design/chk9pwt35jTJhf9KnHmZyE/Components?node-id=3628-14344&t=c27DwGHWevMlisVN-0)
-pub struct DangerSecondaryTheme;
-
-impl ActionButtonTheme for DangerSecondaryTheme {
-    fn background(&self, hovered: bool, appearance: &Appearance) -> Option<Fill> {
-        if hovered {
-            Some(
-                appearance
-                    .theme()
-                    .ansi_overlay_2(
-                        AnsiColorIdentifier::Red
-                            .to_ansi_color(&appearance.theme().terminal_colors().normal),
-                    )
-                    .into(),
-            )
-        } else {
-            None
-        }
-    }
-
-    fn text_color(
-        &self,
-        _hovered: bool,
-        _background: Option<Fill>,
-        appearance: &Appearance,
-    ) -> ColorU {
-        appearance.theme().ansi_fg_red()
-    }
-
-    fn border(&self, appearance: &Appearance) -> Option<ColorU> {
-        Some(appearance.theme().ansi_fg_red())
-    }
-
-    fn keyboard_shortcut_border(
-        &self,
-        _text_color: ColorU,
-        appearance: &Appearance,
-    ) -> Option<ColorU> {
-        Some(appearance.theme().ansi_fg_red())
-    }
-}
-
 /// "Disabled" buttons have a disabled fill and text color.
 ///
 /// [Figma spec](https://www.figma.com/design/chk9pwt35jTJhf9KnHmZyE/Components?node-id=3628-14344&t=c27DwGHWevMlisVN-0)
@@ -1108,60 +1064,6 @@ impl ActionButtonTheme for NakedTheme {
     }
 }
 
-/// Like [`NakedTheme`] but uses `sub_text_color` instead of `foreground` for
-/// text and icon color, matching the muted style of pane header buttons.
-pub struct PaneHeaderTheme;
-
-impl ActionButtonTheme for PaneHeaderTheme {
-    fn background(&self, hovered: bool, appearance: &Appearance) -> Option<Fill> {
-        NakedTheme.background(hovered, appearance)
-    }
-
-    fn text_color(
-        &self,
-        _hovered: bool,
-        _background: Option<Fill>,
-        appearance: &Appearance,
-    ) -> ColorU {
-        appearance
-            .theme()
-            .sub_text_color(appearance.theme().background())
-            .into_solid()
-    }
-}
-
-/// The "Danger Naked" button variant.
-///
-/// [Figma Spec](https://www.figma.com/design/chk9pwt35jTJhf9KnHmZyE/Components?node-id=3628-14344&t=MQvgxvZWjcapwzkK-11).
-pub struct DangerNakedTheme;
-
-impl ActionButtonTheme for DangerNakedTheme {
-    fn background(&self, hovered: bool, appearance: &Appearance) -> Option<Fill> {
-        if hovered {
-            Some(
-                appearance
-                    .theme()
-                    .ansi_overlay_1(
-                        AnsiColorIdentifier::Red
-                            .to_ansi_color(&appearance.theme().terminal_colors().normal),
-                    )
-                    .into(),
-            )
-        } else {
-            None
-        }
-    }
-
-    fn text_color(
-        &self,
-        _hovered: bool,
-        _background: Option<Fill>,
-        appearance: &Appearance,
-    ) -> ColorU {
-        appearance.theme().ansi_fg_red()
-    }
-}
-
 /// "Secondary" buttons have no fill and a border.
 ///
 /// [Figma spec](https://www.figma.com/design/chk9pwt35jTJhf9KnHmZyE/Components?node-id=3628-14344&t=L1sS5Nxu1zzpWPYp-0)
@@ -1191,33 +1093,6 @@ impl ActionButtonTheme for SecondaryTheme {
 
     fn keyboard_shortcut_background(&self, appearance: &Appearance) -> Option<ColorU> {
         Some(internal_colors::neutral_3(appearance.theme()))
-    }
-}
-
-/// Custom disabled theme for SecondaryTheme that preserves border.
-/// This avoids unwanted width changes when toggling between enabled/disabled states.
-pub struct DisabledSecondaryTheme;
-
-impl ActionButtonTheme for DisabledSecondaryTheme {
-    fn background(&self, hovered: bool, appearance: &Appearance) -> Option<Fill> {
-        DisabledTheme.background(hovered, appearance)
-    }
-
-    fn text_color(
-        &self,
-        hovered: bool,
-        background: Option<Fill>,
-        appearance: &Appearance,
-    ) -> ColorU {
-        DisabledTheme.text_color(hovered, background, appearance)
-    }
-
-    fn border(&self, appearance: &Appearance) -> Option<ColorU> {
-        Some(internal_colors::neutral_4(appearance.theme()))
-    }
-
-    fn keyboard_shortcut_background(&self, appearance: &Appearance) -> Option<ColorU> {
-        DisabledTheme.keyboard_shortcut_background(appearance)
     }
 }
 

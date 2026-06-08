@@ -117,8 +117,6 @@ impl Default for SelectionBorderWidth {
     }
 }
 
-const SHARED_SESSION_PARTICIPANT_SELECTION_BORDER_WIDTH: f32 = 1.5;
-
 const SNACKBAR_HOVER_OPACITY: Opacity = 60;
 
 // If the header is more than SNACKBAR_HEADER_MAX_RATIO percent of the entire
@@ -139,11 +137,6 @@ const LINEAR_SCROLLING: ScrollingAcceleration = ScrollingAcceleration::Polynomia
 /// have a height that extends down to the bottom of the window when there's a horizontal scroll bar, which messes with the on-hover behavior.
 const BLOCK_HOVER_BUTTON_HEIGHT: f32 = 28.;
 
-const TAG_AGENT_FOR_ASSISTANCE_TEXT: &str = "Tag agent for assistance";
-
-const SAVE_AS_WORKFLOW_TEXT: &str = "Save as Workflow";
-const SAVE_AS_WORKFLOW_SECRETS_TEXT: &str = "Blocks containing secrets cannot be saved.";
-
 enum ScrollingAcceleration {
     Polynomial(f32),
 }
@@ -158,8 +151,6 @@ impl ScrollingAcceleration {
 
 enum SelectionCursorRenderLocation {
     None,
-    Start,
-    End,
 }
 
 const OVERFLOW_BUTTON_ICON_PATH: &str = "bundled/svg/overflow.svg";
@@ -168,11 +159,6 @@ const OVERFLOW_BUTTON_ICON_PATH: &str = "bundled/svg/overflow.svg";
 const SNACKBAR_TOGGLE_BUTTON_HOVER_LINES: f32 = 4.;
 const SNACKBAR_TOGGLE_BUTTON_WIDTH: f32 = 30.;
 const SNACKBAR_TOGGLE_BUTTON_HEIGHT: f32 = 16.;
-
-/// How far away from the right edge of the blocklist the selected block avatar should be
-const SELECTED_BLOCK_AVATAR_EDGE_OFFSET: f32 = 25.;
-/// Space between multiple avatars on a selected block.
-const SPACE_BETWEEN_SELECTED_BLOCK_AVATARS: f32 = 2.;
 
 const CLI_SUBAGENT_HORIZONTAL_MARGIN: f32 = 8.;
 const CLI_SUBAGENT_VERTICAL_MARGIN: f32 = 8.;
@@ -1914,33 +1900,7 @@ impl BlockListElement {
             ctx,
         );
         match selection_cursor_render_location {
-            SelectionCursorRenderLocation::Start => {
-                let mut cursor_color = color;
-                cursor_color.a = crate::util::color::OPAQUE;
-                grid_renderer::render_selection_cursor(
-                    &start,
-                    &self.size_info,
-                    viewport.scroll_top_in_lines(),
-                    selection_origin,
-                    cursor_color,
-                    false,
-                    ctx,
-                );
-            }
-            SelectionCursorRenderLocation::End => {
-                let mut cursor_color = color;
-                cursor_color.a = crate::util::color::OPAQUE;
-                grid_renderer::render_selection_cursor(
-                    &end,
-                    &self.size_info,
-                    viewport.scroll_top_in_lines(),
-                    selection_origin,
-                    cursor_color,
-                    true,
-                    ctx,
-                );
-            }
-            _ => (),
+            SelectionCursorRenderLocation::None => (),
         }
         if rendered_snackbar_selection {
             // Rendering the snackbar creates a layer that we need to close.
