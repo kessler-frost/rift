@@ -31,9 +31,7 @@ use crate::settings::{
 use crate::workspaces::workspace::{
     AIAutonomyPolicy, BillingMetadata, WorkspaceMember, WorkspaceSettings,
 };
-use crate::workspaces::workspace::{
-    AiAutonomySettings, AiOverages, SandboxedAgentSettings, UsageBasedPricingSettings,
-};
+use crate::workspaces::workspace::{AiOverages, UsageBasedPricingSettings};
 
 const STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX: &str = "/upgrade";
 
@@ -410,85 +408,6 @@ impl UserWorkspaces {
                     || ChannelState::channel().is_dogfood()
             })
             .unwrap_or(true)
-    }
-
-
-    /// Did the admin enable AWS Bedrock for the current workspace?
-    pub fn is_aws_bedrock_available_from_workspace(&self) -> bool {
-        self.current_workspace().is_some_and(|workspace| {
-            workspace.settings.llm_settings.enabled
-                && self
-                    .aws_bedrock_host_settings()
-                    .is_some_and(|settings| settings.enabled)
-        })
-    }
-    pub fn aws_bedrock_host_enablement_setting(&self) -> HostEnablementSetting {
-        self.aws_bedrock_host_settings()
-            .map(|settings| settings.enablement_setting.clone())
-            .unwrap_or_default()
-    }
-
-    pub fn is_aws_bedrock_credentials_toggleable(&self) -> bool {
-        matches!(
-            self.aws_bedrock_host_enablement_setting(),
-            HostEnablementSetting::RespectUserSetting
-        )
-    }
-
-    pub fn is_aws_bedrock_credentials_enabled(&self, app: &AppContext) -> bool {
-        // i.e. did the admin go and toggle on aws bedrock in the admin panel?
-        if !self.is_aws_bedrock_available_from_workspace() {
-            return false;
-        }
-
-        match self.aws_bedrock_host_enablement_setting() {
-            HostEnablementSetting::Enforce => true,
-            HostEnablementSetting::RespectUserSetting => *AISettings::as_ref(app)
-                .aws_bedrock_credentials_enabled
-                .value(),
-        }
-    }
-
-    /// Returns the AI autonomy settings that are enforced by the workspace for all its members.
-    /// If a setting is `None`, the workspace doesn't enforce a particular setting.
-    pub fn ai_autonomy_settings(&self) -> AiAutonomySettings {
-        self.current_team()
-            .map(|team| team.organization_settings.ai_autonomy_settings.clone())
-            .unwrap_or_default()
-    }
-
-    /// Returns the sandboxed agent settings enforced by the workspace, if any.
-    pub fn sandboxed_agent_settings(&self) -> Option<SandboxedAgentSettings> {
-        self.current_team()
-            .and_then(|team| team.organization_settings.sandboxed_agent_settings.clone())
-    }
-
-    /// Returns true iff AI autonomy features are allowed for this client.
-    /// TODO: This should be deleted soon. AI autonomy settings have been moved into organization
-    /// settings (see `ai_autonomy_settings` above), but there could be an interim time where we
-    /// have not set up the org settings yet for an enterprise that previously had the entire
-    /// feature set disabled. To capture that case, we'll see if all the settings are `None`;
-    /// if so, we'll fall back to their billing metadata's value. Once we've migrated everyone
-    /// into org settings, we should remove `is_enabled` from the policy and delete this function.
-    pub fn is_ai_autonomy_allowed(&self) -> bool {
-        self.current_team().is_none_or(|team| {
-            let settings = &team.organization_settings.ai_autonomy_settings;
-            let all_settings_none = settings.apply_code_diffs_setting.is_none()
-                && settings.read_files_setting.is_none()
-                && settings.read_files_allowlist.is_none()
-                && settings.execute_commands_setting.is_none()
-                && settings.execute_commands_allowlist.is_none()
-                && settings.execute_commands_denylist.is_none();
-
-            if all_settings_none {
-                team.billing_metadata
-                    .tier
-                    .ai_autonomy_policy
-                    .is_some_and(|policy| policy.is_enabled)
-            } else {
-                true
-            }
-        })
     }
 
 
@@ -1221,27 +1140,6 @@ impl UserWorkspaces {
             .unwrap_or_default()
     }
 
-    pub fn is_ai_allowed_in_remote_sessions(&self) -> bool {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .ai_permissions_settings
-                    .allow_ai_in_remote_sessions
-            })
-            .unwrap_or(true)
-    }
-
-    pub fn get_remote_session_regex_list(&self) -> Vec<Regex> {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .ai_permissions_settings
-                    .remote_session_regex_list
-                    .clone()
-            })
-            .unwrap_or_default()
-    }
-
     pub fn is_anyone_with_link_sharing_enabled(&self) -> bool {
         self.current_team()
             .map(|team| {
@@ -1406,42 +1304,6 @@ impl UserWorkspaces {
         } else {
             panic!("No workspace found. Did you call setup_test_workspace()?");
         }
-    }
-
-    pub fn update_sandboxed_agent_settings<F>(&mut self, f: F, ctx: &mut ModelContext<Self>)
-    where
-        F: FnOnce(&mut Option<SandboxedAgentSettings>),
-    {
-        self.update_current_workspace(
-            |workspace| {
-                if let Some(team) = workspace.teams.first_mut() {
-                    f(&mut team.organization_settings.sandboxed_agent_settings);
-                } else {
-                    panic!(
-                        "No team found in current workspace. Did you call setup_test_workspace()?"
-                    );
-                }
-            },
-            ctx,
-        );
-    }
-
-    pub fn update_ai_autonomy_settings<F>(&mut self, f: F, ctx: &mut ModelContext<Self>)
-    where
-        F: FnOnce(&mut AiAutonomySettings),
-    {
-        self.update_current_workspace(
-            |workspace| {
-                if let Some(team) = workspace.teams.first_mut() {
-                    f(&mut team.organization_settings.ai_autonomy_settings);
-                } else {
-                    panic!(
-                        "No team found in current workspace. Did you call setup_test_workspace()?"
-                    );
-                }
-            },
-            ctx,
-        );
     }
 
     pub fn update_ai_autonomy_policy_flag(&mut self, enabled: bool, ctx: &mut ModelContext<Self>) {

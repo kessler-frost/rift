@@ -28,27 +28,24 @@ use rift_graphql::subscriptions::get_warp_drive_updates::WarpDriveUpdate;
 use rift_graphql::user::DiscoverableTeamData as GqlDiscoverableTeamData;
 use rift_graphql::workspace::{
     AddonCreditsSettings as GqlAddonCreditsSettings,
-    AdminEnablementSetting as GqlAdminEnablementSetting, AiAutonomyValue as GqlAiAutonomyValue,
-    AiPermissionsSettings as GqlAiPermissionsSettings,
-    ComputerUseAutonomyValue as GqlComputerUseAutonomyValue, EmailInvite as GqlEmailInvite,
+    AdminEnablementSetting as GqlAdminEnablementSetting, EmailInvite as GqlEmailInvite,
     HostEnablementSetting as GqlHostEnablementSetting,
     InviteLinkDomainRestriction as GqlInviteLinkDomainRestriction,
     MembershipRole as GqlMembershipRole, Team as GqlTeam, TeamMember as GqlTeamMember,
     UgcCollectionEnablementSetting as GqlUgcCollectionEnablementSetting, Workspace as GqlWorkspace,
     WorkspaceMember as GqlWorkspaceMember, WorkspaceMemberUsageInfo as GqlWorkspaceMemberUsageInfo,
     WorkspaceSettings as GqlWorkspaceSettings,
-    WriteToPtyAutonomyValue as GqlWriteToPtyAutonomyValue,
 };
 
 use super::team::{DiscoverableTeam, MembershipRole, Team, TeamMember};
 use super::user_workspaces::WorkspacesMetadataResponse;
 use super::workspace::{
-    AIAutonomyPolicy, AddonCreditsSettings, AdminEnablementSetting, AiAutonomySettings,
-    AiPermissionsSettings, AmbientAgentsPolicy, BillingCycleUsageData, BillingCycleUsageEntry,
+    AIAutonomyPolicy, AddonCreditsSettings, AdminEnablementSetting, AmbientAgentsPolicy,
+    BillingCycleUsageData, BillingCycleUsageEntry,
     BillingCycleUsageSummary, BillingMetadata, CloudConversationStorageSettings,
     CodebaseContextSettings, CustomerType, DelinquencyStatus, EmailInvite, EnterpriseSecretRegex,
     HostEnablementSetting, InstanceShape, InviteLinkDomainRestriction, LinkSharingSettings,
-    LlmSettings, MaxPriorCycles, SandboxedAgentSettings, SecretRedactionSettings,
+    MaxPriorCycles, SecretRedactionSettings,
     SessionSharingPolicy, SharedNotebooksPolicy, SharedWorkflowsPolicy,
     TelemetryDataCollectionPolicy, TelemetrySettings, Tier, UgcCollectionEnablementSetting,
     UgcCollectionSettings, UgcDataCollectionPolicy, UsageBasedPricingPolicy,
@@ -274,28 +271,6 @@ impl From<GqlHostEnablementSetting> for HostEnablementSetting {
         }
     }
 }
-impl From<&GqlAiPermissionsSettings> for AiPermissionsSettings {
-    fn from(gql_ai_permissions_settings: &GqlAiPermissionsSettings) -> AiPermissionsSettings {
-        Self {
-            allow_ai_in_remote_sessions: gql_ai_permissions_settings.allow_ai_in_remote_sessions,
-            remote_session_regex_list: gql_ai_permissions_settings
-                .remote_session_regex_list
-                .iter()
-                .filter_map(|r| {
-                    let regex = Regex::new(r);
-                    match regex {
-                        Ok(regex) => Some(regex),
-                        Err(_) => {
-                            log::error!("Invalid regex pattern for remote session detection: {r}");
-                            None
-                        }
-                    }
-                })
-                .collect(),
-        }
-    }
-}
-
 impl From<GqlUgcDataCollectionPolicy> for UgcDataCollectionPolicy {
     fn from(gql_ugc_data_collection_policy: GqlUgcDataCollectionPolicy) -> UgcDataCollectionPolicy {
         Self {
@@ -580,55 +555,9 @@ impl TryFrom<&BillingMetadata> for StripeSubscriptionPlan {
 
 
 
-trait ToAgentModeCommandExecutionPredicates {
-    fn to_predicates(self) -> Vec<AgentModeCommandExecutionPredicate>;
-}
-
-impl ToAgentModeCommandExecutionPredicates for Vec<String> {
-    fn to_predicates(self) -> Vec<AgentModeCommandExecutionPredicate> {
-        self.into_iter()
-            .filter_map(|pattern| {
-                match AgentModeCommandExecutionPredicate::new_regex(&pattern) {
-                    Ok(predicate) => Some(predicate),
-                    Err(e) => {
-                        report_error!(anyhow!(e).context(
-                            "Couldn't parse GQL-provided command regex into AgentModeCommandExecutionPredicate"
-                        ));
-                        None
-                    }
-                }
-            })
-            .collect()
-    }
-}
-
-trait ToPathBufs {
-    fn to_path_bufs(self) -> Vec<PathBuf>;
-}
-
-impl ToPathBufs for Vec<String> {
-    fn to_path_bufs(self) -> Vec<PathBuf> {
-        self.into_iter().map(PathBuf::from).collect()
-    }
-}
-
-impl From<rift_graphql::workspace::LlmHostSettings> for super::workspace::LlmHostSettings {
-    fn from(gql_settings: rift_graphql::workspace::LlmHostSettings) -> Self {
-        Self {
-            enabled: gql_settings.enabled,
-            enablement_setting: gql_settings
-                .enablement_setting
-                .map(Into::into)
-                .unwrap_or_default(),
-        }
-    }
-}
-
-
 impl From<GqlWorkspaceSettings> for WorkspaceSettings {
     fn from(gql_workspace_settings: GqlWorkspaceSettings) -> WorkspaceSettings {
         Self {
-            llm_settings: gql_workspace_settings.llm_settings.into(),
             telemetry_settings: TelemetrySettings {
                 force_enabled: gql_workspace_settings.telemetry_settings.force_enabled,
             },
@@ -642,28 +571,6 @@ impl From<GqlWorkspaceSettings> for WorkspaceSettings {
                     .cloud_conversation_storage_settings
                     .setting
                     .into(),
-            },
-            ai_permissions_settings: AiPermissionsSettings {
-                allow_ai_in_remote_sessions: gql_workspace_settings
-                    .ai_permissions_settings
-                    .allow_ai_in_remote_sessions,
-                remote_session_regex_list: gql_workspace_settings
-                    .ai_permissions_settings
-                    .remote_session_regex_list
-                    .iter()
-                    .filter_map(|r| {
-                        let regex = Regex::new(r);
-                        match regex {
-                            Ok(regex) => Some(regex),
-                            Err(_) => {
-                                log::error!(
-                                    "Invalid regex pattern for remote session detection: {r}"
-                                );
-                                None
-                            }
-                        }
-                    })
-                    .collect(),
             },
             link_sharing_settings: LinkSharingSettings {
                 anyone_with_link_sharing_enabled: gql_workspace_settings
@@ -687,40 +594,6 @@ impl From<GqlWorkspaceSettings> for WorkspaceSettings {
             },
             is_invite_link_enabled: gql_workspace_settings.is_invite_link_enabled,
             is_discoverable: gql_workspace_settings.is_discoverable,
-            ai_autonomy_settings: AiAutonomySettings {
-                apply_code_diffs_setting: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .apply_code_diffs_setting
-                    .and_then(convert_gql_ai_autonomy_value_to_action_permission),
-                read_files_setting: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .read_files_setting
-                    .and_then(convert_gql_ai_autonomy_value_to_action_permission),
-                read_files_allowlist: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .read_files_allowlist
-                    .map(|allowlist| allowlist.to_path_bufs()),
-                execute_commands_setting: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .execute_commands_setting
-                    .and_then(convert_gql_ai_autonomy_value_to_action_permission),
-                execute_commands_allowlist: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .execute_commands_allowlist
-                    .map(|allowlist| allowlist.to_predicates()),
-                execute_commands_denylist: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .execute_commands_denylist
-                    .map(|denylist| denylist.to_predicates()),
-                write_to_pty_setting: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .write_to_pty_setting
-                    .and_then(convert_gql_write_to_pty_autonomy_value_to_write_to_pty_permission),
-                computer_use_setting: gql_workspace_settings
-                    .ai_autonomy_settings
-                    .computer_use_setting
-                    .and_then(convert_gql_computer_use_autonomy_value_to_computer_use_permission),
-            },
             usage_based_pricing_settings: UsageBasedPricingSettings {
                 enabled: gql_workspace_settings.usage_based_pricing_settings.enabled,
                 max_monthly_spend_cents: gql_workspace_settings
@@ -745,13 +618,6 @@ impl From<GqlWorkspaceSettings> for WorkspaceSettings {
                     .setting
                     .into(),
             },
-            sandboxed_agent_settings: gql_workspace_settings.sandboxed_agent_settings.map(|s| {
-                SandboxedAgentSettings {
-                    execute_commands_denylist: s
-                        .execute_commands_denylist
-                        .map(|denylist| denylist.to_predicates()),
-                }
-            }),
             enable_warp_attribution: gql_workspace_settings
                 .ambient_agent_settings
                 .as_ref()

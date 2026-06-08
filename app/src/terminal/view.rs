@@ -3777,23 +3777,16 @@ impl TerminalView {
             return;
         }
 
-        let is_ai_allowed_in_remote_sessions =
-            UserWorkspaces::as_ref(ctx).is_ai_allowed_in_remote_sessions();
-
-        // Only update the FocusedTerminalInfo model if the user has disabled AI in remote sessions
-        // because it's a potentially expensive operation.
-        if !is_ai_allowed_in_remote_sessions {
-            let contains_remote_blocks = self.any_session_contains_remote_blocks;
-            let contains_restored_remote_blocks = self.any_session_contains_restored_remote_blocks;
-            let updated = FocusedTerminalInfo::handle(ctx).update(
-                ctx,
-                |model: &mut FocusedTerminalInfo, ctx| {
-                    model.update(contains_remote_blocks, contains_restored_remote_blocks, ctx)
-                },
-            );
-            if updated {
-                ctx.notify();
-            }
+        let contains_remote_blocks = self.any_session_contains_remote_blocks;
+        let contains_restored_remote_blocks = self.any_session_contains_restored_remote_blocks;
+        let updated = FocusedTerminalInfo::handle(ctx).update(
+            ctx,
+            |model: &mut FocusedTerminalInfo, ctx| {
+                model.update(contains_remote_blocks, contains_restored_remote_blocks, ctx)
+            },
+        );
+        if updated {
+            ctx.notify();
         }
     }
 
@@ -6153,11 +6146,7 @@ impl TerminalView {
     fn active_block_is_considered_remote(&self, app: &AppContext) -> bool {
         let model = self.model.lock();
         let active_block = model.block_list().active_block();
-        self.is_block_considered_remote(
-            active_block.session_id(),
-            Some(&active_block.command_to_string()),
-            app,
-        )
+        self.is_block_considered_remote(active_block.session_id(), app)
     }
 
     /// Returns true if the block is considered remote.
@@ -6167,13 +6156,8 @@ impl TerminalView {
     ///
     /// For some organizations, we accept a regex list that we run against commands to
     /// further make the determination.
-    fn is_block_considered_remote(
-        &self,
-        session_id: Option<SessionId>,
-        command: Option<&str>,
-        app: &AppContext,
-    ) -> bool {
-        let is_warpified_remote = session_id
+    fn is_block_considered_remote(&self, session_id: Option<SessionId>, app: &AppContext) -> bool {
+        session_id
             .map(|id| {
                 self.sessions
                     .as_ref(app)
@@ -6181,59 +6165,7 @@ impl TerminalView {
                     .map(|session| !session.is_local())
                     .unwrap_or_default()
             })
-            .unwrap_or_default();
-
-        if is_warpified_remote {
-            return true;
-        }
-
-        // If there's a command present and this user is subject to the regex list policy from their
-        // organization, check the command against the regex list.
-
-        let Some(command) = command else {
-            return false;
-        };
-
-        if UserWorkspaces::as_ref(app).is_ai_allowed_in_remote_sessions() {
-            // We don't check any regexes if the user is allowed to run AI in remote sessions.
-            return false;
-        }
-
-        let remote_session_regex_list = UserWorkspaces::as_ref(app).get_remote_session_regex_list();
-
-        // First check if the command matches any of the regexes in the list.
-        if remote_session_regex_list
-            .iter()
-            .any(|regex| regex.is_match(command))
-        {
-            return true;
-        }
-
-        // Then check if there's an alias for the top level command that matches the regex.
-        let Some(session_id) = session_id else {
-            return false;
-        };
-        let Some(session) = self.sessions.as_ref(app).get(session_id) else {
-            return false;
-        };
-        let escape_char = session.shell_family().escape_char();
-        let Some(top_level_command) =
-            rift_completer::parsers::simple::top_level_command(command, escape_char)
-        else {
-            return false;
-        };
-        let Some(alias) = session.alias_value(top_level_command.as_str()) else {
-            return false;
-        };
-
-        if remote_session_regex_list
-            .iter()
-            .any(|regex| regex.is_match(alias))
-        {
-            return true;
-        }
-
-        false
+            .unwrap_or_default()
     }
 
 
@@ -7200,7 +7132,6 @@ impl TerminalView {
                         block: block_completed.serialized_block.clone(),
                         is_local: !self.is_block_considered_remote(
                             block_completed.serialized_block.session_id,
-                            Some(&block_completed.command),
                             ctx,
                         ),
                     });
@@ -7211,7 +7142,6 @@ impl TerminalView {
                         block: serialized_block.clone(),
                         is_local: !self.is_block_considered_remote(
                             serialized_block.session_id,
-                            None,
                             ctx,
                         ),
                     });
@@ -7222,7 +7152,6 @@ impl TerminalView {
                         block: serialized_block.clone(),
                         is_local: !self.is_block_considered_remote(
                             serialized_block.session_id,
-                            None,
                             ctx,
                         ),
                     });

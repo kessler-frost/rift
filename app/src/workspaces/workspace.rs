@@ -13,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use super::team::{MembershipRole, Team};
 use crate::auth::UserUid;
 use crate::server::ids::ServerId;
-use crate::settings::AgentModeCommandExecutionPredicate;
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 pub struct WorkspaceUid(ServerId);
@@ -113,10 +112,6 @@ impl Workspace {
                 .members
                 .first()
                 .is_some_and(|m| m.email == current_user_email)
-    }
-
-    pub fn is_custom_llm_enabled(&self) -> bool {
-        self.settings.llm_settings.enabled
     }
 
     pub fn are_overages_toggleable(&self) -> bool {
@@ -740,19 +735,6 @@ impl BillingMetadata {
 mod tests;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct LlmHostSettings {
-    pub enabled: bool,
-    pub enablement_setting: HostEnablementSetting,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct LlmSettings {
-    pub enabled: bool,
-    #[serde(default)]
-    pub host_configs: std::collections::HashMap<LLMModelHost, LlmHostSettings>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct TelemetrySettings {
     pub force_enabled: bool,
 }
@@ -783,69 +765,6 @@ pub struct CloudConversationStorageSettings {
     pub setting: AdminEnablementSetting,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct AiPermissionsSettings {
-    pub allow_ai_in_remote_sessions: bool,
-    #[serde(with = "serde_regex")]
-    pub remote_session_regex_list: Vec<Regex>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct AiAutonomySettings {
-    pub apply_code_diffs_setting: Option<ActionPermission>,
-    pub read_files_setting: Option<ActionPermission>,
-    pub read_files_allowlist: Option<Vec<PathBuf>>,
-    pub execute_commands_setting: Option<ActionPermission>,
-    pub execute_commands_allowlist: Option<Vec<AgentModeCommandExecutionPredicate>>,
-    pub execute_commands_denylist: Option<Vec<AgentModeCommandExecutionPredicate>>,
-    pub write_to_pty_setting: Option<WriteToPtyPermission>,
-    pub computer_use_setting: Option<ComputerUsePermission>,
-}
-
-impl AiAutonomySettings {
-    pub fn has_any_overrides(&self) -> bool {
-        self.apply_code_diffs_setting.is_some()
-            || self.read_files_setting.is_some()
-            || self.read_files_allowlist.is_some()
-            || self.execute_commands_setting.is_some()
-            || self.execute_commands_allowlist.is_some()
-            || self.execute_commands_denylist.is_some()
-            || self.write_to_pty_setting.is_some()
-            || self.computer_use_setting.is_some()
-    }
-
-    pub fn has_override_for_code_diffs(&self) -> bool {
-        self.apply_code_diffs_setting.is_some()
-    }
-
-    pub fn has_override_for_read_files(&self) -> bool {
-        self.read_files_setting.is_some()
-    }
-
-    pub fn has_override_for_read_files_allowlist(&self) -> bool {
-        self.read_files_allowlist.is_some()
-    }
-
-    pub fn has_override_for_execute_commands(&self) -> bool {
-        self.execute_commands_setting.is_some()
-    }
-
-    pub fn has_override_for_execute_commands_allowlist(&self) -> bool {
-        self.execute_commands_allowlist.is_some()
-    }
-
-    pub fn has_override_for_execute_commands_denylist(&self) -> bool {
-        self.execute_commands_denylist.is_some()
-    }
-
-    pub fn has_override_for_write_to_pty(&self) -> bool {
-        self.write_to_pty_setting.is_some()
-    }
-
-    pub fn has_override_for_computer_use(&self) -> bool {
-        self.computer_use_setting.is_some()
-    }
-}
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct LinkSharingSettings {
     pub anyone_with_link_sharing_enabled: bool,
@@ -884,26 +803,17 @@ pub struct CodebaseContextSettings {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct SandboxedAgentSettings {
-    pub execute_commands_denylist: Option<Vec<AgentModeCommandExecutionPredicate>>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct WorkspaceSettings {
-    pub llm_settings: LlmSettings,
     pub telemetry_settings: TelemetrySettings,
     pub ugc_collection_settings: UgcCollectionSettings,
     pub cloud_conversation_storage_settings: CloudConversationStorageSettings,
     pub link_sharing_settings: LinkSharingSettings,
     pub secret_redaction_settings: SecretRedactionSettings,
-    pub ai_permissions_settings: AiPermissionsSettings,
-    pub ai_autonomy_settings: AiAutonomySettings,
     pub is_invite_link_enabled: bool,
     pub is_discoverable: bool,
     pub usage_based_pricing_settings: UsageBasedPricingSettings,
     pub addon_credits_settings: AddonCreditsSettings,
     pub codebase_context_settings: CodebaseContextSettings,
-    pub sandboxed_agent_settings: Option<SandboxedAgentSettings>,
     /// The team-level agent attribution setting. When `Enable` or `Disable`, the
     /// user toggle is locked. When `RespectUserSetting` (or absent), the user can choose.
     #[serde(default)]
