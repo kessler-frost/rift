@@ -52,6 +52,19 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
+### 🚨🚨 CRITICAL SCOPE FINDING (window 9 end): `crate::code` IS FULLY DELETED 🚨🚨
+There is NO `app/src/code` dir, NO `mod code` declaration, and NO `FileTreeView`/`buffer_location`/`file_tree`
+definitions anywhere. The ENTIRE code/file-tree/project-explorer/buffer-location subsystem is gone. CONSEQUENCE:
+the code-review-PANEL unit (left_panel/right_panel/workspace/view.rs) is NOT "keep the shell, gut the content" —
+its shell (ProjectExplorer file-tree tab, WorkingDirectoriesModel.get_file_tree_view, LocalOrRemotePath, FileTarget,
+CodingPanelEnablementState, the whole "coding panels" feature) is ITSELF built on deleted `crate::code` and is dead.
+So in left_panel only GlobalSearch survives as a viable tab; ProjectExplorer + the file-tree plumbing must ALSO be
+deleted. Treat the left/right "coding panels" + their hosting in workspace/view.rs as a DELETE target, not a keep.
+Progress so far: left_panel WarpDrive(DrivePanel)+ConversationList tabs gutted (DONE, committed). REMAINING in
+left_panel (5 resolution): the crate::code file-tree/ProjectExplorer plumbing + MIN_SIDEBAR_WIDTH/MAX_SIDEBAR_WIDTH_RATIO
+consts (deleted) — i.e. finish deleting ProjectExplorer too, leaving GlobalSearch (or delete the panel wholesale if
+GlobalSearch alone doesn't justify it — needs a look at how workspace/view.rs hosts LeftPanelView).
+
 ### 🚨 PHASE-2 TYPECK WAVE HAS SURFACED (window 9 end) — metric/strategy CHANGE 🚨
 Deleting the dead graphql/schema module dropped resolution errors below the threshold where rustc
 proceeds to TYPECHECK, un-masking the long-predicted second wave. `grep -c '^error'` now reads ~1974,
