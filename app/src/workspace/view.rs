@@ -1388,9 +1388,7 @@ impl Workspace {
                 self.current_workspace_state.is_auth_override_modal_open = false;
                 ctx.notify();
             }
-            AuthOverrideWarningModalEvent::BulkExport => {
-                self.export_all_warp_drive_objects(ctx);
-            }
+            AuthOverrideWarningModalEvent::BulkExport => {}
         }
     }
 
@@ -2251,7 +2249,6 @@ impl Workspace {
 
         let server_api_provider = ServerApiProvider::as_ref(ctx);
         let server_api = server_api_provider.get();
-        let ai_client = server_api_provider.get_ai_client();
 
         // Inserting a (window, ModalSizes) pair to the ResizableData singleton. A restored window
         // reads the sizes from the window snapshot. A new window initializes with all default sizes.
@@ -2345,9 +2342,6 @@ impl Workspace {
         });
 
         let codex_modal = ctx.add_typed_action_view(CodexModal::new);
-        ctx.subscribe_to_view(&codex_modal, |me, _, event, ctx| {
-            me.handle_codex_modal_event(event, ctx);
-        });
 
         let cloud_agent_capacity_modal =
             ctx.add_typed_action_view(|_| CloudAgentCapacityModal::new());
@@ -2516,7 +2510,6 @@ impl Workspace {
         Self::subscribe_to_workspace_toast_stack(toast_stack.clone(), ctx);
         Self::subscribe_to_tab_config_errors(toast_stack.clone(), ctx);
         Self::subscribe_to_settings_errors(ctx);
-        Self::subscribe_to_shared_session_manager(ctx);
 
         let user_menu = ctx.add_typed_action_view(|_| {
             Menu::new()
@@ -3188,27 +3181,10 @@ impl Workspace {
 
     pub fn add_tab_for_joining_shared_session(
         &mut self,
-        session_id: SharedSessionId,
-        ctx: &mut ViewContext<Self>,
+        _session_id: SharedSessionId,
+        _ctx: &mut ViewContext<Self>,
     ) {
-        let new_pane_group = ctx.add_typed_action_view(|ctx| {
-            PaneGroup::new_for_shared_session_viewer(
-                session_id,
-                self.tips_completed.clone(),
-                self.user_default_shell_unsupported_banner_model_handle
-                    .clone(),
-                self.server_api.clone(),
-                self.model_event_sender.clone(),
-                ctx,
-            )
-        });
-
-        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
-            me.handle_file_tree_event(pane_group, event, ctx)
-        });
-
-        self.tabs.push(TabData::new(new_pane_group));
-        self.activate_tab_internal(self.tab_count() - 1, ctx);
+        // Shared-session viewing was a cloud feature and has been removed.
     }
 
 
@@ -8630,9 +8606,6 @@ impl Workspace {
             pane_group
         });
 
-        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
-            me.handle_file_tree_event(pane_group, event, ctx)
-        });
 
         let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
 
@@ -8730,9 +8703,6 @@ impl Workspace {
                 self.model_event_sender.clone(),
                 ctx,
             )
-        });
-        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
-            me.handle_file_tree_event(pane_group, event, ctx)
         });
 
         if self.tab_count() == 0 {
@@ -16502,9 +16472,6 @@ impl Workspace {
             draggable_state,
             ..
         } = transferred_tab;
-        ctx.subscribe_to_view(&pane_group, move |me, pane_group, event, ctx| {
-            me.handle_file_tree_event(pane_group, event, ctx)
-        });
 
         let index = insertion_index.min(self.tabs.len());
         let mut tab_data = TabData::new(pane_group);
@@ -16657,9 +16624,6 @@ impl Workspace {
         // `Exited` but `handle_file_tree_event` is never invoked, so the
         // workspace never calls `close_tab` and cmd-W appears to do nothing.
         ctx.unsubscribe_to_view(&placeholder_pane_group);
-        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
-            me.handle_file_tree_event(pane_group, event, ctx)
-        });
 
         let working_directories_model = self.working_directories_model.clone();
         placeholder_pane_group.update(ctx, |pg, ctx| {
