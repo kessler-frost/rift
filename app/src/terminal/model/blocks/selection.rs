@@ -939,17 +939,6 @@ impl BlockList {
                             }
                         }
                         BlockHeightItem::RichContent(RichContentItem { view_id, .. }) => {
-                            if let Some(selected_text) =
-                                read_selected_text_from_ai_block(*view_id, app)
-                            {
-                                selected_texts.push(selected_text);
-                            }
-                            if let Some(selected_text) =
-                                read_selected_text_from_pending_user_query_block(*view_id, app)
-                            {
-                                selected_texts.push(selected_text);
-                            }
-
                             if let Some(active_window_id) = app.windows().active_window() {
                                 if let Some(ssh_block) = app
                                     .view_with_id::<WarpifySuccessBlock>(active_window_id, *view_id)
@@ -1004,20 +993,6 @@ impl BlockList {
 
                     // Read rich content selected text in the intermediate rich content blocks.
                     while current_row >= selection_start_cursor.start().height {
-                        if let Some(BlockHeightItem::RichContent(item)) =
-                            selection_start_cursor.item()
-                        {
-                            if let Some(selected_text) =
-                                read_selected_text_from_ai_block(item.view_id, app)
-                            {
-                                selected_texts.push(selected_text);
-                            }
-                            if let Some(selected_text) =
-                                read_selected_text_from_pending_user_query_block(item.view_id, app)
-                            {
-                                selected_texts.push(selected_text);
-                            }
-                        }
                         selection_start_cursor.next();
                     }
                     let Some(command_block) = self.block_at(start.within_grid_point.block_index)
@@ -1029,21 +1004,7 @@ impl BlockList {
                     selected_texts.push(command_block.bounds_to_string(start_point, end_point));
                 }
 
-                // Read AI block selected text in the trailing AI blocks.
                 while bottom_row >= selection_start_cursor.start().height {
-                    if let Some(BlockHeightItem::RichContent(item)) = selection_start_cursor.item()
-                    {
-                        if let Some(selected_text) =
-                            read_selected_text_from_ai_block(item.view_id, app)
-                        {
-                            selected_texts.push(selected_text);
-                        }
-                        if let Some(selected_text) =
-                            read_selected_text_from_pending_user_query_block(item.view_id, app)
-                        {
-                            selected_texts.push(selected_text);
-                        }
-                    }
                     selection_start_cursor.next();
                 }
 
@@ -1061,20 +1022,7 @@ impl BlockList {
 
                 let mut selected_texts = vec![];
                 for view_id in ids {
-                    if let Some(selected_text) = read_selected_text_from_ai_block(view_id, app) {
-                        selected_texts.push(selected_text);
-                    }
-
                     if let Some(active_window_id) = app.windows().active_window() {
-                        if let Some(env_var_block) =
-                            app.view_with_id::<EnvVarCollectionBlock>(active_window_id, view_id)
-                        {
-                            let block = app.view(&env_var_block);
-                            if let Some(selected_text) = block.selected_text(app) {
-                                selected_texts.push(selected_text);
-                            }
-                        }
-
                         if let Some(ssh_block) =
                             app.view_with_id::<WarpifySuccessBlock>(active_window_id, view_id)
                         {
@@ -1083,12 +1031,6 @@ impl BlockList {
                                 selected_texts.push(selected_text);
                             }
                         }
-                    }
-
-                    if let Some(selected_text) =
-                        read_selected_text_from_pending_user_query_block(view_id, app)
-                    {
-                        selected_texts.push(selected_text);
                     }
                 }
 
@@ -1522,28 +1464,6 @@ impl BlockList {
         }
         end.absolute_point
     }
-}
-
-/// Given the view id of an AI block, return the active selected text in that block.
-fn read_selected_text_from_ai_block(view_id: EntityId, app: &AppContext) -> Option<String> {
-    let active_window_id = app.windows().active_window()?;
-
-    let ai_block = app.view_with_id::<AIBlock>(active_window_id, view_id)?;
-    let ai_block_view = app.view(&ai_block);
-    ai_block_view.selected_text(app)
-}
-
-/// Given the view id of a pending user query block, return the active selected text in that block.
-fn read_selected_text_from_pending_user_query_block(
-    view_id: EntityId,
-    app: &AppContext,
-) -> Option<String> {
-    let active_window_id = app.windows().active_window()?;
-
-    let pending_user_query_block =
-        app.view_with_id::<PendingUserQueryBlock>(active_window_id, view_id)?;
-    let pending_user_query_block_view = app.view(&pending_user_query_block);
-    pending_user_query_block_view.selected_text(app)
 }
 
 #[cfg(test)]
