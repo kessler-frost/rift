@@ -6911,7 +6911,12 @@ impl TerminalView {
             appearance.monospace_font_family(),
             appearance.monospace_font_size() - 2.,
         )
-        .with_color(appearance.theme().sub_text_color(appearance.theme().background()))
+        .with_color(
+            appearance
+                .theme()
+                .sub_text_color(appearance.theme().background())
+                .into(),
+        )
         .finish();
 
         Container::new(shimmer_element)
@@ -7056,7 +7061,6 @@ impl TerminalView {
                 },
                 ctx
             );
-            self.maybe_auto_open_cli_agent_rich_input(ctx);
         }
     }
 
@@ -7136,7 +7140,6 @@ impl TerminalView {
             },
         };
         if self.register_cli_agent_listener_from_event(&notification, ctx) {
-            self.maybe_auto_open_cli_agent_rich_input(ctx);
         }
     }
 
@@ -7193,10 +7196,6 @@ impl TerminalView {
 
         if self.should_display_vim_banner(&session, ctx) {
             self.insert_vim_mode_banner(ctx);
-        }
-
-        if let Some(env_var_collection) = self.pending_env_var_collection.take() {
-            self.invoke_environment_variables(env_var_collection, false, ctx);
         }
 
         // If this is a new local session, update the PATH used for MCP command execution.
@@ -7708,7 +7707,7 @@ impl TerminalView {
 
         let (position_id, anchor, child_anchor, offset) = match (
             should_position_above_zero_state,
-            self.agent_view_zero_state_save_position_id(app),
+            None::<String>,
             menu_positioning,
         ) {
             (true, Some(zero_state_position_id), _) => (
@@ -8673,12 +8672,10 @@ impl TerminalView {
     /// `rich_content_view_id`, if any. Used to surface a link-specific right-click context menu.
     fn hovered_rich_content_link_for_view(
         &self,
-        rich_content_view_id: EntityId,
-        ctx: &AppContext,
+        _rich_content_view_id: EntityId,
+        _ctx: &AppContext,
     ) -> Option<RichContentLink> {
-        self.ai_block_handle_by_view_id(rich_content_view_id)?
-            .as_ref(ctx)
-            .hovered_rich_content_link()
+        None
     }
 
     fn context_menu_items(
@@ -9184,7 +9181,6 @@ impl TerminalView {
         self.close_context_menu(ctx, false);
         self.close_block_filter_editor(ctx);
         self.close_find_bar(ctx);
-        self.close_environment_setup_mode_selector(ctx);
 
         self.input.update(ctx, |input, ctx| {
             input.close_overlays(true, ctx);
