@@ -105,10 +105,13 @@ impl View for SshWarpifyBlock {
 
         content.add_child(
             Container::new(
-                RenderableAction::new(&self.ssh_command, app)
-                    .with_background_color(theme.background().into_solid())
-                    .render(app)
-                    .finish(),
+                warpify::render::build_command_row(
+                    self.ssh_command.clone(),
+                    theme,
+                    appearance,
+                    false, /* show_green_check */
+                )
+                .finish(),
             )
             .with_margin_top(16.)
             .finish(),

@@ -85,7 +85,13 @@ pub fn header_row(
 }
 
 fn green_check_icon(appearance: &Appearance, size: f32) -> Box<dyn Element> {
-    ConstrainedBox::new(inline_action_icons::green_check_icon(appearance).finish())
+    // Recovered inline from the deleted ai::blocklist inline-action icons.
+    let icon = Icon::new(
+        crate::ui_components::icons::Icon::Check.into(),
+        rift_core::ui::theme::AnsiColorIdentifier::Green
+            .to_ansi_color(&appearance.theme().terminal_colors().normal),
+    );
+    ConstrainedBox::new(icon.finish())
         .with_max_height(size)
         .with_max_width(size)
         .finish()
