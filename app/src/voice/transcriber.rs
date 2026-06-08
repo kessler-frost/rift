@@ -35,6 +35,13 @@ impl VoiceTranscriber {
         }
     }
 
+    /// A disabled transcriber (no backend). The server transcriber was removed,
+    /// but the editor still expects this singleton to exist.
+    #[cfg_attr(not(feature = "voice_input"), allow(dead_code))]
+    pub fn disabled() -> Self {
+        Self { transcriber: None }
+    }
+
     /// Returns the transcriber if one is set.
     pub fn transcriber(&self) -> Option<&Arc<dyn Transcriber>> {
         self.transcriber.as_ref()

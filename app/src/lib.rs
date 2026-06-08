@@ -129,7 +129,6 @@ use rift_cli::{CliCommand, GlobalOptions};
 use server::network_log_pane_manager::NetworkLogPaneManager;
 use server::network_logging::NetworkLogModel;
 use server::telemetry::context_provider::AppTelemetryContextProvider;
-use server::voice_transcriber::ServerVoiceTranscriber;
 #[cfg(feature = "local_fs")]
 use settings::import::model::ImportedConfigModel;
 use settings_view::pane_manager::SettingsPaneManager;
@@ -1534,9 +1533,7 @@ pub(crate) fn initialize_app(
 
     #[cfg(feature = "voice_input")]
     ctx.add_singleton_model(voice_input::VoiceInput::new);
-    ctx.add_singleton_model(|_| {
-        VoiceTranscriber::new(Arc::new(ServerVoiceTranscriber::new(server_api.clone())))
-    });
+    ctx.add_singleton_model(|_| VoiceTranscriber::disabled());
 
     ctx.add_singleton_model(|_| UserProfiles::new(restored_user_profiles));
 
