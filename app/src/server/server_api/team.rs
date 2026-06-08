@@ -87,7 +87,6 @@ pub trait TeamClient: 'static + Send + Sync {
     async fn create_team(
         &self,
         name: String,
-        entrypoint: CloudObjectEventEntrypoint,
         discoverable: Option<bool>,
     ) -> Result<CreateTeamResponse>;
 
@@ -97,7 +96,6 @@ pub trait TeamClient: 'static + Send + Sync {
         &self,
         user_uid: UserUid,
         team_uid: ServerId,
-        entrypoint: CloudObjectEventEntrypoint,
     ) -> Result<WorkspacesMetadataWithPricing>;
 
     /// Removes the _current_ user from the team (user leaving the team) and returns the list of
@@ -106,7 +104,6 @@ pub trait TeamClient: 'static + Send + Sync {
         &self,
         user_uid: UserUid,
         team_uid: ServerId,
-        entrypoint: CloudObjectEventEntrypoint,
     ) -> Result<WorkspacesMetadataWithPricing>;
 
     async fn join_team_with_team_discovery(
@@ -274,13 +271,12 @@ impl TeamClient for ServerApi {
     async fn create_team(
         &self,
         name: String,
-        entrypoint: CloudObjectEventEntrypoint,
         discoverable: Option<bool>,
     ) -> Result<CreateTeamResponse> {
         let variables = CreateTeamVariables {
             input: CreateTeamInput {
                 name,
-                entrypoint: entrypoint.into(),
+                entrypoint: rift_graphql::object::CloudObjectEventEntrypoint::Unknown,
                 discoverable: discoverable.unwrap_or(false),
             },
             request_context: get_request_context(),
@@ -315,13 +311,12 @@ impl TeamClient for ServerApi {
         &self,
         user_uid: UserUid,
         team_uid: ServerId,
-        entrypoint: CloudObjectEventEntrypoint,
     ) -> Result<WorkspacesMetadataWithPricing> {
         let variables = RemoveUserFromTeamVariables {
             input: RemoveUserFromTeamInput {
                 user_uid: user_uid.as_str().into(),
                 team_uid: team_uid.into(),
-                entrypoint: entrypoint.into(),
+                entrypoint: rift_graphql::object::CloudObjectEventEntrypoint::Unknown,
             },
             request_context: get_request_context(),
         };
@@ -353,13 +348,12 @@ impl TeamClient for ServerApi {
         &self,
         user_uid: UserUid,
         team_uid: ServerId,
-        entrypoint: CloudObjectEventEntrypoint,
     ) -> Result<WorkspacesMetadataWithPricing> {
         let variables = RemoveUserFromTeamVariables {
             input: RemoveUserFromTeamInput {
                 user_uid: user_uid.into(),
                 team_uid: team_uid.into(),
-                entrypoint: entrypoint.into(),
+                entrypoint: rift_graphql::object::CloudObjectEventEntrypoint::Unknown,
             },
             request_context: get_request_context(),
         };

@@ -261,7 +261,6 @@ impl TeamUpdateManager {
     pub fn create_team(
         &mut self,
         team_name: String,
-        entrypoint: CloudObjectEventEntrypoint,
         discoverable: Option<bool>,
         ctx: &mut ModelContext<Self>,
     ) {
@@ -269,7 +268,7 @@ impl TeamUpdateManager {
         let _ = ctx.spawn(
             async move {
                 team_client
-                    .create_team(team_name, entrypoint, discoverable)
+                    .create_team(team_name, discoverable)
                     .await
                     .context("Error creating team")
             },
@@ -302,7 +301,6 @@ impl TeamUpdateManager {
     pub fn leave_team(
         &mut self,
         team_uid: ServerId,
-        entrypoint: CloudObjectEventEntrypoint,
         ctx: &mut ModelContext<Self>,
     ) {
         // Handle server update
@@ -312,7 +310,7 @@ impl TeamUpdateManager {
             let _ = ctx.spawn(
                 async move {
                     team_client
-                        .leave_team(user_uid, team_uid, entrypoint)
+                        .leave_team(user_uid, team_uid)
                         .await
                         .context("Error leaving team")
                 },
