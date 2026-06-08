@@ -8,19 +8,14 @@
 //! so the user can pick up items captured since the pane was opened. The
 //! pane header also exposes a refresh icon that reloads the snapshot in
 //! place.
-use rift_editor::content::buffer::InitialBufferState;
-use rift_editor::render::element::VerticalExpansionBehavior;
-use rift_util::path::LineAndColumnArg;
-use riftui::elements::{ChildView, MouseStateHandle};
+use riftui::elements::{Container, MouseStateHandle, Text};
 use riftui::text_layout::ClipConfig;
 use riftui::ui_components::components::UiComponent;
 use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
-    ViewHandle,
 };
 
 use crate::appearance::Appearance;
-use crate::editor::InteractionState;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view::{self, HeaderContent, StandardHeader, StandardHeaderOptions};
 use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent, PaneHeaderAction};
@@ -54,7 +49,7 @@ pub enum NetworkLogViewCustomAction {
 /// A pane view backed by a read-only [`CodeEditorView`] displaying a snapshot
 /// of the current in-memory network log.
 pub struct NetworkLogView {
-    editor: ViewHandle<CodeEditorView>,
+    snapshot: String,
     pane_configuration: ModelHandle<PaneConfiguration>,
     focus_handle: Option<PaneFocusHandle>,
     refresh_button_mouse_state: MouseStateHandle,
@@ -71,22 +66,8 @@ impl NetworkLogView {
         // (see `reload_snapshot`).
         let snapshot = NetworkLogModel::as_ref(ctx).snapshot_text();
 
-        let editor = ctx.add_typed_action_view(|ctx| {
-            let mut view = CodeEditorView::new(
-                None,
-                None,
-                CodeEditorRenderOptions::new(VerticalExpansionBehavior::FillMaxHeight),
-                ctx,
-            );
-            Self::apply_snapshot_to_editor(&mut view, &snapshot, ctx);
-            // Read-only pane: disallow editing but keep selection/copy/find
-            // available.
-            view.set_interaction_state(InteractionState::Selectable, ctx);
-            view
-        });
-
         Self {
-            editor,
+            snapshot,
             pane_configuration,
             focus_handle: None,
             refresh_button_mouse_state: MouseStateHandle::default(),
@@ -98,40 +79,15 @@ impl NetworkLogView {
     }
 
     pub fn focus(&mut self, ctx: &mut ViewContext<Self>) {
-        ctx.focus(&self.editor);
+        ctx.focus_self();
     }
 
-    /// Re-seed the editor with a fresh snapshot from [`NetworkLogModel`] and
-    /// scroll back to the top. Called when the user re-triggers the
-    /// open-network-log-pane action while the pane is already open, or when
-    /// the user clicks the refresh icon in the pane header, so they can see
-    /// items captured since the pane was opened.
-    pub fn reload_snapshot(&self, ctx: &mut ViewContext<Self>) {
-        let snapshot = NetworkLogModel::as_ref(ctx).snapshot_text();
-        self.editor.update(ctx, |view, ctx| {
-            Self::apply_snapshot_to_editor(view, &snapshot, ctx);
-        });
-    }
-
-    /// Resets the editor buffer with the given snapshot text and queues a
-    /// pending scroll-to-top once layout completes. `reset` places the
-    /// cursor at the end of the buffer by default, which would scroll the
-    /// viewport to the bottom when the pane renders.
-    fn apply_snapshot_to_editor(
-        view: &mut CodeEditorView,
-        snapshot: &str,
-        ctx: &mut ViewContext<CodeEditorView>,
-    ) {
-        let state = InitialBufferState::plain_text(snapshot);
-        view.reset(state, ctx);
-        let version = view.buffer_version(ctx);
-        view.set_pending_scroll(ScrollTrigger::new(
-            ScrollPosition::LineAndColumn(LineAndColumnArg {
-                line_num: 1,
-                column_num: Some(0),
-            }),
-            version,
-        ));
+    /// Re-seed the snapshot text from [`NetworkLogModel`]. Called when the user
+    /// re-triggers the open-network-log-pane action while the pane is already
+    /// open, or when the user clicks the refresh icon in the pane header.
+    pub fn reload_snapshot(&mut self, ctx: &mut ViewContext<Self>) {
+        self.snapshot = NetworkLogModel::as_ref(ctx).snapshot_text();
+        ctx.notify();
     }
 
     /// Renders the refresh icon button for the pane header. Clicking the
@@ -177,8 +133,20 @@ impl View for NetworkLogView {
         "NetworkLogView"
     }
 
-    fn render(&self, _app: &AppContext) -> Box<dyn Element> {
-        ChildView::new(&self.editor).finish()
+    fn render(&self, app: &AppContext) -> Box<dyn Element> {
+        let appearance = Appearance::as_ref(app);
+        let theme = appearance.theme();
+        Container::new(
+            Text::new(
+                self.snapshot.clone(),
+                appearance.monospace_font_family(),
+                appearance.monospace_font_size() - 1.,
+            )
+            .with_color(blended_colors::text_main(theme, theme.background()))
+            .finish(),
+        )
+        .with_uniform_padding(8.)
+        .finish()
     }
 }
 
