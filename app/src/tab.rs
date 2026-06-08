@@ -706,7 +706,7 @@ impl TabStyles {
         let active_tab_bar_color: Option<ThemeFill> =
             tab_color.map(|color| color.to_ansi_color(&theme.terminal_colors().normal).into());
         let error_color = theme.ui_error_color();
-        let sharing_color = shared_session_indicator_color(appearance);
+        let sharing_color = theme.terminal_colors().normal.red.into();
         let background = active_tab_bar_color.map(|color| {
             ThemeFill::VerticalGradient(VerticalGradient::new(
                 theme.background().into(),

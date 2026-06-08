@@ -10,6 +10,7 @@ use enum_iterator::Sequence;
 use pathfinder_color::ColorU;
 use rift_cli::agent::Harness;
 use rift_completer::parsers::simple::top_level_command;
+use rift_core::ui::color::CLAUDE_ORANGE;
 use rift_util::path::EscapeChar;
 use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
