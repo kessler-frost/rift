@@ -7,7 +7,7 @@ use riftui::presenter::ChildView;
 use riftui::{AppContext, SingletonEntity};
 
 use super::common::{
-    add_command_xray_overlay, add_input_suggestions_overlays, add_voltron_overlay,
+    add_command_xray_overlay, add_input_suggestions_overlays,
     should_show_terminal_input_message_bar,
     wrap_input_with_terminal_padding_and_focus_handler,
 };
@@ -104,9 +104,6 @@ impl Input {
         ));
 
         let is_focused = self.focus_handle.as_ref().is_none_or(|h| h.is_focused(app));
-        if self.is_voltron_open && is_focused {
-            add_voltron_overlay(&mut stack, &self.voltron_view, menu_positioning);
-        }
 
         if is_focused {
             add_input_suggestions_overlays(self, &mut stack, appearance, menu_positioning, app);

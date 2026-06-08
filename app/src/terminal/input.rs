@@ -202,10 +202,6 @@ use crate::util::file::external_editor;
 use crate::util::image::MAX_IMAGE_COUNT_FOR_QUERY;
 use crate::util::truncation::truncate_from_end;
 use crate::view_components::{DismissibleToast, ToastFlavor};
-use crate::voltron::{
-    Voltron, VoltronEvent, VoltronFeatureView, VoltronFeatureViewHandle, VoltronFeatureViewMeta,
-    VoltronItem, VoltronMetadata,
-};
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
     CommandSearchOptions, ForkedConversationDestination, InitContent, RestoreConversationLayout,
@@ -743,7 +739,6 @@ pub enum InputAction {
     PageUp,
     PageDown,
     ClearScreen,
-    SelectAndRefreshVoltron(VoltronItem),
     /// Open the completions menu if the cursor is in a valid position to generate completion
     /// suggestions.
     MaybeOpenCompletionSuggestions,
@@ -803,27 +798,6 @@ impl MenuPositioning {
         self.y_anchor()
     }
 
-
-    fn voltron_parent_anchor(&self) -> ParentAnchor {
-        match *self {
-            MenuPositioning::AboveInputBox => ParentAnchor::BottomLeft,
-            MenuPositioning::BelowInputBox => ParentAnchor::TopLeft,
-        }
-    }
-
-    fn voltron_child_anchor(&self) -> ChildAnchor {
-        match *self {
-            MenuPositioning::AboveInputBox => ChildAnchor::BottomLeft,
-            MenuPositioning::BelowInputBox => ChildAnchor::TopLeft,
-        }
-    }
-
-    fn voltron_offset(&self) -> Vector2F {
-        match *self {
-            MenuPositioning::AboveInputBox => vec2f(11., -11.),
-            MenuPositioning::BelowInputBox => vec2f(11., -66.),
-        }
-    }
 
     fn y_anchor(&self) -> AnchorPair<YAxisAnchor> {
         match *self {
@@ -1300,18 +1274,6 @@ pub fn init(app: &mut AppContext) {
     ]);
 
 
-    if ChannelState::channel() == Channel::Integration {
-        app.register_fixed_bindings([
-            // Hack: Add explicit bindings for the tests, since the tests' injected
-            // keypresses won't trigger Mac menu items. Unfortunately we can't use
-            // cfg[test] because we are a separate process!
-            FixedBinding::new(
-                "ctrl-shift-R",
-                InputAction::SelectAndRefreshVoltron(VoltronItem::Workflows),
-                id!("Input"),
-            ),
-        ]);
-    }
 
     app.register_editable_bindings([
         EditableBinding::new(
@@ -2951,7 +2913,6 @@ impl Input {
         should_restore_buffer_before_history_up: bool,
         ctx: &mut ViewContext<Input>,
     ) {
-        self.close_voltron(ctx);
         self.close_input_suggestions_and_restore_buffer(
             false,
             should_restore_buffer_before_history_up,
@@ -2968,11 +2929,6 @@ impl Input {
         self.suggestions_mode_model.update(ctx, |model, ctx| {
             model.set_mode(InputSuggestionsMode::Closed, ctx);
         });
-    }
-
-    fn close_voltron(&mut self, ctx: &mut ViewContext<Input>) {
-        self.is_voltron_open = false;
-        ctx.notify();
     }
 
     fn editor_up(&mut self, ctx: &mut ViewContext<Self>) {
@@ -4907,8 +4863,6 @@ impl Input {
             ),
             ctx
         );
-
-        self.select_and_refresh_voltron(VoltronItem::History, ctx);
 
         ctx.notify();
     }
@@ -7091,9 +7045,6 @@ impl TypedActionView for Input {
             InputAction::CtrlD => self.ctrl_d(ctx),
             InputAction::CtrlR => self.ctrl_r(ctx),
             InputAction::ClearScreen => self.clear_screen(ctx),
-            InputAction::SelectAndRefreshVoltron(feature_name) => {
-                self.select_and_refresh_voltron(*feature_name, ctx);
-            }
             InputAction::MaybeOpenCompletionSuggestions => {
                 self.maybe_open_completion_suggestions(ctx);
             }
@@ -7150,16 +7101,13 @@ impl View for Input {
 
     fn on_focus(&mut self, focus_ctx: &FocusContext, ctx: &mut ViewContext<Self>) {
         if focus_ctx.is_self_focused() {
-            if self.is_voltron_open {
-                ctx.focus(&self.voltron_view);
-            } else if self.prompt_render_helper.has_open_chip_menu(ctx) {
+            if self.prompt_render_helper.has_open_chip_menu(ctx) {
                 // Focus the PromptDisplay, which will in turn focus any open chip menu
                 ctx.focus(self.prompt_render_helper.prompt_view());
             } else if self.agent_input_footer.as_ref(ctx).has_open_chip_menu(ctx) {
                 // Focus the AgentInputFooter, which will in turn focus any open chip menu
                 ctx.focus(&self.agent_input_footer);
             } else {
-                self.close_voltron(ctx);
                 ctx.focus(&self.editor);
                 ctx.notify();
             }
@@ -7169,10 +7117,6 @@ impl View for Input {
 
     fn keymap_context(&self, app: &AppContext) -> riftui::keymap::Context {
         let mut ctx = Self::default_keymap_context();
-
-        if self.is_voltron_open {
-            ctx.set.insert("VoltronActive");
-        }
 
         if InputSettings::as_ref(app).is_universal_developer_input_enabled(app) {
             ctx.set.insert("UniversalDeveloperInput");

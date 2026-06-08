@@ -79,7 +79,6 @@ pub mod util;
 mod view_components;
 mod vim_registers;
 mod voice;
-mod voltron;
 mod warp_managed_paths_watcher;
 #[cfg(target_family = "wasm")]
 mod wasm_nux_dialog;

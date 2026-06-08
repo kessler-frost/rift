@@ -151,23 +151,6 @@ pub(super) fn wrap_input_with_terminal_padding_and_focus_handler(
 }
 
 
-/// Renders the voltron overlay over the input.
-pub(super) fn add_voltron_overlay(
-    stack: &mut Stack,
-    voltron_view: &ViewHandle<crate::voltron::Voltron>,
-    menu_positioning: MenuPositioning,
-) {
-    stack.add_positioned_overlay_child(
-        ChildView::new(voltron_view).finish(),
-        OffsetPositioning::offset_from_parent(
-            menu_positioning.voltron_offset(),
-            ParentOffsetBounds::Unbounded,
-            menu_positioning.voltron_parent_anchor(),
-            menu_positioning.voltron_child_anchor(),
-        ),
-    );
-}
-
 /// Renders the appropriate input suggestions overlay over the input, based on the current input
 /// suggestions mode (if any).
 pub(super) fn add_input_suggestions_overlays(
