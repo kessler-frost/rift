@@ -55,6 +55,15 @@ REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 
 ### ▶▶ STATE: 14 resolution errors (234→14 this session, 94%!). workspace/view.rs is FULLY RESOLUTION-CLEAN; right_panel.rs
 DELETED; home.rs DELETED. The incremental view.rs grind cleared the entire god-file: RightPanelView hosting+methods, code-pane
 opener subsystem, all the cloud/AI modal+model clusters, the conversation_restoration/object_id/notebook/dialog threads.
+⚠️ LEFT_PANEL DELETION IS ONE-COMPLETE-PASS (unlike right_panel): removing the `left_panel_view` field breaks ~40 `self.left_panel_view`
+use-sites (E0609 masked typeck) across ~15 methods — so it CANNOT be committed half-done (resolution stays 14 but TOTAL errors rise).
+Must remove ALL in one pass: field+left_panel_views(863/864) + ctor(2408-2420)+subscription + Self construction(2676/2677) +
+handle_left_panel_event + methods [restore_left_panel_for_tab, reset_focused_index_in_warp_drive, has_warp_drive_initialized_sections,
+is_warp_drive_view_focused, focus_left_region_entry, focus_left_panel, reconcile_left_panel_open_for_active_tab, open_or_toggle_warp_drive,
+open_left_panel, close_left_panel, toggle_left_panel, open_warp_drive_palette, is_warp_drive_open, is_left_panel_open, open_left_panel_view,
+toggle_left_panel_view, compute_left_panel_views, update_left_panel_available_views, compute_left_panel_snapshot] + the 2 ChildView renders
+(~13980, ~16078) + scattered left_panel_views.len()/is_empty() (11604/11658/12278/15241) + the ToolbarItem ToolsPanel render +
+restore/snapshot paths. THEN delete left_panel.rs + global_search/ + the 10 GlobalSearch files. Budget a full fresh window for it.
 REMAINING 14: left_panel.rs(3 — crate::code file-tree imports; LeftPanelView still hosted in view.rs ~20 sites via self.left_panel_view
 + left_panel_views/compute_left_panel_views/open_left_panel_view/close_left_panel/toggle_left_panel — DELETE same as right_panel
 did, then delete left_panel.rs + global_search/ + the ~10 GlobalSearch files per the user wholesale-delete decision);
