@@ -8,7 +8,6 @@ mod global_actions;
 pub mod header_toolbar_editor;
 pub mod header_toolbar_item;
 pub mod hoa_onboarding;
-mod home;
 mod lightbox_view;
 mod native_modal;
 mod one_time_modal_model;
