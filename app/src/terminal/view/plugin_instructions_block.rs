@@ -25,7 +25,6 @@ pub(crate) struct PluginInstructionsBlock {
     instructions: &'static PluginInstructions,
     is_remote_session: bool,
     close_button: ViewHandle<ActionButton>,
-    step_code_handles: Vec<CodeSnippetButtonHandles>,
     should_hide: bool,
     /// Pre-computed commands with the custom command prefix substituted in.
     /// Each entry corresponds to the same-indexed step in `instructions.steps`.
@@ -40,10 +39,6 @@ impl PluginInstructionsBlock {
         is_remote_session: bool,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        let total_steps = instructions.steps.len();
-        let mut step_code_handles = Vec::with_capacity(total_steps);
-        step_code_handles.resize_with(total_steps, CodeSnippetButtonHandles::default);
-
         // When the session was detected via a custom toolbar command, the
         // user's binary likely differs from the agent's standard CLI tool
         // (e.g. `my-claude-wrapper` instead of `claude`).
@@ -73,7 +68,6 @@ impl PluginInstructionsBlock {
             instructions,
             is_remote_session,
             close_button,
-            step_code_handles,
             should_hide: false,
             resolved_commands,
         }
@@ -87,9 +81,9 @@ impl PluginInstructionsBlock {
         command: &str,
         executable: bool,
         link: Option<&str>,
-        handles: CodeSnippetButtonHandles,
         app: &AppContext,
     ) -> Box<dyn Element> {
+        let _ = executable;
         let appearance = Appearance::handle(app).as_ref(app);
         let theme = appearance.theme();
 
@@ -133,33 +127,15 @@ impl PluginInstructionsBlock {
         column.add_child(title_row);
 
         if !command.is_empty() {
-            let code_block = render_code_block_plain(
-                command,
-                Box::new(iter::empty()),
-                CodeBlockOptions {
-                    on_open: None,
-                    on_execute: if executable {
-                        Some(Box::new(move |code, ctx| {
-                            ctx.dispatch_typed_action(WorkspaceAction::RunCommand(code));
-                        }))
-                    } else {
-                        None
-                    },
-                    on_copy: Some(Box::new(move |_code, ctx| {
-                        ctx.dispatch_typed_action(PluginInstructionsBlockAction::CopyCommand(
-                            index,
-                        ));
-                    })),
-                    on_insert: None,
-                    footer_element: None,
-                    mouse_handles: Some(handles),
-                    file_path: None,
-                },
-                true,
-                app,
-                None,
-            );
-            column.add_child(Container::new(code_block).with_padding_left(40.).finish());
+            let code_block = Container::new(
+                Text::new(command.to_owned(), appearance.monospace_font_family(), 13.)
+                    .with_color(theme.main_text_color(theme.background()).into_solid())
+                    .finish(),
+            )
+            .with_uniform_padding(8.)
+            .with_background(theme.background_elevated())
+            .with_corner_radius(CornerRadius::with_all(Radius::Pixels(6.)));
+            column.add_child(Container::new(code_block.finish()).with_padding_left(40.).finish());
         }
 
         column.finish()
@@ -213,11 +189,6 @@ impl View for PluginInstructionsBlock {
         content.add_child(subtitle);
 
         for (step_index, step) in self.instructions.steps.iter().enumerate() {
-            let handles = self
-                .step_code_handles
-                .get(step_index)
-                .cloned()
-                .unwrap_or_default();
             let command = self
                 .resolved_commands
                 .get(step_index)
@@ -229,7 +200,6 @@ impl View for PluginInstructionsBlock {
                 command,
                 step.executable,
                 step.link,
-                handles,
                 app,
             ));
         }
