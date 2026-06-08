@@ -231,8 +231,6 @@ pub fn get_app_state(app: &AppContext) -> AppState {
     AppState {
         windows,
         active_window_index,
-        block_lists: Default::default(),
-        running_mcp_servers: Vec::new(),
     }
 }
 

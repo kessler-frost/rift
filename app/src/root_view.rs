@@ -619,7 +619,7 @@ fn open_from_restored(arg: &OpenFromRestoredArg, ctx: &mut AppContext) {
                                 global_resource_handles.clone(),
                                 NewWorkspaceSource::Restored {
                                     window_snapshot: window.clone(),
-                                    block_lists: app_state.block_lists.clone(),
+                                    block_lists: Default::default(),
                                 },
                                 ctx,
                             );
@@ -659,7 +659,7 @@ fn open_from_restored(arg: &OpenFromRestoredArg, ctx: &mut AppContext) {
                                     global_resource_handles.clone(),
                                     NewWorkspaceSource::Restored {
                                         window_snapshot: window.clone(),
-                                        block_lists: app_state.block_lists.clone(),
+                                        block_lists: Default::default(),
                                     },
                                     ctx,
                                 );
@@ -711,7 +711,7 @@ fn open_from_restored(arg: &OpenFromRestoredArg, ctx: &mut AppContext) {
                             global_resource_handles,
                             NewWorkspaceSource::Restored {
                                 window_snapshot: window.clone(),
-                                block_lists: app_state.block_lists.clone(),
+                                block_lists: Default::default(),
                             },
                             ctx,
                         );
@@ -790,14 +790,7 @@ fn create_environment(arg: &CreateEnvironmentArg, ctx: &mut AppContext) {
                     .active_tab_pane_group()
                     .update(ctx, |pane_group, ctx| {
                         pane_group.set_title("Create Environment", ctx);
-
-                        if let Some(terminal_view) = pane_group.active_session_view(ctx) {
-                            terminal_view.update(ctx, |_, ctx| {
-                                ctx.dispatch_typed_action_deferred(
-                                    TerminalAction::SetupCloudEnvironment(repos.clone()),
-                                );
-                            });
-                        }
+                        let _ = &repos;
                     });
             });
         }
@@ -823,14 +816,7 @@ fn create_environment_and_run(arg: &CreateEnvironmentArg, ctx: &mut AppContext) 
                     .active_tab_pane_group()
                     .update(ctx, |pane_group, ctx| {
                         pane_group.set_title("Create Environment", ctx);
-
-                        if let Some(terminal_view) = pane_group.active_session_view(ctx) {
-                            terminal_view.update(ctx, |_, ctx| {
-                                ctx.dispatch_typed_action_deferred(
-                                    TerminalAction::SetupCloudEnvironmentAndStart(repos.clone()),
-                                );
-                            });
-                        }
+                        let _ = &repos;
                     });
             });
         }
@@ -1429,24 +1415,9 @@ impl RootView {
                 } else {
                     // When OpenWarpNewSettingsModes is enabled, show onboarding before login for
                     // users who haven't completed it yet (tracked via a local UserPreferences key).
-                    let has_completed_local_onboarding = FeatureFlag::OpenWarpNewSettingsModes.is_enabled()
-                        && has_completed_local_onboarding(ctx);
-                    let should_show_pre_login_onboarding = FeatureFlag::OpenWarpNewSettingsModes.is_enabled()
-                        && FeatureFlag::AgentOnboarding.is_enabled()
-                        && !has_completed_local_onboarding;
                     if FeatureFlag::ForceLogin.is_enabled() {
                         // ForceLogin is true for Preview
                         AuthOnboardingState::Auth(workspace_args.into())
-                    } else if should_show_pre_login_onboarding {
-                        let workspace_args_box: Box<WorkspaceArgs> = workspace_args.into();
-                        let onboarding_view = Self::create_agent_onboarding_view(ctx);
-                        onboarding_view.update(ctx, |view, ctx| {
-                            view.start_onboarding(ctx);
-                        });
-                        AuthOnboardingState::Onboarding {
-                            onboarding_view,
-                            target: AuthOnboardingTarget::Workspace(workspace_args_box),
-                        }
                     } else if FeatureFlag::SkipFirebaseAnonymousUser.is_enabled() {
                         // When SkipFirebaseAnonymousUser is enabled, skip the login screen
                         // entirely and go directly into the workspace.
@@ -1884,14 +1855,7 @@ impl RootView {
                     .active_tab_pane_group()
                     .update(ctx, |pane_group, ctx| {
                         pane_group.set_title("Create Environment", ctx);
-
-                        if let Some(terminal_view) = pane_group.active_session_view(ctx) {
-                            terminal_view.update(ctx, |_, ctx| {
-                                ctx.dispatch_typed_action_deferred(
-                                    TerminalAction::SetupCloudEnvironment(repos.clone()),
-                                );
-                            });
-                        }
+                        let _ = &repos;
                     });
             });
             let window_id = ctx.window_id();
@@ -1929,16 +1893,7 @@ impl RootView {
                 .active_tab_pane_group()
                 .update(ctx, |pane_group, ctx| {
                     pane_group.set_title("Create Environment", ctx);
-
-                    if let Some(terminal_view) = pane_group.active_session_view(ctx) {
-                        terminal_view.update(ctx, |_, ctx| {
-                            ctx.dispatch_typed_action_deferred(
-                                crate::terminal::view::TerminalAction::SetupCloudEnvironmentAndStart(
-                                    repos.clone(),
-                                ),
-                            );
-                        });
-                    }
+                    let _ = &repos;
                 });
         });
 
@@ -1989,18 +1944,7 @@ impl RootView {
     /// Shows the user the settings view of their newly joined team
     /// within the app.
     pub fn handle_team_intent_link_action(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
-        // Force-open warp drive.
-        let window_id = ctx.window_id();
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            ctx.dispatch_typed_action_for_view(
-                window_id,
-                handle.id(),
-                &WorkspaceAction::OpenWarpDrive,
-            );
-            ctx.windows().show_window_and_focus_app(window_id);
-        } else {
-            log::error!("Auth not complete before trying to open warp drive");
-        }
+        // Warp Drive was a cloud feature and has been removed.
 
         // Use the team tester model to notify relevant subscribers to refresh their data.
         TeamTesterStatus::handle(ctx).update(ctx, |model, ctx| {
@@ -2009,18 +1953,8 @@ impl RootView {
         true
     }
 
-    pub fn open_team_settings_page(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
-        let window_id = ctx.window_id();
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            ctx.dispatch_typed_action_for_view(
-                window_id,
-                handle.id(),
-                &WorkspaceAction::ShowSettingsPage(SettingsSection::Teams),
-            );
-            ctx.windows().show_window_and_focus_app(window_id);
-        } else {
-            log::error!("Auth not complete before trying to open team settings page");
-        }
+    pub fn open_team_settings_page(&mut self, _: &(), _ctx: &mut ViewContext<Self>) -> bool {
+        // Teams were a cloud feature and have been removed.
         true
     }
 
@@ -2065,15 +1999,8 @@ impl RootView {
         ctx: &mut ViewContext<Self>,
     ) -> bool {
         let window_id = ctx.window_id();
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            let args = args.clone();
-            handle.update(ctx, |workspace, ctx| {
-                workspace.open_linear_issue_work(&args, ctx);
-            });
-            ctx.windows().show_window_and_focus_app(window_id);
-        } else {
-            log::error!("Auth not complete before trying to open Linear issue work");
-        }
+        // Linear issue work was an integration feature and has been removed.
+        let _ = (args, window_id);
         true
     }
 
@@ -2233,9 +2160,7 @@ impl RootView {
                     self.log_out(&(), ctx);
                 }
             }
-            AuthOverrideWarningModalEvent::BulkExport => {
-                self.export_all_warp_drive_objects(ctx);
-            }
+            AuthOverrideWarningModalEvent::BulkExport => {}
         }
     }
 
@@ -2626,14 +2551,8 @@ impl AuthOnboardingState {
             }
         };
 
-        let onboarding_view = RootView::create_agent_onboarding_view(ctx);
-        onboarding_view.update(ctx, |view, ctx| {
-            view.start_onboarding(ctx);
-        });
-        *self = AuthOnboardingState::Onboarding {
-            onboarding_view,
-            target,
-        };
+        // Agent onboarding slides were an AI feature and have been removed.
+        let _ = (target, ctx);
     }
 
     fn complete_sso_link(&mut self, ctx: &mut ViewContext<RootView>) {
