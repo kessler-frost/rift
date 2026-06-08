@@ -11,7 +11,7 @@ use riftui::{EntityId, WeakViewHandle, WindowId};
 use session_sharing_protocol::common::SessionId;
 use ui_components::lightbox;
 
-use super::global_actions::{ForkFromExchange, ForkedConversationDestination};
+use super::global_actions::ForkedConversationDestination;
 use super::tab_settings::{
     VerticalTabsCompactSubtitle, VerticalTabsDisplayGranularity, VerticalTabsPrimaryInfo,
     VerticalTabsTabItemMode, VerticalTabsViewMode,

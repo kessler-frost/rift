@@ -44,26 +44,6 @@ impl ForkedConversationDestination {
     }
 }
 
-/// Specifies the exchange at which to fork an AI conversation.
-#[derive(Debug, Clone, Copy)]
-pub struct ForkFromExchange {
-    pub exchange_id: AIAgentExchangeId,
-    /// When true, the fork stops immediately after this exchange without extending
-    /// to the next user query boundary.
-    pub fork_from_exact_exchange: bool,
-}
-
-/// Parameters for forking an AI conversation.
-pub struct ForkAIConversationParams {
-    pub conversation_id: AIConversationId,
-    /// When Some, fork from the given response (or exchange if `fork_from_exact_exchange` is true).
-    pub fork_from_exchange: Option<ForkFromExchange>,
-    pub summarize_after_fork: bool,
-    pub summarization_prompt: Option<String>,
-    pub initial_prompt: Option<String>,
-    pub destination: ForkedConversationDestination,
-}
-
 /// DEPRECATED. Global actions are being phased out.
 /// Do not add any more global actions; use typed actions instead.
 pub fn init_global_actions(app: &mut AppContext) {
@@ -71,11 +51,6 @@ pub fn init_global_actions(app: &mut AppContext) {
     app.add_global_action("workspace:toggle_scroll_reporting", toggle_scroll_reporting);
     app.add_global_action("workspace:toggle_focus_reporting", toggle_focus_reporting);
     app.add_global_action("workspace:save_app", save_app);
-    app.add_global_action("workspace:fork_ai_conversation", fork_ai_conversation);
-    app.add_global_action(
-        "workspace:summarize_ai_conversation",
-        summarize_ai_conversation,
-    );
     app.add_global_action(
         "workspace:toggle_debug_network_status",
         toggle_debug_network_status,
@@ -219,30 +194,6 @@ fn open_repository(path: &String, ctx: &mut AppContext) {
         let path_buf = PathBuf::from(path);
         ctx.dispatch_global_action("root_view:open_new_from_path", &OpenPath { path: path_buf });
     }
-}
-
-fn fork_ai_conversation(params: &ForkAIConversationParams, ctx: &mut AppContext) {
-    dispatch_to_active_workspace(
-        ctx,
-        WorkspaceAction::ForkAIConversation {
-            conversation_id: params.conversation_id,
-            fork_from_exchange: params.fork_from_exchange,
-            summarize_after_fork: params.summarize_after_fork,
-            summarization_prompt: params.summarization_prompt.clone(),
-            initial_prompt: params.initial_prompt.clone(),
-            destination: params.destination,
-        },
-    );
-}
-
-fn summarize_ai_conversation(prompt: &Option<String>, ctx: &mut AppContext) {
-    dispatch_to_active_workspace(
-        ctx,
-        WorkspaceAction::SummarizeAIConversation {
-            prompt: prompt.clone(),
-            initial_prompt: None,
-        },
-    );
 }
 
 fn trigger_log_out(_: &(), ctx: &mut AppContext) {
