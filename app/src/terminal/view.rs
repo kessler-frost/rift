@@ -3163,81 +3163,13 @@ impl TerminalView {
     }
 
 
-    fn clear_pending_cloud_mode_start_callback(&mut self) {
-        if let Some(handle) = self.pending_cloud_mode_start_abort_handle.take() {
-            handle.abort();
-        }
-        self.pending_cloud_mode_start_callback = None;
-    }
-
-    fn maybe_run_pending_cloud_mode_start_callback(&mut self, ctx: &mut ViewContext<Self>) {
-        let Some(callback) = self.pending_cloud_mode_start_callback.take() else {
-            return;
-        };
-
-        if let Some(handle) = self.pending_cloud_mode_start_abort_handle.take() {
-            handle.abort();
-        }
-
-        callback(self, ctx);
-    }
-
-
-    /// Exits the active agent, either:
-    /// * Exiting agent view for the selected conversation
-    /// * Popping the current view off the navigation stack (for nested cloud mode agents)
-    /// Root cloud-mode panes (stack depth ≤ 1) are a no-op — there is nowhere to return to.
-    fn exit_agent_view(&mut self, ctx: &mut ViewContext<Self>) {
-        // For nested ambient agent sessions (cloud mode), pop from pane stack.
-        // Root cloud-mode panes have no parent terminal to return to, so escape
-        // is a no-op to avoid leaving the app in a borked state.
-        if self.is_ambient_agent_session(ctx) {
-            if let Some(pane_stack) = self
-                .pane_stack
-                .as_ref()
-                .and_then(|h| h.upgrade(ctx))
-                .filter(|stack| stack.as_ref(ctx).depth() > 1)
-            {
-                pane_stack.update(ctx, |stack, ctx| {
-                    stack.pop(ctx);
-                });
-            }
-        } else {
-            self.agent_view_controller.update(ctx, |controller, ctx| {
-                controller.exit_agent_view(ctx);
-            });
-        }
-    }
 
 
 
 
-    /// Drop the per-repo git status subscription without clearing the input's
-    /// repo path. Use this when unsubscribing because the subscription is no
-    /// longer needed (e.g. the git chip was removed) but the user is still in
-    /// the same repository.
-    #[cfg(feature = "local_fs")]
-    fn clear_git_repo_status_subscription(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(handle) = self.git_repo_status.take() {
-            let terminal_view_id = self.view_id;
-            handle.update(ctx, |model, ctx| {
-                model.set_pr_info_consumer(terminal_view_id, false, ctx);
-            });
-            ctx.unsubscribe_to_model(&handle);
-        }
-        self.deferred_code_review_open = None;
 
-        self.current_prompt.update(ctx, |prompt_type, ctx| {
-            if let PromptType::Dynamic { prompt } = prompt_type {
-                prompt.update(ctx, |current_prompt, ctx| {
-                    current_prompt.set_git_repo_status(None, ctx);
-                });
-            }
-        });
-        self.ai_context_model.update(ctx, |context_model, _| {
-            context_model.set_git_repo_status(None);
-        });
-    }
+
+
 
     /// Fully clear the per-repo git status handle, including the input's repo
     /// path. Use this when navigating out of a git repository.
@@ -3260,40 +3192,6 @@ impl TerminalView {
         })
     }
 
-    /// Returns whether visible prompt/footer chips need git status updates.
-    #[cfg(feature = "local_fs")]
-    fn needs_git_status_for_chip_ui(&self, ctx: &AppContext) -> bool {
-        // Agent view: subscribe when the configured agent footer includes
-        // git stats or PR info.
-        if self.agent_view_controller.as_ref(ctx).is_active() {
-            return Self::uses_git_status_chips(
-                SessionSettings::as_ref(ctx)
-                    .agent_footer_chip_selection
-                    .all_chips(),
-            );
-        }
-        // CLI-agent footer: subscribe only while a CLI-agent session is active,
-        // so normal terminal panes do not subscribe just because of CLI footer defaults.
-        if self.has_active_cli_agent_session(ctx)
-            && Self::uses_git_status_chips(
-                SessionSettings::as_ref(ctx)
-                    .cli_agent_footer_chip_selection
-                    .all_chips(),
-            )
-        {
-            return true;
-        }
-
-        // Terminal prompt path: the Warp prompt is active when honor_ps1 is
-        // off, or when UDI overrides PS1. The prompt must include a chip backed
-        // by git status.
-        let is_using_warp_prompt = !*SessionSettings::as_ref(ctx).honor_ps1
-            || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-        if is_using_warp_prompt && Self::should_retry_default_pr_chip_validation(ctx) {
-            return true;
-        }
-        is_using_warp_prompt && Self::uses_git_status_chips(Prompt::as_ref(ctx).chip_kinds())
-    }
 
     #[cfg(feature = "local_fs")]
     fn needs_git_status_for_agent_context(&self, ctx: &AppContext) -> bool {
@@ -3307,32 +3205,6 @@ impl TerminalView {
         self.needs_git_status_for_chip_ui(ctx) || self.needs_git_status_for_agent_context(ctx)
     }
 
-    /// Whether the terminal's prompt/footer chips need PR info.
-    #[cfg(feature = "local_fs")]
-    fn needs_pr_info_for_chip_ui(&self, ctx: &AppContext) -> bool {
-        if self.agent_view_controller.as_ref(ctx).is_active() {
-            return SessionSettings::as_ref(ctx)
-                .agent_footer_chip_selection
-                .all_chips()
-                .contains(&ContextChipKind::GithubPullRequest);
-        }
-        if self.has_active_cli_agent_session(ctx)
-            && SessionSettings::as_ref(ctx)
-                .cli_agent_footer_chip_selection
-                .all_chips()
-                .contains(&ContextChipKind::GithubPullRequest)
-        {
-            return true;
-        }
-
-        let is_using_warp_prompt = !*SessionSettings::as_ref(ctx).honor_ps1
-            || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-        is_using_warp_prompt
-            && (Self::should_retry_default_pr_chip_validation(ctx)
-                || Prompt::as_ref(ctx)
-                    .chip_kinds()
-                    .contains(&ContextChipKind::GithubPullRequest))
-    }
 
     #[cfg(feature = "local_fs")]
     fn needs_pr_info_for_agent_context(&self, ctx: &AppContext) -> bool {
@@ -3889,56 +3761,9 @@ impl TerminalView {
     }
 
 
-    /// Give the agent control of the active long running command
-    /// (which was started outside of a conversation).
-    fn tag_agent_in(&mut self, ctx: &mut ViewContext<Self>) {
-        self.model
-            .lock()
-            .block_list_mut()
-            .active_block_mut()
-            .set_is_agent_tagged_in(true);
-
-        if !self.model.lock().is_alt_screen_active() {
-            self.hide_use_agent_footer_in_blocklist(ctx);
-        }
-
-        self.input.update(ctx, |input, ctx| {
-            input.set_input_mode_agent(true, ctx);
-            input.clear_buffer_and_reset_undo_stack(ctx);
-        });
-        ctx.notify();
-    }
 
     // Take control back from the agent for the active long running command
     // (which was started outside of a conversation).
-    fn tag_agent_out(&mut self, ctx: &mut ViewContext<Self>) {
-        if !self
-            .model
-            .lock()
-            .block_list()
-            .active_block()
-            .is_agent_tagged_in()
-        {
-            return;
-        }
-
-        self.model
-            .lock()
-            .block_list_mut()
-            .active_block_mut()
-            .set_is_agent_tagged_in(false);
-
-        if !self.model.lock().is_alt_screen_active() {
-            self.maybe_show_use_agent_footer_in_blocklist(ctx);
-        }
-
-        self.input.update(ctx, |input, ctx| {
-            input.set_input_mode_terminal(false, ctx);
-        });
-        self.redetermine_terminal_focus(ctx);
-
-        ctx.notify();
-    }
 
     fn emit_long_running_command_agent_interaction_state_changed(
         &self,
@@ -3968,14 +3793,6 @@ impl TerminalView {
     }
 
 
-    /// Shows or hides the CLI agent footer from a shared session update.
-    pub fn apply_cli_agent_footer_visibility(&mut self, show: bool, ctx: &mut ViewContext<Self>) {
-        if show {
-            self.maybe_show_use_agent_footer_in_blocklist(ctx);
-        } else {
-            self.hide_use_agent_footer_in_blocklist(ctx);
-        }
-    }
 
     pub fn has_active_env_var_block(&self, app: &AppContext) -> bool {
         self.active_env_var_collection_block(app).is_some()
@@ -5570,15 +5387,6 @@ impl TerminalView {
         );
     }
 
-    /// Returns the view type for prompt suggestion telemetry based on whether agent view is active.
-    fn prompt_suggestion_view_type(&self, ctx: &ViewContext<Self>) -> PromptSuggestionViewType {
-        if FeatureFlag::AgentView.is_enabled() && self.agent_view_controller.as_ref(ctx).is_active()
-        {
-            PromptSuggestionViewType::AgentView
-        } else {
-            PromptSuggestionViewType::TerminalView
-        }
-    }
 
 
     fn passive_code_diffs_enabled(ctx: &mut ViewContext<Self>) -> bool {
@@ -5903,51 +5711,6 @@ impl TerminalView {
         self.remove_aws_cli_not_installed_banner(ctx);
     }
 
-    /// Checks if the user tried to run an AWS login command and the AWS CLI wasn't installed.
-    /// If so, shows a helpful banner explaining the issue.
-    fn maybe_show_aws_cli_not_installed_suggestion(
-        &mut self,
-        exit_code: ExitCode,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Check if we were waiting for an AWS login command result
-        let was_pending = self.is_pending_aws_login;
-        // Always reset the flag
-        self.is_pending_aws_login = false;
-
-        if !was_pending {
-            return;
-        }
-
-        // Check if the command failed with "command not found"
-        if !exit_code.was_command_not_found() {
-            return;
-        }
-
-        // Don't show if already displayed
-        if self
-            .inline_banners_state
-            .aws_cli_not_installed_banner
-            .is_some()
-        {
-            return;
-        }
-
-        // Show the banner
-        let banner_id = self.inline_banners_state.next_banner_id();
-        self.inline_banners_state.aws_cli_not_installed_banner =
-            Some(AwsCliNotInstalledBannerState::new(banner_id));
-
-        self.model
-            .lock()
-            .block_list_mut()
-            .append_inline_banner_with_custom_height(
-                InlineBannerItem::new(banner_id, InlineBannerType::AwsCliNotInstalled),
-                3.5,
-            );
-
-        ctx.notify();
-    }
 
     /// Inserts a banner notifying the user that the shell process has terminated.
     fn insert_shell_process_terminated_banner(
@@ -7899,25 +7662,6 @@ impl TerminalView {
     }
 
 
-    /// If the startup auto-open setting is enabled, auto-opens rich input for a
-    /// CLI agent session. Called after creating a command-detected session or
-    /// registering a listener so rich input is shown immediately.
-    fn maybe_auto_open_cli_agent_rich_input(&mut self, ctx: &mut ViewContext<Self>) {
-        let ai_settings = AISettings::as_ref(ctx);
-        if !*ai_settings.auto_open_rich_input_on_cli_agent_start
-            || !ai_settings.is_any_ai_enabled(ctx)
-            || !*ai_settings.should_render_cli_agent_footer
-            || !is_rich_input_chip_in_cli_toolbar(ctx)
-        {
-            return;
-        }
-        let should_open = CLIAgentSessionsModel::as_ref(ctx)
-            .session(self.view_id)
-            .is_some_and(|s| s.should_auto_toggle_input);
-        if should_open && !self.has_active_cli_agent_input_session(ctx) {
-            self.open_cli_agent_rich_input(CLIAgentInputEntrypoint::AutoShow, ctx);
-        }
-    }
 
 
     /// Handles the initialization of a session within this terminal pane.
@@ -8346,35 +8090,6 @@ impl TerminalView {
     }
 
 
-    fn enter_environment_setup_selector(&mut self, args: Vec<String>, ctx: &mut ViewContext<Self>) {
-        // If arguments are provided (repo paths/URLs), skip the mode selector and go directly
-        // to the local agent flow
-        if !args.is_empty() {
-            self.setup_cloud_environment_and_start(args, ctx);
-            return;
-        }
-
-        // If already in ambient agent mode, skip the mode selector and go
-        // directly to the environment management pane
-        if FeatureFlag::AgentView.is_enabled()
-            && self.agent_view_controller.as_ref(ctx).is_active()
-            && self.is_ambient_agent_session(ctx)
-        {
-            self.open_environment_management_pane(ctx);
-            return;
-        }
-
-        // No arguments provided and not in agent view - show the mode selector modal
-        // Note: We don't call close_overlays here because this action may be dispatched
-        // from within the input view (e.g., slash command execution), and calling
-        // close_overlays would attempt to update the input view while it's already
-        // being updated, causing a circular view update panic.
-        self.is_environment_setup_mode_selector_open = true;
-        ctx.emit(Event::EnvironmentSetupModeSelectorToggled { is_open: true });
-        ctx.notify();
-        // Focus the mode selector so it can receive keyboard events (ESC to dismiss)
-        ctx.focus(&self.environment_setup_mode_selector);
-    }
 
 
 
@@ -8456,13 +8171,6 @@ impl TerminalView {
         let _ = ctx;
     }
 
-    /// Returns the save position ID for the agent view zero state, if one exists.
-    fn agent_view_zero_state_save_position_id(&self, app: &AppContext) -> Option<String> {
-        self.agent_view_controller
-            .as_ref(app)
-            .agent_view_state()
-            .zero_state_position_id()
-    }
 
     /// Gets the selected text from the terminal, if any.
     pub fn selected_text(&self, ctx: &AppContext) -> Option<String> {
@@ -8558,90 +8266,6 @@ fn fork_label_for_query(query: &str) -> String {
 }
 
 impl TerminalView {
-    fn start_agent_onboarding_tutorial(
-        &mut self,
-        version: AgentOnboardingVersion,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // If we are already showing the onboarding callout, do nothing.
-        if self.onboarding_callout_view.is_some() {
-            log::warn!("Attempted to start onboarding tutorial when one is already active.");
-            return;
-        }
-
-        // The first Agent Modality callout expects terminal mode. If the default
-        // session mode is Agent (e.g. from cloud-synced settings), the tab
-        // may already be in agent view — exit it first.
-        self.exit_agent_view(ctx);
-
-        // Remove the terminal zero-state welcome block so it doesn't appear
-        // underneath the onboarding callout.
-        let zero_state_ids: Vec<_> = self
-            .rich_content_views
-            .iter()
-            .filter(|view| {
-                matches!(
-                    view.metadata(),
-                    Some(RichContentMetadata::TerminalViewZeroState)
-                )
-            })
-            .map(|view| view.view_id())
-            .collect();
-        for view_id in zero_state_ids {
-            self.model
-                .lock()
-                .block_list_mut()
-                .remove_rich_content(view_id);
-            self.rich_content_views
-                .retain(|view| view.view_id() != view_id);
-        }
-
-        log::info!("Starting onboarding tutorial with version: {:?}", version);
-
-        let view = ctx.add_typed_action_view(|ctx| {
-            let keybindings = build_onboarding_keybindings(ctx);
-
-            match version {
-                AgentOnboardingVersion::UniversalInput { has_project } => {
-                    let initial_natural_language_detection_enabled = AISettings::handle(ctx)
-                        .as_ref(ctx)
-                        .is_nld_in_terminal_enabled(ctx);
-                    OnboardingCalloutView::new_universal_input(
-                        has_project,
-                        initial_natural_language_detection_enabled,
-                        keybindings,
-                        ctx,
-                    )
-                }
-                AgentOnboardingVersion::AgentModality {
-                    has_project,
-                    intention,
-                } => {
-                    let initial_natural_language_detection_enabled = AISettings::handle(ctx)
-                        .as_ref(ctx)
-                        .is_nld_in_terminal_enabled(ctx);
-                    OnboardingCalloutView::new_agent_modality(
-                        has_project,
-                        intention,
-                        initial_natural_language_detection_enabled,
-                        keybindings,
-                        ctx,
-                    )
-                }
-            }
-        });
-
-        ctx.subscribe_to_view(&view, |me, callout_view, event, ctx| {
-            me.handle_onboarding_callout_view_event(&callout_view, event, ctx)
-        });
-
-        view.update(ctx, |view, ctx| {
-            view.start_onboarding(ctx);
-        });
-
-        self.onboarding_callout_view = Some(view);
-        ctx.notify();
-    }
 
 
     fn apply_natural_language_detection_setting(
@@ -10182,13 +9806,6 @@ impl TerminalView {
         });
     }
 
-    fn close_environment_setup_mode_selector(&mut self, ctx: &mut ViewContext<Self>) {
-        if self.is_environment_setup_mode_selector_open {
-            self.is_environment_setup_mode_selector_open = false;
-            ctx.emit(Event::EnvironmentSetupModeSelectorToggled { is_open: false });
-            ctx.notify();
-        }
-    }
 
     fn prompt_context_menu_items(&self, ctx: &AppContext) -> Vec<MenuItem<TerminalAction>> {
         let copy_prompt = MenuItemFields::new("Copy prompt")
@@ -12821,79 +12438,7 @@ impl TerminalView {
         }
     }
 
-    fn restore_followup_prompt_after_failed_submission(
-        &mut self,
-        prompt: &str,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.pending_cloud_followup_task_id = None;
-        self.input.update(ctx, |input, ctx| {
-            input.reset_after_cloud_followup_submission(ctx);
-            input.replace_buffer_content(prompt, ctx);
-            input.set_input_mode_agent(true, ctx);
-        });
-        self.update_pane_configuration(ctx);
-        self.focus_input_box(ctx);
-        ctx.notify();
-    }
 
-    fn try_submit_pending_cloud_followup(
-        &mut self,
-        prompt: String,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        if !FeatureFlag::HandoffCloudCloud.is_enabled() {
-            return false;
-        }
-        let blocks_cloud_followups = {
-            let model = self.model.lock();
-            self.blocks_cloud_followups_for_ambient_agent_session_from_model(&model, ctx)
-        };
-        if blocks_cloud_followups {
-            self.pending_cloud_followup_task_id = None;
-            return false;
-        }
-        let Some(task_id) = self
-            .pending_cloud_followup_task_id
-            .or_else(|| self.owned_ambient_agent_task_id(ctx))
-        else {
-            return false;
-        };
-
-        if prompt.trim().is_empty() {
-            self.input.update(ctx, |input, ctx| {
-                input.reset_after_cloud_followup_submission(ctx);
-                input.set_input_mode_agent(true, ctx);
-            });
-            self.update_pane_configuration(ctx);
-            self.focus_input_box(ctx);
-            ctx.notify();
-            return true;
-        }
-
-        let Some(ambient_agent_view_model) = self.ambient_agent_view_model.clone() else {
-            self.restore_followup_prompt_after_failed_submission(&prompt, ctx);
-            self.show_error_toast("Couldn't continue this cloud task.".to_string(), ctx);
-            return true;
-        };
-
-        if ambient_agent_view_model.as_ref(ctx).task_id() != Some(task_id) {
-            self.restore_followup_prompt_after_failed_submission(&prompt, ctx);
-            self.show_error_toast("Couldn't continue this cloud task.".to_string(), ctx);
-            return true;
-        }
-
-        ambient_agent_view_model.update(ctx, |model, ctx| {
-            model.submit_cloud_followup(prompt, ctx);
-        });
-        self.input.update(ctx, |input, ctx| {
-            input.reset_after_cloud_followup_submission(ctx);
-            input.set_input_mode_agent(true, ctx);
-        });
-        self.update_pane_configuration(ctx);
-        ctx.notify();
-        true
-    }
 
     fn handle_input_event(&mut self, event: &InputEvent, ctx: &mut ViewContext<Self>) {
         match event {
@@ -16078,11 +15623,6 @@ impl TerminalView {
         drop(model);
 
         let is_ssh = mode.is_ssh();
-        self.use_agent_footer.update(ctx, |footer, ctx| {
-            footer.set_warpify_mode(mode, ctx);
-        });
-        self.maybe_show_use_agent_footer_in_blocklist(ctx);
-
         send_telemetry_from_ctx!(TelemetryEvent::WarpifyFooterShown { is_ssh }, ctx);
     }
 
