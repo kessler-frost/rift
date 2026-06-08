@@ -296,41 +296,6 @@ where
         }
     }
 
-    pub fn set_background(&mut self, background: Fill, ctx: &mut ViewContext<Self>) {
-        self.background = Some(background);
-        ctx.notify();
-    }
-
-    pub fn set_border_width(&mut self, border_width: f32, ctx: &mut ViewContext<Self>) {
-        self.border_width = Some(border_width);
-        ctx.notify();
-    }
-
-    pub fn set_border_radius(&mut self, border_radius: CornerRadius, ctx: &mut ViewContext<Self>) {
-        self.border_radius = Some(border_radius);
-        ctx.notify();
-    }
-
-    pub fn with_drop_shadow(mut self) -> Self {
-        self.use_drop_shadow = true;
-        self
-    }
-
-    pub fn set_font_color(&mut self, color: ColorU, ctx: &mut ViewContext<Self>) {
-        self.font_color = Some(color);
-        ctx.notify();
-    }
-
-    pub fn set_font_size(&mut self, size: f32, ctx: &mut ViewContext<Self>) {
-        self.font_size = Some(size);
-        ctx.notify();
-    }
-
-    pub fn set_padding(&mut self, padding: Coords, ctx: &mut ViewContext<Self>) {
-        self.padding = Some(padding);
-        ctx.notify();
-    }
-
     /// When enabled, the open menu sizes itself to the last rendered width of
     /// the dropdown's top bar. This is useful for flexible dropdowns whose
     /// trigger width is determined by parent layout rather than a fixed max.

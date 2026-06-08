@@ -19,8 +19,6 @@ use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle, WeakViewHandle,
 };
-use settings::Setting as _;
-
 use super::styles;
 use crate::appearance::Appearance;
 use crate::debounce;
@@ -748,9 +746,6 @@ impl AIContextMenu {
                         ctx,
                     );
                 });
-            }
-            NavigationState::Category(_) => {
-                // TODO: Add other data sources
             }
             NavigationState::AllCategories => {
                 // AllCategories state is only used when transitioning from query-based filtering

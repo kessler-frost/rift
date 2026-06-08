@@ -1164,8 +1164,6 @@ impl CodebaseIndex {
             }
         };
 
-        let _sync_start_time = Instant::now();
-
         let store_client = self.store_client.clone();
         let repo_metadata = self.repo_metadata();
 
@@ -1194,14 +1192,6 @@ impl CodebaseIndex {
                     (tree, sync_result)
                 },
                 move |me, (tree, server_sync_result), ctx| {
-                    send_telemetry_from_ctx!(
-                        server_sync_result.telemetry_event(
-                            sync_start_time.elapsed(),
-                            CodebaseContextSyncType::Full
-                        ),
-                        ctx
-                    );
-
                     // We should only flush pending changes when we know the sync failed because of a read fragment error.
                     let should_flush_pending_changes = if let SyncOperationResult::Error(
                         SyncOperationError::ReadFragmentError(changed_files),
@@ -1254,30 +1244,8 @@ impl CodebaseIndex {
                 tree,
                 leaf_to_fragment_metadata,
                 server_sync_result,
-                time_tracker,
+                time_tracker: _,
             }) => {
-                // Emit telemetries for the initial sync result.
-                if let Some(_sync_time) = time_tracker.compute_duration_for_interval(SYNC_TIME) {
-                    send_telemetry_from_ctx!(
-                        server_sync_result
-                            .telemetry_event(sync_time, CodebaseContextSyncType::Initial),
-                        ctx
-                    );
-                }
-
-                if let Some((_file_traversal_duration, _merkle_tree_parse_duration)) = time_tracker
-                    .compute_duration_for_interval(FILE_TRAVERSAL_TIME)
-                    .zip(time_tracker.compute_duration_for_interval(MERKLE_TREE_BUILD_TIME))
-                {
-                    send_telemetry_from_ctx!(
-                        AITelemetryEvent::BuildTreeSuccess {
-                            file_traversal_duration,
-                            merkle_tree_parse_duration
-                        },
-                        ctx
-                    );
-                }
-
                 if let SyncOperationResult::Error(SyncOperationError::ReadFragmentError(
                     changed_files,
                 )) = &server_sync_result
@@ -1776,13 +1744,6 @@ impl CodebaseIndex {
                         diff_duration: _,
                     }) => {
                         let tree = *boxed_tree;
-                        send_telemetry_from_ctx!(
-                            AITelemetryEvent::MerkleTreeSnapshotDiffSuccess {
-                                duration: diff_duration
-                            },
-                            ctx
-                        );
-
                         log::info!(
                             "Diffed filesystem with tree from snapshot for repo {repo_path:?}"
                         );
@@ -1885,12 +1846,6 @@ impl CodebaseIndex {
                         let _ = me.tree_sync_state.set_sync_abort_handle(abort_handle);
                     }
                     Err(SnapshotLoadError::DiffFailed(err)) => {
-                        send_telemetry_from_ctx!(
-                            AITelemetryEvent::MerkleTreeSnapshotDiffFailed {
-                                error: err.to_string()
-                            },
-                            ctx
-                        );
                         log::error!(
                             "Failed to diff filesystem with tree from snapshot: {err:?}"
                         );

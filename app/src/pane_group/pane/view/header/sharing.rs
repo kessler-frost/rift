@@ -13,16 +13,6 @@ use super::PaneHeader;
 use crate::pane_group::BackingView;
 use crate::server::telemetry::SharingDialogSource;
 
-/// Placeholder pane-header content for the (removed) sharing subsystem.
-#[derive(Default)]
-pub struct SharedPaneContent;
-
-impl SharedPaneContent {
-    pub fn new<P: BackingView>(_ctx: &mut ViewContext<PaneHeader<P>>) -> Self {
-        Self
-    }
-}
-
 impl<P: BackingView> PaneHeader<P> {
     pub fn has_shareable_object<C: riftui::ViewAsRef>(&self, _ctx: &C) -> bool {
         false

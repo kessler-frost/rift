@@ -10,8 +10,6 @@ use riftui::{
     AppContext, Element, ModelHandle, SingletonEntity, TypedActionView, ViewContext,
     WeakModelHandle,
 };
-use settings::Setting as _;
-
 use super::{Event, PaneConfiguration, TerminalAction, TerminalViewState};
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;

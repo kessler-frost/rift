@@ -38,9 +38,8 @@ use std::time::Duration;
 
 use action::RememberForWarpification;
 pub use action::{AgentOnboardingVersion, OnboardingIntention, OnboardingVersion, TerminalAction};
-use ai::index::full_source_code_embedding::manager::{BuildSource, CodebaseIndexManager};
+use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
 use async_channel::{Receiver, Sender};
-use base64::Engine as _;
 use block_banner::{render_warpification_banner, WarpificationMode, WarpifyBannerState};
 pub use block_banner::{WithinBlockBanner, BLOCK_BANNER_HEIGHT};
 use bookmarks::render_floating_block_snapshot;
@@ -116,7 +115,7 @@ use riftui::windowing::WindowManager;
 use riftui::{
     end_trace_after_next, record_trace_event, windowing, AccessibilityData, AppContext,
     BlurContext, CursorInfo, Element, Entity, EntityId, EventContext, FocusContext, ModelAsRef,
-    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewAsRef, ViewContext,
+    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewContext,
     ViewHandle, WeakModelHandle, WeakViewHandle, WindowId,
 };
 use serde::Serialize;
@@ -158,7 +157,7 @@ use super::ssh::SSH_WARPIFY_TIMEOUT_DURATION;
 use super::warpify::success_block::{WarpifySuccessBlock, WarpifySuccessBlockEvent};
 use super::warpify::trigger_state::{SshBlockState, WarpifyState};
 use super::warpify::WarpificationSource;
-use super::{cli_agent, CLIAgent, GridType};
+use super::{CLIAgent, GridType};
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::auth::auth_manager::AuthManager;
@@ -171,8 +170,6 @@ use crate::banner::{
     DismissalType,
 };
 use crate::context_chips::prompt::Prompt;
-#[cfg(feature = "local_fs")]
-use crate::context_chips::prompt::PromptSelection;
 use crate::context_chips::prompt_type::PromptType;
 use crate::context_chips::ContextChipKind;
 use crate::editor::{AutosuggestionType, EditorAction};
@@ -231,13 +228,11 @@ use crate::terminal::block_list_viewport::{
 };
 use crate::terminal::bootstrap::init_subshell_command;
 use crate::terminal::cli_agent_sessions::event::{
-    parse_event, CLIAgentEvent, CLIAgentEventPayload, CLIAgentEventSource, CLIAgentEventType,
+    parse_event, CLIAgentEvent, CLIAgentEventType,
     CLI_AGENT_NOTIFICATION_SENTINEL,
 };
 use crate::terminal::cli_agent_sessions::listener::{is_agent_supported, CLIAgentSessionListener};
-use crate::terminal::cli_agent_sessions::{
-    CLIAgentInputState, CLIAgentSessionsModel,
-};
+use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::color::List;
 use crate::terminal::command_corrections_denylist::COMMAND_CORRECTIONS_PREFERRED_DENYLIST;
 use crate::terminal::event::{
@@ -759,9 +754,6 @@ impl PromptSuggestion {
         self.label.as_ref().unwrap_or(&self.prompt)
     }
 
-    pub fn is_static_prompt_suggestion(&self) -> bool {
-        self.static_prompt_suggestion_name.is_some()
-    }
 }
 
 /// A unique identifier for an inline banner.
@@ -784,24 +776,6 @@ pub enum InlineBannerType {
 }
 
 impl InlineBannerType {
-    /// Returns whether this banner type should be visible when agent view is active.
-    /// Exhaustive match ensures new banner types must define their visibility.
-    pub fn is_visible_in_agent_view(&self) -> bool {
-        match self {
-            // Agent-related banners: visible in agent view
-            Self::PromptSuggestions | Self::CodebaseIndexSpeedbump => true,
-            // Terminal-context banners: hidden in agent view
-            Self::NotificationsDiscovery
-            | Self::NotificationsError
-            | Self::Ssh
-            | Self::AliasExpansion
-            | Self::SharedSessionStart
-            | Self::SharedSessionEnd
-            | Self::ShellProcessTerminated
-            | Self::OpenInWarp
-            | Self::VimMode => false,
-        }
-    }
 }
 
 /// An inline banner with its unique ID and type metadata.
@@ -855,12 +829,6 @@ impl InlineBannersState {
         next_id
     }
 
-    /// Returns the ID of the last inline banner inserted.
-    #[allow(dead_code)]
-    fn last_banner_id(&self) -> Option<InlineBannerId> {
-        #[allow(clippy::unnecessary_lazy_evaluations)]
-        (self.next_banner_id > 0).then(|| self.next_banner_id - 1)
-    }
 }
 
 /// Banners that we include in the blocklist to delimit
@@ -2068,27 +2036,6 @@ impl TerminalView {
         }
     }
 
-    /// Marks rich content views as dirty if their metadata matches the given predicate.
-    ///
-    /// Rich content heights are stored in the blocklist sumtree. When a view's rendered height
-    /// changes (e.g., due to state changes that affect its layout), the sumtree entry becomes
-    /// stale. Marking items as dirty ensures they are re-measured on the next layout frame,
-    /// which happens unconditionally before viewport iteration. This is important for items
-    /// that may have 0 height in the sumtree, as the viewport iterator would otherwise skip
-    /// them entirely.
-    fn mark_all_rich_content_items_dirty_where(
-        &self,
-        model: &mut TerminalModel,
-        predicate: impl Fn(&RichContentMetadata) -> bool,
-    ) {
-        for content in &self.rich_content_views {
-            if content.metadata().is_some_and(&predicate) {
-                model
-                    .block_list_mut()
-                    .mark_rich_content_dirty(content.view_id());
-            }
-        }
-    }
 
     /// Receives a SyncEvent and performs actions dictated by that event
     /// on this terminal view.
@@ -2133,16 +2080,6 @@ impl TerminalView {
         }
     }
 
-    /// Returns whether local input-editor CRDT edits should be published to the shared-session
-    /// sharer. Viewer-local editor events can still fire from ended/setup-only cloud agent surfaces,
-    /// where sending them upstream would be rejected and surfaced back as edit failures.
-    pub(crate) fn should_publish_shared_session_input_editor_update(
-        &self,
-        model: &TerminalModel,
-        app: &AppContext,
-    ) -> bool {
-        self.is_input_box_visible(model, app)
-    }
 
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -3060,15 +2997,6 @@ impl TerminalView {
 
 
 
-    #[cfg(feature = "local_fs")]
-    fn uses_git_status_chips(chips: Vec<ContextChipKind>) -> bool {
-        chips.iter().any(|chip| {
-            matches!(
-                chip,
-                ContextChipKind::GitDiffStats | ContextChipKind::GithubPullRequest
-            )
-        })
-    }
 
 
 
@@ -3076,13 +3004,6 @@ impl TerminalView {
 
 
 
-    #[cfg(feature = "local_fs")]
-    fn should_retry_default_pr_chip_validation(ctx: &AppContext) -> bool {
-        let settings = SessionSettings::as_ref(ctx);
-        FeatureFlag::GithubPrPromptChip.is_enabled()
-            && settings.github_pr_chip_default_validation.is_suppressed()
-            && matches!(*settings.saved_prompt, PromptSelection::Default)
-    }
 
 
 
@@ -3124,10 +3045,6 @@ impl TerminalView {
 
 
 
-    /// Returns true if the window is wide enough to auto-open side panels.
-    pub fn can_auto_open_panel(&self) -> bool {
-        self.size_info.pane_width_px().as_f32() > MINIMUM_WIDTH_TO_AUTO_OPEN_PANE
-    }
 
 
 
@@ -3219,15 +3136,6 @@ impl TerminalView {
         Some(self.session_is_local(self.active_block_session_id()?, ctx))
     }
 
-    /// Returns the active session's launch shell, if it is specified.
-    /// Returns None if there is no active session or if the current session does not
-    /// have a launch shell.
-    pub fn active_session_shell<C: ModelAsRef>(&self, ctx: &C) -> Option<ShellLaunchData> {
-        self.active_block_session_id().and_then(|session_id| {
-            let current_session = self.sessions.as_ref(ctx).get(session_id)?;
-            current_session.launch_data().cloned()
-        })
-    }
 
     /// Returns the active session's WSL distribution information, if it exists.
     /// Returns None if there is no active session or if the current session is
@@ -3711,16 +3619,6 @@ impl TerminalView {
         }
     }
 
-    pub fn set_show_pane_accent_border(
-        &mut self,
-        show_accent_border: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.pane_configuration.update(ctx, |pane_config, ctx| {
-            pane_config.set_show_accent_border(show_accent_border, ctx);
-            ctx.notify();
-        });
-    }
 
     /// Receiving the riftui::Event::KeyDown event from a child element.
     /// Generally, this should be control characters rather than printable characters.
@@ -3796,15 +3694,6 @@ impl TerminalView {
         }
     }
 
-    /// Handles a file-tree drag-and-drop onto the terminal by piping the dropped text
-    /// through the same path as user-typed characters for the active command.
-    pub fn handle_file_tree_drop_on_active_command(
-        &mut self,
-        text: &str,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.typed_characters_on_terminal(text, ctx);
-    }
 
     fn set_marked_text_on_terminal(
         &mut self,
@@ -3838,10 +3727,6 @@ impl TerminalView {
     }
 
 
-    /// Writes a shared session viewer's bytes to the pty
-    pub fn write_viewer_bytes_to_pty(&mut self, bytes: Vec<u8>, ctx: &mut ViewContext<Self>) {
-        self.write_user_bytes_to_pty(bytes, ctx);
-    }
 
     /// Ends the current line before writing 1000 byte chunks to the pty with a small delay in
     /// between to work around a macos pty bug.
@@ -4996,15 +4881,6 @@ impl TerminalView {
 
 
 
-    fn passive_code_diffs_enabled(ctx: &mut ViewContext<Self>) -> bool {
-        // Prompt suggestions must be enabled since the current implementation of passive code diffs
-        // depends on generating a prompt suggestion.
-        let ai_settings = AISettings::as_ref(ctx);
-        let is_prompt_suggestions_enabled = ai_settings.is_prompt_suggestions_enabled(ctx);
-        let is_setting_enabled = ai_settings.is_code_suggestions_enabled(ctx);
-        let is_setting_toggleable = UserWorkspaces::as_ref(ctx).is_code_suggestions_toggleable();
-        is_prompt_suggestions_enabled && is_setting_enabled && is_setting_toggleable
-    }
 
     fn insert_alias_expansion_banner(
         &mut self,
@@ -6761,30 +6637,6 @@ impl TerminalView {
         true
     }
 
-    /// Creates and registers a listener for flows without a `SessionStart` event.
-    fn register_cli_agent_listener_without_session_start_event(
-        &mut self,
-        agent: CLIAgent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Plugin version tracking was tied to the removed CLI-agent plugin manager.
-        let plugin_version: Option<String> = None;
-        let notification = CLIAgentEvent {
-            source: CLIAgentEventSource::RichPlugin,
-            v: 1,
-            agent,
-            event: CLIAgentEventType::SessionStart,
-            session_id: None,
-            cwd: None,
-            project: None,
-            payload: CLIAgentEventPayload {
-                plugin_version,
-                ..Default::default()
-            },
-        };
-        if self.register_cli_agent_listener_from_event(&notification, ctx) {
-        }
-    }
 
 
 
@@ -7128,13 +6980,6 @@ impl TerminalView {
     // Initialize project for a path and suppress the agent mode setup banner for that path. This also auto-opens
     // the code-review pane after the initialization step completes.
 
-    // Show or hide codebase index speedbump depending when a settings change happens.
-    fn check_codebase_index_speedbump_on_settings_changed(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(working_directory) = self.pwd_if_local(ctx) {
-            let path_buf = PathBuf::from(&working_directory);
-            self.update_repo_banner_state(path_buf, ctx);
-        }
-    }
 
 
 
@@ -7198,17 +7043,6 @@ impl TerminalView {
 impl TerminalView {
 
 
-    fn apply_natural_language_detection_setting(
-        &mut self,
-        enable: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        AISettings::handle(ctx).update(ctx, |settings, ctx| {
-            report_if_error!(settings
-                .nld_in_terminal_enabled_internal
-                .set_value(enable, ctx));
-        });
-    }
 
     fn maybe_render_onboarding_callout(
         &self,
@@ -7630,15 +7464,6 @@ impl TerminalView {
         }
     }
 
-    // Try to execute the provided command. If we cannot execute it now, set it as the pending
-    // command.
-    //
-    // If we set it as pending, the command will execute when we trigger another call to
-    // `execute_pending_command` (either from a `BlockCompleted` or `BootstrapPrecmdDone` event)
-    pub fn execute_command_or_set_pending(&mut self, command: &str, ctx: &mut ViewContext<Self>) {
-        self.set_pending_command(command, ctx);
-        self.execute_pending_command((), ctx);
-    }
 
     fn hide_slow_bootstrap_banner(&mut self, ctx: &mut ViewContext<Self>) {
         if self.is_slow_bootstrap_banner_open {
@@ -7663,8 +7488,6 @@ impl TerminalView {
             || self.input.as_ref(ctx).has_pending_command()
     }
 
-    /// Agent view has been removed; deferred agent-view entry is a no-op.
-    pub fn set_enter_agent_view_after_pending_commands(&mut self) {}
 
     /// Agent view has been removed; deferred agent-view entry is a no-op.
     pub fn clear_enter_agent_view_after_pending_commands(&mut self) {}
@@ -7935,19 +7758,6 @@ impl TerminalView {
         });
     }
 
-    /// Adds persistent toast to toast stack.
-    pub fn show_persistent_toast(
-        &mut self,
-        text: String,
-        flavor: ToastFlavor,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let window_id = ctx.window_id();
-        ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            let toast = DismissibleToast::new(text, flavor);
-            toast_stack.add_persistent_toast(toast, window_id, ctx);
-        });
-    }
 
     /// Adds ephemeral error toast to toast stack.
     fn show_error_toast(&mut self, text: String, ctx: &mut ViewContext<Self>) {
@@ -8157,15 +7967,6 @@ impl TerminalView {
         }
     }
 
-    /// Returns the rich-content link currently hovered inside the AI block view whose view id is
-    /// `rich_content_view_id`, if any. Used to surface a link-specific right-click context menu.
-    fn hovered_rich_content_link_for_view(
-        &self,
-        _rich_content_view_id: EntityId,
-        _ctx: &AppContext,
-    ) -> Option<RichContentLink> {
-        None
-    }
 
     fn context_menu_items(
         &self,
@@ -8856,16 +8657,6 @@ impl TerminalView {
         send_telemetry_from_ctx!(TelemetryEvent::OpenInputContextMenu, ctx);
     }
 
-    fn open_workflow_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        let selected_block_contents =
-            self.selected_block_contents_as_string(BlockEntity::Command, " &&\n", ctx);
-
-        self.open_workflow_modal_with_command(
-            selected_block_contents,
-            SaveAsWorkflowModalSource::Block,
-            ctx,
-        );
-    }
 
     fn open_block_filter_editor(
         &mut self,
@@ -8908,32 +8699,8 @@ impl TerminalView {
         ctx.notify();
     }
 
-    fn open_workflow_modal_from_block(
-        &mut self,
-        block_index: BlockIndex,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Make the block for which we're showing the modal the only selected block.
-        self.reset_selection_to_single_block(block_index, ctx);
-        self.scroll_to_if_not_visible(block_index, ctx);
-
-        send_telemetry_from_ctx!(
-            TelemetryEvent::SaveAsWorkflowModal {
-                source: SaveAsWorkflowModalSource::Block
-            },
-            ctx
-        );
-    }
 
 
-    pub fn open_workflow_modal_with_existing(
-        &mut self,
-        workflow_id: SyncId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let _ = workflow_id;
-        ctx.notify();
-    }
 
     /// Helper method to build alt screen context menu items.
     /// Used both when opening the menu and when rebuilding it (e.g., on pane state changes).
@@ -9771,29 +9538,6 @@ impl TerminalView {
         self.is_selecting
     }
 
-    /// Ensures that `block_list_mouse_states` has entries for every block index
-    /// currently in the block list. Blocks created outside the normal
-    /// `BlockCompleted` event path (e.g. restored conversation command blocks)
-    /// would otherwise lack mouse states, which prevents the label hover
-    /// tooltip, bookmark button, and filter button from rendering.
-    fn ensure_mouse_states_for_all_blocks(&mut self) {
-        let block_count = self.model.lock().block_list().active_block_index() + BlockIndex::from(1);
-        for i in 0..block_count.0 {
-            let idx = BlockIndex::from(i);
-            self.block_list_mouse_states
-                .label_mouse_states
-                .entry(idx)
-                .or_default();
-            self.block_list_mouse_states
-                .bookmark_mouse_states
-                .entry(idx)
-                .or_default();
-            self.block_list_mouse_states
-                .filter_mouse_states
-                .entry(idx)
-                .or_default();
-        }
-    }
 
     #[cfg(test)]
     pub fn clear_buffer_for_testing(&mut self, ctx: &mut ViewContext<Self>) {
@@ -10046,21 +9790,6 @@ impl TerminalView {
         ctx.emit(Event::ShowCommandSearch(Default::default()))
     }
 
-    fn save_as_workflow_from_input(&mut self, ctx: &mut ViewContext<Self>) {
-        let (all_current_input_text, selected_input_text) = self.input.read(ctx, |input, ctx| {
-            input.editor().read(ctx, |editor, ctx| {
-                (editor.buffer_text(ctx), editor.selected_text(ctx))
-            })
-        });
-
-        let command = if selected_input_text.is_empty() {
-            all_current_input_text
-        } else {
-            selected_input_text
-        };
-
-        self.open_workflow_modal_with_command(command, SaveAsWorkflowModalSource::Input, ctx);
-    }
 
     fn toggle_input_hint_text(&mut self, ctx: &mut ViewContext<Self>) {
         let _new_val = InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
@@ -10554,7 +10283,6 @@ impl TerminalView {
         ctx.notify();
     }
 
-    fn rerender_rich_content_blocks(&mut self, _ctx: &mut ViewContext<Self>) {}
 
     fn reset_selection_to_single_block(
         &mut self,
@@ -11099,13 +10827,6 @@ impl TerminalView {
         active_block.index() == block_index && active_block.is_active_and_long_running()
     }
 
-    pub fn has_active_long_running_command(&self) -> bool {
-        let model = self.model.lock();
-        model
-            .block_list()
-            .active_block()
-            .is_active_and_long_running()
-    }
 
     /// If password notification settings enabled, send a notification.
     /// Otherwise, set the banner trigger so that we show the banner the next
@@ -12000,26 +11721,6 @@ impl TerminalView {
 
 
 
-    /// Sends a diff hunk location to a running CLI agent, routing to the
-    /// rich input when open or the PTY when closed.
-    pub fn send_diff_hunk_to_cli_agent_or_rich_input(
-        &mut self,
-        file_path: &str,
-        start_line: usize,
-        end_line: usize,
-        lines_added: u32,
-        lines_removed: u32,
-        ctx: &mut ViewContext<Self>,
-    ) -> Option<CliAgentRouting> {
-        let text = cli_agent::build_diff_hunk_prompt(
-            file_path,
-            start_line,
-            end_line,
-            lines_added,
-            lines_removed,
-        );
-        self.try_send_text_to_cli_agent_or_rich_input(text, ctx)
-    }
 
     fn handle_theme_change(&mut self, ctx: &mut ViewContext<Self>) {
         let appearance = Appearance::as_ref(ctx);
@@ -12872,11 +12573,10 @@ impl TerminalView {
     }
 
     /// Returns true when cursor rendering should be suppressed because the
-    /// CLI agent rich input is open.
-    fn should_hide_cli_agent_cursor_cell(&self, app: &AppContext) -> bool {
-        CLIAgentSessionsModel::as_ref(app)
-            .session(self.view_id)
-            .is_some_and(|s| matches!(s.input_state, CLIAgentInputState::Open { .. }))
+    /// CLI agent rich input is open. The rich-input subsystem has been removed,
+    /// so this is always `false`.
+    fn should_hide_cli_agent_cursor_cell(&self, _app: &AppContext) -> bool {
+        false
     }
 
     fn render_block_list_element(
@@ -13843,34 +13543,9 @@ impl TerminalView {
         });
     }
 
-    fn reset_focus_after_rich_block(&mut self, ctx: &mut ViewContext<Self>) {
-        self.redetermine_terminal_focus(ctx);
-        self.input.update(ctx, |input, ctx| {
-            input.editor().update(ctx, |editor, ctx| {
-                editor.clear_autosuggestion(ctx);
-            });
-        });
-    }
-
-    pub fn cancel_env_var_block(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
-    fn display_non_local_environment_variable_error(
-        &self,
-        window_id: WindowId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            toast_stack.add_ephemeral_toast(
-                DismissibleToast::error(
-                    "Can not invoke environment variable subshell in a non-local session"
-                        .to_owned(),
-                ),
-                window_id,
-                ctx,
-            );
-        });
-    }
+
 
     #[allow(unused_variables)]
     fn get_shell_starter_local(&self, ctx: &mut ViewContext<Self>) -> Option<(String, ShellType)> {
@@ -13902,20 +13577,6 @@ impl TerminalView {
 
 
 
-    fn set_and_execute_subshell_command(
-        &mut self,
-        shell_command: &str,
-        shell_type: ShellType,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Attempt to auto warpify the subshell when bootstrapped
-        self.pending_auto_bootstrap_shell_type = Some(shell_type);
-
-        self.input.update(ctx, |input, ctx| {
-            input.set_pending_command(shell_command, ctx);
-            input.execute_pending_command(ctx);
-        });
-    }
 
 
     #[cfg(feature = "integration_tests")]
@@ -13923,19 +13584,6 @@ impl TerminalView {
         self.active_filter_editor_block_index
     }
 
-    /// Handles when a user clicks on a block in the list of blocks attached to an AI block.
-    fn scroll_to_and_maybe_select_block(
-        &mut self,
-        block_index: BlockIndex,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Selecting the block makes it clear which the user is looking at. We shouldn't select the
-        // block if they're in AI mode because that would affect their pending query's context block
-        // selection.
-        self.reset_selection_to_single_block(block_index, ctx);
-
-        self.scroll_to(block_index, ctx);
-    }
 
     pub(crate) fn view_id(&self) -> EntityId {
         self.view_id
@@ -14272,33 +13920,7 @@ impl TerminalView {
             .set_show_bootstrap_block(true);
     }
 
-    fn generate_codebase_index(&mut self, ctx: &mut ViewContext<Self>) {
-        let Some(active_session_path) = self.active_session_path_if_local(ctx) else {
-            return;
-        };
 
-        CodebaseIndexManager::handle(ctx).update(ctx, |manager, ctx| {
-            manager.build_and_sync_codebase_index(
-                BuildSource::FromPath(active_session_path.as_path()),
-                ctx,
-            );
-        });
-    }
-
-    fn write_codebase_index(&self, _ctx: &mut ViewContext<Self>) {
-        #[cfg(feature = "local_fs")]
-        {
-            let Some(working_directory_str) = self.pwd() else {
-                log::error!("No working directory found for terminal session");
-                return;
-            };
-
-            let working_directory = PathBuf::from(working_directory_str);
-            CodebaseIndexManager::handle(_ctx).update(_ctx, |index_manager, ctx| {
-                index_manager.write_snapshot(working_directory.as_path(), ctx);
-            });
-        }
-    }
 
 
 }

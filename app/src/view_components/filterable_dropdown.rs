@@ -184,11 +184,6 @@ where
         }
     }
 
-    /// The number of items in the dropdown.
-    pub fn len(&self) -> usize {
-        self.items.len()
-    }
-
     /// Select the item with the given name. If no such item exists, this clears the selection.
     pub fn set_selected_by_name(
         &mut self,
@@ -245,22 +240,6 @@ where
             menu.set_width(width);
             ctx.notify();
         })
-    }
-
-    /// When enabled, the open menu sizes itself to the last rendered width of
-    /// the dropdown's top bar. This is useful for flexible dropdowns whose
-    /// trigger width is determined by parent layout rather than a fixed max.
-    pub fn set_match_menu_width_to_top_bar(
-        &mut self,
-        match_width: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.match_menu_width_to_top_bar = match_width;
-        let top_bar_label = self.top_bar_label();
-        self.dropdown.update(ctx, |menu, _ctx| {
-            menu.set_width_match_position_id(match_width.then_some(top_bar_label));
-        });
-        ctx.notify();
     }
 
     pub fn set_disabled(&mut self, ctx: &mut ViewContext<Self>) {

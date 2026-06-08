@@ -5,7 +5,6 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use cfg_if::cfg_if;
-use itertools::Itertools;
 use lazy_static::lazy_static;
 use onboarding::OnboardingIntention;
 use parking_lot::Mutex;

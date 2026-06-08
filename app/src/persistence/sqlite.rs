@@ -25,7 +25,7 @@ use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use riftui::platform::FullscreenState;
 use riftui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
-use riftui::{AppContext, SingletonEntity};
+use riftui::AppContext;
 
 use super::block_list::{delete_blocks, save_block};
 use super::model::{

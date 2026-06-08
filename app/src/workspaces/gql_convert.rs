@@ -23,7 +23,6 @@ use rift_graphql::user::DiscoverableTeamData as GqlDiscoverableTeamData;
 use rift_graphql::workspace::{
     AddonCreditsSettings as GqlAddonCreditsSettings,
     AdminEnablementSetting as GqlAdminEnablementSetting, EmailInvite as GqlEmailInvite,
-    HostEnablementSetting as GqlHostEnablementSetting,
     InviteLinkDomainRestriction as GqlInviteLinkDomainRestriction,
     MembershipRole as GqlMembershipRole, Team as GqlTeam, TeamMember as GqlTeamMember,
     UgcCollectionEnablementSetting as GqlUgcCollectionEnablementSetting, Workspace as GqlWorkspace,
@@ -36,7 +35,7 @@ use super::user_workspaces::WorkspacesMetadataResponse;
 use super::workspace::{
     AIAutonomyPolicy, AddonCreditsSettings, AdminEnablementSetting, AmbientAgentsPolicy, BillingMetadata, CloudConversationStorageSettings,
     CodebaseContextSettings, CustomerType, DelinquencyStatus, EmailInvite, EnterpriseSecretRegex,
-    HostEnablementSetting, InstanceShape, InviteLinkDomainRestriction, LinkSharingSettings,
+    InstanceShape, InviteLinkDomainRestriction, LinkSharingSettings,
     MaxPriorCycles, SecretRedactionSettings,
     SessionSharingPolicy, SharedNotebooksPolicy, SharedWorkflowsPolicy,
     TelemetryDataCollectionPolicy, TelemetrySettings, Tier, UgcCollectionEnablementSetting,
@@ -242,25 +241,6 @@ impl From<GqlAdminEnablementSetting> for AdminEnablementSetting {
     }
 }
 
-impl From<GqlHostEnablementSetting> for HostEnablementSetting {
-    fn from(gql_host_enablement_setting: GqlHostEnablementSetting) -> HostEnablementSetting {
-        match gql_host_enablement_setting {
-            GqlHostEnablementSetting::Enforce => HostEnablementSetting::Enforce,
-            GqlHostEnablementSetting::RespectUserSetting => {
-                HostEnablementSetting::RespectUserSetting
-            }
-            GqlHostEnablementSetting::Other(value) => {
-                report_error!(
-                    anyhow!(
-                        "Invalid HostEnablementSetting '{value}'. Make sure to update client GraphQL types!"
-                    ),
-                    rift_core::errors::ReportErrorLogMode::OncePerRun
-                );
-                HostEnablementSetting::RespectUserSetting
-            }
-        }
-    }
-}
 impl From<GqlUgcDataCollectionPolicy> for UgcDataCollectionPolicy {
     fn from(gql_ugc_data_collection_policy: GqlUgcDataCollectionPolicy) -> UgcDataCollectionPolicy {
         Self {
@@ -766,12 +746,7 @@ impl From<GqlUser> for WorkspacesMetadataResponse {
 
 
 impl From<GqlDiscoverableTeamData> for DiscoverableTeam {
-    fn from(gql_discoverable_team: GqlDiscoverableTeamData) -> DiscoverableTeam {
-        Self {
-            team_uid: gql_discoverable_team.team_uid.into_inner(),
-            num_members: i64::from(gql_discoverable_team.num_members),
-            name: gql_discoverable_team.name,
-            team_accepting_invites: gql_discoverable_team.team_accepting_invites,
-        }
+    fn from(_gql_discoverable_team: GqlDiscoverableTeamData) -> DiscoverableTeam {
+        Self {}
     }
 }

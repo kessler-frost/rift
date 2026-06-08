@@ -39,7 +39,6 @@ use ai::index::full_source_code_embedding::manager::CodebaseIndexManager;
 use autoupdate::AutoupdateStage;
 #[cfg(target_os = "macos")]
 use command::blocking::Command;
-use futures::Future;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 pub(crate) use onboarding::OnboardingTutorial;
@@ -121,7 +120,7 @@ use super::tab_settings::{
     VerticalTabsDisplayGranularity, WorkspaceDecorationVisibility,
 };
 use super::util::{
-    PaneViewLocator, TabMovement, TerminalSessionFallbackBehavior, WelcomeTipsViewState,
+    PaneViewLocator, TabMovement, WelcomeTipsViewState,
     WorkspaceMouseStates, WorkspaceState,
 };
 use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
@@ -146,7 +145,6 @@ use crate::changelog_model::{ChangelogModel, ChangelogRequestType, Event as Chan
 use crate::channel::{Channel, ChannelState};
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
-use crate::context_chips::ChipRuntimeCapabilities;
 use crate::default_terminal::DefaultTerminal;
 use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
@@ -160,7 +158,7 @@ use crate::modal::{Modal, ModalEvent, ModalViewState};
 use crate::network::{NetworkStatus, NetworkStatusEvent};
 use crate::palette::PaletteMode;
 use crate::pane_group::{
-    self, AnyPaneContent,
+    self,
     Direction as PaneGroupDirection, Direction,
     NetworkLogPane, NewTerminalOptions, PaneGroup, PaneId, PanesLayout,
     TabBarHoverIndex,
@@ -169,7 +167,6 @@ use crate::persistence::ModelEvent;
 use crate::projects::ProjectManagementModel;
 use crate::prompt::editor_modal::{
     EditorModal as PromptEditorModal, EditorModalEvent as PromptEditorModalEvent,
-    OpenSource as PromptEditorOpenSource,
 };
 use crate::quit_warning::UnsavedStateSummary;
 use crate::remote_server::manager::RemoteServerManager;
@@ -314,7 +311,7 @@ use crate::workspace::view::build_plan_migration_modal::{
     BuildPlanMigrationModal, BuildPlanMigrationModalEvent,
 };
 use crate::workspace::view::cloud_agent_capacity_modal::{
-    CloudAgentCapacityModal, CloudAgentCapacityModalEvent, CloudAgentCapacityModalVariant,
+    CloudAgentCapacityModal, CloudAgentCapacityModalEvent,
 };
 use crate::workspace::view::codex_modal::CodexModal;
 use crate::workspace::view::free_tier_limit_hit_modal::{
@@ -750,7 +747,6 @@ pub struct Workspace {
     codex_modal: ViewHandle<CodexModal>,
     cloud_agent_capacity_modal: ViewHandle<CloudAgentCapacityModal>,
     free_tier_limit_hit_modal: ViewHandle<FreeTierLimitHitModal>,
-    free_tier_limit_check_triggered: bool,
     toast_stack: ViewHandle<DismissibleToastStack<WorkspaceAction>>,
     agent_toast_stack: ViewHandle<AgentToastStack>,
     update_toast_stack: ViewHandle<DismissibleToastStack<WorkspaceAction>>,
@@ -2593,7 +2589,6 @@ impl Workspace {
             codex_modal,
             cloud_agent_capacity_modal,
             free_tier_limit_hit_modal,
-            free_tier_limit_check_triggered: false,
             lightbox_view: None,
             hoa_onboarding_flow: None,
             hoa_vtabs_callout_pinned_position: None,
@@ -2641,16 +2636,6 @@ impl Workspace {
         self.ai_fact_view.clone()
     }
 
-    fn handle_task_status_reset(&mut self, pane_group_id: EntityId, ctx: &mut ViewContext<Self>) {
-        // Re-render the workspace so the tab indicator picks up the new state.
-        let has_tab = self
-            .tabs
-            .iter()
-            .any(|tab| tab.pane_group.id() == pane_group_id);
-        if has_tab {
-            ctx.notify();
-        }
-    }
 
 
 
@@ -3179,14 +3164,6 @@ impl Workspace {
         });
     }
 
-    fn dismiss_ai_assistant_warm_welcome(&mut self, ctx: &mut ViewContext<Self>) {
-        self.should_show_ai_assistant_warm_welcome = false;
-        let _ = ctx.private_user_preferences().write_value(
-            settings::DISMISSED_AI_ASSISTANT_WELCOME_KEY,
-            true.to_string(),
-        );
-        ctx.notify();
-    }
 
 
 
@@ -3199,17 +3176,7 @@ impl Workspace {
     ) {
     }
 
-    pub fn has_warp_drive_initialized_sections(
-        &self,
-        _app: &AppContext,
-    ) -> impl Future<Output = ()> {
-        std::future::ready(())
-    }
 
-    /// Check if Warp Drive view is focused within. (Warp Drive removed.)
-    fn is_warp_drive_view_focused(&self, _ctx: &mut ViewContext<Self>) -> bool {
-        false
-    }
 
     fn current_focus_region(&self, ctx: &mut ViewContext<Self>) -> FocusRegion {
         let app = ctx;
@@ -3474,10 +3441,6 @@ impl Workspace {
         self.tabs.iter().map(|s| &s.pane_group)
     }
 
-    /// Get the tab color for a given tab index.
-    pub fn get_tab_color(&self, index: usize) -> Option<AnsiColorIdentifier> {
-        self.tabs.get(index).and_then(|tab| tab.color())
-    }
 
 
     /// Gets all sessions in the current workspace.
@@ -3505,14 +3468,6 @@ impl Workspace {
             .expect("Active tab index entry should exist")
     }
 
-    /// Attempts to get selected text from the focused pane.
-    /// Returns None if there is no selection, multiple selections, or an empty selection.
-    /// Supports code, notebook, AI document, and terminal panes.
-    fn get_selected_text_from_focused_view(&self, ctx: &AppContext) -> Option<String> {
-        self.active_tab_pane_group()
-            .as_ref(ctx)
-            .selected_text_from_focused_pane(ctx)
-    }
 
     /// This is meant to be dispatched directly by actions.
     pub fn activate_tab(&mut self, index: usize, ctx: &mut ViewContext<Self>) {
@@ -3967,70 +3922,7 @@ impl Workspace {
         }
     }
 
-    /// Searches this workspace's tabs for the given terminal view and focuses it.
-    /// Returns true if the terminal view was found and focused.
-    fn focus_terminal_view_locally(
-        &mut self,
-        terminal_view_id: EntityId,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        for tab in self.tabs.iter() {
-            let pane_group_handle = &tab.pane_group;
-            let pane_group = pane_group_handle.as_ref(ctx);
-            if let Some(pane_id) = pane_group.find_pane_id_for_terminal_view(terminal_view_id, ctx)
-            {
-                self.focus_pane(
-                    PaneViewLocator {
-                        pane_group_id: pane_group_handle.id(),
-                        pane_id,
-                    },
-                    ctx,
-                );
-                return true;
-            }
-        }
-        false
-    }
 
-    /// Searches other windows for the given terminal view and focuses it there.
-    /// (Uses the same cross-window dispatch pattern as open_notebook/open_workflow.)
-    fn focus_terminal_view_in_other_window(
-        &self,
-        terminal_view_id: EntityId,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let current_window = ctx.window_id();
-        let result = WorkspaceRegistry::as_ref(ctx)
-            .all_workspaces(ctx)
-            .iter()
-            .filter(|(win_id, _)| *win_id != current_window)
-            .find_map(|(win_id, workspace)| {
-                workspace.as_ref(ctx).tab_views().find_map(|pane_group| {
-                    let pane_id = pane_group
-                        .as_ref(ctx)
-                        .find_pane_id_for_terminal_view(terminal_view_id, ctx)?;
-                    Some((
-                        *win_id,
-                        PaneViewLocator {
-                            pane_group_id: pane_group.id(),
-                            pane_id,
-                        },
-                    ))
-                })
-            });
-
-        if let Some((window_id, locator)) = result {
-            ctx.windows().show_window_and_focus_app(window_id);
-            if let Some(root_view_id) = ctx.root_view_id(window_id) {
-                ctx.dispatch_action_for_view(
-                    window_id,
-                    root_view_id,
-                    "root_view:handle_pane_navigation_event",
-                    &locator,
-                );
-            }
-        }
-    }
 
     /// Shows the notification error in the specific pane.
     pub fn show_notification_error(
@@ -5463,9 +5355,6 @@ impl Workspace {
             })
     }
 
-    pub fn active_terminal_id(&self, app: &AppContext) -> Option<EntityId> {
-        self.read_from_active_terminal_view(app, |terminal| terminal.id())
-    }
 
     /// Retrieves the entity id of the active current active input. This is needed
     /// by the Welcome Tip View in order to know where to dispatch the actions
@@ -5673,32 +5562,7 @@ impl Workspace {
         });
     }
 
-    fn cd_to_directory(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
-        let Some(input_handle) = self.get_active_input_view_handle(ctx) else {
-            log::warn!("No active input view when trying to cd to directory");
-            return;
-        };
 
-        let Some(path_str) = path.to_str() else {
-            log::warn!("Could not convert path to string for cd command");
-            return;
-        };
-
-        let cd_command = format!("cd {}", shell_words::quote(path_str));
-        input_handle.update(ctx, |input_view, ctx| {
-            input_view.replace_buffer_content(&cd_command, ctx);
-        });
-    }
-
-    fn open_directory_in_new_tab(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
-        let options = NewTerminalOptions::default().with_initial_directory(path);
-        self.add_tab_with_pane_layout(
-            PanesLayout::SingleTerminal(Box::new(options)),
-            Arc::new(HashMap::new()),
-            None,
-            ctx,
-        );
-    }
 
     #[cfg(feature = "local_fs")]
 
@@ -5863,55 +5727,6 @@ impl Workspace {
     }
 
 
-    pub fn open_or_toggle_warp_drive(
-        &mut self,
-        toggle: bool,
-        explicit_user_action: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Closing all left panels will also close warp drive so we need to retrieve
-        // whether warp drive was open first, and toggle based on the initial value.
-        let was_warp_drive_open = self.current_workspace_state.is_warp_drive_open;
-        self.current_workspace_state.close_all_left_panels();
-        self.current_workspace_state.is_warp_drive_open =
-            if toggle { !was_warp_drive_open } else { true };
-
-        // Set selected object to None upon toggle close of Warp Drive
-        if !self.current_workspace_state.is_warp_drive_open {
-            self.focus_active_tab(ctx);
-        }
-
-        // Reset focused index when opening/toggling Warp Drive open
-        if self.current_workspace_state.is_warp_drive_open {
-            self.reset_focused_index_in_warp_drive(true, ctx);
-        }
-
-        ctx.notify();
-
-        // Telemetry and welcome tip logic is only for when the user explicitly opens Warp Drive
-        // AND warp drive wasn't open before. There are other scenarios where we open Warp Drive like:
-        // new user onboarding, user joins a team, etc so we want to avoid counting those.
-        if explicit_user_action
-            && !was_warp_drive_open
-            && self.current_workspace_state.is_warp_drive_open
-        {
-            send_telemetry_from_ctx!(
-                TelemetryEvent::WarpDriveOpened {
-                    source: WarpDriveSource::Legacy,
-                    is_code_mode_v2: false
-                },
-                ctx
-            );
-            self.tips_completed.update(ctx, |tips_completed, ctx| {
-                mark_feature_used_and_write_to_user_defaults(
-                    Tip::Action(TipAction::OpenWarpDrive),
-                    tips_completed,
-                    ctx,
-                );
-                ctx.notify();
-            });
-        }
-    }
 
     fn open_resource_center_main_page(&mut self, ctx: &mut ViewContext<Self>) {
         // Set current page to Main
@@ -8210,24 +8025,7 @@ impl Workspace {
         }
     }
 
-    /// Closes all tabs that have code panes with the specified file path open.
-    /// This is used when a file is renamed or deleted in the file tree
-    #[cfg(feature = "local_fs")]
-    fn close_tabs_with_file_path(&mut self, _old_path: &Path, ctx: &mut ViewContext<Self>) {
-        // Code panes were an AI feature and have been removed.
-        ctx.notify();
-    }
 
-    /// Code panes were an AI feature and have been removed, so there is nothing to rename.
-    #[cfg(feature = "local_fs")]
-    fn rename_tabs_with_file_path(
-        &mut self,
-        _old_path: &Path,
-        _new_path: &Path,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        ctx.notify();
-    }
 
     /// Update this workspace when it is reopened after being closed.
     pub fn handle_reopen(&mut self, ctx: &mut ViewContext<Self>) {
@@ -8530,35 +8328,6 @@ impl Workspace {
         }
     }
 
-    pub fn add_tab_from_existing_pane(
-        &mut self,
-        pane: Box<dyn AnyPaneContent>,
-        new_idx: usize,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let new_pane_group = ctx.add_typed_action_view(|ctx| {
-            PaneGroup::new_from_existing_pane(
-                pane,
-                self.tips_completed.clone(),
-                self.user_default_shell_unsupported_banner_model_handle
-                    .clone(),
-                self.server_api.clone(),
-                self.model_event_sender.clone(),
-                ctx,
-            )
-        });
-
-        if self.tab_count() == 0 {
-            self.tabs.push(TabData::new(new_pane_group));
-            self.tab_mru_order
-                .push(self.tabs.last().unwrap().pane_group.id());
-            self.activate_tab_internal(self.tab_count() - 1, ctx);
-        } else {
-            self.tabs.insert(new_idx, TabData::new(new_pane_group));
-            self.tab_mru_order.push(self.tabs[new_idx].pane_group.id());
-            self.activate_tab_internal(new_idx, ctx);
-        }
-    }
 
 
 
@@ -9299,11 +9068,6 @@ impl Workspace {
 
 
 
-    fn set_focused_index(&mut self, index: Option<usize>, ctx: &mut ViewContext<Self>) {
-        // Warp Drive was a cloud feature and has been removed.
-        let _ = index;
-        ctx.notify();
-    }
 
     fn handle_changelog_event(&mut self, event: &ChangelogEvent, ctx: &mut ViewContext<Self>) {
         // For certain contexts, like shared sessions, we do not want to force open the side panel
@@ -9538,25 +9302,9 @@ impl Workspace {
 
 
 
-    fn dismiss_create_auth_secret_modal(&mut self, _ctx: &mut ViewContext<Self>) {
-        // The auth-secret modal was a cloud feature and has been removed.
-    }
 
 
 
-    #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-    fn show_handoff_success_toast(ctx: &mut ViewContext<Self>) {
-        let window_id = ctx.window_id();
-        WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            toast_stack.add_ephemeral_toast(
-                DismissibleToast::default(
-                    "Starting cloud environment for this session...".to_owned(),
-                ),
-                window_id,
-                ctx,
-            );
-        });
-    }
 
 
 
@@ -9793,77 +9541,6 @@ impl Workspace {
 
 
 
-    /// Focus and return the active terminal input. If there is no active terminal input (either
-    /// because a command is running or because there are no terminal panes), this may create a new
-    /// terminal pane according to the [`UnavailableTerminalBehavior`].
-    fn focus_terminal_input(
-        &mut self,
-        fallback_behavior: TerminalSessionFallbackBehavior,
-        ctx: &mut ViewContext<Self>,
-    ) -> Option<ViewHandle<TerminalView>> {
-        let active_pane_group = self.active_tab_pane_group();
-
-        // If there's an active terminal session and it's not busy, return it.
-        // If there is no terminal session open, add a terminal pane to the right and return the new terminal view handle.
-        let terminal_view_handle = active_pane_group
-            .as_ref(ctx)
-            .active_session_view(ctx)
-            .unwrap_or_else(|| {
-                let active_pane_group = self.active_tab_pane_group();
-                active_pane_group.update(ctx, |pane_group, ctx| {
-                    pane_group.add_terminal_pane(Direction::Right, None /*chosen_shell*/, ctx);
-                });
-                active_pane_group
-                    .as_ref(ctx)
-                    .active_session_view(ctx)
-                    .unwrap()
-            });
-
-        let _ = &terminal_view_handle;
-        let is_env_var_block = false;
-
-        if self.is_input_box_visible(ctx) {
-            active_pane_group.update(ctx, |pane_group, ctx| pane_group.focus_active_session(ctx));
-            return Some(terminal_view_handle);
-        } else if is_env_var_block {
-            terminal_view_handle.update(ctx, |terminal_view, ctx| {
-                terminal_view.cancel_env_var_block(ctx);
-            });
-            active_pane_group.update(ctx, |pane_group, ctx| pane_group.focus_active_session(ctx));
-            return Some(terminal_view_handle);
-        } else if fallback_behavior != TerminalSessionFallbackBehavior::OpenIfNeeded {
-            // The active terminal exists but is busy, and the fallback behavior is
-            // RequireExisting or OpenIfNone. In those cases, show a toast and no-op.
-            self.toast_stack.update(ctx, |toast_stack, ctx| {
-                let toast = DismissibleToast::error(
-                    "A command in this session is still running.".to_string(),
-                );
-                toast_stack.add_ephemeral_toast(toast, ctx);
-            });
-            return None;
-        }
-
-        // There's no available session and we were asked not to create one.
-        if fallback_behavior == TerminalSessionFallbackBehavior::RequireExisting {
-            return None;
-        }
-
-        // Either:
-        // * There's no active session
-        // * The active session is busy but the fallback behavior is OpenIfNeeded
-        // In this case, open a new terminal pane to the right.
-
-        if !ContextFlag::CreateNewSession.is_enabled() {
-            self.toast_stack.update(ctx, |toast_stack, ctx| {
-                let toast =
-                    DismissibleToast::error("Cannot open a new terminal session".to_string());
-                toast_stack.add_ephemeral_toast(toast, ctx);
-            });
-            return None;
-        }
-
-        active_pane_group.as_ref(ctx).active_session_view(ctx)
-    }
 
     /// Opens the LSP log file in a new terminal pane using `tail -f`.
     fn open_lsp_logs(&mut self, log_path: &PathBuf, ctx: &mut ViewContext<Self>) {
@@ -10134,15 +9811,6 @@ impl Workspace {
         self.open_settings_pane(section, Some(search_query), ctx);
     }
 
-    /// Opens the team settings page and fills the invite field with the given email. This is used when linking directing to
-    /// settings with the intent of inviting a user.
-    pub fn show_team_settings_page_with_email_invite(
-        &mut self,
-        _email_invite: Option<&String>,
-        _ctx: &mut ViewContext<Self>,
-    ) {
-        // Teams were a cloud feature and have been removed.
-    }
 
 
     /// Shows the theme chooser so the user can change the active theme.
@@ -10150,9 +9818,6 @@ impl Workspace {
         self.show_theme_chooser(Some(ThemeChooserMode::for_active_theme(ctx)), ctx)
     }
 
-    pub fn show_theme_chooser_for_custom_theme(&mut self, ctx: &mut ViewContext<Self>) {
-        self.show_theme_chooser(None, ctx)
-    }
 
     /// Shows the theme chooser so the user can change a specific theme.
     pub fn show_theme_chooser(
@@ -10510,24 +10175,6 @@ impl Workspace {
         }
     }
 
-    pub fn open_cloud_agent_capacity_modal(
-        &mut self,
-        variant: CloudAgentCapacityModalVariant,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if !FeatureFlag::CloudMode.is_enabled() {
-            return;
-        }
-        self.cloud_agent_capacity_modal.update(ctx, |modal, ctx| {
-            modal.set_variant(variant);
-            ctx.notify();
-        });
-        self.current_workspace_state
-            .is_cloud_agent_capacity_modal_open = true;
-        ctx.focus(&self.cloud_agent_capacity_modal);
-        ctx.notify();
-        send_telemetry_from_ctx!(TelemetryEvent::CloudAgentCapacityModalOpened, ctx);
-    }
 
     fn handle_free_tier_limit_modal_event(
         &mut self,
@@ -10552,10 +10199,6 @@ impl Workspace {
         }
     }
 
-    pub fn check_and_open_free_tier_limit_modal(&mut self, _ctx: &mut ViewContext<Self>) -> bool {
-        // The free-tier AI request-limit interstitial was removed along with AI.
-        false
-    }
 
 
     pub(crate) fn focus_active_tab(&mut self, ctx: &mut ViewContext<Self>) {
@@ -10569,56 +10212,6 @@ impl Workspace {
         ctx.notify();
     }
 
-    fn open_prompt_editor(
-        &mut self,
-        _open_source: PromptEditorOpenSource,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Try to get a prompt preview from an active session. Otherwise, read it from the settings
-        // view.
-        let ps1_grid_info = self.active_session_ps1_grid_info(ctx).or_else(|| {
-            self.settings_pane
-                .read(ctx, |settings, app| settings.get_ps1_info(app))
-        });
-        let chip_runtime_capabilities = self
-            .active_tab_pane_group()
-            .as_ref(ctx)
-            .active_session_view(ctx)
-            .and_then(|terminal_view| {
-                terminal_view.read(ctx, |terminal, ctx| {
-                    let required_executables = crate::context_chips::available_chips()
-                        .into_iter()
-                        .filter_map(|kind| kind.to_chip())
-                        .flat_map(|chip| chip.runtime_policy().required_executables().to_vec())
-                        .collect::<std::collections::HashSet<_>>();
-                    terminal
-                        .active_block_session_id()
-                        .and_then(|id| terminal.sessions_model().as_ref(ctx).get(id))
-                        .as_deref()
-                        .map(|session| {
-                            ChipRuntimeCapabilities::from_session_with_external_command_queries(
-                                session,
-                                required_executables.iter().map(String::as_str),
-                                false,
-                            )
-                        })
-                })
-            })
-            .unwrap_or_default();
-        self.prompt_editor_modal.update(ctx, |prompt_editor, ctx| {
-            prompt_editor.open(ps1_grid_info, chip_runtime_capabilities, ctx);
-        });
-        self.close_all_overlays(ctx);
-        self.current_workspace_state.is_prompt_editor_open = true;
-        ctx.focus(&self.prompt_editor_modal);
-
-        send_telemetry_from_ctx!(
-            TelemetryEvent::OpenPromptEditor {
-                entrypoint: open_source
-            },
-            ctx
-        );
-    }
 
 
     fn open_theme_creator_modal(&mut self, ctx: &mut ViewContext<Self>) {
@@ -12984,11 +12577,6 @@ impl Workspace {
         panels_view.finish()
     }
 
-    fn is_mailbox_on_left(config: &HeaderToolbarChipSelection) -> bool {
-        config
-            .left_items()
-            .contains(&HeaderToolbarItemKind::NotificationsMailbox)
-    }
 
     fn tabs_panel_side(config: &HeaderToolbarChipSelection) -> PanelPosition {
         if config
@@ -13653,26 +13241,6 @@ impl Workspace {
         }
     }
 
-    /// Send SyncEvent to all synced pane groups.
-    fn process_sync_event_for_all_synced_pane_groups(
-        &mut self,
-        event: &SyncEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        for tab in self.tab_views() {
-            // We have to get the latest SyncInputStatus each iteration because
-            // tab.update below could potentially change it.
-            let synced_pane_group_ids = SyncedInputState::as_ref(ctx);
-
-            if synced_pane_group_ids.should_sync_this_pane_group(tab.id(), ctx.window_id()) {
-                tab.update(ctx, |pane_group, ctx| {
-                    pane_group.send_sync_event_to_panes(event, ctx);
-                });
-            }
-        }
-
-        self.update_pane_dimming_for_current_focus_region(ctx);
-    }
 
     /// Sends SyncEvent to all synced terminal views.
     /// The purpose of the event could be match the active terminal input,
@@ -13758,25 +13326,6 @@ impl Workspace {
         self.open_require_login_modal(AuthViewVariant::RequireLoginCloseable, ctx);
     }
 
-    fn redirect_to_sign_in(&mut self) {
-        #[cfg(target_family = "wasm")]
-        if let Some(current_url) = parse_current_url() {
-            update_browser_url(
-                Url::parse(&format!(
-                    "{}/login?redirect_to={}",
-                    ChannelState::server_root_url(),
-                    current_url.path()
-                ))
-                .ok(),
-                true,
-            );
-        } else {
-            update_browser_url(
-                Url::parse(&format!("{}/login", ChannelState::server_root_url())).ok(),
-                true,
-            );
-        }
-    }
 
     /// Triggers the necessary cleanup for when a user logs out.
     pub fn on_log_out(&mut self, ctx: &mut ViewContext<Self>) {
@@ -15945,12 +15494,6 @@ impl Workspace {
         })
     }
 
-    pub fn get_tab_transfer_info(&self, index: usize, ctx: &AppContext) -> Option<TransferredTab> {
-        if self.tabs.len() <= 1 {
-            return None;
-        }
-        self.tab_transfer_info_at_index(index, ctx)
-    }
 
     pub fn get_tab_transfer_info_for_attach(
         &self,

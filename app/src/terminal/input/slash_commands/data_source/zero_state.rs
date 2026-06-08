@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use riftui::{Entity, ModelHandle, SingletonEntity};
+use riftui::{Entity, ModelHandle};
 
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;

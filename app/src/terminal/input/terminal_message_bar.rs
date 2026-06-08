@@ -3,7 +3,7 @@ use std::sync::Arc;
 use parking_lot::FairMutex;
 use riftui::elements::{Container, Empty, Element};
 use riftui::keymap::Keystroke;
-use riftui::{AppContext, Entity, ModelHandle, SingletonEntity, View, ViewContext};
+use riftui::{AppContext, Entity, ModelHandle, View, ViewContext};
 
 use super::buffer_model::InputBufferModel;
 use super::message_bar::common::render_terminal_message;

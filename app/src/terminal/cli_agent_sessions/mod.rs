@@ -35,13 +35,6 @@ pub struct CLIAgentSessionContext {
 pub enum CLIAgentInputState {
     /// The rich input editor is not open.
     Closed,
-    /// The rich input editor is open.
-    Open {
-        /// How this session was opened (for telemetry).
-        entrypoint: CLIAgentInputEntrypoint,
-        /// Whether the previous lock state was established while the input buffer was empty.
-        previous_was_lock_set_with_empty_buffer: bool,
-    },
 }
 
 /// Why the CLI agent rich input was closed (for telemetry).
@@ -111,10 +104,6 @@ pub struct CLIAgentSession {
     /// `Some("user@hostname")` when running over SSH (warpified or legacy).
     /// Used as a key for per-host plugin install failure tracking.
     pub remote_host: Option<String>,
-    /// When the session was detected via a custom toolbar command pattern,
-    /// the first word of the command (the binary/alias the user typed).
-    /// Used to customize plugin instructions and force manual install mode.
-    pub custom_command_prefix: Option<String>,
     /// Set once the session has received any structured OSC 777 (rich)
     /// notification. Codex's OSC 9 fallback never sets it, so this is the
     /// single source of truth for whether the session is plugin-backed.
@@ -271,21 +260,14 @@ impl Entity for CLIAgentSessionsModel {
 impl SingletonEntity for CLIAgentSessionsModel {}
 
 impl CLIAgentSessionsModel {
-    pub fn new() -> Self {
-        Self {
-            sessions: HashMap::new(),
-        }
-    }
-
     pub fn session(&self, terminal_view_id: EntityId) -> Option<&CLIAgentSession> {
         self.sessions.get(&terminal_view_id)
     }
 
     /// Returns `true` if the rich input editor is currently open for this terminal.
-    pub fn is_input_open(&self, terminal_view_id: EntityId) -> bool {
-        self.sessions
-            .get(&terminal_view_id)
-            .is_some_and(|s| matches!(s.input_state, CLIAgentInputState::Open { .. }))
+    /// The rich-input subsystem has been removed, so this is always `false`.
+    pub fn is_input_open(&self, _terminal_view_id: EntityId) -> bool {
+        false
     }
 
     /// Registers a plugin-backed listener on the session for this terminal.
@@ -346,7 +328,6 @@ impl CLIAgentSessionsModel {
                 listener: Some(listener),
                 plugin_version,
                 remote_host,
-                custom_command_prefix: None,
                 received_rich_notification: false,
             },
             ctx,
@@ -403,33 +384,6 @@ impl CLIAgentSessionsModel {
         }
     }
 
-    pub fn open_input(
-        &mut self,
-        terminal_view_id: EntityId,
-        entrypoint: CLIAgentInputEntrypoint,
-        previous_was_lock_set_with_empty_buffer: bool,
-        should_auto_toggle_input: bool,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        let Some(session) = self.sessions.get_mut(&terminal_view_id) else {
-            return;
-        };
-
-        let previous_input_state = session.input_state;
-        session.input_state = CLIAgentInputState::Open {
-            entrypoint,
-            previous_was_lock_set_with_empty_buffer,
-        };
-        session.should_auto_toggle_input = should_auto_toggle_input;
-
-        ctx.emit(CLIAgentSessionsModelEvent::InputSessionChanged {
-            terminal_view_id,
-            agent: session.agent,
-            previous_input_state,
-            new_input_state: session.input_state,
-        });
-    }
-
     pub fn close_input(
         &mut self,
         terminal_view_id: EntityId,
@@ -476,7 +430,6 @@ impl CLIAgentSessionsModel {
             agent,
         });
     }
-
 }
 
 #[cfg(test)]

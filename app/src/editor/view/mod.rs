@@ -18,7 +18,6 @@ use std::time::Duration;
 
 use anyhow::Result;
 use async_fs;
-use base64::Engine as _;
 use element::CommandXRayMouseStateHandle;
 use itertools::{Either, Itertools};
 use mime_guess::from_path;

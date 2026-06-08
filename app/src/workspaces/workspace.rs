@@ -439,13 +439,6 @@ pub struct UsageVisibility {
     pub max_prior_cycles: MaxPriorCycles,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub enum HostEnablementSetting {
-    Enforce,
-    #[default]
-    RespectUserSetting,
-}
-
 /// This struct is the rust representation of `Tier` from the GraphQL Schema.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]

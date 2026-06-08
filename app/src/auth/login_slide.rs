@@ -124,7 +124,6 @@ pub enum LoginSlideSource {}
 // ---------------------------------------------------------------------------
 
 enum LoginStep {
-    SelectAuthPathway,
     BrowserOpen,
     PrivacySettings,
 }
@@ -193,12 +192,6 @@ pub struct LoginSlideView {
 }
 
 impl LoginSlideView {
-    /// Whether the auth token input editor is currently rendered and should be focusable.
-    /// This is only true on the BrowserOpen step after the user clicks to paste their token.
-    pub fn is_auth_token_input_visible(&self) -> bool {
-        matches!(self.step, LoginStep::BrowserOpen) && self.show_auth_token_input
-    }
-
     fn handle_pasted_auth_url(&mut self, pasted_url: String, ctx: &mut ViewContext<Self>) {
         match AuthRedirectPayload::from_raw_url(pasted_url) {
             Ok(redirect_payload) => {
@@ -247,16 +240,6 @@ impl LoginSlideView {
         editor_rendered: &Cell<bool>,
     ) -> Box<dyn Element> {
         match self.step {
-            LoginStep::SelectAuthPathway => {
-                let children = self.render_select_auth_content(appearance);
-                let bottom_nav = self.render_select_auth_bottom_nav(appearance);
-                slide_content::onboarding_slide_content(
-                    children,
-                    bottom_nav,
-                    self.scroll_state.clone(),
-                    appearance,
-                )
-            }
             LoginStep::BrowserOpen => {
                 let children = self.render_browser_open_content(appearance, editor_rendered);
                 let bottom_nav = self.render_browser_open_bottom_nav(appearance);
@@ -278,202 +261,6 @@ impl LoginSlideView {
                 )
             }
         }
-    }
-
-    // ------------------------------------------------------------------
-    // Step 1: Select auth pathway
-    // ------------------------------------------------------------------
-
-    /// Disclaimer prefix shown before the "Privacy Settings" link. AI is
-    /// dropped from the wording on paths that don't enable AI (e.g.
-    /// Terminal+Drive), since there are no AI features to opt out of there.
-    fn privacy_disclaimer_prefix(&self) -> &'static str {
-        if self.ai_enabled {
-            "If you'd like to opt out of analytics and AI features, you can adjust your "
-        } else {
-            "If you'd like to opt out of analytics, you can adjust your "
-        }
-    }
-
-    fn render_select_auth_content(&self, appearance: &Appearance) -> Vec<Box<dyn Element>> {
-        let theme = appearance.theme();
-        let sub_text_color = internal_colors::text_sub(theme, theme.background().into_solid());
-        let ui_builder = appearance.ui_builder();
-
-        let is_terminal = matches!(self.intention, OnboardingIntention::Terminal);
-        let title_text = if is_terminal {
-            "Get started with Warp Drive"
-        } else {
-            "Get started with AI"
-        };
-        let title = FormattedTextElement::from_str(title_text, appearance.ui_font_family(), 36.)
-            .with_color(internal_colors::text_main(
-                theme,
-                theme.background().into_solid(),
-            ))
-            .with_weight(Weight::Medium)
-            .with_alignment(TextAlignment::Left)
-            .finish();
-
-        let subtitle_text = if is_terminal {
-            "Connect your account to save and share notebooks, workflows, and more across devices."
-        } else {
-            "Connect your account to enable AI-powered planning, coding, and automation."
-        };
-        let subtitle =
-            FormattedTextElement::from_str(subtitle_text, appearance.ui_font_family(), 16.)
-                .with_color(sub_text_color)
-                .with_weight(Weight::Normal)
-                .with_alignment(TextAlignment::Left)
-                .with_line_height_ratio(1.0)
-                .finish();
-
-        // TOS and Privacy links
-        let disclaimer_styles = UiComponentStyles {
-            font_color: Some(sub_text_color),
-            font_size: Some(12.),
-            ..Default::default()
-        };
-
-        let tos_line = Flex::row()
-            .with_child(
-                ui_builder
-                    .span("By continuing, you agree to Warp's ")
-                    .with_style(disclaimer_styles)
-                    .build()
-                    .finish(),
-            )
-            .with_child(
-                ui_builder
-                    .link(
-                        "Terms of Service".into(),
-                        Some(TOS_URL.into()),
-                        None,
-                        self.tos_mouse_state.clone(),
-                    )
-                    .soft_wrap(false)
-                    .with_style(UiComponentStyles {
-                        font_size: Some(12.),
-                        ..Default::default()
-                    })
-                    .build()
-                    .finish(),
-            )
-            .finish();
-
-        let privacy_line = Flex::row()
-            .with_child(
-                ui_builder
-                    .span(self.privacy_disclaimer_prefix())
-                    .with_style(disclaimer_styles)
-                    .build()
-                    .finish(),
-            )
-            .with_child(
-                ui_builder
-                    .link(
-                        "Privacy Settings".into(),
-                        None,
-                        Some(Box::new(|ctx| {
-                            ctx.dispatch_typed_action(LoginSlideAction::ShowPrivacySettings);
-                        })),
-                        self.privacy_settings_mouse_state.clone(),
-                    )
-                    .soft_wrap(false)
-                    .with_style(UiComponentStyles {
-                        font_size: Some(12.),
-                        ..Default::default()
-                    })
-                    .build()
-                    .finish(),
-            )
-            .finish();
-
-        let disclaimers = Container::new(
-            Flex::column()
-                .with_child(privacy_line)
-                .with_child(Container::new(tos_line).with_margin_top(8.).finish())
-                .finish(),
-        )
-        .with_margin_top(24.)
-        .finish();
-
-        let header = Flex::column()
-            .with_main_axis_size(MainAxisSize::Min)
-            .with_cross_axis_alignment(CrossAxisAlignment::Start)
-            .with_child(title)
-            .with_child(Container::new(subtitle).with_margin_top(16.).finish())
-            .with_child(disclaimers)
-            .finish();
-
-        vec![header]
-    }
-
-    fn render_select_auth_bottom_nav(&self, appearance: &Appearance) -> Box<dyn Element> {
-        let back_button = self.back_button.render(
-            appearance,
-            button::Params {
-                content: button::Content::Label("Back".into()),
-                theme: &button::themes::Naked,
-                options: button::Options {
-                    on_click: Some(Box::new(|ctx, _app, _pos| {
-                        ctx.dispatch_typed_action(LoginSlideAction::Back);
-                    })),
-                    ..button::Options::default(appearance)
-                },
-            },
-        );
-
-        let cmd_enter = Keystroke::parse("cmdorctrl-enter").unwrap_or_default();
-        let skip_label = if matches!(self.intention, OnboardingIntention::Terminal) {
-            "Disable Warp Drive"
-        } else {
-            "Disable AI features"
-        };
-        let skip_button = self.skip_button.render(
-            appearance,
-            button::Params {
-                content: button::Content::Label(skip_label.into()),
-                theme: &button::themes::Naked,
-                options: button::Options {
-                    keystroke: Some(cmd_enter),
-                    on_click: Some(Box::new(|ctx, _app, _pos| {
-                        ctx.dispatch_typed_action(LoginSlideAction::ShowSkipDialog);
-                    })),
-                    ..button::Options::default(appearance)
-                },
-            },
-        );
-
-        let enter = Keystroke::parse("enter").unwrap_or_default();
-        let login_button = self.login_button.render(
-            appearance,
-            button::Params {
-                content: button::Content::Label("Continue".into()),
-                theme: &button::themes::Primary,
-                options: button::Options {
-                    keystroke: Some(enter),
-                    on_click: Some(Box::new(|ctx, _app, _pos| {
-                        ctx.dispatch_typed_action(LoginSlideAction::Enter);
-                    })),
-                    ..button::Options::default(appearance)
-                },
-            },
-        );
-
-        let right_buttons = Flex::row()
-            .with_cross_axis_alignment(CrossAxisAlignment::Center)
-            .with_child(skip_button)
-            .with_child(Container::new(login_button).with_margin_left(4.).finish())
-            .finish();
-
-        Flex::row()
-            .with_main_axis_size(MainAxisSize::Max)
-            .with_main_axis_alignment(MainAxisAlignment::SpaceBetween)
-            .with_cross_axis_alignment(CrossAxisAlignment::Center)
-            .with_child(back_button)
-            .with_child(right_buttons)
-            .finish()
     }
 
     // ------------------------------------------------------------------

@@ -13,7 +13,6 @@ use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::command::ExitCode;
 use rift_core::context_flag::ContextFlag;
-use rift_terminal::shell::{ShellName, ShellType};
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use rift_util::path::convert_wsl_to_windows_host_path;
 #[cfg(feature = "local_fs")]
@@ -33,7 +32,6 @@ use riftui::{
 use serde::{Deserialize, Serialize};
 use settings::Setting as _;
 use typed_path::TypedPath;
-use url::Url;
 use uuid::Uuid;
 
 use crate::app_state::{
@@ -68,14 +66,13 @@ use crate::terminal::focus_env::add_session_focus_env_vars;
 use crate::terminal::general_settings::{GeneralSettings, GeneralSettingsChangedEvent};
 #[cfg(feature = "local_tty")]
 use crate::terminal::local_tty;
-use crate::terminal::model::terminal_model::ConversationTranscriptViewerStatus;
 use crate::terminal::session_settings::{NewSessionSource, SessionSettings};
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{
     BlockNotification, ExecuteCommandEvent, LeftPanelTargetView, SyncEvent, TerminalViewState,
 };
 use crate::terminal::{
-    MockTerminalManager, ShareBlockModal, ShareBlockModalEvent, ShellLaunchData, ShellLaunchState,
+    ShareBlockModal, ShareBlockModalEvent, ShellLaunchData,
     TerminalManager, TerminalModel, TerminalView,
 };
 use crate::undo_close::{UndoCloseStack, UndoCloseStackEvent};
@@ -795,12 +792,6 @@ impl PaneGroup {
         })
     }
 
-    /// Returns true if this pane group contains any terminal panes.
-    pub fn has_terminal_panes(&self) -> bool {
-        self.pane_contents
-            .keys()
-            .any(|pane_id| pane_id.is_terminal_pane())
-    }
 
 
 
@@ -809,22 +800,6 @@ impl PaneGroup {
         false
     }
 
-    pub fn smart_split_direction(
-        &self,
-        ctx: &mut ViewContext<Self>,
-        split_ratio: f32,
-    ) -> Direction {
-        let size = self.size(ctx);
-        // The new width if split horizontally.
-        let new_width = size.x() / (self.num_splits_at_root(SplitDirection::Horizontal) + 1) as f32;
-        let new_height = size.y();
-
-        if new_width / new_height > split_ratio {
-            Direction::Left
-        } else {
-            Direction::Up
-        }
-    }
 
     /// Total size of the pane group.
     pub fn size(&self, ctx: &mut ViewContext<Self>) -> Vector2F {
@@ -1473,11 +1448,6 @@ impl PaneGroup {
 
 
 
-    fn close_panes(&mut self, pane_ids: Vec<PaneId>, ctx: &mut ViewContext<Self>) {
-        for pane_id in pane_ids {
-            self.close_pane(pane_id, ctx);
-        }
-    }
 
 
 
@@ -1581,16 +1551,7 @@ impl PaneGroup {
     }
 
 
-    // Session sharing was a cloud feature and has been removed.
-    fn open_share_session_denied_modal(
-        &mut self,
-        _terminal_pane_id: TerminalPaneId,
-        _ctx: &mut ViewContext<Self>,
-    ) {
-    }
 
-    /// Session sharing was a cloud feature and has been removed.
-    fn close_share_session_modal(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
 
@@ -1981,24 +1942,6 @@ impl PaneGroup {
         new_pane_id
     }
 
-    /// Adds a terminal split pane without applying the user's default session mode.
-    pub fn add_terminal_pane_ignoring_default_session_mode(
-        &mut self,
-        direction: Direction,
-        chosen_shell: Option<AvailableShell>,
-        ctx: &mut ViewContext<Self>,
-    ) -> TerminalPaneId {
-        let new_pane_id = self.add_session_with_default_session_mode_behavior(
-            direction,
-            Some(self.focused_pane_id(ctx)),
-            self.active_session_id(ctx),
-            chosen_shell,
-            DefaultSessionModeBehavior::Ignore,
-            ctx,
-        );
-        ctx.emit(Event::AppStateChanged);
-        new_pane_id
-    }
 
     /// Used when splitting panes.
     fn insert_terminal_pane(
@@ -2029,27 +1972,6 @@ impl PaneGroup {
     fn forget_transitively_shared_pane(&mut self, _pane_id: PaneId) {}
 
 
-    /// Inserts `pane` into `pane_contents` and attaches it (so subscriptions,
-    /// focus handle, etc. are wired up) without adding it to the layout tree.
-    /// Used for child agent panes which only enter the tree later via the
-    /// pill bar's swap or split-off paths.
-    fn attach_child_pane_off_tree(
-        &mut self,
-        pane: Box<dyn AnyPaneContent>,
-        ctx: &mut ViewContext<Self>,
-    ) -> Option<PaneId> {
-        let pane_id = pane.as_pane().id();
-        self.pane_contents.insert(pane_id, pane);
-        let pane = self
-            .pane_contents
-            .get(&pane_id)
-            .expect("Just inserted pane");
-        if !self.try_attach_pane(pane.as_ref(), ctx) {
-            self.pane_contents.remove(&pane_id);
-            return None;
-        }
-        Some(pane_id)
-    }
 
     /// Get the [`PaneView<TerminalView>`] for the pane at `pane_index`, if that pane is:
     /// 1. In bounds
@@ -2173,72 +2095,12 @@ impl PaneGroup {
             .any(|(_, pane_content)| pane_content.as_pane().is_pane_being_dragged(app))
     }
 
-    /// Removes the given pane id from the pane group, focusing the previous active session
-    /// and pane and returning the Box<dyn AnyPaneContent> of the removed pane. Note that this
-    /// is primarily used for pane management, and should not be used if you are planning on closing
-    /// the session as this does not call the needed clean up code and does not add the tab
-    /// to the undo stack if it gets closed.
-    pub fn remove_pane_for_move(
-        &mut self,
-        pane_id: &PaneId,
-        ctx: &mut ViewContext<Self>,
-    ) -> Option<Box<dyn AnyPaneContent>> {
-        // Clear any hidden pane entry since the pane is being permanently removed from this group.
-        self.panes.remove_hidden_pane(*pane_id);
-
-        let was_focused = self.focus_state.as_ref(ctx).is_pane_focused(*pane_id);
-        self.focus_next_terminal_pane_and_activate_session(*pane_id, PaneRemovalReason::Move, ctx);
-        if self.pane_count() == 1 {
-            ctx.emit(Event::Exited {
-                add_to_undo_stack: false,
-            });
-        }
-
-        match self.pane_contents.get(pane_id) {
-            Some(data) => {
-                let pane = data.as_pane();
-                pane.detach(self, DetachType::Moved, ctx);
-            }
-            None => log::error!("Could not find data for pane id: {pane_id:?}"),
-        };
-
-        if !self.panes.remove(*pane_id) {
-            log::error!("Pane not found");
-        }
-
-        let pane_content = self.pane_contents.remove(pane_id);
-
-        let in_split_pane = self.panes.visible_pane_count() > 1;
-        self.focus_state.update(ctx, |focus_state, ctx| {
-            focus_state.set_in_split_pane(in_split_pane, ctx);
-            // If the focused+maximized pane was removed, stop maximizing panes.
-            if was_focused {
-                focus_state.set_focused_pane_maximized(false, ctx);
-            }
-        });
-
-        ctx.notify();
-        ctx.emit(Event::TerminalViewStateChanged);
-        ctx.emit(Event::AppStateChanged);
-        pane_content
-    }
 
 
 
 
 
 
-    /// Removes an editor tab from a code pane for moving to another location.
-    /// Returns the removed tab as a CodePane if the operation succeeds.
-    pub fn remove_editor_tab_for_move(
-        &mut self,
-        _pane_id: PaneId,
-        _editor_tab_index: usize,
-        _ctx: &mut ViewContext<Self>,
-    ) -> Option<Box<dyn AnyPaneContent>> {
-        // Code panes were an AI feature and have been removed.
-        None
-    }
 
     /// The generic pane at `index`, if it exists.
     pub fn pane_by_index(&self, index: usize) -> Option<&dyn PaneContent> {
@@ -2675,26 +2537,6 @@ impl PaneGroup {
         self.close_pane_with_confirmation(self.focused_pane_id(ctx), ctx);
     }
 
-    pub fn add_pane_as_hidden(
-        &mut self,
-        pane: Box<dyn AnyPaneContent>,
-        direction: Direction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        // Since we are hiding the pane before adding to the tree, use the requested
-        // direction for the temporary preview split without affecting focus.
-        let _ = self.add_pane_with_options(
-            pane,
-            AddPaneOptions {
-                direction,
-                base_pane_id: None,
-                focus_new_pane: false,
-                visibility: NewPaneVisibility::HiddenForMove,
-                emit_app_state_changed: true,
-            },
-            ctx,
-        );
-    }
 
     /// We return a pane_id if the pane successfully attached
     /// Otherwise, we return None
@@ -2836,29 +2678,6 @@ impl PaneGroup {
         false
     }
 
-    /// If the given pane id exists in this pane group, performs a root split in the given direction
-    /// to move it to a new location.
-    pub fn move_pane_with_root_split(
-        &mut self,
-        id: PaneId,
-        direction: Direction,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.panes.clear_hidden_panes_from_move();
-        // Also clear hidden closed panes since rearranging invalidates undo functionality
-        self.clear_hidden_closed_panes(ctx);
-
-        if !self.panes.remove(id) {
-            log::error!("Pane not found when attempting to move");
-            return;
-        }
-
-        self.panes.split_root(id, direction);
-        self.handle_pane_count_change(ctx);
-        ctx.notify();
-        ctx.emit(Event::TerminalViewStateChanged);
-        ctx.emit(Event::AppStateChanged);
-    }
 
     pub fn move_pane(
         &mut self,
@@ -3351,42 +3170,6 @@ impl PaneGroup {
 
 
 
-    /// Creates a loading terminal view with MockTerminalManager in loading state.
-    /// This is used by both `new_for_conversation_transcript_viewer_loading` and `create_loading_terminal_pane`.
-    fn create_loading_terminal_manager_and_view(
-        resources: TerminalViewResources,
-        view_bounds_size: Vector2F,
-        window_id: WindowId,
-        ctx: &mut ViewContext<Self>,
-    ) -> (
-        ViewHandle<TerminalView>,
-        ModelHandle<Box<dyn TerminalManager>>,
-    ) {
-        let terminal_manager = MockTerminalManager::create_model(
-            ShellLaunchState::ShellSpawned {
-                available_shell: None,
-                display_name: ShellName::blank(),
-                shell_type: ShellType::Zsh,
-            },
-            resources,
-            view_bounds_size,
-            window_id,
-            ctx,
-        );
-
-        // Set the conversation transcript viewer status to Loading
-        terminal_manager.update(ctx, |terminal_manager, _ctx| {
-            terminal_manager
-                .model()
-                .lock()
-                .set_conversation_transcript_viewer_status(Some(
-                    ConversationTranscriptViewerStatus::Loading,
-                ));
-        });
-
-        let terminal_view = terminal_manager.as_ref(ctx).view();
-        (terminal_view, terminal_manager)
-    }
 
     /// Whether to use the user-specified startup directory when starting
     /// a new session. On Windows, we ignore this custom directory setting in
@@ -3548,23 +3331,6 @@ impl PaneGroup {
         let _ = self.add_pane(direction, None, Box::new(pane), focus_new_pane, ctx);
     }
 
-    /// Adds a new pane to this group, relative to an existing pane.
-    pub fn add_pane_sibling(
-        &mut self,
-        relative_to: PaneId,
-        direction: Direction,
-        pane: impl Into<Box<dyn AnyPaneContent>>,
-        focus_new_pane: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let _ = self.add_pane(
-            direction,
-            Some(relative_to),
-            pane.into(),
-            focus_new_pane,
-            ctx,
-        );
-    }
 
     fn init_pane(
         &mut self,
@@ -3820,15 +3586,6 @@ impl PaneGroup {
         }
     }
 
-    fn handle_pane_link_updated(&self, pane_id: PaneId, url: Option<Url>, ctx: &AppContext) {
-        log::debug!("Url for pane should be updated pane_id: {pane_id:?}, url: {url:?}");
-        #[cfg(target_family = "wasm")]
-        if pane_id == self.focused_pane_id(ctx) {
-            update_browser_url(url, false);
-        }
-
-        let _ = ctx;
-    }
 
     #[cfg(target_family = "wasm")]
     fn update_browser_url(&self, ctx: &mut ViewContext<Self>) {
@@ -3892,18 +3649,6 @@ impl PaneGroup {
         self.terminal_view_from_pane_id(self.focused_pane_id(ctx), ctx)
     }
 
-    /// If the active session slot holds a swapped-in replacement (e.g. a
-    /// child agent pane), returns the displaced original's pane ID and
-    /// terminal view. Returns `None` when no swap is active.
-    pub fn original_session_if_swapped(
-        &self,
-        ctx: &AppContext,
-    ) -> Option<(PaneId, ViewHandle<TerminalView>)> {
-        let active_pane_id = PaneId::from(self.active_session_id(ctx)?);
-        let original_pane_id = self.panes.original_pane_for_replacement(active_pane_id)?;
-        let view = self.terminal_view_from_pane_id(original_pane_id, ctx)?;
-        Some((original_pane_id, view))
-    }
 
     /// Given a pane ID, retrieve its backing terminal pane contents, if the pane is a terminal pane.
     fn terminal_session_by_id(&self, pane_id: impl Into<PaneId>) -> Option<&TerminalPane> {
@@ -4000,21 +3745,6 @@ impl PaneGroup {
         true
     }
 
-    fn focus_pane_preserving_maximized_state(
-        &mut self,
-        id: PaneId,
-        focus_pane_contents: bool,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        let was_maximized = self.is_focused_pane_maximized(ctx);
-        let focused = self.focus_pane(id, focus_pane_contents, ctx);
-        if focused && was_maximized {
-            self.focus_state.update(ctx, |focus_state, ctx| {
-                focus_state.set_focused_pane_maximized(true, ctx);
-            });
-        }
-        focused
-    }
     fn focus_pane_and_record_in_history(
         &mut self,
         id: PaneId,
@@ -4157,16 +3887,6 @@ impl PaneGroup {
             .collect()
     }
 
-    /// Returns terminal views from layout-tree-visible panes only.
-    /// Unlike `terminal_views()`, this excludes off-tree child agent panes
-    /// and panes hidden for any reason (temporary replacement, child agent, etc.).
-    pub fn visible_terminal_views(&self, ctx: &AppContext) -> Vec<ViewHandle<TerminalView>> {
-        self.panes
-            .visible_pane_ids()
-            .into_iter()
-            .filter_map(|pane_id| self.terminal_view_from_pane_id(pane_id, ctx))
-            .collect()
-    }
 
 
 

@@ -15,15 +15,13 @@ mod terminal_message_bar;
 
 use std::any::Any;
 use std::borrow::Cow;
-use std::fmt::Write;
 use std::ops::Range;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_channel::Sender;
-use base64::Engine as _;
 #[cfg(feature = "local_fs")]
 use diesel::SqliteConnection;
 use futures::stream::AbortHandle;
@@ -51,7 +49,7 @@ use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, Wa
 use riftui::clipboard::{ClipboardContent, ImageData};
 use riftui::clipboard_utils::CLIPBOARD_IMAGE_MIME_TYPES;
 use riftui::elements::{
-    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType, ParentElement,
+    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType,
     ResizableStateHandle, SavePosition, SelectionHandle, YAxisAnchor,
 };
 pub use riftui::elements::{ParentElement as _, Stack};
@@ -59,24 +57,20 @@ pub use riftui::geometry::vector::{vec2f, Vector2F};
 use riftui::keymap::{EditableBinding, FixedBinding, Keystroke};
 use riftui::platform::OperatingSystem;
 use riftui::presenter::ChildView;
-#[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
-use riftui::r#async::FutureExt as _;
 use riftui::r#async::SpawnedFutureHandle;
-use riftui::ui_components::components::UiComponent;
 use riftui::units::IntoPixels;
 pub use riftui::WindowId;
 use riftui::{
     end_trace, start_trace, AppContext, Entity, EntityId, FocusContext, ModelAsRef, ModelHandle,
     SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use settings::{Setting as _, ToggleableSetting};
 use string_offset::{ByteOffset, CharOffset};
-use vim::vim::{VimHandler, VimMode};
+use vim::vim::VimMode;
 
 use self::decorations::InputBackgroundJobOptions;
 use super::alias::is_expandable_alias;
-use super::block_list_viewport::InputMode;
 use super::event::{BlockCompletedEvent, BlockType};
 use super::ligature_settings::LigatureSettings;
 use super::model::block::{BlockMetadata, BlocklistEnvVarMetadata};
@@ -118,13 +112,13 @@ use crate::pane_group::PaneGroupAction;
 use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};
 use crate::prefix::longest_common_prefix;
 use crate::resource_center::{
-    mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipHint, TipsCompleted,
+    mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
 use crate::search::slash_command_menu::static_commands::commands::COMMAND_REGISTRY;
 use crate::search::QueryFilter;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
-    AICommandSearchEntrypoint, CommandXRayTrigger,
+    CommandXRayTrigger,
     TelemetryEvent, 
 };
 use crate::session_management::SessionNavigationPromptElements;
@@ -139,7 +133,6 @@ use crate::suggestions::ignored_suggestions_model::{
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::buffer_model::InputBufferModel;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
-use crate::terminal::input::repos::InlineReposMenuEvent;
 use crate::terminal::input::slash_commands::SlashCommandTrigger;
 use crate::terminal::input::suggestions_mode_model::{
     InputSuggestionsModeEvent, InputSuggestionsModeModel,
@@ -1418,34 +1411,6 @@ impl Input {
 
 
 
-    fn handle_repos_menu_event(
-        &mut self,
-        event: &InlineReposMenuEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            InlineReposMenuEvent::NavigateToRepo { path } => {
-                if self.suggestions_mode_model.as_ref(ctx).is_repos_menu() {
-                    self.suggestions_mode_model.update(ctx, |model, ctx| {
-                        model.set_mode(InputSuggestionsMode::Closed, ctx);
-                    });
-                    ctx.notify();
-                }
-                self.clear_buffer_and_reset_undo_stack(ctx);
-                let path_str = path.to_string_lossy().replace("'", "'\\''");
-                let cd_command = format!("cd '{path_str}'");
-                self.try_execute_command(&cd_command, ctx);
-            }
-            InlineReposMenuEvent::Dismissed => {
-                if self.suggestions_mode_model.as_ref(ctx).is_repos_menu() {
-                    self.suggestions_mode_model.update(ctx, |model, ctx| {
-                        model.close_and_restore_buffer(ctx);
-                    });
-                    ctx.notify();
-                }
-            }
-        }
-    }
 
 
 
@@ -1658,16 +1623,6 @@ impl Input {
         }
     }
 
-    pub(super) fn insert_into_cli_agent_rich_input(
-        &mut self,
-        text: &str,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        self.focus_input_box(ctx);
-        self.editor.update(ctx, |editor, ctx| {
-            editor.user_initiated_insert(text, PlainTextEditorViewAction::Paste, ctx);
-        });
-    }
 
 
 
@@ -2050,61 +2005,6 @@ impl Input {
 
 
 
-    fn confirm_suggestion(&mut self, suggestion: &str, ctx: &mut ViewContext<Input>) -> bool {
-        self.confirm_suggestion_internal(suggestion, Executing::No, ctx)
-    }
-
-    fn confirm_and_execute_suggestion(
-        &mut self,
-        suggestion: &str,
-        ctx: &mut ViewContext<Input>,
-    ) -> bool {
-        self.confirm_suggestion_internal(suggestion, Executing::Yes, ctx)
-    }
-
-    /// Handles suggestion confirmation behaviour in editor and returns true if suggestions menu should be closed
-    /// For CompletionSuggestions, inserts suggestion into editor. For HistoryUp, no action since "select" populates buffer.
-    /// Closed branch should never be executed (does not use the input suggestions panel).
-    fn confirm_suggestion_internal(
-        &mut self,
-        suggestion: &str,
-        executing: Executing,
-        ctx: &mut ViewContext<Input>,
-    ) -> bool {
-        match self.suggestions_mode_model.as_ref(ctx).mode() {
-            InputSuggestionsMode::Closed => false,
-            InputSuggestionsMode::HistoryUp { .. } => true,
-            InputSuggestionsMode::CompletionSuggestions {
-                replacement_start, ..
-            } => {
-                self.insert_completion_result_into_editor(
-                    suggestion,
-                    *replacement_start,
-                    executing,
-                    ctx,
-                );
-                true
-            }
-            InputSuggestionsMode::StaticWorkflowEnumSuggestions {
-                selected_ranges, ..
-            }
-            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                selected_ranges, ..
-            } => {
-                let selected_ranges = selected_ranges.clone();
-                self.editor.update(ctx, |editor, ctx| {
-                    editor.select_and_replace(
-                        suggestion,
-                        selected_ranges.iter().cloned(),
-                        PlainTextEditorViewAction::AcceptCompletionSuggestion,
-                        ctx,
-                    );
-                });
-                true
-            }
-        }
-    }
-
     pub fn close_input_suggestions_and_restore_buffer(
         &mut self,
         should_focus_input: bool,
@@ -2254,16 +2154,6 @@ impl Input {
             should_restore_buffer_before_history_up,
             ctx,
         );
-    }
-
-    /// Closes any active suggestion mode UI when starting a new conversation.
-    ///
-    /// This is intentionally narrower than `close_overlays`: it does not close Voltron, workflow
-    /// info overlays, etc.
-    fn close_suggestion_modes_for_new_conversation(&mut self, ctx: &mut ViewContext<Self>) {
-        self.suggestions_mode_model.update(ctx, |model, ctx| {
-            model.set_mode(InputSuggestionsMode::Closed, ctx);
-        });
     }
 
     fn editor_up(&mut self, ctx: &mut ViewContext<Self>) {
@@ -2705,24 +2595,6 @@ impl Input {
             ));
         }
     }
-
-    /// Whether the given event should trigger a request to generate an AI-based natural language
-    /// autosuggestion, due to the buffer content meaningfully changing.
-    fn is_nl_ai_autosuggestion_triggering_event(event: &EditorEvent) -> bool {
-        matches!(
-            event,
-            EditorEvent::Edited(_)
-                | EditorEvent::BufferReplaced
-                | EditorEvent::InsertLastWordPrevCommand
-                | EditorEvent::AutosuggestionAccepted { .. }
-                | EditorEvent::DeleteAllLeft
-                | EditorEvent::BackspaceOnEmptyBuffer
-                | EditorEvent::BackspaceAtBeginningOfBuffer
-                | EditorEvent::MiddleClickPaste
-        )
-    }
-
-
 
     fn handle_editor_event(&mut self, event: &EditorEvent, ctx: &mut ViewContext<Self>) {
         // We want to clear the token description hover on any editor action
@@ -5076,22 +4948,6 @@ impl Input {
             });
     }
 
-    fn active_session_path_if_local(&self, ctx: &ViewContext<Self>) -> Option<&Path> {
-        self.active_block_session_id().and_then(|session_id| {
-            let current_session = self.sessions.as_ref(ctx).get(session_id)?;
-            if current_session.is_local() {
-                self.active_block_metadata
-                    .as_ref()
-                    .and_then(BlockMetadata::current_working_directory)
-                    .map(Path::new)
-            } else {
-                None
-            }
-        })
-    }
-
-
-
     fn render_input_box(
         &self,
         show_vim_status: bool,
@@ -5162,49 +5018,6 @@ impl Input {
     }
 
 
-    /// Returns whether AI command search should be displayed for the given
-    /// editor contents.
-    fn editor_starts_with_command_search_trigger(&self, ctx: &AppContext) -> bool {
-        self.buffer_text(ctx).starts_with(AI_COMMAND_SEARCH_TRIGGER)
-    }
-
-
-    /// Shows the AI command search panel.
-    ///
-    /// This modifies the input buffer as needed to display the panel (i.e.:
-    /// inserting a leading #, which is the trigger when typed manually by the
-    /// user).
-    fn show_ai_command_search(&mut self, ctx: &mut ViewContext<Input>) {
-        // If the editor doesn't contain the necessary trigger for AI command
-        // search, update its buffer accordingly.
-        let buffer_starts_with_trigger = self.editor_starts_with_command_search_trigger(ctx);
-        if !buffer_starts_with_trigger {
-            let updated_text = format!("{AI_COMMAND_SEARCH_TRIGGER} {}", self.buffer_text(ctx));
-            self.editor.update(ctx, |editor, ctx| {
-                editor.set_buffer_text(&updated_text, ctx);
-            });
-        }
-
-        self.tips_completed.update(ctx, |tips_completed, ctx| {
-            mark_feature_used_and_write_to_user_defaults(
-                Tip::Action(TipAction::AiCommandSearch),
-                tips_completed,
-                ctx,
-            );
-            ctx.notify();
-        });
-
-        ctx.emit(Event::ShowCommandSearch(Default::default()));
-
-        let _entrypoint = if buffer_starts_with_trigger {
-            AICommandSearchEntrypoint::ShortHandTrigger
-        } else {
-            AICommandSearchEntrypoint::Keybinding
-        };
-        send_telemetry_from_ctx!(TelemetryEvent::AICommandSearchOpened { entrypoint }, ctx);
-        ctx.notify();
-    }
-
     /// Returns the SavePosition ID for the input.
     ///
     /// This may be used by parent views to position UI elements relative to the input.
@@ -5234,14 +5047,6 @@ impl Input {
     }
 
 
-    /// Returns whether the input box is currently pinned to the top of the screen.
-    fn is_input_at_top(&self, model: &TerminalModel, ctx: &AppContext) -> bool {
-        match InputModeSettings::as_ref(ctx).input_mode.value() {
-            InputMode::PinnedToBottom => false,
-            InputMode::PinnedToTop => true,
-            InputMode::Waterfall => model.is_block_list_empty(),
-        }
-    }
 }
 
 impl Entity for Input {

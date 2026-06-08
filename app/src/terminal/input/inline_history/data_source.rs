@@ -116,9 +116,7 @@ impl SyncDataSource for InlineHistoryMenuDataSource {
                 )
                 .into_iter()
                 .filter_map(|suggestion| {
-                    let HistoryInputSuggestion::Command { entry } = &suggestion else {
-                        return None;
-                    };
+                    let HistoryInputSuggestion::Command { entry } = &suggestion;
 
                     let command = entry.command.trim();
                     if command.is_empty() {

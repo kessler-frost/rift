@@ -51,8 +51,6 @@ use crate::terminal::model::terminal_model::{BlockIndex, WithinBlock};
 use crate::terminal::view::{InlineBannerId, InlineBannerItem, SeparatorId, WithinBlockBanner};
 use crate::terminal::{BlockPadding, ShellHost, SizeInfo, SizeUpdate};
 
-#[cfg(feature = "local_fs")]
-const RESTORED_BLOCK_SEPARATOR_HEIGHT: f64 = 1.5;
 pub(in crate::terminal) const INLINE_BANNER_HEIGHT: f64 = 2.5;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -771,21 +769,6 @@ impl BlockList {
         self.event_proxy.send_terminal_event(TerminalClear);
     }
 
-    #[cfg(feature = "local_fs")]
-    pub(in crate::terminal) fn append_session_restoration_separator_to_block_list(
-        &mut self,
-        is_historical_conversation_restoration: bool,
-    ) {
-        self.insert_non_block_item_before_block(
-            self.active_block_index(),
-            BlockHeightItem::RestoredBlockSeparator {
-                height_when_visible: BlockHeight::from(RESTORED_BLOCK_SEPARATOR_HEIGHT),
-                is_historical_conversation_restoration,
-                is_hidden: false,
-            },
-        );
-    }
-
     /// Inserts an inline banner _before_ the provided block_index.
     pub fn insert_inline_banner_before_block(
         &mut self,
@@ -898,12 +881,6 @@ impl BlockList {
         let view_id = item.view_id;
         self.append_rich_content(item, true);
         self.pinned_to_bottom = Some(view_id);
-    }
-
-    pub(in crate::terminal) fn unpin_rich_content_from_bottom(&mut self, view_id: EntityId) {
-        if self.pinned_to_bottom == Some(view_id) {
-            self.pinned_to_bottom = None;
-        }
     }
 
     /// If a rich content item is pinned to the bottom, removes it from its
@@ -1192,36 +1169,6 @@ impl BlockList {
 
         let block = self.blocks.remove(block_index.0);
         self.block_id_to_block_index.remove(block.id());
-        // Shift down the index of any blocks after the removed one.
-        for index in BlockIndex::range_as_iter(block_index..BlockIndex(self.blocks.len())) {
-            self.reset_internal_block_index(index);
-        }
-
-        let (new_heights, removed_index) = {
-            let mut cursor = self.block_heights.cursor::<BlockIndex, TotalIndex>();
-            let mut tree_before_block =
-                cursor.slice(&(block_index + BlockIndex(1)), SeekBias::Left);
-            let removed_index = *cursor.start();
-            // Skip past the block being removed.
-            cursor.next();
-            tree_before_block.push_tree(cursor.suffix());
-            (tree_before_block, removed_index)
-        };
-        self.block_heights = new_heights;
-
-        // It's unlikely that they exist, but if there are any non-block items
-        // after the removed block, we must update tracking information for them.
-        self.update_block_height_indices(BlockHeightUpdate::Removal(removed_index), true);
-
-        Some(block)
-    }
-
-    fn remove_block_at_index(&mut self, block_index: BlockIndex) -> Option<Block> {
-        debug_assert!(block_index != self.active_block_index());
-
-        let block = self.blocks.remove(block_index.0);
-        self.block_id_to_block_index.remove(block.id());
-
         // Shift down the index of any blocks after the removed one.
         for index in BlockIndex::range_as_iter(block_index..BlockIndex(self.blocks.len())) {
             self.reset_internal_block_index(index);
@@ -2173,16 +2120,6 @@ impl BlockList {
         }
     }
 
-    /// Sets whether subsequent blocks (including the active block) have their grids obfuscated.
-    pub(super) fn set_obfuscate_secrets_for_subsequent_blocks(
-        &mut self,
-        obfuscate_secrets: ObfuscateSecrets,
-    ) {
-        self.obfuscate_secrets = obfuscate_secrets;
-        self.active_block_mut()
-            .set_obfuscate_secrets(obfuscate_secrets);
-    }
-
     /// Sets whether the grids of the specified block should be obfuscated.
     pub fn set_obfuscate_secrets_for_block(
         &mut self,
@@ -2801,13 +2738,6 @@ impl BlockList {
         }
 
         contents.trim().to_string()
-    }
-
-    pub(crate) fn removable_blocklist_item_position(
-        &self,
-        item: &RemovableBlocklistItem,
-    ) -> Option<&TotalIndex> {
-        self.removable_blocklist_item_positions.get(item)
     }
 
     pub fn get_previous_block_height_item(

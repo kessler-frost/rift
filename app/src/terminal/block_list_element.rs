@@ -7,7 +7,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use enum_iterator::Sequence;
-use itertools::Itertools;
 use parking_lot::FairMutex;
 use pathfinder_color::ColorU;
 use rift_core::semantic_selection::SemanticSelection;

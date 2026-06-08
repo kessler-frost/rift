@@ -245,7 +245,6 @@ impl<'a> QuitWarningDialog<'a> {
             let confirm_title = match state.scope {
                 QuitScope::Window(_) | QuitScope::Tabs(_) | QuitScope::Pane { .. } => "Yes, close",
                 QuitScope::App => "Yes, quit",
-                _ => "",
             };
             buttons.push(ModalButton::for_app(confirm_title.to_string(), callback));
         }

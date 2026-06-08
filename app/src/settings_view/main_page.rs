@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use ::settings::Setting;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use rift_core::channel::ChannelState;

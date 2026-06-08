@@ -369,8 +369,6 @@ impl From<&CommandSearchItemAction> for CommandSearchResultType {
         use crate::search::command_search::searcher::CommandSearchItemAction::*;
         match action {
             AcceptHistory(_) | ExecuteHistory(_) => Self::History,
-            _OpenWarpAI => Self::OpenWarpAI,
-            _TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
         }
     }
 }

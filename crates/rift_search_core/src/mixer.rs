@@ -9,7 +9,6 @@ use async_trait::async_trait;
 use futures_util::stream::AbortHandle;
 use itertools::Itertools;
 use rift_core::r#async::debounce;
-use rift_core::send_telemetry_from_ctx;
 use riftui_core::r#async::Timer;
 use riftui_core::{Action, AppContext, Entity, ModelContext};
 
@@ -411,7 +410,6 @@ impl<T: Action + Clone> SearchMixer<T> {
                 // If we get here, then we should run the query against the data source right now.
                 let query_generation = self.query_generation;
                 let source = source.clone();
-                let _filters = registered_source.filters.to_owned();
                 let new_abort_handle = ctx.spawn(
                     source.run_query(&query, ctx),
                     move |mixer, new_results, ctx| {
@@ -421,15 +419,6 @@ impl<T: Action + Clone> SearchMixer<T> {
                             source.on_query_finished(ctx);
                             return;
                         }
-                        let _error_payload =
-                            new_results.as_ref().err().map(|e| e.telemetry_payload());
-                        send_telemetry_from_ctx!(
-                            TelemetryEvent::CommandSearchAsyncQueryCompleted {
-                                filters,
-                                error_payload,
-                            },
-                            ctx
-                        );
                         mixer.add_new_results(data_source_id, new_results, ctx);
                         source.on_query_finished(ctx);
                     },

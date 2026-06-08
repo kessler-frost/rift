@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::model::block::{Block, SerializedBlock};
 use super::shell::ShellType;
-use crate::server::ids::{HashableId as _, SyncId};
+use crate::server::ids::SyncId;
 use crate::terminal::model::session::{Session, SessionId};
 use crate::util::dedupe_from_last;
 
