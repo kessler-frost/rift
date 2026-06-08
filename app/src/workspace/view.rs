@@ -7796,11 +7796,6 @@ impl Workspace {
                 .unwrap_or(DEFAULT_RIGHT_PANEL_WIDTH)
         });
 
-        let agent_management_filters = Some(
-            self.agent_management_view
-                .read(app, |view, _| view.get_filters()),
-        );
-
         WindowSnapshot {
             tabs,
             active_tab_index,
@@ -7815,7 +7810,6 @@ impl Workspace {
             vertical_tabs_panel_open: self.vertical_tabs_panel_open,
             left_panel_width,
             right_panel_width,
-            agent_management_filters,
         }
     }
 
@@ -8015,8 +8009,7 @@ impl Workspace {
         // Preserve split-off child-agent tabs by moving their lone pane back
         // before close cleanup. Skip tab moves so the destination keeps the
         // pane.
-        let re_adopted =
-            detach_panes_for_close && self.try_re_adopt_split_off_child_agent_tab(index, ctx);
+        let re_adopted = false;
 
         if !re_adopted && detach_panes_for_close {
             let working_directories_model = self.working_directories_model.clone();
@@ -8488,24 +8481,8 @@ impl Workspace {
             ctx,
         );
 
-        #[cfg(all(feature = "local_tty", not(target_family = "wasm")))]
-        if is_docker_sandbox {
-            if let Some(terminal_view) = self
-                .active_tab_pane_group()
-                .as_ref(ctx)
-                .active_session_view(ctx)
-            {
-                TerminalView::initialize_docker_sandbox_environment(&terminal_view, ctx);
-            } else {
-                log::warn!("Could not find docker sandbox terminal view after creating new tab");
-            }
-        }
-        #[cfg(not(all(feature = "local_tty", not(target_family = "wasm"))))]
-        let _ = is_docker_sandbox;
-        // If the default session mode is Agent and AI is enabled, enter agent view
-        if should_enter_agent_view {
-            self.enter_agent_view_on_active_tab(ctx);
-        }
+        // Docker sandbox and agent view were AI/cloud features and have been removed.
+        let _ = (is_docker_sandbox, should_enter_agent_view);
     }
 
 
@@ -8538,13 +8515,13 @@ impl Workspace {
             None
         };
         let new_pane_group = ctx.add_typed_action_view(|ctx| {
+            let _ = block_lists;
             let mut pane_group = PaneGroup::new_with_panes_layout(
                 self.tips_completed.clone(),
                 self.user_default_shell_unsupported_banner_model_handle
                     .clone(),
                 self.server_api.clone(),
                 panes_layout,
-                block_lists,
                 self.model_event_sender.clone(),
                 ctx,
             );
@@ -8770,13 +8747,7 @@ impl Workspace {
             None,
             ctx,
         );
-        self.active_tab_pane_group().update(ctx, |tab, ctx| {
-            if let Some(active_terminal) = tab.active_session_view(ctx) {
-                active_terminal.update(ctx, |terminal, _| {
-                    terminal.maybe_set_pending_repo_init_path(path_buf);
-                });
-            }
-        });
+        let _ = path_buf;
     }
 
 
@@ -9389,7 +9360,6 @@ impl Workspace {
             CommandPaletteEvent::ExecuteWorkflow { .. }
             | CommandPaletteEvent::InvokeEnvironmentVariables { .. }
             | CommandPaletteEvent::OpenNotebook { .. }
-            | CommandPaletteEvent::ViewInWarpDrive { .. }
             | CommandPaletteEvent::OpenFile { .. } => {}
             CommandPaletteEvent::OpenDirectory { path } => {
                 let active_terminal_view = self
@@ -9412,9 +9382,8 @@ impl Workspace {
 
 
     fn set_focused_index(&mut self, index: Option<usize>, ctx: &mut ViewContext<Self>) {
-        self.update_warp_drive_view(ctx, |warp_drive, ctx| {
-            warp_drive.set_focused_index(index, ctx);
-        });
+        // Warp Drive was a cloud feature and has been removed.
+        let _ = index;
         ctx.notify();
     }
 
@@ -9651,11 +9620,8 @@ impl Workspace {
 
 
 
-    fn dismiss_create_auth_secret_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        if self.create_auth_secret_modal.take().is_some() {
-            self.focus_active_tab(ctx);
-            ctx.notify();
-        }
+    fn dismiss_create_auth_secret_modal(&mut self, _ctx: &mut ViewContext<Self>) {
+        // The auth-secret modal was a cloud feature and has been removed.
     }
 
 
@@ -9935,9 +9901,8 @@ impl Workspace {
                     .unwrap()
             });
 
-        let is_env_var_block = terminal_view_handle.read(ctx, |terminal_view, ctx| {
-            terminal_view.has_active_env_var_block(ctx)
-        });
+        let _ = &terminal_view_handle;
+        let is_env_var_block = false;
 
         if self.is_input_box_visible(ctx) {
             active_pane_group.update(ctx, |pane_group, ctx| pane_group.focus_active_session(ctx));
@@ -10033,9 +9998,7 @@ impl Workspace {
                     input.append_to_buffer(content, ctx);
                 }
 
-                if ensure_agent_mode {
-                    input.ensure_agent_mode_for_ai_features(true, None, ctx);
-                }
+                let _ = ensure_agent_mode;
 
                 if should_submit {
                     input.input_enter(ctx);
@@ -10257,14 +10220,10 @@ impl Workspace {
     /// settings with the intent of inviting a user.
     pub fn show_team_settings_page_with_email_invite(
         &mut self,
-        email_invite: Option<&String>,
-        ctx: &mut ViewContext<Self>,
+        _email_invite: Option<&String>,
+        _ctx: &mut ViewContext<Self>,
     ) {
-        self.show_settings_with_section(Some(SettingsSection::Teams), ctx);
-
-        self.settings_pane.update(ctx, |view, ctx| {
-            view.open_teams_page_email_invite(email_invite, ctx);
-        });
+        // Teams were a cloud feature and have been removed.
     }
 
 
@@ -11732,24 +11691,6 @@ impl Workspace {
             }
         }
 
-        // Legacy AI assistant button (non-agent-mode only)
-        if is_online
-            && !FeatureFlag::AgentMode.is_enabled()
-            && !is_web_anonymous_user
-            && !self.current_workspace_state.is_ai_assistant_panel_open
-        {
-            target.add_child(
-                Container::new(
-                    SavePosition::new(
-                        self.render_legacy_warp_ai_entrypoint_button(appearance),
-                        AI_ASSISTANT_BUTTON_ID,
-                    )
-                    .finish(),
-                )
-                .with_margin_left(TAB_BAR_PADDING_LEFT)
-                .finish(),
-            );
-        }
 
         if FeatureFlag::AvatarInTabBar.is_enabled() {
             target.add_child(
@@ -12491,13 +12432,7 @@ impl Workspace {
     ) -> Box<dyn Element> {
         let active_tab_data = &self.tabs[self.active_tab_index];
 
-        let active_content = if FeatureFlag::AgentManagementView.is_enabled()
-            && self.current_workspace_state.is_agent_management_view_open
-        {
-            ChildView::new(&self.agent_management_view).finish()
-        } else {
-            ChildView::new(&active_tab_data.pane_group).finish()
-        };
+        let active_content = ChildView::new(&active_tab_data.pane_group).finish();
 
         let terminal_content = match self.maybe_render_workspace_banner(app, appearance) {
             Some(banner_element) => Flex::column()
@@ -13205,17 +13140,7 @@ impl Workspace {
         if self.current_workspace_state.is_right_panel_open() {
             let right_panel_content = if self.current_workspace_state.is_resource_center_open {
                 Some(self.render_panel(app, self.render_resource_center(), &PanelPosition::Right))
-            } else if self.current_workspace_state.is_ai_assistant_panel_open {
-                Some(self.render_panel(
-                    app,
-                    ChildView::new(&self.ai_assistant_panel).finish(),
-                    &PanelPosition::Right,
-                ))
             } else {
-                log::warn!(
-                    "is_right_panel_open() returned true, but neither the resource center nor AI \
-                    assistant are open"
-                );
                 None
             };
 
@@ -15013,15 +14938,6 @@ impl View for Workspace {
 
         // TODO: This is temporary. We currently check if any code pane is open where it should
         // really be whether the code pane is opened and focused.
-        if self
-            .active_tab_pane_group()
-            .as_ref(app)
-            .pane_ids()
-            .any(|id| id.is_code_pane())
-        {
-            context.set.insert("Workspace_TextOpen");
-        }
-
         if matches!(
             autoupdate::get_update_state(app),
             AutoupdateStage::UpdateReady { .. } | AutoupdateStage::UpdatedPendingRestart { .. }
@@ -15142,17 +15058,6 @@ impl View for Workspace {
                 context.set.insert("LongRunningCommand");
             }
 
-            if FeatureFlag::AgentView.is_enabled() {
-                let agent_view_state = terminal_view
-                    .agent_view_controller()
-                    .as_ref(app)
-                    .agent_view_state();
-                if agent_view_state.is_fullscreen() {
-                    context.set.insert(flags::ACTIVE_AGENT_VIEW);
-                } else if agent_view_state.is_inline() {
-                    context.set.insert(flags::ACTIVE_INLINE_AGENT_VIEW);
-                }
-            }
         }
 
         #[cfg(target_family = "wasm")]
@@ -15986,49 +15891,6 @@ impl View for Workspace {
             );
         }
 
-        if self.current_workspace_state.is_notification_mailbox_open {
-            if let Some(view) = &self.notification_mailbox_view {
-                let mailbox_on_left = Self::is_mailbox_on_left(
-                    &TabSettings::as_ref(app).header_toolbar_chip_selection,
-                );
-                let (anchor, child_anchor) = if mailbox_on_left {
-                    (PositionedElementAnchor::BottomLeft, ChildAnchor::TopLeft)
-                } else {
-                    (PositionedElementAnchor::BottomRight, ChildAnchor::TopRight)
-                };
-                stack.add_positioned_overlay_child(
-                    ChildView::new(view).finish(),
-                    OffsetPositioning::offset_from_save_position_element(
-                        NOTIFICATIONS_MAILBOX_POSITION_ID,
-                        Vector2F::zero(),
-                        PositionedElementOffsetBounds::WindowByPosition,
-                        anchor,
-                        child_anchor,
-                    ),
-                );
-            }
-        }
-
-        if !FeatureFlag::AgentMode.is_enabled()
-            && AISettings::as_ref(app).is_any_ai_enabled(app)
-            && self.should_show_ai_assistant_warm_welcome
-            && !self.current_workspace_state.is_changelog_modal_open
-            && !self.current_workspace_state.is_resource_center_open
-            && !self.current_workspace_state.is_ai_assistant_panel_open
-            && tab_bar_mode.has_tab_bar()
-        {
-            stack.add_positioned_child(
-                self.render_ai_assistant_warm_welcome(appearance),
-                OffsetPositioning::offset_from_save_position_element(
-                    AI_ASSISTANT_BUTTON_ID,
-                    vec2f(0., 10.),
-                    PositionedElementOffsetBounds::Unbounded,
-                    PositionedElementAnchor::BottomRight,
-                    ChildAnchor::TopRight,
-                ),
-            );
-        }
-
         // Cross-window ghost drag: floating chip that follows the cursor in the target window.
         // Added last so it renders on top of all other content.
         if FeatureFlag::DragTabsToWindows.is_enabled() {
@@ -16093,40 +15955,7 @@ impl View for Workspace {
         );
 
         // Render agent toast stack (for agent-related notifications) if popup is not open
-        if FeatureFlag::HOANotifications.is_enabled()
-            && *AISettings::as_ref(app).show_agent_notifications
-        {
-            if !self.current_workspace_state.is_notification_mailbox_open {
-                if let Some(stack_view) = &self.notification_toast_stack {
-                    let mailbox_on_left = Self::is_mailbox_on_left(
-                        &TabSettings::as_ref(app).header_toolbar_chip_selection,
-                    );
-                    let (anchor, child_anchor, offset_x) = if mailbox_on_left {
-                        (
-                            PositionedElementAnchor::BottomLeft,
-                            ChildAnchor::TopLeft,
-                            WORKSPACE_PADDING,
-                        )
-                    } else {
-                        (
-                            PositionedElementAnchor::BottomRight,
-                            ChildAnchor::TopRight,
-                            -WORKSPACE_PADDING,
-                        )
-                    };
-                    stack.add_positioned_overlay_child(
-                        ChildView::new(stack_view).finish(),
-                        OffsetPositioning::offset_from_save_position_element(
-                            TAB_BAR_POSITION_ID,
-                            vec2f(offset_x, 4.),
-                            PositionedElementOffsetBounds::WindowByPosition,
-                            anchor,
-                            child_anchor,
-                        ),
-                    );
-                }
-            }
-        } else if !self.current_workspace_state.is_agent_management_popup_open {
+        if !self.current_workspace_state.is_agent_management_popup_open {
             stack.add_positioned_overlay_child(
                 ChildView::new(&self.agent_toast_stack).finish(),
                 self.agent_toast_positioning(),
