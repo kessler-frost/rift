@@ -1,5 +1,3 @@
-pub mod schema;
-
 use rift_graphql::client::RequestOptions;
 pub use rift_graphql::client::{get_request_context, get_user_facing_error_message, GraphQLError};
 

@@ -55,7 +55,6 @@ use super::workspace::{
 };
 use crate::auth::UserUid;
 use crate::server::experiments::ServerExperiment;
-use crate::server::graphql::schema::object_action_history_from_gql;
 use crate::server::ids::ServerId;
 use crate::settings::AgentModeCommandExecutionPredicate;
 use crate::workspaces::workspace::{
