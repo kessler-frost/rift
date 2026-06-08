@@ -7881,22 +7881,22 @@ impl Workspace {
         let home = dirs::home_dir().map(|p| p.display().to_string());
         let mut items = vec![search_item];
         items.extend(
-            PersistedWorkspace::as_ref(ctx)
-                .workspaces()
-                .filter(|ws| ws.path.exists())
-                .filter(|ws| Self::should_include_worktree_sidecar_repo(&ws.path, ctx))
-                .filter(|ws| {
+            crate::projects::ProjectManagementModel::as_ref(ctx)
+                .all_projects()
+                .map(|project| PathBuf::from(&project.path))
+                .filter(|path| path.exists())
+                .filter(|path| Self::should_include_worktree_sidecar_repo(path, ctx))
+                .filter(|path| {
                     if query.is_empty() {
                         true
                     } else {
-                        ws.path
-                            .to_string_lossy()
+                        path.to_string_lossy()
                             .to_lowercase()
                             .contains(query.as_str())
                     }
                 })
-                .map(|ws| {
-                    let path_str = ws.path.to_string_lossy().into_owned();
+                .map(|path| {
+                    let path_str = path.to_string_lossy().into_owned();
                     let display = user_friendly_path(&path_str, home.as_deref()).into_owned();
                     MenuItemFields::new(display)
                         .with_on_select_action(NewSessionSidecarSelection::OpenWorktreeRepo {
@@ -8355,8 +8355,8 @@ impl Workspace {
                 // PersistedWorkspace (which is the data source for the repo picker
                 // and also triggers codebase indexing / project rules scanning).
                 let path_buf: PathBuf = path.clone().into();
-                PersistedWorkspace::handle(ctx).update(ctx, |persisted, ctx| {
-                    persisted.user_added_workspace(path_buf.clone(), ctx);
+                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
+                    projects.upsert_project(path_buf.clone(), ctx);
                 });
                 // Refresh the repo picker and pre-select the new path.
                 modal_view.update(ctx, |modal, ctx| {
@@ -8556,8 +8556,8 @@ impl Workspace {
                     return;
                 };
                 let path_buf: PathBuf = path.clone().into();
-                PersistedWorkspace::handle(ctx).update(ctx, |persisted, ctx| {
-                    persisted.user_added_workspace(path_buf.clone(), ctx);
+                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
+                    projects.upsert_project(path_buf.clone(), ctx);
                 });
                 modal_view.update(ctx, |modal, ctx| {
                     modal.body().update(ctx, |body, ctx| {
@@ -8662,8 +8662,8 @@ impl Workspace {
                     return;
                 };
                 let path_buf: PathBuf = path.into();
-                PersistedWorkspace::handle(ctx).update(ctx, |persisted, ctx| {
-                    persisted.user_added_workspace(path_buf, ctx);
+                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
+                    projects.upsert_project(path_buf, ctx);
                 });
             },
             riftui::platform::FilePickerConfiguration::new().folders_only(),
