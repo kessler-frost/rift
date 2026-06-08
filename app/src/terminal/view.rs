@@ -9428,13 +9428,6 @@ impl TerminalView {
         self.reset_selection_to_single_block(block_index, ctx);
         self.scroll_to_if_not_visible(block_index, ctx);
 
-        // Set the command in the modal to the command of the block.
-        if let Some(block) = self.model.lock().block_list().block_at(block_index) {
-            ctx.emit(Event::OpenWorkflowModalWithCommand(
-                block.command_to_string(),
-            ))
-        }
-
         send_telemetry_from_ctx!(
             TelemetryEvent::SaveAsWorkflowModal {
                 source: SaveAsWorkflowModalSource::Block
@@ -9449,7 +9442,7 @@ impl TerminalView {
         workflow_id: SyncId,
         ctx: &mut ViewContext<Self>,
     ) {
-        ctx.emit(Event::OpenWorkflowModalWithCloudWorkflow(workflow_id));
+        let _ = workflow_id;
         ctx.notify();
     }
 
@@ -10024,16 +10017,8 @@ impl TerminalView {
         line_and_column_num: Option<LineAndColumnArg>,
         ctx: &mut ViewContext<Self>,
     ) {
+        let _ = (path, line_and_column_num);
         ctx.notify();
-
-        let settings = EditorSettings::as_ref(ctx);
-        let target = resolve_file_target(&path, settings, None);
-
-        ctx.emit(Event::OpenFileWithTarget {
-            path,
-            target,
-            line_col: line_and_column_num,
-        });
     }
 
     #[cfg(feature = "local_fs")]
@@ -10044,12 +10029,8 @@ impl TerminalView {
         line_and_column_num: Option<LineAndColumnArg>,
         ctx: &mut ViewContext<Self>,
     ) {
+        let _ = (path, target, line_and_column_num);
         ctx.notify();
-        ctx.emit(Event::OpenFileWithTarget {
-            path,
-            target,
-            line_col: line_and_column_num,
-        });
     }
 
     fn maybe_open_link(
@@ -10674,8 +10655,7 @@ impl TerminalView {
         source: SaveAsWorkflowModalSource,
         ctx: &mut ViewContext<Self>,
     ) {
-        ctx.emit(Event::OpenWorkflowModalWithCommand(command));
-
+        let _ = command;
         send_telemetry_from_ctx!(TelemetryEvent::SaveAsWorkflowModal { source }, ctx);
     }
 
@@ -10752,9 +10732,7 @@ impl TerminalView {
         }
     }
 
-    fn edit_prompt(&mut self, ctx: &mut ViewContext<Self>) {
-        ctx.emit(Event::OpenPromptEditor);
-    }
+    fn edit_prompt(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
 
@@ -11522,7 +11500,7 @@ impl TerminalView {
             );
             ctx.notify();
         });
-        ctx.emit(Event::ShareModalOpened(block_index));
+        let _ = block_index;
         self.close_context_menu(ctx, true);
         ctx.notify();
     }
@@ -11557,7 +11535,6 @@ impl TerminalView {
 
     fn num_non_hidden_selected_blocks(&self) -> usize {
         let model = self.model.lock();
-        let agent_view_state = model.block_list().agent_view_state();
         self.selected_blocks
             .ranges()
             .iter()
@@ -11578,7 +11555,6 @@ impl TerminalView {
         let input_mode = *InputModeSettings::as_ref(ctx).input_mode.value();
         let sort_direction = input_mode.block_sort_direction();
         let model = self.model.lock();
-        let agent_view_state = model.block_list().agent_view_state();
         let sorted_ranges = self.selected_blocks.sorted_ranges(sort_direction);
         for selection_range in sorted_ranges {
             for block_index in selection_range.range(Some(sort_direction)) {
@@ -12561,11 +12537,9 @@ impl TerminalView {
 
     pub fn auth_secret_delete_confirmation_dialog_element(
         &self,
-        ctx: &AppContext,
+        _ctx: &AppContext,
     ) -> Option<Box<dyn Element>> {
-        self.input
-            .as_ref(ctx)
-            .auth_secret_delete_confirmation_dialog_element(ctx)
+        None
     }
 
 
@@ -12673,13 +12647,7 @@ impl TerminalView {
                 // honor_ps1 affects whether the Warp prompt is active, which
                 // determines if we need git status updates.
             }
-            SessionSettingsChangedEvent::CLIAgentToolbarChipSelectionSetting { .. } => {
-                // Force-close rich input when the Rich Input chip is removed so
-                // it doesn't linger open with no toolbar button to manage it.
-                if !is_rich_input_chip_in_cli_toolbar(ctx) {
-                    self.close_cli_agent_rich_input(CLIAgentRichInputCloseReason::Other, ctx);
-                }
-            }
+            SessionSettingsChangedEvent::CLIAgentToolbarChipSelectionSetting { .. } => {}
             SessionSettingsChangedEvent::AgentToolbarChipSelectionSetting { .. }
             | SessionSettingsChangedEvent::GithubPrChipDefaultValidation { .. } => {
             }
@@ -13423,12 +13391,6 @@ impl TerminalView {
         let render_context = self.get_terminal_view_render_context(model, app);
 
         let enforce_minimum_contrast = *FontSettings::as_ref(app).enforce_minimum_contrast;
-        let active_cli_subagent_view = model
-            .block_list()
-            .active_block()
-            .is_agent_in_control()
-            .then(|| self.cli_subagent_views.get(model.active_block_id()))
-            .flatten();
         let mut alt_screen_element = AltScreenElement::new(
             self.model.clone(),
             render_context,
@@ -13442,25 +13404,13 @@ impl TerminalView {
             self.alt_screen_scroll_top,
             // TODO(zachbai): Remove this.
             None,
-            active_cli_subagent_view.map(|view| ChildView::new(view).finish()),
+            None,
         );
         if should_use_ligature_rendering(app) {
             alt_screen_element = alt_screen_element.with_ligature_rendering();
         }
         if self.should_hide_cli_agent_cursor_cell(app) {
             alt_screen_element = alt_screen_element.with_hide_cursor_cell();
-        }
-
-        // Pass voice input toggle key if the CLI agent footer should be rendered
-        #[cfg(feature = "voice_input")]
-        if self.should_render_use_agent_footer(model, app)
-            && self.use_agent_footer.as_ref(app).has_cli_agent(app)
-        {
-            let voice_key = AISettings::as_ref(app)
-                .voice_input_toggle_key
-                .value()
-                .to_key_code();
-            alt_screen_element = alt_screen_element.with_voice_input_toggle_key(voice_key);
         }
 
         let required_terminal_height = self.size_info.cell_height_px.as_f32() * (rows as f32)
@@ -13763,7 +13713,6 @@ impl TerminalView {
 
         // Since blocks in a blocklist can have different sizes, we want
         // to make sure we're rendering with enough columns to support them all.
-        let agent_view_state = model.block_list().agent_view_state();
         let columns_needed = model
             .block_list()
             .blocks()
@@ -14523,13 +14472,7 @@ impl TerminalView {
         });
     }
 
-    pub fn cancel_env_var_block(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(block) = self.active_env_var_collection_block(ctx) {
-            block.update(ctx, |view, ctx| {
-                view.cancel(ctx);
-            });
-        }
-    }
+    pub fn cancel_env_var_block(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
     fn display_non_local_environment_variable_error(
@@ -14652,16 +14595,6 @@ impl TerminalView {
         // typed into the agent's prompt. When the rich input is open we leave
         // the existing chip-attach flow alone, since that's where the user
         // explicitly asked the drop to land.
-        if !image_filepaths.is_empty()
-            && image_filepaths.len() == paths.len()
-            && is_in_long_running_command
-            && self.has_active_cli_agent_session(ctx)
-            && !CLIAgentSessionsModel::as_ref(ctx).is_input_open(self.view_id)
-        {
-            self.paste_dropped_images_to_cli_agent(image_filepaths, ctx);
-            return;
-        }
-
         if !is_in_long_running_command {
             // Check for image file paths to be auto-attached
             let num_images = image_filepaths.len();
@@ -15906,21 +15839,6 @@ impl View for TerminalView {
                 .finish(),
                 positioning,
             );
-        }
-
-        if let Some(sharer) = self.shared_session_sharer() {
-            if sharer.is_inactivity_warning_modal_open() {
-                stack.add_child(ChildView::new(sharer.inactivity_modal()).finish())
-            }
-        }
-
-        // Render first-time cloud agent setup view when in Setup status
-        if self
-            .ambient_agent_view_model
-            .as_ref()
-            .is_some_and(|model| model.as_ref(app).is_in_setup())
-        {
-            stack.add_child(ChildView::new(&self.first_time_cloud_agent_setup_view).finish());
         }
 
         if self.ssh_file_upload.as_ref(app).has_upload() {
