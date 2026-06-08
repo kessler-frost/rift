@@ -52,7 +52,21 @@ workspace/mod.rs deleted the AI-assistant toggle_ai_assistant keybinding block (
 REMAINING ≈175 ≈ (A) code-review panel god-file 119 + (B) graphql schema 34 + the deferred clusters below + a few REIMPL 1-errors
 (TextLocation, RenderableAction/inline_action_icons, FilePane, InputType, SelectedWorkflowState, WorkflowAliases).
 
-### ▶▶ STATE: 14 resolution errors (234→14 this session, 94%!). workspace/view.rs is FULLY RESOLUTION-CLEAN; right_panel.rs
+### ▶▶ STATE: 5 resolution errors (234→5 this session, 98%!). Since the 14-error mark also cleared: voice vertical
+(deleted ServerVoiceTranscriber, wired VoiceTranscriber::disabled()), the AgentViewController inline-menu chain (slash/repos/
+cloud_mode_v2 — dead agent_view_controller params, the views were never constructed), up_arrow (command-only now), classic
+(removed AI image-attachment chips), common+classic+terminal (removed SelectedWorkflowState more-info overlay).
+ONLY 5 LEFT — TWO UNITS:
+  • voltron.rs (2: CategoriesView) — Voltron's ONLY feature is Workflows(ViewHandle<CategoriesView>), CategoriesView deleted, and
+    the file itself says "TODO remove voltron, not using it anymore". Voltron needs ≥1 feature (Vec1) so it can't keep an empty
+    enum → DELETE voltron.rs wholesale + its ~25 integration sites (lib.rs `mod voltron`; input.rs is_voltron_open/voltron_view/
+    select_and_refresh_voltron/VoltronItem; common.rs add_voltron_overlay(voltron_view:&ViewHandle<Voltron>); classic.rs/terminal.rs
+    add_voltron_overlay calls + is_voltron_open gates). Note: is_voltron_open is a bool (harmless); the Voltron TYPE refs are what break.
+  • left_panel.rs (3: crate::code file-tree imports) — the ONE-COMPLETE-PASS LeftPanelView+GlobalSearch wholesale deletion (~50 sites
+    in view.rs, see the dedicated section below). Removing the field breaks ~40 self.left_panel_view sites at once → must be one pass.
+After these 5 → the PHASE-2 TYPECK WAVE (~1800 mechanical dangling-ref deletions across the god-files) then warnings → 0/0.
+
+### ▶▶ (history) STATE: 14 resolution errors (234→14 this session, 94%!). workspace/view.rs is FULLY RESOLUTION-CLEAN; right_panel.rs
 DELETED; home.rs DELETED. The incremental view.rs grind cleared the entire god-file: RightPanelView hosting+methods, code-pane
 opener subsystem, all the cloud/AI modal+model clusters, the conversation_restoration/object_id/notebook/dialog threads.
 ⚠️ LEFT_PANEL DELETION IS ONE-COMPLETE-PASS (unlike right_panel): removing the `left_panel_view` field breaks ~40 `self.left_panel_view`
