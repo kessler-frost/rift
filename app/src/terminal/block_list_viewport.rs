@@ -107,7 +107,7 @@ impl ScrollLines {
                 if is_long_running
                     && scroll_top
                         < active_block
-                            .height(block_list.agent_view_state())
+                            .height()
                             .into_lines()
                 {
                     ScrollLines::ScrollTop(scroll_top)
@@ -343,7 +343,6 @@ pub struct ViewportIter<'a> {
 
     /// The current input mode.
     input_mode: InputMode,
-    agent_view_state: &'a AgentViewState,
 
     /// The y-offset of the current block in lines from the viewport origin.
     top_of_current_block: Lines,
@@ -509,7 +508,6 @@ impl<'a> ViewportState<'a> {
                 ViewportIter {
                     block_heights_iter: Box::new(cursor),
                     input_mode: self.input_mode,
-                    agent_view_state: self.block_list.agent_view_state(),
                     top_of_current_block: top_of_block,
                     bottom_offset,
                     start_block_index: block_index,
@@ -529,7 +527,6 @@ impl<'a> ViewportState<'a> {
                 ViewportIter {
                     block_heights_iter: Box::new(cursor.rev()),
                     input_mode: self.input_mode,
-                    agent_view_state: self.block_list.agent_view_state(),
                     top_of_current_block: top_of_block,
                     bottom_offset,
                     start_block_index: block_index,
@@ -694,7 +691,7 @@ impl<'a> ViewportState<'a> {
                     None => index.and_then(|last_index| {
                         self.block_list.block_at(last_index).map(|block| {
                             block
-                                .height(self.block_list.agent_view_state())
+                                .height()
                                 .into_lines()
                         })
                     }),
@@ -1550,7 +1547,7 @@ impl<'a> ViewportState<'a> {
             .block_list
             .block_at(block_index)
             .map_or(Lines::zero(), |b| {
-                b.height(self.block_list.agent_view_state())
+                b.height()
             });
         top_of_block + block_height
     }
@@ -2017,32 +2014,13 @@ impl Iterator for ViewportIter<'_> {
                 BlockHeightItem::RichContent(RichContentItem {
                     agent_view_conversation_id: fullscreen_agent_view_conversation_id,
                     ..
-                }) => match self.agent_view_state {
-                    AgentViewState::Active {
-                        conversation_id,
-                        display_mode: AgentViewDisplayMode::FullScreen,
-                        ..
-                    } => {
-                        // If currently in a fullscreen agent view, only return this item if its
-                        // conversation id matches that of the active agent view.
-                        if fullscreen_agent_view_conversation_id
-                            .is_some_and(|id| id == *conversation_id)
-                        {
-                            return next;
-                        }
+                }) => {
+                    // Return the item only if it 'belongs' to the terminal mode
+                    // (represented as no `ai_conversation_id`).
+                    if fullscreen_agent_view_conversation_id.is_none() {
+                        return next;
                     }
-                    AgentViewState::Active {
-                        display_mode: AgentViewDisplayMode::Inline,
-                        ..
-                    }
-                    | AgentViewState::Inactive => {
-                        // If not in a fullscreen agent view, return the item only if it 'belongs'
-                        // to the terminal mode (represented as no `ai_conversation_id`).
-                        if fullscreen_agent_view_conversation_id.is_none() {
-                            return next;
-                        }
-                    }
-                },
+                }
                 _ => {
                     if !FeatureFlag::AgentView.is_enabled() || block_height.as_f64() > 0. {
                         return next;
