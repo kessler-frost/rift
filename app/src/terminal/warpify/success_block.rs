@@ -46,7 +46,6 @@ struct AutoWarpifySnippet {
 
     shell_type: ShellType,
     description: Cow<'static, str>,
-    code_snippet_handles: CodeSnippetButtonHandles,
     can_write_to_rc: bool,
 }
 
@@ -118,7 +117,6 @@ impl WarpifySuccessBlock {
                 output_grid: output_grid.into(),
                 selection_handle: Default::default(),
                 selected_text: Default::default(),
-                code_snippet_handles: Default::default(),
                 shell_type: shell.shell_type(),
                 can_write_to_rc,
             }
@@ -233,31 +231,18 @@ impl WarpifySuccessBlock {
             return None;
         }
 
-        let shell_language = ProgrammingLanguage::Shell(auto_warpify_snippet.shell_type);
-        let runnable_command = render_runnable_code_snippet(
-            &auto_warpify_snippet.output_grid,
-            if auto_warpify_snippet.can_write_to_rc {
-                Some(&shell_language)
-            } else {
-                None
-            },
-            Some(Box::new({
-                move |code_snippet, ctx| {
-                    ctx.dispatch_typed_action(WorkspaceAction::RunCommand(
-                        code_snippet.to_string(),
-                    ));
-
-                    ctx.dispatch_typed_action(WarpifySuccessBlockAction::ClearAutoWarpifySnippet);
-                }
-            })),
-            Some(Box::new({
-                move |code_snippet, ctx| {
-                    ctx.dispatch_typed_action(WorkspaceAction::CopyTextToClipboard(code_snippet));
-                }
-            })),
-            Some(auto_warpify_snippet.code_snippet_handles.clone()),
-            app,
-        );
+        let runnable_command = Container::new(
+            Text::new(
+                auto_warpify_snippet.output_grid.to_string(),
+                appearance.monospace_font_family(),
+                appearance.monospace_font_size() - 1.,
+            )
+            .with_color(blended_colors::text_main(theme, theme.background()))
+            .finish(),
+        )
+        .with_uniform_padding(8.)
+        .with_background(theme.background_elevated())
+        .finish();
 
         let semantic_selection = SemanticSelection::as_ref(app);
         let selected_text = auto_warpify_snippet.selected_text.clone();
