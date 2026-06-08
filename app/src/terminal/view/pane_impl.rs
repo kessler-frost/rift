@@ -103,7 +103,6 @@ impl TerminalView {
 
     /// Set the pane title from agent chrome when available, falling back to the regular terminal title.
     pub(super) fn update_pane_configuration(&mut self, ctx: &mut ViewContext<Self>) {
-        self.is_using_conversation_for_pane_header_title = false;
         // Prefer CLI agent session text before the terminal title,
         // matching the vertical-tab behavior in terminal_primary_line_data().
         let new_pane_title = match self.selected_cli_agent_title_for_chrome(ctx) {
@@ -137,31 +136,9 @@ impl TerminalView {
 
     /// Renders the back button for the pane header, or an empty element if the
     /// back button should not be shown.
-    fn maybe_render_header_back_button(&self, app: &AppContext) -> Box<dyn Element> {
-        if !FeatureFlag::AgentView.is_enabled() || riftui::platform::is_mobile_device() {
-            return Flex::row().finish();
-        }
-
-        let in_nav_stack = self
-            .pane_stack
-            .as_ref()
-            .and_then(|h| h.upgrade(app))
-            .is_some_and(|stack| stack.as_ref(app).depth() > 1);
-
-        let is_transcript_viewer = self.model.lock().is_conversation_transcript_viewer();
-        let is_ambient_agent = self.is_ambient_agent_session(app);
-        let has_parent_terminal = (is_ambient_agent && self.is_nested_cloud_mode(app))
-            || (!is_ambient_agent && !is_transcript_viewer);
-        let is_fullscreen_agent_view = self.agent_view_controller.as_ref(app).is_fullscreen();
-
-        if in_nav_stack || (is_fullscreen_agent_view && has_parent_terminal) {
-            Flex::row()
-                .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                .with_child(ChildView::new(&self.agent_view_back_button).finish())
-                .finish()
-        } else {
-            Flex::row().finish()
-        }
+    fn maybe_render_header_back_button(&self, _app: &AppContext) -> Box<dyn Element> {
+        // The agent-view back button was an AI feature and has been removed.
+        Flex::row().finish()
     }
 
     fn render_header_title(
@@ -182,15 +159,10 @@ impl TerminalView {
         let appearance = Appearance::as_ref(app);
         let pane_config = self.pane_configuration.as_ref(app);
         let title = pane_config.title().to_owned();
-        let clip_config = if self.is_using_conversation_for_pane_header_title {
-            ClipConfig::ellipsis()
-        } else {
-            ClipConfig::start()
-        };
+        let clip_config = ClipConfig::start();
 
         let should_render_ambient_agent_indicator =
-            self.ambient_agent_task_id_for_details_panel(app).is_some()
-                || self.model.lock().is_shared_ambient_agent_session();
+            self.model.lock().is_shared_ambient_agent_session();
         let theme = appearance.theme();
         let render_agent_circle = |variant| {
             render_icon_with_status(
@@ -218,19 +190,7 @@ impl TerminalView {
             // from infinite constraints on flex children.
             center_row.add_child(title_text);
         } else {
-            let title_element =
-                if is_fullscreen_agent_view && self.is_using_conversation_for_pane_header_title {
-                    Shrinkable::new(
-                        1.0,
-                        ConstrainedBox::new(title_text)
-                            .with_max_width(400.0)
-                            .finish(),
-                    )
-                    .finish()
-                } else {
-                    Shrinkable::new(1.0, title_text).finish()
-                };
-            center_row.add_child(title_element);
+            center_row.add_child(Shrinkable::new(1.0, title_text).finish());
         }
 
         center_row.finish()
@@ -244,8 +204,7 @@ impl TerminalView {
         app: &AppContext,
     ) -> (Box<dyn Element>, f32) {
         let appearance = Appearance::as_ref(app);
-        let is_fullscreen_agent_view = FeatureFlag::AgentView.is_enabled()
-            && self.agent_view_controller.as_ref(app).is_fullscreen();
+        let is_fullscreen_agent_view = false;
         let icon_color = Some(
             appearance
                 .theme()
@@ -261,27 +220,8 @@ impl TerminalView {
 
         let mut icon_button_count: u32 = 0;
 
-        // Cloud-mode-only ambient agent cancel button is shown while we're waiting
-        // for the session to be ready.
-        let is_waiting_for_session = FeatureFlag::CloudMode.is_enabled()
-            && self
-                .ambient_agent_view_model
-                .as_ref()
-                .is_some_and(|model| model.as_ref(app).is_waiting_for_session());
-        let button_element = if is_waiting_for_session {
-            Some(self.render_ambient_agent_cancel_button(app))
-        } else if self.can_show_conversation_details_ui(app) {
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                Some(self.render_conversation_details_toggle_button(app))
-            }
-            #[cfg(target_arch = "wasm32")]
-            {
-                None
-            }
-        } else {
-            None
-        };
+        // Ambient-agent cancel + conversation-details toggle were AI features, removed.
+        let button_element: Option<Box<dyn Element>> = None;
 
         if let Some(button) = button_element {
             icon_button_count += 1;
@@ -363,8 +303,7 @@ impl TerminalView {
         header_ctx: &view::HeaderRenderContext,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        let is_fullscreen_agent_view = FeatureFlag::AgentView.is_enabled()
-            && self.agent_view_controller.as_ref(app).is_fullscreen();
+        let is_fullscreen_agent_view = false;
         let parent_conversation_header_card = self.render_parent_conversation_header_card(app);
 
         let left = self.maybe_render_header_back_button(app);
@@ -436,8 +375,7 @@ impl BackingView for TerminalView {
         self.redetermine_global_focus(ctx);
     }
 
-    fn on_pane_header_overflow_menu_toggled(&mut self, is_open: bool, ctx: &mut ViewContext<Self>) {
-        self.pane_header_overflow_menu_toggled(is_open, ctx);
+    fn on_pane_header_overflow_menu_toggled(&mut self, _is_open: bool, _ctx: &mut ViewContext<Self>) {
     }
 
     fn pane_header_overflow_menu_items(
@@ -498,80 +436,7 @@ impl BackingView for TerminalView {
 }
 
 impl TerminalView {
-    /// Render the cancel button for cancelling the ambient agent task while it's loading.
-    fn render_ambient_agent_cancel_button(&self, app: &AppContext) -> Box<dyn Element> {
-        let appearance = Appearance::as_ref(app);
-        let theme = appearance.theme();
-        let ui_builder = appearance.ui_builder().clone();
 
-        icon_button_with_color(
-            appearance,
-            icons::Icon::StopFilled,
-            false, /* active */
-            self.ambient_agent_cancel_mouse_state.clone(),
-            blended_colors::text_sub(theme, theme.background()).into(),
-        )
-        .with_tooltip(move || ui_builder.tool_tip("Cancel".to_string()).build().finish())
-        .build()
-        .on_click(|ctx, _, _| {
-            ctx.dispatch_typed_action::<PaneHeaderAction<TerminalAction, TerminalAction>>(
-                PaneHeaderAction::CustomAction(TerminalAction::CancelAmbientAgentTask),
-            );
-        })
-        .finish()
-    }
-
-    /// Render the info button for toggling the conversation details panel.
-    /// Only available on non-WASM platforms (WASM uses a per-window button instead).
-    #[cfg(not(target_arch = "wasm32"))]
-    fn render_conversation_details_toggle_button(&self, app: &AppContext) -> Box<dyn Element> {
-        let appearance = Appearance::as_ref(app);
-        let theme = appearance.theme();
-        let is_open = self.is_conversation_details_panel_open;
-        let ui_builder = appearance.ui_builder().clone();
-
-        // Use main text color when panel is open (hover-like appearance), sub color when closed
-        let icon_color = if is_open {
-            blended_colors::text_main(theme, theme.background()).into()
-        } else {
-            blended_colors::text_sub(theme, theme.background()).into()
-        };
-
-        let button = icon_button_with_color(
-            appearance,
-            icons::Icon::Info,
-            is_open, // show active background when panel is open
-            self.conversation_details_panel_toggle_mouse_state.clone(),
-            icon_color,
-        );
-
-        // Add explicit background when panel is open
-        let button = if is_open {
-            button.with_style(UiComponentStyles::default().set_background(theme.surface_2().into()))
-        } else {
-            button
-        };
-
-        button
-            .with_tooltip(move || {
-                let tooltip_text = if is_open {
-                    "Hide details"
-                } else {
-                    "Show details"
-                };
-                ui_builder
-                    .tool_tip(tooltip_text.to_string())
-                    .build()
-                    .finish()
-            })
-            .build()
-            .on_click(|ctx, _, _| {
-                ctx.dispatch_typed_action::<PaneHeaderAction<TerminalAction, TerminalAction>>(
-                    PaneHeaderAction::CustomAction(TerminalAction::ToggleConversationDetailsPanel),
-                );
-            })
-            .finish()
-    }
 
     /// Render the indicator for terminal mode (no conversation selected).
     /// Shows error indicator if terminal is in error state, otherwise shell indicator on Windows.
@@ -618,12 +483,9 @@ impl TerminalView {
         None
     }
 
-    pub fn is_ambient_agent_session(&self, ctx: &AppContext) -> bool {
-        FeatureFlag::CloudMode.is_enabled()
-            && self
-                .ambient_agent_view_model
-                .as_ref()
-                .is_some_and(|model| model.as_ref(ctx).is_ambient_agent())
+    pub fn is_ambient_agent_session(&self, _ctx: &AppContext) -> bool {
+        // Ambient (cloud) agent sessions were removed.
+        false
     }
 
     pub fn selected_conversation_display_title(&self, _ctx: &AppContext) -> Option<String> {
