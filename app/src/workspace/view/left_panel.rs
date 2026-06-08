@@ -52,6 +52,11 @@ use crate::workspace::view::{
 use crate::workspace::WorkspaceAction;
 use crate::TelemetryEvent;
 
+/// Minimum width (px) for the side panel. Recovered from the deleted drive panel.
+const MIN_SIDEBAR_WIDTH: f32 = 250.;
+/// Maximum side-panel width as a fraction of the window width. Recovered from the deleted drive panel.
+const MAX_SIDEBAR_WIDTH_RATIO: f32 = 0.75;
+
 #[derive(Default)]
 struct MouseStateHandles {
     project_explorer_button: MouseStateHandle,
