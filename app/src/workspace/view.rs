@@ -11216,7 +11216,13 @@ impl Workspace {
 
         terminal_view_handle.update(ctx, |terminal, ctx| {
             let shell_family = terminal.shell_family(ctx);
-            let tail_command = tail_command_for_shell(shell_family, log_path);
+            // Recovered inline from the deleted workflows module.
+            let tail_command = match shell_family {
+                rift_util::path::ShellFamily::Posix => format!("tail -f {log_path:?}"),
+                rift_util::path::ShellFamily::PowerShell => {
+                    format!("Get-Content -Wait -Tail 10 -Path \"{}\"", log_path.display())
+                }
+            };
             terminal.set_pending_command(&tail_command, ctx);
         });
     }
@@ -12457,8 +12463,14 @@ impl Workspace {
                 .with_margin_left(4.)
                 .finish()
             };
-            row.add_child(stat(lc.lines_added, "+", add_color(appearance)));
-            row.add_child(stat(lc.lines_removed, "-", remove_color(appearance)));
+            let add_color = AnsiColorIdentifier::Green
+                .to_ansi_color(&appearance.theme().terminal_colors().normal)
+                .into();
+            let remove_color = AnsiColorIdentifier::Red
+                .to_ansi_color(&appearance.theme().terminal_colors().normal)
+                .into();
+            row.add_child(stat(lc.lines_added, "+", add_color));
+            row.add_child(stat(lc.lines_removed, "-", remove_color));
         }
 
         let label = row.finish();
