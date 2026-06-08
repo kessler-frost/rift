@@ -6562,13 +6562,6 @@ impl TerminalView {
                     self.close_find_bar(ctx);
                     self.redetermine_global_focus(ctx);
                 }
-
-                // Update agent view back button state when alt screen becomes active/inactive
-                if FeatureFlag::AgentView.is_enabled()
-                    && self.agent_view_controller.as_ref(ctx).is_fullscreen()
-                {
-                    self.update_agent_view_back_button_state(ctx);
-                }
             }
             ModelEvent::TmuxControlModeReady { .. } => {
                 self.trigger_subshell_bootstrap(None, false, ctx);
@@ -6630,23 +6623,10 @@ impl TerminalView {
                     },
                     move |me, _, ctx| {
                         let uname = uname.to_owned().unwrap_or_default();
-                        let (is_ssh, is_tmux_control_mode_active, has_ai_metadata) = {
+                        let (is_ssh, is_tmux_control_mode_active) = {
                             let lock = me.model.lock();
-                            let has_ai_metadata = lock
-                                .block_list()
-                                .active_block()
-                                .agent_interaction_metadata()
-                                .is_some();
-                            (
-                                lock.is_ssh_block(),
-                                lock.tmux_control_mode_active(),
-                                has_ai_metadata,
-                            )
+                            (lock.is_ssh_block(), lock.tmux_control_mode_active())
                         };
-                        // Never warpify for agent-requested commands.
-                        if has_ai_metadata {
-                            return;
-                        }
                         // To simplify the implementation, we do not support warpifying while SSH-warpified.
                         if is_tmux_control_mode_active {
                             return;
@@ -6736,14 +6716,7 @@ impl TerminalView {
             ModelEvent::BootstrapPrecmdDone => {
                 self.execute_pending_command((), ctx);
             }
-            ModelEvent::AgentTaggedInChanged { is_tagged_in } => {
-                let state = if *is_tagged_in {
-                    LongRunningCommandAgentInteractionState::TaggedIn
-                } else {
-                    LongRunningCommandAgentInteractionState::NotInteracting
-                };
-                ctx.emit(Event::LongRunningCommandAgentInteractionStateChanged { state });
-            }
+            ModelEvent::AgentTaggedInChanged { .. } => {}
             ModelEvent::PluggableNotification { title, body } => {
                 // Intercept structured CLI agent notifications (e.g. from Claude Code plugin).
                 // The listener's own subscription handles subsequent events; we just
@@ -7517,11 +7490,7 @@ impl TerminalView {
         should_init_repo: bool,
         ctx: &mut ViewContext<Self>,
     ) {
-        let path_buf = PathBuf::from(&path);
-
-        if should_init_repo {
-            self.maybe_set_pending_repo_init_path(path_buf);
-        }
+        let _ = should_init_repo;
 
         self.input.update(ctx, |input, ctx| {
             input.try_execute_command(format!("cd \"{path}\"").as_str(), ctx);
@@ -7530,17 +7499,7 @@ impl TerminalView {
         self.toggle_left_panel_file_tree(true, ctx);
     }
 
-    pub fn create_new_project(&mut self, prompt: String, ctx: &mut ViewContext<Self>) {
-        self.input.update(ctx, |input, ctx| {
-            input.initiate_create_new_project(prompt, ctx);
-        });
-    }
 
-    pub fn agent_clone_repository(&mut self, url: String, ctx: &mut ViewContext<Self>) {
-        self.input.update(ctx, |input, ctx| {
-            input.initiate_clone_repository(url, ctx);
-        });
-    }
 
 
     // Initialize project for a path and suppress the agent mode setup banner for that path. This also auto-opens
@@ -15641,14 +15600,7 @@ impl View for TerminalView {
         let appearance = Appearance::as_ref(app);
         let semantic_selection = SemanticSelection::as_ref(app);
         let model = self.model.lock();
-        let input_mode = if FeatureFlag::AgentView.is_enabled()
-            && self.agent_view_controller.as_ref(app).is_fullscreen()
-        {
-            // When in agent view, layout is always pin to bottom.
-            InputMode::PinnedToBottom
-        } else {
-            *InputModeSettings::as_ref(app).input_mode.value()
-        };
+        let input_mode = *InputModeSettings::as_ref(app).input_mode.value();
         let viewport = self.viewport_state(model.block_list(), input_mode, app);
         let is_alt_screen_active = { model.is_alt_screen_active() };
         // Compute callout positioning early while we have the model lock.
@@ -15688,54 +15640,40 @@ impl View for TerminalView {
                 self.render_waterfall_gap_element(&model, &viewport, active_gap, appearance, app)
             }
             (input_mode, _, _) => {
-                if self.input.as_ref(app).is_cloud_mode_input_v2_composing(app) {
-                    column.add_child(Expanded::new(1., self.render_input()).finish());
-
-                    Stack::new()
-                        .with_constrain_absolute_children()
-                        .with_child(column.finish())
+                let should_show_loading = model.is_loading_conversation_transcript();
+                let output_area = if should_show_loading {
+                    self.render_viewer_loading(app)
+                } else if is_alt_screen_active {
+                    did_wrap_terminal_size = true;
+                    wrap_in_terminal_size_element(
+                        &self.resize_tx,
+                        self.render_alt_screen_element(
+                            app,
+                            &model,
+                            model.alt_screen().selection_range(semantic_selection),
+                        ),
+                    )
                 } else {
-                    let should_show_loading = model.is_loading_conversation_transcript();
-                    let output_area = if should_show_loading {
-                        self.render_viewer_loading(app)
-                    } else if is_alt_screen_active {
-                        did_wrap_terminal_size = true;
-                        wrap_in_terminal_size_element(
-                            &self.resize_tx,
-                            self.render_alt_screen_element(
-                                app,
-                                &model,
-                                model.alt_screen().selection_range(semantic_selection),
-                            ),
-                        )
-                    } else {
-                        self.render_block_list_element(&model, input_mode, true, app)
-                    };
+                    self.render_block_list_element(&model, input_mode, true, app)
+                };
 
-                    column.add_child(Shrinkable::new(1., output_area).finish());
+                column.add_child(Shrinkable::new(1., output_area).finish());
 
-                    if model.is_alt_screen_active()
-                        && self.should_render_use_agent_footer(&model, app)
-                    {
-                        column.add_child(ChildView::new(&self.use_agent_footer).finish());
-                    }
+                if self.is_input_box_visible(&model, app) {
+                    column.add_child(self.render_input());
+                } else if self.show_remote_server_loading_footer(&model, app) {
+                    column.add_child(
+                        self.render_remote_server_loading_footer(&model, appearance, app),
+                    );
+                }
 
-                    if self.is_input_box_visible(&model, app) {
-                        column.add_child(self.render_input());
-                    } else if self.show_remote_server_loading_footer(&model, app) {
-                        column.add_child(
-                            self.render_remote_server_loading_footer(&model, appearance, app),
-                        );
-                    }
-
-                    let stack = Stack::new()
-                        .with_constrain_absolute_children()
-                        .with_child(Clipped::new(column.finish()).finish());
-                    if matches!(input_mode, InputMode::Waterfall) && !is_alt_screen_active {
-                        self.render_waterfall_mode_background(&model, stack, app)
-                    } else {
-                        stack
-                    }
+                let stack = Stack::new()
+                    .with_constrain_absolute_children()
+                    .with_child(Clipped::new(column.finish()).finish());
+                if matches!(input_mode, InputMode::Waterfall) && !is_alt_screen_active {
+                    self.render_waterfall_mode_background(&model, stack, app)
+                } else {
+                    stack
                 }
             }
         };
