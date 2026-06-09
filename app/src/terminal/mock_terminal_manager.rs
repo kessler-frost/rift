@@ -116,10 +116,9 @@ impl TerminalManager for MockTerminalManager {
 #[cfg(test)]
 mod testing {
     use riftui::platform::WindowStyle;
-    use riftui::{App, Element, SingletonEntity};
+    use riftui::{App, Element};
 
     use super::*;
-    use crate::server::server_api::ServerApiProvider;
     use crate::terminal::shell::{ShellName, ShellType};
     use crate::terminal::ShellLaunchState;
 
@@ -149,13 +148,11 @@ mod testing {
         pub fn create_new_terminal_view_window_for_test(
             app: &mut App,
         ) -> ViewHandle<TerminalView> {
-            let server_api = app.read(|ctx| ServerApiProvider::as_ref(ctx).get());
             let tips_model = app.add_model(|_| Default::default());
 
             let (window_id, _) = app.add_window(WindowStyle::NotStealFocus, |ctx| {
                 let resources = TerminalViewResources {
                     tips_completed: tips_model,
-                    server_api,
                     model_event_sender: None,
                 };
                 let terminal_manager = MockTerminalManager::create_model(

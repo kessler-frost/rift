@@ -47,12 +47,6 @@ pub mod user_uid {
 
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-    /// Test user uid constant, retained for test helpers.
-    #[cfg_attr(
-        not(any(test, feature = "integration_tests", feature = "test-util")),
-        allow(dead_code)
-    )]
-    pub const TEST_USER_UID: &str = "test_user_uid";
 
     /// `UserUid` is the unique identifier for the (single, local) user.
     #[derive(Clone, PartialEq, Eq, Hash, Default)]

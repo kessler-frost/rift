@@ -226,19 +226,6 @@ impl AuthStateProvider {
         }
     }
 
-    #[cfg(any(test, feature = "test-util"))]
-    pub fn new_logged_out_for_test() -> Self {
-        Self {
-            auth_state: Arc::new(AuthState::new_logged_out_for_test()),
-        }
-    }
-
-    #[cfg(any(test, feature = "test-util"))]
-    pub fn new_anonymous_for_test() -> Self {
-        Self {
-            auth_state: Arc::new(AuthState::new_anonymous_for_test()),
-        }
-    }
 
     pub fn get(&self) -> &Arc<AuthState> {
         &self.auth_state

@@ -5,10 +5,8 @@ use settings::{PrivatePreferences, PublicPreferences};
 use super::*;
 use crate::auth::AuthManager;
 use crate::network::NetworkStatus;
-use crate::server::server_api::team::{MockTeamClient, TeamClient};
-use crate::server::server_api::ServerApiProvider;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
-use crate::settings::{AISettings, CodeSettings, FocusedTerminalInfo};
+use crate::settings::{AISettings, CodeSettings, FocusedTerminalInfo, PrivacySettings};
 use crate::system::SystemStats;
 use crate::workspaces::team::Team;
 use crate::workspaces::team_tester::TeamTesterStatus;
@@ -21,27 +19,14 @@ struct CachedResources {
     workspaces: Vec<Workspace>,
 }
 
-fn initialize_app(
-    app: &mut App,
-    resources: CachedResources,
-    team_client: Arc<dyn TeamClient>,
-    workspace_client: Arc<dyn WorkspaceClient>,
-) {
+fn initialize_app(app: &mut App, resources: CachedResources) {
     // Add the necessary singleton models to the App
     app.add_singleton_model(|_| NetworkStatus::new());
     app.add_singleton_model(|_| SystemStats::new());
     app.add_singleton_model(TeamTesterStatus::new);
-    app.add_singleton_model(|ctx| {
-        UserWorkspaces::mock(
-            team_client.clone(),
-            workspace_client.clone(),
-            resources.workspaces,
-            ctx,
-        )
-    });
-    app.add_singleton_model(|ctx| TeamUpdateManager::new(team_client.clone(), None, ctx));
+    app.add_singleton_model(|ctx| UserWorkspaces::mock(resources.workspaces, ctx));
+    app.add_singleton_model(TeamUpdateManager::new);
     app.add_singleton_model(PrivacySettings::mock);
-    app.add_singleton_model(|_| ServerApiProvider::new_for_test());
     app.add_singleton_model(AuthManager::new_for_test);
     app.add_singleton_model(AppTelemetryContextProvider::new_context_provider);
     app.add_singleton_model(|_| {
@@ -58,7 +43,7 @@ fn initialize_app(
     // The start of polling is normally triggered by authentication completion, but
     // we need to do it manually for tests.
     TeamTesterStatus::handle(app).update(app, |team_tester, ctx| {
-        team_tester.initiate_data_pollers(false, ctx);
+        team_tester.initiate_data_pollers(ctx);
     });
 }
 #[test]
@@ -67,8 +52,6 @@ fn test_codebase_context_enabled_with_no_workspace() {
         initialize_app(
             &mut app,
             CachedResources { workspaces: vec![] },
-            Arc::new(MockTeamClient::new()),
-            Arc::new(MockWorkspaceClient::new()),
         );
 
         app.read(|ctx| {
@@ -135,8 +118,6 @@ fn test_codebase_context_enabled_by_team_disabled_by_user() {
             CachedResources {
                 workspaces: vec![workspace],
             },
-            Arc::new(MockTeamClient::new()),
-            Arc::new(MockWorkspaceClient::new()),
         );
 
         app.read(|ctx| {
@@ -166,8 +147,6 @@ fn test_codebase_context_enabled_by_team_and_user() {
             CachedResources {
                 workspaces: vec![workspace],
             },
-            Arc::new(MockTeamClient::new()),
-            Arc::new(MockWorkspaceClient::new()),
         );
 
         app.read(|ctx| {
@@ -199,8 +178,6 @@ fn test_codebase_context_disabled_by_team() {
             CachedResources {
                 workspaces: vec![workspace],
             },
-            Arc::new(MockTeamClient::new()),
-            Arc::new(MockWorkspaceClient::new()),
         );
 
         app.read(|ctx| {
@@ -229,8 +206,6 @@ fn test_codebase_context_respect_user_setting() {
             CachedResources {
                 workspaces: vec![workspace],
             },
-            Arc::new(MockTeamClient::new()),
-            Arc::new(MockWorkspaceClient::new()),
         );
 
         app.read(|ctx| {

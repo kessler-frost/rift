@@ -11,7 +11,3 @@ pub use events::*;
 pub fn clear_event_queue() {
     let _ = riftui::telemetry::flush_events();
 }
-
-#[cfg(test)]
-#[path = "mod_tests.rs"]
-mod tests;

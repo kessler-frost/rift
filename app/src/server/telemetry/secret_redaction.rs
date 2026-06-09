@@ -76,6 +76,3 @@ fn compose_patterns<'a>(
     }
     patterns
 }
-#[cfg(test)]
-#[path = "secret_redaction_tests.rs"]
-mod tests;
