@@ -1,17 +1,8 @@
 use riftui::integration::AssertionCallback;
 use riftui::{async_assert, async_assert_eq};
 
-use crate::integration_testing::view_getters::{input_view, single_input_view_for_tab};
+use crate::integration_testing::view_getters::single_input_view_for_tab;
 use crate::terminal::input::InputSuggestionsMode;
-
-pub fn assert_workflow_info_box_is_open(tab_idx: usize, pane_idx: usize) -> AssertionCallback {
-    Box::new(move |app, window_id| {
-        let input = input_view(app, window_id, tab_idx, pane_idx);
-        input.read(app, |input, _ctx| {
-            async_assert!(input.is_workflows_info_box_open())
-        })
-    })
-}
 
 pub fn input_editor_is_focused(tab_idx: usize) -> AssertionCallback {
     Box::new(move |app, window_id| {
@@ -59,19 +50,6 @@ pub fn input_is_empty(tab_idx: usize) -> AssertionCallback {
     })
 }
 
-pub fn inline_model_selector_is_open(tab_idx: usize) -> AssertionCallback {
-    Box::new(move |app, window_id| {
-        let input = single_input_view_for_tab(app, window_id, tab_idx);
-        input.read(app, |view, ctx| {
-            async_assert_eq!(
-                view.suggestions_mode_model().as_ref(ctx).mode(),
-                &InputSuggestionsMode::ModelSelector,
-                "Inline model selector should be open"
-            )
-        })
-    })
-}
-
 pub fn tab_completions_menu_is_open(tab_idx: usize, is_opened: bool) -> AssertionCallback {
     Box::new(move |app, window_id| {
         let input = single_input_view_for_tab(app, window_id, tab_idx);
@@ -89,22 +67,6 @@ pub fn tab_completions_menu_is_open(tab_idx: usize, is_opened: bool) -> Assertio
             };
 
             async_assert!(assertion)
-        })
-    })
-}
-
-pub fn latest_buffer_operations_are_empty(
-    tab_idx: usize,
-    should_be_empty: bool,
-) -> AssertionCallback {
-    Box::new(move |app, window_id| {
-        let input = single_input_view_for_tab(app, window_id, tab_idx);
-        input.read(app, |view, _ctx| {
-            if should_be_empty {
-                async_assert!(view.latest_buffer_operations().count() == 0)
-            } else {
-                async_assert!(view.latest_buffer_operations().count() > 0)
-            }
         })
     })
 }

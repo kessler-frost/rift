@@ -2,6 +2,7 @@ use riftui::async_assert_eq;
 use riftui::integration::{AssertionCallback, AssertionOutcome};
 
 use crate::integration_testing::view_getters::single_terminal_view;
+use crate::terminal::model::secrets::{find_secrets_in_text, redact_secrets};
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 
 pub fn assert_secret_tooltip_open(open: bool) -> AssertionCallback {

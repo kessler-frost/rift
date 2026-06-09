@@ -12,7 +12,6 @@ use crate::input_suggestions::InputSuggestions;
 use crate::pane_group::{PaneGroup, PaneView};
 use crate::root_view::RootView;
 use crate::search::command_palette::{self};
-use crate::search::command_search::view::CommandSearchView;
 use crate::settings_view::keybindings::KeybindingsView;
 use crate::terminal::input::Input;
 use crate::terminal::TerminalView;
@@ -145,38 +144,6 @@ pub fn input_view(
         .read(app, |terminal_view, _| terminal_view.input().to_owned())
 }
 
-/// Panics if there isn't a notebook view at the given tab and pane index.
-pub fn notebook_view(
-    app: &App,
-    window_id: WindowId,
-    tab_index: usize,
-    pane_index: usize,
-) -> ViewHandle<NotebookView> {
-    pane_group_view(app, window_id, tab_index).read(
-        app,
-        |pane_group, ctx| match pane_group.notebook_view_at_pane_index(pane_index, ctx) {
-            Some(pane) => pane.clone(),
-            None => panic!("notebook view should exist for window_id={window_id}, tab_index={tab_index}, pane_index={pane_index}")
-        },
-    )
-}
-
-/// Panics if there isn't a workflow view at the given tab and pane index.
-pub fn workflow_view(
-    app: &App,
-    window_id: WindowId,
-    tab_index: usize,
-    pane_index: usize,
-) -> ViewHandle<WorkflowView> {
-    pane_group_view(app, window_id, tab_index).read(
-        app,
-        |pane_group, ctx| match pane_group.workflow_view_at_pane_index(pane_index, ctx) {
-            Some(pane) => pane.clone(),
-            None => panic!("workflow view should exist for window_id={window_id}, tab_index={tab_index}, pane_index={pane_index}")
-        },
-    )
-}
-
 /// Panics if there isn't a single pane group for the given tab.
 pub fn pane_group_view(app: &App, window_id: WindowId, tab_index: usize) -> ViewHandle<PaneGroup> {
     workspace_view(app, window_id).read(app, |workspace, _ctx| {
@@ -201,16 +168,6 @@ pub fn keybindings_view(app: &App, window_id: WindowId) -> ViewHandle<Keybinding
     singleton_view_of_type(app, window_id)
 }
 
-/// Panics if there isn't a single workflows view in the view hierarchy.
-pub fn workflow_categories_view(app: &App, window_id: WindowId) -> ViewHandle<CategoriesView> {
-    singleton_view_of_type(app, window_id)
-}
-
-/// Panics if there isn't a single ai assistant panel view in the view hierarchy.
-pub fn ai_assistant_panel_view(app: &App, window_id: WindowId) -> ViewHandle<AIAssistantPanelView> {
-    singleton_view_of_type(app, window_id)
-}
-
 /// Panics if there isn't a single workspace view in the view hierarchy.
 pub fn workspace_view(app: &App, window_id: WindowId) -> ViewHandle<Workspace> {
     root_view(app, window_id).read(app, |root_view, _ctx| {
@@ -231,14 +188,6 @@ pub fn root_view(app: &App, window_id: WindowId) -> ViewHandle<RootView> {
 pub fn command_palette_view(app: &App, window_id: WindowId) -> ViewHandle<command_palette::View> {
     let workspace = singleton_view_of_type::<Workspace>(app, window_id);
     workspace.read(app, |workspace, _ctx| workspace.command_palette_view())
-}
-
-/// Returns a [`ViewHandle`] to the command search view contained within `WindowId`.
-/// #Panics if there isn't a command search view view in the view hierarchy.
-/// Note that the command search view is implemented at the workspace level, so there should only
-/// be one in a given workspace view/window.
-pub fn command_search_view(app: &App, window_id: WindowId) -> ViewHandle<CommandSearchView> {
-    singleton_view_of_type(app, window_id)
 }
 
 pub fn assert_no_views_of_type<T: View>() -> AssertionCallback {
