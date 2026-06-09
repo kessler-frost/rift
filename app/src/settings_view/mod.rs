@@ -35,7 +35,6 @@ use settings_page::{
     MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle,
     HEADER_PADDING,
 };
-use show_blocks_view::{ShowBlocksEvent, ShowBlocksView};
 use warpify_page::{WarpifyPageAction, WarpifyPageView};
 
 use crate::appearance::Appearance;
@@ -47,7 +46,6 @@ use crate::menu::{self, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
 use crate::pane_group::{BackingView, Direction, PaneConfiguration, PaneEvent, SplitPaneState};
-use crate::server::server_api::ServerApiProvider;
 use crate::settings::{AISettings, BlockVisibilitySettings, SettingsFileError};
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::SizeInfo;
@@ -70,7 +68,6 @@ mod privacy;
 mod privacy_page;
 mod settings_file_footer;
 pub(crate) mod settings_page;
-mod show_blocks_view;
 mod warpify_page;
 
 pub use features_page::FeaturesPageAction;
@@ -132,7 +129,6 @@ pub(super) fn render_beta_chip(appearance: &Appearance) -> Box<dyn Element> {
 pub enum SettingsViewEvent {
     Pane(PaneEvent),
     StartResize,
-    LaunchNetworkLogging,
     SignupAnonymousUser,
     ShowToast {
         message: String,
@@ -156,7 +152,6 @@ pub enum SettingsSection {
     Features,
     Keybindings,
     Privacy,
-    SharedBlocks,
     Warpify,
 }
 
@@ -168,7 +163,6 @@ impl Display for SettingsSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SettingsSection::Keybindings => write!(f, "Keyboard shortcuts"),
-            SettingsSection::SharedBlocks => write!(f, "Shared blocks"),
             _ => write!(f, "{self:?}"),
         }
     }
@@ -203,7 +197,6 @@ impl FromStr for SettingsSection {
             "Features" => Ok(Self::Features),
             "Keyboard shortcuts" => Ok(Self::Keybindings),
             "Privacy" => Ok(Self::Privacy),
-            "Shared blocks" => Ok(Self::SharedBlocks),
             "Warpify" => Ok(Self::Warpify),
             _ => Err(()),
         }
@@ -859,7 +852,6 @@ macro_rules! update_page {
             SettingsPageViewHandle::Main(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Appearance(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Features(handle) => $ctx.update_view(handle, $update),
-            SettingsPageViewHandle::SharedBlocks(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Keybindings(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Warpify(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Privacy(handle) => $ctx.update_view(handle, $update),
@@ -922,20 +914,6 @@ impl SettingsView {
             me.handle_features_page_event(event, ctx);
         });
 
-        // Shared blocks page
-        let block_client = ServerApiProvider::as_ref(ctx).get_block_client();
-        let show_blocks_view_handle =
-            ctx.add_typed_action_view(|ctx| ShowBlocksView::new(block_client, ctx));
-
-        ctx.subscribe_to_view(&show_blocks_view_handle, |_, _, event, ctx| match event {
-            ShowBlocksEvent::ShowToast { message, flavor } => {
-                ctx.emit(SettingsViewEvent::ShowToast {
-                    message: message.clone(),
-                    flavor: *flavor,
-                })
-            }
-        });
-
         // About page
         let about_page_handle = ctx.add_view(AboutPageView::new);
 
@@ -987,7 +965,6 @@ impl SettingsView {
             SettingsPage::new(features_page_handle),
             SettingsPage::new(keybindings_handle),
             SettingsPage::new(warpify_page_handle),
-            SettingsPage::new(show_blocks_view_handle),
             SettingsPage::new(privacy_page_handle),
             SettingsPage::new(about_page_handle),
         ];
@@ -999,7 +976,6 @@ impl SettingsView {
             SettingsNavItem::Page(SettingsSection::Features),
             SettingsNavItem::Page(SettingsSection::Keybindings),
             SettingsNavItem::Page(SettingsSection::Warpify),
-            SettingsNavItem::Page(SettingsSection::SharedBlocks),
             SettingsNavItem::Page(SettingsSection::Privacy),
             SettingsNavItem::Page(SettingsSection::About),
         ];
@@ -1359,9 +1335,6 @@ impl SettingsView {
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            PrivacyPageViewEvent::LaunchNetworkLogging => {
-                ctx.emit(SettingsViewEvent::LaunchNetworkLogging);
-            }
             PrivacyPageViewEvent::ShowAddRegexModal => {
                 // Modal rendering is handled in get_modal_content_for_page
                 ctx.notify();
@@ -1487,7 +1460,6 @@ impl SettingsView {
     fn should_render_page(&self, settings_page: &SettingsPage, app: &AppContext) -> bool {
         match &settings_page.view_handle {
             SettingsPageViewHandle::Main(v) => v.as_ref(app).should_render(app),
-            SettingsPageViewHandle::SharedBlocks(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Keybindings(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Features(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Appearance(v) => v.as_ref(app).should_render(app),

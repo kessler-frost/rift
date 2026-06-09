@@ -42,15 +42,13 @@ use crate::auth::paste_auth_token_modal::PasteAuthTokenModalView;
 #[cfg(target_family = "wasm")]
 use crate::auth::web_handoff::{WebHandoffEvent, WebHandoffView};
 use crate::auth::{AuthStateProvider, LoginFailureReason};
-use crate::experiments::{BlockOnboarding, Experiment};
 use crate::features::FeatureFlag;
 use crate::interval_timer::IntervalTimer;
 use crate::launch_configs::launch_config;
 use crate::linear::LinearIssueWork;
 use crate::pane_group::{NewTerminalOptions, PanesLayout};
 use crate::persistence::ModelEvent;
-use crate::server::server_api::auth::UserAuthenticationError;
-use crate::server::server_api::{ServerApi, ServerApiProvider};
+use crate::auth::auth_manager::UserAuthenticationError;
 use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings::QuakeModeSettings;
 use crate::settings_view::{flags, SettingsSection};
@@ -1292,7 +1290,6 @@ pub struct RootView {
     needs_sso_link_view: ViewHandle<NeedsSsoLinkView>,
     #[cfg(target_family = "wasm")]
     web_handoff_view: ViewHandle<WebHandoffView>,
-    pub server_api: Arc<ServerApi>,
     pub model_event_sender: Option<SyncSender<ModelEvent>>,
     mouse_states: TrafficLightMouseStates,
     /// The window ID is needed because the "maximize" button needs to change its icon based on
@@ -1309,8 +1306,6 @@ impl RootView {
         workspace_setting: NewWorkspaceSource,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        let server_api_provider = ServerApiProvider::as_ref(ctx);
-        let server_api = server_api_provider.get();
         let auth_state = AuthStateProvider::as_ref(ctx).get().clone();
 
         ctx.subscribe_to_model(&AuthManager::handle(ctx), |me, _, event, ctx| {
@@ -1373,7 +1368,6 @@ impl RootView {
             needs_sso_link_view,
             #[cfg(target_family = "wasm")]
             web_handoff_view,
-            server_api: server_api.clone(),
             model_event_sender,
             mouse_states: Default::default(),
             window_id: ctx.window_id(),
@@ -1732,7 +1726,7 @@ impl RootView {
 
         // Use the team tester model to notify relevant subscribers to refresh their data.
         TeamTesterStatus::handle(ctx).update(ctx, |model, ctx| {
-            model.initiate_data_pollers(true, ctx);
+            model.initiate_data_pollers(ctx);
         });
         true
     }
@@ -1847,43 +1841,11 @@ impl RootView {
                     self.auth_onboarding_state.complete_web_import(ctx);
                 }
 
-                // Skip onboarding survey if in Variant One.
-                if let Some(BlockOnboarding::VariantOne) = BlockOnboarding::get_group(ctx) {
-                    self.auth_onboarding_state
-                        .complete_auth_and_create_workspace(ctx);
-                }
-
                 self.focus(ctx);
             }
-            AuthManagerEvent::AuthFailed(err) => match err {
-                UserAuthenticationError::DeniedAccessToken(_) => {
-                    // On the web, re-import the token from the host application, which should
-                    // still be valid.
-                    // On native, we show a banner in the app nudging them to do so, but don't
-                    // actually log them out.
-                    // That is handled in the workspace view.
-                    #[cfg(target_family = "wasm")]
-                    self.web_handoff(ctx);
-                }
-                UserAuthenticationError::UserAccountDisabled(_) => {
-                    cfg_if! {
-                        if #[cfg(target_family = "wasm")] {
-                            // On the web, replace the invalid account with the one from the host
-                            // application, which ought to be valid.
-                            self.web_handoff(ctx);
-                        } else {
-                            // On native, force sign them out, as they should not be able to continue
-                            // to use Warp. Instead, they can sign in or up with a valid account.
-                            crate::auth::log_out(ctx);
-                        }
-                    }
-                }
-                UserAuthenticationError::Unexpected(err) => {
-                    log::error!("Encountered unexpected error when trying to fetch user: {err:#}");
-                }
-                UserAuthenticationError::InvalidStateParameter => {}
-                UserAuthenticationError::MissingStateParameter => {}
-            },
+            AuthManagerEvent::AuthFailed(UserAuthenticationError::Unexpected(err)) => {
+                log::error!("Encountered unexpected error when trying to fetch user: {err:#}");
+            }
             AuthManagerEvent::SkippedLogin => {
                 if let AuthOnboardingState::Auth(_) | AuthOnboardingState::ConfirmIncomingAuth(_) =
                     &self.auth_onboarding_state

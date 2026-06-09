@@ -40,7 +40,6 @@ use rift_completer::meta::{HasSpan, Spanned};
 use rift_completer::parsers::simple::command_at_cursor_position;
 use rift_completer::parsers::LiteCommand;
 use rift_completer::signatures::CommandRegistry;
-use rift_core::context_flag::ContextFlag;
 use rift_core::r#async::debounce;
 use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
@@ -116,7 +115,6 @@ use crate::resource_center::{
 };
 use crate::search::slash_command_menu::static_commands::commands::COMMAND_REGISTRY;
 use crate::search::QueryFilter;
-use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
     CommandXRayTrigger,
     TelemetryEvent, 
@@ -153,7 +151,6 @@ use crate::ASSETS;
 #[allow(unused_imports)]
 use crate::{
     cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx, AgentModeEntrypoint,
-    ServerApiProvider,
 };
 
 /// Drop target data for dropping content on the [`Input`].
@@ -903,13 +900,6 @@ pub fn init(app: &mut AppContext) {
     ]);
 
     app.register_editable_bindings([EditableBinding::new(
-        "input:insert_network_logging_workflow",
-        "Show Warp network log",
-        WorkspaceAction::OpenNetworkLogPane,
-    )
-    .with_enabled(|| ContextFlag::NetworkLogConsole.is_enabled())]);
-
-    app.register_editable_bindings([EditableBinding::new(
         "input:clear_screen",
         "Clear screen",
         InputAction::ClearScreen,
@@ -1064,7 +1054,6 @@ impl Input {
     pub(crate) fn new(
         model: Arc<FairMutex<TerminalModel>>,
         tips_completed: ModelHandle<TipsCompleted>,
-        _server_api: Arc<ServerApi>,
         sessions: ModelHandle<Sessions>,
         size_info: SizeInfo,
         menu_positioning_provider: Arc<dyn MenuPositioningProvider>,

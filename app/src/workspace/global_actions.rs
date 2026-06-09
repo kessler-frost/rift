@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use ::settings::ToggleableSetting;
 use rift_core::execution_mode::AppExecutionMode;
-use rift_graphql::mutations::create_anonymous_user::AnonymousUserType;
 use riftui::windowing::WindowManager;
 use riftui::{AppContext, SingletonEntity, TypedActionView};
 
@@ -10,7 +9,6 @@ use crate::app_state::get_app_state;
 use crate::network::NetworkStatus;
 use crate::persistence::ModelEvent;
 use crate::root_view::OpenPath;
-use crate::server::server_api::ServerApiProvider;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::undo_close::UndoCloseStack;
@@ -54,10 +52,6 @@ pub fn init_global_actions(app: &mut AppContext) {
     app.add_global_action(
         "workspace:toggle_debug_network_status",
         toggle_debug_network_status,
-    );
-    app.add_global_action(
-        "workspace:debug_create_anonymous_user",
-        create_anonymous_user,
     );
     app.add_global_action("workspace:open_repository", open_repository);
     app.add_global_action("app:undo_close", undo_close);
@@ -143,18 +137,6 @@ fn toggle_debug_network_status(_: &(), ctx: &mut AppContext) {
     });
 }
 
-fn create_anonymous_user(_: &(), ctx: &mut AppContext) {
-    log::info!("Creating anonymous user");
-    let anonymous_user_type = AnonymousUserType::NativeClientAnonymousUser;
-    let auth_client =
-        ServerApiProvider::handle(ctx).read(ctx, |provider, _ctx| provider.get_auth_client());
-    let result =
-        riftui::r#async::block_on(auth_client.create_anonymous_user(None, anonymous_user_type));
-    match result {
-        Ok(user) => log::info!("Successfully created anonymous user {user:?}"),
-        Err(err) => log::error!("Failed to create anonymous user: {err:?}"),
-    }
-}
 
 /// Reopens the last closed item (window or tab).
 fn undo_close(_: &(), ctx: &mut AppContext) {

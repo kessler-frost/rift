@@ -21,7 +21,7 @@ use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 use thousands::Separable;
 
 use crate::auth::AuthStateProvider;
-use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
+use crate::pricing::PricingInfoModel;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -53,15 +53,7 @@ pub struct FreeTierLimitHitModal {
 
 impl FreeTierLimitHitModal {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        ctx.subscribe_to_model(
-            &PricingInfoModel::handle(ctx),
-            |_, _, event, ctx| match event {
-                PricingInfoModelEvent::PricingInfoUpdated => {
-                    ctx.unsubscribe_to_model(&PricingInfoModel::handle(ctx));
-                    ctx.notify();
-                }
-            },
-        );
+        ctx.subscribe_to_model(&PricingInfoModel::handle(ctx), |_, _, _event, _ctx| {});
 
         FreeTierLimitHitModal {
             state_handles: Default::default(),

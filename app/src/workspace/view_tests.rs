@@ -16,7 +16,6 @@ use crate::network::NetworkStatus;
 use crate::pane_group::{Direction, PaneGroupAction};
 use crate::pricing::PricingInfoModel;
 use crate::server::experiments::ServerExperiments;
-use crate::server::server_api::ServerApiProvider;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::PrivacySettings;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
@@ -42,7 +41,6 @@ fn initialize_app(app: &mut App) {
     initialize_settings_for_tests(app);
 
     // Add the necessary singleton models to the App
-    app.add_singleton_model(|_ctx| ServerApiProvider::new_for_test());
     app.add_singleton_model(AppTelemetryContextProvider::new_context_provider);
     app.add_singleton_model(AuthManager::new_for_test);
     app.add_singleton_model(|_ctx| PtySpawner::new_for_test());

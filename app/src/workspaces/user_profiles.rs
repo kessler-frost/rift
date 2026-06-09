@@ -1,9 +1,18 @@
 use std::collections::HashMap;
 
-pub use cloud_object_models::UserProfileWithUID;
 use riftui::{Entity, SingletonEntity};
 
 use crate::auth::UserUid;
+
+/// Local replacement for the former `cloud_object_models::UserProfileWithUID`. Pure local data with
+/// no network dependency.
+#[derive(Clone, Debug)]
+pub struct UserProfileWithUID {
+    pub firebase_uid: UserUid,
+    pub display_name: Option<String>,
+    pub email: String,
+    pub photo_url: String,
+}
 
 pub enum UserProfilesEvent {}
 

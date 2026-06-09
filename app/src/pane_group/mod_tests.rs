@@ -20,8 +20,6 @@ use crate::launch_configs::launch_config::PaneMode;
 use crate::network::NetworkStatus;
 use crate::resource_center::TipsCompleted;
 use crate::search::files::model::FileSearchModel;
-use crate::server::iap::IapManager;
-use crate::server::server_api::ServerApiProvider;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::PrivacySettings;
 use crate::system::SystemStats;
@@ -41,8 +39,6 @@ use crate::{experiments, GlobalResourceHandles, GlobalResourceHandlesProvider};
 fn initialize_app(app: &mut App) {
     initialize_settings_for_tests(app);
 
-    app.add_singleton_model(|_ctx| ServerApiProvider::new_for_test());
-    app.add_singleton_model(|ctx| IapManager::new(None, ctx));
     app.add_singleton_model(|_| AuthStateProvider::new_for_test());
     app.add_singleton_model(AppTelemetryContextProvider::new_context_provider);
     app.add_singleton_model(AuthManager::new_for_test);
@@ -103,7 +99,6 @@ fn mock_pane_group(app: &mut App, options: MockOptions) -> ViewHandle<PaneGroup>
             PaneGroup::new_with_panes_layout(
                 tips_model,
                 user_default_shell_changed_banner_dismissal_model_handle,
-                ServerApiProvider::as_ref(ctx).get(),
                 options.layout,
                 None,
                 ctx,

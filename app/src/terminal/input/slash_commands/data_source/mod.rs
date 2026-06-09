@@ -28,7 +28,7 @@ use crate::terminal::cli_agent_sessions::{
 };
 use crate::terminal::model::session::active_session::{ActiveSession, ActiveSessionEvent};
 use crate::terminal::model::session::SessionType;
-use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
+use crate::workspaces::user_workspaces::UserWorkspaces;
 
 pub struct DataSourceArgs {
     pub active_session: ModelHandle<ActiveSession>,
@@ -92,15 +92,6 @@ impl SlashCommandDataSource {
             if matches!(
                 event,
                 InputSettingsChangedEvent::EnableSlashCommandsInTerminal { .. }
-            ) {
-                me.recompute_active_commands(ctx);
-            }
-        });
-        ctx.subscribe_to_model(&UserWorkspaces::handle(ctx), |me, event, ctx| {
-            if matches!(
-                event,
-                UserWorkspacesEvent::CodebaseContextEnablementChanged
-                    | UserWorkspacesEvent::TeamsChanged
             ) {
                 me.recompute_active_commands(ctx);
             }

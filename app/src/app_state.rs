@@ -100,9 +100,6 @@ pub struct LeafSnapshot {
 pub enum LeafContents {
     Terminal(TerminalPaneSnapshot),
     Settings(SettingsPaneSnapshot),
-    /// The in-app network log pane. Not persisted across restarts because the
-    /// backing log is an in-memory ring buffer that starts empty on launch.
-    NetworkLog,
     /// An entrypoint pane type to launch other pane types from a search palette. The default view
     /// when creating a tab.
     Welcome {
@@ -125,10 +122,6 @@ impl LeafContents {
     /// restoration to fail and the whole tab to disappear on restart.
     pub(crate) fn is_persisted(&self) -> bool {
         match self {
-            // Network log: the backing log is an in-memory ring buffer that
-            // starts empty on launch; persisting would also regress back to
-            // an on-disk log via the app-state database.
-            LeafContents::NetworkLog => false,
             LeafContents::Terminal(_)
             | LeafContents::Settings(_)
             | LeafContents::Welcome { .. }

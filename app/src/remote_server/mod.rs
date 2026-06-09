@@ -4,13 +4,7 @@ use remote_server::manager::RemoteServerManager;
 // `crate::remote_server::*` imports in `app` continue to work.
 pub use remote_server::*;
 #[cfg(not(target_family = "wasm"))]
-use rift_server_client::auth::AuthEvent;
-#[cfg(not(target_family = "wasm"))]
 use riftui::SingletonEntity as _;
-
-#[cfg(not(target_family = "wasm"))]
-#[cfg(not(target_family = "wasm"))]
-use crate::server::server_api::ServerApiProvider;
 
 #[cfg(not(target_family = "wasm"))]
 pub mod auth_context;
@@ -45,20 +39,12 @@ pub fn run_daemon(_identity_key: String) -> anyhow::Result<()> {
     anyhow::bail!("remote-server-daemon is not supported on this platform")
 }
 
-/// Forwards app auth-token rotation and privacy preference change events
-/// to the remote-server manager.
+/// Forwards privacy preference change events to the remote-server manager.
+///
+/// Auth-token rotation has been removed: Rift is fully offline and there is no cloud access token
+/// to rotate.
 #[cfg(not(target_family = "wasm"))]
 pub fn wire_auth_token_rotation(ctx: &mut riftui::AppContext) {
-    let server_api = ServerApiProvider::handle(ctx);
-    let manager = RemoteServerManager::handle(ctx);
-    ctx.subscribe_to_model(&server_api, move |_, event, ctx| {
-        if let AuthEvent::AccessTokenRefreshed { token } = event {
-            manager.update(ctx, |manager, _| {
-                manager.rotate_auth_token(token.clone());
-            });
-        }
-    });
-
     // Forward crash reporting preference changes to all connected daemons.
     use crate::settings::{PrivacySettings, PrivacySettingsChangedEvent};
     let privacy_settings = PrivacySettings::handle(ctx);

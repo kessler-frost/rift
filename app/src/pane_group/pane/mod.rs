@@ -11,7 +11,6 @@
 pub(super) mod get_started_pane;
 pub(super) mod get_started_view;
 #[cfg(not(target_family = "wasm"))]
-pub(super) mod network_log_pane;
 pub(super) mod settings_pane;
 pub(super) mod terminal_pane;
 pub mod view;
@@ -37,7 +36,6 @@ use super::{ActivationReason, LeafContents, PaneGroup, PaneGroupAction};
 use crate::menu::MenuItem;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::get_started_view::GetStartedView;
-use crate::server::network_log_view::NetworkLogView;
 use crate::server::telemetry::SharingDialogSource;
 use crate::settings::PaneSettings;
 use crate::settings_view::SettingsView;
@@ -112,7 +110,6 @@ pub(crate) enum IPaneType {
     Terminal,
     Settings,
     GetStarted,
-    NetworkLog,
     Welcome,
     DeferredPlaceholder,
     /// A pane type only for tests.
@@ -126,7 +123,6 @@ impl Display for IPaneType {
             IPaneType::Terminal => write!(f, "Terminal"),
             IPaneType::Settings => write!(f, "Settings"),
             IPaneType::GetStarted => write!(f, "GetStarted"),
-            IPaneType::NetworkLog => write!(f, "Network Log"),
             IPaneType::Welcome => write!(f, "Welcome"),
             IPaneType::DeferredPlaceholder => write!(f, "Placeholder"),
             #[cfg(test)]
@@ -168,11 +164,6 @@ impl PaneId {
         Self::new_from_ctx(IPaneType::GetStarted, ctx)
     }
 
-    /// Creates a [`PaneId`] from a [`ViewContext<PaneView<NetworkLogView>>`].
-    pub fn from_network_log_pane_ctx(ctx: &ViewContext<PaneView<NetworkLogView>>) -> Self {
-        Self::new_from_ctx(IPaneType::NetworkLog, ctx)
-    }
-
     /// Creates a [`PaneId`] from a [`PaneView<TerminalView>`] entity ID.
     pub fn from_terminal_pane_view(
         terminal_pane_view: &ViewHandle<terminal_pane::TerminalPaneView>,
@@ -195,13 +186,6 @@ impl PaneId {
 
     pub fn from_welcome_pane_view(welcome_pane_view: &ViewHandle<PaneView<WelcomeView>>) -> Self {
         Self::new(IPaneType::Welcome, welcome_pane_view)
-    }
-
-    /// Creates a [`PaneId`] from a [`PaneView<NetworkLogView>`] entity ID.
-    pub fn from_network_log_pane_view(
-        network_log_pane_view: &ViewHandle<PaneView<NetworkLogView>>,
-    ) -> Self {
-        Self::new(IPaneType::NetworkLog, network_log_pane_view)
     }
 
     /// Creates a [`PaneId`] for a dummy pane.
@@ -245,9 +229,6 @@ impl PaneId {
             }
             IPaneType::GetStarted => {
                 ChildView::<PaneView<GetStartedView>>::with_id(self.0.pane_view_id).finish()
-            }
-            IPaneType::NetworkLog => {
-                ChildView::<PaneView<NetworkLogView>>::with_id(self.0.pane_view_id).finish()
             }
             IPaneType::Welcome => {
                 ChildView::<PaneView<WelcomeView>>::with_id(self.0.pane_view_id).finish()

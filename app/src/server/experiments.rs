@@ -1,11 +1,45 @@
-//! Logic to convert from / to [`ServerExperiment`].
+//! Minimal local `ServerExperiment` enum.
+//!
+//! The cloud experiment-fetching layer (the `ServerExperiments` model, the GraphQL conversion, and
+//! the server poll) has been removed for the offline build. Only the `ServerExperiment` enum is
+//! retained here because the local persistence layer (sqlite) still stores/loads experiment rows by
+//! string. In the offline build these are never populated from a server, so the stored set is
+//! effectively always empty.
 
 use std::fmt::{Display, Formatter};
 
 use anyhow::{Ok, Result};
-use rift_graphql::experiment::Experiment;
 
-use super::ServerExperiment;
+/// The set of formerly server-driven experiments. Retained only so the persistence layer keeps
+/// compiling; nothing populates these in the offline build.
+#[allow(clippy::enum_variant_names, dead_code)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+pub enum ServerExperiment {
+    SessionSharingExperiment,
+    SessionSharingControl,
+    DisableAgentModeExperiment,
+    EnvVarsEarlyAccessExperiment,
+    AgentModeAnalyticsExperiment,
+    WindowsLaunchExperiment,
+    TmuxSshWarpificationControl,
+    TmuxSshWarpificationExperiment,
+    CodebaseContextExperiment,
+    CodebaseContextControl,
+    SuggestedCodeDiffsControl,
+    SuggestedCodeDiffsExperiment,
+    BuildPlanAutoReloadControl,
+    BuildPlanAutoReloadBannerToggle,
+    BuildPlanAutoReloadPostPurchaseModal,
+    PromptSuggestionsViaMaaControl,
+    PromptSuggestionsViaMaaExperiment,
+    PromptSuggestionsViaMaaOutOfBandExperiment,
+    FreeUserNoAiControl,
+    FreeUserNoAiExperiment,
+    OzMultiHarnessControl,
+    OzMultiHarnessExperiment,
+    #[cfg(test)]
+    TestExperiment,
+}
 
 impl Display for ServerExperiment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -44,6 +78,7 @@ impl Display for ServerExperiment {
 }
 
 impl ServerExperiment {
+    #[allow(dead_code)]
     pub fn from_string(s: String) -> Result<Self> {
         match s.as_str() {
             "SESSION_SHARING_CONTROL" => Ok(Self::SessionSharingControl),
@@ -74,60 +109,4 @@ impl ServerExperiment {
             )),
         }
     }
-}
-
-impl TryFrom<Experiment> for ServerExperiment {
-    type Error = anyhow::Error;
-
-    fn try_from(value: Experiment) -> Result<Self, Self::Error> {
-        match value {
-            Experiment::SessionSharingExperiment => Ok(Self::SessionSharingExperiment),
-            Experiment::SessionSharingControl => Ok(Self::SessionSharingControl),
-            Experiment::BuildPlanAutoReloadControl => Ok(Self::BuildPlanAutoReloadControl),
-            Experiment::BuildPlanAutoReloadBannerToggle => {
-                Ok(Self::BuildPlanAutoReloadBannerToggle)
-            }
-            Experiment::BuildPlanAutoReloadPostPurchaseModal => {
-                Ok(Self::BuildPlanAutoReloadPostPurchaseModal)
-            }
-            Experiment::DisableAgentModeExperiment => Ok(Self::DisableAgentModeExperiment),
-            Experiment::EnvVarsEarlyAccessExperiment => Ok(Self::EnvVarsEarlyAccessExperiment),
-            Experiment::AgentModeAnalyticsExperiment => Ok(Self::AgentModeAnalyticsExperiment),
-            Experiment::TmuxSshWarpificationControl => Ok(Self::TmuxSshWarpificationControl),
-            Experiment::TmuxSshWarpificationExperiment => Ok(Self::TmuxSshWarpificationExperiment),
-            Experiment::WindowsLaunchExperiment => Ok(Self::WindowsLaunchExperiment),
-            Experiment::CodebaseContextControl => Ok(Self::CodebaseContextControl),
-            Experiment::CodebaseContextExperiment => Ok(Self::CodebaseContextExperiment),
-            Experiment::SuggestedCodeDiffsControl => Ok(Self::SuggestedCodeDiffsControl),
-            Experiment::SuggestedCodeDiffsExperiment => Ok(Self::SuggestedCodeDiffsExperiment),
-            Experiment::PromptSuggestionsViaMaaControl => Ok(Self::PromptSuggestionsViaMaaControl),
-            Experiment::PromptSuggestionsViaMaaOob => {
-                Ok(Self::PromptSuggestionsViaMaaOutOfBandExperiment)
-            }
-            Experiment::FreeUserNoAiControl => Ok(Self::FreeUserNoAiControl),
-            Experiment::FreeUserNoAiExperiment => Ok(Self::FreeUserNoAiExperiment),
-            Experiment::OzMultiHarnessControl => Ok(Self::OzMultiHarnessControl),
-            Experiment::OzMultiHarnessExperiment => Ok(Self::OzMultiHarnessExperiment),
-            // Experiments that we no longer support on the client.
-            e => Err(anyhow::anyhow!(
-                "Server-side enabled experiment '{e:?}' is no longer supported by the client."
-            )),
-        }
-    }
-}
-
-#[macro_export]
-macro_rules! convert_to_server_experiment {
-    ($gql_type:expr) => {{
-        let mut acc = Vec::new();
-        for a in $gql_type {
-            // Note for server experiments we don't currently track on the client.
-            // This could be because the client is out of date and we should still
-            // apply the experiments the client does track.
-            if let Ok(b) = ServerExperiment::try_from(a) {
-                acc.push(b);
-            }
-        }
-        Some(acc)
-    }};
 }

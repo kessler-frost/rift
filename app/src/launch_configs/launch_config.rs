@@ -148,7 +148,6 @@ impl TryFrom<PaneNodeSnapshot> for PaneTemplateType {
                 // These pane kinds cannot be saved in launch configurations.
                 LeafContents::Settings(_)
                 | LeafContents::GetStarted
-                | LeafContents::NetworkLog
                 | LeafContents::Welcome { .. } => Err(()),
             },
         }

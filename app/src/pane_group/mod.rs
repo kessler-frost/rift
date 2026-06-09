@@ -19,7 +19,7 @@ use rift_util::path::convert_wsl_to_windows_host_path;
 use rift_util::path::LineAndColumnArg;
 use rift_util::remote_path::RemotePath;
 use riftui::elements::{
-    ChildView, Clipped, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex,
+    ChildView, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex,
     MainAxisSize, ParentElement, Shrinkable, Stack,
 };
 use riftui::keymap::{Context, EditableBinding, FixedBinding};
@@ -53,7 +53,6 @@ use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
 };
-use crate::server::server_api::{ServerApi, ServerApiProvider};
 use crate::server::telemetry::{
     AnonymousUserSignupEntrypoint, PaletteSource,
 };
@@ -72,8 +71,7 @@ use crate::terminal::view::{
     BlockNotification, ExecuteCommandEvent, LeftPanelTargetView, SyncEvent, TerminalViewState,
 };
 use crate::terminal::{
-    ShareBlockModal, ShareBlockModalEvent, ShellLaunchData,
-    TerminalManager, TerminalModel, TerminalView,
+    ShellLaunchData, TerminalManager, TerminalModel, TerminalView,
 };
 use crate::undo_close::{UndoCloseStack, UndoCloseStackEvent};
 #[cfg(target_family = "wasm")]
@@ -97,7 +95,6 @@ use focus_state::PaneGroupFocusState;
 #[path = "mod_tests.rs"]
 mod tests;
 
-pub use pane::network_log_pane::NetworkLogPane;
 pub use pane::settings_pane::SettingsPane;
 pub use pane::terminal_pane::TerminalPane;
 pub use pane::{
@@ -616,15 +613,6 @@ pub struct PaneGroup {
     /// Mapping from pane IDs to their contents.
     pane_contents: HashMap<PaneId, Box<dyn AnyPaneContent>>,
 
-    server_api: Arc<ServerApi>,
-
-    /// The terminal session with an open share block modal. Only terminal panes use the share block modal.
-    terminal_with_open_share_block_modal: Option<TerminalPaneId>,
-
-    // We are only holding one instance of share modal view in the pane group and
-    // update it with the correct terminal model and size info when triggered by
-    // the context menu event.
-    share_block_modal: ViewHandle<ShareBlockModal>,
     dragged_border: Option<DraggedBorder>,
     user_default_shell_changed_banner: ViewHandle<Banner<PaneGroupAction>>,
 
@@ -664,7 +652,6 @@ pub enum SplitPaneState {
 #[derive(Clone)]
 pub struct TerminalViewResources {
     pub tips_completed: ModelHandle<TipsCompleted>,
-    pub server_api: Arc<ServerApi>,
     pub model_event_sender: Option<SyncSender<ModelEvent>>,
 }
 
@@ -1225,26 +1212,6 @@ impl PaneGroup {
                 };
                 Ok((PaneData::new(pane_id), focus))
             }
-            LeafContents::NetworkLog => {
-                // Network log panes are intentionally not restored. Two
-                // reasons:
-                //
-                // 1. The in-memory log starts empty on each launch, so a
-                //    restored pane would display a blank editor anyway.
-                // 2. More importantly, persisting the pane's contents would
-                //    effectively regress back to a persisted, on-disk
-                //    network log (via the SQLite app-state database) on app
-                //    shutdown, defeating the purpose of moving the log off
-                //    disk in the first place.
-                //
-                // `save_pane_state` in `persistence/sqlite.rs` skips network
-                // log panes entirely, so reaching this arm indicates a
-                // programmer error on the persistence side. Users reopen the
-                // pane on demand via Privacy settings or the keybinding.
-                Err(anyhow::anyhow!(
-                    "Network log pane should not have been persisted, as it cannot be restored"
-                ))
-            }
             LeafContents::GetStarted => {
                 if !FeatureFlag::GetStartedTab.is_enabled() {
                     Err(anyhow::anyhow!("GetStarted pane not supported"))
@@ -1554,7 +1521,6 @@ impl PaneGroup {
     fn new_internal(
         tips_completed: ModelHandle<TipsCompleted>,
         user_default_shell_unsupported_banner_model_handle: ModelHandle<BannerState>,
-        server_api: Arc<ServerApi>,
         model_event_sender: Option<SyncSender<ModelEvent>>,
         initial_layout_callback: InitialLayoutCallback,
         ctx: &mut ViewContext<Self>,
@@ -1566,7 +1532,6 @@ impl PaneGroup {
 
         let resources = TerminalViewResources {
             tips_completed: tips_completed.clone(),
-            server_api: server_api.clone(),
             model_event_sender: model_event_sender.clone(),
         };
 
@@ -1600,13 +1565,6 @@ impl PaneGroup {
         });
         ctx.subscribe_to_model(&focus_state, |me, _, event, ctx| {
             me.handle_focus_state_event(event, ctx);
-        });
-
-        let block_client = ServerApiProvider::as_ref(ctx).get_block_client();
-        let share_modal =
-            ctx.add_typed_action_view(|ctx| ShareBlockModal::new(None, block_client, ctx));
-        ctx.subscribe_to_view(&share_modal, move |me, _, event, ctx| {
-            me.handle_share_block_modal_event(event, ctx);
         });
 
         ctx.subscribe_to_model(&PaneSettings::handle(ctx), |_, _, _, ctx| {
@@ -1661,9 +1619,6 @@ impl PaneGroup {
             focus_state,
             pane_history,
             pane_contents,
-            server_api,
-            terminal_with_open_share_block_modal: None,
-            share_block_modal: share_modal,
             dragged_border: None,
             user_default_shell_changed_banner,
             pane_with_open_environment_setup_mode_selector: None,
@@ -1739,7 +1694,6 @@ impl PaneGroup {
     pub fn new_with_panes_layout(
         tips_completed: ModelHandle<TipsCompleted>,
         user_default_shell_unsupported_banner_model_handle: ModelHandle<BannerState>,
-        server_api: Arc<ServerApi>,
         panes_layout: PanesLayout,
         model_event_sender: Option<SyncSender<ModelEvent>>,
         ctx: &mut ViewContext<Self>,
@@ -1802,7 +1756,6 @@ impl PaneGroup {
         Self::new_internal(
             tips_completed,
             user_default_shell_unsupported_banner_model_handle,
-            server_api,
             model_event_sender.clone(),
             Box::new(initial_layout),
             ctx,
@@ -1813,7 +1766,6 @@ impl PaneGroup {
         pane: Box<dyn AnyPaneContent>,
         tips_completed: ModelHandle<TipsCompleted>,
         user_default_shell_unsupported_banner_model_handle: ModelHandle<BannerState>,
-        server_api: Arc<ServerApi>,
         model_event_sender: Option<SyncSender<ModelEvent>>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
@@ -1835,7 +1787,6 @@ impl PaneGroup {
         Self::new_internal(
             tips_completed,
             user_default_shell_unsupported_banner_model_handle,
-            server_api,
             model_event_sender,
             Box::new(initial_layout),
             ctx,
@@ -1868,25 +1819,6 @@ impl PaneGroup {
             }
             PaneGroupFocusEvent::InSplitPaneChanged => ctx.notify(),
             PaneGroupFocusEvent::FocusedPaneMaximizedChanged => ctx.notify(),
-        }
-    }
-
-    fn handle_share_block_modal_event(
-        &mut self,
-        event: &ShareBlockModalEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            ShareBlockModalEvent::Close => {
-                self.focus(ctx);
-                self.terminal_with_open_share_block_modal = None;
-                ctx.notify();
-            }
-            ShareBlockModalEvent::ShowToast { message, flavor } => ctx.emit(Event::ShowToast {
-                message: message.clone(),
-                flavor: *flavor,
-                pane_id: None,
-            }),
         }
     }
 
@@ -2210,11 +2142,6 @@ impl PaneGroup {
                 self.hide_closed_pane(pane_id, ctx);
             }
 
-            // Remove opened share modal associated with the closing session.
-            if Some(pane_id) == self.terminal_with_open_share_block_modal.map(Into::into) {
-                self.terminal_with_open_share_block_modal = None;
-            }
-
             if self.pane_with_open_environment_setup_mode_selector == Some(pane_id) {
                 self.pane_with_open_environment_setup_mode_selector = None;
             }
@@ -2241,11 +2168,6 @@ impl PaneGroup {
             }
 
             self.clean_up_pane(pane_id, ctx);
-
-            // Remove opened share modal associated with the closing session.
-            if Some(pane_id) == self.terminal_with_open_share_block_modal.map(Into::into) {
-                self.terminal_with_open_share_block_modal = None;
-            }
 
             if self.pane_with_open_environment_setup_mode_selector == Some(pane_id) {
                 self.pane_with_open_environment_setup_mode_selector = None;
@@ -3235,7 +3157,6 @@ impl PaneGroup {
         let uuid = Uuid::new_v4();
         let resources = TerminalViewResources {
             tips_completed: self.tips_completed.clone(),
-            server_api: self.server_api.clone(),
             model_event_sender: self.model_event_sender.clone(),
         };
 
@@ -3878,7 +3799,6 @@ impl PaneGroup {
             ctx,
         );
 
-        self.terminal_with_open_share_block_modal = None;
         ctx.notify();
     }
 
@@ -4021,13 +3941,6 @@ impl View for PaneGroup {
         column.add_child(Shrinkable::new(1., main_content).finish());
 
         let mut stack = Stack::new().with_child(column.finish());
-
-        // Render the share modals on the pane group level so that their
-        // size is not restricted to within the terminal view.
-        if self.terminal_with_open_share_block_modal.is_some() {
-            stack
-                .add_child(Clipped::new(ChildView::new(&self.share_block_modal).finish()).finish());
-        }
 
         // Render auth-secret delete confirmation at tab level when open.
         if let Some(pane_id) = self.pane_with_open_auth_secret_delete_confirmation_dialog {

@@ -22,7 +22,7 @@ use riftui::{
 use settings::Setting as _;
 use thousands::Separable;
 
-use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
+use crate::pricing::PricingInfoModel;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::ui_components::blended_colors;
 use crate::view_components::{Dropdown, DropdownEvent, DropdownItem, ToastFlavor};
@@ -66,15 +66,7 @@ pub struct BuildPlanMigrationModal {
 
 impl BuildPlanMigrationModal {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        ctx.subscribe_to_model(
-            &PricingInfoModel::handle(ctx),
-            |me, _, event, ctx| match event {
-                PricingInfoModelEvent::PricingInfoUpdated => {
-                    me.update_addon_credits_options(ctx);
-                    ctx.notify();
-                }
-            },
-        );
+        ctx.subscribe_to_model(&PricingInfoModel::handle(ctx), |_, _, _event, _ctx| {});
 
         ctx.subscribe_to_model(&UserWorkspaces::handle(ctx), |me, _handle, event, ctx| {
             me.handle_workspaces_event(event, ctx);
@@ -177,19 +169,6 @@ impl BuildPlanMigrationModal {
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            UserWorkspacesEvent::UpdateWorkspaceSettingsSuccess => {
-                if self.is_updating {
-                    // Close modal on success when we initiated the update
-                    self.is_updating = false;
-                    self.update_addon_credits_options(ctx);
-                    Self::mark_modal_dismissed(ctx);
-                    ctx.emit(BuildPlanMigrationModalEvent::Close);
-                } else {
-                    // External update - refresh our state to stay in sync
-                    self.refresh_addon_credits_settings(ctx);
-                    ctx.notify();
-                }
-            }
             UserWorkspacesEvent::UpdateWorkspaceSettingsRejected(_err) => {
                 self.is_updating = false;
                 ctx.emit(BuildPlanMigrationModalEvent::ShowToast {

@@ -414,23 +414,6 @@ pub(super) fn remove(sender: SyncSender<ModelEvent>) {
         .context("Error requesting database deletion"));
 }
 
-pub(super) fn reconstruct(sender: SyncSender<ModelEvent>) {
-    report_if_error!(sender
-        .send(ModelEvent::ReconstructAndResume)
-        .context("Error resuming SQLite thread"));
-}
-
-fn reconstruct_database(path: &Path) -> Result<SqliteConnection> {
-    // If the DB still exists, logout might have failed. However, it's more likely that something
-    // else wrote to it before the user logged back in.
-    if std::fs::metadata(path).is_ok() {
-        log::info!("Reconstructing database, but it already exists");
-    }
-
-    // Always reinitialize DB - setup_database will only create it if it doesn't exist.
-    setup_database(path)
-}
-
 fn start_writer(conn: SqliteConnection, database_path: PathBuf) -> Result<WriterHandles> {
     let (tx, rx) = std::sync::mpsc::sync_channel(CHANNEL_SIZE);
     let mut current_conn = conn;
@@ -458,18 +441,6 @@ fn start_writer(conn: SqliteConnection, database_path: PathBuf) -> Result<Writer
 
                 for event in events {
                     match event {
-                        ModelEvent::ReconstructAndResume => {
-                            match reconstruct_database(&database_path) {
-                                Ok(conn) => {
-                                    current_conn = conn;
-                                    paused = false;
-                                    log::info!("SQLite Writer is resumed");
-                                }
-                                Err(err) => {
-                                    report_db_error("reconstruction", err, &database_path);
-                                }
-                            }
-                        }
                         ModelEvent::PauseAndRemoveDatabase => {
                             paused = true;
                             log::info!("SQLite Writer is paused");
@@ -504,13 +475,10 @@ fn start_writer(conn: SqliteConnection, database_path: PathBuf) -> Result<Writer
 /// Handles a single [`ModelEvent`] by dispatching to an event-specific function.
 /// Events which affect the SQLite writer event loop _must_ instead be handled by the event loop itself:
 /// * [`ModelEvent::PauseAndRemoveDatabase`]
-/// * [`ModelEvent::ReconstructAndResume`]
 /// * [`ModelEvent::Terminate`]
 fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> anyhow::Result<()> {
     match event {
-        ModelEvent::PauseAndRemoveDatabase
-        | ModelEvent::ReconstructAndResume
-        | ModelEvent::Terminate => {
+        ModelEvent::PauseAndRemoveDatabase | ModelEvent::Terminate => {
             panic!("Unhandled control-flow event {event:?}");
         }
         ModelEvent::SaveBlock(BlockCompleted {
@@ -893,18 +861,6 @@ fn save_pane_state(
         LeafContents::Settings(_) => SETTINGS_PANE_KIND,
         LeafContents::GetStarted => GET_STARTED_PANE_KIND,
         LeafContents::Welcome { .. } => WELCOME_PANE_KIND,
-        LeafContents::NetworkLog => {
-            // These pane types are filtered out before this function is
-            // called; see `LeafContents::is_persisted` and the skip in
-            // `save_app_state`. Reaching this arm would mean a `pane_nodes`
-            // row had already been inserted with no corresponding
-            // `pane_leaves` row, which would break restoration.
-            debug_assert!(
-                false,
-                "save_pane_state called for non-persisted LeafContents variant"
-            );
-            return Ok(());
-        }
     };
 
     let leaf = model::NewPane {
@@ -970,9 +926,6 @@ fn save_pane_state(
             diesel::insert_into(schema::welcome_panes::dsl::welcome_panes)
                 .values(welcome_pane)
                 .execute(conn)?;
-        }
-        LeafContents::NetworkLog => {
-            // Unreachable: filtered by `is_persisted` in `save_app_state`.
         }
     }
 

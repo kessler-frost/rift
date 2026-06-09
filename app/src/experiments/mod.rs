@@ -5,7 +5,6 @@
 //! that we are not able to assert through automated testing.
 //! https://www.notion.so/warpdev/Experiment-Framework-Guide-88954c36a0c3469ea57b427b58249d5f?pvs=4
 
-mod block_onboarding_layer;
 mod login_layer;
 mod rendering;
 use std::collections::HashMap;
@@ -16,9 +15,7 @@ use std::ops::Range;
 use std::str::FromStr;
 
 use anyhow::Result;
-pub use block_onboarding_layer::{BlockOnboarding, BLOCK_ONBOARDING_LAYER};
 use dashmap::DashMap;
-pub use improved_palette_search_layer::{ImprovedPaletteSearch, IMPROVED_PALETTE_SEARCH_LAYER};
 use lazy_static::lazy_static;
 pub use login_layer::{AuthFlowInstructions, LOGIN_LAYER};
 use rift_core::user_preferences::GetUserPreferences as _;
@@ -66,9 +63,7 @@ lazy_static! {
     /// and so users can never be assigned to experiments in EMPTY_LAYER.
     static ref LAYERS: Vec<&'static Layer> = vec![
         &*LOGIN_LAYER,
-        &*BLOCK_ONBOARDING_LAYER,
         &*rendering::LAYER,
-        &*IMPROVED_PALETTE_SEARCH_LAYER,
     ];
 
     /// Mapping of experiments to their respective layers. The mappings are built up
@@ -403,6 +398,5 @@ pub fn init(ctx: &mut AppContext) {
 #[path = "mod_tests.rs"]
 mod tests;
 
-mod improved_palette_search_layer;
 #[cfg(test)]
 mod validation_tests;

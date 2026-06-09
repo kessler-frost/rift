@@ -121,8 +121,6 @@ use repo_metadata::{
 };
 use rift_cli::agent::AgentCommand;
 use rift_cli::{CliCommand, GlobalOptions};
-use server::network_log_pane_manager::NetworkLogPaneManager;
-use server::network_logging::NetworkLogModel;
 use server::telemetry::context_provider::AppTelemetryContextProvider;
 #[cfg(feature = "local_fs")]
 use settings::import::model::ImportedConfigModel;
@@ -156,7 +154,6 @@ pub use persistence::testing as sqlite_testing;
 pub use plugin::{run_plugin_host, PLUGIN_HOST_FLAG};
 pub use rift_core::errors::{report_error, report_if_error};
 use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
-use server::server_api::ServerApiProvider;
 use settings::{ExtraMetaKeys, PrivacySettings};
 use terminal::input;
 use terminal::session_settings::SessionSettings;
@@ -172,7 +169,6 @@ pub use rift_core::{safe_debug, safe_error, safe_info, safe_warn};
 #[cfg(feature = "local_fs")]
 use rift_files::FileModel;
 use rift_logging::LogDestination;
-use rift_managed_secrets::ManagedSecretManager;
 use riftui::integration::TestDriver;
 use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
 use riftui::platform::app::ApproveTerminateResult;
@@ -187,7 +183,6 @@ use crate::antivirus::AntivirusInfo;
 use crate::app_state::AppState;
 use crate::context_chips::prompt::Prompt;
 use crate::default_terminal::DefaultTerminal;
-use crate::experiments::ImprovedPaletteSearch;
 pub use crate::global_resource_handles::{GlobalResourceHandles, GlobalResourceHandlesProvider};
 use crate::gpu_state::GPUState;
 use crate::network::NetworkStatus;
@@ -198,8 +193,6 @@ use crate::projects::ProjectManagementModel;
 use crate::root_view::{
     quake_mode_window_id, quake_mode_window_is_open, OpenFromRestoredArg, OpenPath,
 };
-use crate::server::experiments::ServerExperiments;
-use crate::server::iap::IapManager;
 pub use crate::server::telemetry::{
     AgentModeEntrypoint, AgentModeEntrypointSelectionType, TelemetryEvent,
 };
@@ -915,10 +908,6 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
             pre_sentry_errors,
         );
 
-        if ImprovedPaletteSearch::improved_search_enabled(ctx) {
-            FeatureFlag::UseTantivySearch.set_enabled(true);
-        }
-
         launch(ctx, app_state, launch_mode);
     })
 }
@@ -986,40 +975,11 @@ pub(crate) fn initialize_app(
     let auth_state = Arc::new(AuthState::initialize(ctx, api_key));
     timer.mark_interval_end("AUTH_MANAGER_SET_USER");
 
-    // NetworkLogModel must be registered before ServerApiProvider so that
-    // `network_logging::init` (invoked from within `ServerApiProvider::new`)
-    // can reach it via `NetworkLogModel::handle(ctx)` when forwarding items
-    // captured by the HTTP client hooks.
-    ctx.add_singleton_model(|_ctx| NetworkLogModel::default());
-
-    // Create a shared IAP state for staging builds. The same `Arc<IapState>`
-    // is handed to both `ServerApi` (for sync reads on the request path) and
-    // `IapManager` (which owns refresh logic on the main thread).
-    #[cfg(not(target_family = "wasm"))]
-    let iap_state =
-        ChannelState::iap_config().map(|cfg| Arc::new(crate::server::iap::IapState::new(&cfg)));
-    #[cfg(target_family = "wasm")]
-    let iap_state: Option<Arc<crate::server::iap::IapState>> = None;
-
-    let server_api_provider = ctx.add_singleton_model({
-        let auth_state = auth_state.clone();
-        let iap_state = iap_state.clone();
-        move |ctx| ServerApiProvider::new(auth_state, iap_state, ctx)
-    });
-
-    let server_api = server_api_provider.as_ref(ctx).get();
-
     ctx.add_singleton_model(|_ctx| AuthStateProvider::new(auth_state.clone()));
 
     ctx.add_singleton_model(AppTelemetryContextProvider::new_context_provider);
 
-    ctx.add_singleton_model(|ctx| {
-        AuthManager::new(
-            server_api.clone(),
-            server_api_provider.as_ref(ctx).get_auth_client(),
-            ctx,
-        )
-    });
+    ctx.add_singleton_model(AuthManager::new);
 
     ctx.add_singleton_model(|_ctx| GPUState::new());
 
@@ -1120,20 +1080,10 @@ pub(crate) fn initialize_app(
         persisted_ignored_suggestions = Default::default();
     }
 
-    // Initialize a global model to track server-side experiment state.
-    // This depends on the [`GlobalResourceHandlesProvider`] and so it must
-    // be initialized after it.
-    ctx.add_singleton_model(|ctx| ServerExperiments::new_from_cache(experiments, ctx));
-
+    let _ = experiments;
 
     ctx.add_singleton_model(|ctx| {
-        UserWorkspaces::new(
-            server_api_provider.as_ref(ctx).get_team_client(),
-            server_api_provider.as_ref(ctx).get_workspace_client(),
-            cached_workspaces,
-            current_workspace_uid,
-            ctx,
-        )
+        UserWorkspaces::new(cached_workspaces, current_workspace_uid, ctx)
     });
 
     ctx.add_singleton_model(AntivirusInfo::new);
@@ -1162,15 +1112,7 @@ pub(crate) fn initialize_app(
     App::record_last_active_timestamp();
 
     ctx.add_singleton_model(|_| SettingsPaneManager::new());
-    ctx.add_singleton_model(|_| NetworkLogPaneManager::default());
     ctx.add_singleton_model(|_| pricing::PricingInfoModel::new());
-    ctx.add_singleton_model(|ctx| {
-        // Not using the *Provider types isn't ideal, but it's worth it for the ability to move managed secrets to a separate crate.
-        ManagedSecretManager::new(
-            server_api_provider.as_ref(ctx).get_managed_secrets_client(),
-            auth_state.clone(),
-        )
-    });
 
     #[cfg(target_os = "macos")]
     if !launch_mode.is_headless() {
@@ -1355,9 +1297,8 @@ pub(crate) fn initialize_app(
     ctx.add_singleton_model(CustomSecretRegexUpdater::new);
 
     // Register the `TelemetryCollection` singleton model.
-    let server_api_clone = server_api.clone();
     ctx.add_singleton_model(|ctx| {
-        let telemetry_collector = TelemetryCollector::new(server_api_clone);
+        let telemetry_collector = TelemetryCollector::new();
         telemetry_collector.initialize_telemetry_collection(ctx);
         telemetry_collector
     });
@@ -1418,13 +1359,7 @@ pub(crate) fn initialize_app(
     // and before the UpdateManager models because they rely on the TeamTester model.
     ctx.add_singleton_model(TeamTesterStatus::new);
 
-    ctx.add_singleton_model(|ctx| {
-        TeamUpdateManager::new(
-            server_api_provider.as_ref(ctx).get_team_client(),
-            persistence_writer.sender(),
-            ctx,
-        )
-    });
+    ctx.add_singleton_model(TeamUpdateManager::new);
 
 
 
@@ -1450,17 +1385,6 @@ pub(crate) fn initialize_app(
         ctx.add_singleton_model(LocalShellState::new);
         ctx.add_singleton_model(system::SystemInfo::new);
     }
-
-    // `IapManager` drives gcloud-based IAP token refresh for staging builds.
-    // Register it after `LocalShellState`: the Manager needs to know where the gcloud
-    // cli lives & thus needs PATH config set by ~/.zshrc et al.
-    //
-    // Registered on all targets (including wasm) so consumers such as the
-    // shared-session viewer network — which compiles and runs on wasm — can
-    // read the singleton without panicking. On wasm `iap_state` is always
-    // `None`, making this an inert no-op: `IapManager::new` early-returns from
-    // its refresh loop and `iap_state()` yields no proxy-auth header.
-    ctx.add_singleton_model(move |ctx| IapManager::new(iap_state, ctx));
 
     // Add a singleton model that holds the current prompt configuration.
     ctx.add_singleton_model(Prompt::new);

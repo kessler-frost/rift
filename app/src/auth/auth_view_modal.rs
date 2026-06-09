@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use rift_core::errors::ErrorExt;
 use rift_core::features::FeatureFlag;
 use riftui::actions::StandardAction;
 use riftui::elements::{
@@ -27,7 +26,6 @@ use crate::appearance::Appearance;
 use crate::auth::auth_view_body::AuthViewBody;
 use crate::modal::Modal;
 use crate::root_view::unthemed_window_border;
-use crate::server::server_api::auth::UserAuthenticationError;
 use crate::util::bindings::CustomAction;
 
 pub fn init(app: &mut AppContext) {
@@ -279,29 +277,14 @@ impl AuthView {
                 self.close(ctx);
             }
             AuthManagerEvent::AuthFailed(err) => {
-                if err.is_actionable() {
-                    log::error!("Failed to log in user: {err:#}");
-                }
-
-                if let UserAuthenticationError::InvalidStateParameter = err {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::InvalidStateParameter);
-                } else if let UserAuthenticationError::MissingStateParameter = err {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::MissingStateParameter);
-                } else {
-                    self.last_login_failure_reason =
-                        Some(LoginFailureReason::FailedUserAuthentication);
-                }
-
+                log::error!("Failed to log in user: {err:#}");
+                self.last_login_failure_reason =
+                    Some(LoginFailureReason::FailedUserAuthentication);
                 self.set_auth_token_input_editable(true, ctx);
             }
             AuthManagerEvent::CreateAnonymousUserFailed => {
                 self.last_login_failure_reason = Some(LoginFailureReason::FailedUserAuthentication);
                 self.set_auth_token_input_editable(true, ctx);
-            }
-            AuthManagerEvent::MintCustomTokenFailed(_err) => {
-                self.last_login_failure_reason = Some(LoginFailureReason::FailedMintCustomToken);
             }
             _ => {}
         }

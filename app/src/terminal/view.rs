@@ -105,7 +105,6 @@ use riftui::image_cache::ImageType;
 use riftui::keymap::Keystroke;
 use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
 use riftui::platform::{Cursor, OperatingSystem};
-use riftui::r#async::executor::Background;
 use riftui::r#async::Timer;
 use riftui::text::SelectionType;
 use riftui::ui_components::components::UiComponent;
@@ -184,7 +183,6 @@ use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
 use crate::server::ids::SyncId;
-use crate::server::server_api::ServerApi;
 use crate::server::telemetry::{
     BlockLatencyInfo, LinkOpenMethod,
     TelemetryEvent, ToggleBlockFilterSource, 
@@ -332,7 +330,7 @@ use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
     CommandSearchOptions, OneTimeModalModel,
 };
-use crate::workspaces::user_workspaces::{UserWorkspaces, UserWorkspacesEvent};
+use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::{
     report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
     send_telemetry_sync_from_ctx,
@@ -1695,7 +1693,6 @@ pub struct TerminalView {
 
     mouse_states: TerminalViewMouseStates,
 
-    server_api: Arc<ServerApi>,
     auth_state: Arc<AuthState>,
 
     /// A sender used to handle messages for whenever the entire terminal view
@@ -1753,10 +1750,6 @@ pub struct TerminalView {
     active_block_metadata: Option<BlockMetadata>,
 
     block_text_selection_start_position: Option<Vector2F>,
-
-    /// Background executor for sending telemetry when a TerminalView is
-    /// dropped.
-    background_executor: Arc<Background>,
 
     inline_banners_state: InlineBannersState,
 
@@ -2181,12 +2174,6 @@ impl TerminalView {
             },
         );
 
-        ctx.subscribe_to_model(&UserWorkspaces::handle(ctx), |me, _, event, ctx| {
-            if matches!(event, UserWorkspacesEvent::TeamsChanged) {
-                me.update_focused_terminal_info(ctx);
-            }
-        });
-
         let (resize_tx, resize_rx) = async_channel::unbounded();
         let (find_link_tx, find_link_rx) = async_channel::unbounded();
         ctx.subscribe_to_model(&model_events_handle, |me, _, event, ctx| {
@@ -2219,7 +2206,6 @@ impl TerminalView {
             Input::new(
                 model.clone(),
                 resources.tips_completed.clone(),
-                resources.server_api.clone(),
                 sessions.clone(),
                 size_info,
                 menu_positioning_provider,
@@ -2541,7 +2527,6 @@ impl TerminalView {
             mouse_states: Default::default(),
             open_grid_link_tool_tip: None,
             open_rich_content_link_tool_tip: None,
-            server_api: resources.server_api.clone(),
             auth_state: AuthStateProvider::as_ref(ctx).get().clone(),
             find_bar,
             resize_tx,
@@ -2565,7 +2550,6 @@ impl TerminalView {
             sessions,
             active_block_metadata: None,
             block_text_selection_start_position: None,
-            background_executor: ctx.background_executor().clone(),
             inline_banners_state: Default::default(),
             bookmarked_blocks: Default::default(),
             file_link_scanning_join_handle: None,
@@ -14868,25 +14852,22 @@ impl Drop for TerminalView {
                 let was_ever_visible = self.was_ever_visible;
                 let duration_since_start =
                     self.bootstrap_start.unwrap_or_else(Instant::now).elapsed();
-                let server_api = self.server_api.clone();
-                let privacy_settings_snapshot = self.privacy_settings_snapshot;
-                let task = self.background_executor.spawn(async move {
-                    if let Err(error) = server_api
-                        .send_telemetry_event(
-                            TelemetryEvent::SessionAbandonedBeforeBootstrap {
-                                pending_shell,
-                                has_pending_ssh_session,
-                                was_ever_visible,
-                                duration_since_start,
-                            },
-                            privacy_settings_snapshot,
-                        )
-                        .await
-                    {
-                        log::warn!("Error occurred with sending telemetry event: {error}");
-                    }
-                });
-                task.detach();
+                // Offline build: record the telemetry event into the local in-memory queue rather
+                // than sending it over the network.
+                let event = TelemetryEvent::SessionAbandonedBeforeBootstrap {
+                    pending_shell,
+                    has_pending_ssh_session,
+                    was_ever_visible,
+                    duration_since_start,
+                };
+                riftui::telemetry::record_event(
+                    self.auth_state.user_id().map(|uid| uid.as_string()),
+                    self.auth_state.anonymous_id(),
+                    event.name().into(),
+                    event.payload(),
+                    event.contains_ugc(),
+                    riftui::time::get_current_time(),
+                );
             }
         };
     }

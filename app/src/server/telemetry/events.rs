@@ -24,7 +24,6 @@ use crate::pane_group::PaneDragDropLocation;
 use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::QueryFilter;
-use crate::server::block::DisplaySetting;
 use crate::server::ids::ServerId;
 use crate::settings::import::config::{ParsedTerminalSetting, SettingType};
 use crate::settings::import::model::TerminalType;
@@ -44,7 +43,6 @@ use crate::terminal::view::{
     NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction, NotificationsTrigger,
     PromptPart,
 };
-use crate::terminal::ShareBlockType;
 use crate::tips::WelcomeTipFeature;
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
@@ -832,13 +830,6 @@ pub enum TelemetryEvent {
     },
     ReinputCommands(BlockSelectionCardinality),
     JumpToPreviousCommand,
-    CopyBlockSharingLink(ShareBlockType),
-    GenerateBlockSharingLink {
-        share_type: ShareBlockType,
-        display_setting: DisplaySetting,
-        show_prompt: bool,
-        redact_secrets: bool,
-    },
     BlockSelection(BlockSelectionDetails),
     BootstrappingSlow(BootstrappingInfo),
     BootstrappingSlowContents(SlowBootstrapInfo),
@@ -2425,17 +2416,6 @@ impl TelemetryEvent {
             } => Some(json!({
                 "max_bytes_per_second": max_bytes_per_second,
             })),
-            TelemetryEvent::GenerateBlockSharingLink {
-                share_type,
-                display_setting,
-                show_prompt,
-                redact_secrets,
-            } => Some(
-                json!({"share_type": share_type, "display_setting": display_setting, "show_prompt": show_prompt, "redact_secrets": redact_secrets}),
-            ),
-            TelemetryEvent::CopyBlockSharingLink(share_type) => {
-                Some(json!({ "share_type": share_type }))
-            }
             TelemetryEvent::PageUpDownInEditorPressed {
                 is_empty_editor,
                 is_down,
@@ -3452,8 +3432,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::PromptEdited => EnablementState::Always,
             Self::ReinputCommands => EnablementState::Always,
             Self::JumpToPreviousCommand => EnablementState::Always,
-            Self::CopyBlockSharingLink => EnablementState::Always,
-            Self::GenerateBlockSharingLink => EnablementState::Always,
             Self::BlockSelection => EnablementState::Always,
             Self::BootstrappingSlow => EnablementState::Always,
             Self::BootstrappingSlowContents => EnablementState::Always,
@@ -3845,8 +3823,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ContextMenuFindWithinBlocks => "Context Menu: Find Within Blocks",
             Self::ContextMenuOpenShareModal => "Context Menu: Initiate Block Sharing",
             Self::ContextMenuCopy => "Context Menu Copy",
-            Self::CopyBlockSharingLink => "Copy Block Sharing Link",
-            Self::GenerateBlockSharingLink => "Generate Block Sharing Link",
             Self::BlockSelection => "Block Selection",
             Self::BootstrappingSlow => "Bootstrapping Slow",
             Self::BootstrappingSlowContents => "Bootstrap Slow Contents",
@@ -4349,8 +4325,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::PromptEdited => "Edited the prompt using the built-in prompt editor",
             Self::ReinputCommands => "Clicked \"reinput commands\" in context menu",
             Self::JumpToPreviousCommand => "Jumped to a previous command",
-            Self::CopyBlockSharingLink => "Clicked \"Share block...\" in context menu",
-            Self::GenerateBlockSharingLink => "Generated Block sharing link",
             Self::BlockSelection => "Selected Block",
             Self::BootstrappingSlow => "Slow bootstrap on session startup",
             Self::BootstrappingSlowContents => {

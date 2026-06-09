@@ -3492,7 +3492,6 @@ impl PaneGroup {
             ),
             IPaneType::Settings => TypedPane::Settings,
             IPaneType::GetStarted
-            | IPaneType::NetworkLog
             | IPaneType::Welcome
             | IPaneType::DeferredPlaceholder => TypedPane::Other,
             #[cfg(test)]
