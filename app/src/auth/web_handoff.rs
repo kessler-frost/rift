@@ -5,7 +5,6 @@ use wasm_bindgen::prelude::*;
 
 use super::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::auth_view_modal::AuthRedirectPayload;
-use crate::auth::credentials::RefreshToken;
 use crate::auth::login_error_modal::LoginErrorModal;
 use crate::platform::wasm::{user_handoff, AuthHandoffError};
 use crate::report_error;
@@ -56,14 +55,9 @@ impl WebHandoffView {
     /// Import the authenticated user from the host React app, if available.
     pub fn import_user(&mut self, ctx: &mut ViewContext<Self>) {
         match user_handoff() {
-            Ok(Some(refresh_token)) => {
+            Ok(Some(_refresh_token)) => {
                 log::debug!("Attempting to retrieve refresh token from host app");
-                let payload = AuthRedirectPayload {
-                    refresh_token: RefreshToken::new(refresh_token),
-                    user_uid: None,
-                    deleted_anonymous_user: None,
-                    state: None,
-                };
+                let payload = AuthRedirectPayload;
 
                 AuthManager::handle(ctx).update(ctx, |auth_manager, ctx| {
                     // No need to validate state for web handoff, since everything's happening
@@ -87,23 +81,11 @@ impl WebHandoffView {
         ctx.notify();
     }
 
-    fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, ctx: &mut ViewContext<Self>) {
+    fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, _ctx: &mut ViewContext<Self>) {
+        // Offline: the only auth event is `SkippedLogin`. The cloud auth-complete/failed events that
+        // drove the web handoff flow no longer exist.
         match event {
-            AuthManagerEvent::AuthComplete => {
-                log::debug!("Initialized user from host application");
-            }
-            AuthManagerEvent::AuthFailed(err) => {
-                if matches!(self.state, HandoffState::LoadingFromSessionCookie) {
-                    log::debug!("No browser session available for web auth handoff: {err:#}");
-                    ctx.emit(WebHandoffEvent::Unsupported);
-                    return;
-                }
-
-                log::error!("Failed to import user from host application: {err:#}");
-                self.state = HandoffState::Failed;
-                ctx.notify();
-            }
-            _ => {}
+            AuthManagerEvent::SkippedLogin => {}
         }
     }
 }

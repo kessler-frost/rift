@@ -1,4 +1,5 @@
 mod accessibility;
+mod agent_command_predicate;
 pub mod ai;
 mod alias_expansion;
 pub mod app_icon;

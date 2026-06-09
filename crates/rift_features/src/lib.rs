@@ -552,7 +552,6 @@ pub enum FeatureFlag {
     CloudModeHostSelector,
 
     /// Enables Warp Managed Secrets functionality.
-    WarpManagedSecrets,
 
     /// Enables support for AM file diffs backed by the V4A patch format.
     V4AFileDiffs,

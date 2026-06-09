@@ -130,7 +130,7 @@ impl TypedActionView for MainSettingsPageView {
                     ctx.open_url(&UserWorkspaces::upgrade_link_for_team(*team_uid));
                 }
                 None => {
-                    ctx.open_url(&UserWorkspaces::upgrade_link(*user_id));
+                    ctx.open_url(&UserWorkspaces::upgrade_link(user_id.clone()));
                 }
             },
             MainPageAction::GenerateStripeBillingPortalLink { team_uid } => {
@@ -262,7 +262,7 @@ impl AccountWidget {
                     .on_click(move |ctx, _, _| {
                         ctx.dispatch_typed_action(MainPageAction::Upgrade {
                             team_uid: None,
-                            user_id: current_user_id,
+                            user_id: current_user_id.clone(),
                         });
                     })
                     .finish(),
@@ -438,7 +438,7 @@ impl AccountWidget {
                                     Some(Box::new(move |ctx| {
                                         ctx.dispatch_typed_action(MainPageAction::Upgrade {
                                             team_uid: Some(team_uid),
-                                            user_id: current_user_id,
+                                            user_id: current_user_id.clone(),
                                         });
                                     })),
                                     self.ui_state_handles.upgrade_link.clone(),
@@ -464,7 +464,7 @@ impl AccountWidget {
                         Some(Box::new(move |ctx| {
                             ctx.dispatch_typed_action(MainPageAction::Upgrade {
                                 team_uid: None,
-                                user_id: current_user_id,
+                                user_id: current_user_id.clone(),
                             });
                         })),
                         self.ui_state_handles.upgrade_link.clone(),

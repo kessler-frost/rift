@@ -93,8 +93,7 @@ pub struct PasteAuthTokenModalView {
 
 impl PasteAuthTokenModalView {
     /// Disables the editor while the auth request is in flight. Re-enabled
-    /// automatically on `AuthManagerEvent::AuthFailed` or on local parse
-    /// failure in `submit`.
+    /// automatically on local parse failure in `submit`.
     fn set_editor_enabled(&mut self, is_enabled: bool, ctx: &mut ViewContext<Self>) {
         let state = if is_enabled {
             InteractionState::Editable

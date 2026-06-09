@@ -19,9 +19,7 @@ use url::Url;
 
 use super::auth_manager::{AuthManager, AuthManagerEvent};
 use super::auth_view_body::{AuthStep, AuthViewBodyEvent};
-use super::credentials::RefreshToken;
 use super::login_failure_notification::{self, LoginFailureReason};
-use super::UserUid;
 use crate::appearance::Appearance;
 use crate::auth::auth_view_body::AuthViewBody;
 use crate::modal::Modal;
@@ -80,18 +78,15 @@ pub struct AuthView {
 
 const AUTH_URL_HOST: &str = "auth";
 const AUTH_URL_REFRESH_TOKEN_QUERY_PARAM: &str = "refresh_token";
-const AUTH_URL_NEW_USER_UID_QUERY_PARAM: &str = "user_uid";
-const AUTH_URL_DELETED_ANON_USER_QUERY_PARAM: &str = "deleted_anonymous_user";
-const AUTH_URL_STATE_QUERY_PARAM: &str = "state";
 
-// `AuthRedirectPayload` is returned from the incoming redirect url.
+/// `AuthRedirectPayload` is parsed from an incoming auth-redirect URL.
+///
+/// In the offline build the terminal never performs a cloud login, so the parsed token/user/state
+/// fields are never consumed; the payload is now a unit marker that merely signals "a syntactically
+/// valid auth-redirect URL was received". `AuthManager::initialize_user_from_auth_payload` treats it
+/// as a no-op.
 #[derive(Debug, Clone)]
-pub struct AuthRedirectPayload {
-    pub refresh_token: RefreshToken,
-    pub user_uid: Option<UserUid>,
-    pub deleted_anonymous_user: Option<bool>,
-    pub state: Option<String>,
-}
+pub struct AuthRedirectPayload;
 
 impl AuthRedirectPayload {
     /// Attempts to parse the `AuthRedirectPayload` from URL sent to Warp. To parse successfully, the URL
@@ -101,19 +96,8 @@ impl AuthRedirectPayload {
             return Err(anyhow!("Received URL with unexpected host: {} ", url));
         }
         let query_params: HashMap<_, _> = url.query_pairs().into_owned().collect();
-        if let Some(token) = query_params.get(AUTH_URL_REFRESH_TOKEN_QUERY_PARAM) {
-            let user_uid = query_params
-                .get(AUTH_URL_NEW_USER_UID_QUERY_PARAM)
-                .map(|uid| UserUid::new(uid));
-
-            Ok(Self {
-                refresh_token: RefreshToken::new(token),
-                user_uid,
-                deleted_anonymous_user: query_params
-                    .get(AUTH_URL_DELETED_ANON_USER_QUERY_PARAM)
-                    .map(|value| value == "true"),
-                state: query_params.get(AUTH_URL_STATE_QUERY_PARAM).cloned(),
-            })
+        if query_params.contains_key(AUTH_URL_REFRESH_TOKEN_QUERY_PARAM) {
+            Ok(Self)
         } else {
             Err(anyhow!(
                 "Received URL without refresh token query param: {}",
@@ -273,20 +257,9 @@ impl AuthView {
 
     fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, ctx: &mut ViewContext<Self>) {
         match event {
-            AuthManagerEvent::AuthComplete | AuthManagerEvent::SkippedLogin => {
+            AuthManagerEvent::SkippedLogin => {
                 self.close(ctx);
             }
-            AuthManagerEvent::AuthFailed(err) => {
-                log::error!("Failed to log in user: {err:#}");
-                self.last_login_failure_reason =
-                    Some(LoginFailureReason::FailedUserAuthentication);
-                self.set_auth_token_input_editable(true, ctx);
-            }
-            AuthManagerEvent::CreateAnonymousUserFailed => {
-                self.last_login_failure_reason = Some(LoginFailureReason::FailedUserAuthentication);
-                self.set_auth_token_input_editable(true, ctx);
-            }
-            _ => {}
         }
         ctx.notify();
     }

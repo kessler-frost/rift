@@ -5,7 +5,6 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::theme::Fill;
-use rift_graphql::billing::{AddonCreditsOption, StripeSubscriptionPlan};
 use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DropShadow, Flex, FormattedTextElement, HighlightedHyperlink, Image,
@@ -22,6 +21,7 @@ use riftui::{
 use settings::Setting as _;
 use thousands::Separable;
 
+use crate::pricing::billing::{AddonCreditsOption, StripeSubscriptionPlan};
 use crate::pricing::PricingInfoModel;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::ui_components::blended_colors;

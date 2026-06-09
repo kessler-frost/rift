@@ -1,8 +1,7 @@
 //! Local, offline auth state.
 //!
 //! Rift is a fully-offline terminal: there is no cloud account, login, or token refresh. This
-//! module provides a drop-in replacement for the former `rift_server_auth::auth_state` module so
-//! that the ~30 caller files keep compiling unchanged.
+//! module is the local, offline auth-state implementation that the ~30 caller files use unchanged.
 //!
 //! The terminal is always treated as a single local user. Accordingly:
 //! * `is_anonymous_or_logged_out()` returns `false` (treated as a normal local user — no login
@@ -11,8 +10,8 @@
 //! * `is_onboarded()` returns `Some(true)`.
 //! * `user_id()` / `username_for_display()` return a fixed local default.
 //!
-//! The `User`/`Credentials` data types are still sourced from `rift_server_auth` (they are pure
-//! local data, not network code), but nothing in this module ever performs a network request.
+//! The `User`/`Credentials` data types are local placeholders (see `local_types.rs`); nothing in
+//! this module ever performs a network request.
 
 use std::sync::Arc;
 
@@ -207,13 +206,6 @@ impl AuthState {
 
     pub fn global_skills(&self) -> Vec<String> {
         Vec::new()
-    }
-}
-
-// Adapter for the [`rift_managed_secrets`] crate, which needs to access the current user.
-impl rift_managed_secrets::ActorProvider for AuthState {
-    fn actor_uid(&self) -> Option<String> {
-        self.user_id().map(|uid| uid.as_string())
     }
 }
 

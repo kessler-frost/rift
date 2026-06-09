@@ -8,8 +8,7 @@ use crate::ui_components::icons::Icon;
 
 /// A reference to a secret stored in an external password manager.
 ///
-/// This was previously sourced from `cloud_object_models::ExternalSecret`. It is a pure local data
-/// type with no network dependency, so it is now defined directly in the app.
+/// This is a pure local data type with no network dependency, defined directly in the app.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum ExternalSecret {
     OnePassword(OnePasswordSecret),

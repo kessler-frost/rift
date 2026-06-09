@@ -48,7 +48,6 @@ use crate::launch_configs::launch_config;
 use crate::linear::LinearIssueWork;
 use crate::pane_group::{NewTerminalOptions, PanesLayout};
 use crate::persistence::ModelEvent;
-use crate::auth::auth_manager::UserAuthenticationError;
 use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings::QuakeModeSettings;
 use crate::settings_view::{flags, SettingsSection};
@@ -1429,6 +1428,9 @@ impl RootView {
         true
     }
 
+    /// Dead in the offline build: the cloud auth-complete flow that required an SSO link no longer
+    /// exists. Retained so the SSO-link UI plumbing still compiles.
+    #[allow(dead_code)]
     fn show_needs_sso_link_view(&mut self, email: String, ctx: &mut ViewContext<Self>) -> bool {
         self.needs_sso_link_view.update(ctx, |view, _| {
             view.set_email(email);
@@ -1782,11 +1784,9 @@ impl RootView {
         true
     }
 
-    /// Syncs the local "onboarding completed" flag to the server if the user
-    /// finished onboarding pre-login and has since authenticated. Runs on every
-    /// `AuthComplete`, so it also covers users who skipped login during onboarding
-    /// and later signed up through a different entrypoint (e.g. login modal,
-    /// settings, command palette) while already in the `Terminal` state.
+    /// Dead in the offline build: there is no server to sync the onboarding flag to, and the
+    /// `AuthManagerEvent::AuthComplete` that drove this no longer exists.
+    #[allow(dead_code)]
     fn sync_local_onboarding_to_server(auth_state: &AuthState, ctx: &mut AppContext) {
         let is_onboarded = auth_state.is_onboarded().unwrap_or(true);
         let is_anonymous = auth_state.is_user_anonymous().unwrap_or(false);
@@ -1798,54 +1798,7 @@ impl RootView {
     }
 
     fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, ctx: &mut ViewContext<Self>) {
-        let auth_state = AuthStateProvider::as_ref(ctx).get().clone();
-
         match event {
-            AuthManagerEvent::AuthComplete => {
-                self.paste_auth_token_modal = None;
-
-                // If onboarding was completed pre-login, sync the server-side flag now
-                // that the user is authenticated. This must happen regardless of the
-                // current `auth_onboarding_state` so we also cover users who skipped
-                // login during onboarding and later signed up from a different
-                // entrypoint (i.e. we're already in the `Terminal` state).
-                Self::sync_local_onboarding_to_server(&auth_state, ctx);
-
-                // If the user needs SSO after auth is complete, no matter what their current state is,
-                // we need to block their access to the rest of the app.
-                if auth_state.needs_sso_link().unwrap_or(false) {
-                    self.show_needs_sso_link_view(
-                        auth_state.user_email().unwrap_or_default().clone(),
-                        ctx,
-                    );
-                } else if let AuthOnboardingState::Auth(_)
-                | AuthOnboardingState::ConfirmIncomingAuth(_) =
-                    &self.auth_onboarding_state
-                {
-                    self.auth_view.update(ctx, |auth_view, ctx| {
-                        auth_view.set_variant(ctx, AuthViewVariant::Initial);
-                    });
-                    self.auth_onboarding_state
-                        .complete_auth_and_create_workspace(ctx);
-                } else if let AuthOnboardingState::NeedsSsoLink { .. } = &self.auth_onboarding_state
-                {
-                    // We should be able to access their SSO state; if not, default to true,
-                    // since we should err on the side of them _not_ being able to use Warp.
-                    if auth_state.needs_sso_link() == Some(false) {
-                        self.auth_onboarding_state.complete_sso_link(ctx);
-                    }
-                }
-
-                #[cfg(target_family = "wasm")]
-                if let AuthOnboardingState::WebImport(_) = &self.auth_onboarding_state {
-                    self.auth_onboarding_state.complete_web_import(ctx);
-                }
-
-                self.focus(ctx);
-            }
-            AuthManagerEvent::AuthFailed(UserAuthenticationError::Unexpected(err)) => {
-                log::error!("Encountered unexpected error when trying to fetch user: {err:#}");
-            }
             AuthManagerEvent::SkippedLogin => {
                 if let AuthOnboardingState::Auth(_) | AuthOnboardingState::ConfirmIncomingAuth(_) =
                     &self.auth_onboarding_state
@@ -1855,20 +1808,6 @@ impl RootView {
                 }
                 self.focus(ctx);
             }
-            AuthManagerEvent::LoginOverrideDetected(interrupted_auth_payload) => {
-                match &self.auth_onboarding_state {
-                    AuthOnboardingState::Auth(workspace_args)
-                    | AuthOnboardingState::ConfirmIncomingAuth(workspace_args) => {
-                        self.open_auth_override_warning_modal(
-                            workspace_args.clone(),
-                            interrupted_auth_payload.clone(),
-                            ctx,
-                        );
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
         }
     }
 
@@ -1890,6 +1829,10 @@ impl RootView {
         }
     }
 
+    /// Dead in the offline build: the cloud login-override flow that called this
+    /// (`AuthManagerEvent::LoginOverrideDetected`) no longer exists. Retained so the
+    /// `AuthOverrideWarningModal`/`ConfirmIncomingAuth` UI plumbing still compiles.
+    #[allow(dead_code)]
     fn open_auth_override_warning_modal(
         &mut self,
         workspace_args: Box<WorkspaceArgs>,
@@ -1904,7 +1847,6 @@ impl RootView {
         self.focus(ctx);
         ctx.notify();
     }
-
 
     /// This is called when importing authentication state from the host app completes.
     #[cfg(target_family = "wasm")]
@@ -2154,6 +2096,9 @@ impl AuthOnboardingState {
         let _ = (target, ctx);
     }
 
+    /// Dead in the offline build: the cloud auth-complete flow that completed an SSO link no longer
+    /// exists.
+    #[allow(dead_code)]
     fn complete_sso_link(&mut self, ctx: &mut ViewContext<RootView>) {
         if let AuthOnboardingState::NeedsSsoLink(needs_sso_link_mode) = self {
             *self = AuthOnboardingState::Terminal(needs_sso_link_mode.to_workspace(ctx));

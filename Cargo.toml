@@ -13,7 +13,6 @@ default-members = [
   "crates/channel_versions",
   "crates/command",
   "crates/editor",
-  "crates/graphql",
   "crates/markdown_parser",
   "crates/sum_tree",
   "crates/riftui",
@@ -29,19 +28,12 @@ publish = false
 
 [workspace.dependencies]
 # Local workspace crates. This lets us reference them in other crates without specifying a path.
-ai = { path = "crates/ai" }
 app-installation-detection = { path = "crates/app-installation-detection" }
 asset_cache = { path = "crates/asset_cache" }
 asset_macro = { path = "crates/asset_macro" }
 channel_versions = { path = "crates/channel_versions", default-features = false }
 command = { path = "crates/command" }
 command-signatures-v2 = { path = "crates/command-signatures-v2" }
-cloud_objects = { path = "crates/cloud_objects" }
-cloud_object_client = { path = "crates/cloud_object_client" }
-cloud_object_persistence = { path = "crates/cloud_object_persistence" }
-cloud_object_models = { path = "crates/cloud_object_models" }
-computer_use = { path = "crates/computer_use" }
-firebase = { path = "crates/firebase" }
 fuzzy_match = { path = "crates/fuzzy_match" }
 handlebars = { path = "crates/handlebars" }
 http_client = { path = "crates/http_client" }
@@ -75,16 +67,11 @@ rift_core = { path = "crates/rift_core" }
 rift_editor = { path = "crates/editor" }
 rift_features = { path = "crates/rift_features" }
 rift_files = { path = "crates/rift_files" }
-rift_graphql = { path = "crates/graphql" }
-rift_graphql_schema = { path = "crates/rift_graphql_schema" }
 rift_isolation_platform = { path = "crates/isolation_platform" }
 rift_js = { path = "crates/rift_js" }
 rift_logging = { path = "crates/rift_logging" }
-rift_managed_secrets = { path = "crates/managed_secrets" }
 rift_ripgrep = { path = "crates/rift_ripgrep" }
 rift_search_core = { path = "crates/rift_search_core" }
-rift_server_auth = { path = "crates/rift_server_auth" }
-rift_server_client = { path = "crates/rift_server_client" }
 rift_terminal = { path = "crates/rift_terminal" }
 rift_util = { path = "crates/rift_util" }
 rift_web_event_bus = { path = "crates/rift_web_event_bus" }
@@ -515,9 +502,6 @@ objc = { git = "https://github.com/warpdotdev/rust-objc.git", rev = "5b656827fa9
 pathfinder_simd = { git = "https://github.com/warpdotdev/pathfinder.git", rev = "34128a129ca6aee168fbc5060a4f21b4f7e486a9" }
 yaml-rust = { git = "https://github.com/warpdotdev/yaml-rust.git", rev = "51684719d0102ca85ff4b21cec39877a0c669e19" }
 
-tink-core = { git = "https://github.com/warpdotdev/tink-rust", rev = "54b9ac9af93b0c08b446a7bc0582836c9403a71b" }
-tink-proto = { git = "https://github.com/warpdotdev/tink-rust", rev = "54b9ac9af93b0c08b446a7bc0582836c9403a71b" }
-tink-hybrid = { git = "https://github.com/warpdotdev/tink-rust", rev = "54b9ac9af93b0c08b446a7bc0582836c9403a71b" }
 
 tikv-jemallocator = { git = "https://github.com/warpdotdev/jemallocator.git", rev = "2ee30bfdf7059223b54810e4ea6c666f0a379e0b" }
 tikv-jemalloc-sys = { git = "https://github.com/warpdotdev/jemallocator.git", rev = "2ee30bfdf7059223b54810e4ea6c666f0a379e0b" }

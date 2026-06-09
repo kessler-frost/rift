@@ -1,5 +1,5 @@
-//! Keyboard-shortcut rendering helper recovered inline from the deleted
-//! `ai::blocklist::agent_view::shortcuts` module. Used by message-bar and
+//! Keyboard-shortcut rendering helper recovered inline from a deleted
+//! agent-view shortcuts module. Used by message-bar and
 //! slash-command rows to render a keystroke chip with optional color overrides.
 
 use pathfinder_color::ColorU;

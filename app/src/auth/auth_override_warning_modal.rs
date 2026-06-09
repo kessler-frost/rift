@@ -89,9 +89,10 @@ impl AuthOverrideWarningModal {
     }
 
     fn handle_auth_manager_event(&mut self, event: &AuthManagerEvent, ctx: &mut ViewContext<Self>) {
-        if let AuthManagerEvent::AuthComplete = event {
-            self.interrupted_auth_payload = None;
-            self.close(ctx);
+        // Offline: the only auth event is `SkippedLogin`. The cloud `AuthComplete` that used to
+        // dismiss this modal no longer exists, so there is nothing to do here.
+        match event {
+            AuthManagerEvent::SkippedLogin => {}
         }
         ctx.notify();
     }

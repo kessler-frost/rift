@@ -14,7 +14,6 @@ const LOGIN_TROUBLESHOOTING_DOCS_URL: &str =
 /// Represents reasons why login failed.
 pub enum LoginFailureReason {
     InvalidRedirectUrl { was_pasted: bool },
-    FailedUserAuthentication,
 }
 
 impl LoginFailureReason {
@@ -42,11 +41,6 @@ impl LoginFailureReason {
                         authentication web page and pasting into the modal."
                 };
                 with_troubleshooting_text(vec![FormattedTextFragment::plain_text(text)])
-            }
-            LoginFailureReason::FailedUserAuthentication => {
-                with_troubleshooting_text(vec![FormattedTextFragment::plain_text(
-                    "Request to log in failed.",
-                )])
             }
         };
         FormattedText::new([FormattedTextLine::Line(fragments)])

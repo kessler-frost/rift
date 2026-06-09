@@ -80,13 +80,9 @@ cfg-if.workspace = true
 channel_versions.workspace = true
 chrono.workspace = true
 clap.workspace = true
-cloud_object_client.workspace = true
-cloud_object_models.workspace = true
-cloud_objects.workspace = true
 command = { workspace = true }
 command-corrections.workspace = true
 command-signatures-v2 = { workspace = true, optional = true }
-computer_use.workspace = true
 crc.workspace = true
 content_inspector = "0.2.4"
 concat-idents.workspace = true
@@ -226,11 +222,8 @@ rift_assets.workspace = true
 rift_completer.workspace = true
 rift_core.workspace = true
 rift_editor.workspace = true
-rift_graphql.workspace = true
 rift_js = { workspace = true, optional = true }
 rift_search_core.workspace = true
-rift_server_auth.workspace = true
-rift_server_client.workspace = true
 rift_util.workspace = true
 riftui = { workspace = true, features = ["schema_gen", "settings_value"] }
 riftui_core.workspace = true
@@ -255,7 +248,6 @@ repo_metadata.workspace = true
 vim.workspace = true
 rift_isolation_platform.workspace = true
 rift_ripgrep.workspace = true
-rift_managed_secrets.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 block.workspace = true
@@ -291,7 +283,6 @@ wgpu.workspace = true
 app-installation-detection.workspace = true
 async-io.workspace = true
 axum.workspace = true
-cloud_object_persistence.workspace = true
 comfy-table = "7.1.4"
 inquire = "0.9.1"
 diesel = { workspace = true, features = ["sqlite", "chrono"] }
@@ -397,14 +388,11 @@ windows-result = { workspace = true }
 winreg.workspace = true
 
 [dev-dependencies]
-ai = { workspace = true, features = ["test-util"] }
 async-process.workspace = true
-firebase.workspace = true
 jsonschema = { workspace = true, default-features = false }
 async-executor = "1.5.1"
 command = { workspace = true, features = ["test-util"] }
 ctor = "0.1.18"
-cloud_object_client = { workspace = true, features = ["test-util"] }
 http_client = { workspace = true, features = ["test-util"] }
 mockall.workspace = true
 mockito.workspace = true
@@ -414,8 +402,6 @@ virtual-fs.workspace = true
 rift_completer = { workspace = true, features = ["test-util"] }
 rift_core = { workspace = true, features = ["test-util"] }
 rift_editor = { workspace = true, features = ["test-util"] }
-rift_server_client = { workspace = true, features = ["test-util"] }
-rift_server_auth = { workspace = true, features = ["test-util"] }
 rift_terminal = { workspace = true, features = ["test-util"] }
 riftui = { workspace = true, features = ["test-util"] }
 riftui_core = { workspace = true, features = ["test-util"] }
@@ -472,7 +458,6 @@ crash_reporting = [
     "dep:minidumper",
     "dep:crash-handler",
     "rift_logging/crash_reporting",
-    "ai/crash_reporting",
 ]
 creating_shared_sessions = []
 cross_repo_context = []
@@ -568,7 +553,6 @@ default = [
     "ambient_agents_command_line",
     "ambient_agents_image_upload",
     "scheduled_ambient_agents",
-    "rift_managed_secrets",
     "v4a_file_diffs",
     "classic_completions",
     "force_classic_completions",
@@ -701,7 +685,6 @@ agent_mode_evals = [
     "integration_tests",
     "full_source_code_embedding",
     "cross_repo_context",
-    "cloud_object_models/agent_mode_evals",
     "rust-embed/debug-embed",
     "riftui/log_named_telemetry_events",
     "rift_logging/agent_mode_evals",
@@ -719,7 +702,7 @@ inline_slash_commands = ["agent_view"]
 heap_usage_tracking = ["jemalloc_pprof", "crash_reporting"]
 image_as_context = []
 in_band_generators_ssh = []
-jemalloc = ["dep:tikv-jemallocator", "ai/jemalloc"]
+jemalloc = ["dep:tikv-jemallocator"]
 jemalloc_with_profiling = ["jemalloc", "tikv-jemallocator/profiling"]
 jemalloc_auto_heap_profiling = ["jemalloc_with_profiling"]
 jemalloc_pprof = ["jemalloc_with_profiling", "dep:jemalloc_pprof"]
@@ -742,7 +725,6 @@ local_claude_codex_child_harnesses = []
 # conditionally include dependencies that should only exist in such
 # environments.
 local_fs = [
-    "ai/local_fs",
     "lsp/local_fs",
     "persistence/local_fs",
     "repo_metadata/local_fs",
@@ -789,14 +771,14 @@ settings_file = []
 sequential_storage = []
 session_sharing = []
 session_sharing_acls = []
-skip_login = ["rift_server_client/skip_login"]
+skip_login = []
 # This feature should only be enabled when building a self-contained binary with the bundle script.
 standalone = ["rift_assets/standalone"]
 prompt_suggestions_via_maa = []
 system_theme = []
 tab_close_button_on_left = []
 team_features_override = []
-test-util = ["cloud_object_client/test-util", "rift_server_auth/test-util"]
+test-util = []
 team_workflows = ["team_features_override"]
 toggle_bootstrap_block = []
 # Feature enabled only when app is compiled for integration tests.
@@ -805,7 +787,6 @@ integration_tests = [
     "riftui/integration_tests",
     "riftui/test-util",
     "rift_core/integration_tests",
-    "rift_server_client/integration_tests",
 ]
 traces = []
 viewing_shared_sessions = []
@@ -903,7 +884,6 @@ revert_to_checkpoints = []
 rewind_slash_command = []
 agent_view = []
 agent_view_block_context = ["agent_view"]
-rift_managed_secrets = []
 v4a_file_diffs = []
 agent_tips = []
 agent_toolbar_editor = ["agent_view"]

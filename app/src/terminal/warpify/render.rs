@@ -85,7 +85,7 @@ pub fn header_row(
 }
 
 fn green_check_icon(appearance: &Appearance, size: f32) -> Box<dyn Element> {
-    // Recovered inline from the deleted ai::blocklist inline-action icons.
+    // Recovered inline from the deleted blocklist inline-action icons.
     let icon = Icon::new(
         crate::ui_components::icons::Icon::Check.into(),
         rift_core::ui::theme::AnsiColorIdentifier::Green

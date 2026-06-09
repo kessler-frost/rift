@@ -15,7 +15,6 @@ use lazy_static::lazy_static;
 use parking_lot::{Mutex, RwLock};
 use regex::Regex;
 use rift_core::channel::Channel;
-use rift_server_auth::anonymous_id::get_or_create_anonymous_id;
 use riftui::r#async::block_on;
 use riftui::rendering::GPUDeviceInfo;
 use riftui::windowing::state::ApplicationStage;
@@ -26,6 +25,7 @@ use sentry::{ClientInitGuard, IntoDsn, SessionMode};
 pub use sentry_minidump::run_server as run_minidump_server;
 
 use crate::antivirus::{AntivirusInfo, AntivirusInfoEvent};
+use crate::auth::local_types::get_or_create_anonymous_id;
 use crate::auth::{AuthStateProvider, UserUid};
 use crate::channel::ChannelState;
 use crate::features::FeatureFlag;

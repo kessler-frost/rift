@@ -5075,12 +5075,6 @@ impl Workspace {
     }
 
 
-    fn check_and_trigger_telemetry_banner_for_existing_users(
-        &mut self,
-        _ctx: &mut ViewContext<Self>,
-    ) {
-    }
-
     fn should_trigger_get_started_onboarding(&self, ctx: &mut ViewContext<Self>) -> bool {
         // Onboarding requires a real user to interact with it; suppress when
         // running in a headless mode like the SDK/CLI.
@@ -6790,22 +6784,7 @@ impl Workspace {
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            AuthManagerEvent::AttemptedLoginGatedFeature { auth_view_variant } => {
-                self.open_require_login_modal(*auth_view_variant, ctx)
-            }
-            AuthManagerEvent::LoginOverrideDetected(interrupted_auth_payload) => {
-                self.open_auth_override_warning_modal(interrupted_auth_payload.clone(), ctx);
-            }
-            AuthManagerEvent::AuthComplete => {
-                // Only show the telemetry banner if the user is an existing user. The new user flow
-                // for this is handled in the onboarding flow.
-                if self.auth_state.is_onboarded().unwrap_or_default() {
-                    // Need to check this AFTER we fetch any billing metadata associated with the team,
-                    // to make sure we don't show the banner if the user is an enterprise user.
-                    self.check_and_trigger_telemetry_banner_for_existing_users(ctx);
-                }
-            }
-            _ => {
+            AuthManagerEvent::SkippedLogin => {
                 ctx.notify();
             }
         }
@@ -8334,6 +8313,10 @@ impl Workspace {
         ctx.notify();
     }
 
+    /// Dead in the offline build: the cloud login-override flow
+    /// (`AuthManagerEvent::LoginOverrideDetected`) that opened this modal no longer exists. Retained
+    /// so the auth-override modal plumbing still compiles.
+    #[allow(dead_code)]
     fn open_auth_override_warning_modal(
         &mut self,
         auth_payload: AuthRedirectPayload,

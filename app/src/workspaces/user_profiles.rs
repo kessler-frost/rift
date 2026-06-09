@@ -4,8 +4,7 @@ use riftui::{Entity, SingletonEntity};
 
 use crate::auth::UserUid;
 
-/// Local replacement for the former `cloud_object_models::UserProfileWithUID`. Pure local data with
-/// no network dependency.
+/// A user profile keyed by uid. Pure local data with no network dependency.
 #[derive(Clone, Debug)]
 pub struct UserProfileWithUID {
     pub firebase_uid: UserUid,
@@ -59,7 +58,7 @@ impl UserProfiles {
     pub fn insert_profiles(&mut self, user_profiles: &Vec<UserProfileWithUID>) {
         for user_profile in user_profiles {
             self.users_by_id.insert(
-                user_profile.firebase_uid,
+                user_profile.firebase_uid.clone(),
                 UserProfileData {
                     photo_url: user_profile.photo_url.clone(),
                 },

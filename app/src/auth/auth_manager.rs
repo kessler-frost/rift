@@ -5,43 +5,19 @@
 //! the rest of the app calls, but every method that used to talk to the server (`fetch_user`,
 //! `create_anonymous_user`, token minting, onboarding sync, telemetry-login flush, etc.) is now a
 //! local no-op.
-//!
-//! The cloud error type (`UserAuthenticationError`) is re-defined here as a small local enum so that
-//! the UI files that match on it keep compiling without depending on `rift_server_client`.
 
 use riftui::{Entity, ModelContext, SingletonEntity};
-use thiserror::Error;
 use uuid::Uuid;
 
 use super::auth_view_modal::{AuthRedirectPayload, AuthViewVariant};
 use crate::channel::ChannelState;
 use crate::server::telemetry::AnonymousUserSignupEntrypoint;
 
-/// Local stand-in for the former `rift_server_client::auth::UserAuthenticationError`. The variants
-/// are preserved so that callers matching on them keep compiling, but they are never produced in
-/// the offline build.
-#[derive(Error, Debug)]
-pub enum UserAuthenticationError {
-    #[error("unexpected auth error: {0:#}")]
-    Unexpected(#[from] anyhow::Error),
-}
-
 #[derive(Debug)]
 pub enum AuthManagerEvent {
-    /// Successfully authenticated a user with no errors.
-    AuthComplete,
-    /// Failed to authenticate a user, due to a particular `UserAuthenticationError`.
-    AuthFailed(UserAuthenticationError),
-    /// Failed to create an anonymous user.
-    CreateAnonymousUserFailed,
-    /// The user chose to skip login entirely.
+    /// The user chose to skip login entirely. This is the only event ever emitted in the offline
+    /// build (login itself is a no-op, so there is never an auth-complete/failed/override event).
     SkippedLogin,
-    /// The user now needs to reauthenticate.
-    NeedsReauth,
-    /// The user attempted to access a login-gated feature or link.
-    AttemptedLoginGatedFeature { auth_view_variant: AuthViewVariant },
-    /// A browser intent to sign in with a different account was received.
-    LoginOverrideDetected(AuthRedirectPayload),
 }
 
 pub type LoginGatedFeature = &'static str;

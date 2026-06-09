@@ -7,11 +7,13 @@ pub mod auth_view_modal;
 mod auth_view_shared_helpers;
 mod login_error_modal;
 mod login_failure_notification;
+pub mod local_types;
 pub mod needs_sso_link_view;
 pub mod paste_auth_token_modal;
-// `auth_state` is now a local, offline implementation (see `auth_state.rs`). The remaining
-// re-exports are pure local data types (User/Credentials/UserUid) and carry no network code.
-pub use rift_server_auth::{credentials, user, user_uid};
+// `auth_state` is now a local, offline implementation (see `auth_state.rs`). The data types
+// (User/Credentials/UserUid) are now pure local placeholders (see `local_types.rs`) and carry no
+// network code.
+pub use local_types::{credentials, user, user_uid};
 #[cfg(target_family = "wasm")]
 pub mod web_handoff;
 

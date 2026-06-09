@@ -1,7 +1,65 @@
-use rift_graphql::billing::{
+use riftui::{Entity, SingletonEntity};
+
+pub use self::billing::{
     AddonCreditsOption, OveragesPricing, PlanPricing, PricingInfo, StripeSubscriptionPlan,
 };
-use riftui::{Entity, SingletonEntity};
+
+/// Local, offline billing data types.
+///
+/// Rift is a fully-offline terminal with no billing backend, so these are pure local data
+/// placeholders (no GraphQL, no network). They exist only so the billing/upgrade modals keep
+/// compiling. In the offline build `PricingInfoModel` is never populated, so these types are used
+/// only as the shapes the modals read; nothing ever constructs them, hence the module-wide
+/// `allow(dead_code)`.
+#[allow(dead_code)]
+pub mod billing {
+    /// A purchasable add-on credits denomination and its price.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct AddonCreditsOption {
+        pub credits: i32,
+        pub price_usd_cents: i32,
+    }
+
+    /// The per-request overage price.
+    #[derive(Debug, Clone)]
+    pub struct OveragesPricing {
+        pub price_per_request_usd_cents: i32,
+    }
+
+    /// Pricing for a single subscription plan.
+    #[derive(Debug, Clone)]
+    pub struct PlanPricing {
+        pub plan: StripeSubscriptionPlan,
+        pub monthly_plan_price_per_month_usd_cents: i32,
+        pub yearly_plan_price_per_month_usd_cents: i32,
+        pub request_limit: Option<i32>,
+        pub codebase_limit: i32,
+        pub codebase_context_file_limit: i32,
+        pub max_team_size: Option<i32>,
+    }
+
+    /// The set of subscription plans.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum StripeSubscriptionPlan {
+        Business,
+        Lightspeed,
+        Pro,
+        Team,
+        Turbo,
+        Build,
+        BuildBusiness,
+        BuildMax,
+        Other(String),
+    }
+
+    /// Top-level pricing information. Never populated in the offline build.
+    #[derive(Debug, Clone)]
+    pub struct PricingInfo {
+        pub plans: Vec<PlanPricing>,
+        pub overages: OveragesPricing,
+        pub addon_credits_options: Vec<AddonCreditsOption>,
+    }
+}
 
 /// A global model for maintaining pricing information from the server.
 #[derive(Debug)]

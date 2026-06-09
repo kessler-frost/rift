@@ -3,8 +3,6 @@ use riftui::{Entity, ModelContext, SingletonEntity, WindowId};
 use settings::Setting as _;
 
 use super::hoa_onboarding;
-use crate::auth::auth_manager::AuthManagerEvent;
-use crate::auth::AuthManager;
 use crate::channel::{Channel, ChannelState};
 use crate::settings::AISettings;
 use crate::terminal::general_settings::GeneralSettings;
@@ -30,43 +28,10 @@ pub struct OneTimeModalModel {
 }
 
 impl OneTimeModalModel {
-    pub fn new(ctx: &mut ModelContext<Self>) -> Self {
-        // Subscribe to auth manager events to automatically trigger modal when user becomes onboarded
-        ctx.subscribe_to_model(&AuthManager::handle(ctx), |me, event, ctx| {
-            let AuthManagerEvent::AuthComplete = event else {
-                return;
-            };
-
-            let auth_state = crate::auth::AuthStateProvider::as_ref(ctx).get().clone();
-            let is_existing_user = auth_state.is_onboarded().unwrap_or_default();
-            if is_existing_user {
-                me.check_and_trigger_all_modals(ctx);
-            } else {
-                AISettings::handle(ctx).update(ctx, |settings, ctx| {
-                    if let Err(e) = settings
-                        .did_check_to_trigger_oz_launch_modal
-                        .set_value(true, ctx)
-                    {
-                        log::warn!("Failed to mark Oz launch modal as dismissed: {e}");
-                    }
-                    if let Err(e) = settings
-                        .did_check_to_trigger_orchestration_launch_modal
-                        .set_value(true, ctx)
-                    {
-                        log::warn!("Failed to mark orchestration launch modal as dismissed: {e}");
-                    }
-                });
-                GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {
-                    if let Err(e) = settings
-                        .did_check_to_trigger_openwarp_launch_modal
-                        .set_value(true, ctx)
-                    {
-                        log::warn!("Failed to mark OpenWarp launch modal as dismissed: {e}");
-                    }
-                });
-            }
-        });
-
+    pub fn new(_ctx: &mut ModelContext<Self>) -> Self {
+        // In the offline build there is no cloud auth-complete event, so the one-time launch modals
+        // are never auto-triggered on login. The model still holds modal-open state for the modals
+        // that are opened directly elsewhere.
         Self {
             is_build_plan_migration_modal_open: false,
             is_oz_launch_modal_open: false,
@@ -187,6 +152,9 @@ impl OneTimeModalModel {
         false
     }
 
+    /// Dead in the offline build: previously driven by the cloud `AuthManagerEvent::AuthComplete`,
+    /// which no longer fires. Retained so the per-modal trigger helpers still compile.
+    #[allow(dead_code)]
     fn check_and_trigger_all_modals(&mut self, ctx: &mut ModelContext<Self>) {
         // Never show one-time modals on WASM.
         if cfg!(target_family = "wasm") {

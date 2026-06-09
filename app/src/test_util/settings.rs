@@ -109,8 +109,5 @@ pub fn initialize_settings_for_tests_with_mode(
     app.update(|ctx| {
         // Register a no-op secure storage provider for testing.
         riftui_extras::secure_storage::register_noop("test", ctx);
-
-        // Add settings models that are backed by secure storage, not user preferences.
-        ctx.add_singleton_model(ai::api_keys::ApiKeyManager::new);
     });
 }

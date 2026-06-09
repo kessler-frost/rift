@@ -5,7 +5,6 @@ use pathfinder_geometry::vector::vec2f;
 use rift_core::send_telemetry_from_ctx;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::theme::{Fill, WarpTheme};
-use rift_graphql::billing::{PlanPricing, StripeSubscriptionPlan};
 use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DropShadow, Flex, FormattedTextElement, HighlightedHyperlink, Image,
@@ -21,6 +20,7 @@ use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 use thousands::Separable;
 
 use crate::auth::AuthStateProvider;
+use crate::pricing::billing::{PlanPricing, StripeSubscriptionPlan};
 use crate::pricing::PricingInfoModel;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;

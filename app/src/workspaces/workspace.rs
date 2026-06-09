@@ -1,16 +1,97 @@
 use std::cmp::Ordering;
 
 use chrono::Utc;
-use rift_graphql::billing::{AddonCreditAutoReloadStatus, ServiceAgreement, ServiceAgreementType};
-pub use rift_graphql::billing::{
-    AiCreditsUsageAndCostSubjectType, AiCreditsUsageAndCostType, AiCreditsUsageBucket,
-    AiCreditsUsageSource,
-};
 use serde::{Deserialize, Serialize};
 
+pub use self::billing::{
+    AddonCreditAutoReloadStatus, AiCreditsUsageAndCostSubjectType, AiCreditsUsageAndCostType,
+    AiCreditsUsageBucket, AiCreditsUsageSource, ServiceAgreement, ServiceAgreementType,
+};
 use super::team::{MembershipRole, Team};
 use crate::auth::UserUid;
 use crate::server::ids::ServerId;
+
+/// Local, offline workspace-billing data types.
+///
+/// Rift is a fully-offline terminal with no billing backend, so these are pure local data
+/// placeholders (no GraphQL, no network). In the offline build the `service_agreements` and usage
+/// collections are always empty, so these are read-only shapes that nothing ever populates, hence
+/// the module-wide `allow(dead_code)`.
+#[allow(dead_code)]
+pub mod billing {
+    /// Status of an add-on credit auto-reload attempt.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum AddonCreditAutoReloadStatus {
+        Failed,
+        Succeeded,
+    }
+
+    /// The type of a service agreement.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum ServiceAgreementType {
+        Enterprise,
+        Legacy,
+        ProTrial,
+        Prosumer,
+        SelfServe,
+        TeamTrial,
+        Turbo,
+        Business,
+        Lightspeed,
+        Other(String),
+    }
+
+    /// A subscription service agreement. Never constructed in the offline build; only the fields
+    /// read by `BillingMetadata` accessors are retained.
+    #[derive(Debug, Clone)]
+    pub struct ServiceAgreement {
+        pub addon_credit_auto_reload_status: Option<AddonCreditAutoReloadStatus>,
+        pub current_period_end: chrono::DateTime<chrono::Utc>,
+        pub type_: ServiceAgreementType,
+        pub sunsetted_to_build_ts: Option<chrono::DateTime<chrono::Utc>>,
+    }
+
+    /// The subject a usage entry is attributed to.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum AiCreditsUsageAndCostSubjectType {
+        Team,
+        User,
+        ServiceAccount,
+        Other(String),
+    }
+
+    /// The cost type of a usage entry.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum AiCreditsUsageAndCostType {
+        BaseLimit,
+        BonusGrant,
+        Payg,
+        AmbientBonusGrant,
+        Aggregate,
+        Other(String),
+    }
+
+    /// The usage bucket of a usage entry.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum AiCreditsUsageBucket {
+        Ai,
+        Compute,
+        Platform,
+        SuggestedCodeDiffs,
+        Voice,
+        Aggregate,
+        Other(String),
+    }
+
+    /// The source of a usage entry.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum AiCreditsUsageSource {
+        Local,
+        Cloud,
+        Aggregate,
+        Other(String),
+    }
+}
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 pub struct WorkspaceUid(ServerId);
@@ -169,7 +250,7 @@ impl Workspace {
     /// Returns None if auto-reload is not configured or if the denomination can't be found in pricing options.
     pub fn get_auto_reload_price_cents(
         &self,
-        addon_credits_options: &[rift_graphql::billing::AddonCreditsOption],
+        addon_credits_options: &[crate::pricing::billing::AddonCreditsOption],
     ) -> Option<i32> {
         let selected_credits = self
             .settings
@@ -671,7 +752,7 @@ impl BillingMetadata {
 
     pub fn has_active_subscription(&self) -> bool {
         if let Some(newest_service_agreement) = self.service_agreements.first() {
-            let not_expired = Utc::now() < newest_service_agreement.current_period_end.utc();
+            let not_expired = Utc::now() < newest_service_agreement.current_period_end;
             let not_delinquent = !self.is_delinquent_due_to_payment_issue();
             not_expired && not_delinquent
         } else {
