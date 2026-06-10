@@ -109,8 +109,6 @@ use quit_warning::UnsavedStateSummary;
 use repo_metadata::{
     repositories::DetectedRepositories, watcher::DirectoryWatcher, RepoMetadataModel,
 };
-use rift_cli::agent::AgentCommand;
-use rift_cli::{CliCommand, GlobalOptions};
 use server::telemetry::context_provider::AppTelemetryContextProvider;
 #[cfg(feature = "local_fs")]
 use settings::import::model::ImportedConfigModel;
@@ -220,16 +218,6 @@ pub enum LaunchMode {
         api_key: Option<String>,
     },
 
-    /// Run the Rift command-line SDK.
-    CommandLine {
-        command: rift_cli::CliCommand,
-        global_options: GlobalOptions,
-        debug: bool,
-        /// Whether this CLI invocation is running in a sandboxed environment.
-        is_sandboxed: bool,
-        /// Override for computer use permission from CLI flags. If None, uses default behavior.
-        computer_use_override: Option<bool>,
-    },
     /// Run a test - this may be an integration test or an eval.
     Test {
         driver: Box<Option<TestDriver>>,
@@ -242,9 +230,7 @@ impl LaunchMode {
     fn args(&self) -> Cow<'_, rift_cli::AppArgs> {
         match self {
             LaunchMode::App { args, .. } => Cow::Borrowed(args),
-            LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
-                Cow::Owned(rift_cli::AppArgs::default())
-            }
+            LaunchMode::Test { .. } => Cow::Owned(rift_cli::AppArgs::default()),
         }
     }
 
@@ -255,14 +241,14 @@ impl LaunchMode {
                 is_integration_test,
                 ..
             } => *is_integration_test,
-            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } => false,
+            LaunchMode::App { .. } => false,
         }
     }
 
     fn take_test_driver(&mut self) -> Option<TestDriver> {
         match self {
             LaunchMode::Test { driver, .. } => driver.take(),
-            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } => None,
+            LaunchMode::App { .. } => None,
         }
     }
 
@@ -276,28 +262,17 @@ impl LaunchMode {
 
     fn execution_mode(&self) -> ExecutionMode {
         match self {
-            LaunchMode::App { .. } => ExecutionMode::App,
-            LaunchMode::CommandLine { .. } => ExecutionMode::Sdk,
-            LaunchMode::Test { .. } => ExecutionMode::App,
+            LaunchMode::App { .. } | LaunchMode::Test { .. } => ExecutionMode::App,
         }
     }
 
     fn is_sandboxed(&self) -> bool {
-        match self {
-            LaunchMode::CommandLine { is_sandboxed, .. } => *is_sandboxed,
-            LaunchMode::App { .. } | LaunchMode::Test { .. } => false,
-        }
+        false
     }
 
     /// Returns `true` if Rift should run headlessly, without a visible UI.
     fn is_headless(&self) -> bool {
-        match self {
-            LaunchMode::CommandLine { command, .. } => match command {
-                CliCommand::Agent(AgentCommand::Run(args)) => !args.gui,
-                _ => true,
-            },
-            LaunchMode::App { .. } | LaunchMode::Test { .. } => false,
-        }
+        false
     }
 
 
@@ -306,41 +281,24 @@ impl LaunchMode {
     pub(crate) fn crash_recovery_enabled(&self) -> bool {
         match self {
             LaunchMode::App { .. } => true,
-            LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => false,
+            LaunchMode::Test { .. } => false,
         }
     }
 
     /// Whether Sentry / crash reporting should be initialized.
     #[cfg_attr(not(feature = "crash_reporting"), allow(dead_code))]
     pub(crate) fn needs_crash_reporting(&self) -> bool {
-        match self {
-            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
-                true
-            }
-        }
+        true
     }
 
     /// Whether profiling and tracing should be initialized.
     pub(crate) fn needs_profiling(&self) -> bool {
-        match self {
-            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
-                true
-            }
-        }
+        true
     }
 
     /// Log destination for this mode.
     fn log_destination(&self) -> Option<LogDestination> {
-        match self {
-            LaunchMode::CommandLine { debug, .. } => {
-                if *debug {
-                    Some(LogDestination::Stderr)
-                } else {
-                    Some(LogDestination::File)
-                }
-            }
-            LaunchMode::App { .. } | LaunchMode::Test { .. } => None,
-        }
+        None
     }
 
 }
@@ -456,26 +414,6 @@ pub fn run() -> Result<()> {
             rift_cli::Command::Completions { shell } => {
                 return rift_cli::completions::generate_to_stdout(*shell);
             }
-            rift_cli::Command::CommandLine(cmd) => {
-                let (is_sandboxed, computer_use_override) = match cmd.as_ref() {
-                    rift_cli::CliCommand::Agent(rift_cli::agent::AgentCommand::Run(run_args)) => (
-                        run_args.sandboxed,
-                        run_args.computer_use.computer_use_override(),
-                    ),
-                    _ => (false, None),
-                };
-
-                return run_internal(LaunchMode::CommandLine {
-                    command: cmd.as_ref().clone(),
-                    global_options: GlobalOptions {
-                        output_format: args.output_format(),
-                        api_key: args.api_key().cloned(),
-                    },
-                    debug: args.debug(),
-                    is_sandboxed,
-                    computer_use_override,
-                });
-            }
             rift_cli::Command::DumpDebugInfo => {
                 return debug_dump::run();
             }
@@ -496,10 +434,9 @@ pub fn run() -> Result<()> {
         return Ok(());
     }
 
-    let api_key = args.api_key().cloned();
     run_internal(LaunchMode::App {
         args: args.into_app_args(),
-        api_key,
+        api_key: None,
     })
 }
 
@@ -857,7 +794,6 @@ pub(crate) fn initialize_app(
 
     // Extract API key from command line options, if applicable.
     let api_key = match launch_mode {
-        LaunchMode::CommandLine { global_options, .. } => global_options.api_key.clone(),
         LaunchMode::App { api_key, .. } if ChannelState::channel().is_dogfood() => api_key.clone(),
         _ => None,
     };
@@ -1035,14 +971,9 @@ pub(crate) fn initialize_app(
     let user_is_logged_in = auth_state.is_logged_in();
 
     if user_is_logged_in {
-        // Skip refresh_user for CLI mode — the CLI handles auth refresh in
-        // ensure_auth_state so it can detect invalid credentials before running
-        // a command.
-        if !matches!(launch_mode, LaunchMode::CommandLine { .. }) {
-            AuthManager::handle(ctx).update(ctx, |auth_manager, ctx| {
-                auth_manager.refresh_user(ctx);
-            });
-        }
+        AuthManager::handle(ctx).update(ctx, |auth_manager, ctx| {
+            auth_manager.refresh_user(ctx);
+        });
 
         // Set the first frame callback to record the app's startup time.
         // This is only sent for logged-in users so that new users don't skew performance metrics.
@@ -1609,14 +1540,6 @@ fn on_close_window_cancelled(
     }
 }
 
-fn is_cloud_agent_web_home_launch_url(url: &Url) -> bool {
-    url.scheme() == ChannelState::url_scheme()
-        && url.host_str() == Some("action")
-        && url.path() == "/new_cloud_agent_conversation"
-        && url
-            .query_pairs()
-            .any(|(key, value)| key == "source" && value == "web_home")
-}
 fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode: LaunchMode) {
     IntervalTimer::handle(ctx).update(ctx, |timer, _ctx| {
         timer.mark_interval_end("APP_LAUNCHED");
@@ -1630,12 +1553,6 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
 
     match launch_mode {
         LaunchMode::App { .. } | LaunchMode::Test { .. } => {
-            let should_skip_restore = launch_mode
-                .args()
-                .urls
-                .iter()
-                .any(is_cloud_agent_web_home_launch_url);
-            let app_state = if should_skip_restore { None } else { app_state };
             // Attempt to restore windows from the persisted application state.
             let arg = OpenFromRestoredArg { app_state };
             ctx.dispatch_global_action("root_view:open_from_restored", &arg);
@@ -1669,16 +1586,6 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
                 });
                 maybe_register_app_as_login_item(ctx);
             }
-        }
-        #[cfg_attr(target_family = "wasm", allow(unused_variables))]
-        LaunchMode::CommandLine {
-            command,
-            global_options,
-            ..
-        } => {
-            let _ = (command, global_options);
-            eprintln!("CLI agent commands are not supported in this build.");
-            std::process::exit(1);
         }
         // Proxy should never reach launch() — it's a thin byte bridge.
     }
