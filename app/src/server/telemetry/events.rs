@@ -21,7 +21,6 @@ use crate::launch_configs::save_modal::SaveState;
 use crate::palette::PaletteMode;
 use crate::pane_group::PaneDragDropLocation;
 use crate::prompt::editor_modal::OpenSource as PromptEditorOpenSource;
-use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
 use crate::settings::import::config::{ParsedTerminalSetting, SettingType};
@@ -229,26 +228,6 @@ pub enum CommandCorrectionEvent {
     },
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-pub enum CommandSearchResultType {
-    History,
-    Workflow,
-    Notebook,
-    EnvVarCollection,
-    ViewInDrive,
-    AIQuery,
-    Project,
-}
-
-impl From<&CommandSearchItemAction> for CommandSearchResultType {
-    fn from(action: &CommandSearchItemAction) -> Self {
-        use crate::search::command_search::searcher::CommandSearchItemAction::*;
-        match action {
-            AcceptHistory(_) | ExecuteHistory(_) => Self::History,
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CloseTarget {
     App,
@@ -268,12 +247,6 @@ pub enum PtySpawnMode {
     /// The terminal server is not in use, and we spawned the pty directly
     /// (in tests, for example).
     Direct,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum SaveAsWorkflowModalSource {
-    Block,
-    Input,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -633,7 +606,6 @@ pub enum TelemetryEvent {
         action: String,
         value: String,
     },
-    OpenWorkflowSearch,
     OpenQuakeModeWindow,
     OpenWelcomeTips,
     CompleteWelcomeTipFeature {
@@ -752,8 +724,6 @@ pub enum TelemetryEvent {
     },
     TeamLinkCopied,
     RemovedUserFromTeam,
-    DeletedWorkflow,
-    DeletedNotebook,
     ToggleApprovalsModal,
     SendEmailInvites,
     CommandCorrection {
@@ -772,13 +742,6 @@ pub enum TelemetryEvent {
     CommandSearchExited {
         query_filter: Option<QueryFilter>,
         buffer_length: usize,
-    },
-    CommandSearchResultAccepted {
-        result_index: usize,
-        result_type: CommandSearchResultType,
-        query_filter: Option<QueryFilter>,
-        buffer_length: usize,
-        was_immediately_executed: bool,
     },
     CommandSearchFilterChanged {
         new_filter: Option<QueryFilter>,
@@ -838,9 +801,6 @@ pub enum TelemetryEvent {
     InputPaste,
     InputCommandSearch,
     InputAICommandSearch,
-    SaveAsWorkflowModal {
-        source: SaveAsWorkflowModalSource,
-    },
     ExperimentTriggered {
         experiment: &'static str,
         layer: &'static str,
@@ -949,10 +909,6 @@ pub enum TelemetryEvent {
         interaction: SecretInteraction,
     },
     CopySecret,
-    AutoGenerateMetadataSuccess,
-    AutoGenerateMetadataError {
-        error_payload: Value,
-    },
     UndoClose {
         item_type: UndoCloseItemType,
     },
@@ -1604,7 +1560,6 @@ impl TelemetryEvent {
             TelemetryEvent::OpenChangelogLink { url } => Some(json!({ "url": url })),
             TelemetryEvent::CommandXRayTriggered { trigger } => Some(json!({ "trigger": trigger })),
             TelemetryEvent::SaveLaunchConfig { state } => Some(json!({ "state": state })),
-            TelemetryEvent::SaveAsWorkflowModal { source } => Some(json!({ "source": source })),
             TelemetryEvent::CommandCorrection { event } => Some(json!({ "event": event })),
             TelemetryEvent::SetLineHeight { new_value } => Some(json!({ "new_value": new_value })),
             TelemetryEvent::CommandSearchOpened { has_initial_query } => {
@@ -1614,19 +1569,6 @@ impl TelemetryEvent {
                 buffer_length,
                 query_filter,
             } => Some(json!({ "buffer_length": buffer_length, "query_filter": query_filter })),
-            TelemetryEvent::CommandSearchResultAccepted {
-                result_index,
-                result_type,
-                query_filter,
-                buffer_length,
-                was_immediately_executed,
-            } => Some(json!({
-                "result_index": result_index,
-                "result_type": result_type,
-                "query_filter": query_filter,
-                "buffer_length": buffer_length,
-                "was_immediately_executed": was_immediately_executed
-            })),
             TelemetryEvent::CommandSearchFilterChanged { new_filter } => {
                 Some(json!({ "new_filter": new_filter }))
             }
@@ -1730,9 +1672,6 @@ impl TelemetryEvent {
             }
             TelemetryEvent::ToggleObfuscateSecret { interaction } => {
                 Some(json!({ "interaction": interaction }))
-            }
-            TelemetryEvent::AutoGenerateMetadataError { error_payload } => {
-                Some(json!({ "error": error_payload }))
             }
             TelemetryEvent::UndoClose { item_type } => Some(json!({ "item_type": item_type })),
             TelemetryEvent::PromptEdited { prompt, entrypoint } => Some(json!({
@@ -2069,7 +2008,6 @@ impl TelemetryEvent {
             | TelemetryEvent::UnableToAutoUpdateToNewVersion
             | TelemetryEvent::SkipOnboardingSurvey
             | TelemetryEvent::LoggedOutStartup
-            | TelemetryEvent::OpenWorkflowSearch
             | TelemetryEvent::OpenQuakeModeWindow
             | TelemetryEvent::OpenWelcomeTips
             | TelemetryEvent::DismissWelcomeTips
@@ -2095,8 +2033,6 @@ impl TelemetryEvent {
             | TelemetryEvent::TeamLeft
             | TelemetryEvent::TeamLinkCopied
             | TelemetryEvent::RemovedUserFromTeam
-            | TelemetryEvent::DeletedWorkflow
-            | TelemetryEvent::DeletedNotebook
             | TelemetryEvent::ToggleApprovalsModal
             | TelemetryEvent::SendEmailInvites
             | TelemetryEvent::ResourceCenterOpened
@@ -2143,7 +2079,6 @@ impl TelemetryEvent {
             | TelemetryEvent::AnonymousUserHitCloudObjectLimit
             | TelemetryEvent::CustomSecretRegexAdded
             | TelemetryEvent::CopySecret
-            | TelemetryEvent::AutoGenerateMetadataSuccess
             | TelemetryEvent::CommandFileRun
             | TelemetryEvent::SharerGrantModalDontShowAgain
             | TelemetryEvent::LogOut
@@ -2438,7 +2373,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::KeybindingResetToDefault => EnablementState::Always,
             Self::KeybindingRemoved => EnablementState::Always,
             Self::FeaturesPageAction => EnablementState::Always,
-            Self::OpenWorkflowSearch => EnablementState::Always,
             Self::OpenQuakeModeWindow => EnablementState::Always,
             Self::OpenWelcomeTips => EnablementState::Always,
             Self::CompleteWelcomeTipFeature => EnablementState::Always,
@@ -2490,8 +2424,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::TeamLeft => EnablementState::Always,
             Self::TeamLinkCopied => EnablementState::Always,
             Self::RemovedUserFromTeam => EnablementState::Always,
-            Self::DeletedWorkflow => EnablementState::Always,
-            Self::DeletedNotebook => EnablementState::Always,
             Self::ToggleApprovalsModal => EnablementState::Always,
             Self::SendEmailInvites => EnablementState::Always,
             Self::CommandCorrection => EnablementState::Always,
@@ -2504,7 +2436,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::GlobalSearchQueryStarted => EnablementState::Always,
             Self::CommandSearchOpened => EnablementState::Always,
             Self::CommandSearchExited => EnablementState::Always,
-            Self::CommandSearchResultAccepted => EnablementState::Always,
             Self::CommandSearchFilterChanged => EnablementState::Always,
             Self::AICommandSearchOpened => EnablementState::Always,
             Self::OpenedAltScreenFind => EnablementState::Always,
@@ -2528,7 +2459,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputPaste => EnablementState::Always,
             Self::InputCommandSearch => EnablementState::Always,
             Self::InputAICommandSearch => EnablementState::Always,
-            Self::SaveAsWorkflowModal => EnablementState::Always,
             Self::ExperimentTriggered => EnablementState::Always,
             Self::ToggleSyncAllPanesInAllTabs => EnablementState::Always,
             Self::ToggleSyncAllPanesInTab => EnablementState::Always,
@@ -2575,8 +2505,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CustomSecretRegexAdded => EnablementState::Always,
             Self::ToggleObfuscateSecret => EnablementState::Always,
             Self::CopySecret => EnablementState::Always,
-            Self::AutoGenerateMetadataSuccess => EnablementState::Always,
-            Self::AutoGenerateMetadataError => EnablementState::Always,
             Self::UndoClose => EnablementState::Always,
             Self::CommandFileRun => EnablementState::Always,
             Self::PageUpDownInEditorPressed => EnablementState::Always,
@@ -2773,7 +2701,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::KeybindingChanged => "Keybinding Changed",
             Self::KeybindingResetToDefault => "Keybinding Reset to Default",
             Self::KeybindingRemoved => "Keybinding Removed",
-            Self::OpenWorkflowSearch => "Open Workflows Search",
             Self::FeaturesPageAction => "Features Page Action",
             Self::OpenQuakeModeWindow => "Open Quake Mode Window",
             Self::OpenWelcomeTips => "Open Welcome Tips",
@@ -2833,7 +2760,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::GlobalSearchQueryStarted => "Global Search Query Started",
             Self::CommandSearchOpened => "Command Search Opened",
             Self::CommandSearchExited => "Command Search Exited",
-            Self::CommandSearchResultAccepted => "Command Search Result Accepted",
             Self::CommandSearchFilterChanged => "Command Search Filter Changed",
             Self::AICommandSearchOpened => "AI Command Search opened",
             Self::OpenedAltScreenFind => "Opened alt screen find bar",
@@ -2861,7 +2787,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputPaste => "InputBoxPaste",
             Self::InputCommandSearch => "InputBoxCommandSearch",
             Self::InputAICommandSearch => "InputBoxAICommandSearch",
-            Self::SaveAsWorkflowModal => "Opened Save As Workflow Modal",
             Self::ExperimentTriggered => "experiments.client.enroll_client",
             Self::ToggleSyncAllPanesInAllTabs => "Toggle Sync Inputs Across All Panes in All Tabs",
             Self::ToggleSyncAllPanesInTab => "Toggle Sync Inputs Across All Panes in Current Tab",
@@ -2903,8 +2828,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CustomSecretRegexAdded => "Custom Secret Regex Added",
             Self::ToggleObfuscateSecret => "Toggle Obfuscate Secret",
             Self::CopySecret => "Copy Obfuscated Secret",
-            Self::AutoGenerateMetadataSuccess => "Generate Metadata For Workflow Success",
-            Self::AutoGenerateMetadataError => "Generate Metadata For Workflow Error",
             Self::UndoClose => "Undo Close",
             Self::OpenPromptEditor => "Prompt Editor Opened",
             Self::PromptEdited => "Prompt Edited",
@@ -2941,8 +2864,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::TeamLeft => "Team Left",
             Self::TeamLinkCopied => "Team Link Copied",
             Self::RemovedUserFromTeam => "Removed user from team",
-            Self::DeletedWorkflow => "Deleted Workflow",
-            Self::DeletedNotebook => "Deleted Notebook",
             Self::ToggleApprovalsModal => "Toggle Approvals Modal",
             Self::SendEmailInvites => "Sent email invites",
             Self::TierLimitHit => "Tier Limit Hit",
@@ -3173,7 +3094,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::KeybindingResetToDefault => "Reset a custom keybinding to its default",
             Self::KeybindingRemoved => "Removed / cleared a keybinding",
             Self::FeaturesPageAction => "Changed settings in Features Page",
-            Self::OpenWorkflowSearch => "Opened workflows search in command search pane",
             Self::OpenQuakeModeWindow => {
                 "Toggled quake mode window when previously hidden or closed"
             }
@@ -3258,8 +3178,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::TeamLeft => "Left a Rift Drive team",
             Self::TeamLinkCopied => "Copied a Rift Drive team link",
             Self::RemovedUserFromTeam => "Remove user from Rift Drive team",
-            Self::DeletedWorkflow => "Deleted workflow from Rift Drive team",
-            Self::DeletedNotebook => "Deleted notebook from Rift Drive team",
             Self::ToggleApprovalsModal => "Opened or closed teams modal",
             Self::SendEmailInvites => "Sent email invites for Rift Drive team",
             Self::CommandCorrection => "Accepted command correction",
@@ -3272,7 +3190,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CommandSearchExited => {
                 "Exited command search (universal search panel to search) without accepting a result"
             }
-            Self::CommandSearchResultAccepted => "Accepted command search result",
             Self::CommandSearchFilterChanged => "Changed command search filter",
             Self::AICommandSearchOpened => {
                 "Opened the modal for AI Command Search, where you can use natural language to search for commands"
@@ -3325,9 +3242,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::InputAICommandSearch => {
                 "Opened AI Command Search via the Input Editor's context menu (right clicking the buffer)"
-            }
-            Self::SaveAsWorkflowModal => {
-                "Opened the modal to create a new workflow using a Block's context--command, etc."
             }
             Self::ExperimentTriggered => "Client assigned to A/B test",
             Self::ToggleSyncAllPanesInAllTabs => {
@@ -3432,12 +3346,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CustomSecretRegexAdded => "Custom Secret Regex Added",
             Self::ToggleObfuscateSecret => "Revealed or hid a secret",
             Self::CopySecret => "Copied a secret's obfuscated contents to clipboard",
-            Self::AutoGenerateMetadataSuccess => {
-                "Successfully generated metadata for a workflow using Rift AI"
-            }
-            Self::AutoGenerateMetadataError => {
-                "Failed to generate metadata for a workflow using Rift AI"
-            }
             Self::UndoClose => "Re-opened a closed tab or window (undo closing a tab or window)",
             Self::PtyThroughput => "A sample of the max PTY throughput in bytes/sec",
             Self::CommandFileRun => {
