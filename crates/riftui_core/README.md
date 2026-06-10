@@ -1,14 +1,14 @@
-# WarpUI
+# RiftUI
 
 ## Whirlwind tour
 
-WarpUI contains many interlocking concepts. It's difficult to explain any one part of the system without reference to other parts. Because of this, this guide tries to provide an overview by exploring the relationships between the major concepts before providing a lot of detail on any one of them.
+RiftUI contains many interlocking concepts. It's difficult to explain any one part of the system without reference to other parts. Because of this, this guide tries to provide an overview by exploring the relationships between the major concepts before providing a lot of detail on any one of them.
 
 Rust's strict ownership rules are a challenge for user interfaces, where multi-directional dataflow is often critical. If every object has one and only one owner, how do we express things like event handlers?
 
 ## The global App object, entities, and handles
 
-WarpUI solves this problem with the `App` object, which is the sole owner of all the views and models in the application. We collectively refer to views and models as **entities**. Entities can hold references to other entities via **handles**. A handle provides access to an entity in specific, limited circumstances. Take for example a multi-tabbed terminal. The application window is occupied by a `WorkspaceView`, and we want this workspace to contain multiple `TerminalView`s. Rather than holding the `TerminalView`s directly, the `Workspace` instead holds a vector of `ViewHandle<TerminalView>`.
+RiftUI solves this problem with the `App` object, which is the sole owner of all the views and models in the application. We collectively refer to views and models as **entities**. Entities can hold references to other entities via **handles**. A handle provides access to an entity in specific, limited circumstances. Take for example a multi-tabbed terminal. The application window is occupied by a `WorkspaceView`, and we want this workspace to contain multiple `TerminalView`s. Rather than holding the `TerminalView`s directly, the `Workspace` instead holds a vector of `ViewHandle<TerminalView>`.
 
 ```rust
 struct WorkspaceView {
