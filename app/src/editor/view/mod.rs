@@ -96,7 +96,6 @@ use crate::settings::{
 };
 use crate::settings_view::flags;
 use crate::terminal::grid_size_util::grid_cell_dimensions;
-use crate::terminal::model::block::BlockId;
 use crate::themes::theme::Fill;
 use crate::ui_components::avatar::{Avatar, AvatarContent};
 use crate::util::bindings::{cmd_or_ctrl_shift, keybinding_name_to_keystroke, CustomAction};
@@ -126,10 +125,6 @@ pub enum AutosuggestionLocation {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AutosuggestionType {
     Command {
-        was_intelligent_autosuggestion: bool,
-    },
-    AgentModeQuery {
-        context_block_ids: Vec<BlockId>,
         was_intelligent_autosuggestion: bool,
     },
 }

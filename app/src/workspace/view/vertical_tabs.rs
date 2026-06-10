@@ -2017,7 +2017,7 @@ fn render_tab_group_internal(
         };
 
         // Show the action buttons when the group OR the buttons themselves
-        // are hovered, following the pattern from AgentManagementView.
+        // are hovered.
         // This prevents flickering when the mouse moves from the group
         // to the overlay buttons (which may sit outside the group bounds).
         let should_show_action_buttons = !drag_state.is_any_pane_dragging
@@ -3284,27 +3284,14 @@ impl PaneGroup {
     }
 }
 
-/// Returns the best available working-directory string for a terminal pane,
-/// incorporating cloud environment name and setup status for ambient agent sessions.
+/// Returns the best available working-directory string for a terminal pane.
 fn resolved_terminal_working_directory(
     terminal_view: &TerminalView,
     app: &AppContext,
 ) -> Option<String> {
-    let working_directory = terminal_view
+    terminal_view
         .display_working_directory(app)
-        .filter(|wd| !wd.trim().is_empty());
-    cloud_agent_working_directory_and_env(terminal_view, working_directory.as_deref(), app)
-        .or(working_directory)
-}
-
-/// For cloud agent panes, builds a composite string from the environment name,
-/// setup status, and/or working directory. Returns `None` for non-cloud sessions.
-fn cloud_agent_working_directory_and_env(
-    _terminal_view: &TerminalView,
-    _working_directory: Option<&str>,
-    _app: &AppContext,
-) -> Option<String> {
-    None
+        .filter(|wd| !wd.trim().is_empty())
 }
 
 fn render_terminal_row_content(
@@ -3877,7 +3864,7 @@ fn render_summary_pane_kind_icons(
     }
 }
 
-// Inline rendering for non-agent summary kinds — for an icon (e.g. Terminal, Code,
+// Inline rendering for summary kinds — for an icon (e.g. Terminal, Code,
 // Notebook) sized to fill its `total_size` bounding box.
 const SUMMARY_INLINE_ICON_RATIO: f32 = 2. / 3.;
 const SUMMARY_INLINE_PADDING_RATIO: f32 = (1. - SUMMARY_INLINE_ICON_RATIO) / 2.;

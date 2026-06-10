@@ -806,7 +806,7 @@ struct MouseStateHandles {
     quake_mode_width_height_reset: MouseStateHandle,
     quake_mode_pin_window_check: MouseStateHandle,
     long_running_notifications_checkbox: MouseStateHandle,
-    agent_needs_attention_notifications_checkbox: MouseStateHandle,
+    needs_attention_notifications_checkbox: MouseStateHandle,
     #[cfg(target_os = "macos")]
     notification_sound_checkbox: MouseStateHandle,
     change_keybinding: MouseStateHandle,
@@ -1200,11 +1200,11 @@ impl TypedActionView for FeaturesPageView {
             }
             ToggleNeedsAttentionNotifications => {
                 let current_settings = SessionSettings::as_ref(ctx).notifications.value().clone();
-                let is_agent_needs_attention_enabled = !current_settings.is_needs_attention_enabled;
+                let is_needs_attention_enabled = !current_settings.is_needs_attention_enabled;
 
                 SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
                     let new_settings = NotificationsSettings {
-                        is_needs_attention_enabled: is_agent_needs_attention_enabled,
+                        is_needs_attention_enabled,
                         ..current_settings
                     };
                     if let Err(e) = settings.notifications.set_value(new_settings, ctx) {
@@ -4426,10 +4426,10 @@ impl SettingsWidget for DesktopNotificationsWidget {
                 ),
                 view.render_notification_toggle(
                     session_settings.notifications.is_needs_attention_enabled,
-                    "Notify when a command or agent needs your attention to continue",
+                    "Notify when a command needs your attention to continue",
                     FeaturesPageAction::ToggleNeedsAttentionNotifications,
                     view.button_mouse_states
-                        .agent_needs_attention_notifications_checkbox
+                        .needs_attention_notifications_checkbox
                         .clone(),
                     appearance,
                 ),
@@ -5409,7 +5409,7 @@ impl SettingsWidget for ShowTerminalInputMessageLineWidget {
     type View = FeaturesPageView;
 
     fn search_terms(&self) -> &str {
-        "terminal input message line bar agent"
+        "terminal input message line bar"
     }
 
     fn render(
@@ -6252,7 +6252,7 @@ impl SettingsWidget for DefaultSessionModeWidget {
     type View = FeaturesPageView;
 
     fn search_terms(&self) -> &str {
-        "default session mode agent terminal new pane tab open config"
+        "default session mode terminal new pane tab open config"
     }
 
     fn render(

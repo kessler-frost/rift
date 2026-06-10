@@ -2843,7 +2843,6 @@ impl Input {
                             })
                         }
                     }
-                    AutosuggestionType::AgentModeQuery { .. } => {}
                 };
             }
             EditorEvent::Navigate(NavigationKey::Up) => {

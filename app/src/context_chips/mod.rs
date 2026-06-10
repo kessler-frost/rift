@@ -34,7 +34,6 @@ use self::renderer::RendererStyles;
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
 use crate::themes::theme::PromptColors;
-use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 
 /// The value of a context chip. Most chips produce plain text, but some
@@ -584,13 +583,6 @@ pub fn chips_to_string(chips: impl Iterator<Item = ChipResult>) -> String {
         }
     }
     prompt
-}
-
-pub(crate) fn agent_view_chip_color(appearance: &Appearance) -> ColorU {
-    let theme = appearance.theme();
-    theme
-        .sub_text_color(blended_colors::neutral_1(theme).into())
-        .into_solid()
 }
 
 /// Helper function that adds specific styling to chips' text element.
