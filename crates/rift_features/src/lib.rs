@@ -108,9 +108,6 @@ pub enum FeatureFlag {
     /// Adds Alacritty as a supported terminal to import settings from.
     AlacrittySettingsImport,
 
-    /// Enable dynamic enum parameter types for workflow arguments
-    DynamicWorkflowEnums,
-
     /// Enables receiving shared Rift Drive objects.
     SharedWithMe,
 
@@ -147,9 +144,6 @@ pub enum FeatureFlag {
 
     /// Adds avatar to the tab bar.
     AvatarInTabBar,
-
-    /// Adds aliases for executing Rift Drive workflows.
-    WorkflowAliases,
 
     SshDragAndDrop,
     DragTabsToWindows,

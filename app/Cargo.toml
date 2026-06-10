@@ -440,9 +440,7 @@ default = [
     "minimalist_ui",
     "avatar_in_tab_bar",
     "full_screen_zen_mode",
-    "workflow_aliases",
     "ligatures",
-    "dynamic_workflow_enums",
     "rect_selection",
     "reload_stale_conversation_files",
     "loginless_conversion",
@@ -583,7 +581,6 @@ default = [
 # Enable this feature to automatically perform heap profiling.  NOTE: This will
 # substantially slow down program execution.
 dhat_heap_profiling = ["dep:dhat"]
-dynamic_workflow_enums = []
 editable_markdown_mermaid = []
 default_adeberry_theme = []
 drag_tabs_to_windows = []
@@ -694,7 +691,6 @@ system_theme = []
 tab_close_button_on_left = []
 team_features_override = []
 test-util = []
-team_workflows = ["team_features_override"]
 toggle_bootstrap_block = []
 # Feature enabled only when app is compiled for integration tests.
 integration_tests = [
@@ -705,7 +701,6 @@ integration_tests = [
 ]
 traces = []
 viewing_shared_sessions = []
-workflow_aliases = []
 rect_selection = []
 alacritty_settings_import = []
 shared_with_me = []

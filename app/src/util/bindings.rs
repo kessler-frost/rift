@@ -720,8 +720,6 @@ pub enum BindingGroup {
     Settings,
     Close,
     Navigation,
-    Workflow,
-    Notebooks,
     Folders,
     KeyboardShortcuts,
     Notifications,
@@ -735,8 +733,6 @@ impl BindingGroup {
         match self {
             Self::Settings => "settings",
             Self::Navigation => "navigation",
-            Self::Workflow => "workflows",
-            Self::Notebooks => "notebooks",
             Self::Folders => "folders",
             Self::KeyboardShortcuts => "keyboard_shortcuts",
             Self::Close => "close",
