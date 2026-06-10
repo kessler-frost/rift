@@ -354,7 +354,7 @@ impl SessionContext {
 }
 
 /// Empty `CompletionContext` used in places without a live shell session
-/// (i.e. shared session viewers without a real terminal instance).
+/// (i.e. sessions without a real terminal instance).
 #[derive(Clone)]
 pub struct EmptyCompletionContext;
 impl EmptyCompletionContext {

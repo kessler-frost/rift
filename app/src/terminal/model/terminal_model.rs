@@ -512,7 +512,7 @@ pub struct TerminalModel {
 
 
     /// Whether this terminal model was created as a cloud mode dummy session
-    /// (no local shell process, deferred shared-session viewer backing).
+    /// (no local shell process).
     is_dummy_cloud_mode_session: bool,
 
     tmux_background_outputs: HashMap<u32, Vec<u8>>,

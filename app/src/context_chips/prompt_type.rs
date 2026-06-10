@@ -13,7 +13,7 @@ use crate::terminal::view::{ContextMenuAction, PromptPart, PromptPosition, Termi
 pub enum PromptType {
     /// A rift prompt that refreshes chip values on its own. Typical for local sessions.
     Dynamic { prompt: ModelHandle<CurrentPrompt> },
-    /// A rift prompt that does not change unless explicitly overwritten. Used for viewers of shared sessions.
+    /// A rift prompt that does not change unless explicitly overwritten.
     Static { snapshot: PromptSnapshot },
 }
 
