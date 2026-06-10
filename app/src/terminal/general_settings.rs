@@ -84,13 +84,6 @@ define_settings_group!(GeneralSettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: true,
     },
-    agent_mode_onboarding_block_shown: AgentModeOnboardingBlockShown {
-        type: bool,
-        default: false,
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: true,
-    },
     telemetry_banner_dismissed: TelemetryBannerDismissed {
         type: bool,
         default: false,

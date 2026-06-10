@@ -99,9 +99,8 @@ pub struct TabConfigParam {
 pub enum TabConfigPaneType {
     /// A standard terminal shell session.
     Terminal,
-    /// A terminal that immediately enters Agent Mode.
     Agent,
-    /// A cloud-mode (ambient agent) pane with no local shell.
+    /// Retained for config compatibility; behaves as a terminal pane.
     Cloud,
 }
 

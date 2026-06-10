@@ -440,18 +440,6 @@ pub struct MultiAdminPolicy {
     pub enabled: bool,
 }
 
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-pub struct AmbientAgentsPolicy {
-    pub max_concurrent_agents: i32,
-    pub instance_shape: Option<InstanceShape>,
-}
-
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-pub struct InstanceShape {
-    pub vcpus: i32,
-    pub memory_gb: i32,
-}
-
 /// Granularity at which a viewer can see AI usage across their team.
 /// Non-admins always collapse to `OwnOnly` regardless of tier.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -514,7 +502,6 @@ pub struct Tier {
     pub enterprise_pay_as_you_go_policy: Option<EnterprisePayAsYouGoPolicy>,
     pub enterprise_credits_auto_reload_policy: Option<EnterpriseCreditsAutoReloadPolicy>,
     pub multi_admin_policy: Option<MultiAdminPolicy>,
-    pub ambient_agents_policy: Option<AmbientAgentsPolicy>,
     pub usage_visibility_policy: Option<UsageVisibilityPolicy>,
 }
 
@@ -859,7 +846,7 @@ pub struct WorkspaceSettings {
     pub usage_based_pricing_settings: UsageBasedPricingSettings,
     pub addon_credits_settings: AddonCreditsSettings,
     pub codebase_context_settings: CodebaseContextSettings,
-    /// The team-level agent attribution setting. When `Enable` or `Disable`, the
+    /// The team-level attribution setting. When `Enable` or `Disable`, the
     /// user toggle is locked. When `RespectUserSetting` (or absent), the user can choose.
     #[serde(default)]
     pub enable_rift_attribution: AdminEnablementSetting,

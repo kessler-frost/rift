@@ -76,7 +76,9 @@ fn is_falsey(val: &Option<bool>) -> bool {
 
 /// The mode a leaf pane opens in.
 ///
-/// Used by tab configs to distinguish terminal, agent, and cloud panes.
+/// Pane mode tag carried by tab configs. Only `Terminal` has runtime
+/// meaning; `Agent`/`Cloud` are retained so configs written by upstream
+/// builds still parse.
 /// Launch configs always produce `Terminal` (the default).
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -84,9 +86,8 @@ pub enum PaneMode {
     /// A standard terminal shell session.
     #[default]
     Terminal,
-    /// A terminal that immediately enters Agent Mode.
     Agent,
-    /// A cloud-mode (ambient agent) pane with no local shell.
+    /// Retained for config compatibility; behaves as a terminal pane.
     Cloud,
 }
 

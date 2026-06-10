@@ -91,7 +91,7 @@ pub enum BlockHeightItem {
         /// The height of the separator in `Lines` when visible (when `is_hidden` is false).
         height_when_visible: BlockHeight,
         is_historical_conversation_restoration: bool,
-        /// Whether this separator is hidden (e.g., in agent view).
+        /// Whether this separator is hidden.
         is_hidden: bool,
     },
     /// A banner that shows up between blocks in the block list.
@@ -99,14 +99,14 @@ pub enum BlockHeightItem {
         /// The height of the banner in `Lines` when visible (when `is_hidden` is false).
         height_when_visible: BlockHeight,
         banner: InlineBannerItem,
-        /// Whether this banner is hidden (e.g., in agent view).
+        /// Whether this banner is hidden.
         is_hidden: bool,
     },
     SubshellSeparator {
         /// The height of the separator in `Lines` when visible (when `is_hidden` is false).
         height_when_visible: BlockHeight,
         separator_id: SeparatorId,
-        /// Whether this separator is hidden (e.g., in agent view).
+        /// Whether this separator is hidden.
         is_hidden: bool,
     },
     RichContent(RichContentItem),
@@ -2131,10 +2131,7 @@ impl BlockList {
         }
     }
 
-    /// Inserts a fully serialized block into the block list.
-    ///
-    /// This is used to insert a block snapshot from a CLI agent conversation
-    /// into an already-initialized block list.
+    /// Inserts a fully serialized block into an already-initialized block list.
     pub fn insert_restored_block(&mut self, block: &SerializedBlock) {
         let did_active_block_receive_precmd = self.active_block().has_received_precmd();
         let mut processor = Processor::new();
