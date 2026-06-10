@@ -12,7 +12,6 @@ pub use startup_shell::*;
 pub use working_directory_config::*;
 
 use crate::context_chips::prompt::PromptSelection;
-use crate::context_chips::ContextChipKind;
 
 lazy_static! {
     pub static ref DEFAULT_THRESHOLD_FOR_LONG_RUNNING_NOTIFICATION: Duration =
@@ -132,179 +131,6 @@ impl GithubPrPromptChipDefaultValidation {
     }
 }
 
-/// A single item in a toolbar layout. With the AI agent toolbar removed, only
-/// non-agent context chips (and the rich-input slot) remain.
-#[derive(
-    Clone,
-    Debug,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    schemars::JsonSchema,
-    settings_value::SettingsValue,
-)]
-pub enum AgentToolbarItemKind {
-    ContextChip(ContextChipKind),
-    RichInput,
-}
-
-impl AgentToolbarItemKind {
-    pub fn default_left() -> Vec<Self> {
-        Vec::new()
-    }
-    pub fn default_right() -> Vec<Self> {
-        Vec::new()
-    }
-    pub fn cli_default_left() -> Vec<Self> {
-        Vec::new()
-    }
-    pub fn cli_default_right() -> Vec<Self> {
-        Vec::new()
-    }
-}
-
-/// Shared behavior for toolbar chip selection types.
-/// Each variant stores either a `Default` (resolved via type-specific defaults) or `Custom` left/right item lists.
-pub trait ToolbarChipSelection {
-    fn default_left_items() -> Vec<AgentToolbarItemKind>;
-    fn default_right_items() -> Vec<AgentToolbarItemKind>;
-    fn left_items(&self) -> Vec<AgentToolbarItemKind>;
-    fn right_items(&self) -> Vec<AgentToolbarItemKind>;
-
-    fn left_chips(&self) -> Vec<ContextChipKind> {
-        self.left_items()
-            .into_iter()
-            .filter_map(|item| match item {
-                AgentToolbarItemKind::ContextChip(kind) => Some(kind),
-                _ => None,
-            })
-            .collect()
-    }
-
-    fn right_chips(&self) -> Vec<ContextChipKind> {
-        self.right_items()
-            .into_iter()
-            .filter_map(|item| match item {
-                AgentToolbarItemKind::ContextChip(kind) => Some(kind),
-                _ => None,
-            })
-            .collect()
-    }
-
-    fn all_chips(&self) -> Vec<ContextChipKind> {
-        let mut chips = self.left_chips();
-        chips.extend(self.right_chips());
-        chips
-    }
-
-    fn all_items(&self) -> Vec<AgentToolbarItemKind> {
-        let mut items = self.left_items();
-        items.extend(self.right_items());
-        items
-    }
-}
-
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    schemars::JsonSchema,
-    settings_value::SettingsValue,
-)]
-#[schemars(
-    description = "Agent toolbar layout configuration.",
-    rename_all = "snake_case"
-)]
-pub enum AgentToolbarChipSelection {
-    #[default]
-    #[schemars(description = "Use the default toolbar layout.")]
-    Default,
-    #[schemars(description = "Use a custom arrangement of toolbar items.")]
-    Custom {
-        left: Vec<AgentToolbarItemKind>,
-        right: Vec<AgentToolbarItemKind>,
-    },
-}
-
-impl ToolbarChipSelection for AgentToolbarChipSelection {
-    fn default_left_items() -> Vec<AgentToolbarItemKind> {
-        AgentToolbarItemKind::default_left()
-    }
-
-    fn default_right_items() -> Vec<AgentToolbarItemKind> {
-        AgentToolbarItemKind::default_right()
-    }
-
-    fn left_items(&self) -> Vec<AgentToolbarItemKind> {
-        match self {
-            Self::Default => Self::default_left_items(),
-            Self::Custom { left, .. } => left.clone(),
-        }
-    }
-
-    fn right_items(&self) -> Vec<AgentToolbarItemKind> {
-        match self {
-            Self::Default => Self::default_right_items(),
-            Self::Custom { right, .. } => right.clone(),
-        }
-    }
-}
-
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    schemars::JsonSchema,
-    settings_value::SettingsValue,
-)]
-#[schemars(
-    description = "CLI agent toolbar layout configuration.",
-    rename_all = "snake_case"
-)]
-pub enum CLIAgentToolbarChipSelection {
-    #[default]
-    #[schemars(description = "Use the default toolbar layout.")]
-    Default,
-    #[schemars(description = "Use a custom arrangement of toolbar items.")]
-    Custom {
-        left: Vec<AgentToolbarItemKind>,
-        right: Vec<AgentToolbarItemKind>,
-    },
-}
-
-impl ToolbarChipSelection for CLIAgentToolbarChipSelection {
-    fn default_left_items() -> Vec<AgentToolbarItemKind> {
-        AgentToolbarItemKind::cli_default_left()
-    }
-
-    fn default_right_items() -> Vec<AgentToolbarItemKind> {
-        AgentToolbarItemKind::cli_default_right()
-    }
-
-    fn left_items(&self) -> Vec<AgentToolbarItemKind> {
-        match self {
-            Self::Default => Self::default_left_items(),
-            Self::Custom { left, .. } => left.clone(),
-        }
-    }
-
-    fn right_items(&self) -> Vec<AgentToolbarItemKind> {
-        match self {
-            Self::Default => Self::default_right_items(),
-            Self::Custom { right, .. } => right.clone(),
-        }
-    }
-}
-
 define_settings_group!(SessionSettings, settings: [
     working_directory_config: WorkingDirectoryConfig,
     startup_shell_override: StartupShellOverride {
@@ -386,36 +212,6 @@ define_settings_group!(SessionSettings, settings: [
         private: true,
         storage_key: "GitPromptDirtyIndicator",
     },
-    // TODO: Remove this setting when `FeatureFlag::ProfilesDesignRevamp` is cleaned up.
-    // When ProfilesDesignRevamp is enabled, model selectors are always shown in the prompt.
-    // This setting only controls visibility when ProfilesDesignRevamp is disabled.
-    show_model_selectors_in_prompt: ShowModelSelectorsInPrompt {
-        type: bool,
-        default: true,
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: false,
-        toml_path: "agents.rift_agent.input.show_model_selectors_in_prompt",
-        description: "Whether to show AI model selectors in the input prompt.",
-    },
-    agent_footer_chip_selection: AgentToolbarChipSelectionSetting {
-        type: AgentToolbarChipSelection,
-        default: AgentToolbarChipSelection::default(),
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: false,
-        toml_path: "agents.rift_agent.input.agent_toolbar_chip_selection_setting",
-        description: "Controls the layout of context chips in the Agent Mode toolbar.",
-    },
-    cli_agent_footer_chip_selection: CLIAgentToolbarChipSelectionSetting {
-        type: CLIAgentToolbarChipSelection,
-        default: CLIAgentToolbarChipSelection::default(),
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: false,
-        toml_path: "agents.third_party.cli_agent_toolbar_chip_selection_setting",
-        description: "Controls the layout of context chips in the CLI Agent toolbar.",
-    },
     notification_toast_duration_secs: NotificationToastDurationSecs {
         type: u64,
         default: 8,
@@ -432,17 +228,6 @@ define_settings_group!(SessionSettings, settings: [
         default: GithubPrPromptChipDefaultValidation::Unvalidated,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Never,
-        private: true,
-    },
-    // One-time flag: whether we've already migrated the handoff-to-cloud chip
-    // into a user's custom agent toolbar layout. When `Default`, the chip is
-    // already present via `AgentToolbarItemKind::default_right()`, so this
-    // only matters for `Custom` layouts that were saved before the chip existed.
-    did_add_handoff_chip_to_toolbar: DidAddHandoffChipToToolbar {
-        type: bool,
-        default: false,
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         private: true,
     },
 ]);

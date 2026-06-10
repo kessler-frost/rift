@@ -33,7 +33,6 @@ use crate::terminal::model_events::ModelEvent;
 use crate::terminal::shell::ShellType;
 use crate::terminal::writeable_pty::command_history::update_command_history;
 use crate::terminal::TerminalView;
-use crate::test_util::settings::initialize_settings_for_tests;
 use crate::workspace::ToastStack;
 use crate::{GlobalResourceHandles, GlobalResourceHandlesProvider};
 

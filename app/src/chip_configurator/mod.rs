@@ -158,14 +158,10 @@ impl ControlItemRenderer {
     }
 
     pub(crate) fn display_label(&self) -> &str {
-        // The agent-toolbar `AgentToolbarItemKind::display_label()` was removed;
-        // only custom labels remain meaningful.
         self.custom_label.as_deref().unwrap_or("Unknown")
     }
 
     fn display_icon(&self) -> Option<crate::ui_components::icons::Icon> {
-        // The agent-toolbar `AgentToolbarItemKind::icon()` was removed; only
-        // custom icons remain.
         self.custom_icon
     }
 

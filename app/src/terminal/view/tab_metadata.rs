@@ -74,22 +74,13 @@ impl TerminalView {
             .filter(|value| !value.trim().is_empty())
     }
 
-    #[cfg_attr(not(feature = "local_fs"), allow(clippy::unnecessary_lazy_evaluations))]
     pub fn current_diff_line_changes(&self, ctx: &AppContext) -> Option<GitLineChanges> {
-        // Prefer the filesystem-event-based GitRepoStatusModel (which includes
-        // untracked files) over parsing the raw shell chip output. This matches
-        // the preference order used by the prompt chip display (display.rs) and
-        // agent footer (chips.rs).
-        let from_model: Option<GitLineChanges> = None;
-
-        from_model
-            .or_else(|| {
-                git_line_changes_from_chips(&self.current_prompt.as_ref(ctx).agent_view_chips(ctx))
-            })
-            .filter(|line_changes| {
+        git_line_changes_from_chips(&self.current_prompt.as_ref(ctx).chips(ctx)).filter(
+            |line_changes| {
                 line_changes.files_changed > 0
                     || line_changes.lines_added > 0
                     || line_changes.lines_removed > 0
-            })
+            },
+        )
     }
 }

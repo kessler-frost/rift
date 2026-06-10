@@ -1,4 +1,4 @@
-use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
+use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 
 use super::current_prompt::CurrentPrompt;
 use super::prompt_snapshot::PromptSnapshot;
@@ -6,7 +6,6 @@ use super::{ChipResult, ChipValue, ContextChipKind};
 use crate::menu::{MenuItem, MenuItemFields};
 use crate::settings::RiftPromptSeparator;
 use crate::terminal::model::session::Sessions;
-use crate::terminal::session_settings::{SessionSettings, ToolbarChipSelection};
 use crate::terminal::view::{ContextMenuAction, PromptPart, PromptPosition, TerminalAction};
 
 /// The type of rift prompt being used
@@ -108,52 +107,6 @@ impl PromptType {
 
     pub fn chips(&self, ctx: &AppContext) -> Vec<ChipResult> {
         self.snapshot(ctx).chips().clone()
-    }
-
-    pub fn agent_view_chips(&self, ctx: &AppContext) -> Vec<ChipResult> {
-        let chip_kinds = SessionSettings::as_ref(ctx)
-            .agent_footer_chip_selection
-            .all_chips();
-        self.resolve_chip_kinds(chip_kinds, ctx)
-    }
-
-    pub fn agent_view_left_chips(&self, ctx: &AppContext) -> Vec<ChipResult> {
-        let chip_kinds = SessionSettings::as_ref(ctx)
-            .agent_footer_chip_selection
-            .left_chips();
-        self.resolve_chip_kinds(chip_kinds, ctx)
-    }
-
-    pub fn agent_view_right_chips(&self, ctx: &AppContext) -> Vec<ChipResult> {
-        let chip_kinds = SessionSettings::as_ref(ctx)
-            .agent_footer_chip_selection
-            .right_chips();
-        self.resolve_chip_kinds(chip_kinds, ctx)
-    }
-
-    pub fn cli_agent_chips(&self, ctx: &AppContext) -> Vec<ChipResult> {
-        let chip_kinds = SessionSettings::as_ref(ctx)
-            .cli_agent_footer_chip_selection
-            .all_chips();
-        self.resolve_chip_kinds(chip_kinds, ctx)
-    }
-
-    fn resolve_chip_kinds(
-        &self,
-        chip_kinds: Vec<ContextChipKind>,
-        ctx: &AppContext,
-    ) -> Vec<ChipResult> {
-        chip_kinds
-            .into_iter()
-            .filter_map(|chip_kind| match self {
-                Self::Dynamic { prompt } => prompt.as_ref(ctx).latest_chip_result(&chip_kind),
-                Self::Static { snapshot } => snapshot
-                    .chips()
-                    .iter()
-                    .find(|chip_result| chip_result.kind() == &chip_kind)
-                    .cloned(),
-            })
-            .collect()
     }
 
     /// Whether same line prompt is enabled for the Rift Prompt.

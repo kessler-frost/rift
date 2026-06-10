@@ -10011,10 +10011,7 @@ impl TerminalView {
                 // honor_ps1 affects whether the Rift prompt is active, which
                 // determines if we need git status updates.
             }
-            SessionSettingsChangedEvent::CLIAgentToolbarChipSelectionSetting { .. } => {}
-            SessionSettingsChangedEvent::AgentToolbarChipSelectionSetting { .. }
-            | SessionSettingsChangedEvent::GithubPrChipDefaultValidation { .. } => {
-            }
+            SessionSettingsChangedEvent::GithubPrChipDefaultValidation { .. } => {}
             _ => {}
         }
     }
