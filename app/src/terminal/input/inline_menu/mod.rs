@@ -70,9 +70,7 @@ impl InlineMenuType {
         match mode {
             InputSuggestionsMode::Closed
             | InputSuggestionsMode::HistoryUp { .. }
-            | InputSuggestionsMode::CompletionSuggestions { .. }
-            | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. } => None,
+            | InputSuggestionsMode::CompletionSuggestions { .. } => None,
         }
     }
 }

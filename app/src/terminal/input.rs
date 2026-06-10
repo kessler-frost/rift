@@ -25,7 +25,6 @@ use diesel::SqliteConnection;
 use futures::stream::AbortHandle;
 use futures::FutureExt as _;
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use ordered_float::Float;
 use parking_lot::FairMutex;
 #[cfg(feature = "local_fs")]
@@ -51,7 +50,6 @@ use riftui::elements::{
 pub use riftui::elements::{ParentElement as _, Stack};
 pub use riftui::geometry::vector::{vec2f, Vector2F};
 use riftui::keymap::{EditableBinding, FixedBinding, Keystroke};
-use riftui::platform::OperatingSystem;
 use riftui::presenter::ChildView;
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::units::IntoPixels;
@@ -204,33 +202,6 @@ const MIN_BUFFER_LEN_TO_SHOW_COMPLETIONS_WHILE_TYPING: usize = 2;
 
 const AI_COMMAND_SEARCH_TRIGGER: &str = "#";
 
-
-const DYNAMIC_ENUM_GENERATE_MESSAGE: &str = "Run the following command to generate variants:";
-const DYNAMIC_ENUM_RUN_MESSAGE: &str = "Run command";
-const DYNAMIC_ENUM_PENDING_MESSAGE: &str = "Command pending...";
-const DYNAMIC_ENUM_FAILURE_MESSAGE: &str = "Command failed";
-const DYNAMIC_ENUM_NO_RESULTS_MESSAGE: &str = "Command returned no results";
-const DYNAMIC_ENUM_MENU_PADDING: f32 = 10.;
-const DYNAMIC_ENUM_MENU_HEIGHT_OFFSET: f32 = 25.;
-const DYNAMIC_ENUM_HORIZONTAL_TEXT_PADDING: f32 = 5.;
-
-lazy_static! {
-    static ref RUN_DYNAMIC_ENUM_COMMAND_KEYSTROKE: Keystroke = if OperatingSystem::get().is_mac() {
-        Keystroke {
-            cmd: true,
-            key: "enter".to_owned(),
-            ..Default::default()
-        }
-    } else {
-        Keystroke {
-            ctrl: true,
-            shift: true,
-            key: "enter".to_owned(),
-            ..Default::default()
-        }
-    };
-}
-
 #[derive(PartialEq, Eq, Copy, Clone, Serialize)]
 pub enum TelemetryInputSuggestionsMode {
     HistoryFuzzySearch,
@@ -329,40 +300,6 @@ pub enum InputSuggestionsMode {
         menu_position: TabCompletionsMenuPosition,
     },
 
-    StaticWorkflowEnumSuggestions {
-        /// The suggested values for the workflow argument.
-        suggestions: Vec<String>,
-
-        /// Where the menu should be positioned.
-        menu_position: TabCompletionsMenuPosition,
-
-        /// The selected ranges for every instance of the argument.
-        selected_ranges: Vec<Range<ByteOffset>>,
-
-        /// Store the cursor point of the end of the first selected argument.
-        cursor_point: BufferPoint,
-    },
-
-    DynamicWorkflowEnumSuggestions {
-        /// The suggested values for the workflow argument.
-        suggestions: Vec<String>,
-
-        /// Where the menu should be positioned.
-        menu_position: TabCompletionsMenuPosition,
-
-        /// The selected ranges for every instance of the argument.
-        selected_ranges: Vec<Range<ByteOffset>>,
-
-        /// Store the cursor point of the end of the first selected argument.
-        cursor_point: BufferPoint,
-
-        /// Store the current state of the dynamic enum suggestions menu.
-        dynamic_enum_status: DynamicEnumSuggestionStatus,
-
-        /// The command associated with the dynamic enum.
-        command: String,
-    },
-
     /// Mode indicating that no suggestion UI is being shown.
     Closed,
 }
@@ -371,18 +308,6 @@ pub enum InputSuggestionsMode {
 pub enum UserQueryMenuAction {
     ForkFrom,
     Rewind,
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum DynamicEnumSuggestionStatus {
-    /// When the command has not yet been approved to run on the users laptop
-    Unapproved,
-    /// The command is running asynchronously, but has not yet finished so we do not have suggestions to display
-    Pending,
-    /// The command succeeded; display suggested variants
-    Success,
-    /// The command failed
-    Failure,
 }
 
 impl InputSuggestionsMode {
@@ -509,11 +434,6 @@ pub enum InputAction {
     /// Open the completions menu if the cursor is in a valid position to generate completion
     /// suggestions.
     MaybeOpenCompletionSuggestions,
-    HideWorkflowInfoCard,
-
-    /// If the command originates from a workflow but doesn't match the workflow template,
-    /// this action resets the command to its original workflow state.
-    ResetWorkflowState,
 
     ToggleClassicCompletionsMode,
 
@@ -859,7 +779,6 @@ pub fn init(app: &mut AppContext) {
             id!("Input")
                 & !id!("IMEOpen")
                 & !id!("VoltronActive")
-                & !id!("WorkflowInfoBox")
                 & !id!("ProfileModelSelectorOpen")
                 & !id!("PromptChipMenuOpen")
                 & !id!("AIContextMenuOpen")
@@ -2070,8 +1989,6 @@ impl Input {
         let handled = match self.suggestions_mode_model.as_ref(ctx).mode() {
             InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
-            | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. }
             | InputSuggestionsMode::Closed => false,
         };
 
@@ -2207,8 +2124,6 @@ impl Input {
         let handled = match self.suggestions_mode_model.as_ref(ctx).mode() {
             InputSuggestionsMode::HistoryUp { .. }
             | InputSuggestionsMode::CompletionSuggestions { .. }
-            | InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-            | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. }
             | InputSuggestionsMode::Closed => false,
         };
 
@@ -2691,20 +2606,6 @@ impl Input {
                             }
                         }
                     }
-                    InputSuggestionsMode::StaticWorkflowEnumSuggestions {
-                        cursor_point, ..
-                    }
-                    | InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                        cursor_point, ..
-                    } => {
-                        let cursor_point = *cursor_point;
-                        let point = self.editor.as_ref(ctx).first_selection_end_to_point(ctx);
-                        let should_close = point != cursor_point;
-
-                        if should_close {
-                            self.close_input_suggestions(/*should_focus_input=*/ true, ctx);
-                        }
-                    }
                     InputSuggestionsMode::HistoryUp { .. } => {
                         // In HistoryUp mode, we replace the buffer as options
                         // are selected.
@@ -2767,24 +2668,6 @@ impl Input {
                                 &completion_results,
                                 ctx,
                             );
-
-                            if should_close {
-                                self.close_input_suggestions(
-                                    /*should_focus_input=*/ true, ctx,
-                                );
-                            }
-                        }
-                        InputSuggestionsMode::StaticWorkflowEnumSuggestions {
-                            cursor_point,
-                            ..
-                        }
-                        | InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                            cursor_point,
-                            ..
-                        } => {
-                            let cursor_point = *cursor_point;
-                            let point = self.editor.as_ref(ctx).first_selection_end_to_point(ctx);
-                            let should_close = point != cursor_point;
 
                             if should_close {
                                 self.close_input_suggestions(
@@ -3486,98 +3369,6 @@ impl Input {
         self.completions_abort_handle = Some(abort_handle);
     }
 
-    /// Asynchronously generates dynamic enum suggestions.
-    fn get_enum_suggestions_async(
-        &mut self,
-        command: String,
-        editor_snapshot: EditorSnapshot,
-        ctx: &mut ViewContext<'_, Input>,
-    ) {
-        if let Some(completion_context) = self.completion_session_context(ctx) {
-            self.suggestions_mode_model.update(ctx, |m, ctx| {
-                m.set_dynamic_enum_status(DynamicEnumSuggestionStatus::Pending, ctx);
-            });
-            let abort_handle = ctx
-                .spawn(
-                    async move {
-                        let variants = super::dynamic_enum_suggestions::run_dynamic_enum_command(
-                            command.as_str(),
-                            &completion_context,
-                        )
-                        .await;
-
-                        (variants, editor_snapshot)
-                    },
-                    move |input, (variants, editor_model), ctx| {
-                        input.handle_enum_completion_results(variants, editor_model, ctx);
-                    },
-                )
-                .abort_handle();
-
-            self.completions_abort_handle = Some(abort_handle);
-            ctx.notify();
-        }
-    }
-
-    /// When the command finishes running, update the input suggestions menu with the suggestions.
-    fn handle_enum_completion_results(
-        &mut self,
-        results: anyhow::Result<Vec<String>>,
-        editor_snapshot_when_completer_was_ran: EditorSnapshot,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        let current_editor_model = self
-            .editor
-            .read(ctx, |editor, ctx| editor.snapshot_model(ctx));
-
-        let buffer_text = self.editor.as_ref(ctx).buffer_text(ctx);
-        // If the editor has changed since the completions trigger was hit-- noop since the
-        // suggestions are no longer valid. Note that we purposely ignore attributes such as text
-        // styles for the purposes of this check (we only care about the buffer text content and
-        // the cursor selections state).
-        if buffer_text != editor_snapshot_when_completer_was_ran.text()
-            || current_editor_model.selections()
-                != editor_snapshot_when_completer_was_ran.selections()
-        {
-            return;
-        }
-
-        let (variants, status) = match results {
-            Ok(variants) => (variants, DynamicEnumSuggestionStatus::Success),
-            Err(e) => {
-                log::warn!("Failed to generate dynamic enum suggestions: {e:?}");
-                (vec![], DynamicEnumSuggestionStatus::Failure)
-            }
-        };
-
-        self.input_suggestions.update(ctx, |input, ctx| {
-            input.set_enum_variants(variants.clone(), ctx);
-        });
-
-        if let InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-            menu_position,
-            selected_ranges,
-            cursor_point,
-            command,
-            ..
-        } = self.suggestions_mode_model.as_ref(ctx).mode()
-        {
-            let updated_mode = InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                dynamic_enum_status: status,
-                suggestions: variants,
-                menu_position: *menu_position,
-                selected_ranges: selected_ranges.clone(),
-                cursor_point: *cursor_point,
-                command: command.clone(),
-            };
-            self.suggestions_mode_model.update(ctx, |model, ctx| {
-                model.set_mode(updated_mode, ctx);
-            });
-        }
-
-        ctx.notify();
-    }
-
     fn path_separators(&self, ctx: &AppContext) -> PathSeparators {
         self.active_session(ctx)
             .map(|session| session.path_separators())
@@ -4102,14 +3893,6 @@ impl Input {
             self.input_suggestions.update(ctx, |suggestions, ctx| {
                 suggestions.select_next(ctx);
             });
-        } else if matches!(
-            self.suggestions_mode_model.as_ref(ctx).mode(),
-            InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-                | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. }
-        ) {
-            self.input_suggestions.update(ctx, |suggestions, ctx| {
-                suggestions.select_next(ctx);
-            });
         } else if is_tab_bound_to_open_completions && self.cursor_positioned_for_completion(ctx) {
             self.open_completion_suggestions(CompletionsTrigger::Keybinding, ctx);
         } else {
@@ -4278,14 +4061,6 @@ impl Input {
             self.input_suggestions.update(ctx, |suggestions, ctx| {
                 suggestions.confirm(ctx);
             })
-        } else if matches!(
-            self.suggestions_mode_model.as_ref(ctx).mode(),
-            InputSuggestionsMode::StaticWorkflowEnumSuggestions { .. }
-                | InputSuggestionsMode::DynamicWorkflowEnumSuggestions { .. }
-        ) {
-            self.input_suggestions.update(ctx, |suggestions, ctx| {
-                suggestions.confirm(ctx);
-            });
         } else {
             let command = self.get_command(ctx);
             if !self.try_execute_command(&command, ctx) {
@@ -4304,21 +4079,7 @@ impl Input {
     /// this is now a no-op. Exposed `pub(crate)` for unit tests.
     pub(crate) fn input_ctrl_enter(&mut self, _ctx: &mut ViewContext<Self>) {}
 
-    fn input_cmd_enter(&mut self, ctx: &mut ViewContext<Self>) {
-        // NaturalLanguageCommandSearch has its own `cmd+enter` behaviour, not expected to execute here
-        let mode = self.suggestions_mode_model.as_ref(ctx).mode().clone();
-        match &mode {
-            InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
-                dynamic_enum_status: DynamicEnumSuggestionStatus::Unapproved,
-                command,
-                ..
-            } => {
-                let editor_model = self.editor.read(ctx, |view, ctx| view.snapshot_model(ctx));
-                self.get_enum_suggestions_async(command.clone(), editor_model, ctx);
-            }
-            _ => {}
-        }
-    }
+    fn input_cmd_enter(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
 
@@ -4781,8 +4542,6 @@ impl TypedActionView for Input {
             InputAction::MaybeOpenCompletionSuggestions => {
                 self.maybe_open_completion_suggestions(ctx);
             }
-            InputAction::HideWorkflowInfoCard => {}
-            InputAction::ResetWorkflowState => {}
             InputAction::ToggleClassicCompletionsMode => {
                 InputSettings::handle(ctx).update(ctx, |settings, ctx| {
                     if let Err(e) = settings.classic_completions_mode.toggle_and_save_value(ctx) {
