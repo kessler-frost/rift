@@ -1,5 +1,4 @@
-use rift_core::settings::Setting;
-use riftui::{AppContext, Entity, ModelContext, SingletonEntity, Tracked};
+use riftui::{Entity, ModelContext, SingletonEntity, Tracked};
 
 use super::team::{DiscoverableTeam, Team};
 use super::workspace::{
@@ -7,7 +6,6 @@ use super::workspace::{
     WorkspaceUid,
 };
 use crate::server::ids::ServerId;
-use crate::settings::{AISettings, CodeSettings};
 
 #[derive(Debug)]
 pub enum UserWorkspacesEvent {
@@ -70,10 +68,6 @@ impl UserWorkspaces {
             .and_then(|workspace_uid| self.workspace_from_uid(workspace_uid))
     }
 
-    pub fn workspaces(&self) -> &Vec<Workspace> {
-        &self.workspaces
-    }
-
     #[allow(dead_code)]
     pub fn joinable_teams(&self) -> &Vec<DiscoverableTeam> {
         &self.joinable_teams
@@ -122,37 +116,6 @@ impl UserWorkspaces {
             .unwrap_or_default()
     }
 
-    /// Returns the codebase context settings, taking into account the organization,
-    /// global AI settings, and codebase-specific settings.
-    pub fn is_codebase_context_enabled(&self, app: &AppContext) -> bool {
-        let org_setting = self.team_allows_codebase_context();
-        let ai_globally_enabled = AISettings::as_ref(app).is_any_ai_enabled(app);
-
-        match org_setting {
-            AdminEnablementSetting::Enable => ai_globally_enabled,
-            AdminEnablementSetting::Disable => false,
-            AdminEnablementSetting::RespectUserSetting => {
-                ai_globally_enabled && *CodeSettings::as_ref(app).codebase_context_enabled.value()
-            }
-        }
-    }
-
-    pub fn default_host_slug(&self) -> Option<&str> {
-        self.current_team()
-            .and_then(|team| team.organization_settings.default_host_slug.as_deref())
-    }
-
-    /// Returns only the organization-specific codebase context enablement setting.
-    pub fn team_allows_codebase_context(&self) -> AdminEnablementSetting {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .codebase_context_settings
-                    .setting
-                    .clone()
-            })
-            .unwrap_or_default()
-    }
 }
 
 impl Entity for UserWorkspaces {
@@ -162,6 +125,3 @@ impl Entity for UserWorkspaces {
 /// Mark UserWorkspaces as global application state.
 impl SingletonEntity for UserWorkspaces {}
 
-#[cfg(test)]
-#[path = "user_workspaces_tests.rs"]
-mod user_workspaces_tests;

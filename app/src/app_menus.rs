@@ -21,7 +21,7 @@ use crate::features::{runtime_flags_menu_items, FeatureFlag};
 use crate::root_view::OpenLaunchConfigArg;
 use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings::{
-    AISettings, BlockVisibilitySettings, DebugSettings, DefaultSessionMode, SelectionSettings,
+    BlockVisibilitySettings, DebugSettings, SelectionSettings,
 };
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::session_settings::SessionSettings;
@@ -850,16 +850,7 @@ fn make_new_elements_menu_items(_ctx: &AppContext) -> Vec<MenuItem> {
             open_new_default_tab_or_window,
             move |_props: &MenuItemProperties, ctx: &mut AppContext| {
                 let mut changes = MenuItemPropertyChanges::default();
-                let is_default_session_mode_agent =
-                    AISettings::handle(ctx).read(ctx, |ai_settings, ctx| {
-                        ai_settings.is_any_ai_enabled(ctx)
-                            && ai_settings.default_session_mode(ctx) == DefaultSessionMode::Agent
-                    });
-                let trigger = if is_default_session_mode_agent {
-                    Trigger::Custom(CustomAction::NewTerminalTab.into())
-                } else {
-                    Trigger::Custom(CustomAction::NewTab.into())
-                };
+                let trigger = Trigger::Custom(CustomAction::NewTab.into());
                 let binding = ctx
                     .get_key_bindings()
                     .find(|b| b.trigger == &trigger || b.original_trigger == Some(&trigger));

@@ -30,7 +30,7 @@ pub fn initialize_settings_for_tests_with_mode(
     use crate::settings::app_icon::AppIconSettings;
     use crate::settings::manager::SettingsManager;
     use crate::settings::{
-        init_and_register_user_preferences, AISettings, AccessibilitySettings,
+        init_and_register_user_preferences, AccessibilitySettings, SessionModeSettings,
         AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings, ChangelogSettings,
         CodeSettings, DebugSettings, EmacsBindingsSettings, FontSettings,
         GPUSettings, InputModeSettings, InputSettings, NativePreferenceSettings, PaneSettings,
@@ -56,7 +56,7 @@ pub fn initialize_settings_for_tests_with_mode(
     app.add_singleton_model(RiftConfig::mock);
 
     AccessibilitySettings::register(app);
-    app.update(AISettings::register_and_subscribe_to_events);
+    SessionModeSettings::register(app);
     AliasExpansionSettings::register(app);
     AppEditorSettings::register(app);
     BlockVisibilitySettings::register(app);

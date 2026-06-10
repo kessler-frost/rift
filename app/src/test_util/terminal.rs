@@ -23,7 +23,6 @@ use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::model::block::SerializedBlockListItem;
 use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::resizable_data::ResizableData;
-use crate::terminal::view::inline_banner::ByoLlmAuthBannerSessionState;
 use crate::terminal::{History, TerminalView};
 use crate::undo_close::UndoCloseStack;
 use crate::rift_managed_paths_watcher::RiftManagedPathsWatcher;
@@ -69,7 +68,6 @@ pub fn initialize_app_for_terminal_view(app: &mut App) {
     app.add_singleton_model(|_| WorkspaceRegistry::new());
     app.add_singleton_model(|_| IgnoredSuggestionsModel::new(vec![]));
     app.add_singleton_model(|_| PricingInfoModel::new());
-    app.add_singleton_model(ByoLlmAuthBannerSessionState::new);
 
     AltScreenReporting::register(app);
 }

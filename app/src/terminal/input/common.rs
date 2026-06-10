@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use pathfinder_geometry::vector::vec2f;
 use rift_completer::completer::Description;
-use rift_core::features::FeatureFlag;
 use riftui::elements::{
     AnchorPair, Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, Element, EventHandler, Flex, OffsetPositioning, OffsetType, ParentAnchor,
@@ -11,11 +10,10 @@ use riftui::elements::{
 };
 use riftui::fonts::Weight;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
-use riftui::{AppContext, SingletonEntity};
+use riftui::AppContext;
 use vim::vim::{VimMode, VimState};
 
 use crate::appearance::Appearance;
-use crate::settings::{AISettings, InputSettings};
 use crate::terminal::input::{Input, InputAction, InputSuggestionsMode, MenuPositioning};
 use crate::terminal::model::TerminalModel;
 use crate::terminal::view::{TerminalAction, PADDING_LEFT};
@@ -29,11 +27,8 @@ pub(super) fn should_show_terminal_input_message_bar(
     model: &TerminalModel,
     app: &AppContext,
 ) -> bool {
-    FeatureFlag::AgentView.is_enabled()
-        && !FeatureFlag::AgentViewPromptChip.is_enabled()
-        && InputSettings::as_ref(app).is_terminal_input_message_bar_enabled()
-        && AISettings::as_ref(app).is_any_ai_enabled(app)
-        && !model.is_shared_ambient_agent_session()
+    let _ = (model, app);
+    false
 }
 
 /// Renders vim status bar

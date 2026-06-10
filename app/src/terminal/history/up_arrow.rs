@@ -4,7 +4,6 @@ use riftui::{AppContext, EntityId, SingletonEntity};
 
 use super::History;
 use crate::input_suggestions::HistoryInputSuggestion;
-use crate::settings::AISettings;
 use crate::suggestions::ignored_suggestions_model::{IgnoredSuggestionsModel, SuggestionType};
 use crate::terminal::model::session::SessionId;
 
@@ -59,10 +58,6 @@ impl History {
     ) -> Vec<HistoryInputSuggestion<'a>> {
         let ignored_suggestions = IgnoredSuggestionsModel::handle(app).as_ref(app);
 
-        let include_agent_commands = *AISettings::handle(app)
-            .as_ref(app)
-            .include_agent_commands_in_history;
-
         let _ = terminal_view_id;
         if !config.include_commands {
             return vec![];
@@ -75,7 +70,6 @@ impl History {
             .filter(|entry| {
                 !ignored_suggestions.is_ignored(&entry.command, SuggestionType::ShellCommand)
             })
-            .filter(move |entry| include_agent_commands || !entry.is_agent_executed)
             .map(|entry| HistoryInputSuggestion::Command { entry });
 
         let all_live_session_ids = self.all_live_session_ids();

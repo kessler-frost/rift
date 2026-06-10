@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use super::*;
-use crate::terminal::cli_agent::CLIAgent;
 
 fn generated_worktree_path_string(repo: &str, worktree_name: &str) -> String {
     super::super::tab_config::generated_worktree_path(Path::new(repo), worktree_name)
@@ -15,29 +14,6 @@ fn generated_worktree_path_string(repo: &str, worktree_name: &str) -> String {
 fn terminal_command_prefix_is_none() {
     assert_eq!(SessionType::Terminal.command_prefix(), None);
 }
-
-#[test]
-fn oz_command_prefix_is_none() {
-    assert_eq!(SessionType::Oz.command_prefix(), None);
-}
-
-#[test]
-fn cli_agent_command_prefix_delegates() {
-    assert_eq!(
-        SessionType::CliAgent(CLIAgent::Claude).command_prefix(),
-        Some("claude")
-    );
-    assert_eq!(
-        SessionType::CliAgent(CLIAgent::Codex).command_prefix(),
-        Some("codex")
-    );
-    assert_eq!(
-        SessionType::CliAgent(CLIAgent::Gemini).command_prefix(),
-        Some("gemini")
-    );
-}
-
-// ── build_tab_config ──
 
 #[test]
 fn terminal_no_worktree() {
@@ -57,20 +33,6 @@ fn terminal_no_worktree() {
     );
     assert!(config.panes[0].commands.is_none());
     assert!(config.params.is_empty());
-}
-
-#[test]
-fn cli_agent_no_worktree() {
-    let config = build_tab_config(
-        &SessionType::CliAgent(CLIAgent::Claude),
-        Path::new("/home/user/project"),
-        false,
-        true,
-    );
-
-    assert_eq!(config.panes[0].commands.as_deref().unwrap(), &["claude"]);
-    assert!(config.params.is_empty());
-    assert!(config.title.is_none());
 }
 
 #[test]
@@ -98,68 +60,6 @@ fn terminal_with_worktree() {
     let param = &config.params["worktree_branch_name"];
     assert_eq!(param.param_type, TabConfigParamType::Text);
     assert_eq!(param.default.as_deref(), Some("my-feature-branch"));
-}
-
-#[test]
-fn cli_agent_with_worktree() {
-    let config = build_tab_config(
-        &SessionType::CliAgent(CLIAgent::Gemini),
-        Path::new("/home/user/repo"),
-        true,
-        false,
-    );
-
-    // Worktree commands come first, then agent command.
-    let expected_worktree_path =
-        generated_worktree_path_string("/home/user/repo", "{{worktree_branch_name}}");
-    assert_eq!(
-        config.panes[0].commands.as_deref().unwrap(),
-        [
-            format!("git worktree add -b {{{{worktree_branch_name}}}} {expected_worktree_path}"),
-            format!("cd {expected_worktree_path}"),
-            "gemini".to_string(),
-        ]
-        .as_ref()
-    );
-    assert!(config.params.contains_key("worktree_branch_name"));
-    assert_eq!(config.title.as_deref(), Some("{{worktree_branch_name}}"));
-}
-
-#[test]
-fn oz_no_worktree_same_as_terminal() {
-    let oz = build_tab_config(
-        &SessionType::Oz,
-        Path::new("/home/user/project"),
-        false,
-        true,
-    );
-    let terminal = build_tab_config(
-        &SessionType::Terminal,
-        Path::new("/home/user/project"),
-        false,
-        true,
-    );
-
-    assert_eq!(oz.panes[0].directory, terminal.panes[0].directory);
-    assert_eq!(oz.panes[0].commands, terminal.panes[0].commands);
-    assert_eq!(oz.params.len(), terminal.params.len());
-}
-
-#[test]
-fn oz_with_worktree_has_worktree_commands_but_no_agent_command() {
-    let config = build_tab_config(&SessionType::Oz, Path::new("/home/user/repo"), true, false);
-    let expected_worktree_path =
-        generated_worktree_path_string("/home/user/repo", "{{worktree_branch_name}}");
-
-    assert_eq!(
-        config.panes[0].commands.as_deref().unwrap(),
-        [
-            format!("git worktree add -b {{{{worktree_branch_name}}}} {expected_worktree_path}"),
-            format!("cd {expected_worktree_path}"),
-        ]
-        .as_ref()
-    );
-    assert!(config.params.contains_key("worktree_branch_name"));
 }
 
 #[test]
@@ -197,29 +97,6 @@ fn round_trip_terminal_no_worktree() {
 }
 
 #[test]
-fn round_trip_cli_agent_with_worktree() {
-    let config = build_tab_config(
-        &SessionType::CliAgent(CLIAgent::Claude),
-        Path::new("/home/user/repo"),
-        true,
-        false,
-    );
-    let toml_str = toml::to_string_pretty(&config).expect("Should serialize");
-    let parsed: TabConfig = toml::from_str(&toml_str).expect("Should deserialize");
-
-    assert_eq!(parsed.name, config.name);
-    assert_eq!(parsed.title, config.title);
-    assert_eq!(parsed.panes[0].commands, config.panes[0].commands);
-    assert!(parsed.params.contains_key("worktree_branch_name"));
-    assert_eq!(
-        parsed.params["worktree_branch_name"].default.as_deref(),
-        Some("my-feature-branch")
-    );
-}
-
-// ── render_tab_config integration ──
-
-#[test]
 fn render_terminal_produces_correct_pane_template() {
     let config = build_tab_config(
         &SessionType::Terminal,
@@ -239,28 +116,6 @@ fn render_terminal_produces_correct_pane_template() {
     {
         assert_eq!(cwd, std::path::PathBuf::from("/home/user/project"));
         assert!(commands.is_empty());
-    } else {
-        panic!("Expected PaneTemplate variant");
-    }
-}
-
-#[test]
-fn render_cli_agent_produces_correct_commands() {
-    let config = build_tab_config(
-        &SessionType::CliAgent(CLIAgent::Claude),
-        Path::new("/home/user/project"),
-        false,
-        true,
-    );
-    let param_values = config.default_param_values();
-    let (_, pane_template) = super::super::render_tab_config(&config, &param_values, None);
-
-    if let crate::launch_configs::launch_config::PaneTemplateType::PaneTemplate {
-        commands, ..
-    } = pane_template
-    {
-        assert_eq!(commands.len(), 1);
-        assert_eq!(commands[0].exec, "claude");
     } else {
         panic!("Expected PaneTemplate variant");
     }
@@ -312,26 +167,6 @@ fn write_tab_config_creates_file_with_correct_naming() {
     let path3 = write_tab_config(&config, dir.path(), "startup_config")
         .expect("Third write should succeed");
     assert_eq!(path3.file_name().unwrap(), "startup_config_2.toml");
-}
-
-#[test]
-fn write_tab_config_content_is_valid_toml() {
-    let dir = tempfile::tempdir().expect("Should create temp dir");
-    let config = build_tab_config(
-        &SessionType::CliAgent(CLIAgent::Claude),
-        Path::new("/home/user/repo"),
-        true,
-        false,
-    );
-
-    let path =
-        write_tab_config(&config, dir.path(), "startup_config").expect("Write should succeed");
-    let contents = std::fs::read_to_string(&path).expect("Should read file");
-    let parsed: TabConfig = toml::from_str(&contents).expect("Should parse as TabConfig");
-
-    assert_eq!(parsed.name, "Worktree: repo");
-    assert_eq!(parsed.panes[0].commands.as_ref().unwrap().len(), 3);
-    assert!(parsed.params.contains_key("worktree_branch_name"));
 }
 
 #[test]

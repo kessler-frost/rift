@@ -5,7 +5,7 @@ use settings::Setting as _;
 
 pub use super::ContextChipKind;
 use crate::settings::{
-    AISettings, AISettingsChangedEvent, InputSettings, InputSettingsChangedEvent,
+    InputSettings, InputSettingsChangedEvent,
     RiftPromptSeparator,
 };
 use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
@@ -161,8 +161,6 @@ impl Prompt {
     pub fn new(ctx: &mut ModelContext<Self>) -> Self {
         let session_settings = SessionSettings::handle(ctx);
         ctx.subscribe_to_model(&session_settings, Self::handle_session_settings_change);
-        let ai_settings = AISettings::handle(ctx);
-        ctx.subscribe_to_model(&ai_settings, Self::handle_ai_settings_change);
         let input_settings = InputSettings::handle(ctx);
         ctx.subscribe_to_model(&input_settings, Self::handle_input_settings_change);
 
@@ -287,18 +285,6 @@ impl Prompt {
         }
     }
 
-    /// Updates the in-memory prompt configuration to reflect an AI settings change.
-    fn handle_ai_settings_change(
-        &mut self,
-        event: &AISettingsChangedEvent,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        if let AISettingsChangedEvent::IsAnyAIEnabled { .. } = event {
-            log::debug!("Loading new prompt configuration");
-            self.config = Self::from_user_settings(ctx);
-            ctx.emit(PromptEvent::Changed);
-        }
-    }
 
     /// Updates the in-memory prompt configuration to reflect an AI input model change.
     fn handle_ai_input_model_change(&mut self, ctx: &mut ModelContext<Self>) {

@@ -38,7 +38,7 @@ use crate::context_chips::git_branch_on_click::{
 };
 use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersionPopupView};
 use crate::context_chips::spacing;
-use crate::settings::{AISettings, AISettingsChangedEvent, InputSettings};
+use crate::settings::InputSettings;
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::model_events::ModelEventDispatcher;
@@ -47,7 +47,6 @@ use crate::ui_components::icons::Icon;
 use crate::util::bindings::keybinding_name_to_display_string;
 use crate::util::truncation::truncate_from_beginning;
 use crate::view_components::action_button::{ActionButtonTheme, NakedTheme};
-use crate::view_components::{FeaturePopup, NewFeaturePopupEvent, NewFeaturePopupLabel};
 use crate::workspace::view::TOGGLE_RIGHT_PANEL_BINDING_NAME;
 use crate::send_telemetry_from_ctx;
 
@@ -293,7 +292,6 @@ pub struct DisplayChip {
     display_chip_kind: DisplayChipKind,
     next_chip_kind: Option<ContextChipKind>,
     first_on_click_value: Option<String>,
-    quota_reset_popup: ViewHandle<FeaturePopup>,
     session_context: Option<SessionContext>,
     menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
     is_shared_session_viewer: bool,
@@ -745,31 +743,6 @@ impl DisplayChip {
             _ => DisplayChipKind::Text,
         };
 
-        let quota_reset_popup = ctx.add_typed_action_view(|_| {
-            FeaturePopup::alert_icon(NewFeaturePopupLabel::FromString(
-                "Monthly AI credits reset!".to_string(),
-            ))
-        });
-
-        ctx.subscribe_to_view(&quota_reset_popup, |_, _, event, ctx| match event {
-            NewFeaturePopupEvent::Dismissed => {
-                AISettings::handle(ctx).update(ctx, |ai_settings, ctx| {
-                    ai_settings.mark_quota_banner_as_dismissed(ctx);
-                    ctx.notify();
-                });
-                ctx.notify();
-            }
-        });
-
-        ctx.subscribe_to_model(&AISettings::handle(ctx), |_, _, event, ctx| {
-            if matches!(
-                event,
-                AISettingsChangedEvent::AIRequestQuotaInfoSetting { .. }
-            ) {
-                ctx.notify();
-            }
-        });
-
         // Cache the code review keybinding and subscribe to changes.
         let code_review_keybinding =
             keybinding_name_to_display_string(TOGGLE_RIGHT_PANEL_BINDING_NAME, ctx);
@@ -795,7 +768,6 @@ impl DisplayChip {
             display_chip_kind,
             next_chip_kind,
             first_on_click_value: chip_result.on_click_values.first().cloned(),
-            quota_reset_popup,
             session_context: config.session_context,
             menu_positioning_provider: config.menu_positioning_provider,
             is_shared_session_viewer: config.is_shared_session_viewer,

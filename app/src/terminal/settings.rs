@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, SupportedPlatforms, SyncToCloud};
 
-use crate::settings::{AISettings, InputSettings, TerminalSpacing};
+use crate::settings::{InputSettings, TerminalSpacing};
 
 #[derive(
     Clone,
@@ -159,8 +159,8 @@ impl TerminalSettings {
 
     /// Whether the terminal zero state block should be shown.
     /// Checks both the user setting and the global AI enablement.
-    pub fn should_show_zero_state_block(&self, ctx: &AppContext) -> bool {
-        *self.show_terminal_zero_state_block && AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
+    pub fn should_show_zero_state_block(&self, _ctx: &AppContext) -> bool {
+        *self.show_terminal_zero_state_block
     }
 
     /// Whether asynchronous terminal find should be used. On channels where

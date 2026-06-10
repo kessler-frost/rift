@@ -45,7 +45,6 @@ use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::phenomenon::PhenomenonStyle;
 use rift_core::ui::theme::Fill;
 use rift_core::ui::Icon;
-use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
 use rift_util::path::{user_friendly_path, LineAndColumnArg};
 use riftui::accessibility::{
@@ -118,7 +117,7 @@ use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
 use crate::banner::BannerState;
-use crate::channel::{Channel, ChannelState};
+use crate::channel::ChannelState;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
 use crate::default_terminal::DefaultTerminal;
@@ -162,9 +161,9 @@ use crate::server::telemetry::{
     PaletteSource,
 };
 use crate::session_management::{SessionNavigationData, SessionSource, TabNavigationData};
+use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::{
-    active_theme_kind, respect_system_theme, AISettings, AISettingsChangedEvent,
-    AccessibilitySettings, AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings,
+    active_theme_kind, respect_system_theme, AccessibilitySettings, AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings,
     CodeSettings, CodeSettingsChangedEvent, CtrlTabBehavior, CursorBlink,
     DebugSettings, DefaultSessionMode, FontSettings, GPUSettings, InputModeSettings, InputSettings,
     MonospaceFontSize, PaneSettings, PrivacySettings, SelectionSettings, SshSettings,
@@ -283,7 +282,7 @@ use crate::workspace::toast_stack::{
 use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::workspaces::workspace::AdminEnablementSetting;
 use crate::{
-    report_if_error, send_telemetry_from_ctx, settings,
+    report_if_error, send_telemetry_from_ctx,
     GlobalResourceHandles,
 };
 
@@ -1432,12 +1431,12 @@ impl Workspace {
         match event {
             RemoveTabConfigConfirmationEvent::Confirm { path } => {
                 // If the removed config was the default, revert to Terminal.
-                let ai_settings = AISettings::as_ref(ctx);
-                let is_removed_default = ai_settings.default_session_mode(ctx)
+                let session_mode_settings = SessionModeSettings::as_ref(ctx);
+                let is_removed_default = session_mode_settings.default_session_mode()
                     == DefaultSessionMode::TabConfig
-                    && ai_settings.default_tab_config_path() == path.to_string_lossy();
+                    && session_mode_settings.default_tab_config_path() == path.to_string_lossy();
                 if is_removed_default {
-                    AISettings::handle(ctx).update(ctx, |settings, ctx| {
+                    SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
                         report_if_error!(settings
                             .default_session_mode_internal
                             .set_value(DefaultSessionMode::Terminal, ctx));
@@ -1570,8 +1569,7 @@ impl Workspace {
     }
 
     pub(crate) fn show_session_config_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        // Configure the modal to hide Oz when AI is disabled.
-        let show_oz = AISettings::as_ref(ctx).is_any_ai_enabled(ctx);
+        let show_oz = false;
         self.session_config_modal.view.update(ctx, |modal, ctx| {
             modal.body().update(ctx, |body, ctx| {
                 body.configure(show_oz);
@@ -1959,18 +1957,7 @@ impl Workspace {
             me.handle_window_settings_changed_event(event, ctx);
         });
 
-        // Show the Rift AI warm welcome iff the user hasn't dismissed it nor interacted with Rift AI before.
-        // Also, avoid showing it in integration tests to prevent interaction with other tests.
-        let should_show_ai_assistant_warm_welcome: bool = !FeatureFlag::AgentMode.is_enabled()
-            && AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
-            && !matches!(ChannelState::channel(), Channel::Integration)
-            && ctx
-                .private_user_preferences()
-                .read_value(settings::DISMISSED_AI_ASSISTANT_WELCOME_KEY)
-                .unwrap_or_default()
-                .and_then(|s| serde_json::from_str(&s).ok())
-                .map(|dismissed: bool| !dismissed)
-                .unwrap_or(true);
+        let should_show_ai_assistant_warm_welcome: bool = false;
 
         let tab_settings_handle = TabSettings::handle(ctx);
         ctx.subscribe_to_model(&tab_settings_handle, |me, _, event, ctx| {
@@ -2056,25 +2043,6 @@ impl Workspace {
 
         let native_modal = Self::build_native_modal_view(ctx);
 
-        ctx.subscribe_to_model(&AISettings::handle(ctx), |me, _, event, ctx| match event {
-            AISettingsChangedEvent::IsAnyAIEnabled { .. }
-            | AISettingsChangedEvent::ShowConversationHistory { .. } => {
-                ctx.notify();
-            }
-            AISettingsChangedEvent::IsActiveAIEnabled { .. }
-            | AISettingsChangedEvent::ThinkingDisplayMode { .. }
-            | AISettingsChangedEvent::PromptSubmissionMode { .. } => {
-                ctx.notify();
-            }
-            AISettingsChangedEvent::ShowAgentNotifications { .. } => {
-                // When agent notifications are turned off, close the mailbox if it's open.
-                if !*AISettings::as_ref(ctx).show_agent_notifications {
-                    me.current_workspace_state.is_notification_mailbox_open = false;
-                }
-                ctx.notify();
-            }
-            _ => (),
-        });
 
         let mut ws = Self {
             tabs: Vec::new(),
@@ -3761,10 +3729,9 @@ impl Workspace {
     ) -> Vec<MenuItem<WorkspaceAction>> {
         let mut menu_items = vec![];
 
-        let _is_any_ai_enabled = AISettings::as_ref(ctx).is_any_ai_enabled(ctx);
-        let ai_settings = AISettings::as_ref(ctx);
-        let effective_default = ai_settings.default_session_mode(ctx);
-        let default_tab_config_path = ai_settings.default_tab_config_path().to_string();
+        let session_mode_settings = SessionModeSettings::as_ref(ctx);
+        let effective_default = session_mode_settings.default_session_mode();
+        let default_tab_config_path = session_mode_settings.default_tab_config_path().to_string();
         let shortcut_label = keybinding_name_to_display_string(NEW_TAB_BINDING_NAME, ctx);
         let reopen_closed_session_shortcut_label =
             keybinding_name_to_display_string("app:reopen_closed_session", ctx);
@@ -6300,14 +6267,7 @@ impl Workspace {
             .map(|name| name.to_string_lossy().to_string())
             .unwrap_or_else(|| repo_path.clone());
         let config_name = format!("Worktree: {repo_display_name}");
-        // Use the user's default session mode to decide pane type.
-        let pane_type = if AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
-            && AISettings::as_ref(ctx).default_session_mode(ctx) == DefaultSessionMode::Agent
-        {
-            "agent"
-        } else {
-            "terminal"
-        };
+        let pane_type = "terminal";
         log::info!(
             "Materializing default worktree config: repo_path={repo_path:?}, branch_name={branch_name:?}, pane_type={pane_type}"
         );
@@ -7334,11 +7294,7 @@ impl Workspace {
         default_session_mode_behavior: DefaultSessionModeBehavior,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Check if we should default to agent mode (only for new sessions, not restorations)
-        let should_enter_agent_view = matches!(
-            default_session_mode_behavior,
-            DefaultSessionModeBehavior::Apply
-        ) && AISettings::as_ref(ctx).default_session_mode(ctx) == DefaultSessionMode::Agent;
+        let _ = default_session_mode_behavior;
         #[cfg(feature = "local_tty")]
         let is_docker_sandbox = chosen_shell
             .as_ref()
@@ -7369,7 +7325,7 @@ impl Workspace {
         );
 
         // Docker sandbox and agent view were AI/cloud features and have been removed.
-        let _ = (is_docker_sandbox, should_enter_agent_view);
+        let _ = is_docker_sandbox;
     }
 
 
@@ -11532,153 +11488,6 @@ impl Workspace {
             context.set.insert(flags::PREFER_LOW_POWER_GPU_FLAG);
         }
 
-        let ai_settings = AISettings::as_ref(app);
-        if ai_settings.is_ai_autodetection_enabled(app) {
-            context.set.insert(flags::AI_INPUT_AUTODETECTION_FLAG);
-        }
-        if ai_settings.is_nld_in_terminal_enabled(app) {
-            context.set.insert(flags::NLD_IN_TERMINAL_FLAG);
-        }
-        if ai_settings.is_intelligent_autosuggestions_enabled(app) {
-            context.set.insert(flags::INTELLIGENT_AUTOSUGGESTIONS_FLAG);
-        }
-        if ai_settings.is_prompt_suggestions_enabled(app) {
-            context.set.insert(flags::PROMPT_SUGGESTIONS_FLAG);
-        }
-        if ai_settings.is_code_suggestions_enabled(app) {
-            context.set.insert(flags::CODE_SUGGESTIONS_FLAG);
-        }
-        if ai_settings.is_natural_language_autosuggestions_enabled(app) {
-            context
-                .set
-                .insert(flags::NATURAL_LANGUAGE_AUTOSUGGESTIONS_FLAG);
-        }
-
-        if ai_settings.is_shared_block_title_generation_enabled(app) {
-            context
-                .set
-                .insert(flags::SHARED_BLOCK_TITLE_GENERATION_FLAG);
-        }
-
-        if *ai_settings.should_show_oz_updates_in_zero_state.value() {
-            context
-                .set
-                .insert(flags::SHOW_OZ_UPDATES_IN_ZERO_STATE_FLAG);
-        }
-        if *ai_settings.git_operations_autogen_enabled_internal.value() {
-            context.set.insert(flags::GIT_OPERATIONS_AUTOGEN_FLAG);
-        }
-        if *ai_settings.include_agent_commands_in_history.value() {
-            context
-                .set
-                .insert(flags::INCLUDE_AGENT_COMMANDS_IN_HISTORY_FLAG);
-        }
-        if *ai_settings.memory_enabled.value() {
-            context.set.insert(flags::AI_RULES_FLAG);
-        }
-        if *ai_settings.rule_suggestions_enabled_internal.value() {
-            context.set.insert(flags::SUGGESTED_RULES_FLAG);
-        }
-        if *ai_settings.drive_context_enabled.value() {
-            context.set.insert(flags::RIFT_DRIVE_CONTEXT_FLAG);
-        }
-        if *ai_settings.can_use_rift_credits_for_fallback.value() {
-            context.set.insert(flags::RIFT_CREDIT_FALLBACK_FLAG);
-        }
-        if *session_settings.show_model_selectors_in_prompt.value() {
-            context
-                .set
-                .insert(flags::SHOW_BASE_MODEL_PICKER_IN_PROMPT_FLAG);
-        }
-        if *ai_settings.should_render_cli_agent_footer.value() {
-            context.set.insert(flags::CLI_AGENT_FOOTER_ENABLED);
-        }
-        if *ai_settings.auto_toggle_rich_input.value() {
-            context.set.insert(flags::AUTO_TOGGLE_RICH_INPUT_FLAG);
-        }
-        if *ai_settings.auto_open_rich_input_on_cli_agent_start.value() {
-            context
-                .set
-                .insert(flags::AUTO_OPEN_RICH_INPUT_ON_CLI_AGENT_START_FLAG);
-        }
-        if *ai_settings.auto_dismiss_rich_input_after_submit.value() {
-            context
-                .set
-                .insert(flags::AUTO_DISMISS_RICH_INPUT_AFTER_SUBMIT_FLAG);
-        }
-        if *ai_settings.show_agent_notifications.value() {
-            context.set.insert(flags::AGENT_IN_APP_NOTIFICATIONS_FLAG);
-        }
-
-        if *ai_settings
-            .should_render_use_agent_footer_for_user_commands
-            .value()
-        {
-            context.set.insert(flags::USE_AGENT_FOOTER_FLAG);
-        }
-
-        match ai_settings.thinking_display_mode {
-            crate::settings::ThinkingDisplayMode::ShowAndCollapse => {
-                context
-                    .set
-                    .insert(flags::THINKING_DISPLAY_SHOW_AND_COLLAPSE);
-            }
-            crate::settings::ThinkingDisplayMode::AlwaysShow => {
-                context.set.insert(flags::THINKING_DISPLAY_ALWAYS_SHOW);
-            }
-            crate::settings::ThinkingDisplayMode::NeverShow => {
-                context.set.insert(flags::THINKING_DISPLAY_NEVER_SHOW);
-            }
-        }
-
-        match ai_settings.orchestration_message_display_mode {
-            crate::settings::OrchestrationMessageDisplayMode::ShowAndCollapse => {
-                context
-                    .set
-                    .insert(flags::ORCHESTRATION_MESSAGE_DISPLAY_SHOW_AND_COLLAPSE);
-            }
-            crate::settings::OrchestrationMessageDisplayMode::AlwaysShow => {
-                context
-                    .set
-                    .insert(flags::ORCHESTRATION_MESSAGE_DISPLAY_ALWAYS_SHOW);
-            }
-            crate::settings::OrchestrationMessageDisplayMode::AlwaysCollapse => {
-                context
-                    .set
-                    .insert(flags::ORCHESTRATION_MESSAGE_DISPLAY_ALWAYS_COLLAPSE);
-            }
-        }
-
-        match ai_settings.default_prompt_submission_mode {
-            crate::settings::PromptSubmissionMode::Interrupt => {
-                context.set.insert(flags::PROMPT_SUBMISSION_INTERRUPT);
-            }
-            crate::settings::PromptSubmissionMode::Queue => {
-                context.set.insert(flags::PROMPT_SUBMISSION_QUEUE);
-            }
-        }
-
-        if input_settings.is_terminal_input_message_bar_enabled() {
-            context
-                .set
-                .insert(flags::SHOW_TERMINAL_INPUT_MESSAGE_LINE_FLAG);
-        }
-
-        if *input_settings.enable_slash_commands_in_terminal.value() {
-            context.set.insert(flags::SLASH_COMMANDS_IN_TERMINAL_FLAG);
-        }
-        if *input_settings.at_context_menu_in_terminal_mode.value() {
-            context.set.insert(flags::AT_CONTEXT_MENU_IN_TERMINAL_FLAG);
-        }
-
-        if *input_settings
-            .outline_codebase_symbols_for_at_context_menu
-            .value()
-        {
-            context
-                .set
-                .insert(flags::OUTLINE_CODEBASE_SYMBOLS_FOR_AT_CONTEXT_MENU_FLAG);
-        }
         if *command_search_settings
             .show_global_workflows_in_universal_search
             .value()
@@ -11880,15 +11689,15 @@ impl TypedActionView for Workspace {
             CloseTabsAboveGroup(group_id) => self.close_tabs_above_group(*group_id, ctx),
             CloseTabsBelowGroup(group_id) => self.close_tabs_below_group(*group_id, ctx),
             AddDefaultTab => {
-                let effective_mode = AISettings::as_ref(ctx).default_session_mode(ctx);
+                let effective_mode = SessionModeSettings::as_ref(ctx).default_session_mode();
                 match effective_mode {
                     DefaultSessionMode::TabConfig => {
-                        let ai_settings = AISettings::as_ref(ctx);
-                        if let Some(config) = ai_settings.resolved_default_tab_config(ctx) {
+                        let session_mode_settings = SessionModeSettings::as_ref(ctx);
+                        if let Some(config) = session_mode_settings.resolved_default_tab_config(ctx) {
                             self.open_tab_config(config, ctx);
                         } else {
                             // Config missing or deleted — clear and fall through to Terminal.
-                            AISettings::handle(ctx).update(ctx, |settings, ctx| {
+                            SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
                                 report_if_error!(settings
                                     .default_session_mode_internal
                                     .set_value(DefaultSessionMode::Terminal, ctx));
@@ -11899,12 +11708,7 @@ impl TypedActionView for Workspace {
                             self.add_terminal_tab(false, ctx);
                         }
                     }
-                    // Cloud Agent and Docker Sandbox were AI/cloud features and have been
-                    // removed; fall back to the terminal/welcome path like the other modes.
-                    DefaultSessionMode::Terminal
-                    | DefaultSessionMode::Agent
-                    | DefaultSessionMode::CloudAgent
-                    | DefaultSessionMode::DockerSandbox => {
+                    DefaultSessionMode::Terminal => {
                         if FeatureFlag::WelcomeTab.is_enabled() {
                             self.add_welcome_tab(ctx);
                         } else {
@@ -11986,7 +11790,7 @@ impl TypedActionView for Workspace {
                 #[cfg_attr(not(feature = "local_tty"), allow(unused_variables))]
                 shell,
             } => {
-                AISettings::handle(ctx).update(ctx, |settings, ctx| {
+                SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
                     report_if_error!(settings.default_session_mode_internal.set_value(*mode, ctx));
                     if let Some(path) = tab_config_path {
                         report_if_error!(settings
@@ -12590,14 +12394,6 @@ impl View for Workspace {
             context.set.insert("IsOnline");
         }
 
-        if AISettings::as_ref(app).is_any_ai_enabled(app) {
-            context.set.insert(flags::IS_ANY_AI_ENABLED);
-        }
-
-        if AISettings::as_ref(app).is_active_ai_enabled(app) {
-            context.set.insert(flags::IS_ACTIVE_AI_ENABLED);
-        }
-
         if self
             .active_tab_pane_group()
             .as_ref(app)
@@ -12633,12 +12429,6 @@ impl View for Workspace {
                 }
             }
         };
-
-        if AISettings::as_ref(app).is_any_ai_enabled(app)
-            && *AISettings::as_ref(app).show_conversation_history
-        {
-            context.set.insert(flags::SHOW_CONVERSATION_HISTORY);
-        }
 
         if *CodeSettings::as_ref(app).show_project_explorer {
             context.set.insert(flags::SHOW_PROJECT_EXPLORER);
@@ -13175,9 +12965,9 @@ impl View for Workspace {
 
                 if let Some(anchor_label) = anchor_label {
                     let is_already_default = {
-                        let ai_settings = AISettings::as_ref(app);
-                        let current_mode = ai_settings.default_session_mode(app);
-                        let current_path = ai_settings.default_tab_config_path();
+                        let session_mode_settings = SessionModeSettings::as_ref(app);
+                        let current_mode = session_mode_settings.default_session_mode();
+                        let current_path = session_mode_settings.default_tab_config_path();
                         match sidecar_item {
                             SidecarItemKind::BuiltIn {
                                 default_mode,

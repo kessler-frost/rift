@@ -9,7 +9,7 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
-use crate::settings::ai::DefaultSessionMode;
+use crate::settings::session_mode::DefaultSessionMode;
 use crate::tab_configs::TabConfig;
 use crate::terminal::available_shells::AvailableShell;
 use crate::workspace::WorkspaceAction;

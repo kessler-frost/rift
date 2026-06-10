@@ -26,7 +26,6 @@ use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
 use crate::settings::import::config::{ParsedTerminalSetting, SettingType};
 use crate::settings::import::model::TerminalType;
-use crate::settings::AgentModeCodingPermissionsType;
 use crate::tab::TabTelemetryAction;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::input::TelemetryInputSuggestionsMode;
@@ -1512,10 +1511,6 @@ pub enum TelemetryEvent {
         src: AutonomySettingToggleSource,
         enabled: bool,
     },
-    ChangedAgentModeCodingPermissions {
-        src: AutonomySettingToggleSource,
-        new: AgentModeCodingPermissionsType,
-    },
     RepoOutlineConstructionSuccess {
         total_parse_seconds: usize,
         file_count: usize,
@@ -2487,10 +2482,6 @@ impl TelemetryEvent {
                     "enabled": enabled,
                 }))
             }
-            TelemetryEvent::ChangedAgentModeCodingPermissions { src, new } => Some(json!({
-                "source": src,
-                "new": new,
-            })),
             TelemetryEvent::RepoOutlineConstructionSuccess {
                 total_parse_seconds,
                 file_count,
@@ -3283,8 +3274,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::UpdateAltScreenPaddingMode => EnablementState::Always,
             Self::AddTabWithShell => EnablementState::Flag(FeatureFlag::ShellSelector),
             Self::ToggleLigatureRendering => EnablementState::Flag(FeatureFlag::Ligatures),
-            Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting
-            | Self::ChangedAgentModeCodingPermissions => EnablementState::Always,
+            Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => EnablementState::Always,
             Self::AttachedImagesToAgentModeQuery => {
                 EnablementState::Flag(FeatureFlag::ImageAsContext)
             }
@@ -3695,9 +3685,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
 
             Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => {
                 "AIAutonomy.ToggledAutoexecuteReadonlyCommandsSetting"
-            }
-            Self::ChangedAgentModeCodingPermissions => {
-                "AIAutonomy.ChangedAgentModeCodingPermissions"
             }
             Self::QueuedPromptPanelCollapseToggled => "QueuedPrompt.PanelCollapseToggled",
             #[cfg(windows)]
@@ -4360,9 +4347,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleLigatureRendering => "Toggled ligature rendering",
             Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => {
                 "Toggled setting to autoexecute readonly Agent Mode requested commands"
-            }
-            Self::ChangedAgentModeCodingPermissions => {
-                "Changed Agent Mode permissions for coding tasks"
             }
             Self::AttachedImagesToAgentModeQuery => "Attached images to an Agent Mode query",
             #[cfg(windows)]

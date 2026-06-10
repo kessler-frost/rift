@@ -16,7 +16,6 @@ mod tab_metadata;
 #[cfg(any(test, feature = "integration_tests"))]
 mod testing;
 mod tooltips;
-mod zero_state_block;
 
 use std::any::Any;
 use std::borrow::Cow;
@@ -168,12 +167,11 @@ use crate::server::telemetry::{
     TelemetryEvent, ToggleBlockFilterSource, 
 };
 use crate::session_management::{CommandContext, SessionNavigationPromptElements};
-use crate::settings::ai::FocusedTerminalInfo;
 #[cfg(feature = "local_fs")]
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::import::view::{SettingsImportEvent, SettingsImportView};
 use crate::settings::{
-    AISettings, AliasExpansionSettings, AppEditorSettings,
+    AliasExpansionSettings, AppEditorSettings,
     BlockVisibilitySettings, BlockVisibilitySettingsChangedEvent, DebugSettings,
     DebugSettingsChangedEvent, EmacsBindingsSettings, FontSettings, FontSettingsChangedEvent,
     InputModeSettings, InputModeSettingsChangedEvent, InputSettings, PaneSettings,
@@ -200,7 +198,6 @@ use crate::terminal::block_list_viewport::{
 };
 use crate::terminal::bootstrap::init_subshell_command;
 use crate::terminal::color::List;
-use crate::terminal::command_corrections_denylist::COMMAND_CORRECTIONS_PREFERRED_DENYLIST;
 use crate::terminal::event::{
     AfterBlockCompletedEvent, BlockLatencyData, BlockType, TerminalMode,
     UserBlockCompleted,
@@ -258,7 +255,6 @@ pub use crate::terminal::view::rich_content::{
     RichContent, RichContentInsertionPosition, RichContentMetadata,
 };
 use crate::terminal::view::ssh_file_upload::FileUploadId;
-use crate::terminal::view::zero_state_block::TerminalViewZeroStateBlock;
 use crate::terminal::riftify::render::render_subshell_separator;
 use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::riftify::SubshellSource;
@@ -1556,8 +1552,8 @@ enum SecretTooltip {
     },
 }
 
-pub fn is_prompt_suggestions_enabled(app: &AppContext) -> bool {
-    AISettings::as_ref(app).is_prompt_suggestions_enabled(app)
+pub fn is_prompt_suggestions_enabled(_app: &AppContext) -> bool {
+    false
 }
 
 type TerminalViewCallback = Box<dyn FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>)>;
@@ -1840,6 +1836,9 @@ pub struct TerminalView {
 
     pty_spawn_failed: bool,
 
+    /// Dispatcher for model events; retained for test access via
+    /// `model_event_dispatcher()`.
+    #[cfg_attr(not(test), allow(dead_code))]
     model_events_handle: ModelHandle<ModelEventDispatcher>,
 
     /// A list of callbacks to run on the next [`ModelEvent::AfterBlockCompleted`] received.
@@ -2520,7 +2519,7 @@ impl TerminalView {
             cursor_position_id: format!("terminal_view:cursor_{}", ctx.view_id()),
             active_session,
             pty_spawn_failed: false,
-            model_events_handle,
+            model_events_handle: model_events_handle.clone(),
             block_completed_callbacks: Default::default(),
             current_repo_path: None,
             terminal_title: Default::default(),
@@ -2812,24 +2811,6 @@ impl TerminalView {
 
     // This logic is only needed if the user has disabled AI in remote sessions.
     // It has potential performance implications if called on every focus change,
-    // so we limit it to only when the user disables AI in remote sessions.
-    fn update_focused_terminal_info(&mut self, ctx: &mut ViewContext<Self>) {
-        if !ctx.is_self_or_child_focused() {
-            return;
-        }
-
-        let contains_remote_blocks = self.any_session_contains_remote_blocks;
-        let contains_restored_remote_blocks = self.any_session_contains_restored_remote_blocks;
-        let updated = FocusedTerminalInfo::handle(ctx).update(
-            ctx,
-            |model: &mut FocusedTerminalInfo, ctx| {
-                model.update(contains_remote_blocks, contains_restored_remote_blocks, ctx)
-            },
-        );
-        if updated {
-            ctx.notify();
-        }
-    }
 
     fn maybe_report_focus_out(&mut self, ctx: &mut ViewContext<Self>) {
         if self.should_report_focus(ctx) && self.is_focused_and_active {
@@ -4621,7 +4602,6 @@ impl TerminalView {
                     self.active_block_is_considered_remote(ctx);
                 if self.any_session_contains_remote_blocks != did_any_session_contains_remote_blocks
                 {
-                    self.update_focused_terminal_info(ctx);
                 }
 
                 if *is_for_in_band_command {
@@ -5321,7 +5301,7 @@ impl TerminalView {
             self.insert_vim_mode_banner(ctx);
         }
 
-        let is_subshell_or_ssh = session.is_subshell_or_ssh();
+        let _is_subshell_or_ssh = session.is_subshell_or_ssh();
 
         // Make sure we decorate any text that is already in the input.  We
         // need to make sure external commands have finished loading before
@@ -5349,7 +5329,6 @@ impl TerminalView {
         }
         self.any_session_contains_restored_remote_blocks = self.contains_restored_remote_blocks();
         self.any_session_contains_remote_blocks |= self.active_block_is_considered_remote(ctx);
-        self.update_focused_terminal_info(ctx);
 
         // At the end of bootstrapping, set the title to the title of
         // the selected conversation. If there is no selected conversation,
@@ -5357,25 +5336,6 @@ impl TerminalView {
         self.update_pane_configuration(ctx);
 
         self.ignore_next_set_title_event = true;
-
-        if FeatureFlag::AgentView.is_enabled()
-            && TerminalSettings::as_ref(ctx).should_show_zero_state_block(ctx)
-            && !self.model.lock().block_list().is_restored_session()
-            && !is_subshell_or_ssh
-        {
-            let agent_view_zero_state = ctx.add_typed_action_view(|ctx| {
-                TerminalViewZeroStateBlock::new(&self.model_events_handle, ctx)
-            });
-            self.insert_rich_content(
-                Some(RichContentType::TerminalViewZeroState),
-                agent_view_zero_state,
-                Some(RichContentMetadata::TerminalViewZeroState),
-                RichContentInsertionPosition::Append {
-                    insert_below_long_running_block: false,
-                },
-                ctx,
-            );
-        }
 
         self.refresh_rift_prompt(ctx);
         ctx.emit(Event::SessionBootstrapped);
@@ -5733,14 +5693,7 @@ impl TerminalView {
         ctx: &mut ViewContext<TerminalView>,
     ) {
         if let Some(correction) = corrections.into_iter().next() {
-            let rule = correction.rule_applied;
-
-            if AISettings::as_ref(ctx).is_intelligent_autosuggestions_enabled(ctx)
-                && COMMAND_CORRECTIONS_PREFERRED_DENYLIST.contains(rule.to_str())
-            {
-                // Defer to Next Command if the rule is in the denylist.
-                return;
-            }
+            let _rule = correction.rule_applied;
 
             // Set the autosuggestion only if the input is still empty
             self.input.update(ctx, |input, ctx| {
@@ -8057,7 +8010,6 @@ impl TerminalView {
 
         // Since we just cleared blocks, we can just look at the state of the active block
         self.any_session_contains_remote_blocks = self.active_block_is_considered_remote(ctx);
-        self.update_focused_terminal_info(ctx);
 
         ctx.notify();
 
@@ -12965,7 +12917,6 @@ impl View for TerminalView {
 
             ctx.notify();
         }
-        self.update_focused_terminal_info(ctx);
     }
 
     fn on_blur(&mut self, blur_ctx: &BlurContext, ctx: &mut ViewContext<Self>) {

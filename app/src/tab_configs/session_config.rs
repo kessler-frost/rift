@@ -10,50 +10,30 @@ use super::tab_config::{
 };
 use crate::app_state::{BranchSnapshot, LeafContents, LeafSnapshot, PaneNodeSnapshot};
 use crate::launch_configs::launch_config::SplitDirection;
-use crate::terminal::cli_agent::CLIAgent;
 use crate::themes::theme::AnsiColorIdentifier;
 use crate::ui_components::icons::Icon;
 
-/// The type of session the user wants to start.
-///
-/// Wraps the existing `CLIAgent` for third-party agents and adds
-/// Terminal and Oz as first-class variants.
+/// The type of session the user wants to start. Only plain terminal
+/// sessions remain now that the agent integrations are gone.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SessionType {
     Terminal,
-    Oz,
-    CliAgent(CLIAgent),
 }
 
 impl SessionType {
     /// The CLI command to auto-run for this session type, if any.
-    /// Returns `None` for Terminal and Oz (Oz uses agent view, not a CLI command).
     fn command_prefix(&self) -> Option<&'static str> {
-        match self {
-            SessionType::Terminal | SessionType::Oz => None,
-            SessionType::CliAgent(agent) => Some(agent.command_prefix()),
-        }
+        None
     }
 
     /// The icon to display for this session type.
     pub(crate) fn icon(&self) -> Icon {
-        match self {
-            SessionType::Terminal => Icon::Terminal,
-            SessionType::Oz => Icon::Oz,
-            SessionType::CliAgent(agent) => agent.icon().unwrap_or(Icon::Terminal),
-        }
+        Icon::Terminal
     }
 
     /// Short label for the session type pill in the modal.
     pub(crate) fn pill_label(&self) -> &'static str {
-        match self {
-            SessionType::Terminal => "Terminal",
-            SessionType::Oz => "Built in agent",
-            SessionType::CliAgent(CLIAgent::Claude) => "Claude",
-            SessionType::CliAgent(CLIAgent::Codex) => "Codex",
-            SessionType::CliAgent(CLIAgent::Gemini) => "Gemini",
-            SessionType::CliAgent(agent) => agent.display_name(),
-        }
+        "Terminal"
     }
 }
 
@@ -143,8 +123,7 @@ pub fn build_tab_config(
     }
 
     let pane_type = match session_type {
-        SessionType::Oz => TabConfigPaneType::Agent,
-        SessionType::Terminal | SessionType::CliAgent(_) => TabConfigPaneType::Terminal,
+        SessionType::Terminal => TabConfigPaneType::Terminal,
     };
 
     TabConfig {
