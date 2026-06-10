@@ -43,13 +43,13 @@ pub fn is_rift_default_terminal() -> bool {
     // `CFRetained` releases it on every exit path.
     let handler_string = unsafe { CFRetained::from_raw(handler) };
 
-    let Some(warp_bundle_id) = get_rift_bundle_id() else {
+    let Some(rift_bundle_id) = get_rift_bundle_id() else {
         return false;
     };
 
     let current_handler = handler_string.to_string();
 
-    current_handler == warp_bundle_id
+    current_handler == rift_bundle_id
 }
 
 pub fn set_rift_as_default_terminal() -> Result<(), String> {

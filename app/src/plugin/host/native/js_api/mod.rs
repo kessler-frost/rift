@@ -14,7 +14,7 @@ cfg_if::cfg_if! {
 ///
 /// Currently, the API contains a single "completions" namespace for registering command
 /// signatures.
-pub fn warp(
+pub fn rift(
     #[allow(unused_variables)] plugin: PluginHandle,
     ctx: Ctx<'_>,
 ) -> rquickjs::Result<Object<'_>> {

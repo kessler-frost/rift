@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// The app icon to use (mac-only).
 ///
-/// IMPORTANT NOTE: If you add a new icon, you will need to update the logic in WarpDockTilePlugin.m
+/// IMPORTANT NOTE: If you add a new icon, you will need to update the logic in RiftDockTilePlugin.m
 /// to read the new icon and also add the icon to app/DockTilePlugin/Resources.
 #[derive(
     Default,
@@ -62,8 +62,8 @@ pub enum AppIcon {
     #[schemars(description = "Sticker")]
     Sticker,
     /// Previous default icon with solid blue background.
-    #[schemars(description = "Warp 1")]
-    WarpOne,
+    #[schemars(description = "Rift 1")]
+    RiftOne,
 }
 
 impl std::fmt::Display for AppIcon {
@@ -85,7 +85,7 @@ impl std::fmt::Display for AppIcon {
             AppIcon::Original => "Original",
             AppIcon::Starburst => "Starburst",
             AppIcon::Sticker => "Sticker",
-            AppIcon::WarpOne => "Warp 1",
+            AppIcon::RiftOne => "Rift 1",
         };
         write!(f, "{value}")
     }
@@ -110,7 +110,7 @@ impl AppIconSettings {
             AppIcon::Original => "original",
             AppIcon::Starburst => "starburst",
             AppIcon::Sticker => "sticker",
-            AppIcon::WarpOne => "blue",
+            AppIcon::RiftOne => "blue",
         }
     }
 }

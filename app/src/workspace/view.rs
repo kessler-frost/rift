@@ -403,7 +403,7 @@ const MAX_WINDOW_TITLE_LENGTH: usize = 80;
 pub const DEFAULT_USER_DISPLAY_NAME: &str = "User";
 
 lazy_static! {
-    static ref OPENING_WARP_DRIVE_ON_START_UP: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
+    static ref OPENING_DRIVE_ON_START_UP: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
     static ref PANEL_CORNER_RADIUS: CornerRadius = CornerRadius::with_all(Radius::Pixels(8.));
     static ref PANEL_HEADER_CORNER_RADIUS: CornerRadius =
         CornerRadius::with_top(Radius::Pixels(8.));
@@ -11402,7 +11402,7 @@ impl Workspace {
             context.set.insert(flags::LEGACY_SSH_WRAPPER_CONTEXT_FLAG);
         }
         if *riftify_settings.enable_ssh_riftification.value() {
-            context.set.insert(flags::SSH_WARPIFICATION_CONTEXT_FLAG);
+            context.set.insert(flags::SSH_RIFTIFICATION_CONTEXT_FLAG);
         }
 
         if *riftify_settings.use_ssh_tmux_wrapper.value() {

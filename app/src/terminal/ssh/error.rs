@@ -151,7 +151,7 @@ impl SshErrorBlock {
         ctx.notify();
     }
 
-    fn should_show_report_to_warp_button(&self) -> bool {
+    fn should_show_report_to_rift_button(&self) -> bool {
         matches!(
             self.error_reason,
             RiftificationUnavailableReason::Timeout { .. }
@@ -227,7 +227,7 @@ impl View for SshErrorBlock {
 
         let ui_builder = appearance.ui_builder();
 
-        if self.should_show_report_to_warp_button() {
+        if self.should_show_report_to_rift_button() {
             let report_issue_text = build_description_row(FormattedText::new([FormattedTextLine::Line(vec![
                     FormattedTextFragment::plain_text("We are actively working on improving the stability of SSH in Warp. Please consider "),
                     FormattedTextFragment::hyperlink("filing an issue", get_ssh_github_issue_url(self.error_reason.error_title())),

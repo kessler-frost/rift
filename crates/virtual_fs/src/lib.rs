@@ -60,13 +60,13 @@ impl VirtualFS {
             tests,
         };
 
-        let warpbox = VirtualFS {
+        let riftbox = VirtualFS {
             root,
             cwd: riftbox_dir,
             tests: tag.to_string(),
         };
 
-        test_callback(directories, warpbox);
+        test_callback(directories, riftbox);
     }
 
     pub fn back_to_root(&mut self) -> &mut Self {

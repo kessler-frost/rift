@@ -1,7 +1,7 @@
 #
 # Prepares bundled resources for distribution on Windows.
 #
-# This script copies resources that should be bundled with Warp into a
+# This script copies resources that should be bundled with Rift into a
 # destination directory. It is used by the Windows build script.
 #
 # Usage:
@@ -56,12 +56,12 @@ if (Test-Path $BundledSource -PathType Container) {
 if ($env:GIT_RELEASE_TAG) {
     $VersionMetadataDir = Join-Path (Join-Path $DestinationDir 'bundled') 'metadata'
     $VersionMetadataPath = Join-Path $VersionMetadataDir 'version.json'
-    Write-Output "Writing bundled Warp version metadata to $VersionMetadataPath"
+    Write-Output "Writing bundled Rift version metadata to $VersionMetadataPath"
     if (-Not (Test-Path $VersionMetadataDir -PathType Container)) {
         New-Item -ItemType Directory -Path $VersionMetadataDir -Force | Out-Null
     }
 
-    @{ warp_version = $env:GIT_RELEASE_TAG } |
+    @{ rift_version = $env:GIT_RELEASE_TAG } |
         ConvertTo-Json |
         Set-Content -Path $VersionMetadataPath -Encoding utf8
 }
@@ -122,7 +122,7 @@ if ($Channel -and (Test-Path $GatedSource -PathType Container)) {
 # to the repo alongside the component and add an entry here.
 # Cross-platform components:
 $AdditionalLicenses = @(
-    @{ Name = 'Alacritty (alacritty_terminal)'; License = 'Apache-2.0'; Path = 'crates\warp_terminal\src\model\LICENSE-ALACRITTY' },
+    @{ Name = 'Alacritty (alacritty_terminal)'; License = 'Apache-2.0'; Path = 'crates\rift_terminal\src\model\LICENSE-ALACRITTY' },
     @{ Name = 'Hack Font'; License = 'MIT'; Path = 'app\assets\bundled\fonts\hack\LICENSE.md' },
     @{ Name = 'Roboto Font'; License = 'SIL Open Font License'; Path = 'app\assets\bundled\fonts\roboto\LICENSE.txt' },
     @{ Name = 'bash-preexec'; License = 'MIT'; Path = 'app\assets\bundled\bootstrap\bash-preexec-LICENSE.md' },

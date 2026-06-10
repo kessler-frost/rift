@@ -33,7 +33,7 @@ const COMMAND_ENTER: &[u8] = &[escape_sequences::C0::CR, escape_sequences::C0::L
 const SWITCH_TO_PS1_ESCAPE_SEQUENCE: &[u8] = &[escape_sequences::C0::ESC, b'p'];
 /// Used to let the shell know we are switching to the Rift prompt via a bindkey \ew. This will
 /// unset the PS1 to ensure we don't have a double prompt (PS1 and Rift prompt).
-const SWITCH_TO_WARP_PROMPT_ESCAPE_SEQUENCE: &[u8] = &[escape_sequences::C0::ESC, b'w'];
+const SWITCH_TO_RIFT_PROMPT_ESCAPE_SEQUENCE: &[u8] = &[escape_sequences::C0::ESC, b'w'];
 
 /// Represents a single call to write bytes to the PTY asynchronously.
 enum PtyWrite {
@@ -285,7 +285,7 @@ impl<T: EventLoopSender> PtyController<T> {
     /// future restoration).
     pub fn send_switch_to_rift_prompt_bindkey(&mut self, ctx: &mut ModelContext<Self>) {
         self.pending_writes.push_back(PtyWrite::Bytes {
-            bytes: SWITCH_TO_WARP_PROMPT_ESCAPE_SEQUENCE.into(),
+            bytes: SWITCH_TO_RIFT_PROMPT_ESCAPE_SEQUENCE.into(),
         });
         self.execute_next_queued_write(ctx);
 

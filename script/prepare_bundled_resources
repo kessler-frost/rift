@@ -2,7 +2,7 @@
 #
 # Prepares bundled resources for distribution.
 #
-# This script copies resources that should be bundled with Warp into a
+# This script copies resources that should be bundled with Rift into a
 # destination directory. It is used by macOS and Linux build scripts.
 #
 # Usage:
@@ -66,9 +66,9 @@ if [ -n "$GIT_RELEASE_TAG" ]; then
   VERSION_METADATA_DIR="$DEST_DIR/bundled/metadata"
   VERSION_METADATA_PATH="$VERSION_METADATA_DIR/version.json"
 
-  echo "Writing bundled Warp version metadata to $VERSION_METADATA_PATH"
+  echo "Writing bundled Rift version metadata to $VERSION_METADATA_PATH"
   mkdir -p "$VERSION_METADATA_DIR"
-  printf '{\n  "warp_version": "%s"\n}\n' "$GIT_RELEASE_TAG" > "$VERSION_METADATA_PATH"
+  printf '{\n  "rift_version": "%s"\n}\n' "$GIT_RELEASE_TAG" > "$VERSION_METADATA_PATH"
 fi
 
 # Copy channel-gated skills matching the current release channel.
@@ -90,7 +90,7 @@ fi
 # When adding a new third-party component to the bundle, add its license file
 # to the repo alongside the component and add an entry here.
 ADDITIONAL_LICENSES=(
-    "Alacritty (alacritty_terminal)|Apache-2.0|crates/warp_terminal/src/model/LICENSE-ALACRITTY"
+    "Alacritty (alacritty_terminal)|Apache-2.0|crates/rift_terminal/src/model/LICENSE-ALACRITTY"
     "Hack Font|MIT|app/assets/bundled/fonts/hack/LICENSE.md"
     "Roboto Font|SIL Open Font License|app/assets/bundled/fonts/roboto/LICENSE.txt"
     "bash-preexec|MIT|app/assets/bundled/bootstrap/bash-preexec-LICENSE.md"

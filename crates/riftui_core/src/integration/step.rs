@@ -257,7 +257,7 @@ const DEFAULT_PAUSE_ON_FAILURE: Duration = Duration::from_secs(1000);
 impl TestStep {
     pub fn new(name: &str) -> Self {
         // Enable these two pauses for better local debugging
-        let pause_on_failure = if std::env::var("WARPUI_PAUSE_INTEGRATION_TEST_ON_FAILURE").is_ok()
+        let pause_on_failure = if std::env::var("RIFTUI_PAUSE_INTEGRATION_TEST_ON_FAILURE").is_ok()
         {
             Some(DEFAULT_PAUSE_ON_FAILURE)
         } else {
@@ -265,7 +265,7 @@ impl TestStep {
         };
 
         let post_step_pause =
-            if std::env::var("WARPUI_PAUSE_INTEGRATION_TEST_AT_EVERY_STEP").is_ok() {
+            if std::env::var("RIFTUI_PAUSE_INTEGRATION_TEST_AT_EVERY_STEP").is_ok() {
                 Some(DEFAULT_POST_STEP_PAUSE)
             } else {
                 None

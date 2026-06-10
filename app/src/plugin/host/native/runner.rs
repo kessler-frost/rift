@@ -61,13 +61,13 @@ impl PluginRunner {
 
             ctx.globals().set("console", js_api::console(ctx))?;
 
-            let warp_api = js_api::warp(plugin, ctx);
+            let rift_api = js_api::rift(plugin, ctx);
 
             let activate_fn: Function = plugin_module
                 .get("activate")
                 .context("Could not resolve activate() function")?;
             activate_fn
-                .call::<_, ()>((warp_api,))
+                .call::<_, ()>((rift_api,))
                 .context("Failed to call activate() function")?;
 
             Ok(())

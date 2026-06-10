@@ -235,7 +235,7 @@ pub mod flags {
     pub const FOCUS_REPORTING_CONTEXT_FLAG: &str = "Focus_Reporting";
     #[deprecated = "Use `SSH_TMUX_WRAPPER_CONTEXT_FLAG` for new ssh riftification logic"]
     pub const LEGACY_SSH_WRAPPER_CONTEXT_FLAG: &str = "SSH_Wrapper";
-    pub const SSH_WARPIFICATION_CONTEXT_FLAG: &str = "SSH_Riftification";
+    pub const SSH_RIFTIFICATION_CONTEXT_FLAG: &str = "SSH_Riftification";
     pub const SSH_TMUX_WRAPPER_CONTEXT_FLAG: &str = "SSH_Tmux_Wrapper";
     pub const NOTIFICATIONS_CONTEXT_FLAG: &str = "Notifications_Enabled";
     pub const LONG_RUNNING_NOTIFICATIONS_FLAG: &str = "Long_Running_Notifications";
