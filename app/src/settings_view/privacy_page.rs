@@ -57,10 +57,9 @@ const FONT_SIZE: f32 = 12.;
 
 const SAFE_MODE_TITLE: &str = "Secret redaction";
 static SAFE_MODE_DESCRIPTION: LazyLock<&'static str> = LazyLock::new(|| {
-    "When this setting is enabled, Rift will scan blocks, the contents of \
-        Rift Drive objects for potential sensitive \
-        information and prevent saving or sending this data to any \
-        servers. You can customize this list via regexes."
+    "When enabled, Rift detects secrets (API keys, tokens, and similar) in \
+        command output and obscures them on screen, so they aren't exposed in \
+        screen shares or screenshots. You can customize what's detected with regexes."
 });
 const USER_SECRET_REGEX_TITLE: &str = "Custom secret redaction";
 const USER_SECRET_REGEX_DESCRIPTION: &str =
