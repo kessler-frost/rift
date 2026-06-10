@@ -2,7 +2,7 @@ use riftui::{Entity, ModelContext, SingletonEntity, Tracked};
 
 use super::team::{DiscoverableTeam, Team};
 use super::workspace::{
-    AdminEnablementSetting, EnterpriseSecretRegex, UgcCollectionEnablementSetting, Workspace,
+    EnterpriseSecretRegex, UgcCollectionEnablementSetting, Workspace,
     WorkspaceUid,
 };
 use crate::server::ids::ServerId;
@@ -99,17 +99,6 @@ impl UserWorkspaces {
             .map(|team| {
                 team.organization_settings
                     .ugc_collection_settings
-                    .setting
-                    .clone()
-            })
-            .unwrap_or_default()
-    }
-
-    pub fn get_cloud_conversation_storage_enablement_setting(&self) -> AdminEnablementSetting {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .cloud_conversation_storage_settings
                     .setting
                     .clone()
             })

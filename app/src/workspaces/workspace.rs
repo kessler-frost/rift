@@ -793,11 +793,6 @@ pub enum AdminEnablementSetting {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct CloudConversationStorageSettings {
-    pub setting: AdminEnablementSetting,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct LinkSharingSettings {
     pub anyone_with_link_sharing_enabled: bool,
     pub direct_link_sharing_enabled: bool,
@@ -838,7 +833,6 @@ pub struct CodebaseContextSettings {
 pub struct WorkspaceSettings {
     pub telemetry_settings: TelemetrySettings,
     pub ugc_collection_settings: UgcCollectionSettings,
-    pub cloud_conversation_storage_settings: CloudConversationStorageSettings,
     pub link_sharing_settings: LinkSharingSettings,
     pub secret_redaction_settings: SecretRedactionSettings,
     pub is_invite_link_enabled: bool,
