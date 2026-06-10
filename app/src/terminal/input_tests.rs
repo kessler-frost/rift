@@ -7,6 +7,7 @@ use rift_completer::completer::{
     SuggestionResults, SuggestionType,
 };
 use rift_completer::meta::Span;
+use riftui::keymap::Keystroke;
 use riftui::platform::WindowStyle;
 use riftui::text::SelectionType;
 use riftui::{App, UpdateView, WindowId};

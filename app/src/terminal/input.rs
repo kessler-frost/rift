@@ -49,7 +49,7 @@ use riftui::elements::{
 };
 pub use riftui::elements::{ParentElement as _, Stack};
 pub use riftui::geometry::vector::{vec2f, Vector2F};
-use riftui::keymap::{EditableBinding, FixedBinding, Keystroke};
+use riftui::keymap::{EditableBinding, FixedBinding};
 use riftui::presenter::ChildView;
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::units::IntoPixels;
