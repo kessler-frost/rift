@@ -42,8 +42,6 @@ rift = { workspace = true, features = ["integration_tests"] }
 rift_cli = { workspace = true, features = ["integration_tests"] }
 rift_core.workspace = true
 warp-command-signatures.workspace = true
-rift_multi_agent_api.workspace = true
-warp-workflows.workspace = true
 riftui_core.workspace = true
 riftui_extras = { workspace = true, features = [
     "user_preferences-file",

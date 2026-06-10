@@ -5956,8 +5956,6 @@ dependencies = [
  "sysinfo",
  "version-compare",
  "warp-command-signatures",
- "warp-workflows",
- "warp_multi_agent_api",
  "whoami",
 ]
 
@@ -6993,16 +6991,6 @@ name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
-
-[[package]]
-name = "memmap"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
-dependencies = [
- "libc",
- "winapi",
-]
 
 [[package]]
 name = "memmap2"
@@ -8404,7 +8392,6 @@ dependencies = [
  "diesel_migrations",
  "serde",
  "serde_json",
- "warp_multi_agent_api",
 ]
 
 [[package]]
@@ -8916,38 +8903,6 @@ checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
 dependencies = [
  "anyhow",
  "itertools 0.14.0",
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
-name = "prost-reflect"
-version = "0.16.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b89455ef41ed200cafc47c76c552ee7792370ac420497e551f16123a9135f76e"
-dependencies = [
- "prost 0.14.3",
- "prost-reflect-derive",
- "prost-types",
-]
-
-[[package]]
-name = "prost-reflect-build"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8214ae2c30bbac390db0134d08300e770ef89b6d4e5abf855e8d300eded87e28"
-dependencies = [
- "prost-build",
- "prost-reflect",
-]
-
-[[package]]
-name = "prost-reflect-derive"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b6d90e29fa6c0d13c2c19ba5e4b3fb0efbf5975d27bcf4e260b7b15455bcabe"
-dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
@@ -9899,8 +9854,6 @@ dependencies = [
  "vte",
  "walkdir",
  "warp-command-signatures",
- "warp-workflows",
- "warp_multi_agent_api",
  "wasm-bindgen",
  "watcher",
  "web-sys",
@@ -13090,15 +13043,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "uneval"
-version = "0.2.3"
-source = "git+https://github.com/warpdotdev/uneval?rev=df4d9fad372aedc447e6f93ca0f930fabaf9dd1a#df4d9fad372aedc447e6f93ca0f930fabaf9dd1a"
-dependencies = [
- "serde",
- "thiserror 1.0.63",
-]
-
-[[package]]
 name = "unicase"
 version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13553,40 +13497,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
-]
-
-[[package]]
-name = "warp-workflows"
-version = "0.1.0"
-source = "git+https://github.com/warpdotdev/workflows?rev=793a98ddda6ef19682aed66364faebd2829f0e01#793a98ddda6ef19682aed66364faebd2829f0e01"
-dependencies = [
- "anyhow",
- "convert_case 0.4.0",
- "memmap",
- "serde_yaml 0.8.26",
- "uneval",
- "walkdir",
- "warp-workflows-types",
-]
-
-[[package]]
-name = "warp-workflows-types"
-version = "0.1.0"
-source = "git+https://github.com/warpdotdev/workflows?rev=793a98ddda6ef19682aed66364faebd2829f0e01#793a98ddda6ef19682aed66364faebd2829f0e01"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "warp_multi_agent_api"
-version = "0.0.0"
-source = "git+https://github.com/warpdotdev/warp-proto-apis.git?rev=c67de64fc4949f693a679552dc88cebc9f7d0180#c67de64fc4949f693a679552dc88cebc9f7d0180"
-dependencies = [
- "prost 0.14.3",
- "prost-reflect",
- "prost-reflect-build",
- "prost-types",
- "regex",
 ]
 
 [[package]]
