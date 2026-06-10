@@ -153,7 +153,7 @@ pub enum SettingsPaneSnapshot {
 pub enum LeftPanelDisplayedTab {
     FileTree,
     GlobalSearch,
-    WarpDrive,
+    Drive,
     ConversationListView,
 }
 

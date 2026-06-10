@@ -73,7 +73,7 @@ impl PartialEq for CustomSecretRegex {
 
 impl settings_value::SettingsValue for CustomSecretRegex {}
 
-define_settings_group!(WarpDrivePrivacySettings, settings: [
+define_settings_group!(DrivePrivacySettings, settings: [
     is_telemetry_enabled: IsTelemetryEnabled {
         type: bool,
         default: true,
@@ -216,9 +216,9 @@ impl PrivacySettings {
     /// Returns a new PrivacySettings object initialized from locally cached values. Privacy
     /// settings are local-only in the offline build; there is no server-side sync.
     fn new(ctx: &mut ModelContext<Self>) -> Self {
-        // Initialize from `WarpDrivePrivacySettings`, which is the source of truth for these
+        // Initialize from `DrivePrivacySettings`, which is the source of truth for these
         // booleans.
-        let warp_drive_privacy = WarpDrivePrivacySettings::as_ref(ctx);
+        let warp_drive_privacy = DrivePrivacySettings::as_ref(ctx);
         let is_telemetry_enabled = *warp_drive_privacy.is_telemetry_enabled.value();
         let is_crash_reporting_enabled = *warp_drive_privacy.is_crash_reporting_enabled.value();
         let is_cloud_conversation_storage_enabled = *warp_drive_privacy
@@ -226,22 +226,22 @@ impl PrivacySettings {
             .value();
 
         // Listen for changes to the cloud model and update ourselves when they happen.
-        ctx.subscribe_to_model(&WarpDrivePrivacySettings::handle(ctx), |me, event, ctx| {
-            let privacy_settings = WarpDrivePrivacySettings::as_ref(ctx);
+        ctx.subscribe_to_model(&DrivePrivacySettings::handle(ctx), |me, event, ctx| {
+            let privacy_settings = DrivePrivacySettings::as_ref(ctx);
             match event {
-                WarpDrivePrivacySettingsChangedEvent::IsTelemetryEnabled { .. } => {
+                DrivePrivacySettingsChangedEvent::IsTelemetryEnabled { .. } => {
                     me.set_is_telemetry_enabled(
                         *privacy_settings.is_telemetry_enabled.value(),
                         ctx,
                     );
                 }
-                WarpDrivePrivacySettingsChangedEvent::IsCrashReportingEnabled { .. } => {
+                DrivePrivacySettingsChangedEvent::IsCrashReportingEnabled { .. } => {
                     me.set_is_crash_reporting_enabled(
                         *privacy_settings.is_crash_reporting_enabled.value(),
                         ctx,
                     );
                 }
-                WarpDrivePrivacySettingsChangedEvent::IsCloudConversationStorageEnabled {
+                DrivePrivacySettingsChangedEvent::IsCloudConversationStorageEnabled {
                     ..
                 } => {
                     me.set_is_cloud_conversation_storage_enabled(
@@ -380,7 +380,7 @@ impl PrivacySettings {
         if new_value != old_value {
             self.is_crash_reporting_enabled = new_value;
 
-            WarpDrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
+            DrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
                 log::info!("Setting is_crash_reporting_enabled to {new_value}");
                 let _ = settings
                     .is_crash_reporting_enabled
@@ -409,7 +409,7 @@ impl PrivacySettings {
         if new_value != old_value {
             self.is_telemetry_enabled = new_value;
 
-            WarpDrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
+            DrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
                 log::info!("Setting is_telemetry_enabled to {new_value}");
                 let _ = settings.is_telemetry_enabled.set_value(new_value, ctx);
             });
@@ -434,7 +434,7 @@ impl PrivacySettings {
 
         self.is_cloud_conversation_storage_enabled = new_value;
 
-        WarpDrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
+        DrivePrivacySettings::handle(ctx).update(ctx, |settings, ctx| {
             log::info!("Setting is_cloud_conversation_storage_enabled to {new_value}");
             let _ = settings
                 .is_cloud_conversation_storage_enabled
