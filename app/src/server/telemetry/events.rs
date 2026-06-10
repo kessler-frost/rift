@@ -233,29 +233,7 @@ pub enum CLIAgentType {
     Unknown,
 }
 
-/// The kind of plugin chip shown or dismissed (for telemetry purposes).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PluginChipTelemetryKind {
-    Install,
-    Update,
-}
 
-
-
-/// The action taken on a plugin chip (for telemetry purposes).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PluginChipTelemetryAction {
-    /// User clicked the auto-install button.
-    Install,
-    /// User clicked the auto-update button.
-    Update,
-    /// User clicked the manual install instructions button.
-    InstallInstructions,
-    /// User clicked the manual update instructions button.
-    UpdateInstructions,
-}
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum DriveSource {
@@ -464,12 +442,6 @@ pub enum AgentModeEntrypoint {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AutonomySettingToggleSource {
-    Speedbump,
-    SettingsPage,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ToggleCodeSuggestionsSettingSource {
     Speedbump,
     Settings,
@@ -485,26 +457,6 @@ pub enum InteractionSource {
 pub enum PromptSuggestionViewType {
     TerminalView,
     AgentView,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeAttachContextMethod {
-    #[serde(rename = "keyboard")]
-    Keyboard,
-
-    #[serde(rename = "mouse")]
-    Mouse,
-}
-
-/// The entrypoint from which the rewind dialog was opened.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum AgentModeRewindEntrypoint {
-    /// The rewind button in the AI block header.
-    Button,
-    /// The context menu item "Rewind to before here".
-    ContextMenu,
-    /// The /rewind slash command.
-    SlashCommand,
 }
 
 /// Reasons why we fell back to a prompt suggestion from a suggested code diff.
@@ -534,36 +486,6 @@ pub enum PromptSuggestionFallbackReason {
     /// Failed to send AI request.
     #[serde(rename = "failed_to_send_ai_request")]
     FailedToSendAIRequest,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeSetupProjectScopedRulesActionType {
-    #[serde(rename = "link_from_existing")]
-    LinkFromExisting(String),
-    #[serde(rename = "generate_rift_md")]
-    GenerateRiftMd,
-    #[serde(rename = "skip_rules")]
-    SkipRules,
-    #[serde(rename = "regenerate_rift_md")]
-    RegenerateRiftMd,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeSetupCodebaseContextActionType {
-    #[serde(rename = "index_codebase")]
-    IndexCodebase,
-    #[serde(rename = "skip_indexing")]
-    SkipIndexing,
-    #[serde(rename = "view_index_status")]
-    ViewIndexStatus,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeSetupCreateEnvironmentActionType {
-    #[serde(rename = "create_environment")]
-    CreateEnvironment,
-    #[serde(rename = "skip_environment")]
-    SkipEnvironment,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -605,29 +527,6 @@ pub struct BlockMemoryUsageStats {
     pub num_blocks: usize,
     pub num_lines: usize,
     pub estimated_memory_usage_bytes: usize,
-}
-
-/// Entrypoints to toggle the input auto-detection setting for Agent Mode.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum AgentModeAutoDetectionSettingOrigin {
-    /// The "speed bump" banner shown that's shown to the user when input is autodetected.
-    #[serde(rename = "banner")]
-    Banner,
-
-    /// The AI settings page.
-    #[serde(rename = "settings_page")]
-    SettingsPage,
-}
-
-/// Payload for the [`AgentModePotentialAutodetectionFalsePositive`] event.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AgentModeAutoDetectionFalsePositivePayload {
-    /// Payload includes input text for dogfood channels.
-    InternalDogfoodUsers { input_text: String },
-
-    /// Do not include the misclassified input text in stable channels due to privacy concerns.
-    ExternalUsers,
 }
 
 /// How the user triggered the [`AddTabWithShell`] event.
@@ -936,7 +835,6 @@ pub enum TelemetryEvent {
         enable_bookmark: bool,
     },
     JumpToBookmark,
-    JumpToLatestAgentMessage,
     JumpToBottomofBlockButtonClicked,
     ToggleJumpToBottomofBlockButton {
         enabled: bool,
@@ -1121,7 +1019,6 @@ pub enum TelemetryEvent {
     RiftifyFooterShown {
         is_ssh: bool,
     },
-    AgentToolbarDismissed,
     RiftifyFooterAcceptedRiftify {
         is_ssh: bool,
     },
@@ -1265,69 +1162,13 @@ pub enum TelemetryEvent {
     },
     /// User created a new file from the file tree
     FileTreeItemCreated,
-    /// Conversation list view was opened
-    ConversationListViewOpened,
-    /// User opened a conversation from the conversation list
-    ConversationListItemOpened {
-        /// Whether the conversation is an ambient agent task (vs a local conversation)
-        is_ambient_agent: bool,
-    },
-    /// User deleted a conversation from the conversation list
-    ConversationListItemDeleted,
-    /// User copied a conversation link from the conversation list
-    ConversationListLinkCopied {
-        /// Whether the conversation is an ambient agent task (vs a local conversation)
-        is_ambient_agent: bool,
-    },
-    /// The user tried to send an Agent Mode query but they have already reached their AI request
-    /// limit. Note that this limit is for all AI requests, not Agent Mode alone.
-    AgentModeUserAttemptedQueryAtRequestLimit {
-        /// The AI request limit for the user's current plan.
-        limit: usize,
-    },
-    AgentModeClickedEntrypoint {
-        entrypoint: AgentModeEntrypoint,
-    },
 
 
-    /// User opened the rewind confirmation dialog.
-    AgentModeRewindDialogOpened {
-        entrypoint: AgentModeRewindEntrypoint,
-    },
-
-    /// User executed a conversation rewind.
-    AgentModeRewindExecuted {
-        /// The number of AI blocks that were reverted.
-        num_blocks_reverted: usize,
-    },
-
-    /// Emitted when a user explicitly attaches a block as context to an Agent Mode query.
-    ///
-    /// This is only emitted for the initial attachment -- its intended to express user's intent to
-    /// attach context.
-    ///
-    /// For example, this is emitted when a user selects a block to attach as context and has no
-    /// prior blocks selected. If a user has already selected a block as context and is merely
-    /// changing or adding to the existing selection, this is not emitted.
-    ///
-    /// Also note this is not emitted if the user clicks an entrypoint that automatically attaches
-    /// context (like clicking the block toolbelt stars button, for instance).
-    AgentModeAttachedBlockContext {
-        method: AgentModeAttachContextMethod,
-    },
-
-    /// Emitted when the user toggles the "Input Auto-detection" setting in the AI settings page or
-    /// in the auto-detection "speed bump" banner.
-    AgentModeToggleAutoDetectionSetting {
-        is_autodetection_enabled: bool,
-        origin: AgentModeAutoDetectionSettingOrigin,
-    },
 
 
-    /// Emitted when the user manually toggles the terminal input from AI mode to shell mode when
-    /// the current input text has been auto-detected as AI input -- this is likely a natural
-    /// language auto-detection false-positive.
-    AgentModePotentialAutoDetectionFalsePositive(AgentModeAutoDetectionFalsePositivePayload),
+
+
+
 
 
     /// Keeps track of number of times the user is presented with a Prompt Suggestions banner.
@@ -1442,10 +1283,6 @@ pub enum TelemetryEvent {
         is_voice_input_enabled: bool,
     },
 
-    /// Emitted when the user toggles the "Show Agent Tips" setting in the AI settings page.
-    ToggleShowAgentTips {
-        is_enabled: bool,
-    },
 
     TierLimitHit(TierLimitHitEvent),
     SharedObjectLimitHitBannerViewPlansButtonClicked,
@@ -1507,10 +1344,6 @@ pub enum TelemetryEvent {
         enabled: bool,
     },
 
-    ToggledAgentModeAutoexecuteReadonlyCommandsSetting {
-        src: AutonomySettingToggleSource,
-        enabled: bool,
-    },
     RepoOutlineConstructionSuccess {
         total_parse_seconds: usize,
         file_count: usize,
@@ -1528,11 +1361,6 @@ pub enum TelemetryEvent {
     },
     #[cfg(feature = "local_fs")]
     PreviewPanePromoted,
-    AttachedImagesToAgentModeQuery {
-        num_images: usize,
-        /// Whether or not Universal Developer Input mode is enabled
-        is_udi_enabled: bool,
-    },
     /// An error was encountered fetching available WSL distributions from the Registry.
     /// This typically means the user hasn't installed or enabled WSL.
     #[cfg(windows)]
@@ -1623,18 +1451,7 @@ pub enum TelemetryEvent {
         /// Whether the command was accepted in the agent view vs terminal mode.
         is_in_agent_view: bool,
     },
-    AgentModeSetupBannerAccepted,
-    AgentModeSetupBannerDismissed,
-    AgentModeSetupProjectScopedRulesAction {
-        action: AgentModeSetupProjectScopedRulesActionType,
-    },
 
-    AgentModeSetupCodebaseContextAction {
-        action: AgentModeSetupCodebaseContextActionType,
-    },
-    AgentModeSetupCreateEnvironmentAction {
-        action: AgentModeSetupCreateEnvironmentActionType,
-    },
     /// User submitted a prompt from the create project view - metadata (non-UGC)
     CreateProjectPromptSubmitted {
         /// Whether this was a custom prompt or a predefined suggestion
@@ -1692,116 +1509,11 @@ pub enum TelemetryEvent {
         post_purchase_modal_flag_enabled: bool,
     },
 
-    /// Emitted when the user toggles the Agent Management View.
-    AgentManagementViewToggled {
-        is_open: bool,
-    },
-    /// Emitted when the user opens a session from the Agent Management View.
-    AgentManagementViewOpenedSession,
-    /// Emitted when the user copies a session link from the Agent Management View.
-    AgentManagementViewCopiedSessionLink,
     /// Detected that Rift is running in an isolated sandbox.
     DetectedIsolationPlatform {
         platform: rift_isolation_platform::IsolationPlatformType,
     },
 
-    AgentTipShown {
-        tip: String,
-    },
-    AgentTipClicked {
-        tip: String,
-        click_target: String,
-    },
-    /// Emitted when the user uses voice input from the CLI agent footer.
-    CLIAgentToolbarVoiceInputUsed {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-    },
-    /// Emitted when the user attaches an image from the CLI agent footer.
-    CLIAgentToolbarImageAttached {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-    },
-    /// Emitted when the CLI agent footer is shown.
-    CLIAgentToolbarShown {
-        /// The CLI agent being shown.
-        cli_agent: CLIAgentType,
-    },
-    /// Emitted when the user submits a prompt via the CLI agent rich input editor.
-    CLIAgentRichInputSubmitted {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// Length of the submitted prompt in characters.
-        prompt_length: usize,
-    },
-    /// Emitted when the user clicks a plugin chip (install, update, or instructions).
-    CLIAgentPluginChipClicked {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// The specific action taken.
-        action: PluginChipTelemetryAction,
-    },
-    /// Emitted when the user dismisses the plugin chip.
-    CLIAgentPluginChipDismissed {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// Whether this was the install or update chip.
-        chip_kind: PluginChipTelemetryKind,
-    },
-    /// Emitted when auto plugin install or update succeeds.
-    CLIAgentPluginOperationSucceeded {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// Whether this was an install or update operation.
-        operation: PluginChipTelemetryKind,
-    },
-    /// Emitted when auto plugin install or update fails.
-    CLIAgentPluginOperationFailed {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// Whether this was an install or update operation.
-        operation: PluginChipTelemetryKind,
-    },
-    /// Emitted when a CLI agent plugin is first recognized (SessionStart event received).
-    CLIAgentPluginDetected {
-        /// The CLI agent whose plugin was detected.
-        cli_agent: CLIAgentType,
-    },
-    /// Emitted when the user toggles the CLI agent footer setting.
-    ToggleCLIAgentToolbarSetting {
-        /// Whether the setting is enabled or disabled.
-        is_enabled: bool,
-    },
-    /// Emitted when the user toggles the "Use Agent" footer setting.
-    ToggleUseAgentToolbarSetting {
-        /// Whether the setting is enabled or disabled.
-        is_enabled: bool,
-    },
-    /// Emitted when the inline conversation menu is opened.
-    InlineConversationMenuOpened {
-        /// Whether the menu was opened in the agent view vs terminal mode.
-        is_in_agent_view: bool,
-    },
-    /// Emitted when an item is selected from the inline conversation menu.
-    InlineConversationMenuItemSelected {
-        /// Whether the item was selected in the agent view vs terminal mode.
-        is_in_agent_view: bool,
-    },
-    /// Emitted when the agent shortcuts view visibility is toggled.
-    AgentShortcutsViewToggled {
-        /// Whether the shortcuts view is now visible.
-        is_visible: bool,
-    },
-    /// Emitted when the Codex modal is opened.
-    CodexModalOpened,
-    /// Emitted when the user clicks "Use Codex" in the Codex modal.
-    CodexModalUseCodexClicked,
-    /// Emitted when the cloud agent capacity modal is opened.
-    CloudAgentCapacityModalOpened,
-    /// Emitted when the cloud agent capacity modal is dismissed.
-    CloudAgentCapacityModalDismissed,
-    /// Emitted when the user clicks the upgrade button in the cloud agent capacity modal.
-    CloudAgentCapacityModalUpgradeClicked,
     /// Emitted when a rift://linear deeplink is opened.
     LinearIssueLinkOpened,
     /// Emitted when the free tier limit hit interstitial is displayed.
@@ -1862,12 +1574,6 @@ impl TelemetryEvent {
             } => {
                 Some(json!({"insertion_length": insertion_length, "buffer_length": buffer_length}))
             }
-            TelemetryEvent::AgentModeRewindDialogOpened { entrypoint } => {
-                Some(json!({"entrypoint": entrypoint}))
-            }
-            TelemetryEvent::AgentModeRewindExecuted {
-                num_blocks_reverted,
-            } => Some(json!({"num_blocks_reverted": num_blocks_reverted})),
             TelemetryEvent::BootstrappingSlow(info) => Some(json!(info)),
             TelemetryEvent::BootstrappingSlowContents(info) => Some(json!(info)),
             TelemetryEvent::ToggleSettingsSync {
@@ -2162,7 +1868,6 @@ impl TelemetryEvent {
             TelemetryEvent::DeclineSubshellBootstrap { remember } => {
                 Some(json!({ "remember": remember }))
             }
-            TelemetryEvent::AgentToolbarDismissed => None,
             TelemetryEvent::RiftifyFooterShown { is_ssh }
             | TelemetryEvent::RiftifyFooterAcceptedRiftify { is_ssh } => {
                 Some(json!({ "is_ssh": is_ssh }))
@@ -2272,21 +1977,6 @@ impl TelemetryEvent {
                 team_uid,
             } => Some(json!({"num_teammates": num_teammates, "team_uid": team_uid})),
             TelemetryEvent::TierLimitHit(event) => Some(json!(event)),
-            TelemetryEvent::AgentModeUserAttemptedQueryAtRequestLimit { limit } => {
-                Some(json!({"limit": limit}))
-            }
-            TelemetryEvent::AgentModeClickedEntrypoint { entrypoint } => {
-                Some(json!({"entrypoint": entrypoint}))
-            }
-            TelemetryEvent::AgentModeAttachedBlockContext { method } => {
-                Some(json!({"method": method}))
-            }
-            TelemetryEvent::AgentModeToggleAutoDetectionSetting {
-                is_autodetection_enabled,
-                origin,
-            } => Some(
-                json!({"is_autodetection_enabled": is_autodetection_enabled, "origin": origin }),
-            ),
             TelemetryEvent::ToggleIntelligentAutosuggestionsSetting {
                 is_intelligent_autosuggestions_enabled,
             } => Some(
@@ -2322,9 +2012,6 @@ impl TelemetryEvent {
             TelemetryEvent::ToggleVoiceInputSetting {
                 is_voice_input_enabled,
             } => Some(json!({"is_voice_input_enabled": is_voice_input_enabled})),
-            TelemetryEvent::AgentModePotentialAutoDetectionFalsePositive(
-                AgentModeAutoDetectionFalsePositivePayload::InternalDogfoodUsers { input_text },
-            ) => Some(json!({"input_text": input_text})),
             TelemetryEvent::PromptSuggestionShown {
                 id,
                 request_duration_ms,
@@ -2476,12 +2163,6 @@ impl TelemetryEvent {
             TelemetryEvent::AutoupdateRelaunchAttempt { new_version } => Some(json!({
                 "new_version": new_version,
             })),
-            TelemetryEvent::ToggledAgentModeAutoexecuteReadonlyCommandsSetting { src, enabled } => {
-                Some(json!({
-                    "source": src,
-                    "enabled": enabled,
-                }))
-            }
             TelemetryEvent::RepoOutlineConstructionSuccess {
                 total_parse_seconds,
                 file_count,
@@ -2491,13 +2172,6 @@ impl TelemetryEvent {
             })),
             TelemetryEvent::RepoOutlineConstructionFailed { error } => Some(json!({
                 "error": error,
-            })),
-            TelemetryEvent::AttachedImagesToAgentModeQuery {
-                num_images,
-                is_udi_enabled,
-            } => Some(json!({
-                "num_images": num_images,
-                "is_udi_enabled": is_udi_enabled,
             })),
             TelemetryEvent::ImageReceived { image_protocol } => Some(json!({
                 "image_protocol": image_protocol,
@@ -2570,7 +2244,7 @@ impl TelemetryEvent {
             | TelemetryEvent::EditedInputBeforePrecmd
             | TelemetryEvent::TriedToExecuteBeforePrecmd
             | TelemetryEvent::JumpToBookmark
-            | TelemetryEvent::JumpToLatestAgentMessage
+            
             | TelemetryEvent::JumpToBottomofBlockButtonClicked
             | TelemetryEvent::ShowInFileExplorer
             | TelemetryEvent::OpenLaunchConfigSaveModal
@@ -2637,9 +2311,6 @@ impl TelemetryEvent {
             | TelemetryEvent::PaneDragInitiated
             | TelemetryEvent::SharedObjectLimitHitBannerViewPlansButtonClicked
             | TelemetryEvent::SharedSessionModalUpgradePressed
-            | TelemetryEvent::AgentModePotentialAutoDetectionFalsePositive(
-                AgentModeAutoDetectionFalsePositivePayload::ExternalUsers,
-            )
             | TelemetryEvent::SettingsImportResetButtonClicked
             | TelemetryEvent::ITermMultipleHotkeys
             | TelemetryEvent::DriveSharingOnboardingBlockShown
@@ -2650,19 +2321,11 @@ impl TelemetryEvent {
             | TelemetryEvent::AIExecutionProfileCreated
             | TelemetryEvent::AIExecutionProfileDeleted
             | TelemetryEvent::FileTreeItemCreated
-            | TelemetryEvent::ConversationListItemDeleted
-            | TelemetryEvent::ConversationListViewOpened
             | TelemetryEvent::GlobalSearchOpened
             | TelemetryEvent::GlobalSearchQueryStarted
             | TelemetryEvent::GetStartedSkipToTerminal => None,
             TelemetryEvent::SSHControlMasterError { has_remote_server } => Some(json!({
                 "has_remote_server": has_remote_server,
-            })),
-            TelemetryEvent::ConversationListItemOpened { is_ambient_agent } => Some(json!({
-                "is_ambient_agent": is_ambient_agent,
-            })),
-            TelemetryEvent::ConversationListLinkCopied { is_ambient_agent } => Some(json!({
-                "is_ambient_agent": is_ambient_agent,
             })),
             TelemetryEvent::AIExecutionProfileSettingUpdated {
                 setting_type,
@@ -2721,17 +2384,6 @@ impl TelemetryEvent {
             } => Some(json!({
                 "command_details": command_details,
                 "is_in_agent_view": is_in_agent_view,
-            })),
-            TelemetryEvent::AgentModeSetupBannerAccepted => None,
-            TelemetryEvent::AgentModeSetupBannerDismissed => None,
-            TelemetryEvent::AgentModeSetupProjectScopedRulesAction { action } => Some(json!({
-                "action": action,
-            })),
-            TelemetryEvent::AgentModeSetupCodebaseContextAction { action } => Some(json!({
-                "action": action,
-            })),
-            TelemetryEvent::AgentModeSetupCreateEnvironmentAction { action } => Some(json!({
-                "action": action,
             })),
             #[cfg(windows)]
             TelemetryEvent::WSLRegistryError
@@ -2807,91 +2459,10 @@ impl TelemetryEvent {
                 "source": source,
                 "is_code_mode_v2": is_code_mode_v2,
             })),
-            TelemetryEvent::AgentTipShown { tip } => Some(json!({
-                "tip": tip,
-            })),
-            TelemetryEvent::AgentTipClicked { tip, click_target } => Some(json!({
-                "tip": tip,
-                "click_target": click_target,
-            })),
-            TelemetryEvent::ToggleShowAgentTips { is_enabled } => Some(json!({
-                "is_enabled": is_enabled,
-            })),
-            TelemetryEvent::AgentManagementViewToggled { is_open } => Some(json!({
-                "is_open": is_open,
-            })),
-            TelemetryEvent::AgentManagementViewOpenedSession => None,
-            TelemetryEvent::AgentManagementViewCopiedSessionLink => None,
             TelemetryEvent::DetectedIsolationPlatform { platform } => Some(json!({
                 "platform": platform,
             })),
-            TelemetryEvent::CLIAgentToolbarVoiceInputUsed { cli_agent } => Some(json!({
-                "agent_name": cli_agent,
-            })),
-            TelemetryEvent::CLIAgentToolbarImageAttached { cli_agent } => Some(json!({
-                "agent_name": cli_agent,
-            })),
-            TelemetryEvent::CLIAgentToolbarShown { cli_agent } => Some(json!({
-                "agent_name": cli_agent,
-            })),
-            TelemetryEvent::CLIAgentRichInputSubmitted {
-                cli_agent,
-                prompt_length,
-            } => Some(json!({
-                "agent_name": cli_agent,
-                "prompt_length": prompt_length,
-            })),
-            TelemetryEvent::CLIAgentPluginChipClicked { cli_agent, action } => Some(json!({
-                "agent_name": cli_agent,
-                "action": action,
-            })),
-            TelemetryEvent::CLIAgentPluginChipDismissed {
-                cli_agent,
-                chip_kind,
-            } => Some(json!({
-                "agent_name": cli_agent,
-                "chip_kind": chip_kind,
-            })),
-            TelemetryEvent::CLIAgentPluginOperationSucceeded {
-                cli_agent,
-                operation,
-            } => Some(json!({
-                "agent_name": cli_agent,
-                "operation": operation,
-            })),
-            TelemetryEvent::CLIAgentPluginOperationFailed {
-                cli_agent,
-                operation,
-            } => Some(json!({
-                "agent_name": cli_agent,
-                "operation": operation,
-            })),
-            TelemetryEvent::CLIAgentPluginDetected { cli_agent } => Some(json!({
-                "agent_name": cli_agent,
-            })),
-            TelemetryEvent::ToggleCLIAgentToolbarSetting { is_enabled } => Some(json!({
-                "is_enabled": is_enabled,
-            })),
-            TelemetryEvent::ToggleUseAgentToolbarSetting { is_enabled } => Some(json!({
-                "is_enabled": is_enabled,
-            })),
-            TelemetryEvent::InlineConversationMenuOpened { is_in_agent_view } => Some(json!({
-                "is_in_agent_view": is_in_agent_view,
-            })),
-            TelemetryEvent::InlineConversationMenuItemSelected { is_in_agent_view } => {
-                Some(json!({
-                    "is_in_agent_view": is_in_agent_view,
-                }))
-            }
-            TelemetryEvent::AgentShortcutsViewToggled { is_visible } => Some(json!({
-                "is_visible": is_visible,
-            })),
-            TelemetryEvent::CodexModalOpened => None,
-            TelemetryEvent::CodexModalUseCodexClicked => None,
             TelemetryEvent::LinearIssueLinkOpened => None,
-            TelemetryEvent::CloudAgentCapacityModalOpened => None,
-            TelemetryEvent::CloudAgentCapacityModalDismissed => None,
-            TelemetryEvent::CloudAgentCapacityModalUpgradeClicked => None,
             TelemetryEvent::FreeTierLimitHitInterstitialDisplayed => None,
             TelemetryEvent::FreeTierLimitHitInterstitialUpgradeButtonClicked => None,
             TelemetryEvent::FreeTierLimitHitInterstitialClosed => None,
@@ -2914,13 +2485,6 @@ impl TelemetryEvent {
             TelemetryEvent::BootstrappingSlowContents { .. } => true,
             TelemetryEvent::CreateProjectPromptSubmitted { .. } => false,
             TelemetryEvent::CreateProjectPromptSubmittedContent { .. } => true,
-            TelemetryEvent::AgentModePotentialAutoDetectionFalsePositive(payload) => {
-                // For internal dogfood users, the payload contains UGC.
-                matches!(
-                    payload,
-                    AgentModeAutoDetectionFalsePositivePayload::InternalDogfoodUsers { .. }
-                )
-            }
             // Telemetry events do not contain user-generated content unless
             // explicitly marked above. (The original enumerated every variant;
             // that exhaustive list was removed during the AI/cloud strip.)
@@ -2972,15 +2536,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::FileTreeItemAttachedAsContext => EnablementState::Flag(FeatureFlag::FileTree),
             Self::CodeSelectionAddedAsContext => EnablementState::ChannelSpecific { channels: vec![] },
             Self::FileTreeItemCreated => EnablementState::Flag(FeatureFlag::FileTree),
-            Self::ConversationListViewOpened
-            | Self::ConversationListItemOpened
-            | Self::ConversationListItemDeleted
-            | Self::ConversationListLinkCopied => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
-            Self::InlineConversationMenuOpened
-            | Self::InlineConversationMenuItemSelected
-            | Self::AgentShortcutsViewToggled => EnablementState::ChannelSpecific { channels: vec![] },
             Self::CreateProjectPromptSubmitted => EnablementState::Flag(FeatureFlag::GetStartedTab),
             Self::CreateProjectPromptSubmittedContent => {
                 EnablementState::Flag(FeatureFlag::GetStartedTab)
@@ -3007,9 +2562,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::JoinedSharedSession => EnablementState::Flag(FeatureFlag::ViewingSharedSessions),
             Self::ToggleSettingsSync { .. } => EnablementState::Always,
-            Self::AgentTipShown | Self::AgentTipClicked | Self::ToggleShowAgentTips => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
             Self::AutosuggestionInserted => EnablementState::Always,
             Self::BlockCompleted => EnablementState::Always,
             Self::BackgroundBlockStarted => EnablementState::Always,
@@ -3100,7 +2652,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ThinStrokesSettingChanged => EnablementState::Always,
             Self::BookmarkBlockToggled => EnablementState::Always,
             Self::JumpToBookmark => EnablementState::Always,
-            Self::JumpToLatestAgentMessage => EnablementState::Always,
             Self::JumpToBottomofBlockButtonClicked => EnablementState::Always,
             Self::ToggleJumpToBottomofBlockButton => EnablementState::Always,
             Self::OpenLink => EnablementState::Always,
@@ -3179,7 +2730,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SshTmuxRiftifyBlockAccepted => EnablementState::Always,
             Self::SshTmuxRiftifyBlockDismissed => EnablementState::Always,
             Self::RiftifyFooterShown
-            | Self::AgentToolbarDismissed
             | Self::RiftifyFooterAcceptedRiftify => EnablementState::Always,
             Self::SshTmuxRiftificationSuccess => EnablementState::Always,
             Self::SshTmuxRiftificationErrorBlock => EnablementState::Always,
@@ -3234,13 +2784,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleActiveAI => EnablementState::Always,
             Self::MemoryUsageStats => EnablementState::ChannelSpecific { channels: vec![] },
             Self::MemoryUsageHigh => EnablementState::Always,
-            Self::AgentModeUserAttemptedQueryAtRequestLimit
-            | Self::AgentModeClickedEntrypoint
-            | Self::AgentModeAttachedBlockContext
-            | Self::AgentModeToggleAutoDetectionSetting
-            | Self::AgentModePotentialAutoDetectionFalsePositive => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
             Self::BlockCompletedOnDogfoodOnly => EnablementState::ChannelSpecific { channels: vec![] },
             Self::CompletedSettingsImport
             | Self::SettingsImportConfigFocused
@@ -3274,10 +2817,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::UpdateAltScreenPaddingMode => EnablementState::Always,
             Self::AddTabWithShell => EnablementState::Flag(FeatureFlag::ShellSelector),
             Self::ToggleLigatureRendering => EnablementState::Flag(FeatureFlag::Ligatures),
-            Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => EnablementState::Always,
-            Self::AttachedImagesToAgentModeQuery => {
-                EnablementState::Flag(FeatureFlag::ImageAsContext)
-            }
             #[cfg(windows)]
             Self::WSLRegistryError
             | Self::AutoupdateUnableToCloseApplications
@@ -3311,50 +2850,13 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::OpenSlashMenu { .. } => EnablementState::Always,
             Self::SlashCommandAccepted { .. } => EnablementState::Always,
-            Self::AgentModeSetupBannerAccepted { .. } => EnablementState::Always,
-            Self::AgentModeSetupBannerDismissed => EnablementState::Always,
-            Self::AgentModeSetupProjectScopedRulesAction { .. } => EnablementState::Always,
-            Self::AgentModeSetupCodebaseContextAction { .. } => EnablementState::Always,
-            Self::AgentModeSetupCreateEnvironmentAction { .. } => EnablementState::Always,
-            Self::AgentModeRewindDialogOpened { .. } => {
-                EnablementState::Flag(FeatureFlag::RevertToCheckpoints)
-            }
-            Self::AgentModeRewindExecuted { .. } => {
-                EnablementState::Flag(FeatureFlag::RevertToCheckpoints)
-            }
             Self::RecentMenuItemSelected => EnablementState::Always,
             Self::OpenRepoFolderSubmitted => EnablementState::Always,
             Self::OutOfCreditsBannerClosed => EnablementState::Always,
             Self::AutoReloadModalClosed => EnablementState::Always,
             Self::AutoReloadToggledFromBillingSettings => EnablementState::Always,
-            Self::AgentManagementViewToggled { .. }
-            | Self::AgentManagementViewOpenedSession
-            | Self::AgentManagementViewCopiedSessionLink => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
             Self::DetectedIsolationPlatform { .. } => EnablementState::Always,
-            Self::CLIAgentToolbarVoiceInputUsed { .. } => EnablementState::Always,
-            Self::CLIAgentToolbarImageAttached { .. } => EnablementState::Always,
-            Self::CLIAgentToolbarShown { .. } => EnablementState::Always,
-            Self::CLIAgentPluginChipClicked { .. }
-            | Self::CLIAgentPluginChipDismissed { .. }
-            | Self::CLIAgentPluginOperationSucceeded { .. }
-            | Self::CLIAgentPluginOperationFailed { .. } => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
-            Self::CLIAgentPluginDetected { .. } => EnablementState::Always,
-            Self::CLIAgentRichInputSubmitted { .. } => {
-                EnablementState::ChannelSpecific { channels: vec![] }
-            }
-            Self::ToggleCLIAgentToolbarSetting { .. } => EnablementState::Always,
-            Self::ToggleUseAgentToolbarSetting { .. } => EnablementState::Always,
-            Self::CodexModalOpened | Self::CodexModalUseCodexClicked => EnablementState::Always,
             Self::LinearIssueLinkOpened => EnablementState::Always,
-            Self::CloudAgentCapacityModalOpened
-            | Self::CloudAgentCapacityModalDismissed
-            | Self::CloudAgentCapacityModalUpgradeClicked => {
-                EnablementState::Flag(FeatureFlag::CloudMode)
-            }
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => EnablementState::Always,
             Self::FreeTierLimitHitInterstitialUpgradeButtonClicked { .. } => {
                 EnablementState::Always
@@ -3379,8 +2881,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::BackgroundBlockStarted => "Background Block Started",
             Self::SessionCreation => "Tab Creation",
             Self::Login => "Logged in to native app",
-            Self::AgentModeRewindDialogOpened { .. } => "Opened Rewind Confirmation Dialog",
-            Self::AgentModeRewindExecuted { .. } => "Executed Conversation Rewind",
             Self::ReinputCommands => "Context Menu: Reinput Commands",
             Self::ToggleSettingsSync => "Toggle Settings Sync",
             Self::ToggleFocusPaneOnHover => "Toggle Focus Pane On Hover",
@@ -3399,15 +2899,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::FileTreeItemAttachedAsContext => "FileTree.AttachedAsContext",
             Self::CodeSelectionAddedAsContext => "CodeView.SelectionAddedAsContext",
             Self::FileTreeItemCreated => "FileTree.ItemCreated",
-            Self::ConversationListViewOpened => "ConversationList.Opened",
-            Self::ConversationListItemOpened => "ConversationList.ItemOpened",
-            Self::ConversationListItemDeleted => "ConversationList.ItemDeleted",
-            Self::ConversationListLinkCopied => "ConversationList.LinkCopied",
-            Self::InlineConversationMenuOpened => "AgentView.InlineConversationMenuOpened",
-            Self::InlineConversationMenuItemSelected => {
-                "AgentView.InlineConversationMenuItemSelected"
-            }
-            Self::AgentShortcutsViewToggled => "AgentView.ShortcutsViewToggled",
             Self::CreateProjectPromptSubmitted => "Create Project Prompt Submitted",
             Self::CreateProjectPromptSubmittedContent => "Create Project Prompt Submitted Content",
             Self::CloneRepoPromptSubmitted => "Clone Repo Prompt Submitted",
@@ -3502,7 +2993,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ThinStrokesSettingChanged => "Thin Strokes Setting Changed",
             Self::BookmarkBlockToggled => "Toggled Bookmark Block",
             Self::JumpToBookmark => "Jumped to Bookmark Block",
-            Self::JumpToLatestAgentMessage => "Jumped to Latest Agent Message",
             Self::JumpToBottomofBlockButtonClicked => "Jumped to Bottom of Block Button Clicked",
             Self::OpenLink => "Opened Link",
             Self::OpenChangelogLink => "Opened Changelog Link",
@@ -3578,7 +3068,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SshTmuxRiftifyBlockAccepted => "SSH Tmux Riftify Block Accepted",
             Self::SshTmuxRiftifyBlockDismissed => "SSH Tmux Riftify Block Dismissed",
             Self::RiftifyFooterShown => "Riftify Footer Shown",
-            Self::AgentToolbarDismissed => "Agent Toolbar Dismissed",
             Self::RiftifyFooterAcceptedRiftify => "Riftify Footer Accepted Riftify",
             Self::SshTmuxRiftificationSuccess => "SSH Tmux Riftification Succeeded",
             Self::SshTmuxRiftificationErrorBlock => "SSH Tmux Riftification Error Block",
@@ -3641,16 +3130,9 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SharedObjectLimitHitBannerViewPlansButtonClicked => {
                 "Shared Object Limit Hit Banner View Plans Button Clicked"
             }
-            Self::AgentModeUserAttemptedQueryAtRequestLimit => "AgentMode.QueryAttemptAtLImit",
-            Self::AgentModeClickedEntrypoint => "AgentMode.ClickedEntrypoint",
-            Self::AgentModeAttachedBlockContext => "AgentMode.AttachedContext",
             Self::ResourceUsageStats => "perf_metrics.resource_usage",
             Self::MemoryUsageStats => "perf_metrics.memory_usage",
             Self::MemoryUsageHigh => "perf_metrics.memory_usage_high",
-            Self::AgentModeToggleAutoDetectionSetting => "AgentMode.ToggleAutoDetectionSetting",
-            Self::AgentModePotentialAutoDetectionFalsePositive => {
-                "AgentMode.PotentialAutoDetectionFalsePositive"
-            }
             // Agent Mode Query Suggestions is the legacy name for Prompt Suggestions - we avoid renaming
             // the event to avoid breaking historical telemetry data.
             Self::PromptSuggestionShown => "Agent Mode Query Suggestions Banner Shown",
@@ -3683,9 +3165,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleActiveAI => "Toggle Active AI Enablement",
             Self::ToggleLigatureRendering => "Toggle Ligature Rendering",
 
-            Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => {
-                "AIAutonomy.ToggledAutoexecuteReadonlyCommandsSetting"
-            }
             Self::QueuedPromptPanelCollapseToggled => "QueuedPrompt.PanelCollapseToggled",
             #[cfg(windows)]
             Self::WSLRegistryError => "WSL Distribution Registry Error",
@@ -3706,7 +3185,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleCodebaseContext => "Toggle Agent Mode Codebase Context",
             Self::ToggleAutoIndexing => "Toggle Codebase Context Autoindexing",
             Self::ActiveIndexedReposChanged => "Active Indexed Repos Changed",
-            Self::AttachedImagesToAgentModeQuery => "AgentMode.AttachedImages",
             Self::ImageReceived => "Image Received",
             Self::GrepToolSucceeded => "AgentMode.Grep.Succeeded",
             Self::FileGlobToolSucceeded => "AgentMode.FileGlob.Succeeded",
@@ -3738,17 +3216,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::OpenSlashMenu { .. } => "Open Slash Menu",
             Self::SlashCommandAccepted { .. } => "Slash Command Accepted",
-            Self::AgentModeSetupBannerAccepted => "Agent Mode Setup Banner Accepted",
-            Self::AgentModeSetupBannerDismissed => "Agent Mode Setup Banner Dismissed",
-            Self::AgentModeSetupProjectScopedRulesAction { .. } => {
-                "Agent Mode Setup Project Scoped Rules Action"
-            }
-            Self::AgentModeSetupCodebaseContextAction { .. } => {
-                "Agent Mode.Setup Codebase Context Action"
-            }
-            Self::AgentModeSetupCreateEnvironmentAction { .. } => {
-                "AgentMode.SetupCreateEnvironmentAction"
-            }
             Self::RecentMenuItemSelected { .. } => "Recent Menu Item Selected",
             Self::OpenRepoFolderSubmitted { .. } => "Open Repo Folder Submitted",
             Self::OutOfCreditsBannerClosed => "revenue.OutOfCreditsBannerClosed",
@@ -3756,34 +3223,8 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AutoReloadToggledFromBillingSettings => {
                 "revenue.AutoReloadToggledFromBillingSettings"
             }
-            Self::AgentManagementViewToggled { .. } => "Agent Management View Toggled",
-            Self::AgentManagementViewOpenedSession => "Agent Management View Opened Session",
-            Self::AgentManagementViewCopiedSessionLink => {
-                "Agent Management View Copied Session Link"
-            }
             Self::DetectedIsolationPlatform { .. } => "Isolation.DetectedIsolationPlatform",
-            Self::AgentTipShown => "AgentTip Shown",
-            Self::AgentTipClicked => "AgentTip Clicked",
-            Self::ToggleShowAgentTips => "Toggle Show Agent Tips",
-            Self::CLIAgentToolbarVoiceInputUsed { .. } => "CLIAgentFooter.VoiceInputUsed",
-            Self::CLIAgentToolbarImageAttached { .. } => "CLIAgentFooter.ImageAttached",
-            Self::CLIAgentToolbarShown { .. } => "CLIAgentFooter.Shown",
-            Self::CLIAgentPluginChipClicked { .. } => "CLIAgentPlugin.ChipClicked",
-            Self::CLIAgentPluginChipDismissed { .. } => "CLIAgentPlugin.ChipDismissed",
-            Self::CLIAgentPluginOperationSucceeded { .. } => "CLIAgentPlugin.OperationSucceeded",
-            Self::CLIAgentPluginOperationFailed { .. } => "CLIAgentPlugin.OperationFailed",
-            Self::CLIAgentPluginDetected { .. } => "CLIAgentPlugin.Detected",
-            Self::CLIAgentRichInputSubmitted { .. } => "CLIAgentRichInput.Submitted",
-            Self::ToggleCLIAgentToolbarSetting { .. } => "CLIAgentFooter.SettingToggled",
-            Self::ToggleUseAgentToolbarSetting { .. } => "UseAgentToolbar.SettingToggled",
-            Self::CodexModalOpened => "CodexModal.Opened",
-            Self::CodexModalUseCodexClicked => "CodexModal.UseCodexClicked",
             Self::LinearIssueLinkOpened => "Linear.IssueLinkOpened",
-            Self::CloudAgentCapacityModalOpened => "AmbientAgent.ConcurrencyModal.Opened",
-            Self::CloudAgentCapacityModalDismissed => "AmbientAgent.ConcurrencyModal.Dismissed",
-            Self::CloudAgentCapacityModalUpgradeClicked => {
-                "AmbientAgent.ConcurrencyModal.UpgradeClicked"
-            }
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => {
                 "FreeTierLimitHitInterstitial.Displayed"
             }
@@ -3807,12 +3248,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::RepoOutlineConstructionFailed => "Repository outline built failed",
             Self::AutosuggestionInserted => "Accepted autosuggestion",
             Self::BlockCompleted => "Created Block",
-            Self::AgentModeRewindDialogOpened { .. } => {
-                "User opened the rewind confirmation dialog"
-            }
-            Self::AgentModeRewindExecuted { .. } => {
-                "User executed a rewind to a previous conversation state"
-            }
             Self::BlockCompletedOnDogfoodOnly => {
                 "Completed a block, with extra information for dogfood only"
             }
@@ -3946,7 +3381,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::NotificationFailedToSend => "Failed to send desktop notification",
             Self::NotificationClicked => "Clicked desktop notification sent from Rift",
-            Self::ToggleShowAgentTips => "Toggled the Show Agent Tips setting in AI settings",
             Self::ToggleFindOption => "Changed settings in Find Toggle",
             Self::SignUpButtonClicked => "Clicked \"Sign Up\" button",
             Self::LoginButtonClicked => "Clicked on \"Log in\" button",
@@ -3983,7 +3417,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::BookmarkBlockToggled => "Bookmarked or unbookmarked Block",
             Self::JumpToBookmark => "Jumped to bookmarked Block",
-            Self::JumpToLatestAgentMessage => "Jumped to the latest agent message",
             Self::JumpToBottomofBlockButtonClicked => {
                 "Used the button to jump to the bottom of a Block"
             }
@@ -4151,7 +3584,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::RiftifyFooterShown => {
                 "Displayed the riftify footer for a detected subshell or SSH session"
             }
-            Self::AgentToolbarDismissed => "User dismissed the use-agent toolbar",
             Self::RiftifyFooterAcceptedRiftify => "User clicked Riftify in the riftify footer",
             Self::SshTmuxRiftificationSuccess => "Ssh tmux riftification succeeded",
             Self::SshTmuxRiftificationErrorBlock => "Ssh tmux riftification errored out",
@@ -4246,23 +3678,10 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SharedObjectLimitHitBannerViewPlansButtonClicked => {
                 "Clicked the 'View Plans' button on the persistent drive banner"
             }
-            Self::AgentModeUserAttemptedQueryAtRequestLimit => {
-                "Tried to send an Agent Mode query but they already reached the query limit"
-            }
-            Self::AgentModeClickedEntrypoint => "Clicked on an Agent Mode entrypoint",
-            Self::AgentModeAttachedBlockContext => {
-                "Attached block as context to an Agent Mode query"
-            }
             Self::ResourceUsageStats => "Periodic report on application resource usage statistics",
             Self::MemoryUsageStats => "Periodic report on application memory usage statistics",
             Self::MemoryUsageHigh => {
                 "Total application memory usage exceeded a significant threshold"
-            }
-            Self::AgentModeToggleAutoDetectionSetting => {
-                "Toggled the setting that enables or disables natural language auto-detection in the input. "
-            }
-            Self::AgentModePotentialAutoDetectionFalsePositive => {
-                "Manually toggled input to shell mode after input was auto-detected as natural language."
             }
             Self::ToggleIntelligentAutosuggestionsSetting => {
                 "Toggled on/off the intelligent autosuggestions setting"
@@ -4295,23 +3714,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Added selected code as context from the code editor"
             }
             Self::FileTreeItemCreated => "Created a new file from the file tree",
-            Self::ConversationListViewOpened => {
-                "Opened the conversation list view in the left panel"
-            }
-            Self::ConversationListItemOpened => "Opened a conversation from the conversation list",
-            Self::ConversationListItemDeleted => {
-                "Deleted a conversation from the conversation list"
-            }
-            Self::ConversationListLinkCopied => {
-                "Copied a conversation link from the conversation list"
-            }
-            Self::InlineConversationMenuOpened => {
-                "User opened the inline conversation menu in Agent View"
-            }
-            Self::InlineConversationMenuItemSelected => {
-                "User selected an item from the inline conversation menu"
-            }
-            Self::AgentShortcutsViewToggled => "User toggled the shortcuts view in Agent View",
             Self::CreateProjectPromptSubmitted => {
                 "User submitted a prompt from the create project view"
             }
@@ -4345,10 +3747,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleGlobalAI => "Toggled global AI enablement.",
             Self::ToggleActiveAI => "Toggled active AI enablement.",
             Self::ToggleLigatureRendering => "Toggled ligature rendering",
-            Self::ToggledAgentModeAutoexecuteReadonlyCommandsSetting => {
-                "Toggled setting to autoexecute readonly Agent Mode requested commands"
-            }
-            Self::AttachedImagesToAgentModeQuery => "Attached images to an Agent Mode query",
             #[cfg(windows)]
             Self::WSLRegistryError => {
                 "Encountered an error while fetching WSL distributions from the registry"
@@ -4412,17 +3810,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::OpenSlashMenu { .. } => "Opened the slash commands menu",
             Self::SlashCommandAccepted { .. } => "User accepted a slash command",
-            Self::AgentModeSetupBannerAccepted { .. } => "Agent Mode setup banner accepted",
-            Self::AgentModeSetupBannerDismissed => "Agent Mode setup banner dismissed",
-            Self::AgentModeSetupProjectScopedRulesAction { .. } => {
-                "User clicked a button in the Agent Mode setup project scoped rules step"
-            }
-            Self::AgentModeSetupCodebaseContextAction { .. } => {
-                "User clicked a button in the Agent Mode setup codebase context step"
-            }
-            Self::AgentModeSetupCreateEnvironmentAction { .. } => {
-                "User clicked a button in the Agent Mode setup create environment step"
-            }
             Self::RecentMenuItemSelected { .. } => {
                 "User selected an item from the recents list on the new tab zero state"
             }
@@ -4438,62 +3825,11 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AutoReloadToggledFromBillingSettings => {
                 "User toggled auto-reload in Billing & Usage settings"
             }
-            Self::AgentManagementViewToggled { .. } => {
-                "User toggled the Agent Management View open or closed"
-            }
-            Self::AgentManagementViewOpenedSession => {
-                "User opened a session from the Agent Management View"
-            }
-            Self::AgentManagementViewCopiedSessionLink => {
-                "User copied a session link from the Agent Management View"
-            }
             Self::DetectedIsolationPlatform { .. } => {
                 "Detected that Rift is running in an isolated sandbox"
             }
-            Self::AgentTipShown => "Selected an Agent Tip to show in the Agent Mode status bar",
-            Self::AgentTipClicked => "User clicked a link or action in an Agent Tip",
-            Self::CLIAgentToolbarVoiceInputUsed { .. } => {
-                "User used voice input from the CLI agent footer"
-            }
-            Self::CLIAgentToolbarImageAttached { .. } => {
-                "User attached an image from the CLI agent footer"
-            }
-            Self::CLIAgentToolbarShown { .. } => "CLI agent footer was shown to the user",
-            Self::CLIAgentPluginChipClicked { .. } => {
-                "User clicked the plugin install or update chip"
-            }
-            Self::CLIAgentPluginChipDismissed { .. } => {
-                "User dismissed the plugin install or update chip"
-            }
-            Self::CLIAgentPluginOperationSucceeded { .. } => {
-                "Auto plugin install or update completed successfully"
-            }
-            Self::CLIAgentPluginOperationFailed { .. } => {
-                "Auto plugin install or update failed"
-            }
-            Self::CLIAgentPluginDetected { .. } => {
-                "A CLI agent plugin was detected via a SessionStart event"
-            }
-            Self::CLIAgentRichInputSubmitted { .. } => {
-                "User submitted a prompt via CLI agent Rich Input"
-            }
-            Self::ToggleCLIAgentToolbarSetting { .. } => {
-                "User toggled the CLI agent footer setting"
-            }
-            Self::ToggleUseAgentToolbarSetting { .. } => {
-                "User toggled the Use Agent footer setting"
-            }
-            Self::CodexModalOpened => "User opened the Codex modal",
-            Self::CodexModalUseCodexClicked => "User clicked 'Use Codex' in the Codex modal",
             Self::LinearIssueLinkOpened => {
                 "User opened a rift://linear deeplink to work on an issue"
-            }
-            Self::CloudAgentCapacityModalOpened => "User opened the cloud agent capacity modal",
-            Self::CloudAgentCapacityModalDismissed => {
-                "User dismissed the cloud agent capacity modal"
-            }
-            Self::CloudAgentCapacityModalUpgradeClicked => {
-                "User clicked the upgrade button in the cloud agent capacity modal"
             }
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => {
                 "The free tier limit hit interstitial was displayed"
