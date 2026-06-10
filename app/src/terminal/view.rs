@@ -10743,13 +10743,9 @@ impl TerminalView {
             self.alt_screen_scroll_top,
             // TODO(zachbai): Remove this.
             None,
-            None,
         );
         if should_use_ligature_rendering(app) {
             alt_screen_element = alt_screen_element.with_ligature_rendering();
-        }
-        if self.should_hide_cli_agent_cursor_cell(app) {
-            alt_screen_element = alt_screen_element.with_hide_cursor_cell();
         }
 
         let _required_terminal_height = self.size_info.cell_height_px.as_f32() * (rows as f32)
@@ -10824,13 +10820,6 @@ impl TerminalView {
             &self.content_element_position_id,
         )
         .finish()
-    }
-
-    /// Returns true when cursor rendering should be suppressed because the
-    /// CLI agent rich input is open. The rich-input subsystem has been removed,
-    /// so this is always `false`.
-    fn should_hide_cli_agent_cursor_cell(&self, _app: &AppContext) -> bool {
-        false
     }
 
     fn render_block_list_element(
@@ -10978,7 +10967,6 @@ impl TerminalView {
             ),
             inline_banners,
             subshell_separators,
-            HashMap::new(),
             selection_range,
             block_banner,
             self.inline_banners_state.shared_session_banner_state,
@@ -10991,9 +10979,6 @@ impl TerminalView {
             element = element.with_ligature_rendering();
         }
 
-        if self.should_hide_cli_agent_cursor_cell(app) {
-            element = element.with_hide_cursor_cell();
-        }
 
 
         element = element.with_filtered_blocks(filtered_blocks);
