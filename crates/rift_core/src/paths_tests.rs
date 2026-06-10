@@ -51,7 +51,7 @@ fn test_rift_home_config_dir_path() {
 }
 
 #[test]
-fn test_warp_home_skills_and_mcp_paths() {
+fn test_rift_home_skills_and_mcp_paths() {
     let Some(config_dir) = rift_home_config_dir() else {
         panic!("Should be able to compute Warp home config directory");
     };

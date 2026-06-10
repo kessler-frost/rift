@@ -119,7 +119,7 @@ impl MenuItemData {
 /// The NSMenuItem logically holds a reference count on this Rc, which is balanced in our dealloc callback below.
 /// The following functions are invoked from Cocoa.
 #[no_mangle]
-extern "C-unwind" fn warp_menu_item_needs_update(item: id, ctx: *mut c_void) {
+extern "C-unwind" fn rift_menu_item_needs_update(item: id, ctx: *mut c_void) {
     let ctx = MenuItemData::read_context(ctx);
     let props: MenuItemProperties = ctx.props.borrow().clone();
     let func = &ctx.update;
@@ -143,13 +143,13 @@ extern "C-unwind" fn warp_menu_item_needs_update(item: id, ctx: *mut c_void) {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_menu_item_triggered(_item: id, ctx: *mut c_void) {
+extern "C-unwind" fn rift_menu_item_triggered(_item: id, ctx: *mut c_void) {
     let func = &MenuItemData::read_context(ctx).triggered;
     callback_dispatcher().menu_item_triggered(func);
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_menu_item_deallocated(ctx: *mut c_void) {
+extern "C-unwind" fn rift_menu_item_deallocated(ctx: *mut c_void) {
     MenuItemData::consume_context(ctx)
 }
 
@@ -157,7 +157,7 @@ extern "C-unwind" fn warp_menu_item_deallocated(ctx: *mut c_void) {
 // These signatures must be manually synced - there's no type checking here.
 extern "C" {
     fn make_delegated_menu(title: id) -> id;
-    fn make_warp_custom_menu_item(ctx: *mut c_void) -> id;
+    fn make_rift_custom_menu_item(ctx: *mut c_void) -> id;
     fn set_menu_item_submenu(item: id, submenu: id);
     fn make_services_menu_item() -> id;
 }
@@ -215,12 +215,12 @@ fn resolve_standard_action(action: StandardAction) -> StandardMenuItemProperties
             ns_string!(""),
         ),
         StandardAction::Quit => make(
-            ns_string!("Quit Warp"),
+            ns_string!("Quit Rift"),
             sel!(terminate:),
             cmd,
             ns_string!("q"),
         ),
-        StandardAction::Hide => make(ns_string!("Hide Warp"), sel!(hide:), cmd, ns_string!("h")),
+        StandardAction::Hide => make(ns_string!("Hide Rift"), sel!(hide:), cmd, ns_string!("h")),
         StandardAction::HideOtherApps => make(
             ns_string!("Hide Others"),
             sel!(hideOtherApplications:),
@@ -286,7 +286,7 @@ fn resolve_key_equivalent(keystroke: Option<&Keystroke>) -> (KeyEquivalent, NSEv
 
 // Apply any differences between the two states to the menu item.
 unsafe fn apply_changes(changes: MenuItemPropertyChanges, item: id) {
-    // Wrap in a local autorelease pool: AppKit invokes `warp_menu_item_needs_update`
+    // Wrap in a local autorelease pool: AppKit invokes `rift_menu_item_needs_update`
     // on every menu validation (per menu open and per keystroke for shortcut matching),
     // so this is a hot path. A local pool bounds peak memory for the temporaries AppKit
     // produces here (e.g. inside `setTitle:`/`setKeyEquivalent:`) without relying on the
@@ -338,7 +338,7 @@ unsafe fn make_menu_item(menu_item: MenuItem) -> id {
                 update: custom_menu_item.updater,
             });
 
-            let nsmenu_item = make_warp_custom_menu_item(MenuItemData::into_context(data));
+            let nsmenu_item = make_rift_custom_menu_item(MenuItemData::into_context(data));
 
             // Set initial properties for the item.
             apply_changes(

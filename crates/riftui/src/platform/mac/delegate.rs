@@ -447,7 +447,7 @@ impl platform::Delegate for AppDelegate {
 /// # Safety
 /// This function is marked unsafe because it retrieves the pointer to the callback
 /// function that we sent down to the Objective-C code.
-pub unsafe extern "C-unwind" fn warp_on_request_notification_permissions_completed(
+pub unsafe extern "C-unwind" fn rift_on_request_notification_permissions_completed(
     result_type: NSUInteger,
     result_msg: id,
     callback: *mut c_void,
@@ -464,7 +464,7 @@ pub unsafe extern "C-unwind" fn warp_on_request_notification_permissions_complet
 /// # Safety
 /// This function is marked unsafe because it retrieves the pointer to the callback
 /// function that we sent down to the Objective-C code.
-pub unsafe extern "C-unwind" fn warp_on_notification_send_error(
+pub unsafe extern "C-unwind" fn rift_on_notification_send_error(
     error_type: NSUInteger,
     error_msg: id,
     callback: *mut c_void,

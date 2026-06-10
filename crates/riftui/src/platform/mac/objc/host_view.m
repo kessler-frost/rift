@@ -2,22 +2,22 @@
 
 #import <Metal/Metal.h>
 
-void warp_view_did_change_backing_properties(RiftHostView *, BOOL);
-void warp_view_set_frame_size(RiftHostView *, NSSize, BOOL);
-void warp_update_layer(RiftHostView *);
-BOOL warp_handle_view_event(RiftHostView *, NSEvent *, BOOL);
-BOOL warp_handle_first_mouse_event(RiftHostView *, NSEvent *);
-void warp_handle_insert_text(RiftHostView *, id);
-void warp_update_ime_state(RiftHostView *, BOOL);
-void warp_handle_drag_and_drop(RiftHostView *, NSArray *, NSPoint);
-void warp_handle_file_drag(RiftHostView *, NSPoint);
-void warp_handle_file_drag_exit(RiftHostView *);
-NSRect warp_ime_position(RiftHostView *, NSRect *);
-id warp_get_accessibility_contents(RiftHostView *);
-void warp_marked_text_updated(RiftHostView *, NSString *, NSRange);
-void warp_marked_text_cleared(RiftHostView *);
+void rift_view_did_change_backing_properties(RiftHostView *, BOOL);
+void rift_view_set_frame_size(RiftHostView *, NSSize, BOOL);
+void rift_update_layer(RiftHostView *);
+BOOL rift_handle_view_event(RiftHostView *, NSEvent *, BOOL);
+BOOL rift_handle_first_mouse_event(RiftHostView *, NSEvent *);
+void rift_handle_insert_text(RiftHostView *, id);
+void rift_update_ime_state(RiftHostView *, BOOL);
+void rift_handle_drag_and_drop(RiftHostView *, NSArray *, NSPoint);
+void rift_handle_file_drag(RiftHostView *, NSPoint);
+void rift_handle_file_drag_exit(RiftHostView *);
+NSRect rift_ime_position(RiftHostView *, NSRect *);
+id rift_get_accessibility_contents(RiftHostView *);
+void rift_marked_text_updated(RiftHostView *, NSString *, NSRange);
+void rift_marked_text_cleared(RiftHostView *);
 
-@implementation NSPasteboard (Warp)
+@implementation NSPasteboard (Rift)
 
 - (NSArray *)getFilePaths {
     NSMutableArray *paths = [NSMutableArray array];
@@ -73,7 +73,7 @@ void warp_marked_text_cleared(RiftHostView *);
     return !titlebarDragEnabled;
 }
 
-- (BOOL)readyForWarp {
+- (BOOL)readyForRift {
     return windowState != NULL;
 }
 
@@ -126,7 +126,7 @@ void warp_marked_text_cleared(RiftHostView *);
 }
 
 - (void)viewDidChangeBackingProperties {
-    if (self.readyForWarp) warp_view_did_change_backing_properties(self, asyncCallback);
+    if (self.readyForRift) rift_view_did_change_backing_properties(self, asyncCallback);
     [super viewDidChangeBackingProperties];
 }
 
@@ -138,15 +138,15 @@ void warp_marked_text_cleared(RiftHostView *);
     if (size.height >= self.window.minSize.height && size.width >= self.window.minSize.width) {
         [super setFrameSize:size];
         // It's an important optimization to only invoke this if the size changed.
-        if (self.readyForWarp && changed) {
-            warp_view_set_frame_size(self, size, asyncCallback);
+        if (self.readyForRift && changed) {
+            rift_view_set_frame_size(self, size, asyncCallback);
         }
     }
 }
 
 - (void)displayLayer:(CALayer *)layer {
-    if (!testMode && self.readyForWarp) {
-        warp_update_layer(self);
+    if (!testMode && self.readyForRift) {
+        rift_update_layer(self);
     }
 }
 
@@ -174,8 +174,8 @@ void warp_marked_text_cleared(RiftHostView *);
     interpretingKeyEvents = NO;
 
     BOOL handled = NO;
-    if (self.readyForWarp) {
-        handled = warp_handle_view_event(self, event, wasComposing || [self hasMarkedText]);
+    if (self.readyForRift) {
+        handled = rift_handle_view_event(self, event, wasComposing || [self hasMarkedText]);
     }
 
     // It's possible to have keybinding conflicts between terminal apps which use the meta key and
@@ -194,7 +194,7 @@ void warp_marked_text_cleared(RiftHostView *);
 
     // Dispatch TypedCharacter event after KeyDown has been dispatched.
     if ([textToInsert length] > 0 && !handled) {
-        warp_handle_insert_text(self, (NSString *)textToInsert);
+        rift_handle_insert_text(self, (NSString *)textToInsert);
         // Only clear marked text if the IME did not touch it during this
         // interpretKeyEvents pass. Otherwise we'd either fire a redundant
         // ClearMarkedText (if IME already cleared) or, worse, wipe the new
@@ -210,8 +210,8 @@ void warp_marked_text_cleared(RiftHostView *);
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)event {
     // We want to receive mouseDown events even if the window is not key
-    // and we explicity fire the event here so that Warp can handle it.
-    if (self.readyForWarp) warp_handle_first_mouse_event(self, event);
+    // and we explicity fire the event here so that Rift can handle it.
+    if (self.readyForRift) rift_handle_first_mouse_event(self, event);
 
     // We return NO though so that the event is not fired twice (returning YES
     // would result in the event being passed to the mouseDown handler).
@@ -219,10 +219,10 @@ void warp_marked_text_cleared(RiftHostView *);
 }
 
 - (void)mouseDown:(NSEvent *)event {
-    if (self.readyForWarp) {
-        BOOL eventHandled = warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) {
+        BOOL eventHandled = rift_handle_view_event(self, event, NO);
         if (self->titlebarDragEnabled && !eventHandled && [self mouseInTitleBar:event]) {
-            // If Warp doesn't do anything with the event, indicated by returning `false`, and
+            // If Rift doesn't do anything with the event, indicated by returning `false`, and
             // if the drag starts in the titlebar, begin dragging the window
             [self.window performWindowDragWithEvent:event];
         }
@@ -232,37 +232,37 @@ void warp_marked_text_cleared(RiftHostView *);
 - (void)mouseUp:(NSEvent *)event {
     // Our content view is full-size so we don't get the default behavior
     // on titlebar clicks. Implement it manually.
-    BOOL warp_handled = NO;
-    if (self.readyForWarp) {
-        warp_handled = warp_handle_view_event(self, event, NO);
+    BOOL rift_handled = NO;
+    if (self.readyForRift) {
+        rift_handled = rift_handle_view_event(self, event, NO);
     }
-    if (!warp_handled) {
+    if (!rift_handled) {
         [self handleTitleBarDoubleClick:event];
     }
 }
 
 - (void)otherMouseDown:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)rightMouseDown:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)mouseDragged:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)scrollWheel:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)mouseMoved:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)flagsChanged:(NSEvent *)event {
-    if (self.readyForWarp) warp_handle_view_event(self, event, NO);
+    if (self.readyForRift) rift_handle_view_event(self, event, NO);
 }
 
 - (void)dealloc {
@@ -327,10 +327,10 @@ void warp_marked_text_cleared(RiftHostView *);
     NSPoint localPoint = [self convertPoint:dragPoint fromView:nil];
 
     NSPasteboard *pasteboard = [sender draggingPasteboard];
-    if (self.readyForWarp) {
+    if (self.readyForRift) {
         NSArray *types = [pasteboard types];
         if ([types containsObject:NSPasteboardTypeFileURL]) {
-            warp_handle_file_drag(self, localPoint);
+            rift_handle_file_drag(self, localPoint);
             return YES;
         }
     }
@@ -338,8 +338,8 @@ void warp_marked_text_cleared(RiftHostView *);
 }
 
 - (void)draggingExited:(id<NSDraggingInfo>)sender {
-    if (self.readyForWarp) {
-        warp_handle_file_drag_exit(self);
+    if (self.readyForRift) {
+        rift_handle_file_drag_exit(self);
     }
 }
 
@@ -350,10 +350,10 @@ void warp_marked_text_cleared(RiftHostView *);
     NSPoint dragPoint = [sender draggingLocation];
     NSPoint localPoint = [self convertPoint:dragPoint fromView:nil];
 
-    if (self.readyForWarp && (dragOperation & NSDragOperationCopy)) {
+    if (self.readyForRift && (dragOperation & NSDragOperationCopy)) {
         NSArray *types = [pasteboard types];
         if ([types containsObject:NSPasteboardTypeFileURL]) {
-            warp_handle_drag_and_drop(self, [pasteboard getFilePaths], localPoint);
+            rift_handle_drag_and_drop(self, [pasteboard getFilePaths], localPoint);
             return YES;
         }
     }
@@ -387,7 +387,7 @@ void warp_marked_text_cleared(RiftHostView *);
 }
 
 - (id)accessibilityValue {
-    return warp_get_accessibility_contents(self);
+    return rift_get_accessibility_contents(self);
 }
 
 - (NSInteger)accessibilityNumberOfCharacters {
@@ -423,9 +423,9 @@ void warp_marked_text_cleared(RiftHostView *);
 - (NSRect)firstRectForCharacterRange:(NSRange)range
                          actualRange:(nullable NSRangePointer)actualRange {
     NSWindow *window = self.window;
-    if (self.readyForWarp) {
+    if (self.readyForRift) {
         NSRect contentRect = [window contentRectForFrameRect:[window frame]];
-        NSRect rect = warp_ime_position(self, &contentRect);
+        NSRect rect = rift_ime_position(self, &contentRect);
         return rect;
     } else {
         return NSZeroRect;
@@ -439,7 +439,7 @@ void warp_marked_text_cleared(RiftHostView *);
 // Referenced glfw for this implementation.
 // https://github.com/glfw/glfw/blob/7ef34eb06de54dd9186d3d21a401b2ef819b59e7/src/cocoa_window.m#L814
 - (void)insertText:(id)string replacementRange:(NSRange)replacementRange {
-    if (self.readyForWarp) {
+    if (self.readyForRift) {
         NSMutableString *characters = [[NSMutableString alloc] init];
 
         if ([string isKindOfClass:[NSAttributedString class]]) {
@@ -459,7 +459,7 @@ void warp_marked_text_cleared(RiftHostView *);
         if (interpretingKeyEvents) {
             [textToInsert appendString:characters];
         } else {
-            warp_handle_insert_text(self, (NSString *)characters);
+            rift_handle_insert_text(self, (NSString *)characters);
         }
 
         [characters release];
@@ -495,12 +495,12 @@ void warp_marked_text_cleared(RiftHostView *);
     else
         markedText = [[NSMutableAttributedString alloc] initWithString:string];
 
-    if (self.readyForWarp) {
-        warp_marked_text_updated(self, markedText.string, selectedRange);
+    if (self.readyForRift) {
+        rift_marked_text_updated(self, markedText.string, selectedRange);
         if ([markedText length] > 0) {
-            warp_update_ime_state(self, YES);
+            rift_update_ime_state(self, YES);
         } else {
-            warp_update_ime_state(self, NO);
+            rift_update_ime_state(self, NO);
         }
     }
 }
@@ -510,9 +510,9 @@ void warp_marked_text_cleared(RiftHostView *);
         imeTouchedMarkedTextDuringInterpret = YES;
     }
     [[markedText mutableString] setString:@""];
-    if (self.readyForWarp) {
-        warp_update_ime_state(self, NO);
-        warp_marked_text_cleared(self);
+    if (self.readyForRift) {
+        rift_update_ime_state(self, NO);
+        rift_marked_text_cleared(self);
     }
 }
 

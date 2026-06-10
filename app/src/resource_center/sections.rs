@@ -51,11 +51,11 @@ pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
     };
     sections.push(Section::Feature(get_started));
 
-    let maximize_warp = FeatureSectionData {
+    let maximize_rift = FeatureSectionData {
         section_name: FeatureSection::MaximizeRift,
         items: maximize_rift_items(ctx),
     };
-    sections.push(Section::Feature(maximize_warp));
+    sections.push(Section::Feature(maximize_rift));
 
     let advanced_setup = ContentSectionData {
         section_name: FeatureSection::AdvancedSetup,

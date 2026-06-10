@@ -32,7 +32,7 @@ pub struct Keymap {
     // We store a copy of the bindings, filtered down to only ones that are
     // triggered by a custom action.  This is done to optimize the lookups
     // of custom action bindings that are performed on macOS in response to
-    // a `[WarpDelegate menuNeedsUpdate]` selector.
+    // a `[RiftDelegate menuNeedsUpdate]` selector.
     fixed_custom_action_bindings: Vec<FixedBinding>,
     editable_custom_action_bindings: Vec<Tracked<EditableBinding>>,
 }

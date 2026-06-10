@@ -424,14 +424,14 @@ mod Ivar {
 // Declarations of functions implemented in ObjC files.
 // These signatures must be manually synced - there's no type checking here.
 extern "C" {
-    fn create_warp_nswindow(
+    fn create_rift_nswindow(
         contentRect: NSRect,
         metalDevice: *mut ProtocolObject<dyn MTLDevice>,
         hideTitleBar: Bool,
         backgroundBlurRadiusPixels: u8,
         testMode: Bool,
     ) -> *mut NSWindow;
-    fn create_warp_nspanel(
+    fn create_rift_nspanel(
         contentRect: NSRect,
         metalDevice: *mut ProtocolObject<dyn MTLDevice>,
         hideTitleBar: Bool,
@@ -444,7 +444,7 @@ extern "C" {
         window: &NSWindow,
         value: &NSString,
         help: &NSString,
-        warpRole: &NSString,
+        riftRole: &NSString,
         setFrame: Bool,
         frame: NSRect,
     );
@@ -563,7 +563,7 @@ impl Window {
             let native_window: *mut NSWindow = unsafe {
                 match options.style {
                     WindowStyle::Pin => {
-                        let panel = create_warp_nspanel(
+                        let panel = create_rift_nspanel(
                             frame,
                             metal_device_ptr,
                             Bool::new(options.hide_title_bar),
@@ -574,7 +574,7 @@ impl Window {
                         let _: () = msg_send![panel, positionPinnedPanel];
                         panel
                     }
-                    _ => create_warp_nswindow(
+                    _ => create_rift_nswindow(
                         frame,
                         metal_device_ptr,
                         Bool::new(options.hide_title_bar),
@@ -642,7 +642,7 @@ impl Window {
             }
 
             // Set the initial scale properly.
-            warp_view_did_change_backing_properties(as_objc_object(&native_view), true);
+            rift_view_did_change_backing_properties(as_objc_object(&native_view), true);
 
             // SAFETY: these call into the hand-written Objective-C positioning helpers.
             unsafe {
@@ -1070,7 +1070,7 @@ impl WindowState {
     /// Returns a reference to the backing `NSWindow`.
     ///
     /// The window outlives the `WindowState`: the window owns the state through its
-    /// ivar and clears it in `warp_dealloc_window`.
+    /// ivar and clears it in `rift_dealloc_window`.
     fn window(&self) -> &NSWindow {
         // SAFETY: `native_window` stays valid for the whole lifetime of the state.
         unsafe { &*self.native_window }
@@ -1255,7 +1255,7 @@ impl WindowExt for &dyn platform::Window {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_view_did_change_backing_properties(this: &Object, async_callback: bool) {
+extern "C-unwind" fn rift_view_did_change_backing_properties(this: &Object, async_callback: bool) {
     // SAFETY: `this` is a RiftHostView carrying the window-state ivar; its backing
     // layer is always a CAMetalLayer.
     let (window, layer) = unsafe {
@@ -1308,7 +1308,7 @@ extern "C-unwind" fn warp_view_did_change_backing_properties(this: &Object, asyn
 }
 
 #[no_mangle]
-pub extern "C-unwind" fn warp_get_accessibility_contents(object: &mut Object) -> id {
+pub extern "C-unwind" fn rift_get_accessibility_contents(object: &mut Object) -> id {
     let state = unsafe { get_window_state(object) };
     let window_id = state.window_id;
     let accessibility_data = app::callback_dispatcher()
@@ -1322,7 +1322,7 @@ pub extern "C-unwind" fn warp_get_accessibility_contents(object: &mut Object) ->
 }
 
 #[no_mangle]
-pub extern "C-unwind" fn warp_ime_position(object: &mut Object, content_rect: NSRect) -> NSRect {
+pub extern "C-unwind" fn rift_ime_position(object: &mut Object, content_rect: NSRect) -> NSRect {
     let state = unsafe { get_window_state(object) };
 
     let cursor_info = app::callback_dispatcher()
@@ -1351,7 +1351,7 @@ pub extern "C-unwind" fn warp_ime_position(object: &mut Object, content_rect: NS
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_view_set_frame_size(this: &Object, size: NSSize, async_callback: bool) {
+extern "C-unwind" fn rift_view_set_frame_size(this: &Object, size: NSSize, async_callback: bool) {
     // SAFETY: `this` is a RiftHostView carrying the window-state ivar; its backing
     // layer is always a CAMetalLayer.
     let (window, layer) = unsafe {
@@ -1461,7 +1461,7 @@ extern "C-unwind" fn rift_update_layer(this: &Object) {
 
 /// Returns whether this event was handled.
 #[no_mangle]
-extern "C-unwind" fn warp_handle_view_event(
+extern "C-unwind" fn rift_handle_view_event(
     this: &Object,
     native_event: id,
     composing_state: bool,
@@ -1506,7 +1506,7 @@ extern "C-unwind" fn warp_handle_view_event(
 /// gain focus.
 /// Returns whether this event was handled.
 #[no_mangle]
-extern "C-unwind" fn warp_handle_first_mouse_event(this: &Object, native_event: id) -> bool {
+extern "C-unwind" fn rift_handle_first_mouse_event(this: &Object, native_event: id) -> bool {
     let window = unsafe { get_window_state(this) };
     let event =
         unsafe { super::event::from_native(native_event, Some(window.logical_size().y()), true) };
@@ -1520,7 +1520,7 @@ extern "C-unwind" fn warp_handle_first_mouse_event(this: &Object, native_event: 
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_handle_insert_text(this: &Object, characters: id) {
+extern "C-unwind" fn rift_handle_insert_text(this: &Object, characters: id) {
     // SAFETY: `characters` is a valid `NSString` of the inserted text.
     let string = unsafe { &*characters.cast::<NSString>() }.to_string();
     let window = unsafe { get_window_state(this) };
@@ -1530,7 +1530,7 @@ extern "C-unwind" fn warp_handle_insert_text(this: &Object, characters: id) {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_handle_drag_and_drop(this: &Object, paths: id, point: NSPoint) {
+extern "C-unwind" fn rift_handle_drag_and_drop(this: &Object, paths: id, point: NSPoint) {
     // SAFETY: `paths` is an `NSArray<NSString>` of dropped file paths.
     let paths = unsafe {
         let paths = &*paths.cast::<NSArray<NSString>>();
@@ -1547,7 +1547,7 @@ extern "C-unwind" fn warp_handle_drag_and_drop(this: &Object, paths: id, point: 
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_handle_file_drag(this: &Object, point: NSPoint) {
+extern "C-unwind" fn rift_handle_file_drag(this: &Object, point: NSPoint) {
     let window = unsafe { get_window_state(this) };
     let location = vec2f(point.x as f32, window.logical_size().y() - point.y as f32);
 
@@ -1557,7 +1557,7 @@ extern "C-unwind" fn warp_handle_file_drag(this: &Object, point: NSPoint) {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_handle_file_drag_exit(this: &Object) {
+extern "C-unwind" fn rift_handle_file_drag_exit(this: &Object) {
     let window = unsafe { get_window_state(this) };
 
     app::callback_dispatcher()
@@ -1566,7 +1566,7 @@ extern "C-unwind" fn warp_handle_file_drag_exit(this: &Object) {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_update_ime_state(this: &mut Object, ime_active: bool) {
+extern "C-unwind" fn rift_update_ime_state(this: &mut Object, ime_active: bool) {
     let state = unsafe { get_window_state(this) };
     state.ime_active.set(ime_active);
 }
@@ -1580,7 +1580,7 @@ fn nsrange_to_rust_range(ns_range: NSRange) -> std::ops::Range<usize> {
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_marked_text_updated(
+extern "C-unwind" fn rift_marked_text_updated(
     this: &mut Object,
     marked_text: id,
     selected_range: NSRange,
@@ -1598,7 +1598,7 @@ extern "C-unwind" fn warp_marked_text_updated(
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_marked_text_cleared(this: &mut Object) {
+extern "C-unwind" fn rift_marked_text_cleared(this: &mut Object) {
     let state = unsafe { get_window_state(&*this) };
     app::callback_dispatcher()
         .for_window(&Window(state.clone()))
@@ -1606,7 +1606,7 @@ extern "C-unwind" fn warp_marked_text_cleared(this: &mut Object) {
 }
 
 #[no_mangle]
-pub extern "C-unwind" fn warp_dispatch_standard_action(this: id, tag: NSInteger) {
+pub extern "C-unwind" fn rift_dispatch_standard_action(this: id, tag: NSInteger) {
     if let Some(action) = StandardAction::from_isize(tag) {
         let state = unsafe { get_window_state(&*this) };
         app::callback_dispatcher()
@@ -1616,7 +1616,7 @@ pub extern "C-unwind" fn warp_dispatch_standard_action(this: id, tag: NSInteger)
 }
 
 #[no_mangle]
-pub extern "C-unwind" fn warp_app_window_moved(this: id, rect: NSRect) {
+pub extern "C-unwind" fn rift_app_window_moved(this: id, rect: NSRect) {
     let state = unsafe { get_window_state(&*this) };
     let point = Vector2F::new(rect.origin.x as f32, rect.origin.y as f32);
     let size = Vector2F::new(rect.size.width as f32, rect.size.height as f32);
@@ -1651,7 +1651,7 @@ unsafe fn remove_state_ivar_from_object(object: &mut Object) -> Rc<WindowState> 
 // because its retain count has dropped to zero. This is our chance to release
 // our Rust resources. Do not call this manually.
 #[no_mangle]
-pub extern "C-unwind" fn warp_dealloc_window(native_window: &mut Object) {
+pub extern "C-unwind" fn rift_dealloc_window(native_window: &mut Object) {
     log::info!("dealloc native window {native_window:p}");
     let state;
     // SAFETY: `native_window` is a RiftWindow being deallocated; its content view

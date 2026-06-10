@@ -1,9 +1,9 @@
 #import <AppKit/AppKit.h>
 
-// WarpCustomMenuItemHandler is set as both the target and represented object of NSMenuItem.
+// RiftCustomMenuItemHandler is set as both the target and represented object of NSMenuItem.
 // It gives the Rust side a chance to dynamically update menu items, and
 // respond to their actions.
-@interface WarpCustomMenuItemHandler : NSObject <NSMenuItemValidation> {
+@interface RiftCustomMenuItemHandler : NSObject <NSMenuItemValidation> {
     void *rustContext;
 }
 

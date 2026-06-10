@@ -307,7 +307,7 @@ fn model_token_usage_replays_custom_endpoint_usage_by_model_id() {
 fn model_token_usage_replay_skips_non_custom_endpoint_entries() {
     let warp_only = ModelTokenUsage {
         model_id: "warp-model".to_string(),
-        warp_tokens: 4,
+        rift_tokens: 4,
         ..Default::default()
     };
     assert!(warp_only.to_proto_custom_endpoint_usage().is_none());

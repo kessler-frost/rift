@@ -1,7 +1,7 @@
 #import <AppKit/AppKit.h>
 #import <Carbon/Carbon.h>
 
-@interface WarpHotKey : NSObject {
+@interface RiftHotKey : NSObject {
    @public
     EventHotKeyRef _eventHotKey;
    @public

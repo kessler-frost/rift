@@ -460,7 +460,7 @@ pub struct PrecmdValue {
 impl PrecmdValue {
     /// Returns `true` if this PrecmdValue was emitted after the completion of an in-band command.
     ///
-    /// This relies on the assumption that the warp_precmd shell function (responsible for writing
+    /// This relies on the assumption that the rift_precmd shell function (responsible for writing
     /// this to the PTY from the shell) does not populate `pwd` or `ps1` when the previous command
     /// was an in-band command; for all other cases these fields should always be populated.
     pub fn was_sent_after_in_band_command(&self) -> bool {

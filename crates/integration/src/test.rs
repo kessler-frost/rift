@@ -3358,7 +3358,7 @@ pub fn test_auto_title() -> Builder {
 }
 
 /// Validate that disabling Rift's auto title feature will not mess with oh-my-zsh settings.
-pub fn test_warp_auto_title_disabled() -> Builder {
+pub fn test_rift_auto_title_disabled() -> Builder {
     new_builder()
         .set_should_run_test(|| {
             // Only run this one on bash and zsh
@@ -3400,7 +3400,7 @@ RIFT_DISABLE_AUTO_TITLE="true"
 
 /// Checks that the tab title set by the user takes precedence over the Rift's default title and
 /// doesn't require any additional setting from the user's POV. This is bash-specific test.
-pub fn test_warp_honors_user_title_bash() -> Builder {
+pub fn test_rift_honors_user_title_bash() -> Builder {
     new_builder()
         .set_should_run_test(|| {
             // Only run this one on bash
@@ -3432,7 +3432,7 @@ PROMPT_COMMAND='echo -en "\033]0;TEST_TAB_TITLE\a"'
 
 /// Checks that the tab title set by the user takes precedence over the Rift's default title and
 /// doesn't require any additional setting from the user's POV. This is zsh-specific test.
-pub fn test_warp_honors_user_title_zsh() -> Builder {
+pub fn test_rift_honors_user_title_zsh() -> Builder {
     new_builder()
         .set_should_run_test(|| {
             // Only run this one on bash
@@ -5866,7 +5866,7 @@ pub fn test_copy_prompt_from_input_honor_ps1_disabled() -> Builder {
                 .add_assertion(assert_clipboard_contains_string("~".into())),
         )
 }
-pub fn test_warp_prompt_unsets_zsh_rprompt() -> Builder {
+pub fn test_rift_prompt_unsets_zsh_rprompt() -> Builder {
     new_builder()
         .set_should_run_test(|| {
             let (starter, _) = current_shell_starter_and_version();

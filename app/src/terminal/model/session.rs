@@ -266,7 +266,7 @@ impl Sessions {
         #[cfg(feature = "local_tty")]
         let bootstrap_duration_seconds =
             pending_session_start_time.map(|start| start.elapsed().as_secs_f64());
-        let _warp_attributed_bootstrap_duration_seconds =
+        let _rift_attributed_bootstrap_duration_seconds =
             match (bootstrap_duration_seconds, rcfiles_duration_seconds) {
                 (Some(total), Some(rcfiles)) => Some(total - rcfiles),
                 _ => None,
@@ -287,7 +287,7 @@ impl Sessions {
                 is_wsl: session.is_wsl(),
                 bootstrap_duration_seconds,
                 rcfiles_duration_seconds,
-                warp_attributed_bootstrap_duration_seconds,
+                rift_attributed_bootstrap_duration_seconds,
                 is_msys2: session.is_msys2(),
                 terminal_session_id: Some(session.id()),
             }),

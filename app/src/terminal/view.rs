@@ -6071,7 +6071,7 @@ impl TerminalView {
                 bootstrap_duration_seconds: None,
                 shell_version: None,
                 rcfiles_duration_seconds: None,
-                warp_attributed_bootstrap_duration_seconds: None,
+                rift_attributed_bootstrap_duration_seconds: None,
                 terminal_session_id: None,
             }),
             ctx

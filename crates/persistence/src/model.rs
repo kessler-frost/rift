@@ -1102,15 +1102,16 @@ pub struct ModelTokenUsage {
     /// (or fallback label) — the upstream `config_key` is translated into this
     /// label once at ingestion time and is not retained separately.
     pub model_id: String,
-    /// Alias for backward compat: old persisted data used `total_tokens` for rift usage.
-    #[serde(default, alias = "total_tokens")]
-    pub warp_tokens: u32,
+    /// Aliases for backward compat: old persisted data used `total_tokens`,
+    /// then `warp_tokens`, for rift usage.
+    #[serde(default, alias = "total_tokens", alias = "warp_tokens")]
+    pub rift_tokens: u32,
     #[serde(default)]
     pub byok_tokens: u32,
     #[serde(default)]
     pub custom_endpoint_tokens: u32,
-    #[serde(default)]
-    pub warp_token_usage_by_category: HashMap<TokenUsageCategory, u32>,
+    #[serde(default, alias = "warp_token_usage_by_category")]
+    pub rift_token_usage_by_category: HashMap<TokenUsageCategory, u32>,
     #[serde(default)]
     pub byok_token_usage_by_category: HashMap<TokenUsageCategory, u32>,
     #[serde(default)]
@@ -1141,7 +1142,7 @@ impl ModelTokenUsage {
     }
 
     pub fn to_proto_rift_usage(&self) -> Option<(String, stream_finished::ModelTokenUsage)> {
-        self.to_proto_usage(self.warp_tokens, &self.warp_token_usage_by_category)
+        self.to_proto_usage(self.rift_tokens, &self.rift_token_usage_by_category)
     }
 
     pub fn to_proto_byok_usage(&self) -> Option<(String, stream_finished::ModelTokenUsage)> {
@@ -1172,9 +1173,9 @@ impl ModelTokenUsage {
     pub fn to_proto_combined(&self) -> stream_finished::ModelTokenUsage {
         stream_finished::ModelTokenUsage {
             model_id: self.model_id.clone(),
-            total_tokens: self.warp_tokens + self.byok_tokens + self.custom_endpoint_tokens,
+            total_tokens: self.rift_tokens + self.byok_tokens + self.custom_endpoint_tokens,
             token_usage_by_category: self
-                .warp_token_usage_by_category
+                .rift_token_usage_by_category
                 .iter()
                 .chain(self.byok_token_usage_by_category.iter())
                 .chain(self.custom_endpoint_token_usage_by_category.iter())

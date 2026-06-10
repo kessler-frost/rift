@@ -128,7 +128,7 @@ enum PromptType {
 }
 
 impl PromptType {
-    fn warp_prompt_from_settings(app: &AppContext) -> PromptType {
+    fn rift_prompt_from_settings(app: &AppContext) -> PromptType {
         let session_settings = SessionSettings::as_ref(app);
         if matches!(*session_settings.saved_prompt, PromptSelection::Default) {
             PromptType::RiftDefault
@@ -142,7 +142,7 @@ impl PromptType {
         if *session_settings.honor_ps1 {
             PromptType::PS1
         } else {
-            Self::warp_prompt_from_settings(app)
+            Self::rift_prompt_from_settings(app)
         }
     }
 }
@@ -386,7 +386,7 @@ impl TypedActionView for EditorModal {
             }
             Self::Action::UseRiftPrompt => {
                 self.is_dirty = true;
-                self.prompt_type = PromptType::warp_prompt_from_settings(ctx);
+                self.prompt_type = PromptType::rift_prompt_from_settings(ctx);
                 // Enable the Rift separator dropdown, if SLP is on.
                 self.update_rift_separator_dropdown_state(ctx);
                 ctx.notify();

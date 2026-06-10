@@ -186,9 +186,9 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_custom_ps1_expansion_bash);
     register_test!(test_completions_with_autocd);
     register_test!(test_auto_title);
-    register_test!(test_warp_auto_title_disabled);
-    register_test!(test_warp_honors_user_title_bash);
-    register_test!(test_warp_honors_user_title_zsh);
+    register_test!(test_rift_auto_title_disabled);
+    register_test!(test_rift_honors_user_title_bash);
+    register_test!(test_rift_honors_user_title_zsh);
     register_test!(test_osc7_updates_current_working_directory);
     register_test!(test_input_focused_after_executing_command);
     register_test!(test_new_session_focuses_input);
@@ -260,7 +260,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_copy_prompt_from_block_honor_ps1_disabled);
     register_test!(test_copy_prompt_from_block_honor_ps1_enabled);
     register_test!(test_copy_prompt_from_input_honor_ps1_disabled);
-    register_test!(test_warp_prompt_unsets_zsh_rprompt);
+    register_test!(test_rift_prompt_unsets_zsh_rprompt);
     register_test!(test_copy_prompt_from_input_honor_ps1_enabled);
     register_test!(test_copy_rprompt_from_input_honor_ps1_enabled);
     register_test!(test_rprompt_doesnt_show_when_not_enough_space);

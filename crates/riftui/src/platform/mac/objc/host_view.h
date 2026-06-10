@@ -1,11 +1,11 @@
 #import <AppKit/AppKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-@interface NSPasteboard (Warp)
+@interface NSPasteboard (Rift)
 - (NSArray *)getFilePaths;
 @end
 
-/// RiftHostView is the Content view of a Warp window.
+/// RiftHostView is the Content view of a Rift window.
 // It is backed by a Metal CALayer.
 @interface RiftHostView : NSView <CALayerDelegate, NSTextInputClient>
 - (RiftHostView *)initWithFrame:(NSRect)frame

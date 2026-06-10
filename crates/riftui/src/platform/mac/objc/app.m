@@ -13,7 +13,7 @@
 
 static void *NSAppThemeChangeContext = &NSAppThemeChangeContext;
 
-NSMutableDictionary<NSNumber *, WarpHotKey *> *_hotKeys;
+NSMutableDictionary<NSNumber *, RiftHotKey *> *_hotKeys;
 UInt32 _nextHotKeyID;
 
 OSStatus HotkeyPressedHandler(EventHandlerCallRef _inCaller __unused, EventRef inEvent,
@@ -28,9 +28,9 @@ OSStatus HotkeyPressedHandler(EventHandlerCallRef _inCaller __unused, EventRef i
         return eventNotHandledErr;
     }
 
-    WarpHotKey *hotkey = _hotKeys[@(hotKeyID.id)];
+    RiftHotKey *hotkey = _hotKeys[@(hotKeyID.id)];
     if (hotkey) {
-        warp_app_send_global_keybinding((NSApplication *)inUserData, hotkey->_modifierKeys,
+        rift_app_send_global_keybinding((NSApplication *)inUserData, hotkey->_modifierKeys,
                                         hotkey->_keyCode);
         return noErr;
     }
@@ -62,7 +62,7 @@ void *registerGlobalHotkey(NSUInteger key, NSUInteger modifiers) {
                             &hotKeyRef)) {
         return nil;
     };
-    [_hotKeys setObject:[[[WarpHotKey alloc] initWithEventHotKey:hotKeyRef
+    [_hotKeys setObject:[[[RiftHotKey alloc] initWithEventHotKey:hotKeyRef
                                                          keyCode:key
                                                     modifierKeys:modifiers] autorelease]
                  forKey:@(hotKeyID.id)];
@@ -97,13 +97,13 @@ NSUInteger activeScreenId() {
         unsignedIntegerValue];
 }
 
-@interface WarpMenuItemDelegate : NSObject <NSMenuDelegate> {
+@interface RiftMenuItemDelegate : NSObject <NSMenuDelegate> {
     // Rust expects an ivar with this name.
     void *rustWrapper;
 }
 @end
 
-@implementation WarpDelegate {
+@implementation RiftDelegate {
     // Rust expects an ivar with this name.
     void *rustWrapper;
 
@@ -167,7 +167,7 @@ NSUInteger activeScreenId() {
     // Tell the shared notification center to use the current view as the
     // `UNUserNotificationCenterDelegate` delegate. We only do this if the application
     // is bundled, otherwise the app will crash when trying to set the delegate. This allows
-    // warpui to still be run via `cargo run` since the app is not bundled in this case. Note this
+    // riftui to still be run via `cargo run` since the app is not bundled in this case. Note this
     // has no functional change in the non-bundled case since the app must be bundled for
     // notifications to actually be sent/received.
     NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
@@ -214,7 +214,7 @@ NSUInteger activeScreenId() {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setBool:NO forKey:@"NSAutoFillHeuristicControllerEnabled"];
 
-    if (rustWrapper) warp_app_will_finish_launching(note.object);
+    if (rustWrapper) rift_app_will_finish_launching(note.object);
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)note {
@@ -229,7 +229,7 @@ NSUInteger activeScreenId() {
                         change:(NSDictionary *)change
                        context:(void *)context {
     if (context == NSAppThemeChangeContext) {
-        if (rustWrapper) warp_app_os_appearance_changed(self);
+        if (rustWrapper) rift_app_os_appearance_changed(self);
     } else {
         // Any unrecognized context must belong to super
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -237,7 +237,7 @@ NSUInteger activeScreenId() {
 }
 
 - (void)applicationDidBecomeActive:(NSNotification *)note {
-    if (rustWrapper) warp_app_did_become_active(note.object);
+    if (rustWrapper) rift_app_did_become_active(note.object);
 }
 
 - (void)setForceTermination {
@@ -266,7 +266,7 @@ NSUInteger activeScreenId() {
     if (!forceTermination) {
         // Make sure the rust app doesn't have any reasons to interrupt quit, e.g. needs to relaunch
         // for autoupdate, but launching the new process failed.
-        okToTerminate = warp_app_should_terminate_app(application);
+        okToTerminate = rift_app_should_terminate_app(application);
     }
 
     if (okToTerminate) {
@@ -304,26 +304,26 @@ NSUInteger activeScreenId() {
 }
 
 - (void)applicationDidResignActive:(NSNotification *)note {
-    if (rustWrapper) warp_app_did_resign_active(note.object);
+    if (rustWrapper) rift_app_did_resign_active(note.object);
 }
 
 - (void)applicationWillTerminate:(NSNotification *)note {
-    if (rustWrapper) warp_app_will_terminate(note.object);
+    if (rustWrapper) rift_app_will_terminate(note.object);
 }
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray<NSString *> *)filenames {
-    if (rustWrapper) warp_app_open_files(sender, filenames);
+    if (rustWrapper) rift_app_open_files(sender, filenames);
 }
 
 - (void)application:(NSApplication *)application openURLs:(NSArray<NSURL *> *)urls {
-    if (rustWrapper) warp_app_open_urls(application, urls);
+    if (rustWrapper) rift_app_open_urls(application, urls);
 }
 
 // This is called when clicking on the app in the Dock or from Finder.
 // If there's no visible windows, we will open one.
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)app hasVisibleWindows:(BOOL)flag {
     if (rustWrapper && !flag) {
-        warp_app_new_window(app);
+        rift_app_new_window(app);
         return NO;  // do nothing
     }
     return YES;
@@ -333,13 +333,13 @@ NSUInteger activeScreenId() {
     // We use an async dispatch here for two reasons:
     //  1. When the active window changes, this will be called twice (once for resign, once for
     //     activated). We can coalesce these calls.
-    //  2. When a new window is created, warp will activate it; if we recursively call back into
-    //     warp then we will cause the app to be mutably borrowed while already borrowed.
+    //  2. When a new window is created, rift will activate it; if we recursively call back into
+    //     rift then we will cause the app to be mutably borrowed while already borrowed.
     if (!hasPendingActiveWindowChange) {
         hasPendingActiveWindowChange = YES;
         dispatch_async(dispatch_get_main_queue(), ^{
           self->hasPendingActiveWindowChange = NO;
-          if (self->rustWrapper) warp_app_active_window_changed(self);
+          if (self->rustWrapper) rift_app_active_window_changed(self);
         });
     }
 }
@@ -351,19 +351,19 @@ NSUInteger activeScreenId() {
     // callback gets triggered after the window notification. Thus using the async dispatch
     // here ensures we always save the most up-to-date value within the database.
     dispatch_async(dispatch_get_main_queue(), ^{
-      if (self->rustWrapper) warp_app_window_did_move(self);
+      if (self->rustWrapper) rift_app_window_did_move(self);
     });
 }
 
 - (void)windowResized:(NSNotification *)note {
     dispatch_async(dispatch_get_main_queue(), ^{
-      if (self->rustWrapper) warp_app_window_did_resize(self);
+      if (self->rustWrapper) rift_app_window_did_resize(self);
     });
 }
 
 - (void)screenChanged:(NSNotification *)note {
     dispatch_async(dispatch_get_main_queue(), ^{
-      if (self->rustWrapper) warp_app_screen_did_change(self);
+      if (self->rustWrapper) rift_app_screen_did_change(self);
     });
 }
 
@@ -380,12 +380,12 @@ NSUInteger activeScreenId() {
 }
 
 - (void)menuNeedsUpdate:(NSMenu *)menu {
-    // Trigger warp_menu_item_needs_update for every item with our class set as its represented
+    // Trigger rift_menu_item_needs_update for every item with our class set as its represented
     // object.
-    Class warpHandlerClass = [WarpCustomMenuItemHandler class];
+    Class riftHandlerClass = [RiftCustomMenuItemHandler class];
     for (NSMenuItem *item in menu.itemArray) {
         id obj = item.representedObject;
-        if ([obj isKindOfClass:warpHandlerClass]) {
+        if ([obj isKindOfClass:riftHandlerClass]) {
             [obj itemNeedsUpdate:item];
         }
     }
@@ -400,7 +400,7 @@ NSUInteger activeScreenId() {
       dispatch_async(dispatch_get_main_queue(), ^{
         if (self->isReachable == nil || [self->isReachable intValue] == 0) {
             self->isReachable = [NSNumber numberWithBool:YES];
-            if (self->rustWrapper) warp_app_internet_reachability_changed(self, YES);
+            if (self->rustWrapper) rift_app_internet_reachability_changed(self, YES);
         }
       });
     };
@@ -411,7 +411,7 @@ NSUInteger activeScreenId() {
       dispatch_async(dispatch_get_main_queue(), ^{
         if (self->isReachable == nil || [self->isReachable intValue] > 0) {
             self->isReachable = [NSNumber numberWithBool:NO];
-            if (self->rustWrapper) warp_app_internet_reachability_changed(self, NO);
+            if (self->rustWrapper) rift_app_internet_reachability_changed(self, NO);
         }
       });
     };
@@ -424,7 +424,7 @@ NSUInteger activeScreenId() {
         if (self->isReachable == nil) {
             self->isReachable = [NSNumber numberWithBool:internetIsReachable];
             if (self->rustWrapper)
-                warp_app_internet_reachability_changed(self, internetIsReachable);
+                rift_app_internet_reachability_changed(self, internetIsReachable);
         }
       });
     });
@@ -440,14 +440,14 @@ NSUInteger activeScreenId() {
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
     didReceiveNotificationResponse:(UNNotificationResponse *)response
              withCompletionHandler:(void (^)(void))completionHandler {
-    // Handle what happens when the user clicks the notification. Warp doesn't support any actions
+    // Handle what happens when the user clicks the notification. Rift doesn't support any actions
     // other than the default action currently.
     if ([response.actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
         NSDictionary *userInfo = response.notification.request.content.userInfo;
         NSString *data = userInfo[@"DATA"];
 
         if (rustWrapper) {
-            warp_app_notification_clicked(self, response.notification.date.timeIntervalSince1970,
+            rift_app_notification_clicked(self, response.notification.date.timeIntervalSince1970,
                                           data);
         }
     }
@@ -455,13 +455,13 @@ NSUInteger activeScreenId() {
 
 @end
 
-@implementation WarpApplication {
+@implementation RiftApplication {
     // Rust expects an ivar with this name.
     void *rustWrapper;
 }
 
 - (void)setForceTermination {
-    WarpDelegate *delegate = (WarpDelegate *)self.delegate;
+    RiftDelegate *delegate = (RiftDelegate *)self.delegate;
     [delegate setForceTermination];
 }
 
@@ -472,24 +472,24 @@ NSUInteger activeScreenId() {
       BOOL disable_modal = alert.suppressionButton.state == NSControlStateValueOn;
       // Subtracting `NSAlertFirstButtonReturn` from `response` yields the 0-based index of the
       // button that was actually clicked.
-      warp_app_process_modal_response(self, modalId, response - NSAlertFirstButtonReturn,
+      rift_app_process_modal_response(self, modalId, response - NSAlertFirstButtonReturn,
                                       disable_modal);
     });
 }
 
 @end
 
-WarpApplication *get_warp_app() {
+RiftApplication *get_rift_app() {
     // Set up the delegate (once).
     // The delegate is deliberately leaked.
-    WarpApplication *app = [WarpApplication sharedApplication];
+    RiftApplication *app = [RiftApplication sharedApplication];
     static dispatch_once_t once;
     static id sharedDelegate;
     dispatch_once(&once, ^{
-      sharedDelegate = [[WarpDelegate alloc] init];
+      sharedDelegate = [[RiftDelegate alloc] init];
       [app setDelegate:sharedDelegate];
 
-      // Hack to work around the fact that warp is frequently tested as a
+      // Hack to work around the fact that rift is frequently tested as a
       // standalone (unbundled) binary.
       app.activationPolicy = NSApplicationActivationPolicyRegular;
     });
@@ -500,7 +500,7 @@ WarpApplication *get_warp_app() {
 // The result is autoreleased.
 NSMenu *make_delegated_menu(NSString *title) {
     NSMenu *result = [[[NSMenu alloc] initWithTitle:title] autorelease];
-    result.delegate = (WarpDelegate *)[[WarpApplication sharedApplication] delegate];
+    result.delegate = (RiftDelegate *)[[RiftApplication sharedApplication] delegate];
     return result;
 }
 
@@ -519,11 +519,11 @@ NSMenuItem *make_services_menu_item() {
 }
 
 // \return a new menu item that wraps the given context pointer.
-// The pointer will be provided back to Warp in the callbacks (see menus.h).
+// The pointer will be provided back to Rift in the callbacks (see menus.h).
 // The result is autoreleased.
-NSMenuItem *make_warp_custom_menu_item(void *context) {
-    WarpCustomMenuItemHandler *handler =
-        [[[WarpCustomMenuItemHandler alloc] initWithContext:context] autorelease];
+NSMenuItem *make_rift_custom_menu_item(void *context) {
+    RiftCustomMenuItemHandler *handler =
+        [[[RiftCustomMenuItemHandler alloc] initWithContext:context] autorelease];
 
     // Sets action to NULL if menu item has submenu, so the menu doesn't close when item is clicked
     NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:@""

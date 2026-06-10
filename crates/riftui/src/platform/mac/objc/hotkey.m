@@ -3,7 +3,7 @@
 
 #import "hotkey.h"
 
-@implementation WarpHotKey
+@implementation RiftHotKey
 
 - (instancetype)initWithEventHotKey:(EventHotKeyRef)eventHotKey
                             keyCode:(NSUInteger)keyCode

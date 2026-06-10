@@ -67,7 +67,7 @@ pub struct BootstrappingInfo {
     /// time, which roughly equals the time cost of running our bootstrap
     /// script.  Will be None if `bootstrap_duration_seconds` or
     /// `rcfiles_duration_seconds` is None.
-    pub warp_attributed_bootstrap_duration_seconds: Option<f64>,
+    pub rift_attributed_bootstrap_duration_seconds: Option<f64>,
     pub shell_version: Option<String>,
     pub terminal_session_id: Option<SessionId>,
 }

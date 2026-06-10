@@ -1,10 +1,10 @@
 #import "menus.h"
 
-void warp_menu_item_needs_update(NSMenuItem *, void *);
-void warp_menu_item_triggered(NSMenuItem *, void *);
-void warp_menu_item_deallocated(void *);
+void rift_menu_item_needs_update(NSMenuItem *, void *);
+void rift_menu_item_triggered(NSMenuItem *, void *);
+void rift_menu_item_deallocated(void *);
 
-@implementation WarpCustomMenuItemHandler
+@implementation RiftCustomMenuItemHandler
 
 - (id)initWithContext:(void *)context {
     self = [super init];
@@ -13,15 +13,15 @@ void warp_menu_item_deallocated(void *);
 }
 
 - (void)itemWasTriggered:(NSMenuItem *)item {
-    if (rustContext && ![item hasSubmenu]) warp_menu_item_triggered(item, rustContext);
+    if (rustContext && ![item hasSubmenu]) rift_menu_item_triggered(item, rustContext);
 }
 
 - (void)itemNeedsUpdate:(NSMenuItem *)item {
-    if (rustContext) warp_menu_item_needs_update(item, rustContext);
+    if (rustContext) rift_menu_item_needs_update(item, rustContext);
 }
 
 - (void)dealloc {
-    if (rustContext) warp_menu_item_deallocated(rustContext);
+    if (rustContext) rift_menu_item_deallocated(rustContext);
     [super dealloc];
 }
 

@@ -11,12 +11,12 @@
 #import "window_blur.h"
 
 // NSWindow.delegate is a weak reference, so the RiftWindowDelegate we create in
-// `create_warp_nswindow` / `create_warp_nspanel` would otherwise be leaked with a +1
+// `create_rift_nswindow` / `create_rift_nspanel` would otherwise be leaked with a +1
 // retain count. Associating it with the window ties its lifetime to the window: the
 // associated object is released by the runtime when the window itself is deallocated.
 static const void *kRiftWindowDelegateAssocKey = &kRiftWindowDelegateAssocKey;
 
-NSWindowStyleMask warpWindowMask = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
+NSWindowStyleMask riftWindowMask = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
                                    NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
 
 // The default macOS titlebar height (in points).
@@ -76,14 +76,14 @@ dispatch_once_t fullscreenQueueOnce;
 @end
 
 @class RiftWindow;
-@class WarpPanel;
+@class RiftPanel;
 
 // Declaration of functions implemented in Rust.
-void warp_dealloc_window(id self);
-void warp_dispatch_standard_action(id self, NSInteger tag);
-void warp_app_window_moved(id self, NSRect rect);
-void warp_open_panel_file_selected(id urls, void *callback);
-void warp_save_panel_file_selected(id url, void *callback);
+void rift_dealloc_window(id self);
+void rift_dispatch_standard_action(id self, NSInteger tag);
+void rift_app_window_moved(id self, NSRect rect);
+void rift_open_panel_file_selected(id urls, void *callback);
+void rift_save_panel_file_selected(id url, void *callback);
 
 NSNumber *previouslyActiveAppPID;
 
@@ -129,34 +129,34 @@ NSNumber *previouslyActiveAppPID;
 - (void)windowDidMove:(NSNotification *)notification {
     if (windowState) {
         NSWindow *window = notification.object;
-        warp_app_window_moved(self, window.frame);
+        rift_app_window_moved(self, window.frame);
     }
 }
 
 - (void)windowWillStartLiveResize:(NSNotification *)notification {
     RiftWindow *rift_window = notification.object;
-    RiftHostView *warp_view = rift_window.contentView;
+    RiftHostView *rift_view = rift_window.contentView;
 
     // This is a hack to get around `borrowMut` errors within the UI framework
     // caused by the fact that it incorrectly assumes that callbacks cannot
     // synchronously cause another callback to be triggered. To avoid this for now,
     // we explicitly force callbacks to be synchronous if it's caused by the user instead
     // of another system call (such as the active screen changing)
-    [warp_view setAsyncCallback:NO];
+    [rift_view setAsyncCallback:NO];
 
     // While the user is dragging to resize the window, we want to present frames
     // within transactions to ensure the resize is visually smooth and there is no
     // stuttering resulting from asynchronous presentation.
-    [warp_view setPresentsWithTransaction:YES];
+    [rift_view setPresentsWithTransaction:YES];
 }
 
 - (void)windowDidEndLiveResize:(NSNotification *)notification {
     RiftWindow *rift_window = notification.object;
-    RiftHostView *warp_view = rift_window.contentView;
+    RiftHostView *rift_view = rift_window.contentView;
 
     // Reset state changed in `windowWillStartLiveResize`.
-    [warp_view setAsyncCallback:YES];
-    [warp_view setPresentsWithTransaction:NO];
+    [rift_view setAsyncCallback:YES];
+    [rift_view setPresentsWithTransaction:NO];
 }
 
 - (void)setForceTermination {
@@ -169,7 +169,7 @@ NSNumber *previouslyActiveAppPID;
     }
 
     NSApplication *application = [NSApplication sharedApplication];
-    BOOL okToClose = warp_app_should_close_window(application, window);
+    BOOL okToClose = rift_app_should_close_window(application, window);
 
     if (okToClose) {
         return YES;
@@ -180,7 +180,7 @@ NSNumber *previouslyActiveAppPID;
 
 - (void)windowWillClose:(NSNotification *)note {
     if (windowState) {
-        warp_app_window_will_close([NSApplication sharedApplication], self);
+        rift_app_window_will_close([NSApplication sharedApplication], self);
     }
 }
 
@@ -292,7 +292,7 @@ static NSLayoutConstraint *configure_titlebar_height(NSWindow *window, CGFloat h
 }
 
 // Initializes an NSWindow that conforms to our window protocol.
-void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, bool hideTitleBar) {
+void init_rift_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, bool hideTitleBar) {
     window.testMode = testMode;
     window.hideTitleBar = hideTitleBar;
     NSSize minWindowSize = testMode ? TEST_MIN_WINDOW_SIZE : MIN_WINDOW_SIZE;
@@ -433,7 +433,7 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    warp_dealloc_window(self);
+    rift_dealloc_window(self);
     [super dealloc];
 }
 
@@ -460,11 +460,11 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
         NSApplication *application = [NSApplication sharedApplication];
 
         // If we are recording a keystroke for an EditableBinding.
-        BOOL keyBindingsDisabled = warp_app_are_key_bindings_disabled_for_window(application, self);
-        // If Warp has assigned a binding for this keystroke.
-        BOOL keystrokeIsAssigned = warp_app_has_binding_for_keystroke(application, event);
+        BOOL keyBindingsDisabled = rift_app_are_key_bindings_disabled_for_window(application, self);
+        // If Rift has assigned a binding for this keystroke.
+        BOOL keystrokeIsAssigned = rift_app_has_binding_for_keystroke(application, event);
 
-        BOOL triggersCustomAction = warp_app_has_custom_action_for_keystroke(application, event);
+        BOOL triggersCustomAction = rift_app_has_custom_action_for_keystroke(application, event);
 
         if (keyBindingsDisabled || (keystrokeIsAssigned && !triggersCustomAction)) {
             if ([self.contentView keyDownImpl:event]) {
@@ -523,7 +523,7 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
                        hidingTitleBar:(BOOL)hideTitleBar
            backgroundBlurRadiusPixels:(uint8)backgoundBlurRadiusPixels
                          withTestMode:(BOOL)testMode {
-    NSWindowStyleMask mask = warpWindowMask;
+    NSWindowStyleMask mask = riftWindowMask;
 
     if (hideTitleBar) {
         mask |= NSWindowStyleMaskFullSizeContentView;
@@ -533,7 +533,7 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
                                                               styleMask:mask
                                                                 backing:NSBackingStoreBuffered
                                                                   defer:NO];
-    init_warp_nswindow(window_result, testMode, hideTitleBar);
+    init_rift_nswindow(window_result, testMode, hideTitleBar);
 
     return window_result;
 }
@@ -542,10 +542,10 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
 
 // A panel is basically a NSWindow with the exception that it could be displayed
 // above fullscreen apps.
-@interface WarpPanel : NSPanel <RiftWindowProtocol>
+@interface RiftPanel : NSPanel <RiftWindowProtocol>
 @end
 
-@implementation WarpPanel {
+@implementation RiftPanel {
     // The windowState is managed on the Rust side.
     void *windowState;
     // Height constraint for the titlebar view (also indicates if constraints are configured)
@@ -620,7 +620,7 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    warp_dealloc_window(self);
+    rift_dealloc_window(self);
     [super dealloc];
 }
 
@@ -640,7 +640,7 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
 }
 
 - (void)performClose:(id)sender {
-    warp_dispatch_standard_action(self, [sender tag]);
+    rift_dispatch_standard_action(self, [sender tag]);
 }
 
 - (void)makeKeyAndOrderFront:(id)sender {
@@ -682,22 +682,22 @@ void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, boo
 }
 
 // Note this returns a retained object ("create" rule).
-+ (WarpPanel *)createWithContentRect:(NSRect)contentRect
++ (RiftPanel *)createWithContentRect:(NSRect)contentRect
                          metalDevice:(id)metalDevice
                       hidingTitleBar:(BOOL)hideTitleBar
           backgroundBlurRadiusPixels:(uint8)backgoundBlurRadiusPixels
                         withTestMode:(BOOL)testMode {
-    NSWindowStyleMask mask = warpWindowMask | NSWindowStyleMaskNonactivatingPanel;
+    NSWindowStyleMask mask = riftWindowMask | NSWindowStyleMaskNonactivatingPanel;
 
     if (hideTitleBar) {
         mask |= NSWindowStyleMaskFullSizeContentView;
     }
 
-    WarpPanel *window_result = [[WarpPanel alloc] initWithContentRect:contentRect
+    RiftPanel *window_result = [[RiftPanel alloc] initWithContentRect:contentRect
                                                             styleMask:mask
                                                               backing:NSBackingStoreBuffered
                                                                 defer:NO];
-    init_warp_nswindow(window_result, testMode, hideTitleBar);
+    init_rift_nswindow(window_result, testMode, hideTitleBar);
 
     return window_result;
 }
@@ -731,8 +731,8 @@ static void attach_rift_window_delegate(NSWindow *window) {
     [delegate release];
 }
 
-// \return a new, retained WarpPanel with the given content rect.
-id create_warp_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
+// \return a new, retained RiftPanel with the given content rect.
+id create_rift_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
                        uint8 backgroundBlurRadiusPixels, BOOL testMode) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -742,7 +742,7 @@ id create_warp_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
         });
     }
 
-    WarpPanel *window = [WarpPanel createWithContentRect:contentRect
+    RiftPanel *window = [RiftPanel createWithContentRect:contentRect
                                              metalDevice:metalDevice
                                           hidingTitleBar:hideTitleBar
                               backgroundBlurRadiusPixels:backgroundBlurRadiusPixels
@@ -763,7 +763,7 @@ id create_warp_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
 }
 
 // \return a new, retained RiftWindow with the given content rect.
-id create_warp_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
+id create_rift_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
                         uint8 backgroundBlurRadiusPixels, BOOL testMode) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -794,7 +794,7 @@ id create_warp_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
 }
 
 BOOL is_rift_window(id window) {
-    return [window isKindOfClass:[RiftWindow class]] || [window isKindOfClass:[WarpPanel class]];
+    return [window isKindOfClass:[RiftWindow class]] || [window isKindOfClass:[RiftPanel class]];
 }
 
 // Returns the front-most window in the app's window list, or null if there are
@@ -822,17 +822,17 @@ NSWindow *get_frontmost_window() {
 // @param window - id of the window for which the a11y content is set
 // @param value - the value of the hovered field
 // @param help - helper text (the difference between this and value is mostly in semantics)
-// @param warpRole - the role of the given element (we're using our own, internally defined roles,
-//                    check warpui::accessibility)
+// @param riftRole - the role of the given element (we're using our own, internally defined roles,
+//                    check riftui::accessibility)
 // @param setFrame - boolean value that determines whether the passed frame should be set
 // @param frame - rectangle that describes where the actual highlighted element is on the screen
-void set_accessibility_contents(id window, NSString *value, NSString *help, NSString *warpRole,
+void set_accessibility_contents(id window, NSString *value, NSString *help, NSString *riftRole,
                                 BOOL setFrame, NSRect frame) {
     // Setting the standard parameters used for indicating accessibility features
     [window setAccessibilityLabel:help];
     [window setAccessibilityValue:value];
     // "use" the role variable temporarily until we re-introduce its usage.
-    (void)warpRole;
+    (void)riftRole;
     [window setAccessibilityValueDescription:value];
     if (setFrame) {
         [window setAccessibilityFrame:frame];
@@ -864,7 +864,7 @@ void open_file_path_in_explorer(NSString *pathString) {
     NSURL *url = [[NSURL fileURLWithPath:path] standardizedURL];
 
     // Dispatch this asynchronously on the main thread to avoid double-borrow
-    // errors; see https://warpdotdev.sentry.io/issues/4264975772.
+    // errors; see https://riftdotdev.sentry.io/issues/4264975772.
     dispatch_async(dispatch_get_main_queue(), ^{
       [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
     });
@@ -912,14 +912,14 @@ void open_file_picker(void *callback, NSArray<NSString *> *fileTypes, BOOL allow
 
     // Open panel as sheet on main window.
     [openPanel beginWithCompletionHandler:^(NSInteger result) {
-      // warp_open_panel_file_selected must be called unconditionally to avoid a memory leak
+      // rift_open_panel_file_selected must be called unconditionally to avoid a memory leak
       if (result == NSModalResponseOK) {
           dispatch_async(dispatch_get_main_queue(), ^{
-            warp_open_panel_file_selected([openPanel URLs], callback);
+            rift_open_panel_file_selected([openPanel URLs], callback);
           });
       } else {
           dispatch_async(dispatch_get_main_queue(), ^{
-            warp_open_panel_file_selected([NSArray array], callback);
+            rift_open_panel_file_selected([NSArray array], callback);
           });
       }
     }];
@@ -941,14 +941,14 @@ void open_save_file_picker(void *callback, NSString *defaultFilename, NSString *
 
     // Show save panel as sheet
     [savePanel beginWithCompletionHandler:^(NSInteger result) {
-      // warp_save_panel_file_selected must be called unconditionally to avoid a memory leak
+      // rift_save_panel_file_selected must be called unconditionally to avoid a memory leak
       if (result == NSModalResponseOK) {
           dispatch_async(dispatch_get_main_queue(), ^{
-            warp_save_panel_file_selected([savePanel URL], callback);
+            rift_save_panel_file_selected([savePanel URL], callback);
           });
       } else {
           dispatch_async(dispatch_get_main_queue(), ^{
-            warp_save_panel_file_selected(nil, callback);
+            rift_save_panel_file_selected(nil, callback);
           });
       }
     }];
@@ -1040,7 +1040,7 @@ void set_window_alpha(RiftWindow<RiftWindowProtocol> *window, double alpha) {
 }
 
 void set_window_title(id window, NSString *title) {
-    if ([window isKindOfClass:[WarpPanel class]] && [window isVisible]) {
+    if ([window isKindOfClass:[RiftPanel class]] && [window isVisible]) {
         // For the hotkey window (which is an NSPanel), we need to explicitly
         // add the panel to the windows list.  `changeWindowsItem` will add the
         // panel to the list if it isn't already there.

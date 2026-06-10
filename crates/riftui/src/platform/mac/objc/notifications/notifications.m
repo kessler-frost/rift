@@ -37,7 +37,7 @@ void requestNotificationPermissionsWithCompletionHandler(
 void requestNotificationPermissions(void *on_completion_callback) {
     requestNotificationPermissionsWithCompletionHandler(^(NSUInteger outcome_type, id outcome_msg) {
       dispatch_async(dispatch_get_main_queue(), ^{
-        warp_on_request_notification_permissions_completed(outcome_type, outcome_msg,
+        rift_on_request_notification_permissions_completed(outcome_type, outcome_msg,
                                                            on_completion_callback);
       });
     });
@@ -94,7 +94,7 @@ void sendNotification(id title, id body, id data, void *on_error_callback, BOOL 
         title, body, data,
         ^(NSUInteger error_type, id error_msg) {
           dispatch_async(dispatch_get_main_queue(), ^{
-            warp_on_notification_send_error(error_type, error_msg, on_error_callback);
+            rift_on_notification_send_error(error_type, error_msg, on_error_callback);
           });
         },
         playSound);
