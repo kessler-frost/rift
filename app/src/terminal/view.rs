@@ -430,9 +430,6 @@ const MOVE_LINE_END_BINDING_NAME: &str = "editor_view:move_to_line_end";
 
 pub const DEFAULT_ASK_AI_AUTOSUGGESTION_TEXT: &str = "What happened here?";
 
-pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY: &str = "LongRunningRequestedCommand";
-pub const LONG_RUNNING_AGENT_REQUESTED_COMMAND_USER_TOOK_OVER_CONTEXT_KEY: &str =
-    "LongRunningRequestedUserTookOverCommand";
 
 
 lazy_static! {
@@ -504,7 +501,6 @@ pub struct BlockNotification {
 #[derive(Copy, Clone, Debug, Serialize)]
 pub enum NotificationsTrigger {
     LongRunningCommand(bool /* command_succeeded */, Duration),
-    AgentTaskCompleted(bool /* task_succeeded */),
     NeedsAttention,
     /// TODO: Remove this once desktop notifs are unflagged.
     PasswordPrompt,
@@ -516,11 +512,8 @@ impl NotificationsTrigger {
             NotificationsTrigger::LongRunningCommand(..) => {
                 "Rift can notify you when long-running commands finish."
             }
-            NotificationsTrigger::AgentTaskCompleted(..) => {
-                "Rift can notify you when an agent finishes responding."
-            }
             NotificationsTrigger::NeedsAttention => {
-                "Rift can notify you when a command or agent needs your attention."
+                "Rift can notify you when a command needs your attention."
             }
             NotificationsTrigger::PasswordPrompt => {
                 "Rift can notify you when you're prompted to enter a password."
@@ -568,13 +561,6 @@ impl NotificationsTrigger {
                     format!(" {status} after {duration_seconds}s"),
                     "Latest output: ".to_string(),
                 )
-            }
-            AgentTaskCompleted(command_succeeded) => {
-                if *command_succeeded {
-                    (" finished".to_string(), "Latest output: ".to_string())
-                } else {
-                    (" failed".to_string(), "Error: ".to_string())
-                }
             }
             NotificationsTrigger::NeedsAttention => (" blocked".to_string(), "".to_string()),
             PasswordPrompt => (
@@ -669,52 +655,16 @@ struct ShellProcessTerminatedBanner {
     was_premature_termination: bool,
 }
 
-#[derive(Debug, Clone)]
-pub enum AgentModePromptSuggestion {
-    Success(PromptSuggestion),
-    None,
-    Error,
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct PromptSuggestion {
-    pub id: String,
-
-    /// The query that is displayed in the Prompt Suggestion chip to the user.
-    /// If this is None, we default to using the prompt itself as the label.
-    pub label: Option<String>,
-
-    /// The prompt that is used as the input to Agent Mode.
-    pub prompt: String,
-
-    /// If this is a static prompt suggestion, we store the name of the suggestion type here.
-    pub static_prompt_suggestion_name: Option<String>,
-
-    // Whether or not accepting this prompt suggestion should start a new conversation or continue
-    // the existing one. Only applies when in agent view; in terminal view, prompt suggestions
-    // always start a new conversation.
-    pub should_start_new_conversation: bool,
-}
-
-impl PromptSuggestion {
-    /// Returns specified label for Prompt Suggestion if it exists, otherwise returns the query
-    /// (which is considered to be the "default" label).
-    pub fn label(&self) -> &String {
-        self.label.as_ref().unwrap_or(&self.prompt)
-    }
-
-}
 
 /// A unique identifier for an inline banner.
 pub type InlineBannerId = usize;
 
-/// Type of inline banner - determines behavior like visibility in agent view.
+/// Type of inline banner.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum InlineBannerType {
     NotificationsDiscovery,
     NotificationsError,
     Ssh,
-    PromptSuggestions,
     AliasExpansion,
     SharedSessionStart,
     SharedSessionEnd,
@@ -1274,11 +1224,6 @@ pub enum ContextMenuType {
     /// Shows the overflow menu with copy options for an AI block. The menu is opened by clicking
     /// on the overflow (three dots) button inside the AI block header.
     AIBlockOverflowMenu { ai_block_view_id: EntityId },
-    /// Shows the conversation actions menu for an Agent View entry block.
-    AgentViewEntryConversation {
-        agent_view_entry_block_id: EntityId,
-        position: Vector2F,
-    },
 }
 
 impl ContextMenuType {
@@ -1310,7 +1255,6 @@ impl ContextMenuType {
             ContextMenuType::Input { position } => Some(*position),
             ContextMenuType::AIBlockAttachedContext { .. } => None,
             ContextMenuType::AIBlockOverflowMenu { .. } => None,
-            ContextMenuType::AgentViewEntryConversation { .. } => None,
         }
     }
 }
@@ -1330,7 +1274,6 @@ impl ContextMenuInfo {
             ContextMenuType::AltScreen { .. } => "AltScreen",
             ContextMenuType::AIBlockAttachedContext { .. } => "AIBlockContextList",
             ContextMenuType::AIBlockOverflowMenu { .. } => "AIBlockOverflowMenu",
-            ContextMenuType::AgentViewEntryConversation { .. } => "AgentViewEntryConversation",
         }
     }
 
@@ -1351,7 +1294,6 @@ impl ContextMenuInfo {
             ContextMenuType::AltScreen { .. } => "AltScreen",
             ContextMenuType::AIBlockAttachedContext { .. } => "AIBlockAttachedBlockChipLeftClick",
             ContextMenuType::AIBlockOverflowMenu { .. } => "AIBlockOverflowMenuClick",
-            ContextMenuType::AgentViewEntryConversation { .. } => "RightClick",
         }
     }
 }
@@ -1546,14 +1488,7 @@ pub enum ActiveSessionState {
 }
 
 enum SecretTooltip {
-    Grid {
-        is_agent_mode: bool,
-        tooltip: WithinModel<SecretHandle>,
-    },
-}
-
-pub fn is_prompt_suggestions_enabled(_app: &AppContext) -> bool {
-    false
+    Grid { tooltip: WithinModel<SecretHandle> },
 }
 
 type TerminalViewCallback = Box<dyn FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>)>;
@@ -1858,10 +1793,6 @@ pub struct TerminalView {
     pane_stack: Option<WeakModelHandle<crate::pane_group::pane::PaneStack<Self>>>,
 
     /// `true` if this view explicitly requested a PTY shutdown.
-    ///
-    /// Once set, this remains true for the rest of the view's lifecycle and
-    /// suppresses `AgentExitedShellProcess` telemetry so manual shutdown paths
-    /// (tab close, update relaunch, etc.) are not attributed to agent commands.
     manual_pty_shutdown_requested: bool,
 
 
@@ -2849,12 +2780,6 @@ impl TerminalView {
 
 
 
-    // Take control back from the agent for the active long running command
-    // (which was started outside of a conversation).
-
-
-
-
 
     /// Shuts down the pty and event loop, terminating the shell process.
     /// Also marks this view as manually shut down for telemetry attribution.
@@ -2898,7 +2823,6 @@ impl TerminalView {
             has_block_list_selection,
             has_alt_screen_selection,
             is_long_running,
-            /*is_agent_in_control_of_command=*/ false,
             ctx,
         );
 
@@ -2916,7 +2840,6 @@ impl TerminalView {
         has_block_list_selection: bool,
         has_alt_screen_selection: bool,
         is_long_running: bool,
-        is_agent_in_control_of_command: bool,
         ctx: &mut ViewContext<Self>,
     ) {
         if has_block_list_selection {
@@ -2934,7 +2857,7 @@ impl TerminalView {
             self.clear_selections_when_shell_mode_without_focusing_input(ctx);
         }
 
-        self.ctrl_c_to_active_block(is_long_running, is_agent_in_control_of_command, ctx);
+        self.ctrl_c_to_active_block(is_long_running, ctx);
     }
 
 
@@ -2951,7 +2874,6 @@ impl TerminalView {
         has_block_list_selection: bool,
         has_alt_screen_selection: bool,
         is_long_running: bool,
-        is_agent_in_control_of_command: bool,
         ctx: &mut ViewContext<Self>,
     ) {
         if has_block_list_selection || has_copiable_block_selection {
@@ -2959,13 +2881,12 @@ impl TerminalView {
         } else if has_alt_screen_selection {
             self.model.lock().alt_screen_mut().clear_selection();
         }
-        self.ctrl_c_to_active_block(is_long_running, is_agent_in_control_of_command, ctx);
+        self.ctrl_c_to_active_block(is_long_running, ctx);
     }
 
     fn ctrl_c_to_active_block(
         &mut self,
         is_long_running: bool,
-        _is_agent_in_control_of_command: bool,
         ctx: &mut ViewContext<Self>,
     ) {
         if is_long_running {
@@ -3019,9 +2940,7 @@ impl TerminalView {
         self.riftify_state.get_pending_ssh_host().is_some() && self.is_long_running()
     }
 
-    /// Like `is_long_running`, but also requires the user to be in control of the command
-    /// (i.e. the user ran it, or took it over from the agent). Returns `false` for commands
-    /// that are currently being driven by the agent.
+    /// Like `is_long_running`, but also requires the session to be writable.
     pub fn is_long_running_and_user_controlled(&self) -> bool {
         let model = self.model.lock();
         let active_block = model.block_list().active_block();
@@ -3712,11 +3631,6 @@ impl TerminalView {
 
         let mut model = self.model.lock();
 
-        // Don't show the riftify banner when an agent is monitoring the command.
-        if model.block_list().active_block().is_agent_monitoring() {
-            return;
-        }
-
         let a11y_message = match &riftify_keybinding {
             Some(keystroke) => format!(
                 "You can press {} to Riftify this {} for more Rift features.",
@@ -4381,8 +4295,6 @@ impl TerminalView {
                                                 ctx,
                                             );
                                         });
-
-                                        me.update_repo_banner_state(repo_path.clone(), ctx);
                                     }
                                     #[cfg(not(feature = "local_fs"))]
                                     let _ = repo_path;
@@ -4862,16 +4774,13 @@ impl TerminalView {
                         );
                     }
 
-                    // We don't want any suggestion UIs on AI requested blocks.
-                    if !block_completed.was_part_of_agent_interaction {
-                        self.maybe_generate_command_suggestions(block_completed, ctx);
+                    self.maybe_generate_command_suggestions(block_completed, ctx);
 
-                        if self.can_suggest_alias_expansion(ctx) {
-                            self.maybe_suggest_alias_expansion(block_completed, ctx);
-                        }
-
-                        self.maybe_suggest_open_in_rift(block_completed, ctx);
+                    if self.can_suggest_alias_expansion(ctx) {
+                        self.maybe_suggest_alias_expansion(block_completed, ctx);
                     }
+
+                    self.maybe_suggest_open_in_rift(block_completed, ctx);
 
                     let terminal_view_state = {
                         let model = self.model.lock();
@@ -5215,7 +5124,6 @@ impl TerminalView {
             ModelEvent::BootstrapPrecmdDone => {
                 self.execute_pending_command((), ctx);
             }
-            ModelEvent::AgentTaggedInChanged { .. } => {}
             ModelEvent::PluggableNotification { title, body } => {
                 if self.is_navigated_away_from_window(ctx) {
                     let notification_title =
@@ -5469,15 +5377,6 @@ impl TerminalView {
 
 
 
-    // Initialize project for a path and suppress the agent mode setup banner for that path. This also auto-opens
-    // the code-review pane after the initialization step completes.
-
-
-
-
-
-    /// Try to focus the most recent init step block that's awaiting user input
-    fn try_focus_active_init_step(&mut self, _ctx: &mut ViewContext<Self>) {}
 
 
 
@@ -5486,9 +5385,6 @@ impl TerminalView {
 
 
 
-    fn update_repo_banner_state(&mut self, _directory: PathBuf, _ctx: &mut ViewContext<Self>) {
-        // The agent-mode setup speedbump banner was an AI feature and has been removed.
-    }
 
     fn reset_onboarding_blocks(&mut self, ctx: &mut ViewContext<Self>) {
         self.block_onboarding_active = false;
@@ -5815,11 +5711,6 @@ impl TerminalView {
             return;
         }
 
-        // Don't send notifications for commands executed by an agent
-        if block.was_part_of_agent_interaction {
-            return;
-        }
-
         let notification_settings = session_settings_handle.notifications.value().clone();
         let long_running_trigger = NotificationsTrigger::LongRunningCommand(
             !block.serialized_block.has_failed(),
@@ -5870,7 +5761,6 @@ impl TerminalView {
                     send_telemetry_from_ctx!(
                         TelemetryEvent::NotificationSent {
                             trigger: long_running_trigger,
-                            agent_variant: None,
                         },
                         ctx
                     );
@@ -5919,8 +5809,6 @@ impl TerminalView {
     }
 
 
-    /// Agent view has been removed; deferred agent-view entry is a no-op.
-    pub fn clear_enter_agent_view_after_pending_commands(&mut self) {}
 
     #[cfg(not(target_family = "wasm"))]
     pub(super) fn on_pty_spawn_failed(
@@ -7302,9 +7190,9 @@ impl TerminalView {
     }
 
 
-    // Additionally handles side effects of changing block selections (i.e. CMD + F results,
-    // Agent Mode context, etc.). The field `self.selected_blocks` should only be mutated as part of
-    // a `change_block_selections` or `change_block_selections_to_match_ai_context` invocation.
+    // Additionally handles side effects of changing block selections (i.e. CMD + F results).
+    // The field `self.selected_blocks` should only be mutated as part of a
+    // `change_block_selections` invocation.
     fn change_block_selections<F>(&mut self, change_selection: F, ctx: &mut ViewContext<Self>)
     where
         F: FnOnce(&mut SelectedBlocks),
@@ -7386,10 +7274,6 @@ impl TerminalView {
                     // Clear the current block selection upon clicking on a rich content block
                     self.clear_selected_blocks(ctx);
 
-                    // Since rich content blocks cannot be selected, `redetermine_focus` has no way
-                    // of knowing whether the user just clicked on a rich content block. To allow
-                    // users to attach blocks as context and submit queries quickly, we only divert
-                    // the focus away from the input box when we're not in Agent Mode.
                     self.focus_terminal(ctx);
                 }
             }
@@ -7534,11 +7418,6 @@ impl TerminalView {
                 .is_some()
     }
 
-    /// Agent Mode conversations have been removed, so no grid position is ever within one.
-    fn is_position_in_agent_mode_conversation(&self, _position: &WithinModel<Point>) -> bool {
-        false
-    }
-
     fn click_on_grid(
         &mut self,
         position: &WithinModel<Point>,
@@ -7553,10 +7432,8 @@ impl TerminalView {
             let model = self.model.lock();
             model.secret_at_point(position).map(|(handle, _)| handle)
         };
-        let is_in_agent_mode_block = self.is_position_in_agent_mode_conversation(position);
         if let Some(handle) = handle {
             self.open_secret_tool_tip = Some(SecretTooltip::Grid {
-                is_agent_mode: is_in_agent_mode_block,
                 tooltip: position.replace_inner(handle),
             });
             self.focus_terminal(ctx);
@@ -7912,18 +7789,6 @@ impl TerminalView {
 
 
     fn clear_buffer(&mut self, ctx: &mut ViewContext<Self>) {
-        // Don't clear the buffer if the agent is monitoring a long running command
-        let is_agent_monitoring = self
-            .model
-            .lock()
-            .block_list()
-            .active_block()
-            .is_agent_monitoring();
-
-        if is_agent_monitoring {
-            return;
-        }
-
         self.clear_selected_blocks(ctx);
 
         // Focus the appropriate part of the terminal view (possibly a
@@ -8664,14 +8529,14 @@ impl TerminalView {
         ctx.notify();
     }
 
-    /// Clears selected text across all types of blocks and handles side effects (i.e. Agent Mode
-    /// context, etc.). Never invoke `block_list_mut().clear_selection()` elsewhere on its own.
+    /// Clears selected text across all types of blocks and handles side effects.
+    /// Never invoke `block_list_mut().clear_selection()` elsewhere on its own.
     fn clear_selected_text(&mut self, ctx: &mut ViewContext<Self>) {
         self.clear_selected_text_except(None, ctx);
     }
 
-    /// Clears selected text across all types of blocks and handles side effects (i.e. Agent Mode
-    /// context, etc.). Never invoke `block_list_mut().clear_selection()` elsewhere on its own.
+    /// Clears selected text across all types of blocks and handles side effects.
+    /// Never invoke `block_list_mut().clear_selection()` elsewhere on its own.
     ///
     /// Provides the option of keeping the existing text selection for one rich content view, whose
     /// view ID must be passed in via `exempt_rich_content_view_id`. This is helpful for ensuring that
@@ -8837,7 +8702,6 @@ impl TerminalView {
         if should_focus_terminal {
             self.focus_terminal(ctx);
         } else if self.has_active_init_project(ctx) && self.is_last_block_init_step(ctx) {
-            self.try_focus_active_init_step(ctx);
         } else {
             self.focus_input_box(ctx);
         }
@@ -9110,7 +8974,6 @@ impl TerminalView {
                     send_telemetry_from_ctx!(
                         TelemetryEvent::NotificationSent {
                             trigger: password_trigger,
-                            agent_variant: None,
                         },
                         ctx
                     );
@@ -9929,7 +9792,6 @@ impl TerminalView {
 
 
 
-    /// Returns the CLI agent currently active in this terminal, if any.
     fn handle_theme_change(&mut self, ctx: &mut ViewContext<Self>) {
         let appearance = Appearance::as_ref(ctx);
         let colors = color::List::from(&appearance.theme().clone().into());
@@ -11778,15 +11640,8 @@ impl TerminalView {
 
         let image_filepaths = get_image_filepaths_from_paths(paths);
 
-        // CLI-agent paste path: when a CLI agent (e.g. Claude Code) is the
-        // foreground long-running process and the user is interacting with its
-        // TUI directly (rich input closed), hand image drops to the agent the
-        // same way Cmd+V does at `TerminalView::paste` — write each image to
-        // the system clipboard and send the agent's paste keystroke to the
-        // PTY. Without this branch the path string would be shell-escaped and
-        // typed into the agent's prompt. When the rich input is open we leave
-        // the existing chip-attach flow alone, since that's where the user
-        // explicitly asked the drop to land.
+        // Only auto-attach dropped images when no long-running command owns
+        // the PTY; otherwise the path is typed into the foreground TUI below.
         if !is_in_long_running_command {
             // Check for image file paths to be auto-attached
             let num_images = image_filepaths.len();
@@ -11921,10 +11776,6 @@ impl TerminalView {
     fn show_riftify_footer(&mut self, mode: RiftificationMode, _ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
 
-        // Don't show the riftify footer when an agent is monitoring the command.
-        if model.block_list().active_block().is_agent_monitoring() {
-            return;
-        }
         drop(model);
 
         let _ = mode;
@@ -12685,7 +12536,6 @@ impl View for TerminalView {
             ),
             Some(ContextMenuType::AIBlockAttachedContext { .. }) => {}
             Some(ContextMenuType::AIBlockOverflowMenu { .. }) => {}
-            Some(ContextMenuType::AgentViewEntryConversation { .. }) => {}
             None => {}
         }
 
@@ -12900,11 +12750,6 @@ impl View for TerminalView {
                 context.set.insert("LongRunningCommand");
             }
 
-            if active_block.is_agent_monitoring() {
-                context
-                    .set
-                    .insert(LONG_RUNNING_AGENT_REQUESTED_COMMAND_CONTEXT_KEY);
-            }
         }
 
         // Add keyboard protocol context if enabled.

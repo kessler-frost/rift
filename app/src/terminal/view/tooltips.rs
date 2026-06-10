@@ -103,16 +103,11 @@ impl TerminalView {
     ) {
         let mut element_id = "terminal_view:first_cell_in_link".to_string();
         let mut links = vec![];
-        let mut is_agent_conversation = false;
 
         if let Some(open_secret_tooltip) = &self.open_secret_tool_tip {
             match open_secret_tooltip {
-                SecretTooltip::Grid {
-                    tooltip,
-                    is_agent_mode,
-                } => {
+                SecretTooltip::Grid { tooltip } => {
                     let handle = *tooltip;
-                    is_agent_conversation = *is_agent_mode;
 
                     // Position the tooltip above the first cell in the secret.
                     element_id = format!(
@@ -252,13 +247,9 @@ impl TerminalView {
         let redaction = match (
             self.open_secret_tool_tip.is_some(),
             secret_redaction.should_redact_secret(),
-            is_agent_conversation,
         ) {
-            (true, true, true) => TooltipRedaction::SecretNotSentToLLMMessaging { secret_level },
-            (true, true, false) => {
-                TooltipRedaction::SecretWillNotBeSentToLLMMessaging { secret_level }
-            }
-            (_, _, _) => TooltipRedaction::NoRedaction,
+            (true, true) => TooltipRedaction::SecretRedactedMessaging { secret_level },
+            (_, _) => TooltipRedaction::NoRedaction,
         };
         stack.add_positioned_overlay_child(
             render_tooltip(links, redaction, appearance, app),

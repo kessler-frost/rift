@@ -4393,9 +4393,8 @@ impl Input {
         // cleared. For the multiline input box case, this also caused contents to go
         // off the screen because we were forcing the long running command to be the same
         // size of the cleared input box.
-        if let BlockType::User(user_block) = &block_completed_event.block_type {
-            // Only clear the input buffer for user-executed commands, not agent-executed ones.
-            let should_clear_buffer = !user_block.was_part_of_agent_interaction;
+        if let BlockType::User(_user_block) = &block_completed_event.block_type {
+            let should_clear_buffer = true;
             let input_contents_before_prompt_chip_command =
                 self.input_contents_before_prompt_chip_command.take();
 

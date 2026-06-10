@@ -417,7 +417,6 @@ impl From<&Block> for BlockType {
                         command_with_obfuscated_secrets,
                         output_truncated,
                         output_truncated_with_obfuscated_secrets,
-                        was_part_of_agent_interaction: false,
                         started_at: block.command_start_time(),
                         num_output_lines: block.output_grid().len() as u64,
                         num_output_lines_truncated: block
@@ -2586,7 +2585,7 @@ impl Block {
 
     /// Returns `true` if this block is a valid option to use as context for an AI model.
     pub fn can_be_ai_context(&self) -> bool {
-        self.is_visible() && !self.is_in_band_command_block() && !self.is_agent_monitoring()
+        self.is_visible() && !self.is_in_band_command_block()
     }
 
     pub fn estimated_heap_usage_bytes(&self) -> usize {

@@ -43,13 +43,7 @@ impl<OnClick> TooltipLink<OnClick> {
 pub enum TooltipRedaction {
     /// When sending text to an LLM, we want to ensure users this secret
     /// was obfuscated and not sent to the LLM.
-    SecretNotSentToLLMMessaging {
-        secret_level: Option<SecretLevel>,
-    },
-    /// When displaying text which is secret and could be added to an Agent Mode
-    /// conversation, we want to ensure users this secret will not be sent to
-    /// the LLM.
-    SecretWillNotBeSentToLLMMessaging {
+    SecretRedactedMessaging {
         secret_level: Option<SecretLevel>,
     },
     NoRedaction,
@@ -128,17 +122,9 @@ where
     };
 
     match redaction {
-        TooltipRedaction::SecretNotSentToLLMMessaging { secret_level }
-        | TooltipRedaction::SecretWillNotBeSentToLLMMessaging { secret_level } => {
+        TooltipRedaction::SecretRedactedMessaging { secret_level } => {
             let theme = appearance.theme();
-            let title = if matches!(
-                redaction,
-                TooltipRedaction::SecretNotSentToLLMMessaging { .. }
-            ) {
-                "This wasn't included in the AI conversation."
-            } else {
-                "This won't be included in any AI conversations or shared blocks."
-            };
+            let title = "This is redacted as a secret.";
 
             // Generate the appropriate message based on secret level
             let secret_message = match secret_level {
@@ -186,11 +172,7 @@ where
         }
     }
 
-    let is_secret = matches!(
-        redaction,
-        TooltipRedaction::SecretNotSentToLLMMessaging { .. }
-            | TooltipRedaction::SecretWillNotBeSentToLLMMessaging { .. }
-    );
+    let is_secret = matches!(redaction, TooltipRedaction::SecretRedactedMessaging { .. });
 
     // If enterprise secret redaction is enabled, add additional messaging and padding to the tooltip.
     let is_enterprise_secret_redaction_enabled =
