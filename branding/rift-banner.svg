@@ -1,0 +1,28 @@
+<svg width="202" height="385" viewBox="0 0 202 385" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="385" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#11151c"/>
+      <stop offset="1" stop-color="#04060a"/>
+    </linearGradient>
+    <linearGradient id="seam" x1="0" y1="0" x2="0" y2="385" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.5" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-30%" width="260%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="202" height="385" fill="url(#bg)"/>
+  <!-- glowing rift running down the banner -->
+  <g filter="url(#glow)">
+    <path d="M120,-6 L150,120 L104,210 L160,330 L150,398"
+          stroke="url(#seam)" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" fill="none" opacity="0.9"/>
+  </g>
+  <path d="M120,-6 L150,120 L104,210 L160,330 L150,398"
+        stroke="#fffbeb" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+  <!-- wordmark -->
+  <text x="20" y="320" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#f4f6fb" letter-spacing="1">Rift</text>
+  <text x="21" y="345" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#8a93a6" letter-spacing="0.5">a local terminal</text>
+</svg>

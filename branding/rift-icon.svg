@@ -1,0 +1,65 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#04060a"/>
+    </linearGradient>
+    <linearGradient id="panelL" x1="0" y1="120" x2="430" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#283242"/>
+      <stop offset="1" stop-color="#141a25"/>
+    </linearGradient>
+    <linearGradient id="panelR" x1="1024" y1="120" x2="620" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#212a39"/>
+      <stop offset="1" stop-color="#10151f"/>
+    </linearGradient>
+    <linearGradient id="seam" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.5" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="34" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="sheen" cx="0.3" cy="0.12" r="0.9" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tile">
+      <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+
+    <!-- glowing rift behind the panels: a bright filled sliver -->
+    <g filter="url(#glow)">
+      <path d="M566,-10 L470,330 L590,500 L452,720 L572,1034 L600,1034 L500,720 L636,500 L516,330 L612,-10 Z"
+            fill="url(#seam)" opacity="0.9"/>
+    </g>
+
+    <!-- left panel -->
+    <path d="M-10,-10 L548,-10 L452,330 L572,500 L434,720 L554,1034 L-10,1034 Z"
+          fill="url(#panelL)"/>
+    <!-- right panel -->
+    <path d="M630,-10 L1034,-10 L1034,1034 L590,1034 L490,720 L654,500 L534,330 Z"
+          fill="url(#panelR)"/>
+
+    <!-- bright hot core down the rift -->
+    <path d="M580,-10 L484,330 L604,500 L466,720 L586,1034"
+          stroke="#fffbeb" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+
+    <!-- inner-edge highlights catching the rift light -->
+    <path d="M548,-10 L452,330 L572,500 L434,720 L554,1034"
+          stroke="#fcd34d" stroke-width="4" stroke-linejoin="round" fill="none" opacity="0.5"/>
+    <path d="M630,-10 L534,330 L654,500 L490,720 L590,1034"
+          stroke="#fcd34d" stroke-width="4" stroke-linejoin="round" fill="none" opacity="0.5"/>
+
+    <!-- soft corner sheen -->
+    <rect width="1024" height="1024" fill="url(#sheen)"/>
+  </g>
+</svg>
