@@ -155,9 +155,9 @@ impl View for GlowingEditor {
         .finish();
 
         let font_size = appearance.ui_font_size() + 2.;
-        let agent_icon = Container::new(
+        let prompt_icon = Container::new(
             ConstrainedBox::new(
-                Icon::AgentMode
+                Icon::Terminal
                     .to_riftui_icon(theme.sub_text_color(theme.background()))
                     .finish(),
             )
@@ -173,7 +173,7 @@ impl View for GlowingEditor {
             Flex::row()
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
                 .with_main_axis_alignment(MainAxisAlignment::Start)
-                .with_children([agent_icon, input_box])
+                .with_children([prompt_icon, input_box])
                 .finish(),
         )
         .with_min_height(PROMPT_INPUT_HEIGHT);

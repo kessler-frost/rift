@@ -108,32 +108,12 @@ pub enum HistoryTab {
     Prompts,
 }
 
-fn build_tab_configs(is_agent_view: bool) -> Vec<InlineMenuTabConfig<HistoryTab>> {
-    if !is_agent_view {
-        return vec![InlineMenuTabConfig {
-            id: HistoryTab::All,
-            label: "All".to_string(),
-            filters: HashSet::new(),
-        }];
-    }
-
-    vec![
-        InlineMenuTabConfig {
-            id: HistoryTab::All,
-            label: "All".to_string(),
-            filters: HashSet::new(),
-        },
-        InlineMenuTabConfig {
-            id: HistoryTab::Commands,
-            label: "Commands".to_string(),
-            filters: HashSet::from([QueryFilter::Commands]),
-        },
-        InlineMenuTabConfig {
-            id: HistoryTab::Prompts,
-            label: "Prompts".to_string(),
-            filters: HashSet::from([QueryFilter::PromptHistory]),
-        },
-    ]
+fn build_tab_configs() -> Vec<InlineMenuTabConfig<HistoryTab>> {
+    vec![InlineMenuTabConfig {
+        id: HistoryTab::All,
+        label: "All".to_string(),
+        filters: HashSet::new(),
+    }]
 }
 
 pub struct InlineHistoryMenuView {
@@ -155,7 +135,7 @@ impl InlineHistoryMenuView {
         buffer_model: ModelHandle<InputBufferModel>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        let tab_configs = build_tab_configs(false);
+        let tab_configs = build_tab_configs();
         Self::new_inner(
             terminal_view_id,
             active_session,

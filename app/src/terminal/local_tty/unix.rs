@@ -76,7 +76,7 @@ fn docker_sandbox_run_args(starter: &DockerSandboxShellStarter) -> Vec<std::ffi:
     );
 
     let mut args = vec![std::ffi::OsString::from("run")];
-    // Override sbx's default agent image with the environment's base image
+    // Override sbx's default image with the environment's base image
     // when one is provided. `None` means "use sbx's default image".
     if let Some(base_image) = starter.base_image() {
         args.push(std::ffi::OsString::from("--template"));
@@ -457,9 +457,9 @@ fn spawn_command_in_pty(
                 // If running in a sandbox on Linux, adjust the OOM score
                 // to make the child process more likely to be killed than the parent process
                 // in case of OOM. If the Rift process is killed while hosting an ambient
-                // agent, its shared session will abruptly end with no user-visible error.
-                // Instead, we want to kill whatever process the agent spawned that's using
-                // lots of memory. This gives the agent a chance to gracefully fail.
+                // the session would abruptly end with no user-visible error. Instead,
+                // kill whatever spawned process is using lots of memory so the
+                // foreground program gets a chance to fail gracefully.
                 //
                 // Try to open /proc/self/oom_score_adj and set it to a positive value.
                 // Valid values are between -1000 and 1000, where lower values are less likely
@@ -811,7 +811,7 @@ fn build_docker_sandbox_command(
 /// Rift panes/sandboxes don't race on or share the same host directories.
 ///
 /// The actual sandbox creation + attachment happens via
-/// `sbx run --name rift-sandbox-<id> shell WORKSPACE ... -- -c "cd /home/agent && exec bash --rcfile ..."`
+/// `sbx run --name rift-sandbox-<id> shell WORKSPACE ... -- -c "cd <home> && exec bash --rcfile ..."`
 /// when the PTY process is spawned.
 ///
 /// TODO(advait): Wire up cleanup on pane close. Today, closing a Docker

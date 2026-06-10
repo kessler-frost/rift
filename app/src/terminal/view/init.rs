@@ -23,7 +23,6 @@ pub const CANCEL_COMMAND_KEYBINDING: &str = "terminal:cancel_command";
 pub const TOGGLE_AUTOEXECUTE_MODE_KEYBINDING: &str = "terminal:toggle_autoexecute_mode";
 pub const TOGGLE_QUEUE_NEXT_PROMPT_KEYBINDING: &str = "terminal:toggle_queue_next_prompt";
 pub const TOGGLE_HIDE_CLI_RESPONSES_KEYBINDING: &str = "terminal:toggle_hide_cli_responses";
-pub const OPEN_CLI_AGENT_RICH_INPUT_KEYBINDING: &str = "terminal:open_cli_agent_rich_input";
 
 const SELECT_NEXT_BLOCK_ACTION_NAME: &str = "terminal:select_next_block";
 pub const SELECT_PREVIOUS_BLOCK_ACTION_NAME: &str = "terminal:select_previous_block";
@@ -77,9 +76,6 @@ pub fn init(app: &mut AppContext) {
     app.register_binding_validator::<TerminalView>(is_binding_pty_compliant);
 
     init_overlapping_keybindings(app);
-    // Register input mode bindings before riftify bindings so ctrl-i riftifies
-    // instead of opening inline agent when a riftify banner is visible.
-    register_input_mode_bindings(app);
 
     app.register_fixed_bindings([
         FixedBinding::new("up", TerminalAction::Up, id!("Terminal") & !id!("IMEOpen")),
@@ -646,7 +642,3 @@ pub fn init(app: &mut AppContext) {
     .with_enabled(|| cfg!(feature = "local_fs") && ChannelState::enable_debug_features())
     .with_context_predicate(id!("Terminal"))]);
 }
-
-/// Registers bindings related to input modes.
-/// Input-mode switching (terminal/agent) was removed with the agent product.
-fn register_input_mode_bindings(_app: &mut AppContext) {}
