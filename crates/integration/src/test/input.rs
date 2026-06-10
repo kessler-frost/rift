@@ -3,9 +3,8 @@ use std::time::Duration;
 use rift::features::FeatureFlag;
 use rift::integration_testing::clipboard::write_to_clipboard;
 use rift::integration_testing::input::{
-    assert_autosuggestion_state, input_contains_string, input_is_empty,
-    latest_buffer_operations_are_empty, open_inline_model_selector_from_chip,
-    tab_completions_menu_is_open, toggle_inline_model_selector_from_chip, AutosuggestionState,
+    assert_autosuggestion_state, input_contains_string,
+    tab_completions_menu_is_open, AutosuggestionState,
 };
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::terminal::util::{
@@ -83,142 +82,6 @@ pub fn test_autosuggestions_are_hidden_when_opening_tab_completions() -> Builder
                         0,
                         AutosuggestionState::ActiveWithText(String::from(".")),
                     ),
-                ),
-        )
-}
-
-pub fn test_inline_model_selector_restores_prompt_on_dismissal() -> Builder {
-    FeatureFlag::RestorePromptOnInlineModelSelectorSearch.set_enabled(true);
-
-    let original_prompt = "explain this tricky rust lifetime";
-    new_builder()
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        .with_step(
-            new_step_with_default_assertions("Type prompt before opening model selector")
-                .with_typed_characters(&[original_prompt])
-                .add_named_assertion(
-                    "Prompt is present before opening selector",
-                    input_contains_string(0, original_prompt.to_owned()),
-                ),
-        )
-        .with_step(open_inline_model_selector_from_chip())
-        .with_step(
-            new_step_with_default_assertions("Type model search")
-                .with_typed_characters(&["claude"])
-                .add_named_assertion(
-                    "Model search text is in the input",
-                    input_contains_string(0, "claude".to_owned()),
-                ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Dismiss model selector")
-                .with_keystrokes(&["escape"])
-                .add_named_assertion(
-                    "Original prompt is restored after dismissal",
-                    input_contains_string(0, original_prompt.to_owned()),
-                ),
-        )
-}
-
-pub fn test_inline_model_selector_restores_prompt_on_model_selection() -> Builder {
-    FeatureFlag::RestorePromptOnInlineModelSelectorSearch.set_enabled(true);
-
-    let original_prompt = "summarize this output without losing details";
-    new_builder()
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        .with_step(
-            new_step_with_default_assertions("Type prompt before opening model selector")
-                .with_typed_characters(&[original_prompt])
-                .add_named_assertion(
-                    "Prompt is present before opening selector",
-                    input_contains_string(0, original_prompt.to_owned()),
-                ),
-        )
-        .with_step(open_inline_model_selector_from_chip())
-        .with_step(
-            new_step_with_default_assertions("Type model search")
-                .with_typed_characters(&["auto"])
-                .add_named_assertion(
-                    "Model search text is in the input",
-                    input_contains_string(0, "auto".to_owned()),
-                ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Select highlighted model")
-                .with_keystrokes(&["enter"])
-                .add_named_assertion(
-                    "Original prompt is restored after model selection",
-                    input_contains_string(0, original_prompt.to_owned()),
-                ),
-        )
-}
-
-pub fn test_inline_model_selector_restores_prompt_on_chip_toggle_close() -> Builder {
-    FeatureFlag::RestorePromptOnInlineModelSelectorSearch.set_enabled(true);
-
-    let original_prompt = "refactor this into smaller modules";
-    new_builder()
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        .with_step(
-            new_step_with_default_assertions("Type prompt before opening model selector")
-                .with_typed_characters(&[original_prompt])
-                .add_named_assertion(
-                    "Prompt is present before opening selector",
-                    input_contains_string(0, original_prompt.to_owned()),
-                ),
-        )
-        .with_step(open_inline_model_selector_from_chip())
-        .with_step(
-            new_step_with_default_assertions("Type model search")
-                .with_typed_characters(&["claude"])
-                .add_named_assertion(
-                    "Model search text is in the input",
-                    input_contains_string(0, "claude".to_owned()),
-                ),
-        )
-        .with_step(
-            toggle_inline_model_selector_from_chip().add_named_assertion(
-                "Original prompt is restored after toggling closed",
-                input_contains_string(0, original_prompt.to_owned()),
-            ),
-        )
-}
-
-pub fn test_latest_buffer_operations() -> Builder {
-    new_builder()
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        // Execute a command so that we can generate autosuggestions.
-        .with_step(execute_command_for_single_terminal_in_tab(
-            0,
-            "cd .".into(),
-            ExpectedExitStatus::Success,
-            (),
-        ))
-        .with_step(
-            new_step_with_default_assertions("Check initial state").add_named_assertion(
-                "Ensure the latest buffer operations start off empty",
-                latest_buffer_operations_are_empty(0, true),
-            ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Write into the input")
-                .with_typed_characters(&["echo 'foo'"])
-                .add_named_assertion(
-                    "Ensure the input was written to",
-                    input_contains_string(0, String::from("echo 'foo'")),
-                )
-                .add_named_assertion(
-                    "Ensure the latest buffer operations are non-empty",
-                    latest_buffer_operations_are_empty(0, false),
-                ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Run the command with the current buffer text")
-                .with_keystrokes(&["enter"])
-                .add_named_assertion("Ensure the input is empty", input_is_empty(0))
-                .add_named_assertion(
-                    "Ensure the latest buffer operations are empty",
-                    latest_buffer_operations_are_empty(0, true),
                 ),
         )
 }

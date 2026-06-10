@@ -173,10 +173,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_restore_snapshot_with_deleted_cwd);
     register_test!(test_session_restoration_with_multiple_shells);
     register_test!(test_restore_snapshot_with_background_output);
-    register_test!(test_restore_snapshot_with_notebooks);
-    register_test!(test_restore_snapshot_with_workflows);
-    register_test!(test_restore_snapshot_with_test_json_object);
-    register_test!(test_restore_snapshot_with_common_shareable_metadata_ids);
     register_test!(test_restore_snapshot_with_markdown_file);
     register_test!(test_restore_snapshot_with_code_file);
     register_test!(test_restore_snapshot_with_settings_page);
@@ -214,11 +210,8 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_add_theme_to_rift_config);
     register_test!(test_palette_opens_when_theme_chooser_is_open);
     #[cfg(target_os = "macos")]
-    register_test!(test_preview_config_dir_migration);
     register_test!(test_launch_rift_with_theme_in_rift_config);
     register_test!(test_add_launch_config_to_rift_config);
-    register_test!(test_add_workflows_to_rift_config);
-    register_test!(test_loading_project_workflows);
     register_test!(test_cmd_enter);
     register_test!(test_alias_expansion_has_limit);
     register_test!(test_command_corrections);
@@ -249,12 +242,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_ssh_with_shell_override);
 
     // Remote server integration tests
-    register_test!(test_remote_server_connect_bash);
-    register_test!(test_remote_server_connect_zsh);
-    register_test!(test_remote_server_navigate_to_repo);
-    register_test!(test_remote_server_completions);
-    register_test!(test_remote_server_file_operations);
-    register_test!(test_remote_server_lazy_load_directory);
     register_test!(test_custom_open_completions_menu_binding);
     register_test!(test_color_overrides_in_prompt_dont_crash);
     register_test!(test_copy_prompt_from_block_honor_ps1_disabled);
@@ -270,16 +257,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_open_input_context_menu);
     register_test!(test_copy_all_from_input_context_menu);
     register_test!(test_cut_paste_from_input_context_menu);
-    register_test!(test_inline_model_selector_restores_prompt_on_dismissal);
-    register_test!(test_inline_model_selector_restores_prompt_on_model_selection);
-    register_test!(test_inline_model_selector_restores_prompt_on_chip_toggle_close);
     register_test!(test_paste_and_type_characters_before_bootstrap);
-    register_test!(test_code_review_scroll_anchor_preserved_when_inserting_above);
-    register_test!(test_code_review_scroll_anchor_unchanged_when_inserting_below);
-    register_test!(test_code_review_scroll_preserved_second_file);
-    register_test!(test_code_review_scroll_preserved_deleted_range);
-    register_test!(test_code_review_scroll_preserved_header_range);
-    register_test!(test_code_review_scroll_preserved_footer_range);
     register_test!(test_alt_screen_context_menu_with_sgr_with_mouse_reporting);
     register_test!(test_alt_screen_context_menu_with_sgr_without_mouse_reporting);
     register_test!(test_alt_screen_context_menu_without_sgr_with_mouse_reporting);
@@ -303,8 +281,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_can_auto_bootstrap);
 
-    register_test!(test_ask_ai_keybinding_for_selected_block);
-    register_test!(test_create_folder_from_command_palette);
 
     register_test!(test_tab_behavior_setting);
 
@@ -313,13 +289,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_command_search_loads_history);
     register_test!(test_histfile_left_joined_with_persisted_history);
-    register_test!(test_history_command_is_linked_to_local_workflow);
-    register_test!(test_up_arrow_history_enters_shift_tab_for_workflow);
 
-    register_test!(test_websocket_does_not_begin_on_startup);
-    register_test!(test_websocket_begins_on_startup);
-    register_test!(test_websocket_begins_after_joining_a_team);
-    register_test!(test_websocket_begins_after_creating_an_object);
 
     register_test!(test_secret_is_obfuscated_on_copy);
     register_test!(test_secret_tooltip_shows_on_click);
@@ -350,16 +320,8 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_closed_panes_cleared_on_rearrangement);
     register_test!(test_tab_closes_when_last_visible_pane_closed);
 
-    register_test!(test_notebook_pane_tracking);
-    register_test!(test_close_notebook_tab);
-    register_test!(test_open_in_rift_banner);
-    register_test!(test_close_notebook_window);
-    register_test!(test_backspace_inside_raw_mermaid_block_edits_text_without_removing_block);
 
     // Workflow tests
-    register_test!(test_open_workflow_in_pane);
-    register_test!(test_create_personal_workflow_pane_from_command_palette);
-    register_test!(test_create_team_workflow_pane_from_command_palette);
 
     register_test!(test_block_filtering_keybinding);
     register_test!(test_block_filtering_keybinding_with_long_running_command);
@@ -373,7 +335,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_block_filtering_clear_blocklist);
 
     register_test!(test_autosuggestions_are_hidden_when_opening_tab_completions);
-    register_test!(test_latest_buffer_operations);
 
     register_test!(test_pass_control_sequences_to_long_running_block);
     register_test!(test_settings_file_migration_from_native_store);
@@ -386,28 +347,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_middle_click_paste);
 
-    register_test!(test_selection_first_to_last_through_ai_simple);
-    register_test!(test_copy_on_select_first_to_last_through_ai_simple);
-    register_test!(test_selection_first_to_last_through_ai_semantic);
-    register_test!(test_selection_first_to_last_through_ai_lines);
-    register_test!(test_selection_last_to_first_through_ai_simple);
-    register_test!(test_selection_last_to_first_through_ai_semantic);
-    register_test!(test_selection_last_to_first_through_ai_lines);
-    register_test!(test_selection_first_to_ai_simple);
-    register_test!(test_selection_first_to_ai_semantic);
-    register_test!(test_selection_first_to_ai_lines);
-    register_test!(test_selection_ai_to_first_simple);
-    register_test!(test_selection_ai_to_first_semantic);
-    register_test!(test_selection_ai_to_first_lines);
-    register_test!(test_selection_ai_to_last_simple);
-    register_test!(test_selection_ai_to_last_semantic);
-    register_test!(test_selection_ai_to_last_lines);
-    register_test!(test_selection_last_to_ai_simple);
-    register_test!(test_selection_last_to_ai_semantic);
-    register_test!(test_selection_last_to_ai_lines);
-    register_test!(test_restored_ai_block_renders_mermaid_and_local_images);
 
-    register_test!(test_agent_mode_pane_minimum_size);
     register_test!(test_git_prompt_chips);
 
     // These tests are only invoked manually, and not included in the
@@ -416,26 +356,11 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_with_long_line);
     register_test!(make_1000_blocks_memory_benchmark);
 
-    register_test!(test_rule_creation);
-    register_test!(test_rule_update);
-    register_test!(test_rule_pane_opening);
     register_test!(test_undo_close_stack_timeout_cleanup);
 
     // File tree tests
-    register_test!(test_file_tree_opens_files_in_rift);
-    register_test!(test_file_tree_open_in_new_pane);
-    register_test!(test_file_tree_open_in_new_tab);
-    register_test!(test_file_tree_keyboard_navigation);
-    register_test!(test_file_tree_non_openable_files);
-    register_test!(test_file_tree_nested_file_opening);
 
     // Go to Line tests
-    register_test!(test_goto_line_dialog_open_close);
-    register_test!(test_goto_line_jumps_to_line);
-    register_test!(test_goto_line_with_column);
-    register_test!(test_goto_line_clamps_out_of_range);
-    register_test!(test_code_editor_line_numbers_default_to_absolute);
-    register_test!(test_code_editor_relative_line_numbers_follow_cursor);
 
     // Keyboard protocol tests
     register_test!(test_keyboard_protocol_disabled_shift_enter);
@@ -453,9 +378,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     // Rich Input Ctrl+Enter submit toggle (issue #11588)
     // Full-stack wiring guard: toggle ON → Enter inserts newline, Ctrl+Enter submits.
-    register_test!(test_rich_input_toggle_on_enter_inserts_newline_and_ctrl_enter_submits);
     // Regression: Enter must accept inline menus (not insert newline) when toggle=true (PR #11723)
-    register_test!(test_rich_input_enter_accepts_menu_item_when_toggle_is_true);
 
     tests
 }

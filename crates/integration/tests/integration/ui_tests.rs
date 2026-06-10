@@ -60,10 +60,6 @@ integration_tests! {
     test_restore_snapshot_with_deleted_cwd,
     test_session_restoration_with_multiple_shells,
     test_restore_snapshot_with_background_output,
-    test_restore_snapshot_with_notebooks,
-    test_restore_snapshot_with_workflows,
-    test_restore_snapshot_with_test_json_object,
-    test_restore_snapshot_with_common_shareable_metadata_ids,
     test_restore_snapshot_with_markdown_file,
     test_restore_snapshot_with_settings_page,
     // TODO(kevin): figure out why the file name doesn't match.
@@ -98,15 +94,10 @@ integration_tests! {
     test_accepting_completion_inserts_space,
     test_palette_opens_when_theme_chooser_is_open,
     test_launch_rift_with_theme_in_rift_config,
-    #[cfg(target_os="macos")]
-    test_preview_config_dir_migration,
     #[ignore = "Flakes in CI"]
     test_add_launch_config_to_rift_config,
     #[ignore = "Flakes in CI"]
-    test_add_workflows_to_rift_config,
-    #[ignore = "Flakes in CI"]
     test_add_theme_to_rift_config,
-    test_loading_project_workflows,
     test_completions_as_you_type,
     test_completions_as_you_type_one_matching_entry_tab,
     test_completions_as_you_type_execute_on_enter,
@@ -140,22 +131,7 @@ integration_tests! {
     test_open_input_context_menu,
     test_copy_all_from_input_context_menu,
     test_cut_paste_from_input_context_menu,
-    test_inline_model_selector_restores_prompt_on_dismissal,
-    test_inline_model_selector_restores_prompt_on_model_selection,
-    test_inline_model_selector_restores_prompt_on_chip_toggle_close,
     test_paste_and_type_characters_before_bootstrap,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_anchor_preserved_when_inserting_above,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_anchor_unchanged_when_inserting_below,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_preserved_second_file,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_preserved_deleted_range,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_preserved_header_range,
-    #[ignore = "Flaking on CI - KC looking into 3/31/26"]
-    test_code_review_scroll_preserved_footer_range,
     test_pane_group_state_single_pane,
     test_pane_group_state_multi_pane,
     test_pane_group_state_close_pane,
@@ -186,23 +162,13 @@ integration_tests! {
 
     // For some reason, disabling the `AgentMode` flag does not actually disable Agent Mode in the test
     // run. Ignore for now.
-    #[ignore]
-    test_ask_ai_keybinding_for_selected_block,
 
-    test_create_folder_from_command_palette,
 
     test_tab_behavior_setting,
 
     test_private_public_settings_routing_with_flag_enabled,
     test_private_settings_preloaded_and_not_leaked_to_toml,
-    test_history_command_is_linked_to_local_workflow,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_up_arrow_history_enters_shift_tab_for_workflow,
 
-    test_websocket_begins_on_startup,
-    test_websocket_does_not_begin_on_startup,
-    test_websocket_begins_after_joining_a_team,
-    test_websocket_begins_after_creating_an_object,
 
     test_secret_is_obfuscated_on_copy,
     test_secret_tooltip_respects_safe_mode_setting,
@@ -230,19 +196,9 @@ integration_tests! {
     test_closed_panes_cleared_on_rearrangement,
     test_tab_closes_when_last_visible_pane_closed,
 
-    test_notebook_pane_tracking,
-    test_close_notebook_tab,
-    test_open_in_rift_banner,
-    test_close_notebook_window,
-    test_backspace_inside_raw_mermaid_block_edits_text_without_removing_block,
 
-    test_open_workflow_in_pane,
-    test_create_personal_workflow_pane_from_command_palette,
-    test_create_team_workflow_pane_from_command_palette,
 
     // TODO(alokedesai): Fix this on the latest version of Bash.
-    #[ignore]
-    test_up_arrow_history,
 
     test_block_filtering_keybinding,
     test_block_filtering_toolbelt_icon,
@@ -254,7 +210,6 @@ integration_tests! {
     test_block_filtering_active_block,
     test_block_filtering_clear_blocklist,
     test_autosuggestions_are_hidden_when_opening_tab_completions,
-    test_latest_buffer_operations,
 
     test_pass_control_sequences_to_long_running_block,
     test_settings_file_migration_from_native_store,
@@ -265,70 +220,15 @@ integration_tests! {
     test_settings_error_banner_on_reload_with_invalid_toml,
     test_settings_error_banner_on_reload_with_invalid_value,
 
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_last_through_ai_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_copy_on_select_first_to_last_through_ai_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_last_through_ai_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_last_through_ai_lines,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_first_through_ai_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_first_through_ai_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_first_through_ai_lines,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_ai_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_ai_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_first_to_ai_lines,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_first_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_first_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_first_lines,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_last_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_last_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_ai_to_last_lines,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_ai_simple,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_ai_semantic,
-    #[ignore = "Affected by agent_view feature flag UI changes"]
-    test_selection_last_to_ai_lines,
-    test_restored_ai_block_renders_mermaid_and_local_images,
 
     // Middle-click-paste is only implemented for Linux right now.
     #[cfg(any(target_os = "linux", target_os = "freebsd"))]
     test_middle_click_paste,
-    test_agent_mode_pane_minimum_size,
 
-    test_rule_creation,
-    test_rule_update,
-    test_rule_pane_opening,
     test_undo_close_stack_timeout_cleanup,
 
-    test_file_tree_opens_files_in_rift,
-    test_file_tree_open_in_new_pane,
-    test_file_tree_open_in_new_tab,
-    test_file_tree_keyboard_navigation,
-    test_file_tree_non_openable_files,
-    test_file_tree_nested_file_opening,
 
     // Go to Line tests
-    test_goto_line_dialog_open_close,
-    test_goto_line_jumps_to_line,
-    test_goto_line_with_column,
-    test_goto_line_clamps_out_of_range,
-    test_code_editor_line_numbers_default_to_absolute,
-    test_code_editor_relative_line_numbers_follow_cursor,
 
     // Keyboard protocol tests
     test_keyboard_protocol_disabled_shift_enter,
@@ -346,7 +246,5 @@ integration_tests! {
     test_video_recording,
 
     // Rich Input Ctrl+Enter submit toggle (issue #11588)
-    test_rich_input_toggle_on_enter_inserts_newline_and_ctrl_enter_submits,
     // Regression: Enter must accept inline menus (not insert newline) when toggle=true
-    test_rich_input_enter_accepts_menu_item_when_toggle_is_true,
 }

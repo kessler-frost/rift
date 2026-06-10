@@ -1,16 +1,11 @@
 use rift::features::FeatureFlag;
-use rift::integration_testing::notebook::{
-    assert_cloud_preference_exists, assert_notebook_contents, assert_notebook_metadata_revision,
-};
 use rift::integration_testing::step::{
     new_step_with_default_assertions, new_step_with_default_assertions_for_pane,
 };
 use rift::integration_testing::tab::assert_pane_title;
 use rift::integration_testing::terminal::wait_until_bootstrapped_single_pane_for_tab;
 use rift::integration_testing::view_getters::single_terminal_view_for_tab;
-use rift::integration_testing::workflow::assert_workflow_metadata_revision;
 use rift::integration_testing::{self};
-use rift::settings::Preference;
 use rift::settings_view::{SettingsSection, SettingsView};
 use rift::sqlite_testing::set_user_and_hostname_for_blocks;
 use rift::terminal::model::session::get_local_hostname;
@@ -20,7 +15,6 @@ use rift::terminal::{History, ShellHost, TerminalView};
 use rift::workspace::Workspace;
 use riftui_core::integration::{AssertionOutcome, TestStep};
 use riftui_core::{async_assert_eq, SingletonEntity, ViewHandle};
-use settings::{RespectUserSyncSetting, SyncToCloud};
 
 use super::{new_builder, Builder, TEST_ONLY_ASSETS};
 use crate::util::{get_local_user, tab_title_in_home_dir};
@@ -329,118 +323,6 @@ pub fn test_restore_snapshot_with_background_output() -> Builder {
         )
 }
 
-/// Tests restoring a snapshot that includes notebook panes.
-///
-/// The snapshot has a single window with one tab, containing:
-/// * A notebook pane, where the notebook exists
-/// * A notebook pane, where the notebook no longer exists
-/// * A terminal pane
-pub fn test_restore_snapshot_with_notebooks() -> Builder {
-    new_builder()
-        .with_setup(|_utils| {
-            integration_testing::create_file_from_assets(
-                TEST_ONLY_ASSETS,
-                "restored_notebooks.sqlite",
-                &integration_testing::persistence::database_file_path_for_scope(
-                    &integration_testing::persistence::PersistenceScope::App,
-                ),
-            );
-        })
-        .with_step(
-            TestStep::new("Verify that the notebook panes were restored")
-                .add_assertion(assert_pane_title(0, 0, "First Notebook"))
-                // The missing notebook should be replaced with an empty new notebook.
-                .add_assertion(assert_pane_title(0, 1, "Untitled")),
-        )
-        .with_step(
-            new_step_with_default_assertions_for_pane("Wait for terminal pane to bootstrap", 0, 2)
-                .add_assertion(assert_pane_title(
-                    0,
-                    2,
-                    tab_title_in_home_dir("test_restore_snapshot_with_notebooks"),
-                )),
-        )
-        .with_step(
-            TestStep::new("Verify notebook contents")
-                .add_assertion(assert_notebook_contents(0, 0, "Notebook 1 content"))
-                .add_assertion(assert_notebook_contents(0, 1, "")),
-        )
-}
-
-/// Test restoring a snapshot that includes workflow panes - the second pane exists, but the first
-/// is for a deleted workflow.
-pub fn test_restore_snapshot_with_workflows() -> Builder {
-    new_builder()
-        .with_setup(|_utils| {
-            integration_testing::create_file_from_assets(
-                TEST_ONLY_ASSETS,
-                "restored_workflows.sqlite",
-                &integration_testing::persistence::database_file_path_for_scope(
-                    &integration_testing::persistence::PersistenceScope::App,
-                ),
-            )
-        })
-        .with_step(
-            TestStep::new("Verify that the workflow panes were restored")
-                .add_assertion(assert_pane_title(0, 1, "My Workflow"))
-                .add_assertion(assert_pane_title(0, 0, "Untitled")),
-        )
-}
-
-/// Tests restoring a snapshot that includes a test json object.
-///
-/// The test json object has as its contents the string "egpmggresq"
-pub fn test_restore_snapshot_with_test_json_object() -> Builder {
-    new_builder()
-        .with_setup(|_utils| {
-            integration_testing::create_file_from_assets(
-                TEST_ONLY_ASSETS,
-                "test_json_object.sqlite",
-                &integration_testing::persistence::database_file_path_for_scope(
-                    &integration_testing::persistence::PersistenceScope::App,
-                ),
-            );
-        })
-        .with_step(
-            TestStep::new("Verify json object contents").add_assertion(
-                assert_cloud_preference_exists(
-                    Preference::new(
-                        "HonorPS1".to_string(),
-                        "false",
-                        SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-                    )
-                    .expect("error creating preference"),
-                ),
-            ),
-        )
-}
-
-/// Tests restoring a snapshot that has multiple objects with the same shareable_object_id
-/// in the metadata table.  This test verifies a regression introduced in
-/// upstream PR 7406 and fixed in
-/// upstream PR 7480
-///
-/// The two objects have server ids Workflow-ftv7on4HwTeixO2xF5hmKf and Notebook-Flbu686H9XDCHZlYRriVpB
-/// and shareable_object_id 2.
-pub fn test_restore_snapshot_with_common_shareable_metadata_ids() -> Builder {
-    new_builder()
-        .with_setup(|_utils| {
-            integration_testing::create_file_from_assets(
-                TEST_ONLY_ASSETS,
-                "test_duplicate_shareable_ids.sqlite",
-                &integration_testing::persistence::database_file_path_for_scope(
-                    &integration_testing::persistence::PersistenceScope::App,
-                ),
-            );
-        })
-        .with_step(TestStep::new("Verify revision of workflow").add_assertion(
-            assert_workflow_metadata_revision("ftv7on4HwTeixO2xF5hmKf", 1676321629559090),
-        ))
-        .with_step(TestStep::new("Verify revision of notebook").add_assertion(
-            assert_notebook_metadata_revision("Flbu686H9XDCHZlYRriVpB", 1690991057168223),
-        ))
-}
-
 /// Tests restoring a snapshot that includes a Markdown file pane.
 ///
 /// The snapshot has a single window with one tab, containing:
@@ -554,9 +436,11 @@ pub fn test_restore_snapshot_with_settings_page() -> Builder {
 
                     let settings_view = settings_views.first().expect("Settings view must exist");
                     settings_view.read(app, |view, _| {
+                        // The fixture was captured on the (now removed) Referrals
+                        // page; restore falls back to the default section.
                         async_assert_eq!(
                             view.current_settings_section(),
-                            SettingsSection::Referrals
+                            SettingsSection::Appearance
                         )
                     })
                 }),

@@ -2,25 +2,15 @@
 //! src/integration.rs and src/bin/integration.rs in order to register them
 //! to be run.
 
-mod agent_mode;
-mod ai_assistant;
 mod block_filtering;
 mod bootstrapping;
-mod code_review;
 mod ctrl_d;
-mod file_tree;
-mod goto_line;
 mod history;
 mod input;
 mod keyboard_protocol;
 mod launch_configs;
-mod notebooks;
 mod pane_restoration;
 #[cfg(target_os = "macos")]
-mod preview_config_migration;
-mod remote_server;
-mod rich_input_ctrl_enter;
-mod rules;
 mod secrets;
 mod session_restoration;
 mod settings_file_errors;
@@ -32,8 +22,6 @@ mod subshell;
 mod sync_inputs;
 mod typeahead;
 mod video_recording;
-mod websockets;
-mod workflows;
 mod workspace;
 
 use std::borrow::Cow;
@@ -42,34 +30,22 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 
-pub use agent_mode::*;
-pub use ai_assistant::*;
 use anyhow::{anyhow, Result};
 pub use block_filtering::*;
 pub use bootstrapping::*;
-pub use code_review::*;
 pub use ctrl_d::*;
-pub use file_tree::*;
 use float_cmp::assert_approx_eq;
-pub use goto_line::*;
 pub use history::*;
 pub use input::*;
 pub use keyboard_protocol::*;
 pub use launch_configs::*;
-pub use notebooks::*;
 pub use pane_restoration::*;
 use parking_lot::Mutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
-#[cfg(target_os = "macos")]
-pub use preview_config_migration::*;
-pub use remote_server::*;
-pub use rich_input_ctrl_enter::*;
 use rift::appearance::Appearance;
 use rift::features::FeatureFlag;
-use rift::integration_testing::assertions::{
-    assert_binding_display_string, go_offline, go_online, join_a_workspace,
-};
+use rift::integration_testing::assertions::assert_binding_display_string;
 use rift::integration_testing::block::{
     assert_block_visible, assert_bottom_of_block_approx_at, assert_num_blocks_in_model,
     BlockPosition, LinePosition,
@@ -88,7 +64,7 @@ use rift::integration_testing::navigation_palette::{
 };
 use rift::integration_testing::pane_group::assert_focused_pane_index;
 use rift::integration_testing::settings::{
-    assert_theme_chooser_contains, set_window_custom_size, toggle_setting,
+    assert_theme_chooser_contains, toggle_setting,
 };
 use rift::integration_testing::step::{
     assert_no_pending_model_events, new_step_with_default_assertions,
@@ -118,20 +94,16 @@ use rift::integration_testing::terminal::{
     validate_git_branch, wait_until_bootstrapped_pane, wait_until_bootstrapped_single_pane_for_tab,
 };
 use rift::integration_testing::view_getters::{
-    pane_group_view, single_input_suggestions_view_for_tab, single_input_view_for_tab,
+    single_input_suggestions_view_for_tab, single_input_view_for_tab,
     single_terminal_pane_view_for_tab, single_terminal_view, single_terminal_view_for_tab,
     workspace_view,
-};
-use rift::integration_testing::rift_drive::{
-    assert_is_left_panel_open, assert_drive_is_closed, assert_drive_is_open,
 };
 use rift::integration_testing::window::{
     add_and_save_window, add_window, add_window_and_check_bounds, close_window,
     save_active_window_id,
 };
 use rift::integration_testing::workspace::assert_tab_count;
-use rift::integration_testing::{self, view_of_type};
-use rift::pane_group::AGENT_MODE_PANE_DEFAULT_MINIMUM_WIDTH;
+use rift::integration_testing::{self};
 use rift::settings::{
     CompletionsOpenWhileTyping, CtrlTabBehavior, MonospaceFontSize, TabBehavior, INPUT_MODE,
 };
@@ -154,11 +126,10 @@ use rift::terminal::view::{
 };
 use rift::terminal::{shell, TerminalView};
 use rift::util::bindings::CustomAction;
-use rift::workflows::categories::CategoriesView;
 use rift::workspace::{
-    Workspace, WorkspaceAction, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID,
+    Workspace, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID,
 };
-use rift::{cmd_or_ctrl_shift, AgentModeEntrypoint};
+use rift::cmd_or_ctrl_shift;
 use riftui_core::event::KeyState;
 use riftui_core::integration::{AssertionOutcome, StepData, TestStep};
 use riftui_core::keymap::{Keystroke, PerPlatformKeystroke, Trigger};
@@ -169,7 +140,6 @@ use riftui_core::windowing::WindowManager;
 use riftui_core::{
     async_assert, async_assert_eq, AssetProvider, Event, SingletonEntity, UpdateView, ViewHandle,
 };
-pub use rules::*;
 use rust_embed::RustEmbed;
 pub use secrets::*;
 pub use session_restoration::*;
@@ -187,8 +157,6 @@ use sysinfo::{Pid, ProcessesToUpdate, System};
 pub use typeahead::*;
 use version_compare::Cmp;
 pub use video_recording::*;
-pub use websockets::*;
-pub use workflows::*;
 pub use workspace::*;
 
 use crate::builder::cargo_target_tmpdir;
@@ -215,62 +183,6 @@ use super::util::{self, write_all_rc_files_for_test, write_rc_files_for_test};
 
 fn new_builder() -> Builder {
     Builder::new()
-}
-
-/// Adds a workflow file, containing two workflows, to the mocked out rift
-/// config directory and verifies that the workflows appear in the workflow menu.
-pub fn test_add_workflows_to_rift_config() -> Builder {
-    new_builder()
-        .with_setup(move |utils| {
-            utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
-
-            std::fs::create_dir_all(integration_testing::workflow::workflows_dir())
-                .expect("Should be able to create workflows dir");
-        })
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        .with_step(
-            TestStep::new("Should have no local workflows").add_named_assertion(
-                "Should have no local workflows",
-                |app, window_id| {
-                    let workflows: ViewHandle<CategoriesView> = view_of_type(app, window_id, 0);
-
-                    workflows.read(app, |workflows, _| {
-                        // Note that this can be a synchronous assertion because unlike the next test step,
-                        // we don't have concurrency with a RiftConfig watcher thread
-                        assert_eq!(
-                            workflows.local_workflows().count(),
-                            0,
-                            "There should not be any local workflows"
-                        );
-                    });
-                    AssertionOutcome::Success
-                },
-            ),
-        )
-        .with_step(
-            TestStep::new("Write a new file containing two workflows")
-                .with_setup(|_utils| {
-                    integration_testing::create_file_from_assets(
-                        TEST_ONLY_ASSETS,
-                        "test_workflow.yaml",
-                        &integration_testing::workflow::workflows_dir().join("test_workflow.yaml"),
-                    );
-                })
-                .add_named_assertion(
-                    "The two added workflows should be in the view",
-                    |app, window_id| {
-                        let workflows: ViewHandle<CategoriesView> = view_of_type(app, window_id, 0);
-
-                        let num_workflows =
-                            workflows.read(app, |workflows, _| workflows.local_workflows().count());
-                        async_assert!(
-                            num_workflows == 2,
-                            "Expected to find two workflows, instead found {}",
-                            num_workflows
-                        )
-                    },
-                ),
-        )
 }
 
 pub fn test_launch_rift_with_theme_in_rift_config() -> Builder {
@@ -576,9 +488,13 @@ pub fn test_suggestions_menu_positioning() -> Builder {
                 ),
         )
         .with_step(
-            new_step_with_default_assertions("Open Rift Drive")
+            new_step_with_default_assertions("Open the left panel")
                 .with_click_on_saved_position("workspace:toggle_left_panel")
-                .add_assertion(assert_is_left_panel_open()),
+                .add_named_assertion("Left panel should be open", |app, window_id| {
+                    let workspace = workspace_view(app, window_id);
+                    let open = workspace.read(app, |workspace, _| workspace.is_drive_open());
+                    async_assert!(open, "Left panel should be open")
+                }),
         )
         .with_step(
             new_step_with_default_assertions("Assert that suggestions menu updated")
@@ -6615,118 +6531,6 @@ pub fn test_pane_group_state_clear_blocks() -> Builder {
             new_step_with_default_assertions("clear the pane")
                 .with_keystrokes(&[cmd_or_ctrl_shift("k")])
                 .add_assertion(assert_pane_group_has_state(0, TerminalViewState::Normal)),
-        )
-}
-
-/// Create a small window and enough terminal panes inside it so that a new pane would normally have
-/// a narrow width. Check that the Agent Mode pane is wide enough regardless.
-pub fn test_agent_mode_pane_minimum_size() -> Builder {
-    const WINDOW_ID_KEY: &str = "small_window_id";
-
-    new_builder()
-        .with_step(set_window_custom_size(40, 120))
-        .with_step(add_and_save_window(WINDOW_ID_KEY))
-        .with_step(
-            new_step_with_default_assertions("Check the new window size")
-                .add_named_assertion_with_data_from_prior_step(
-                    "Validate window size",
-                    move |app, _, step_data_map| {
-                        let window_id = step_data_map
-                            .get(WINDOW_ID_KEY)
-                            .expect("Window ID for new window should exist");
-
-                        let size = app
-                            .window_bounds(window_id)
-                            .expect("Window should exist")
-                            .size();
-                        // This doesn't correspond clearly to the given rows and columns due to line
-                        // height and padding. There's also some platform-specific variance and room
-                        // for floating-point error.
-                        assert_approx_eq!(f32, size.x(), 992., epsilon = 2.);
-                        assert_approx_eq!(f32, size.y(), 644., epsilon = 2.);
-                        AssertionOutcome::Success
-                    },
-                ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Create a new empty pane")
-                .with_keystrokes(&[cmd_or_ctrl_shift("d")]),
-        )
-        .with_step(
-            new_step_with_default_assertions("Create an Agent Mode pane and check its width")
-                .with_action(move |app, _, step_data_map| {
-                    let window_id = step_data_map
-                        .get(WINDOW_ID_KEY)
-                        .expect("Window ID for new window should exist");
-
-                    let workspace_view_id = workspace_view(app, *window_id).id();
-
-                    app.dispatch_typed_action(
-                        *window_id,
-                        &[workspace_view_id],
-                        &WorkspaceAction::NewPaneInAgentMode {
-                            entrypoint: AgentModeEntrypoint::TabBar,
-                            zero_state_prompt_suggestion_type: None,
-                        },
-                    );
-                })
-                .add_named_assertion_with_data_from_prior_step(
-                    "Check Agent Mode pane width",
-                    |app, _, step_data_map| {
-                        let window_id = step_data_map
-                            .get(WINDOW_ID_KEY)
-                            .expect("Window ID for new window should exist");
-
-                        let pane_group = pane_group_view(app, *window_id, 0);
-                        pane_group.read(app, |view, app| {
-                            let Some(agent_mode_pane) = view.terminal_view_at_pane_index(2, app)
-                            else {
-                                return AssertionOutcome::failure(
-                                    "no terminal pane at pane_index 2".to_owned(),
-                                );
-                            };
-
-                            let pane_width =
-                                agent_mode_pane.as_ref(app).size_info().pane_size_px().x();
-
-                            // Approx equality to handle pane borders, etc.
-                            assert_approx_eq!(
-                                f32,
-                                pane_width - AGENT_MODE_PANE_DEFAULT_MINIMUM_WIDTH,
-                                0.,
-                                epsilon = 4.
-                            );
-
-                            AssertionOutcome::Success
-                        })
-                    },
-                ),
-        )
-}
-
-// cheating a little bit in this test; it's hard to tell if the create folder dialog is open from
-// the workspace view, but we DO force rift drive open to show the dialog, so we can look for that
-pub fn test_create_folder_from_command_palette() -> Builder {
-    new_builder()
-        .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
-        .with_step(join_a_workspace())
-        .with_step(go_offline())
-        .with_steps(
-            open_command_palette_and_run_action("Create a New Team Folder")
-                .add_assertion(assert_drive_is_closed()),
-        )
-        .with_steps(
-            open_command_palette_and_run_action("Create a New Personal Folder")
-                .add_assertion(assert_drive_is_closed()),
-        )
-        .with_step(go_online())
-        .with_steps(
-            open_command_palette_and_run_action("Create a New Team Folder")
-                .add_assertion(assert_drive_is_open()),
-        )
-        .with_steps(
-            open_command_palette_and_run_action("Create a New Personal Folder")
-                .add_assertion(assert_drive_is_open()),
         )
 }
 

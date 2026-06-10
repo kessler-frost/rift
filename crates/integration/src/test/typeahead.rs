@@ -1,4 +1,3 @@
-use rift::integration_testing::agent_mode::AgentViewState;
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::terminal::util::current_shell_starter_and_version;
 use rift::integration_testing::terminal::{
@@ -157,7 +156,7 @@ pub fn test_input_reporting_posix_shells() -> Builder {
                             .block_at(start_index + BlockIndex::from(4))
                             .expect("Block should exist");
                         if next_block.is_background() {
-                            async_assert!(next_block.is_empty(&AgentViewState::Inactive))
+                            async_assert!(next_block.is_empty())
                         } else {
                             async_assert_eq!(next_block.index(), blocks.active_block_index())
                         }

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use regex::Regex;
-use rift::features::FeatureFlag;
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::subshell::{
     accept_tmux_install, assert_subshell_banner_is_showing, assert_subshell_is_bootstrapped,
@@ -158,9 +157,6 @@ macro_rules! generate_can_bootstrap_legacy_ssh_test_for_shell {
             new_builder()
                 // TODO(CORE-2333) PowerShell has no SSH wrapper.
                 .set_should_run_test(|| {
-                    if FeatureFlag::SSHTmuxWrapper.is_enabled() {
-                        return false;
-                    }
                     let (starter, _) = current_shell_starter_and_version();
                     starter.shell_type() != ShellType::PowerShell
                 })
@@ -217,13 +213,9 @@ macro_rules! generate_can_bootstrap_tmux_ssh_test_for_shell {
 
             let builder = new_builder()
                 // TODO(CORE-2333) PowerShell has no SSH wrapper.
-                .set_should_run_test(|| {
-                    if !FeatureFlag::SSHTmuxWrapper.is_enabled() {
-                        return false;
-                    }
-                    let (starter, _) = current_shell_starter_and_version();
-                    starter.shell_type() != ShellType::PowerShell
-                })
+                // The SSH tmux wrapper was removed with the remote strip; these
+                // riftify-over-tmux tests can no longer run.
+                .set_should_run_test(|| false)
                 .with_step(wait_until_bootstrapped_single_pane_for_tab(0))
                 .with_step(setup_gcloud_sdk());
             // Install Tmux
