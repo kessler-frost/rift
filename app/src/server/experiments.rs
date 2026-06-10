@@ -17,9 +17,7 @@ use anyhow::{Ok, Result};
 pub enum ServerExperiment {
     SessionSharingExperiment,
     SessionSharingControl,
-    DisableAgentModeExperiment,
     EnvVarsEarlyAccessExperiment,
-    AgentModeAnalyticsExperiment,
     WindowsLaunchExperiment,
     TmuxSshRiftificationControl,
     TmuxSshRiftificationExperiment,
@@ -46,9 +44,7 @@ impl Display for ServerExperiment {
         let str = match self {
             Self::SessionSharingControl => "SESSION_SHARING_CONTROL",
             Self::SessionSharingExperiment => "SESSION_SHARING_EXPERIMENT",
-            Self::DisableAgentModeExperiment => "DISABLE_AGENT_MODE_EXPERIMENT",
             Self::EnvVarsEarlyAccessExperiment => "ENV_VARS_EARLY_ACCESS_EXPERIMENT",
-            Self::AgentModeAnalyticsExperiment => "AGENT_MODE_ANALYTICS_EXPERIMENT",
             Self::WindowsLaunchExperiment => "WINDOWS_LAUNCH_EXPERIMENT",
             Self::TmuxSshRiftificationControl => "TMUX_SSH_RIFTIFICATION_CONTROL",
             Self::TmuxSshRiftificationExperiment => "TMUX_SSH_RIFTIFICATION_EXPERIMENT",
@@ -83,9 +79,7 @@ impl ServerExperiment {
         match s.as_str() {
             "SESSION_SHARING_CONTROL" => Ok(Self::SessionSharingControl),
             "SESSION_SHARING_EXPERIMENT" => Ok(Self::SessionSharingExperiment),
-            "DISABLE_AGENT_MODE_EXPERIMENT" => Ok(Self::DisableAgentModeExperiment),
             "ENV_VARS_EARLY_ACCESS_EXPERIMENT" => Ok(Self::EnvVarsEarlyAccessExperiment),
-            "AGENT_MODE_ANALYTICS_EXPERIMENT" => Ok(Self::AgentModeAnalyticsExperiment),
             "WINDOWS_LAUNCH_EXPERIMENT" => Ok(Self::WindowsLaunchExperiment),
             "TMUX_SSH_RIFTIFICATION_CONTROL" => Ok(Self::TmuxSshRiftificationControl),
             "TMUX_SSH_RIFTIFICATION_EXPERIMENT" => Ok(Self::TmuxSshRiftificationExperiment),

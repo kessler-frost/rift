@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use pathfinder_color::ColorU;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::vec2f;
 use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::Fill;
 use riftui::elements::{
@@ -16,7 +16,7 @@ use riftui::keymap::Keystroke;
 use riftui::platform::Cursor;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
-    AppContext, Element, Entity, EntityId, Gradient, ModelHandle, SingletonEntity, TypedActionView,
+    AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView,
     View, ViewContext, ViewHandle,
 };
 
@@ -1514,45 +1514,6 @@ impl ActionButtonTheme for UdiPromptChipHintButton {
 
     fn border(&self, appearance: &Appearance) -> Option<ColorU> {
         Some(internal_colors::neutral_3(appearance.theme()))
-    }
-}
-
-pub struct EnterAgentViewButton;
-
-impl ActionButtonTheme for EnterAgentViewButton {
-    fn background(&self, hovered: bool, appearance: &Appearance) -> Option<Fill> {
-        Some(if hovered {
-            internal_colors::fg_overlay_2(appearance.theme())
-        } else {
-            internal_colors::fg_overlay_1(appearance.theme())
-        })
-    }
-
-    fn text_color(
-        &self,
-        _hovered: bool,
-        _background: Option<Fill>,
-        appearance: &Appearance,
-    ) -> ColorU {
-        appearance
-            .theme()
-            .main_text_color(appearance.theme().background())
-            .into_solid()
-    }
-
-    fn border_gradient(&self, appearance: &Appearance) -> Option<(Vector2F, Vector2F, Gradient)> {
-        Some((
-            vec2f(0.0, 0.0),
-            vec2f(3.0, 3.0),
-            Gradient {
-                start: appearance.theme().ansi_fg_magenta(),
-                end: appearance.theme().ansi_fg_yellow(),
-            },
-        ))
-    }
-
-    fn should_opt_out_of_contrast_adjustment(&self) -> bool {
-        true
     }
 }
 
