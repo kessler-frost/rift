@@ -26,7 +26,6 @@ use riftui::{
     ViewContext, ViewHandle, WindowId,
 };
 use serde::{Deserialize, Serialize};
-use session_sharing_protocol::common::SessionId;
 use settings::Setting as _;
 use url::Url;
 
@@ -34,7 +33,6 @@ use crate::app_state::{AppState, PaneUuid, WindowSnapshot};
 use crate::appearance::Appearance;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
-use crate::features::FeatureFlag;
 use crate::interval_timer::IntervalTimer;
 use crate::launch_configs::launch_config;
 use crate::pane_group::{NewTerminalOptions, PanesLayout};
@@ -231,17 +229,6 @@ pub fn init(app: &mut AppContext) {
         RootView::toggle_maximize_window,
     );
     app.add_action("root_view:toggle_fullscreen", RootView::toggle_fullscreen);
-
-    if FeatureFlag::ViewingSharedSessions.is_enabled() {
-        app.add_global_action(
-            "root_view:join_shared_session",
-            open_shared_session_as_viewer,
-        );
-        app.add_action(
-            "root_view:join_shared_session_in_existing_window",
-            RootView::join_shared_session_in_existing_window,
-        );
-    }
 
     app.add_global_action("root_view:create_environment", create_environment);
     app.add_global_action(
@@ -689,15 +676,6 @@ pub(crate) fn open_new_from_path(
     )
 }
 
-/// Opens a new window and tries to join session identified by the session ID.
-fn open_shared_session_as_viewer(session_id: &SessionId, ctx: &mut AppContext) {
-    open_new_with_workspace_source(
-        NewWorkspaceSource::SharedSessionAsViewer {
-            session_id: *session_id,
-        },
-        ctx,
-    );
-}
 
 
 /// Opens a new window and starts the guided `/create-environment` setup flow.
@@ -1140,9 +1118,6 @@ pub enum NewWorkspaceSource {
     Session {
         options: Box<NewTerminalOptions>,
     },
-    SharedSessionAsViewer {
-        session_id: SessionId,
-    },
     /// A tab is being transferred from another window via the transferable views framework.
     /// The workspace will create a placeholder tab, which will be replaced by the transferred
     /// PaneGroup after window creation.
@@ -1363,26 +1338,6 @@ impl RootView {
         true
     }
 
-
-
-    pub fn join_shared_session_in_existing_window(
-        &mut self,
-        session_id: &SessionId,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            handle.update(ctx, |workspace, ctx| {
-                workspace.add_tab_for_joining_shared_session(*session_id, ctx);
-            });
-            let window_id = ctx.window_id();
-            ctx.windows().show_window_and_focus_app(window_id);
-            ctx.notify();
-            true
-        } else {
-            log::warn!("Auth not complete before trying to join shared session");
-            false
-        }
-    }
 
 
     /// Adds a tab and starts the guided `/create-environment` setup flow.

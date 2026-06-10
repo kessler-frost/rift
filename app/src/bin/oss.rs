@@ -21,7 +21,6 @@ const OSS_DISABLED_FLAGS: &[FeatureFlag] = &[
     FeatureFlag::BillingAndUsagePageV2,
     FeatureFlag::TeamApiKeys,
     FeatureFlag::MultiWorkspace,
-    FeatureFlag::SharedWithMe,
 ];
 
 // Simple wrapper around rift::run() for Rift builds.

@@ -46,8 +46,8 @@ use super::model::session::SessionId;
 use super::model::terminal_model::{SelectedBlocks, WithinBlock, WithinModel};
 use super::model::SecretHandle;
 use super::view::{
-    BlocklistAIRenderContext, InlineBannerId, RichContentMetadata, SeparatorId,
-    SharedSessionBanners, TerminalEditor, TerminalViewRenderContext, BLOCK_BANNER_HEIGHT,
+    BlocklistAIRenderContext, InlineBannerId, RichContentMetadata, SeparatorId, TerminalEditor,
+    TerminalViewRenderContext, BLOCK_BANNER_HEIGHT,
 };
 use super::riftify::render::{draw_flag_pole, render_subshell_flag};
 use super::{heights_approx_eq, TerminalModel, HEIGHT_FUDGE_FACTOR_LINES};
@@ -683,8 +683,6 @@ pub struct BlockListElement {
     rich_content_elements: HashMap<EntityId, Box<dyn Element>>,
     rich_content_metadata: HashMap<EntityId, RichContentMetadata>,
 
-    shared_session_banner_state: SharedSessionBanners,
-
     horizontal_clipped_scroll_state: ClippedScrollStateHandle,
 
     /// Information about blocks and AI blocks used to render blocklist AI-specific decoration.
@@ -840,7 +838,6 @@ impl BlockListElement {
         subshell_separators: HashMap<SeparatorId, Box<dyn Element>>,
         selection_ranges: Option<Vec1<SelectionRange>>,
         block_banner: Option<Box<dyn Element>>,
-        shared_session_banners: SharedSessionBanners,
         input_size_at_last_frame: Vector2F,
         inline_menu_positioner: ModelHandle<InlineMenuPositioner>,
         cursor_hint_text_element: Option<Box<dyn Element>>,
@@ -914,7 +911,6 @@ impl BlockListElement {
             filtered_blocks: None,
             rich_content_elements: HashMap::new(),
             rich_content_metadata: HashMap::new(),
-            shared_session_banner_state: shared_session_banners,
             horizontal_clipped_scroll_state: terminal_view_render_context
                 .horizontal_clipped_scroll_state,
             ai_render_context: terminal_view_render_context.ai_render_context,
@@ -3567,21 +3563,7 @@ impl Element for BlockListElement {
                         banner.paint(grid_origin, ctx, app);
                     }
 
-                    // Since the shared session banner gives a border effect,
-                    // we want to avoid drawing a border between the banner and the next block.
-                    // Specifically, if there is a banner, we want to draw the border
-                    // iff it's not a shared session banner.
-                    draw_border_above_block = match self.shared_session_banner_state {
-                        SharedSessionBanners::None => true,
-                        SharedSessionBanners::ActiveShare {
-                            started_banner_id, ..
-                        } => *banner_id != started_banner_id,
-                        SharedSessionBanners::LastShared {
-                            started_banner_id,
-                            ended_banner_id,
-                            ..
-                        } => *banner_id != started_banner_id && *banner_id != ended_banner_id,
-                    };
+                    draw_border_above_block = true;
 
                     grid_origin += vec2f(0., *height);
                 }

@@ -6,7 +6,6 @@ use std::time::Duration;
 use ::settings::{Setting, ToggleableSetting};
 use lazy_static::lazy_static;
 use rift_core::channel::ChannelState;
-use rift_core::context_flag::ContextFlag;
 use rift_core::semantic_selection::{
     SemanticSelection, SemanticSelectionChangedEvent, SmartSelectEnabled,
 };
@@ -88,7 +87,7 @@ use crate::terminal::session_settings::StartupShellOverride;
 use crate::terminal::session_settings::WorkingDirectoryConfig;
 use crate::terminal::session_settings::{
     Notifications, NotificationsMode, NotificationsSettings, SessionSettings,
-    SessionSettingsChangedEvent, ShouldConfirmCloseSession,
+    SessionSettingsChangedEvent,
 };
 use crate::terminal::settings::{
     AsyncFindEnabled, MaximumGridSize, ShowTerminalZeroStateBlock, TerminalSettings,
@@ -702,7 +701,6 @@ pub enum FeaturesPageAction {
     SetDefaultTabConfig(String),
     SearchForKeybinding(String),
     ToggleAutosuggestions,
-    ToggleConfirmCloseSession,
     #[cfg(any(target_os = "linux", target_os = "freebsd"))]
     ToggleForceX11,
     ToggleAutosuggestionKeybindingHint,
@@ -1388,15 +1386,6 @@ impl TypedActionView for FeaturesPageView {
                 });
                 ctx.update_rendering_config(|config| config.backend_preference = *graphics_backend);
                 self.graphics_backend_preference_changed = true;
-            }
-            ToggleConfirmCloseSession => {
-                SessionSettings::handle(ctx).update(ctx, |session_settings, ctx| {
-                    session_settings
-                        .should_confirm_close_session
-                        .toggle_and_save_value(ctx)
-                        .expect("failed to serialize ShouldConfirmCloseSession");
-                    ctx.notify();
-                })
             }
             ToggleShowTerminalZeroStateBlock => {
                 TerminalSettings::handle(ctx).update(ctx, |terminal_settings, ctx| {
@@ -2096,15 +2085,6 @@ impl FeaturesPageView {
             .is_supported_on_current_platform()
         {
             session_widgets.push(Box::new(UndoCloseWidget::default()));
-        }
-
-        if FeatureFlag::CreatingSharedSessions.is_enabled()
-            && ContextFlag::CreateSharedSession.is_enabled()
-            && session_settings
-                .should_confirm_close_session
-                .is_supported_on_current_platform()
-        {
-            session_widgets.push(Box::new(ConfirmCloseSharedSessionWidget::default()));
         }
 
         let mut keys_widgets: Vec<Box<dyn SettingsWidget<View = Self>>> = vec![];
@@ -4515,53 +4495,6 @@ impl SettingsWidget for UndoCloseWidget {
         _app: &AppContext,
     ) -> Box<dyn Element> {
         ChildView::new(&view.undo_close_view).finish()
-    }
-}
-
-#[derive(Default)]
-struct ConfirmCloseSharedSessionWidget {
-    switch_state: SwitchStateHandle,
-}
-
-impl SettingsWidget for ConfirmCloseSharedSessionWidget {
-    type View = FeaturesPageView;
-
-    fn search_terms(&self) -> &str {
-        "warning popup modal dialog shared session close"
-    }
-
-    fn render(
-        &self,
-        view: &Self::View,
-        appearance: &Appearance,
-        app: &AppContext,
-    ) -> Box<dyn Element> {
-        let ui_builder = appearance.ui_builder();
-        let session_settings = SessionSettings::as_ref(app);
-        render_body_item::<FeaturesPageAction>(
-            "Confirm before closing shared session".into(),
-            None,
-            LocalOnlyIconState::for_setting(
-                ShouldConfirmCloseSession::storage_key(),
-                ShouldConfirmCloseSession::sync_to_cloud(),
-                &mut view
-                    .button_mouse_states
-                    .local_only_icon_tooltip_states
-                    .borrow_mut(),
-                app,
-            ),
-            ToggleState::Enabled,
-            appearance,
-            ui_builder
-                .switch(self.switch_state.clone())
-                .check(*session_settings.should_confirm_close_session)
-                .build()
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(FeaturesPageAction::ToggleConfirmCloseSession);
-                })
-                .finish(),
-            None,
-        )
     }
 }
 

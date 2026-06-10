@@ -428,14 +428,10 @@ crash_reporting = [
     "dep:crash-handler",
     "rift_logging/crash_reporting",
 ]
-creating_shared_sessions = []
 cross_repo_context = []
 codebase_index_persistence = ["full_source_code_embedding"]
 default = [
-    "viewing_shared_sessions",
     "render_continuous_block_selections_with_single_border",
-    "shared_with_me",
-    "session_sharing_acls",
     "shell_selector",
     "minimalist_ui",
     "avatar_in_tab_bar",
@@ -463,7 +459,6 @@ default = [
     "ai_context_menu",
     "at_menu_outside_of_ai_mode",
     "interactive_conversation_management_view",
-    "shared_block_title_generation",
     "tab_close_button_on_left",
     "ai_resume_button",
     "code_find_replace",
@@ -503,7 +498,6 @@ default = [
     "cloud_environments",
     "create_environment_slash_command",
     "code_review_find",
-    "shared_session_long_running_commands",
     "fork_from_command",
     "context_window_usage_v2",
     "v4a_file_diffs",
@@ -681,8 +675,6 @@ runtime_feature_flags = []
 selectable_prompt = []
 settings_file = []
 sequential_storage = []
-session_sharing = []
-session_sharing_acls = []
 skip_login = []
 # This feature should only be enabled when building a self-contained binary with the bundle script.
 standalone = ["rift_assets/standalone"]
@@ -700,13 +692,10 @@ integration_tests = [
     "rift_core/integration_tests",
 ]
 traces = []
-viewing_shared_sessions = []
 rect_selection = []
 alacritty_settings_import = []
-shared_with_me = []
 ai_rules = []
 shell_selector = []
-shared_session_long_running_commands = []
 blocklist_markdown_table_rendering = []
 blocklist_markdown_images = []
 minimalist_ui = []
@@ -729,7 +718,6 @@ full_source_code_embedding = []
 use_tantivy_search = []
 simulate_github_unauthed = []
 reload_stale_conversation_files = []
-shared_block_title_generation = []
 retry_truncated_code_responses = []
 usage_based_pricing = []
 ai_context_menu = []
