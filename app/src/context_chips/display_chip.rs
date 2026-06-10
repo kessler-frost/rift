@@ -40,7 +40,6 @@ use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersio
 use crate::context_chips::spacing;
 use crate::settings::{AISettings, AISettingsChangedEvent, InputSettings};
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::model_events::ModelEventDispatcher;
 use crate::ui_components::blended_colors;
@@ -808,10 +807,8 @@ impl DisplayChip {
 
     /// Returns `true` when a CLI agent session is active for this chip's terminal,
     /// meaning interactive behaviors (menus, hover, click) should be suppressed.
-    fn is_cli_agent_session_active(&self, app: &AppContext) -> bool {
-        CLIAgentSessionsModel::as_ref(app)
-            .session(self.terminal_view_id)
-            .is_some()
+    fn is_cli_agent_session_active(&self, _app: &AppContext) -> bool {
+        false
     }
 
     fn close_node_version_popup(&mut self, ctx: &mut ViewContext<'_, DisplayChip>) {

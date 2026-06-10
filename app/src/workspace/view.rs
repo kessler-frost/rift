@@ -209,7 +209,6 @@ use crate::terminal::available_shells::AvailableShell;
 #[cfg(target_os = "windows")]
 use crate::terminal::available_shells::AvailableShells;
 use crate::terminal::block_list_viewport::InputMode;
-use crate::terminal::cli_agent_sessions::{CLIAgentSessionsModel, CLIAgentSessionsModelEvent};
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::input::Input;
 use crate::terminal::keys_settings::KeysSettings;
@@ -2136,10 +2135,6 @@ impl Workspace {
 
         ctx.observe(&tips_completed, Workspace::on_tips_model_changed);
 
-        ctx.subscribe_to_model(&CLIAgentSessionsModel::handle(ctx), |me, _, event, ctx| {
-            me.handle_cli_agent_sessions_event(event, ctx);
-        });
-
         ctx.subscribe_to_model(
             &SessionSettings::handle(ctx),
             Self::handle_session_settings_event,
@@ -2427,36 +2422,6 @@ impl Workspace {
 
 
 
-
-    fn workspace_contains_terminal_view(
-        &self,
-        terminal_view_id: EntityId,
-        ctx: &AppContext,
-    ) -> bool {
-        self.tabs.iter().any(|tab| {
-            tab.pane_group
-                .as_ref(ctx)
-                .contains_terminal_view(terminal_view_id, ctx)
-        })
-    }
-
-
-    fn handle_cli_agent_sessions_event(
-        &mut self,
-        event: &CLIAgentSessionsModelEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if matches!(
-            event,
-            CLIAgentSessionsModelEvent::Started { .. }
-                | CLIAgentSessionsModelEvent::StatusChanged { .. }
-                | CLIAgentSessionsModelEvent::Ended { .. }
-                | CLIAgentSessionsModelEvent::SessionUpdated { .. }
-        ) && self.workspace_contains_terminal_view(event.terminal_view_id(), ctx)
-        {
-            ctx.notify();
-        }
-    }
 
     /// Handle session settings changes.
     fn handle_session_settings_event(
@@ -2858,22 +2823,20 @@ impl Workspace {
         shell: Option<AvailableShell>,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Warp Home / Warp Drive were removed; only the session-creation path remains.
-        if !ContextFlag::CreateNewSession.is_enabled() {
-            if self.should_trigger_get_started_onboarding(ctx) {
-                self.trigger_get_started_onboarding(ctx);
-            } else if FeatureFlag::WelcomeTab.is_enabled() {
-                self.add_welcome_tab(ctx);
-            } else {
-                self.add_new_session_tab_with_default_mode(
-                    NewSessionSource::Window,
-                    previous_active_window,
-                    shell,
-                    false, /* hide_homepage */
-                    ctx,
-                );
-                self.check_and_trigger_onboarding(ctx);
-            }
+        // Warp Home / Warp Drive were removed; an empty workspace always opens a session tab.
+        if self.should_trigger_get_started_onboarding(ctx) {
+            self.trigger_get_started_onboarding(ctx);
+        } else if FeatureFlag::WelcomeTab.is_enabled() {
+            self.add_welcome_tab(ctx);
+        } else {
+            self.add_new_session_tab_with_default_mode(
+                NewSessionSource::Window,
+                previous_active_window,
+                shell,
+                false, /* hide_homepage */
+                ctx,
+            );
+            self.check_and_trigger_onboarding(ctx);
         }
     }
 

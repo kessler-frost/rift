@@ -20,7 +20,6 @@ use mio::Interest;
 use nix::pty::openpty;
 use nix::sys::termios::{self, InputFlags, SetArg};
 use rift_core::channel::ChannelState;
-use rift_core::features::FeatureFlag;
 use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 use signal_hook_mio::v1_0::Signals;
@@ -29,7 +28,6 @@ use super::event_loop::{PTY_TOKEN, SIGNALS_TOKEN};
 use super::spawner::{PtyHandle, PtySpawnInfo, PtySpawner};
 use super::{ChildEvent, EventedPty, EventedReadWrite, PtyOptions, SizeInfo};
 use crate::terminal::bootstrap::raw_init_shell_script_for_shell;
-use crate::terminal::cli_agent_sessions::event::current_protocol_version;
 use crate::terminal::local_tty::docker_sandbox::{
     DockerSandboxShellStarter, DOCKER_SANDBOX_HOME_DIR,
 };
@@ -305,16 +303,6 @@ fn build_host_shell_command(
     // We currently don't support bootstrapping recursive SSH sessions so we will only run the SSH
     // logic if this flag is set.
     builder.env("RIFT_IS_LOCAL_SHELL_SESSION", "1");
-
-    // Only advertise the protocol version when the HOA notifications feature is enabled.
-    // Without it, Warp can't render structured CLI agent notifications,
-    // so the plugin should fall back to legacy notifications.
-    if FeatureFlag::HOANotifications.is_enabled() {
-        builder.env(
-            "RIFT_CLI_AGENT_PROTOCOL_VERSION",
-            current_protocol_version().to_string(),
-        );
-    }
 
     if shell_debug_mode {
         builder.env("RIFT_SHELL_DEBUG_MODE", "1");
@@ -785,12 +773,6 @@ fn build_docker_sandbox_command(
     );
     builder.env("SSH_SOCKET_DIR", ssh_socket_dir());
     builder.env("RIFT_IS_LOCAL_SHELL_SESSION", "1");
-    if FeatureFlag::HOANotifications.is_enabled() {
-        builder.env(
-            "RIFT_CLI_AGENT_PROTOCOL_VERSION",
-            current_protocol_version().to_string(),
-        );
-    }
     if shell_debug_mode {
         builder.env("RIFT_SHELL_DEBUG_MODE", "1");
     }

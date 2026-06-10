@@ -40,14 +40,12 @@ use crate::pane_group::{
 };
 use crate::safe_triangle::SafeTriangle;
 use crate::tab::{tab_position_id, SelectedTabColor, TabData};
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::view::TerminalViewState;
-use crate::terminal::{CLIAgent, TerminalView};
+use crate::terminal::TerminalView;
 use crate::themes::theme::Fill as ThemeFill;
-use crate::ui_components::agent_icon::terminal_view_agent_icon_variant;
 use crate::ui_components::buttons::combo_inner_button;
-use crate::ui_components::icon_with_status::{render_icon_with_status, IconWithStatusVariant};
+use crate::ui_components::icon_with_status::render_icon_with_status;
 use crate::ui_components::icons::Icon as UiIcon;
 use crate::util::bindings::keybinding_name_to_display_string;
 use crate::util::color::Opacity;
@@ -113,14 +111,6 @@ pub(crate) fn vtab_group_kebab_position_id(tab_group_id: TabGroupId) -> String {
 /// Save-position id for a tab group's full container rect, used for drop hit-testing.
 pub(crate) fn vtab_group_position_id(group_id: TabGroupId) -> String {
     format!("vertical_tabs:group:{group_id:?}")
-}
-
-fn terminal_title_fallback_font(agent_text: &TerminalAgentText) -> TerminalPrimaryLineFont {
-    if agent_text.cli_agent.is_some() {
-        TerminalPrimaryLineFont::Ui
-    } else {
-        TerminalPrimaryLineFont::Monospace
-    }
 }
 
 fn supports_vertical_tabs_detail_sidecar(typed: &TypedPane<'_>) -> bool {
@@ -235,21 +225,11 @@ enum TerminalPrimaryLineFont {
     Monospace,
 }
 
-fn oz_icon_fill(theme: &WarpTheme) -> WarpThemeFill {
-    theme.main_text_color(theme.background())
-}
-
 fn render_pane_icon_with_status(
-    variant: IconWithStatusVariant,
+    (icon, icon_color): (WarpIcon, WarpThemeFill),
     theme: &WarpTheme,
 ) -> Box<dyn Element> {
-    render_icon_with_status(
-        variant,
-        VERTICAL_TABS_ICON_SIZE,
-        0.,
-        theme,
-        theme.background(),
-    )
+    render_icon_with_status(icon, icon_color, VERTICAL_TABS_ICON_SIZE, theme)
 }
 
 #[derive(Clone, Default)]
@@ -709,9 +689,6 @@ struct PaneRowState {
 }
 
 enum TerminalPrimaryLineData {
-    StatusText {
-        text: String,
-    },
     Text {
         text: String,
         font: TerminalPrimaryLineFont,
@@ -721,8 +698,7 @@ enum TerminalPrimaryLineData {
 impl TerminalPrimaryLineData {
     fn text(&self) -> &str {
         match self {
-            TerminalPrimaryLineData::StatusText { text, .. }
-            | TerminalPrimaryLineData::Text { text, .. } => text,
+            TerminalPrimaryLineData::Text { text, .. } => text,
         }
     }
 }
@@ -743,8 +719,6 @@ enum VerticalTabsResolvedMode {
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum SummaryPaneKind {
     Terminal,
-    OzAgent { is_ambient: bool },
-    CLIAgent { agent: CLIAgent, is_ambient: bool },
     Settings,
     Other,
 }
@@ -1239,41 +1213,13 @@ fn render_control_bar(
 fn render_detail_kind_badge_icon(
     props: &PaneProps<'_>,
     appearance: &Appearance,
-    app: &AppContext,
+    _app: &AppContext,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
     let sub_text = theme.sub_text_color(theme.background());
     let disabled_text = detail_sidecar_text_colors(theme).disabled;
     match &props.typed {
-        TypedPane::Terminal(terminal_pane) => {
-            let terminal_view = terminal_pane.terminal_view(app);
-            let terminal_view = terminal_view.as_ref(app);
-            let cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
-            if let Some(icon) = cli_agent_session.and_then(|session| session.agent.icon()) {
-                let color = cli_agent_session
-                    .and_then(|session| session.agent.brand_color())
-                    .map(WarpThemeFill::Solid)
-                    .unwrap_or_else(|| theme.accent());
-                return icon.to_warpui_icon(color).finish();
-            }
-
-            let icon = if terminal_view.is_ambient_agent_session(app) {
-                WarpIcon::OzCloud
-            } else if terminal_view
-                .selected_conversation_display_title(app)
-                .is_some()
-            {
-                WarpIcon::Oz
-            } else {
-                WarpIcon::Terminal
-            };
-            let color = match icon {
-                WarpIcon::Oz | WarpIcon::OzCloud => oz_icon_fill(theme),
-                WarpIcon::Terminal => disabled_text,
-                _ => sub_text,
-            };
-            icon.to_warpui_icon(color).finish()
-        }
+        TypedPane::Terminal(_) => WarpIcon::Terminal.to_warpui_icon(disabled_text).finish(),
         typed => typed.icon().to_warpui_icon(sub_text).finish(),
     }
 }
@@ -2780,34 +2726,17 @@ fn resolve_icon_with_status_variant(
     typed: &TypedPane<'_>,
     _title: &str,
     appearance: &Appearance,
-    app: &AppContext,
-) -> IconWithStatusVariant {
+    _app: &AppContext,
+) -> (WarpIcon, WarpThemeFill) {
     let theme = appearance.theme();
     let main_text = theme.main_text_color(theme.background());
     let sub_text = theme.sub_text_color(theme.background());
 
     match typed {
-        TypedPane::Terminal(terminal_pane) => {
-            let terminal_view = terminal_pane.terminal_view(app);
-            let terminal_view = terminal_view.as_ref(app);
-            if let Some(variant) = terminal_view_agent_icon_variant(terminal_view, app) {
-                variant
-            } else {
-                // Plain terminal: use foreground color per design spec
-                IconWithStatusVariant::Neutral {
-                    icon: WarpIcon::Terminal,
-                    icon_color: main_text,
-                }
-            }
-        }
-        TypedPane::Settings => IconWithStatusVariant::Neutral {
-            icon: typed.icon(),
-            icon_color: main_text,
-        },
-        other => IconWithStatusVariant::Neutral {
-            icon: other.icon(),
-            icon_color: sub_text,
-        },
+        // Plain terminal: use foreground color per design spec
+        TypedPane::Terminal(_) => (WarpIcon::Terminal, main_text),
+        TypedPane::Settings => (typed.icon(), main_text),
+        other => (other.icon(), sub_text),
     }
 }
 
@@ -2931,23 +2860,9 @@ enum TypedPane<'a> {
 }
 
 impl TypedPane<'_> {
-    fn summary_pane_kind(&self, _title: &str, app: &AppContext) -> SummaryPaneKind {
+    fn summary_pane_kind(&self, _title: &str, _app: &AppContext) -> SummaryPaneKind {
         match self {
-            TypedPane::Terminal(terminal_pane) => {
-                let terminal_view = terminal_pane.terminal_view(app);
-                let terminal_view = terminal_view.as_ref(app);
-                // Route through the shared helper so summary mode agrees with
-                // `resolve_icon_with_status_variant` on what the tab represents.
-                match terminal_view_agent_icon_variant(terminal_view, app) {
-                    Some(IconWithStatusVariant::OzAgent { is_ambient, .. }) => {
-                        SummaryPaneKind::OzAgent { is_ambient }
-                    }
-                    Some(IconWithStatusVariant::CLIAgent {
-                        agent, is_ambient, ..
-                    }) => SummaryPaneKind::CLIAgent { agent, is_ambient },
-                    Some(_) | None => SummaryPaneKind::Terminal,
-                }
-            }
+            TypedPane::Terminal(_) => SummaryPaneKind::Terminal,
             TypedPane::Settings => SummaryPaneKind::Settings,
             TypedPane::Other => SummaryPaneKind::Other,
         }
@@ -3047,17 +2962,9 @@ fn build_vertical_tabs_summary_data(
                     .clone()
                     .filter(|wd| !wd.trim().is_empty())
                     .unwrap_or_else(|| title_text.clone());
-                let agent_text = terminal_agent_text(terminal_view, app);
-                let (conversation_display_title, cli_agent_title) =
-                    preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));
-
                 let primary_label = terminal_primary_line_data(
-                    terminal_view.is_long_running_and_user_controlled(),
-                    conversation_display_title,
-                    cli_agent_title,
                     title_text.as_str(),
                     working_directory_text.as_str(),
-                    terminal_title_fallback_font(&agent_text),
                     terminal_view.last_completed_command_text(),
                 );
                 push_normalized_unique_summary_label(
@@ -3268,20 +3175,12 @@ fn terminal_pane_search_text_fragments(
     let title_text = terminal_view.terminal_title_from_shell();
     let working_directory = resolved_terminal_working_directory(terminal_view, app)
         .unwrap_or_else(|| title_text.clone());
-    let agent_text = terminal_agent_text(terminal_view, app);
-    let (conversation_display_title, cli_agent_title) =
-        preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));
-
     let primary_text = display_title_override
         .map(str::to_owned)
         .unwrap_or_else(|| {
             terminal_primary_line_data(
-                terminal_view.is_long_running_and_user_controlled(),
-                conversation_display_title,
-                cli_agent_title,
                 title_text.as_str(),
                 working_directory.as_str(),
-                terminal_title_fallback_font(&agent_text),
                 terminal_view.last_completed_command_text(),
             )
             .text()
@@ -3296,7 +3195,7 @@ fn terminal_pane_search_text_fragments(
         primary_text,
         working_directory,
         terminal_view.current_git_branch(app),
-        terminal_kind_badge_label(agent_text.is_oz_agent, agent_text.cli_agent),
+        "Terminal".to_string(),
         pull_request_label,
         terminal_view.current_diff_line_changes(app),
     )
@@ -3324,38 +3223,16 @@ fn terminal_search_text_fragments(
 }
 
 fn terminal_primary_line_data(
-    is_long_running: bool,
-    conversation_display_title: Option<String>,
-    cli_agent_title: Option<String>,
     terminal_title: &str,
     working_directory: &str,
-    terminal_title_font: TerminalPrimaryLineFont,
     last_completed_command: Option<String>,
 ) -> TerminalPrimaryLineData {
     let trimmed_title = terminal_title.trim();
     let trimmed_working_directory = working_directory.trim();
-    if let Some(cli_agent_title) = cli_agent_title {
-        return TerminalPrimaryLineData::StatusText {
-            text: cli_agent_title,
-        };
-    }
-
-    if is_long_running && !trimmed_title.is_empty() && trimmed_title != trimmed_working_directory {
-        return TerminalPrimaryLineData::Text {
-            text: trimmed_title.to_string(),
-            font: TerminalPrimaryLineFont::Monospace,
-        };
-    }
-
-    if let Some(conversation_title) = conversation_display_title {
-        return TerminalPrimaryLineData::StatusText {
-            text: conversation_title,
-        };
-    }
     if !trimmed_title.is_empty() && trimmed_title != trimmed_working_directory {
         return TerminalPrimaryLineData::Text {
             text: trimmed_title.to_string(),
-            font: terminal_title_font,
+            font: TerminalPrimaryLineFont::Monospace,
         };
     }
 
@@ -3370,92 +3247,6 @@ fn terminal_primary_line_data(
         text: "New session".to_string(),
         font: TerminalPrimaryLineFont::Ui,
     }
-}
-
-fn terminal_kind_badge_label(is_oz_agent: bool, cli_agent: Option<CLIAgent>) -> String {
-    if let Some(cli_agent) = cli_agent {
-        cli_agent.display_name().to_string()
-    } else if is_oz_agent {
-        "Oz".to_string()
-    } else {
-        "Terminal".to_string()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum AgentTabTextPreference {
-    ConversationTitle,
-    LatestUserPrompt,
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-struct TerminalAgentText {
-    conversation_display_title: Option<String>,
-    conversation_latest_user_prompt: Option<String>,
-    cli_agent_title: Option<String>,
-    cli_agent_latest_user_prompt: Option<String>,
-    is_oz_agent: bool,
-    cli_agent: Option<CLIAgent>,
-}
-
-fn agent_tab_text_preference(app: &AppContext) -> AgentTabTextPreference {
-    if *TabSettings::as_ref(app).use_latest_user_prompt_as_conversation_title_in_tab_names {
-        AgentTabTextPreference::LatestUserPrompt
-    } else {
-        AgentTabTextPreference::ConversationTitle
-    }
-}
-
-fn preferred_agent_tab_titles(
-    agent_text: &TerminalAgentText,
-    preference: AgentTabTextPreference,
-) -> (Option<String>, Option<String>) {
-    let conversation_title = match preference {
-        AgentTabTextPreference::ConversationTitle => agent_text
-            .conversation_display_title
-            .clone()
-            .or_else(|| agent_text.conversation_latest_user_prompt.clone()),
-        AgentTabTextPreference::LatestUserPrompt => agent_text
-            .conversation_latest_user_prompt
-            .clone()
-            .or_else(|| agent_text.conversation_display_title.clone()),
-    };
-    let cli_agent_title = match preference {
-        AgentTabTextPreference::ConversationTitle => agent_text.cli_agent_title.clone(),
-        AgentTabTextPreference::LatestUserPrompt => agent_text
-            .cli_agent_latest_user_prompt
-            .clone()
-            .or_else(|| agent_text.cli_agent_title.clone()),
-    };
-
-    (conversation_title, cli_agent_title)
-}
-
-fn terminal_agent_text(terminal_view: &TerminalView, app: &AppContext) -> TerminalAgentText {
-    let cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
-    let is_plugin_backed = cli_agent_session.is_some_and(|session| session.listener.is_some());
-    let is_ambient_agent = terminal_view.is_ambient_agent_session(app);
-
-    let mut agent_text = TerminalAgentText {
-        is_oz_agent: is_ambient_agent,
-        cli_agent: cli_agent_session.map(|session| session.agent),
-        ..Default::default()
-    };
-
-    if cli_agent_session.is_some() && !is_plugin_backed {
-        return agent_text;
-    }
-
-    agent_text.conversation_display_title = terminal_view.selected_conversation_display_title(app);
-    agent_text.is_oz_agent =
-        agent_text.conversation_display_title.is_some() || agent_text.is_oz_agent;
-
-    if let Some(session) = cli_agent_session {
-        agent_text.cli_agent_title = session.session_context.title_like_text();
-        agent_text.cli_agent_latest_user_prompt = session.session_context.latest_user_prompt();
-    }
-
-    agent_text
 }
 
 fn terminal_pull_request_badge_label(pull_request_url: &str) -> String {
@@ -4104,84 +3895,21 @@ fn render_summary_pane_kind_icon_circle(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
-    // For ambient Oz / CLI agent kinds, delegate to `render_icon_with_status` so the
-    // brand-color circle is overlaid with the white cloud badge (status-less in summary
-    // mode). Non-ambient agent kinds and all other pane kinds fall through to the inline
-    // circle rendering below.
-    if let Some(variant) = ambient_agent_variant(&kind) {
-        return render_icon_with_status(variant, total_size, 0., theme, theme.background());
-    }
     let icon_size = total_size * SUMMARY_INLINE_ICON_RATIO;
     let padding = total_size * SUMMARY_INLINE_PADDING_RATIO;
-    let (icon_element, background): (Box<dyn Element>, ElementFill) = match kind {
-        SummaryPaneKind::OzAgent { .. } => (
-            WarpIcon::Oz.to_warpui_icon(oz_icon_fill(theme)).finish(),
-            theme.background().into(),
-        ),
-        SummaryPaneKind::CLIAgent { agent, .. } => {
-            let icon_color = agent.brand_icon_color();
-            let icon_element = agent
-                .icon()
-                .map(|icon| {
-                    icon.to_warpui_icon(WarpThemeFill::Solid(icon_color))
-                        .finish()
-                })
-                .unwrap_or_else(|| {
-                    WarpIcon::Terminal
-                        .to_warpui_icon(theme.sub_text_color(theme.background()))
-                        .finish()
-                });
-            (
-                icon_element,
-                ThemeFill::Solid(
-                    agent
-                        .brand_color()
-                        .unwrap_or(ColorU::new(100, 100, 100, 255)),
-                )
-                .into(),
-            )
-        }
-        SummaryPaneKind::Terminal
-        | SummaryPaneKind::Settings
-        | SummaryPaneKind::Other => {
-            let (icon, icon_color) = summary_pane_kind_icon(kind, appearance);
-            (
-                icon.to_warpui_icon(icon_color).finish(),
-                internal_colors::fg_overlay_2(theme).into(),
-            )
-        }
-    };
+    let (icon, icon_color) = summary_pane_kind_icon(kind, appearance);
     Container::new(
-        ConstrainedBox::new(icon_element)
+        ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
             .with_width(icon_size)
             .with_height(icon_size)
             .finish(),
     )
     .with_uniform_padding(padding)
-    .with_background(background)
+    .with_background(internal_colors::fg_overlay_2(theme))
     .with_corner_radius(CornerRadius::with_all(Radius::Pixels(
         (icon_size + padding * 2.) / 2.,
     )))
     .finish()
-}
-
-/// Maps an ambient Oz / CLI agent summary-pane kind to the `IconWithStatusVariant` used to
-/// render the brand-color circle with the white cloud badge. Non-ambient kinds (and all
-/// other pane kinds) return `None` so the caller falls back to its inline rendering.
-fn ambient_agent_variant(kind: &SummaryPaneKind) -> Option<IconWithStatusVariant> {
-    match kind {
-        SummaryPaneKind::OzAgent { is_ambient: true } => {
-            Some(IconWithStatusVariant::OzAgent { is_ambient: true })
-        }
-        SummaryPaneKind::CLIAgent {
-            agent,
-            is_ambient: true,
-        } => Some(IconWithStatusVariant::CLIAgent {
-            agent: *agent,
-            is_ambient: true,
-        }),
-        _ => None,
-    }
 }
 
 fn summary_pane_kind_icon(
@@ -4194,11 +3922,6 @@ fn summary_pane_kind_icon(
 
     match kind {
         SummaryPaneKind::Terminal => (WarpIcon::Terminal, main_text),
-        SummaryPaneKind::OzAgent { .. } => (WarpIcon::Oz, main_text),
-        SummaryPaneKind::CLIAgent { agent, .. } => (
-            agent.icon().unwrap_or(WarpIcon::Terminal),
-            WarpThemeFill::Solid(agent.brand_icon_color()),
-        ),
         SummaryPaneKind::Settings => (WarpIcon::Gear, main_text),
         SummaryPaneKind::Other => (WarpIcon::File, sub_text),
     }
@@ -4261,18 +3984,11 @@ fn render_terminal_primary_line_for_view(
     let title_text = terminal_view.terminal_title_from_shell();
     let working_directory = resolved_terminal_working_directory(terminal_view, app)
         .unwrap_or_else(|| title_text.clone());
-    let agent_text = terminal_agent_text(terminal_view, app);
-    let (conversation_display_title, cli_agent_title) =
-        preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));
 
     render_terminal_primary_line(
         terminal_primary_line_data(
-            terminal_view.is_long_running_and_user_controlled(),
-            conversation_display_title,
-            cli_agent_title,
             title_text.as_str(),
             working_directory.as_str(),
-            terminal_title_fallback_font(&agent_text),
             terminal_view.last_completed_command_text(),
         ),
         terminal_view,
@@ -4282,9 +3998,7 @@ fn render_terminal_primary_line_for_view(
 }
 
 /// Primary line for terminal pane rows. Precedence:
-/// 1. CLI agent session with plugin data (query/summary) + status
-/// 2. Oz agent conversation title + status
-/// 3. Terminal title
+/// 1. Terminal title
 fn render_terminal_primary_line(
     primary_line: TerminalPrimaryLineData,
     terminal_view: &TerminalView,
@@ -4318,12 +4032,6 @@ fn render_terminal_primary_line(
             .finish()
     };
     match primary_line {
-        TerminalPrimaryLineData::StatusText { text, .. } => {
-            Text::new_inline(text, appearance.ui_font_family(), 12.)
-                .with_clip(ClipConfig::ellipsis())
-                .with_color(text_color.into())
-                .finish()
-        }
         TerminalPrimaryLineData::Text { text, font } => {
             let font_family = match font {
                 TerminalPrimaryLineFont::Ui => appearance.ui_font_family(),
@@ -5662,7 +5370,6 @@ fn render_terminal_detail_primary_line(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let font_family = match primary_line {
-        TerminalPrimaryLineData::StatusText { .. } => appearance.ui_font_family(),
         TerminalPrimaryLineData::Text { font, .. } => match font {
             TerminalPrimaryLineFont::Ui => appearance.ui_font_family(),
             TerminalPrimaryLineFont::Monospace => appearance.monospace_font_family(),
@@ -5726,20 +5433,12 @@ fn render_terminal_detail_section(
     let text_colors = detail_sidecar_text_colors(theme);
     let working_directory = resolved_terminal_working_directory(terminal_view, app);
     let git_branch = terminal_view.current_git_branch(app);
-    let _cli_agent_session = CLIAgentSessionsModel::as_ref(app).session(terminal_view.id());
-    let agent_text = terminal_agent_text(terminal_view, app);
-    let (conversation_display_title, cli_agent_title) =
-        preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));
-    let kind_label = terminal_kind_badge_label(agent_text.is_oz_agent, agent_text.cli_agent);
+    let kind_label = "Terminal".to_string();
 
     let title_text = terminal_view.terminal_title_from_shell();
     let primary_line = terminal_primary_line_data(
-        terminal_view.is_long_running_and_user_controlled(),
-        conversation_display_title,
-        cli_agent_title,
         title_text.as_str(),
         working_directory.as_deref().unwrap_or(title_text.as_str()),
-        terminal_title_fallback_font(&agent_text),
         terminal_view.last_completed_command_text(),
     );
 
@@ -6093,16 +5792,9 @@ fn render_compact_pane_row(props: PaneProps<'_>, app: &AppContext) -> Box<dyn El
                         .finish()
                 }),
                 VerticalTabsCompactSubtitle::Command => {
-                    let agent_text = terminal_agent_text(terminal_view, app);
-                    let (conv_title, cli_title) =
-                        preferred_agent_tab_titles(&agent_text, agent_tab_text_preference(app));
                     let line_data = terminal_primary_line_data(
-                        terminal_view.is_long_running_and_user_controlled(),
-                        conv_title,
-                        cli_title,
                         terminal_title.as_str(),
                         working_directory_text.as_str(),
-                        terminal_title_fallback_font(&agent_text),
                         terminal_view.last_completed_command_text(),
                     );
                     Some(

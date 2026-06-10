@@ -30,7 +30,6 @@ use crate::settings::import::model::TerminalType;
 use crate::settings::AgentModeCodingPermissionsType;
 use crate::tab::TabTelemetryAction;
 use crate::terminal::block_list_viewport::InputMode;
-use crate::terminal::cli_agent_sessions::{CLIAgentInputEntrypoint, CLIAgentRichInputCloseReason};
 use crate::terminal::input::TelemetryInputSuggestionsMode;
 use crate::terminal::model::ansi::WarpificationUnavailableReason;
 use crate::terminal::model::session::SessionId;
@@ -1804,20 +1803,6 @@ pub enum TelemetryEvent {
         /// The CLI agent being shown.
         cli_agent: CLIAgentType,
     },
-    /// Emitted when the user opens the CLI agent rich input editor.
-    CLIAgentRichInputOpened {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// How the editor was opened (Ctrl-G or footer button).
-        entrypoint: CLIAgentInputEntrypoint,
-    },
-    /// Emitted when the CLI agent rich input editor is closed.
-    CLIAgentRichInputClosed {
-        /// The CLI agent being used.
-        cli_agent: CLIAgentType,
-        /// Why the editor was closed.
-        reason: CLIAgentRichInputCloseReason,
-    },
     /// Emitted when the user submits a prompt via the CLI agent rich input editor.
     CLIAgentRichInputSubmitted {
         /// The CLI agent being used.
@@ -3225,17 +3210,6 @@ impl TelemetryEvent {
             TelemetryEvent::CLIAgentToolbarShown { cli_agent } => Some(json!({
                 "agent_name": cli_agent,
             })),
-            TelemetryEvent::CLIAgentRichInputOpened {
-                cli_agent,
-                entrypoint,
-            } => Some(json!({
-                "agent_name": cli_agent,
-                "entrypoint": entrypoint,
-            })),
-            TelemetryEvent::CLIAgentRichInputClosed { cli_agent, reason } => Some(json!({
-                "agent_name": cli_agent,
-                "reason": reason,
-            })),
             TelemetryEvent::CLIAgentRichInputSubmitted {
                 cli_agent,
                 prompt_length,
@@ -3758,9 +3732,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 EnablementState::Flag(FeatureFlag::HOANotifications)
             }
             Self::CLIAgentPluginDetected { .. } => EnablementState::Always,
-            Self::CLIAgentRichInputOpened { .. }
-            | Self::CLIAgentRichInputClosed { .. }
-            | Self::CLIAgentRichInputSubmitted { .. } => {
+            Self::CLIAgentRichInputSubmitted { .. } => {
                 EnablementState::Flag(FeatureFlag::CLIAgentRichInput)
             }
             Self::ToggleCLIAgentToolbarSetting { .. } => EnablementState::Always,
@@ -4231,8 +4203,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CLIAgentPluginOperationSucceeded { .. } => "CLIAgentPlugin.OperationSucceeded",
             Self::CLIAgentPluginOperationFailed { .. } => "CLIAgentPlugin.OperationFailed",
             Self::CLIAgentPluginDetected { .. } => "CLIAgentPlugin.Detected",
-            Self::CLIAgentRichInputOpened { .. } => "CLIAgentRichInput.Opened",
-            Self::CLIAgentRichInputClosed { .. } => "CLIAgentRichInput.Closed",
             Self::CLIAgentRichInputSubmitted { .. } => "CLIAgentRichInput.Submitted",
             Self::ToggleCLIAgentToolbarSetting { .. } => "CLIAgentFooter.SettingToggled",
             Self::ToggleUseAgentToolbarSetting { .. } => "UseAgentToolbar.SettingToggled",
@@ -4953,8 +4923,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CLIAgentPluginDetected { .. } => {
                 "A CLI agent plugin was detected via a SessionStart event"
             }
-            Self::CLIAgentRichInputOpened { .. } => "User opened CLI agent Rich Input",
-            Self::CLIAgentRichInputClosed { .. } => "CLI agent Rich Input was closed",
             Self::CLIAgentRichInputSubmitted { .. } => {
                 "User submitted a prompt via CLI agent Rich Input"
             }

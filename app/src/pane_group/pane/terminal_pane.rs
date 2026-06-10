@@ -14,7 +14,6 @@ use crate::app_state::{LeafContents, TerminalPaneSnapshot};
 use crate::pane_group::{self, Direction, PaneGroup};
 use crate::persistence::{BlockCompleted, ModelEvent};
 use crate::session_management::SessionNavigationData;
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::view::Event;
 use crate::terminal::{TerminalManager, TerminalView};
@@ -203,16 +202,6 @@ impl PaneContent for TerminalPane {
                 terminal_manager.on_view_detached(detach_type, ctx);
             });
             ctx.unsubscribe_to_view(&view);
-        }
-
-        let terminal_view_id = self.terminal_view(ctx).id();
-
-        // Clean up any active CLI agent session so its notification is removed.
-        // Skip this for moves — the session is still running and will re-register in the new tab.
-        if !matches!(detach_type, DetachType::Moved) {
-            CLIAgentSessionsModel::handle(ctx).update(ctx, |sessions, ctx| {
-                sessions.remove_session(terminal_view_id, ctx);
-            });
         }
 
         ctx.unsubscribe_to_model(&pane_stack);

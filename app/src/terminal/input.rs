@@ -73,7 +73,7 @@ use super::alias::is_expandable_alias;
 use super::event::{BlockCompletedEvent, BlockType};
 use super::ligature_settings::LigatureSettings;
 use super::model::block::{BlockMetadata, BlocklistEnvVarMetadata};
-use super::model::session::{Session, SessionId, SessionType, Sessions};
+use super::model::session::{Session, SessionId, Sessions};
 use super::prompt_render_helper::{
     should_render_prompt_on_same_line, should_render_prompt_using_editor_decorator_elements,
     PromptRenderHelper, SameLinePromptElements,
@@ -128,7 +128,6 @@ use crate::settings_view::{flags, SettingsSection};
 use crate::suggestions::ignored_suggestions_model::{
     IgnoredSuggestionsModel, IgnoredSuggestionsModelEvent, SuggestionType,
 };
-use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
 use crate::terminal::input::buffer_model::InputBufferModel;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
 use crate::terminal::input::slash_commands::SlashCommandTrigger;
@@ -3553,18 +3552,8 @@ impl Input {
                 && model.block_list().active_block().is_command_grid_active()
         };
 
-        // CLI agent rich input in shell mode (! prefix) should allow completions
-        // even though the active block is a long-running command.
-        // However, completions are disabled on warpified remote hosts because
-        // in-band generators don't work in this context (with CLI agent).
-        let is_cli_agent_shell_mode = CLIAgentSessionsModel::as_ref(ctx)
-            .is_input_open(self.terminal_view_id)
-            && !self
-                .active_session(ctx)
-                .is_some_and(|s| matches!(s.session_type(), SessionType::WarpifiedRemote { .. }));
-
         // If the cursor is in a valid completion position, go into CompletionSuggestions mode
-        if (is_command_grid_active || is_cli_agent_shell_mode) && self.can_query_history(ctx) {
+        if is_command_grid_active && self.can_query_history(ctx) {
             let matcher = MatchStrategy::Fuzzy;
 
             if let Some(completion_context) = self.completion_session_context(ctx) {

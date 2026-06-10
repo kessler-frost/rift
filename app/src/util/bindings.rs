@@ -26,13 +26,11 @@ pub const MAC_MENUS_CONTEXT: DescriptionContext = DescriptionContext::Custom("ma
 #[repr(isize)]
 pub enum CustomAction {
     NewTab,
-    NewFile,
     ShowAboutWarp,
     ShowSettings,
     ConfigureKeybindings,
     ShowAccount,
     ShowAppearance,
-    ReferAFriend,
     FocusInput,
     ClearBlocks,
     AddNextOccurrence,
@@ -46,11 +44,9 @@ pub enum CustomAction {
     Undo,
     Redo,
     CommandPalette,
-    AISearch,
     ClearEditor,
     Find,
     SelectAll,
-    Workflows,
     HistorySearch,
     SaveCurrentConfig,
     History,
@@ -75,13 +71,11 @@ pub enum CustomAction {
     SelectBlockAbove,
     SelectBlockBelow,
     SelectAllBlocks,
-    CreateBlockPermalink,
     ToggleBookmarkBlock,
     FindWithinBlock,
     CopyBlock,
     CopyBlockCommand,
     CopyBlockOutput,
-    ViewSharedBlocks,
     CloseTab,
     CloseOtherTabs,
     CloseTabsRight,
@@ -102,34 +96,14 @@ pub enum CustomAction {
     AddWindow,
     CloseCurrentSession,
     CloseWindow,
-    NewPersonalWorkflow,
-    NewPersonalNotebook,
-    NewPersonalEnvVars,
-    NewTeamWorkflow,
-    NewTeamNotebook,
-    NewTeamEnvVars,
     SearchDrive,
-    OpenTeamSettings,
-    ShareCurrentSession,
     SharePaneContents,
     #[cfg(windows)]
     WindowsPaste,
     #[cfg(windows)]
     WindowsCopy,
-    /// Also applies to legacy Warp AI (toggles the panel)
-    NewAgentModePane,
-    /// Also applies to legacy Warp AI (attaches the selection to the panel editor)
-    AttachSelectionAsAgentModeContext,
-    OpenAIFactCollection,
-    ToggleProjectExplorer,
-    NewPersonalAIPrompt,
-    NewTeamAIPrompt,
     OpenRepository,
     NewTerminalTab,
-    NewAgentTab,
-    GoToLine,
-    ToggleGlobalSearch,
-    ToggleConversationListView,
 }
 
 lazy_static! {
@@ -277,11 +251,9 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
         CustomAction::AddCursorAbove => Keystroke::parse("ctrl-shift-up").ok(),
         CustomAction::AddCursorBelow => Keystroke::parse("ctrl-shift-down").ok(),
         CustomAction::CommandPalette => Keystroke::parse(cmd_or_ctrl_shift("p")).ok(),
-        CustomAction::AISearch => Keystroke::parse("ctrl-`").ok(),
         CustomAction::Find => Keystroke::parse(cmd_or_ctrl_shift("f")).ok(),
         CustomAction::SelectAll => Keystroke::parse("cmdorctrl-a").ok(),
         CustomAction::CommandSearch => Keystroke::parse("ctrl-r").ok(),
-        CustomAction::Workflows => Keystroke::parse("ctrl-shift-R").ok(),
         CustomAction::History => Keystroke::parse("up").ok(),
         CustomAction::IncreaseFontSize => Keystroke::parse("shift-cmdorctrl-+").ok(),
         CustomAction::DecreaseFontSize => Keystroke::parse("shift-cmdorctrl-_").ok(),
@@ -349,7 +321,6 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
         CustomAction::SelectBlockAbove => Keystroke::parse("cmdorctrl-up").ok(),
         CustomAction::SelectBlockBelow => Keystroke::parse("cmdorctrl-down").ok(),
         // Set this to mac-only. On Linux this conflicts with the binding to save a workflow.
-        CustomAction::CreateBlockPermalink => mac_only_keystroke("cmd-shift-S"),
         CustomAction::ToggleBookmarkBlock => Keystroke::parse(cmd_or_ctrl_shift("b")).ok(),
         CustomAction::CopyBlockOutput => Keystroke::parse("cmdorctrl-alt-shift-C").ok(),
         // Set this to mac-only. On Linux this conflicts with the general binding to copy.
@@ -392,17 +363,6 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
         }
         CustomAction::CloseWindow => mac_only_keystroke("cmd-shift-W"),
         CustomAction::CloseCurrentSession => Keystroke::parse(cmd_or_ctrl_shift("w")).ok(),
-        CustomAction::NewAgentModePane => Keystroke::parse("ctrl-space").ok(),
-        CustomAction::AttachSelectionAsAgentModeContext => {
-            Keystroke::parse("ctrl-shift-space").ok()
-        }
-        CustomAction::ToggleProjectExplorer => {
-            if OperatingSystem::get().is_mac() {
-                Keystroke::parse("ctrl-1").ok()
-            } else {
-                Keystroke::parse("alt-1").ok()
-            }
-        }
         CustomAction::OpenRepository => {
             if OperatingSystem::get().is_mac() {
                 Keystroke::parse("cmd-shift-O").ok()
@@ -410,23 +370,7 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
                 Keystroke::parse("alt-shift-O").ok()
             }
         }
-        CustomAction::GoToLine => Keystroke::parse("ctrl-g").ok(),
-        CustomAction::ToggleGlobalSearch => {
-            if OperatingSystem::get().is_mac() {
-                Keystroke::parse("ctrl-3").ok()
-            } else {
-                Keystroke::parse("alt-3").ok()
-            }
-        }
-        CustomAction::ToggleConversationListView => {
-            if OperatingSystem::get().is_mac() {
-                Keystroke::parse("ctrl-2").ok()
-            } else {
-                Keystroke::parse("alt-2").ok()
-            }
-        }
         CustomAction::NewTerminalTab
-        | CustomAction::NewFile
         | CustomAction::ShowAboutWarp
         | CustomAction::SplitPaneLeft
         | CustomAction::SelectAllBlocks
@@ -436,8 +380,6 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
         | CustomAction::CloseTab
         | CustomAction::CloseOtherTabs
         | CustomAction::CloseTabsRight
-        | CustomAction::ReferAFriend
-        | CustomAction::ViewSharedBlocks
         | CustomAction::ShowAccount
         | CustomAction::ShowAppearance
         | CustomAction::SaveCurrentConfig
@@ -445,20 +387,8 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
         | CustomAction::HistorySearch
         | CustomAction::DisableSyncTerminalInputs
         | CustomAction::ToggleSyncAllTerminalInputsInAllTabs
-        | CustomAction::NewPersonalWorkflow
-        | CustomAction::NewPersonalNotebook
-        | CustomAction::NewPersonalEnvVars
-        | CustomAction::NewTeamWorkflow
-        | CustomAction::NewTeamNotebook
-        | CustomAction::NewTeamEnvVars
         | CustomAction::SearchDrive
-        | CustomAction::OpenTeamSettings
-        | CustomAction::ShareCurrentSession
-        | CustomAction::SharePaneContents
-        | CustomAction::OpenAIFactCollection
-        | CustomAction::NewPersonalAIPrompt
-        | CustomAction::NewTeamAIPrompt
-        | CustomAction::NewAgentTab => None,
+        | CustomAction::SharePaneContents => None,
     }
 }
 

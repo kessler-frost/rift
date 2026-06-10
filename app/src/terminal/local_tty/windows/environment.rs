@@ -4,7 +4,6 @@ use std::os::windows::ffi::{OsStrExt, OsStringExt};
 
 use itertools::Itertools;
 use rift_core::channel::ChannelState;
-use rift_core::features::FeatureFlag;
 use windows::core::{HSTRING, PCWSTR};
 use windows::Win32::System::Environment::ExpandEnvironmentStringsW;
 use winreg::enums::{RegType, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
@@ -12,7 +11,6 @@ use winreg::types::FromRegValue;
 use winreg::{RegKey, RegValue};
 
 use crate::safe_info;
-use crate::terminal::cli_agent_sessions::event::current_protocol_version;
 use crate::terminal::focus_env::{FOCUS_URL_ENV, TERMINAL_SESSION_UUID_ENV};
 use crate::terminal::local_tty::shell::{extra_path_entries, ssh_socket_dir, ShellStarter};
 use crate::terminal::local_tty::PtyOptions;
@@ -26,7 +24,6 @@ const IS_LOCAL_SESSION_NAME: &str = "RIFT_IS_LOCAL_SHELL_SESSION";
 const SSH_SOCKET_DIR: &str = "SSH_SOCKET_DIR";
 const PATH_APPEND_NAME: &str = "RIFT_PATH_APPEND";
 const CLIENT_VERSION_NAME: &str = "RIFT_CLIENT_VERSION";
-const CLI_AGENT_PROTOCOL_VERSION_NAME: &str = "RIFT_CLI_AGENT_PROTOCOL_VERSION";
 const WSLENV: &str = "WSLENV";
 const HISTIGNORE: &str = "HISTIGNORE";
 
@@ -111,16 +108,6 @@ pub(super) fn get_shell_environment_variables(options: &PtyOptions) -> Vec<u16> 
         },
     );
 
-    if FeatureFlag::HOANotifications.is_enabled() {
-        env.insert(
-            map_key(CLI_AGENT_PROTOCOL_VERSION_NAME.into()),
-            EnvEntry {
-                preferred_key: CLI_AGENT_PROTOCOL_VERSION_NAME.into(),
-                value: current_protocol_version().to_string().into(),
-            },
-        );
-    }
-
     let ssh_socket_dir = ssh_socket_dir();
     env.insert(
         map_key(SSH_SOCKET_DIR.into()),
@@ -202,10 +189,6 @@ fn wsl_env_allowlist(include_initial_working_dir: bool) -> OsString {
         format!("{TERMINAL_SESSION_UUID_ENV}/u"),
         format!("{FOCUS_URL_ENV}/u"),
     ];
-
-    if FeatureFlag::HOANotifications.is_enabled() {
-        entries.push(format!("{CLI_AGENT_PROTOCOL_VERSION_NAME}/u"));
-    }
 
     if include_initial_working_dir {
         entries.push(format!("{INITIAL_WORKING_DIR_NAME}/pu"));

@@ -8,7 +8,7 @@ use ordered_float::OrderedFloat;
 use rift_core::features::FeatureFlag;
 use rift_core::ui::appearance::Appearance;
 use riftui::fonts::FamilyId;
-use riftui::{AppContext, Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
+use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 pub use zero_state::*;
 
 use super::AcceptSlashCommandOrSavedPrompt;
@@ -23,16 +23,12 @@ use crate::settings::{
     AISettings, AISettingsChangedEvent, InputSettings, InputSettingsChangedEvent, PrivacySettings,
     PrivacySettingsChangedEvent,
 };
-use crate::terminal::cli_agent_sessions::{
-    CLIAgentSessionsModel, CLIAgentSessionsModelEvent,
-};
 use crate::terminal::model::session::active_session::{ActiveSession, ActiveSessionEvent};
 use crate::terminal::model::session::SessionType;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 pub struct DataSourceArgs {
     pub active_session: ModelHandle<ActiveSession>,
-    pub terminal_view_id: EntityId,
 }
 
 /// Context needed to decide which slash commands are enabled.
@@ -41,12 +37,10 @@ struct ActiveCommandsContext {
     is_orchestration_enabled: bool,
     is_cloud_handoff_enabled: bool,
     has_default_host: bool,
-    is_cli_agent_input: bool,
 }
 
 pub struct SlashCommandDataSource {
     active_session: ModelHandle<ActiveSession>,
-    terminal_view_id: EntityId,
     active_commands_by_id: HashMap<SlashCommandId, StaticCommand>,
     active_repo_root: Option<PathBuf>,
     is_cloud_mode_v2: bool,
@@ -64,7 +58,6 @@ impl SlashCommandDataSource {
     fn build(args: DataSourceArgs, is_cloud_mode_v2: bool, ctx: &mut ModelContext<Self>) -> Self {
         let DataSourceArgs {
             active_session,
-            terminal_view_id,
         } = args;
         ctx.subscribe_to_model(&active_session, |me, event, ctx| match event {
             ActiveSessionEvent::UpdatedPwd | ActiveSessionEvent::Bootstrapped => {
@@ -96,23 +89,8 @@ impl SlashCommandDataSource {
                 me.recompute_active_commands(ctx);
             }
         });
-        ctx.subscribe_to_model(
-            &CLIAgentSessionsModel::handle(ctx),
-            move |me, event, ctx| {
-                if let CLIAgentSessionsModelEvent::InputSessionChanged {
-                    terminal_view_id: event_terminal_view_id,
-                    ..
-                } = event
-                {
-                    if *event_terminal_view_id == terminal_view_id {
-                        me.recompute_active_commands(ctx);
-                    }
-                }
-            },
-        );
         let mut me = Self {
             active_session,
-            terminal_view_id,
             active_commands_by_id: Default::default(),
             active_repo_root: None,
             is_cloud_mode_v2,
@@ -120,11 +98,6 @@ impl SlashCommandDataSource {
         me.recompute_active_commands(ctx);
         me
     }
-
-    /// Slash commands that are available in CLI agent rich input mode.
-    /// Add command names here to make them accessible when composing prompts
-    /// for a running CLI agent (Claude Code, Codex, etc.).
-    const CLI_AGENT_INPUT_ALLOWED_COMMANDS: &[&str] = &["/prompts", "/skills"];
 
     fn is_cloud_mode(&self, _ctx: &AppContext) -> bool {
         self.is_cloud_mode_v2
@@ -153,8 +126,6 @@ impl SlashCommandDataSource {
 
     /// Gather the context needed to check slash command availability.
     fn active_commands_context(&self, ctx: &AppContext) -> ActiveCommandsContext {
-        let is_cli_agent_input = self.is_cli_agent_input_open(ctx);
-
         let mut session_context = Availability::empty();
 
         // With the agent view removed, set both view bits so that either view
@@ -205,7 +176,6 @@ impl SlashCommandDataSource {
             is_orchestration_enabled: ai_settings.is_orchestration_enabled(ctx),
             is_cloud_handoff_enabled: ai_settings.is_cloud_handoff_enabled(ctx),
             has_default_host,
-            is_cli_agent_input,
         }
     }
 
@@ -225,12 +195,6 @@ impl SlashCommandDataSource {
         }
         // /host is only useful when a default self-hosted host is configured.
         if command.name == commands::HOST.name && !context.has_default_host {
-            return false;
-        }
-        // When CLI agent input is open, restrict to the explicit allowlist.
-        if context.is_cli_agent_input
-            && !Self::CLI_AGENT_INPUT_ALLOWED_COMMANDS.contains(&command.name)
-        {
             return false;
         }
 
@@ -260,11 +224,6 @@ impl SlashCommandDataSource {
 
     pub fn active_session_for_v2_zero_state(&self) -> &ModelHandle<ActiveSession> {
         &self.active_session
-    }
-
-    /// Returns `true` if the CLI agent rich input is currently open for this terminal.
-    pub fn is_cli_agent_input_open(&self, ctx: &AppContext) -> bool {
-        CLIAgentSessionsModel::as_ref(ctx).is_input_open(self.terminal_view_id)
     }
 
 }
