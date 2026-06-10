@@ -74,7 +74,6 @@ use crate::terminal::shell::ShellType;
 use crate::terminal::ssh::util::{InteractiveSshCommand, SshLoginState};
 use crate::terminal::{
     color, ssh, BlockPadding, ShellHost, ShellLaunchData, ShellLaunchState, SizeUpdate,
-    SizeUpdateReason,
 };
 use crate::util::AsciiDebug;
 
@@ -1553,17 +1552,7 @@ impl TerminalModel {
             || size_update.rows_or_columns_changed()
         {
             self.alt_screen.resize(&size_update);
-
-            // Don't reflow old blocks for shared session size updates:
-            // - Viewers skip reflow when the sharer's size changed
-            //   (viewers can still reflow via their own pane/font resizes).
-            // - Sharers skip reflow when honoring a viewer's reported size
-            //   (the viewer's smaller size is transient and shouldn't reshape history).
-            let update_old_blocks = !matches!(
-                size_update.update_reason,
-                SizeUpdateReason::ViewerSizeReported { .. }
-            );
-            self.block_list.resize(&size_update, update_old_blocks);
+            self.block_list.resize(&size_update, true);
         }
 
         if size_update.rows_or_columns_changed() {

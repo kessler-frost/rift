@@ -664,8 +664,6 @@ pub enum InlineBannerType {
     NotificationsError,
     Ssh,
     AliasExpansion,
-    SharedSessionStart,
-    SharedSessionEnd,
     ShellProcessTerminated,
     OpenInRift,
     VimMode,

@@ -294,7 +294,6 @@ impl<'a> QuitWarningDialog<'a> {
         send_telemetry_from_app_ctx!(
             TelemetryEvent::QuitModalShown {
                 running_processes: self.state.total_long_running_commands as u32,
-                shared_sessions: 0,
                 modal_for: match self.state.scope {
                     QuitScope::Pane { .. } => CloseTarget::Pane,
                     QuitScope::Tabs(_) => CloseTarget::Tab,

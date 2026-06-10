@@ -6723,7 +6723,6 @@ impl Workspace {
                 send_telemetry_from_ctx!(
                     TelemetryEvent::QuitModalShown {
                         running_processes: summary.total_long_running_commands as u32,
-                        shared_sessions: summary.shared_sessions as u32,
                         modal_for: CloseTarget::Tab,
                     },
                     ctx

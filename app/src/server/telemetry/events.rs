@@ -715,7 +715,6 @@ pub enum TelemetryEvent {
     },
     QuitModalShown {
         running_processes: u32,
-        shared_sessions: u32,
         modal_for: CloseTarget,
     },
     QuitModalCancel {
@@ -1504,10 +1503,9 @@ impl TelemetryEvent {
             }
             TelemetryEvent::QuitModalShown {
                 running_processes,
-                shared_sessions,
                 modal_for,
             } => Some(
-                json!({ "running_processes": running_processes, "shared_sessions": shared_sessions, "modal_for": modal_for }),
+                json!({ "running_processes": running_processes, "modal_for": modal_for }),
             ),
             TelemetryEvent::QuitModalCancel {
                 nav_palette,

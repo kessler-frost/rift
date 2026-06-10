@@ -722,7 +722,7 @@ pub fn init(app: &mut AppContext) {
                 source: PaletteSource::Keybinding,
             },
         )
-        .with_context_predicate(id!("Workspace") & !id!("Workspace_ViewOnlySharedSession"))
+        .with_context_predicate(id!("Workspace"))
         .with_custom_action(CustomAction::FilesPalette),
         EditableBinding::new(
             "workspace:open_launch_config_save_modal",

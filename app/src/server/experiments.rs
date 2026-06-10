@@ -15,8 +15,6 @@ use anyhow::{Ok, Result};
 #[allow(clippy::enum_variant_names, dead_code)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum ServerExperiment {
-    SessionSharingExperiment,
-    SessionSharingControl,
     EnvVarsEarlyAccessExperiment,
     WindowsLaunchExperiment,
     TmuxSshRiftificationControl,
@@ -42,8 +40,6 @@ pub enum ServerExperiment {
 impl Display for ServerExperiment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            Self::SessionSharingControl => "SESSION_SHARING_CONTROL",
-            Self::SessionSharingExperiment => "SESSION_SHARING_EXPERIMENT",
             Self::EnvVarsEarlyAccessExperiment => "ENV_VARS_EARLY_ACCESS_EXPERIMENT",
             Self::WindowsLaunchExperiment => "WINDOWS_LAUNCH_EXPERIMENT",
             Self::TmuxSshRiftificationControl => "TMUX_SSH_RIFTIFICATION_CONTROL",
@@ -77,8 +73,6 @@ impl ServerExperiment {
     #[allow(dead_code)]
     pub fn from_string(s: String) -> Result<Self> {
         match s.as_str() {
-            "SESSION_SHARING_CONTROL" => Ok(Self::SessionSharingControl),
-            "SESSION_SHARING_EXPERIMENT" => Ok(Self::SessionSharingExperiment),
             "ENV_VARS_EARLY_ACCESS_EXPERIMENT" => Ok(Self::EnvVarsEarlyAccessExperiment),
             "WINDOWS_LAUNCH_EXPERIMENT" => Ok(Self::WindowsLaunchExperiment),
             "TMUX_SSH_RIFTIFICATION_CONTROL" => Ok(Self::TmuxSshRiftificationControl),
