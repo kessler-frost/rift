@@ -10946,11 +10946,6 @@ impl Workspace {
                 .insert(flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG);
         }
 
-        if *font_settings.match_ai_font_to_terminal_font {
-            context
-                .set
-                .insert(flags::MATCH_AI_FONT_TO_TERMINAL_FONT_FLAG);
-        }
 
         if *font_settings.match_notebook_to_monospace_font_size {
             context

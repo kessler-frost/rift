@@ -729,7 +729,6 @@ pub enum FeaturesPageAction {
     ToggleShowAutosuggestionIgnoreButton,
     ToggleAtContextMenuInTerminalMode,
     ToggleOutlineCodebaseSymbolsForAtContextMenu,
-    ToggleAutoOpenCodeReviewPane,
     ToggleShowTerminalInputMessageLine,
     TogglePreserveInputFocusOnBlockSelection,
     MakeRiftDefaultTerminal,
@@ -1474,13 +1473,6 @@ impl TypedActionView for FeaturesPageView {
                         .outline_codebase_symbols_for_at_context_menu
                         .toggle_and_save_value(ctx));
                 });
-            }
-            ToggleAutoOpenCodeReviewPane => {
-                GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {
-                    report_if_error!(settings
-                        .auto_open_code_review_pane_on_first_agent_change
-                        .toggle_and_save_value(ctx));
-                })
             }
             TogglePreserveInputFocusOnBlockSelection => {
                 BlockListSettings::handle(ctx).update(ctx, |blocklist_settings, ctx| {
