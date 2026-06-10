@@ -2,7 +2,6 @@ mod action;
 mod active_session;
 #[cfg(target_os = "macos")]
 mod cli_install;
-mod close_session_confirmation_dialog;
 pub(crate) mod cross_window_tab_drag;
 mod global_actions;
 pub mod header_toolbar_editor;

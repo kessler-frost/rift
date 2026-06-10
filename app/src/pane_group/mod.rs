@@ -397,9 +397,6 @@ pub enum Event {
     TerminalViewStateChanged,
     /// Event used to propagate guided onboarding tutorial completion to the workspace.
     OnboardingTutorialCompleted,
-    CloseSharedSessionPaneRequested {
-        pane_id: PaneId,
-    },
     /// Dirty the workspace so the tab indicator shows.
     MaximizePaneToggled,
     /// A remote server resolved the repo root for a session in this pane group.
@@ -766,12 +763,6 @@ impl PaneGroup {
     }
 
 
-
-
-    /// Session sharing was a cloud feature and has been removed.
-    pub fn is_terminal_pane_being_shared(&self, _ctx: &AppContext) -> bool {
-        false
-    }
 
 
     /// Total size of the pane group.
