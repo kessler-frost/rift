@@ -105,7 +105,7 @@ const SECTION_BORDER_WIDTH: f32 = 1.;
 const POSITION_ID: &str = "settings_pane";
 
 /// Small inline pill rendered next to a settings label to mark a feature as beta.
-/// Used for experimental features (i.e. AsyncFind) that are enabled for Friends of Warp (i.e. Dogfood/Preview) and toggleable by others.
+/// Used for experimental features (i.e. AsyncFind) that are enabled for Friends of Rift (i.e. Dogfood/Preview) and toggleable by others.
 pub(super) fn render_beta_chip(appearance: &Appearance) -> Box<dyn Element> {
     let theme = appearance.theme();
     let chip_color = theme.sub_text_color(theme.surface_3()).into_solid();

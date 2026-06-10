@@ -1,19 +1,19 @@
-//! In-session size-based rotation for `warp.log`.
+//! In-session size-based rotation for `rift.log`.
 //!
 //! The existing startup rotation (`rotate_log_files`) handles the
-//! per-execution boundary: each launch's `warp.log` becomes `warp.log.old.N`
+//! per-execution boundary: each launch's `rift.log` becomes `rift.log.old.N`
 //! at the next launch, with older files shifting up and the oldest dropping
 //! off. That model bounds disk usage *per restart* but the active session's
 //! log itself grows unboundedly.
 //!
 //! This module adds the orthogonal in-session bound: a `Write` wrapper that
 //! rotates the active file once its byte count crosses a configured
-//! threshold. Rotated copies land at `warp.log.in_session.N` (distinct from
+//! threshold. Rotated copies land at `rift.log.in_session.N` (distinct from
 //! the startup `.old.N` slots, which log-bundle uploads and other UX depend
 //! on). When the configured number of `.in_session.N` slots is full, the
 //! oldest is discarded — matching `rotate_log_files`'s overflow semantics.
 //!
-//! See warpdotdev/warp#10879.
+//! See the upstream repo#10879.
 
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Write};

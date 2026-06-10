@@ -1149,7 +1149,7 @@ pub enum Event {
     BlockStarted {
         is_for_in_band_command: bool,
     },
-    /// Tell the pane group to open a file within Warp.
+    /// Tell the pane group to open a file within Rift.
     OpenFileInWarp {
         path: PathBuf,
         /// The session that the file belongs to.
@@ -1542,7 +1542,7 @@ impl Default for TerminalViewStateChange {
 }
 
 /// Whether or not this is the active terminal session. The active session for a pane group
-/// is the one used for executing workflows, Warp AI suggestions, etc.
+/// is the one used for executing workflows, Rift AI suggestions, etc.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveSessionState {
     Active,
@@ -1686,7 +1686,7 @@ pub struct TerminalView {
     control_master_error_banner_state: ControlMasterErrorBannerState,
 
     /// Banner to show if we detect a configuration in the user's rc files that
-    /// is incompatible with Warp.
+    /// is incompatible with Rift.
     incompatible_configuration_banner: ViewHandle<Banner<TerminalAction>>,
     is_incompatible_configuration_banner_open: bool,
 
@@ -4138,7 +4138,7 @@ impl TerminalView {
         reset_focus
     }
 
-    /// Recomputes the chip values for the Warp prompt (i.e. _not_ PS1).
+    /// Recomputes the chip values for the Rift prompt (i.e. _not_ PS1).
     fn refresh_warp_prompt(&mut self, ctx: &mut ViewContext<Self>) {
         self.input.update(ctx, |input, ctx| {
             input.update_prompt_display_chips(ctx);
@@ -4795,7 +4795,7 @@ impl TerminalView {
                         );
 
                         // On dogfood only, we're interested in the block commands, durations,
-                        // and exit codes to trial Warp Analytics.
+                        // and exit codes to trial Rift Analytics.
                         if ChannelState::channel().is_dogfood() {
                             send_telemetry_from_ctx!(
                                 TelemetryEvent::BlockCompletedOnDogfoodOnly {
@@ -4865,7 +4865,7 @@ impl TerminalView {
                 // command list, we execute the command after a delay.
                 // The delay is necessary because the shell needs a tiny bit of
                 // extra time after the last precmd function is finished.
-                // Additionally, it's possible for hooks to install themselves after the warp
+                // Additionally, it's possible for hooks to install themselves after the rift
                 // precmd. For example, `fig_precmd` does this.
                 if self.is_login_shell_bootstrapped {
                     let _ = ctx.spawn(
@@ -5052,7 +5052,7 @@ impl TerminalView {
                     BlockMetadataUpdateSource::Osc7,
                     ctx,
                 );
-                // Recompute Warp-prompt chip values (notably the
+                // Recompute Rift-prompt chip values (notably the
                 // `WorkingDirectory` chip text that feeds the vertical-tab
                 // subtitle via `display_working_directory`). The chip
                 // generator reads from `CurrentPrompt::latest_context`, which
@@ -5704,7 +5704,7 @@ impl TerminalView {
         }
         session_metadata.set_git_branches(git_branches.iter().flatten().map(|s| s.as_str()));
 
-        // https://github.com/warpdotdev/command-corrections/blob/df7848d4fb3da7883623e959889a296a07d88053/src/rules/cd/mod.rs#L31-L36
+        // https://the upstream repo/command-corrections/blob/df7848d4fb3da7883623e959889a296a07d88053/src/rules/cd/mod.rs#L31-L36
         // We don't currently support dynamic rules over SSH, so we should not attempt to correct commands if
         // inside ssh session.
         let is_ssh_command = SshRiftifyCommand::matches(input).is_some();
@@ -6485,7 +6485,7 @@ impl TerminalView {
                                         .with_on_select_action(TerminalAction::OpenFileInWarp(path))
                                         .into_item(),
                                 );
-                                // Because the default for cmd-click is to open in Warp, we also
+                                // Because the default for cmd-click is to open in Rift, we also
                                 // have an open-in-editor option.
                                 items.push(
                                     MenuItemFields::new("Open in editor")
@@ -7733,7 +7733,7 @@ impl TerminalView {
         self.paste(true, ctx);
     }
 
-    /// Tell the pane group to open a file within Warp.
+    /// Tell the pane group to open a file within Rift.
     fn open_file_in_warp(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
         if let Some(session) = self
             .active_block_session_id()
@@ -10068,7 +10068,7 @@ impl TerminalView {
                     self.update_incompatible_configuration_banner(session.shell().plugins(), ctx)
                 }
 
-                // honor_ps1 affects whether the Warp prompt is active, which
+                // honor_ps1 affects whether the Rift prompt is active, which
                 // determines if we need git status updates.
             }
             SessionSettingsChangedEvent::CLIAgentToolbarChipSelectionSetting { .. } => {}

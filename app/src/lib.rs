@@ -75,7 +75,7 @@ mod workspaces;
 
 // PLEASE DO NOT ADD MORE PUBLIC MODULES!
 //
-// Any modules which we make public outside of the `warp` crate lose dead code
+// Any modules which we make public outside of the `rift` crate lose dead code
 // checking support, as the compiler cannot make any assumptions about whether
 // or not the function/type is used by another crate that pulls in this one as
 // a dependency.
@@ -212,7 +212,7 @@ use crate::workspaces::user_workspaces::UserWorkspaces;
 /// Our embedded application assets.
 pub static ASSETS: rift_assets::Assets = rift_assets::Assets;
 
-/// Launch mode for how to start up Warp.
+/// Launch mode for how to start up Rift.
 #[allow(clippy::large_enum_variant)]
 pub enum LaunchMode {
     /// Run the regular GUI application.
@@ -223,7 +223,7 @@ pub enum LaunchMode {
         api_key: Option<String>,
     },
 
-    /// Run the Warp command-line SDK.
+    /// Run the Rift command-line SDK.
     CommandLine {
         command: rift_cli::CliCommand,
         global_options: GlobalOptions,
@@ -292,7 +292,7 @@ impl LaunchMode {
         }
     }
 
-    /// Returns `true` if Warp should run headlessly, without a visible UI.
+    /// Returns `true` if Rift should run headlessly, without a visible UI.
     fn is_headless(&self) -> bool {
         match self {
             LaunchMode::CommandLine { command, .. } => match command {
@@ -609,15 +609,15 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
             launch_mode.args().as_ref(),
         ) {
             // If we were able to contact an existing application instance, quit -
-            // we only want to run a single instance of Warp at a time.
+            // we only want to run a single instance of Rift at a time.
             Ok(_) => std::process::exit(0),
-            // If Warp isn't already running, we're good to go.
+            // If Rift isn't already running, we're good to go.
             Err(app_services::linux::StartupArgsForwardingError::NoExistingInstance) => {}
             // If we just finished an auto-update, we should continue running.
             Err(app_services::linux::StartupArgsForwardingError::IgnoredAfterAutoUpdate) => {}
             // If we were unable to perform the forwarding for an unknown reason,
             // it's better to run a second instance than potentially end up in a
-            // state where Warp refuses to run even a first instance.
+            // state where Rift refuses to run even a first instance.
             Err(err) => {
                 let err = anyhow::Error::from(err).context("Failed to forward startup args");
                 log::error!("{err:#}");
@@ -632,15 +632,15 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
             launch_mode.args().as_ref(),
         ) {
             // If we were able to contact an existing application instance, quit -
-            // we only want to run a single instance of Warp at a time.
+            // we only want to run a single instance of Rift at a time.
             Ok(_) => std::process::exit(0),
-            // If Warp isn't already running, we're good to go.
+            // If Rift isn't already running, we're good to go.
             Err(app_services::windows::StartupArgsForwardingError::NoExistingInstance) => {}
             // If we just finished an auto-update, we should continue running.
             Err(app_services::windows::StartupArgsForwardingError::IgnoredAfterAutoUpdate) => {}
             // If we were unable to perform the forwarding for an unknown reason,
             // it's better to run a second instance than potentially end up in a
-            // state where Warp refuses to run even a first instance.
+            // state where Rift refuses to run even a first instance.
             Err(err) => {
                 let err = anyhow::Error::from(err).context("Failed to forward startup args");
                 log::error!("{err:#}");
@@ -649,7 +649,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         }
     }
 
-    // Sets up a Job Object that we associate with the Warp process to handle
+    // Sets up a Job Object that we associate with the Rift process to handle
     // shared fate with its child processes. This should be called before we
     // start spawning any child processes.
     #[cfg(windows)]
@@ -1245,10 +1245,7 @@ pub(crate) fn initialize_app(
     // When running natively, add the http server singleton to the application.
     #[cfg(not(target_family = "wasm"))]
     ctx.add_singleton_model(move |ctx| {
-        let routers = vec![
-            app_installation_detection::make_router(),
-            profiling::make_router(),
-        ];
+        let routers = vec![profiling::make_router()];
         http_server::HttpServer::new(routers, ctx)
     });
 
@@ -1327,7 +1324,7 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
             });
 
             // We want to tear down the terminal server before relaunching for
-            // autoupdate, to ensure we're not running any extra Warp processes
+            // autoupdate, to ensure we're not running any extra Rift processes
             // when we bring up the new process.  Additionally, this must occur
             // after terminating the persistence writer, so we don't keep track
             // of the fact that the shell sessions terminated.

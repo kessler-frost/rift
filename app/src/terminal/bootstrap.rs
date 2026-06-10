@@ -36,7 +36,7 @@ pub fn is_container_subshell(session_info: &SessionInfo) -> bool {
     })
 }
 
-/// Returns `true` if Warp should use an RC-file based bootstrap (e.g. dump the bootstrap script to
+/// Returns `true` if Rift should use an RC-file based bootstrap (e.g. dump the bootstrap script to
 /// a temp file and `source` it) for a newly spawned session with the given `shell_type`, and
 /// associated `session_type` and `subshell_initialization_info`.
 ///

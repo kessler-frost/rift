@@ -252,7 +252,7 @@ pub fn test_instant_prompt_bootstrap() -> Builder {
 }
 
 /// Ensure this issue doesn't happen again.
-/// https://github.com/warpdotdev/Warp/issues/2636
+/// https://github.com/the upstream repo/issues/2636
 /// Bootstrapping was failing when PROMPT_COMMAND was an array
 pub fn test_bash_bootstraps_with_prompt_command_array() -> Builder {
     new_builder()

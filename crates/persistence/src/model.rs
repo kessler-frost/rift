@@ -753,7 +753,7 @@ pub struct Block {
     pub host: Option<String>,
     pub is_background: bool,
     pub rprompt: Option<String>,
-    /// JSON-serialized representation of the Warp prompt snapshot (Context Chips). Note that this
+    /// JSON-serialized representation of the Rift prompt snapshot (Context Chips). Note that this
     /// is different from PS1 and RPROMPT1
     pub prompt_snapshot: Option<String>,
     pub block_id: String,
@@ -1097,12 +1097,12 @@ pub fn token_usage_category_display_name(category: &str) -> String {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct ModelTokenUsage {
-    /// Identifier used for both display and replay. For warp/byok rows this is the
+    /// Identifier used for both display and replay. For rift/byok rows this is the
     /// server-known model id; for custom endpoint rows this is the resolved alias
     /// (or fallback label) — the upstream `config_key` is translated into this
     /// label once at ingestion time and is not retained separately.
     pub model_id: String,
-    /// Alias for backward compat: old persisted data used `total_tokens` for warp usage.
+    /// Alias for backward compat: old persisted data used `total_tokens` for rift usage.
     #[serde(default, alias = "total_tokens")]
     pub warp_tokens: u32,
     #[serde(default)]

@@ -41,7 +41,7 @@ pub fn create_native_platform_modal(dialog: AlertDialog) -> Retained<NSAlert> {
 const RUST_WRAPPER_IVAR_NAME: &str = "rustWrapper";
 
 extern "C" {
-    // Implemented in ObjC to get the warp NSApplication subclass.
+    // Implemented in ObjC to get the rift NSApplication subclass.
     pub(super) fn get_warp_app() -> id;
 }
 
@@ -129,7 +129,7 @@ impl App {
         // until termination).
         autoreleasepool(|_| {
             // Get (and create, if necessary) the underlying NSApplication.
-            // SAFETY: `get_warp_app()` returns the warp NSApplication subclass instance.
+            // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
             let app_ptr = unsafe { get_warp_app() };
             let app = unsafe { &*app_ptr.cast::<NSApplication>() };
 
@@ -262,7 +262,7 @@ pub unsafe extern "C-unwind" fn warp_app_will_finish_launching(this: &mut Object
         .expect("the warp app always has a delegate");
 
     if app.callbacks.has_internet_reachability_changed_callback() {
-        // `setReachabilityListener` is a custom warp app-delegate selector.
+        // `setReachabilityListener` is a custom rift app-delegate selector.
         let _: () = msg_send![&*app_delegate, setReachabilityListener];
     }
 
@@ -275,7 +275,7 @@ pub unsafe extern "C-unwind" fn warp_app_will_finish_launching(this: &mut Object
     if let Some(dock_menu_builder) = app.dock_menu_builder.take() {
         let dock_menu = app.callbacks.with_mutable_app_context(dock_menu_builder);
         let nsmenu = make_dock_menu(dock_menu);
-        // `setDockMenu:` is a custom warp app-delegate selector.
+        // `setDockMenu:` is a custom rift app-delegate selector.
         let _: () = msg_send![&*app_delegate, setDockMenu: &*nsmenu];
     }
 }
@@ -573,7 +573,7 @@ pub(crate) extern "C-unwind" fn warp_open_panel_file_selected(urls: id, callback
         log::info!("No file was selected. Dialog was cancelled.")
     }
 
-    // SAFETY: `get_warp_app()` returns the warp NSApplication subclass instance.
+    // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
     let app = unsafe { get_app(&mut *get_warp_app()) };
     app.callbacks.with_mutable_app_context(move |ctx| {
         callback(Ok(paths), ctx);
@@ -597,7 +597,7 @@ pub(crate) extern "C-unwind" fn warp_save_panel_file_selected(url: id, callback:
         log::info!("Save dialog was cancelled.");
     }
 
-    // SAFETY: `get_warp_app()` returns the warp NSApplication subclass instance.
+    // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
     let app = unsafe { get_app(&mut *get_warp_app()) };
     app.callbacks.with_mutable_app_context(move |ctx| {
         callback(path, ctx);

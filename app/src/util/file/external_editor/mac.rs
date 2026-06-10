@@ -340,8 +340,8 @@ pub fn open_file_path_with_line_and_col(
         }
 
         // NSWorkspace's default-app routing can hand files to a sibling
-        // Warp channel (e.g. Stable handling files while Preview is running).
-        // When the resolved default is a different Warp, open with the
+        // Rift channel (e.g. Stable handling files while Preview is running).
+        // When the resolved default is a different Rift, open with the
         // running channel's bundle directly.
         let bundle_id = default_app_to_open_path(full_path);
         if let Some(bundle_id) = bundle_id.as_deref() {

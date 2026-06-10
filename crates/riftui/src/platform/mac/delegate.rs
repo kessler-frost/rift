@@ -283,7 +283,7 @@ impl platform::Delegate for AppDelegate {
         dispatch::Queue::main().exec_async(move || {
             // See https://developer.apple.com/documentation/appkit/nsapplication/1428455-orderfrontcharacterpalette.
             // If the `sender` argument is nil, the palette is shown relative to the
-            // first responder's cursor location. In our case, that will be the Warp
+            // first responder's cursor location. In our case, that will be the Rift
             // host view, with a location set via the `active_cursor_position` API.
             // SAFETY: the closure runs on the main dispatch queue.
             let mtm = unsafe { MainThreadMarker::new_unchecked() };
@@ -375,7 +375,7 @@ impl platform::Delegate for AppDelegate {
         // `showModal:modalId:` selector's `NSUInteger` parameter.
         // SAFETY: `ModalId` and `NSUInteger` share the same representation.
         let modal_id: NSUInteger = unsafe { std::mem::transmute(id) };
-        // SAFETY: `showModal:modalId:` is a custom warp NSApplication selector.
+        // SAFETY: `showModal:modalId:` is a custom rift NSApplication selector.
         unsafe {
             let app = &*app::get_warp_app().cast::<NSApplication>();
             let _: () = msg_send![app, showModal: &*alert, modalId: modal_id];
@@ -410,7 +410,7 @@ impl platform::Delegate for AppDelegate {
                 // window (e.g. during tab drag), so they can close immediately without
                 // prompting the user for confirmation.
                 TerminationMode::ForceTerminate | TerminationMode::ContentTransferred => {
-                    // `setForceTermination` is a custom warp NSApplication selector.
+                    // `setForceTermination` is a custom rift NSApplication selector.
                     // SAFETY: messaging the shared application.
                     let _: () = unsafe { msg_send![&*app, setForceTermination] };
                 }

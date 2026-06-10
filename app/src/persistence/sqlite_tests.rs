@@ -286,7 +286,7 @@ fn test_sqlite_drops_too_small_bounds_on_save() {
     );
 }
 
-// Regression: GH#10083. Users whose warp.sqlite already contains a 1px row
+// Regression: GH#10083. Users whose rift.sqlite already contains a 1px row
 // (because they hit the bug on an earlier build) must still recover to default
 // geometry on next launch rather than restoring the sliver.
 #[test]

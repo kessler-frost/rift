@@ -9,7 +9,7 @@ use rift_cli::WorkerCommand;
 use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::AppId;
 
-/// The Warp integration test runner.
+/// The Rift integration test runner.
 #[derive(Debug, Default, Parser, Clone)]
 #[command(name = "warp-integration-test")]
 #[clap(args_conflicts_with_subcommands = true)]

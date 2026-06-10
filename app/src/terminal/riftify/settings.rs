@@ -62,7 +62,7 @@ maybe_define_setting!(UseSshTmuxWrapper, group: RiftifySettings, {
     description: "Whether to use a tmux-based wrapper for SSH riftification.",
 });
 
-/// Controls how Warp handles the SSH extension (remote server binary) when connecting
+/// Controls how Rift handles the SSH extension (remote server binary) when connecting
 /// to a remote host that does not already have it installed.
 #[derive(
     Default,
@@ -192,7 +192,7 @@ lazy_static! {
         // Matches commands that spawn a pipenv subshell.
         PIPENV_SUBSHELL_COMMAND_REGEX.clone(),
 
-        // https://github.com/warpdotdev/Warp/issues/2736
+        // https://github.com/the upstream repo/issues/2736
         Regex::new(r"^aws-vault\s+exec\b").expect("aws-vault regex invalid"),
 
         // https://flox.dev/docs/reference/command-reference/flox-activate/

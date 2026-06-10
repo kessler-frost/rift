@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use url::Url;
 
-/// Actions that can be performed via the `warp://linear/...` deeplink.
+/// Actions that can be performed via the `rift://linear/...` deeplink.
 #[derive(Debug, PartialEq, Eq)]
 pub enum LinearAction {
     /// Open a new agent view tab to work on a Linear issue.

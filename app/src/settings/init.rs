@@ -8,7 +8,6 @@ use riftui_extras::user_preferences;
 use settings::{Setting as _, SettingsManager};
 
 use super::app_icon::AppIconSettings;
-use super::app_installation_detection::UserAppInstallDetectionSettings;
 use super::initializer::SettingsInitializer;
 use super::native_preference::NativePreferenceSettings;
 use super::{
@@ -74,7 +73,6 @@ pub fn register_all_settings(ctx: &mut AppContext) {
     AccessibilitySettings::register(ctx);
     NativePreferenceSettings::register(ctx);
     DrivePrivacySettings::register(ctx);
-    UserAppInstallDetectionSettings::register(ctx);
     AppIconSettings::register(ctx);
     AppEditorSettings::register(ctx);
     InputSettings::register(ctx);

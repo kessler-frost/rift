@@ -23,23 +23,23 @@ use serde::de::DeserializeOwned;
 
 
 pub mod headers {
-    /// Custom Warp header indicating the version of the Warp app.
+    /// Custom Rift header indicating the version of the Rift app.
     pub const CLIENT_RELEASE_VERSION_HEADER_KEY: &str = "X-Warp-Client-Version";
 
-    /// Custom Warp header indicating the OS category the request was sent from.
+    /// Custom Rift header indicating the OS category the request was sent from.
     pub(crate) const RIFT_OS_CATEGORY: &str = "X-Warp-OS-Category";
-    /// Custom Warp header indicating the OS name the request was sent from. On Linux this is the
+    /// Custom Rift header indicating the OS name the request was sent from. On Linux this is the
     /// name of the distribution. On all other platforms it should be equivalent to
     /// `RIFT_OS_CATEGORY`.
     pub(crate) const RIFT_OS_NAME: &str = "X-Warp-OS-Name";
-    /// Custom Warp header indicating the version of the operating system. On Linux this is the
+    /// Custom Rift header indicating the version of the operating system. On Linux this is the
     /// version of the distribution, not the Linux kernel version.
     pub(crate) const RIFT_OS_VERSION: &str = "X-Warp-OS-Version";
 
-    /// Custom Warp header indicating the linux kernel version. This is only sent from Linux.
+    /// Custom Rift header indicating the linux kernel version. This is only sent from Linux.
     pub(crate) const RIFT_OS_LINUX_KERNEL_VERSION: &str = "X-Warp-OS-Linux-Kernel-Version";
 
-    /// Custom Warp header indicating the client role. We don't use the User-Agent header
+    /// Custom Rift header indicating the client role. We don't use the User-Agent header
     /// because it can't be set from WASM.
     pub(crate) const RIFT_CLIENT_ID: &str = "X-Warp-Client-ID";
 }
@@ -213,9 +213,9 @@ impl Client {
         self.builder(self.wrapped.delete(url), include_warp_headers)
     }
 
-    /// Helper method to determine if the request should include warp-specific headers. The only case
+    /// Helper method to determine if the request should include rift-specific headers. The only case
     /// where we should include custom headers is if the request is same-origin and is targetted to our server.
-    /// For example, app.warp.dev --> app.warp.dev.
+    /// For example, app.the upstream site --> app.the upstream site.
     #[cfg(target_family = "wasm")]
     fn include_warp_http_headers<U: IntoUrl + Clone>(url: U) -> bool {
         url.into_url().is_ok_and(|url| {
@@ -225,8 +225,8 @@ impl Client {
                     .hostname()
                     .expect("Can't get window hostname");
 
-                // If the request is going to our server, the destination host should be "app.warp.dev" or
-                // "staging.warp.dev". The window hostname should also return the same.
+                // If the request is going to our server, the destination host should be "app.the upstream site" or
+                // "staging.the upstream site". The window hostname should also return the same.
                 // Note that reqwest's host_str() method is described here: https://docs.rs/reqwest/latest/reqwest/struct.Url.html#method.domain and
                 // gloo's hostname() method refers to this mozilla definition: https://developer.mozilla.org/en-US/docs/Web/API/Location/hostname.
                 window_hostname == dest_host
@@ -572,7 +572,7 @@ impl<'a> RequestBuilder<'a> {
 }
 
 /// An error returned from `Response::error_for_status` that includes response metadata.
-/// This allows callers to inspect headers (like X-Warp-Error-Code) and the response body when
+/// This allows callers to inspect headers (like X-Rift-Error-Code) and the response body when
 /// handling errors.
 #[derive(Debug)]
 pub struct ResponseError {

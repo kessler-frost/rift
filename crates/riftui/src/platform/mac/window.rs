@@ -236,7 +236,7 @@ impl platform::WindowManager for WindowManager {
         for i in 0..count {
             let window = ordered_windows.objectAtIndex(i);
             // SAFETY: `is_rift_window` is an FFI call into the RiftWindow class, and
-            // warp windows always carry the window-state ivar.
+            // rift windows always carry the window-state ivar.
             unsafe {
                 if is_rift_window(&window).as_bool() {
                     result.push(get_window_state(as_objc_object(&window)).window_id);
@@ -726,7 +726,7 @@ impl Window {
     }
 
     fn send_close_ime_msg(native_window: &NSWindow) {
-        // SAFETY: warp windows carry the window-state ivar, and the content view is a
+        // SAFETY: rift windows carry the window-state ivar, and the content view is a
         // RiftHostView exposing the custom `closeIMEAsync` selector.
         unsafe {
             let state = get_window_state(as_objc_object(native_window));

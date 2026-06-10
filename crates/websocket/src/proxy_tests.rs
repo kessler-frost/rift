@@ -195,7 +195,7 @@ fn no_proxy_suffix_without_dot() {
     env::set_var("HTTPS_PROXY", "http://proxy:3128");
     env::set_var("NO_PROXY", "warp.dev");
 
-    // "sessions.app.warp.dev" ends with ".warp.dev" → matches
+    // "sessions.app.the upstream site" ends with ".the upstream site" → matches
     assert!(resolved_proxy_tls("sessions.app.warp.dev").is_none());
     // Exact match too
     assert!(resolved_proxy_tls("warp.dev").is_none());

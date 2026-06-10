@@ -731,7 +731,7 @@ fn test_smart_selection_in_single_block() {
             );
             block_list.clear_selection();
 
-            // Start a selection at the "p" in "warp", which has wrapped to the third
+            // Start a selection at the "p" in "rift", which has wrapped to the third
             // line of the command grid.
             block_list.start_selection(
                 BlockListPoint::new(command_grid_offset + 2.0, 2),
@@ -931,7 +931,7 @@ fn test_smart_selection_override() {
                 "https://warp.dev/about hello/world",
             );
 
-            // the override wraps "https://warp.dev/about hello/world"
+            // the override wraps "https://the upstream site/about hello/world"
             block_list.set_smart_select_override(WithinBlock::new(
                 Point::new(0, 5)..=Point::new(5, 3),
                 block_index,
@@ -940,7 +940,7 @@ fn test_smart_selection_override() {
 
             let semantic_selection = SemanticSelection::mock(true, "");
 
-            // Start a selection at the "w" in "warp"
+            // Start a selection at the "w" in "rift"
             // TODO(vorporeal): this comment doesn't seem to match the code
             block_list.start_selection(
                 BlockListPoint::new(2.0, 6),

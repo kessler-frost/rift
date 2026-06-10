@@ -665,7 +665,7 @@ fn path_if_directory(path: &Path) -> Option<&Path> {
 /// Opens a new window with the workspace configured according to `source`. Returns the
 /// newly-opened window ID and a handle to the root view in that window.
 ///
-/// This is the canonical way to open a new Warp window - all other entrypoints should delegate to
+/// This is the canonical way to open a new Rift window - all other entrypoints should delegate to
 /// it if possible.
 pub(crate) fn open_new_with_workspace_source(
     source: NewWorkspaceSource,
@@ -1115,11 +1115,11 @@ fn toggle_quake_mode_window(global_resource_handles: &GlobalResourceHandles, ctx
     };
 }
 
-/// This action will show or hide all of Warp's windows except the quake window
+/// This action will show or hide all of Rift's windows except the quake window
 ///
-/// - If Warp is active and has any windows, hide those windows.
-/// - If Warp is hidden, show all windows.
-/// - If Warp is active but has 0 normal windows, create a new window with a new session.
+/// - If Rift is active and has any windows, hide those windows.
+/// - If Rift is hidden, show all windows.
+/// - If Rift is active but has 0 normal windows, create a new window with a new session.
 fn show_or_hide_non_quake_mode_windows(_: &(), ctx: &mut AppContext) {
     let quake_window_id = get_quake_mode_state(ctx).map(|state| state.window_id);
     let non_quake_mode_window_ids = ctx
@@ -1130,7 +1130,7 @@ fn show_or_hide_non_quake_mode_windows(_: &(), ctx: &mut AppContext) {
         open_new(&(), ctx);
     }
     let windowing_model = ctx.windows();
-    // Now there is at least one window. If a Warp window is active, hide the app.
+    // Now there is at least one window. If a Rift window is active, hide the app.
     // Otherwise, show activate the app to show it in front.
     let active_window_id = windowing_model.active_window();
     match active_window_id {
@@ -1515,7 +1515,7 @@ impl RootView {
     /// Shows the user the settings view of their newly joined team
     /// within the app.
     pub fn handle_team_intent_link_action(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
-        // Warp Drive was a cloud feature and has been removed.
+        // Rift Drive was a cloud feature and has been removed.
 
         // Use the team tester model to notify relevant subscribers to refresh their data.
         TeamTesterStatus::handle(ctx).update(ctx, |model, ctx| {

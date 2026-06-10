@@ -36,7 +36,7 @@ lazy_static! {
     /// of Mesa's llvmpipe software renderer.
     ///
     /// While lavapipe is theoretically Vulkan 1.3 compatible starting in version
-    /// 22.1.2, in practice, Warp windows don't render properly until 24.0.2.
+    /// 22.1.2, in practice, Rift windows don't render properly until 24.0.2.
     static ref MIN_SUPPORTED_LAVAPIPE_VERSION: Version<'static> = Version::from("24.0.2")
         .expect("should not fail to parse version");
 
@@ -506,7 +506,7 @@ fn is_intel_uhd_620_adapter_on_windows_with_vulkan_backend(
 /// window decorations (e.g. title bar height). Enabling native window decorations fixes the
 /// alignment.
 ///
-/// See: https://github.com/warpdotdev/Warp/issues/6120
+/// See: https://github.com/the upstream repo/issues/6120
 pub fn adapter_has_rendering_offset_bug(adapter_info: &wgpu::AdapterInfo) -> bool {
     if !cfg!(windows) {
         return false;
@@ -518,7 +518,7 @@ pub fn adapter_has_rendering_offset_bug(adapter_info: &wgpu::AdapterInfo) -> boo
     }
 
     // Known affected Intel integrated GPU models. This list is based on user reports from
-    // https://github.com/warpdotdev/Warp/issues/6120.
+    // https://github.com/the upstream repo/issues/6120.
     let affected_models = [
         "Intel(R) HD Graphics 2500",
         "Intel(R) HD Graphics 4000",
@@ -540,8 +540,8 @@ pub fn adapter_has_rendering_offset_bug(adapter_info: &wgpu::AdapterInfo) -> boo
 /// The V3D Vulkan driver on Raspberry Pi and similar ARM SBCs have panics and flickering issues.
 /// The logs have warnings about these drivers missing the `FULL_DRAW_INDEX_UINT32` downlevel flag
 /// but if it's unclear if that is the actual cause. See:
-/// https://github.com/warpdotdev/warp/issues/10618
-/// https://github.com/warpdotdev/warp/issues/4879
+/// https://github.com/the upstream repo/issues/10618
+/// https://github.com/the upstream repo/issues/4879
 fn is_v3d_vulkan_adapter(adapter_info: &wgpu::AdapterInfo) -> bool {
     cfg!(target_os = "linux")
         && adapter_info.backend == wgpu::Backend::Vulkan

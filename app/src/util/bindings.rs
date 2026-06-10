@@ -108,8 +108,8 @@ pub enum CustomAction {
 lazy_static! {
     /// Maps for converting from custom tags back to the action enum
     /// This layer of indirection is necessary because the UI framework can't
-    /// know about particular Warp specific actions, so it deals with all actions
-    /// as plain isizes.  Within Warp though we want to deal with them as the enum type.
+    /// know about particular Rift specific actions, so it deals with all actions
+    /// as plain isizes.  Within Rift though we want to deal with them as the enum type.
     pub static ref CUSTOM_TAG_TO_ACTION: HashMap<isize, CustomAction> = HashMap::from_iter(all::<CustomAction>().map(|action| {
         (action as isize, action)
     }));
@@ -800,7 +800,7 @@ pub fn cmd_or_ctrl_shift(key: &str) -> String {
             }
             // The need to uppercase the key because of the addition of the `shift`.
             // Keystroke::parse debug asserts if this the modifier is lowercase:
-            // https://github.com/warpdotdev/warp-internal/blob/c225b8cedd94fdba33e957cf1efb99d84768d193/ui/src/keymap.rs#L637/
+            // https://github.com/the upstream repo-internal/blob/c225b8cedd94fdba33e957cf1efb99d84768d193/ui/src/keymap.rs#L637/
             key.to_ascii_uppercase().into()
         };
         format!("ctrl-shift-{key}")

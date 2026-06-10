@@ -69,7 +69,7 @@ pub const LONG_RUNNING_BOTTOM_PADDING_LINES: f32 = 0.2;
 /// commands that didn't start execution (i.e. `preexec` was never called), as the exit code is
 /// only for the last point of execution.
 /// Note: we should keep this in sync with the command-corrections list:
-/// https://github.com/warpdotdev/command-corrections/blob/main/src/lib.rs#L109
+/// https://the upstream repo/command-corrections/blob/main/src/lib.rs#L109
 pub(super) fn has_block_failed(exit_code: ExitCode, block_state: BlockState) -> bool {
     block_state == BlockState::DoneWithExecution && !exit_code.was_successful()
 }
@@ -471,7 +471,7 @@ pub enum BlockState {
     /// any particular execution or command.
     Background,
 
-    /// This block holds static content and is programmatically added to the blocklist by Warp. An
+    /// This block holds static content and is programmatically added to the blocklist by Rift. An
     /// example is the information subshell bootstrap "success" block.
     Static,
 }
@@ -1259,7 +1259,7 @@ impl Block {
     }
 
     /// Whether we render the prompt on the same line, in the context of a finished block. Post-same
-    /// line prompt, we render on the same line for PS1, but not for Warp prompt!
+    /// line prompt, we render on the same line for PS1, but not for Rift prompt!
     pub fn render_prompt_on_same_line(&self) -> bool {
         self.honor_ps1()
     }
@@ -1419,7 +1419,7 @@ impl Block {
 
     /// A command-grid is active in the period after we have received the precmd
     /// hook but before the command has started executing. This includes the time
-    /// when the shell echoes the command bytes that Warp wrote to the PTY.
+    /// when the shell echoes the command bytes that Rift wrote to the PTY.
     pub fn is_command_grid_active(&self) -> bool {
         self.state == BlockState::BeforeExecution
     }
@@ -1646,7 +1646,7 @@ impl Block {
         if self.header_grid.honor_ps1() {
             self.block_banner_height() + self.padding_top()
         } else {
-            // Grid is drawn below custom Warp prompt in finished blocks.
+            // Grid is drawn below custom Rift prompt in finished blocks.
             self.block_banner_height()
                 + self.padding_top()
                 + self.prompt_height()
@@ -1684,7 +1684,7 @@ impl Block {
     }
 
     /// Returns the ENTIRE HEIGHT of the prompt and command (no padding top or middle included).
-    /// In the case of combined grid: for Warp prompt, this includes the height of both the Warp prompt
+    /// In the case of combined grid: for Rift prompt, this includes the height of both the Rift prompt
     /// AND combined grid; for PS1, this is just the combined grid (PS1 is included there).
     pub fn prompt_and_command_height(&self) -> Lines {
         if !self.ready_to_render() || self.should_hide_command_grid {
@@ -1693,7 +1693,7 @@ impl Block {
             // No padding between prompt and command in the case of PS1 (combined grid).
             self.header_grid.prompt_and_command_height()
         } else {
-            // Handle the case of Warp built-in prompt with combined grid.
+            // Handle the case of Rift built-in prompt with combined grid.
             // Note that we have non-zero `command_padding_top` in this case, unlike above!
             if self.header_grid.is_command_empty() {
                 Lines::zero()
@@ -2778,7 +2778,7 @@ impl ansi::Handler for Block {
         // If we're processing a prompt and we receive an initial blank line,
         // ignore it.  This is sometimes used in prompts (e.g.: oh-my-zsh's
         // "re5et" theme) to separate the previous command's output from the
-        // prompt, but this is not needed in Warp due to us visually separating
+        // prompt, but this is not needed in Rift due to us visually separating
         // blocks.
         match self.header_grid.receiving_chars_for_prompt {
             Some(ansi::PromptKind::Initial) if !self.header_grid.prompt_has_received_content() => {

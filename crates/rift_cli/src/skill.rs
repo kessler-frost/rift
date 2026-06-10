@@ -5,7 +5,7 @@ use std::str::FromStr;
 /// A skill specifier that can reference a skill in a specific repo or search the current directory.
 ///
 /// The skill identifier (after the optional `repo:` or `org/repo:` prefix) can be either:
-/// - A **simple skill name** - searched across skill directories with precedence (`.agents/skills/`, `.warp/skills/`, `.claude/skills/`, `.codex/skills/`)
+/// - A **simple skill name** - searched across skill directories with precedence (`.agents/skills/`, `.rift/skills/`, `.claude/skills/`, `.codex/skills/`)
 /// - A **full path to SKILL.md** - resolved directly without precedence
 ///
 /// # Formats
@@ -20,26 +20,26 @@ use std::str::FromStr;
 ///
 /// Simple skill names (searched with directory precedence):
 /// ```ignore
-/// code-review                              // searches .agents/skills/, .warp/skills/, .claude/skills/, .codex/skills/
-/// warp-internal:code-review                // searches in "warp-internal" repo
-/// warpdotdev/warp-internal:code-review     // searches in specific org/repo
+/// code-review                              // searches .agents/skills/, .rift/skills/, .claude/skills/, .codex/skills/
+/// rift-internal:code-review                // searches in "rift-internal" repo
+/// the upstream repo-internal:code-review     // searches in specific org/repo
 /// ```
 ///
 /// Full paths (resolved directly, no precedence):
 /// ```ignore
 /// .agents/skills/my-skill/SKILL.md                              // directly resolves this path
-/// warp-server:.claude/skills/deploy/SKILL.md                    // exact path in "warp-server" repo
-/// warpdotdev/warp-internal:.claude/skills/code-review/SKILL.md  // exact path in org/repo
+/// rift-server:.claude/skills/deploy/SKILL.md                    // exact path in "rift-server" repo
+/// the upstream repo-internal:.claude/skills/code-review/SKILL.md  // exact path in org/repo
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkillSpec {
-    /// Optional GitHub organization (e.g., "warpdotdev" in "warpdotdev/warp-internal:code-review")
+    /// Optional GitHub organization (e.g., "warpdotdev" in "the upstream repo-internal:code-review")
     pub org: Option<String>,
-    /// Optional repository name (e.g., "warp-internal")
+    /// Optional repository name (e.g., "rift-internal")
     pub repo: Option<String>,
     /// The skill identifier - either a simple name or a full path to SKILL.md.
     ///
-    /// - **Simple name** (e.g., `"code-review"`): Searched across `.agents/skills/`, `.warp/skills/`, `.claude/skills/`, `.codex/skills/`
+    /// - **Simple name** (e.g., `"code-review"`): Searched across `.agents/skills/`, `.rift/skills/`, `.claude/skills/`, `.codex/skills/`
     ///   in precedence order. The name is used to construct paths like `.claude/skills/code-review/SKILL.md`.
     ///
     /// - **Full path** (e.g., `".claude/skills/code-review/SKILL.md"`): Resolved directly without precedence.
@@ -88,7 +88,7 @@ impl SkillSpec {
     /// - `deploy`
     ///
     /// Full paths are resolved directly, while simple names are searched across
-    /// skill directories in precedence order (`.agents/skills/`, `.warp/skills/`, `.claude/skills/`, `.codex/skills/`).
+    /// skill directories in precedence order (`.agents/skills/`, `.rift/skills/`, `.claude/skills/`, `.codex/skills/`).
     ///
     /// Uses cross-platform path semantics via [`std::path::Path`].
     pub fn is_full_path(&self) -> bool {

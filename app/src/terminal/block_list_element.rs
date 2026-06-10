@@ -685,7 +685,7 @@ pub struct BlockListElement {
     use_ligature_rendering: bool,
 
     /// When true, suppresses cursor rendering for CLI agents when rich input is open. For agents that draw their own cursor (SHOW_CURSOR off),
-    /// the cursor cell is skipped. For agents that let Warp draw the cursor
+    /// the cursor cell is skipped. For agents that let Rift draw the cursor
     /// (SHOW_CURSOR on), the `draw_cursor` call and cursor contrast colouring
     /// are suppressed instead.
     hide_cursor_cell: bool,
@@ -2077,7 +2077,7 @@ impl BlockListElement {
                 }
             }
 
-            // If Warp prompt (non-PS1) is being used, the command is drawn below the prompt,
+            // If Rift prompt (non-PS1) is being used, the command is drawn below the prompt,
             // hence we account for the prompt's vertical offset.
             let prompt_vertical_offset_px = if !block.honor_ps1() {
                 cell_size_height
@@ -2235,9 +2235,9 @@ impl BlockListElement {
             if block.is_active_and_long_running()
             // Check if the "hide cursor" escape sequence is present.
             && block.is_mode_set(TermMode::SHOW_CURSOR)
-            // Don't draw the Warp cursor when rich input is hiding
+            // Don't draw the Rift cursor when rich input is hiding
             // the CLI agent's cursor cell — agents like OpenCode and Codex
-            // rely on Warp's cursor, so we suppress it here too.
+            // rely on Rift's cursor, so we suppress it here too.
             && !block_grid_params.grid_render_params.hide_cursor_cell
             {
                 block.output_grid().draw_cursor(

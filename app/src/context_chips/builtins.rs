@@ -1,4 +1,4 @@
-//! Context chips built into Warp
+//! Context chips built into Rift
 
 use chrono::Local;
 use rift_util::path::user_friendly_path;

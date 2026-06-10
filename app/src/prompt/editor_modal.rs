@@ -108,10 +108,10 @@ pub struct EditorModal {
     /// used for saving changes.
     same_line_prompt_enabled: bool,
 
-    /// Dropdown to select the separator for the Warp prompt, in the case of
-    /// same line prompt. This separator is added at the end of the Warp prompt.
+    /// Dropdown to select the separator for the Rift prompt, in the case of
+    /// same line prompt. This separator is added at the end of the Rift prompt.
     rift_prompt_separator_dropdown: ViewHandle<Dropdown<EditorModalAction>>,
-    /// The separator currently selected for the Warp prompt.
+    /// The separator currently selected for the Rift prompt.
     rift_prompt_separator: RiftPromptSeparator,
 
     /// True if there was any change while the modal was open.
@@ -170,7 +170,7 @@ impl EditorModal {
 
         let rift_prompt_separator = match SessionSettings::as_ref(ctx).saved_prompt.value() {
             PromptSelection::CustomChipSelection(config) => config.separator(),
-            // If the "default Warp prompt" i.e. no context chips, is selected, then default to no Warp prompt separator.
+            // If the "default Rift prompt" i.e. no context chips, is selected, then default to no Rift prompt separator.
             _ => RiftPromptSeparator::None,
         };
         let rift_prompt_separator_label = rift_prompt_separator.dropdown_item_label().to_owned();
@@ -262,9 +262,9 @@ impl EditorModal {
             .open_single_zone_with_renderers(used_chips, unused_chips);
     }
 
-    /// Updates the state of the Warp prompt separator dropdown to be enabled/disabled based on the current state of the modal.
+    /// Updates the state of the Rift prompt separator dropdown to be enabled/disabled based on the current state of the modal.
     fn update_warp_separator_dropdown_state(&mut self, ctx: &mut ViewContext<Self>) {
-        // If we are using the Warp prompt and SLP is enabled, then we enable the dropdown. Otherwise, disable it.
+        // If we are using the Rift prompt and SLP is enabled, then we enable the dropdown. Otherwise, disable it.
         if self.prompt_type != PromptType::PS1 && self.same_line_prompt_enabled {
             self.rift_prompt_separator_dropdown
                 .update(ctx, |dropdown, ctx| {
@@ -282,7 +282,7 @@ impl EditorModal {
         if self.is_dirty {
             match self.prompt_type {
                 PromptType::PS1 => {
-                    // TODO: we need to stop the Warp prompt generators from running at this point
+                    // TODO: we need to stop the Rift prompt generators from running at this point
                     SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
                         report_if_error!(settings.honor_ps1.set_value(true, ctx));
                     });
@@ -380,14 +380,14 @@ impl TypedActionView for EditorModal {
             Self::Action::UsePS1 => {
                 self.is_dirty = true;
                 self.prompt_type = PromptType::PS1;
-                // Disable the Warp separator dropdown (only applies to Warp prompt).
+                // Disable the Rift separator dropdown (only applies to Rift prompt).
                 self.update_warp_separator_dropdown_state(ctx);
                 ctx.notify();
             }
             Self::Action::UseWarpPrompt => {
                 self.is_dirty = true;
                 self.prompt_type = PromptType::warp_prompt_from_settings(ctx);
-                // Enable the Warp separator dropdown, if SLP is on.
+                // Enable the Rift separator dropdown, if SLP is on.
                 self.update_warp_separator_dropdown_state(ctx);
                 ctx.notify();
             }
@@ -398,7 +398,7 @@ impl TypedActionView for EditorModal {
                 let default_prompt = PromptConfiguration::default_prompt();
                 self.same_line_prompt_enabled = default_prompt.same_line_prompt_enabled();
                 self.rift_prompt_separator = default_prompt.separator();
-                // Disable the Warp separator dropdown, since SLP is off for the default Warp prompt.
+                // Disable the Rift separator dropdown, since SLP is off for the default Rift prompt.
                 self.update_warp_separator_dropdown_state(ctx);
                 let restored_chips = default_prompt.chip_kinds();
                 self.update_used_chips(restored_chips, ctx);
@@ -408,7 +408,7 @@ impl TypedActionView for EditorModal {
                 self.is_dirty = true;
                 self.same_line_prompt_enabled = !self.same_line_prompt_enabled;
 
-                // In case we had previously picked default Warp prompt, but now the user toggled
+                // In case we had previously picked default Rift prompt, but now the user toggled
                 // same line prompt - it's no longer the default prompt.
                 self.prompt_type = PromptType::Rift;
 
@@ -564,7 +564,7 @@ impl EditorModal {
         }
     }
 
-    // TODO: consider supporting SLP with the new Warp prompt.
+    // TODO: consider supporting SLP with the new Rift prompt.
     #[allow(dead_code)]
     fn render_same_line_prompt_section(&self, appearance: &Appearance) -> Box<dyn Element> {
         let label = appearance
@@ -764,7 +764,7 @@ impl EditorModal {
 
         // We disable the save button in a couple of cases:
         // - there are no changes
-        // - the Warp prompt is used but there are no chips selected
+        // - the Rift prompt is used but there are no chips selected
         let save_disabled = !self.is_dirty
             || (matches!(self.prompt_type, PromptType::Rift)
                 && self.chip_configurator.used_chips.is_empty());

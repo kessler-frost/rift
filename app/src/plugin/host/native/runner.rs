@@ -47,7 +47,7 @@ impl PluginRunner {
     /// incoming [`PluginRequest`]s.
     ///
     /// After compiling the plugin module, its exported 'activate()' function is called with an
-    /// instance of the warp API object.
+    /// instance of the rift API object.
     ///
     /// After `activate()`, listens for incoming [`PluginRequest`]s from the host main thread and
     /// serves corresponding responses.

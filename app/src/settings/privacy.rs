@@ -529,7 +529,7 @@ impl PrivacySettings {
     }
 
     /// Initializes default secret-redaction regexes. Cloud-preference syncing
-    /// (Warp Drive) has been removed, so privacy values are sourced solely from
+    /// (Rift Drive) has been removed, so privacy values are sourced solely from
     /// the local settings store.
     pub fn maybe_sync_with_warp_drive_prefs(&mut self, ctx: &mut ModelContext<Self>) {
         self.initialize_default_regexes_once(ctx);

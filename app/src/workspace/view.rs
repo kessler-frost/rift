@@ -312,7 +312,7 @@ const MAX_FONT_SIZE: f32 = 25.0;
 const FONT_SIZE_INCREMENT: f32 = 1.0;
 
 pub const TAB_BAR_HEIGHT: f32 = 34.;
-/// Height for all panel headers (tab bar, warp drive, resource center, theme chooser, etc.).
+/// Height for all panel headers (tab bar, rift drive, resource center, theme chooser, etc.).
 /// This ensures consistent header heights across all UI panels.
 pub const PANEL_HEADER_HEIGHT: f32 = TAB_BAR_HEIGHT;
 /// The hover area height for states where the tab bar is revealed on hover.
@@ -500,7 +500,7 @@ impl ShowTabBar {
 #[cfg(target_family = "wasm")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SimplifiedWasmTabBarContent {
-    /// Viewing a Warp Drive object (notebook, workflow, env vars, AI facts, MCP servers)
+    /// Viewing a Rift Drive object (notebook, workflow, env vars, AI facts, MCP servers)
     WarpDriveObject,
     /// Participating in a shared session (viewer or writer).
     SharedSession,
@@ -2061,7 +2061,7 @@ impl Workspace {
             me.handle_window_settings_changed_event(event, ctx);
         });
 
-        // Show the Warp AI warm welcome iff the user hasn't dismissed it nor interacted with Warp AI before.
+        // Show the Rift AI warm welcome iff the user hasn't dismissed it nor interacted with Rift AI before.
         // Also, avoid showing it in integration tests to prevent interaction with other tests.
         let should_show_ai_assistant_warm_welcome: bool = !FeatureFlag::AgentMode.is_enabled()
             && AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
@@ -2733,7 +2733,7 @@ impl Workspace {
         shell: Option<AvailableShell>,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Warp Home / Warp Drive were removed; an empty workspace always opens a session tab.
+        // Rift Home / Rift Drive were removed; an empty workspace always opens a session tab.
         if self.should_trigger_get_started_onboarding(ctx) {
             self.trigger_get_started_onboarding(ctx);
         } else if FeatureFlag::WelcomeTab.is_enabled() {
@@ -2806,7 +2806,7 @@ impl Workspace {
             }
         }
 
-        // Check if focused pane is a Warp Drive object
+        // Check if focused pane is a Rift Drive object
         let focused_pane_id = pane_group.focused_pane_id(ctx);
         if focused_pane_id.is_warp_drive_object_pane() {
             return Some(SimplifiedWasmTabBarContent::WarpDriveObject);
@@ -4890,7 +4890,7 @@ impl Workspace {
     }
 
     /// The tab bar overflow menu is the context menu that appears when
-    /// a user clicks "Update Warp" in the top right of the tab bar.
+    /// a user clicks "Update Rift" in the top right of the tab bar.
     pub fn toggle_tab_bar_overflow_menu(&mut self, ctx: &mut ViewContext<Self>) {
         if self.show_tab_bar_overflow_menu {
             self.close_tab_bar_overflow_menu(ctx);
@@ -5085,7 +5085,7 @@ impl Workspace {
         ctx.notify();
     }
 
-    /// Find an active session and pre-fill the input editor the Warp executable with the
+    /// Find an active session and pre-fill the input editor the Rift executable with the
     /// [`rift_cli::Command::DumpDebugInfo`] subcommand.
     fn dump_debug_info(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(exec) = std::env::current_exe()
@@ -5123,7 +5123,7 @@ impl Workspace {
         }
     }
 
-    /// Install the Warp CLI by creating a symlink in /usr/local/bin
+    /// Install the Rift CLI by creating a symlink in /usr/local/bin
     #[cfg(target_os = "macos")]
     fn install_cli(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.spawn(async { cli_install::install_cli() }, |view, result, ctx| {
@@ -5153,7 +5153,7 @@ impl Workspace {
         });
     }
 
-    /// Uninstall the Warp CLI by removing the symlink from /usr/local/bin
+    /// Uninstall the Rift CLI by removing the symlink from /usr/local/bin
     #[cfg(target_os = "macos")]
     fn uninstall_cli(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.spawn(
@@ -9661,7 +9661,7 @@ impl Workspace {
             .is_user_web_anonymous_user()
             .unwrap_or_default();
 
-        // Simplified mode for viewing Warp Drive objects, shared sessions, or conversation transcripts on WASM
+        // Simplified mode for viewing Rift Drive objects, shared sessions, or conversation transcripts on WASM
         #[cfg(target_family = "wasm")]
         if let Some(content_type) = self.get_simplified_wasm_tab_bar_content(ctx) {
             // Use MainAxisAlignment::SpaceBetween and expand to fill width
@@ -9670,7 +9670,7 @@ impl Workspace {
                 .with_main_axis_size(MainAxisSize::Max);
             let bg_color = blended_colors::neutral_1(appearance.theme());
 
-            // Left: Warp logo - clickable to link to warp.dev
+            // Left: Rift logo - clickable to link to the upstream site
             let warp_logo = Hoverable::new(self.mouse_states.warp_logo.clone(), |_state| {
                 ConstrainedBox::new(
                     rift_core::ui::Icon::Warp
@@ -9688,7 +9688,7 @@ impl Workspace {
             .finish();
             tab_bar.add_child(warp_logo);
 
-            // Right: Info button + "View all cloud runs" button (for ambient agent sessions) + "Open in Warp" button
+            // Right: Info button + "View all cloud runs" button (for ambient agent sessions) + "Open in Rift" button
             let mut right_row = Flex::row()
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
                 .with_main_axis_size(MainAxisSize::Min);
@@ -9728,7 +9728,7 @@ impl Workspace {
                 }
             }
 
-            // Hide "Open in Warp" button on mobile devices
+            // Hide "Open in Rift" button on mobile devices
             if !riftui::platform::wasm::is_mobile_device() {
                 right_row.add_child(ChildView::new(&self.open_in_warp_button).finish());
             }
@@ -12025,7 +12025,7 @@ impl Workspace {
     fn process_updated_sync_state(&self, ctx: &mut ViewContext<Self>) {
         // If there is an active terminal, return a sync event that all
         // other synced terminals should apply to match it.
-        // If there is no active terminal (like when all Warp windows are
+        // If there is no active terminal (like when all Rift windows are
         // minimized), return an event to start syncing.
         let sync_event = self
             .active_tab_pane_group()
@@ -13065,7 +13065,7 @@ impl View for Workspace {
 
         let tab_bar_mode = self.tab_bar_mode(app);
 
-        // For WASM simplified tab bar views (Warp Drive objects, shared sessions, conversation transcripts),
+        // For WASM simplified tab bar views (Rift Drive objects, shared sessions, conversation transcripts),
         // we render the tab bar outside of panels so that the details panel only affects content below the tab bar.
         cfg_if::cfg_if! {
             if #[cfg(target_family = "wasm")] {

@@ -519,7 +519,7 @@ fn test_linear_issue_work_empty_prompt() {
 //
 // These tests cover the fix for GH #737: the entry log inside
 // `handle_incoming_uri` used to write the full URL (including the Firebase
-// `refresh_token` query parameter) to `warp.log` at `info` level before any
+// `refresh_token` query parameter) to `rift.log` at `info` level before any
 // redaction ran. They validate the redaction helper and the error messages
 // produced by `validate_custom_uri` to ensure that the fallback `warn`
 // emitted on invalid URIs never embeds the query string either.
@@ -623,7 +623,7 @@ fn safe_url_log_fields_redacts_invitee_email() {
     assert!(logged.contains("host=drive"), "expected host: {logged}");
 }
 
-/// URL fragments are not currently used as secret carriers by Warp today, but
+/// URL fragments are not currently used as secret carriers by Rift today, but
 /// the entry log's contract is "scheme + host + path only", so fragments must
 /// be dropped as well.
 #[test]

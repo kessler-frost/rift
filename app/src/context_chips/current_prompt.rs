@@ -144,7 +144,7 @@ pub struct CurrentPrompt {
     renderable_chips: HashSet<ContextChipKind>,
 
     same_line_prompt_enabled: bool,
-    /// The separator to use as a trailing character at the end of Warp prompt, if any.
+    /// The separator to use as a trailing character at the end of Rift prompt, if any.
     separator: RiftPromptSeparator,
 
     latest_context: Option<PromptContext>,
@@ -233,7 +233,7 @@ impl CurrentPrompt {
         // A WeakViewHandle is used here to avoid leaking the terminal model
         let weak_editor_handle = editor.downgrade();
         ctx.subscribe_to_view(&editor, move |me, _, ctx| {
-            // CurrentPrompt exists and this fn is called even if we're not using warp prompt.
+            // CurrentPrompt exists and this fn is called even if we're not using rift prompt.
             // We don't need to do anything if we're honoring PS1 unless universal developer input
             // or AgentView is enabled (agent view needs chips regardless of PS1 setting).
             if *SessionSettings::as_ref(ctx).honor_ps1
@@ -296,12 +296,12 @@ impl CurrentPrompt {
             .collect()
     }
 
-    /// Whether same line prompt is enabled for the Warp prompt.
+    /// Whether same line prompt is enabled for the Rift prompt.
     pub fn same_line_prompt_enabled(&self) -> bool {
         self.same_line_prompt_enabled
     }
 
-    /// The separator for the current Warp prompt.
+    /// The separator for the current Rift prompt.
     pub fn separator(&self) -> RiftPromptSeparator {
         self.separator
     }

@@ -9,12 +9,12 @@ use crate::terminal::model::session::Sessions;
 use crate::terminal::session_settings::{SessionSettings, ToolbarChipSelection};
 use crate::terminal::view::{ContextMenuAction, PromptPart, PromptPosition, TerminalAction};
 
-/// The type of warp prompt being used
+/// The type of rift prompt being used
 #[derive(Clone)]
 pub enum PromptType {
-    /// A warp prompt that refreshes chip values on its own. Typical for local sessions.
+    /// A rift prompt that refreshes chip values on its own. Typical for local sessions.
     Dynamic { prompt: ModelHandle<CurrentPrompt> },
-    /// A warp prompt that does not change unless explicitly overwritten. Used for viewers of shared sessions.
+    /// A rift prompt that does not change unless explicitly overwritten. Used for viewers of shared sessions.
     Static { snapshot: PromptSnapshot },
 }
 
@@ -156,7 +156,7 @@ impl PromptType {
             .collect()
     }
 
-    /// Whether same line prompt is enabled for the Warp Prompt.
+    /// Whether same line prompt is enabled for the Rift Prompt.
     pub fn same_line_prompt_enabled(&self, ctx: &AppContext) -> bool {
         match self {
             Self::Dynamic { prompt } => prompt.as_ref(ctx).same_line_prompt_enabled(),
@@ -164,7 +164,7 @@ impl PromptType {
         }
     }
 
-    /// The separator for the Warp prompt.
+    /// The separator for the Rift prompt.
     pub fn separator(&self, ctx: &AppContext) -> RiftPromptSeparator {
         match self {
             Self::Dynamic { prompt } => prompt.as_ref(ctx).separator(),

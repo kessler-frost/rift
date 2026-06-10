@@ -1,7 +1,7 @@
-//! This crate contains generic utilities and helpers available for use across all internal warp
+//! This crate contains generic utilities and helpers available for use across all internal rift
 //! crates.
 //!
-//! Generally, if a given function/abstraction is useful outside of a single warp-internal crate
+//! Generally, if a given function/abstraction is useful outside of a single rift-internal crate
 //! but isn't large/complex enough to warrant its own crate, it belongs here.
 pub mod assets;
 pub mod content_version;

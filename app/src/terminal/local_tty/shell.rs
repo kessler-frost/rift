@@ -22,7 +22,7 @@ pub const BASH_SHELL_PATH: &str = "/bin/bash";
 pub const FISH_SHELL_PATH: &str = "/bin/fish";
 
 /// Returns an iterator of additional PATH entries to append to the shell's PATH.
-/// * On macOS, this includes `$APP_PATH/Contents/Resources/bin`, in which we put a wrapper around the Warp CLI.
+/// * On macOS, this includes `$APP_PATH/Contents/Resources/bin`, in which we put a wrapper around the Rift CLI.
 /// * On all other platforms, this is empty.
 pub fn extra_path_entries() -> impl Iterator<Item = PathBuf> {
     cfg_if::cfg_if! {
@@ -42,7 +42,7 @@ pub fn extra_path_entries() -> impl Iterator<Item = PathBuf> {
 }
 
 /// Returns `true` if the given `path_or_command` is a valid, executable command or path to a
-/// executable binary for one of Warp's supported shell types (bash, fish, zsh).
+/// executable binary for one of Rift's supported shell types (bash, fish, zsh).
 pub fn is_valid_path_or_command_for_supported_shell(path_or_command: &str) -> bool {
     supported_shell_path_and_type(path_or_command).is_some()
 }
@@ -63,7 +63,7 @@ pub enum ShellStarter {
 
 impl ShellStarter {
     /// Constructs a `ShellStarter` represent the shell binary (and corresponding arguments) to be
-    /// used to spawn a shell process for a new top-level Warp session. If a WSL Distribution is
+    /// used to spawn a shell process for a new top-level Rift session. If a WSL Distribution is
     /// given, then it will always construct a `ShellStarter` starting the default shell for that
     /// WSL Distribution.
     ///
@@ -298,7 +298,7 @@ pub struct DirectShellStarter {
     shell_type: ShellType,
     shell_path: PathBuf,
 
-    /// Arguments to be passed to the shell binary at [`shell_path`] when spawning a new Warp
+    /// Arguments to be passed to the shell binary at [`shell_path`] when spawning a new Rift
     /// session.
     args: Vec<OsString>,
 }
@@ -308,7 +308,7 @@ pub struct WslShellStarter {
     shell_type: ShellType,
     shell_path: String,
 
-    /// Arguments to be passed to the shell binary at [`shell_path`] when spawning a new Warp
+    /// Arguments to be passed to the shell binary at [`shell_path`] when spawning a new Rift
     /// session.
     args: Vec<OsString>,
     distribution: String,
@@ -565,7 +565,7 @@ fn arguments_for_session_spawning_command(
             // The --no-rcs option executes the minimal level of startup files so we can
             // take over. The one exception: "Commands are first read from /etc/zshenv; this cannot be overridden."
             // The -g option sets the HIST_IGNORE_SPACE option, which ignores a command from history if it
-            // begins with a space. We use this to hide Warp bootstrap commands from the history.
+            // begins with a space. We use this to hide Rift bootstrap commands from the history.
             vec![
                 "-c".to_owned().into(),
                 format!("exec -a -zsh '{resolved_shell_path}' -g --no-rcs").into(),
@@ -583,7 +583,7 @@ fn arguments_for_session_spawning_command(
              * 3. The rcfile option reads the startup script from a file
              * 4. Process substitution i.e. <() send the output of a process via
              * /dev/fd/<n> (or temp files if this is unavailable) to another process
-             * 5. Send an InitShell message to Warp through escape sequences.
+             * 5. Send an InitShell message to Rift through escape sequences.
              * The warp_send_message function is inlined here.
              * 6. We disable PS2 and the line editor to work around a gnarly bug involving
              * garbage being inserted in every line. We further disable PS1 and echo'ing
@@ -628,9 +628,9 @@ fn arguments_for_session_spawning_command(
                     // we want fish to source config files for us (we don't
                     // manually do so in the bootstrap script like we do for zsh, for example).
                     // `-f no-mark-prompt` disables OSC 133 (the non-standard FinalTerm escape codes).
-                    // Fish's implementation of this breaks Warp by emitting `OSC 133 A` but not
+                    // Fish's implementation of this breaks Rift by emitting `OSC 133 A` but not
                     // `OSC 133 B` afterwards, which we have assumed. This is a temporary workaround.
-                    // See this issue: https://github.com/warpdotdev/Warp/issues/7588
+                    // See this issue: https://github.com/the upstream repo/issues/7588
                     r#"exec '{}' -f no-mark-prompt --login --init-command '{}'"#,
                     resolved_shell_path,
                     init_shell_script_for_shell(ShellType::Fish, &crate::ASSETS)

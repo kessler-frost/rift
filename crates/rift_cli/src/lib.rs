@@ -41,14 +41,14 @@ pub const OZ_PARENT_RUN_ID_ENV: &str = "OZ_PARENT_RUN_ID";
 pub const OZ_CLI_ENV: &str = "OZ_CLI";
 pub const OZ_HARNESS_ENV: &str = "OZ_HARNESS";
 
-/// Options related to the parent process that spawned this Warp instance.
+/// Options related to the parent process that spawned this Rift instance.
 #[derive(Debug, Default, Clone, clap::Args)]
 pub struct ParentOpts {
-    /// The ID of the Warp process that spawned this one.
+    /// The ID of the Rift process that spawned this one.
     ///
-    /// Used by codepaths that attempt to detect when the parent Warp process
+    /// Used by codepaths that attempt to detect when the parent Rift process
     /// has terminated. Guaranteed to be [`None`] when this is the initial
-    /// Warp process, but may also be [`None`] for Warp child processes if the
+    /// Rift process, but may also be [`None`] for Rift child processes if the
     /// child process doesn't need to keep track of its parent.
     #[arg(long = "parent-pid", hide = true)]
     pub pid: Option<u32>,
@@ -80,7 +80,7 @@ pub struct GlobalOptions {
     pub output_format: OutputFormat,
 }
 
-/// Command-line argument parser for the main Warp binary. This is used across all channels.
+/// Command-line argument parser for the main Rift binary. This is used across all channels.
 #[derive(Debug, Default, Parser, Clone)]
 #[command(
     name = "oz",
@@ -111,11 +111,11 @@ pub struct Args {
     args: AppArgs,
 }
 
-/// Flags for the Warp application. Additional binaries, like test runners, may use this type
+/// Flags for the Rift application. Additional binaries, like test runners, may use this type
 /// along with their own flags, or convert their flags into an `AppArgs` value.
 #[derive(Debug, Default, clap::Args, Clone)]
 pub struct AppArgs {
-    /// True if this instance of Warp was launched at the end of the auto-update process.
+    /// True if this instance of Rift was launched at the end of the auto-update process.
     #[arg(long = "finish-update", hide = true)]
     pub finish_update: bool,
 
@@ -124,11 +124,11 @@ pub struct AppArgs {
     #[arg(long = "crash-recovery-mechanism", value_enum, requires = "ParentOpts")]
     pub crash_recovery_mechanism: Option<RecoveryMechanism>,
 
-    /// Options related to the parent process that spawned this Warp instance.
+    /// Options related to the parent process that spawned this Rift instance.
     #[clap(flatten)]
     pub parent: ParentOpts,
 
-    /// URLs to open in Warp.
+    /// URLs to open in Rift.
     #[arg(hide = true)]
     pub urls: Vec<Url>,
 }
@@ -145,7 +145,7 @@ impl Args {
                 use clap::FromArgMatches as _;
 
                 // Check for disabled commands before parsing to prevent help from showing (e.g.
-                // `warp environment` should not return help text)
+                // `rift environment` should not return help text)
                 if !FeatureFlag::CloudEnvironments.is_enabled() {
                     let args: Vec<String> = env::args().collect();
                     if args.len() > 1 && args[1] == "environment" {
@@ -339,7 +339,7 @@ impl Args {
 
 <bold><underline>Learn more:</underline></bold>
 * Use <bold>{bin_name} help</bold> to learn more about each command
-* Read the documentation at https://docs.warp.dev/reference/cli
+* Read the documentation at https://the upstream docs/reference/cli
 "#
         ));
 
@@ -351,12 +351,12 @@ impl Args {
         self.command.as_ref()
     }
 
-    /// Args for the main Warp application, if not running a subcommand.
+    /// Args for the main Rift application, if not running a subcommand.
     pub fn app_args(&self) -> &AppArgs {
         &self.args
     }
 
-    /// Extract the main Warp application args.
+    /// Extract the main Rift application args.
     pub fn into_app_args(self) -> AppArgs {
         self.args
     }
@@ -383,9 +383,9 @@ impl Args {
 
 }
 
-/// Warp may spawn several worker processes - mostly servers that support the main application.
+/// Rift may spawn several worker processes - mostly servers that support the main application.
 ///
-/// These subcommands run those worker processes, which are bundled into the Warp binary.
+/// These subcommands run those worker processes, which are bundled into the Rift binary.
 #[derive(Debug, Clone, Subcommand)]
 pub enum WorkerCommand {
     /// Run the terminal server.
@@ -425,8 +425,8 @@ pub enum WorkerCommand {
     },
 }
 
-/// CLI-related subcommands. The command-line interface to Warp isn't a full SDK (e.g. with language bindings),
-/// but it allows scripting some Warp functionality.
+/// CLI-related subcommands. The command-line interface to Rift isn't a full SDK (e.g. with language bindings),
+/// but it allows scripting some Rift functionality.
 #[derive(Debug, Clone, Subcommand)]
 pub enum CliCommand {
     /// Interact with Oz.
@@ -449,9 +449,9 @@ pub enum CliCommand {
     #[command(subcommand)]
     Model(crate::model::ModelCommand),
 
-    /// Log in to Warp.
+    /// Log in to Rift.
     Login,
-    /// Log out of Warp.
+    /// Log out of Rift.
     Logout,
     /// Print information about the logged-in user.
     Whoami,
@@ -490,13 +490,13 @@ pub enum CliCommand {
     ApiKey(crate::api_key::ApiKeyCommand),
 }
 
-/// A subcommand of the main Warp application. This includes all [`WorkerCommand`]s as well as app-specific debugging tools.
+/// A subcommand of the main Rift application. This includes all [`WorkerCommand`]s as well as app-specific debugging tools.
 #[derive(Debug, Clone, Subcommand)]
 pub enum Command {
     #[clap(flatten)]
     Worker(WorkerCommand),
 
-    /// Commands that make up the Warp CLI.
+    /// Commands that make up the Rift CLI.
     #[clap(flatten)]
     CommandLine(Box<CliCommand>),
 
@@ -504,18 +504,18 @@ pub enum Command {
     ///
     ///
     /// For bash, add the following to ~/.bashrc:
-    ///     source <(path/to/warp completions bash)
+    ///     source <(path/to/rift completions bash)
     ///
     /// For zsh, add the following to ~/.zshrc:
-    ///     source <(path/to/warp completions zsh)
+    ///     source <(path/to/rift completions zsh)
     ///
     /// For fish, add the following to ~/.config/fish/config.fish:
-    ///     path/to/warp completions fish | source
+    ///     path/to/rift completions fish | source
     ///
     /// For Powershell, add the following to $PROFILE:
-    ///     path\to\warp | Out-String | Invoke-Expression
+    ///     path\to\rift | Out-String | Invoke-Expression
     ///
-    /// If no shell is provided, this defaults to the shell that Warp was run from.
+    /// If no shell is provided, this defaults to the shell that Rift was run from.
     #[command(verbatim_doc_comment)]
     Completions {
         /// Shell to generate completions for.
@@ -625,7 +625,7 @@ pub fn dump_debug_info_flag() -> String {
     format!("--{flag}")
 }
 
-/// Returns a flag that sets the current process as the parent of a Warp subcommand to spawn.
+/// Returns a flag that sets the current process as the parent of a Rift subcommand to spawn.
 pub fn parent_flag() -> String {
     let command = <Args as CommandFactory>::command();
     let flag = command

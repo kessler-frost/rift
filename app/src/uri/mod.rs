@@ -48,9 +48,9 @@ pub enum UriHost {
     Action,
     /// A host prefix for all actions that involve launch configurations
     Launch,
-    /// Supports joining shared sessions via a warp:// URI.
+    /// Supports joining shared sessions via a rift:// URI.
     SharedSession,
-    /// Supports opening warp's settings panel via URI
+    /// Supports opening rift's settings panel via URI
     Settings,
     /// A host prefix for a general-purpose home/landing page. Unlike other intent URIs, the home
     /// page behavior may change over time and vary from platform to platform.
@@ -173,7 +173,7 @@ impl UriHost {
             }
             UriHost::SharedSession => {
                 // We expect the uri to have the ID of the session to join as the last segment.
-                // e.g. warp://shared_session/{id}
+                // e.g. rift://shared_session/{id}
                 let session_id = url
                     .path_segments()
                     .into_iter()
@@ -205,10 +205,10 @@ impl UriHost {
             }
             UriHost::Settings => {
                 // We support opening different settings pages through URI:
-                // - warp://settings/teams?invite={email} - opens team settings with invite modal
-                // - warp://settings/billing_and_usage - opens billing and usage settings page
-                // - warp://settings/environments - opens environments settings page
-                // - warp://settings/appearance - opens appearance settings page (themes, fonts, etc.)
+                // - rift://settings/teams?invite={email} - opens team settings with invite modal
+                // - rift://settings/billing_and_usage - opens billing and usage settings page
+                // - rift://settings/environments - opens environments settings page
+                // - rift://settings/appearance - opens appearance settings page (themes, fonts, etc.)
                 let settings_sub_page: Option<String> = url
                     .path_segments()
                     .into_iter()
@@ -518,13 +518,13 @@ fn find_matching_config_name<'a>(
         .find(|&config| config.name.to_lowercase() == target_name_lower)
 }
 
-/// Handles `warp://tab_config/<name>` deeplinks.
+/// Handles `rift://tab_config/<name>` deeplinks.
 ///
 /// Resolution rules:
 /// - `<name>` is matched case-insensitively against each tab config's file
-///   stem, so both `warp://tab_config/my_tab` and
-///   `warp://tab_config/my_tab.toml` work.
-/// - When `?new_window=true` (or no Warp window is open) the tab config opens
+///   stem, so both `rift://tab_config/my_tab` and
+///   `rift://tab_config/my_tab.toml` work.
+/// - When `?new_window=true` (or no Rift window is open) the tab config opens
 ///   in a brand-new window. Otherwise it opens as a new tab in the active
 ///   window.
 fn handle_tab_config_uri(primary_window_id: Option<WindowId>, url: &Url, ctx: &mut AppContext) {
@@ -803,7 +803,7 @@ impl Action {
 pub fn handle_incoming_uri(url: &Url, ctx: &mut AppContext) {
     // Non-dogfood builds must never log the full URL here: URLs routed to this
     // handler can carry secrets in their query string (for example, the
-    // Firebase `refresh_token` on `warp://auth/desktop_redirect?...`). Log
+    // Firebase `refresh_token` on `rift://auth/desktop_redirect?...`). Log
     // only the non-sensitive components (scheme, host, path) on release
     // channels; dogfood builds retain the full URL for local debugging.
     safe_info!(
@@ -1092,7 +1092,7 @@ fn validate_custom_uri(url: &Url) -> Result<UriHost> {
 /// The returned string contains only the URL's scheme, host, and path — never
 /// its query string, fragment, or userinfo component. URLs that reach
 /// [`handle_incoming_uri`] can carry secrets in their query (for example, the
-/// Firebase refresh token in `warp://auth/desktop_redirect?refresh_token=...`),
+/// Firebase refresh token in `rift://auth/desktop_redirect?refresh_token=...`),
 /// so this helper exists to give [`safe_info!`] a redacted representation that
 /// still preserves enough signal for triage.
 ///

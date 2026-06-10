@@ -87,7 +87,7 @@ pub enum TipAction {
     CommandSearch,
     AiCommandSearch,
     SaveNewLaunchConfig,
-    // This toggles Warp Drive rather than opening it. This enum can't directly be
+    // This toggles Rift Drive rather than opening it. This enum can't directly be
     // renamed because we serialize it into the welcome tips.
     OpenLeftPanel,
     Changelog,

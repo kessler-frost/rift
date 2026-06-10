@@ -1,6 +1,6 @@
 //! Support for pane contents that are shareable.
 //!
-//! The cloud-backed sharing subsystem (Warp Drive objects, shared sessions, the
+//! The cloud-backed sharing subsystem (Rift Drive objects, shared sessions, the
 //! sharing dialog) has been removed. This module retains no-op shims so the pane
 //! header keeps compiling without any sharing UI.
 

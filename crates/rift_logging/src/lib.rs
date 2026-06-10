@@ -15,12 +15,12 @@ pub struct LogConfig {
     pub is_cli: bool,
     /// The destination for log output. If `None`, the destination is inferred from the environment.
     pub log_destination: Option<LogDestination>,
-    /// Optional in-session size threshold for `warp.log`. When `Some(n)` and the active
+    /// Optional in-session size threshold for `rift.log`. When `Some(n)` and the active
     /// file accumulates more than `n` bytes during a single execution, it is rotated to
-    /// `warp.log.in_session.0` and a fresh active file is opened. Older `.in_session.N`
+    /// `rift.log.in_session.0` and a fresh active file is opened. Older `.in_session.N`
     /// files shift up and the oldest is discarded, matching the per-startup
     /// `rotate_log_files` behavior. `None` preserves the existing unbounded-within-session
-    /// growth (warpdotdev/warp#10879).
+    /// growth (the upstream repo#10879).
     pub max_file_size_bytes: Option<u64>,
 }
 

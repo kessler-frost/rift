@@ -182,7 +182,7 @@ unsafe fn init_logging() {
             // According to the docs, this error means that the database file was moved (or deleted),
             // so SQLite can't safely modify it and the rollback journal:
             //     https://www.sqlite.org/rescode.html#readonly_dbmoved
-            // This is mostly outside of Warp's control (e.g. the user or some system program is
+            // This is mostly outside of Rift's control (e.g. the user or some system program is
             // moving around files in the user data directory), so downgrade to a warning.
             (_, sqlite3::SQLITE_READONLY_DBMOVED) => log::Level::Warn,
             _ => log::Level::Error,
@@ -1403,7 +1403,7 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
 /// and makes it invalid to write the logic recursively. It's ok it's not in a
 /// transaction because we should be the only connection using the database.
 ///
-/// One notable exception is the case where there may be two warp apps running
+/// One notable exception is the case where there may be two rift apps running
 /// in the same bundle. In this case, we may read some garbage, but all that will
 /// happen is the user won't have session restoration.
 ///
@@ -1489,7 +1489,7 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
 
             // The origin and size of the bound should be all null or all non-null.
             // Reject bounds smaller than the platform minimum window size so users
-            // with an already-corrupted warp.sqlite (see GH#10083) restore to
+            // with an already-corrupted rift.sqlite (see GH#10083) restore to
             // default geometry instead of a sliver.
             let bounds = match (
                 window.window_width,

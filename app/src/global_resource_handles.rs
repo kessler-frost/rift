@@ -30,7 +30,7 @@ use crate::settings::SettingsFileError;
 /// * Use a Receiver if you need to receive communication in the main thread
 ///   sent from another thread. This would need to be used in conjunction with
 ///   `ViewContext#spawn_stream_local` which polls the receiver for values.
-///   One example use case could be receiving updates from the warp config watcher
+///   One example use case could be receiving updates from the rift config watcher
 ///   thread. Note that `spawn_stream_local` is polling on the main thread, so
 ///   we should call this sparingly. It's easy to unintentionally call this from
 ///   a view that's instantiated many times in the app (e.g. EditorView). Instead

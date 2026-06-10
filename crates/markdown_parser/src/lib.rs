@@ -359,7 +359,7 @@ pub struct FormattedTable {
 }
 
 impl FormattedTable {
-    /// Parse from the internal tab-separated format used in `warp-markdown-table` code blocks.
+    /// Parse from the internal tab-separated format used in `rift-markdown-table` code blocks.
     pub fn from_internal_format(content: &str) -> Self {
         let parse_line = |line: &str| -> Vec<FormattedTextInline> {
             line.split('\t')
@@ -391,7 +391,7 @@ impl FormattedTable {
         table
     }
 
-    /// Serialize to the internal tab-separated format used in `warp-markdown-table` code blocks.
+    /// Serialize to the internal tab-separated format used in `rift-markdown-table` code blocks.
     /// Inline formatting is preserved as markdown syntax so it survives the buffer round-trip.
     pub fn to_internal_format(&self) -> String {
         if self.headers.is_empty() && self.rows.is_empty() {

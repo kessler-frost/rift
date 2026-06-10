@@ -120,18 +120,18 @@ pub struct BlockLatencyInfo {
 
 
 
-/// How the user opened the Warp Drive sharing dialog.
+/// How the user opened the Rift Drive sharing dialog.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum SharingDialogSource {
     /// The sharing button in the pane header.
     PaneHeader,
     /// The per-pane command palette entry (includes keybindings).
     CommandPalette,
-    /// The Warp Drive index context menu.
+    /// The Rift Drive index context menu.
     DriveIndex,
     /// The sharing dialog was auto-opened from shared session creation.
     StartedSessionShare,
-    /// The user intented into Warp with an email address to invite.
+    /// The user intented into Rift with an email address to invite.
     InviteeRequest,
     /// The user jumped from an inherited ACL to its definition on a parent object.
     InheritedPermission,
@@ -827,7 +827,7 @@ pub enum TelemetryEvent {
     DatabaseReadError(String),
     DatabaseWriteError(String),
     AppStartup(AppStartupInfo),
-    /// The native app was opened while logged out. Since Warp requires login,
+    /// The native app was opened while logged out. Since Rift requires login,
     /// this usually means a new user.
     LoggedOutStartup,
     /// The download source, if it can be determined. Will only be sent when
@@ -1705,7 +1705,7 @@ pub enum TelemetryEvent {
     AgentManagementViewOpenedSession,
     /// Emitted when the user copies a session link from the Agent Management View.
     AgentManagementViewCopiedSessionLink,
-    /// Detected that Warp is running in an isolated sandbox.
+    /// Detected that Rift is running in an isolated sandbox.
     DetectedIsolationPlatform {
         platform: rift_isolation_platform::IsolationPlatformType,
     },
@@ -1807,7 +1807,7 @@ pub enum TelemetryEvent {
     CloudAgentCapacityModalDismissed,
     /// Emitted when the user clicks the upgrade button in the cloud agent capacity modal.
     CloudAgentCapacityModalUpgradeClicked,
-    /// Emitted when a warp://linear deeplink is opened.
+    /// Emitted when a rift://linear deeplink is opened.
     LinearIssueLinkOpened,
     /// Emitted when the free tier limit hit interstitial is displayed.
     FreeTierLimitHitInterstitialDisplayed,

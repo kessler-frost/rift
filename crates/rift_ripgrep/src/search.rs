@@ -36,7 +36,7 @@ pub struct Match {
 /// Entry point for the ripgrep subprocess.
 ///
 /// Runs a ripgrep search in-process and writes JSON results to stdout.
-/// The main Warp process spawns this via the `ripgrep-search` CLI
+/// The main Rift process spawns this via the `ripgrep-search` CLI
 /// subcommand and reads the JSON output.
 pub fn run_search_subprocess(
     patterns: &[String],
@@ -177,7 +177,7 @@ mod process_impl {
         Ok(match_stream_from_child(child))
     }
 
-    /// Spawns the warp CLI with the `ripgrep-search` subcommand.
+    /// Spawns the rift CLI with the `ripgrep-search` subcommand.
     fn spawn_search_process(
         patterns: &[String],
         paths: &[PathBuf],

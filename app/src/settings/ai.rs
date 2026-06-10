@@ -1078,7 +1078,7 @@ define_settings_group!(AISettings, settings: [
         toml_path: "agents.knowledge.rules_enabled",
         description: "Whether the agent uses your saved rules during requests.",
     }
-    // Whether warp drive context should be included in AI requests
+    // Whether rift drive context should be included in AI requests
     warp_drive_context_enabled: WarpDriveContextEnabled {
         type: bool,
         default: true,
@@ -1205,7 +1205,7 @@ define_settings_group!(AISettings, settings: [
         description: "Whether the \"What's new\" section is shown in the agent view.",
     }
 
-    // Whether or not the user has enabled fallback to Warp credits for user-provided models.
+    // Whether or not the user has enabled fallback to Rift credits for user-provided models.
     can_use_warp_credits_for_fallback: CanUseWarpCreditsForFallback {
         type: bool,
         default: false,
@@ -1360,7 +1360,7 @@ define_settings_group!(AISettings, settings: [
         toml_path: "general.default_tab_config_path",
     }
 
-    // Whether computer use is enabled for cloud agent conversations started from the Warp app.
+    // Whether computer use is enabled for cloud agent conversations started from the Rift app.
     // This setting is only used when the AI autonomy setting is AlwaysAsk or not set.
     cloud_agent_computer_use_enabled: CloudAgentComputerUseEnabled {
         type: bool,

@@ -178,7 +178,7 @@ pub fn tab_configs_dir() -> PathBuf {
 }
 
 /// Returns the path to the directory containing the built-in default tab configs.
-/// These are shipped with Warp and user-editable (Warp does not overwrite modifications).
+/// These are shipped with Rift and user-editable (Rift does not overwrite modifications).
 #[cfg_attr(target_family = "wasm", expect(dead_code))]
 pub fn default_tab_configs_dir() -> PathBuf {
     base_dir().join("default_tab_configs")

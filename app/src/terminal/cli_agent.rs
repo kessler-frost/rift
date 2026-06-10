@@ -21,7 +21,7 @@ use crate::ui_components::icons::Icon;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 /// UID for the Uber team.
-/// See https://warp.metabaseapp.com/dashboard/1454?team_id=46347
+/// See https://rift.metabaseapp.com/dashboard/1454?team_id=46347
 const UBER_TEAM_UID: &str = "BdVbYjy9LRZcZrYBemSfAF";
 
 /// Gemini brand blue color
@@ -176,7 +176,7 @@ impl CLIAgent {
     }
 
     /// Returns the [`CLIAgent`] corresponding to a cloud-agent [`Harness`] when it represents a
-    /// third-party agent. Returns `None` for [`Harness::Oz`] (Warp's built-in harness has no
+    /// third-party agent. Returns `None` for [`Harness::Oz`] (Rift's built-in harness has no
     /// distinct CLI agent identity).
     pub fn from_harness(harness: Harness) -> Option<Self> {
         match harness {

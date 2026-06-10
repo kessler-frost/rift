@@ -109,7 +109,7 @@ pub struct CreateScheduleArgs {
     ///
     /// Format: `repo:skill_name` or `org/repo:skill_name`
     ///
-    /// Skills are searched in `.agents/skills/`, `.warp/skills/`, `.claude/skills/`, and `.codex/skills/` directories.
+    /// Skills are searched in `.agents/skills/`, `.rift/skills/`, `.claude/skills/`, and `.codex/skills/` directories.
     /// The skill is resolved at runtime in the agent's cloud environment.
     ///
     /// When used with --prompt, the skill provides the base context and the prompt is the user task.
@@ -119,7 +119,7 @@ pub struct CreateScheduleArgs {
 
     /// Where this job should be hosted.
     ///
-    /// Setting "warp" (or omitting this flag) runs it on Warp's infrastructure.
+    /// Setting "rift" (or omitting this flag) runs it on Rift's infrastructure.
     /// Any other value is treated as a self-hosted job and the value will be matched
     /// with the self-hosted worker's name.
     #[arg(long = "host", value_name = "WORKER_ID")]
@@ -184,7 +184,7 @@ pub struct UpdateScheduleArgs {
     ///
     /// Format: `skill_name`, `repo:skill_name`, or `org/repo:skill_name`
     ///
-    /// Skills are searched in `.agents/skills/`, `.warp/skills/`, `.claude/skills/`, and `.codex/skills/` directories.
+    /// Skills are searched in `.agents/skills/`, `.rift/skills/`, `.claude/skills/`, and `.codex/skills/` directories.
     /// The skill is resolved at runtime in the agent's cloud environment.
     #[arg(long = "skill", value_name = "SKILL", conflicts_with = "remove_skill")]
     pub skill: Option<SkillSpec>,
@@ -195,7 +195,7 @@ pub struct UpdateScheduleArgs {
 
     /// Where this job should be hosted.
     ///
-    /// Setting "warp" runs it on Warp's infrastructure.
+    /// Setting "rift" runs it on Rift's infrastructure.
     /// Any other value is treated as a self-hosted job and the value will be matched
     /// with the self-hosted worker's name.
     #[arg(long = "host", value_name = "WORKER_ID")]

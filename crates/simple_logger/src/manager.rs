@@ -128,7 +128,7 @@ impl LogManager {
     /// This is the entry point used by callers that produce high-volume logs
     /// over long-lived sessions — primarily MCP server stderr/stdout capture,
     /// where a single chatty server could otherwise grow its log file
-    /// unboundedly across a multi-day session (warpdotdev/warp#7723).
+    /// unboundedly across a multi-day session (the upstream repo#7723).
     pub fn register_with_rotation(
         &mut self,
         namespace: &str,

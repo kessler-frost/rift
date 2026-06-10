@@ -22,7 +22,7 @@ use riftui_core::{async_assert, ModelHandle};
 use super::{assert_approx_eq, new_builder, TEST_ONLY_ASSETS};
 use crate::Builder;
 
-/// Adds a launch config to the mocked out warp config directory and verifies that
+/// Adds a launch config to the mocked out rift config directory and verifies that
 /// the launch config appears in the launch config palette.
 pub fn test_add_launch_config_to_rift_config() -> Builder {
     new_builder()

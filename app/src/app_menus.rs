@@ -922,7 +922,7 @@ fn open_new_default_tab_or_window(ctx: &mut AppContext) {
     }
 }
 
-/// Dispatch event to open a new Warp window
+/// Dispatch event to open a new Rift window
 fn open_new_window(ctx: &mut AppContext) {
     ctx.dispatch_global_action("root_view:open_new", &());
     ctx.dispatch_global_action("workspace:save_app", &());

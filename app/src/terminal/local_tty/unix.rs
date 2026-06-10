@@ -266,8 +266,8 @@ fn build_host_shell_command(
     if let Some(version) = ChannelState::app_version() {
         builder.env("TERM_PROGRAM_VERSION", version);
 
-        // We also insert this warp-specific version so that
-        // plugins can do warp-specific version checks without worrying
+        // We also insert this rift-specific version so that
+        // plugins can do rift-specific version checks without worrying
         // that the version env var might be coming from a different terminal
         // (for ex., in the ssh case).
         builder.env("RIFT_CLIENT_VERSION", version);
@@ -456,7 +456,7 @@ fn spawn_command_in_pty(
             if is_isolated {
                 // If running in a sandbox on Linux, adjust the OOM score
                 // to make the child process more likely to be killed than the parent process
-                // in case of OOM. If the Warp process is killed while hosting an ambient
+                // in case of OOM. If the Rift process is killed while hosting an ambient
                 // agent, its shared session will abruptly end with no user-visible error.
                 // Instead, we want to kill whatever process the agent spawned that's using
                 // lots of memory. This gives the agent a chance to gracefully fail.
@@ -808,28 +808,28 @@ fn build_docker_sandbox_command(
 ///    the sandbox.
 ///
 /// Both paths are derived from `starter.sandbox_id` so multiple concurrent
-/// Warp panes/sandboxes don't race on or share the same host directories.
+/// Rift panes/sandboxes don't race on or share the same host directories.
 ///
 /// The actual sandbox creation + attachment happens via
-/// `sbx run --name warp-sandbox-<id> shell WORKSPACE ... -- -c "cd /home/agent && exec bash --rcfile ..."`
+/// `sbx run --name rift-sandbox-<id> shell WORKSPACE ... -- -c "cd /home/agent && exec bash --rcfile ..."`
 /// when the PTY process is spawned.
 ///
 /// TODO(advait): Wire up cleanup on pane close. Today, closing a Docker
 /// sandbox pane leaves behind (1) the per-sandbox host init + workspace dirs
-/// under the Warp cache dir, and (2) the stopped `warp-sandbox-<id>`
+/// under the Rift cache dir, and (2) the stopped `rift-sandbox-<id>`
 /// container. Both are per-sandbox so they don't clobber each other, but
 /// they accumulate over repeated sessions. The right hook is likely on the
 /// PTY/pane lifecycle (alongside `Pty::kill`) and should:
-///   - `sbx rm --force warp-sandbox-<id>` to drop the container,
+///   - `sbx rm --force rift-sandbox-<id>` to drop the container,
 ///   - `fs::remove_dir_all` on `starter.init_dir()` and
 ///     `starter.workspace_dir()` to reclaim host disk.
 /// Tracking as a follow-up.
 fn prepare_docker_sandbox(starter: &DockerSandboxShellStarter) -> Result<()> {
     // Build each per-sandbox subdirectory with mode 0700 so other local users
     // cannot traverse into them, which (combined with the parent living under
-    // the per-user Warp cache dir rather than `/tmp`) prevents the init
+    // the per-user Rift cache dir rather than `/tmp`) prevents the init
     // script from being read or symlink-attacked by anyone other than the
-    // Warp user. The file itself is left at the default mode so the
+    // Rift user. The file itself is left at the default mode so the
     // container's shell (which may run as a different uid than the host
     // user) can still read it via `--rcfile`.
     let mk_owner_only_dir = |path: &Path| -> Result<()> {

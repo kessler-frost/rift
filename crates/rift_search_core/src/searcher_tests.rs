@@ -43,7 +43,7 @@ fn test_tokenizer_simple() {
 
 #[test]
 fn test_tokenizer_warp_special_chars() {
-    // Test string includes warp-related terms with hyphen, underscore, forward slash, backslash, and colon
+    // Test string includes rift-related terms with hyphen, underscore, forward slash, backslash, and colon
     let test_string = "warp-cli/launch_command:run C:\\\\Program_Files\\\\Warp\\\\core-engine.dll check_status:/dev/warp_drive-0";
     let tokens = token_stream_helper(test_string);
 

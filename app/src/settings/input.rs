@@ -210,7 +210,7 @@ impl InputSettings {
         };
 
         // PS1 input is only valid when honor_ps1 is active. If the user has PS1 selected
-        // but the shell has not signalled PS1 support, fall back to Warp input.
+        // but the shell has not signalled PS1 support, fall back to Rift input.
         let is_ps1_enabled = *SessionSettings::as_ref(app).honor_ps1
             && computed_input_type_value == InputBoxType::Classic;
         if is_ps1_enabled {

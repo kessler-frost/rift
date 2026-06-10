@@ -2,7 +2,7 @@
 //! Repository metadata model singleton.
 //!
 //! This module provides a singleton model that manages repository metadata across
-//! all repositories tracked by Warp.
+//! all repositories tracked by Rift.
 
 use std::collections::HashMap;
 #[cfg(feature = "local_fs")]

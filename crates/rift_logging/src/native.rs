@@ -104,10 +104,10 @@ pub fn on_crash_recovery_process_killed() {
 }
 
 /// Handles the crash recovery process "recovering" from a parent crash by:
-/// 1) Renaming the log file from the main process (which just panicked) to `warp.log.old.temp`.
-/// 2) Moving the crash recovery process log (which is located at `warp.log.recovery`) to the usual
-///    path warp logs are located (log_directory/warp.log).
-///    The temp log file (`warp.log.old.temp`) will ultimately be rotated to `warp.log.old.0` the next
+/// 1) Renaming the log file from the main process (which just panicked) to `rift.log.old.temp`.
+/// 2) Moving the crash recovery process log (which is located at `rift.log.recovery`) to the usual
+///    path rift logs are located (log_directory/rift.log).
+///    The temp log file (`rift.log.old.temp`) will ultimately be rotated to `rift.log.old.0` the next
 ///    time [`rotate_log_files`] is called (which will get called when the event loop starts and we
 ///    have access to the `AppContext`)
 pub fn on_parent_process_crash() {
@@ -183,7 +183,7 @@ pub async fn rotate_files(channel_file_name: &str, max_rotation: usize) -> Resul
     // co-locates each old session's final state with its mid-session chunks.
     migrate_previous_session_in_session_chunks(&log_directory, channel_file_name);
 
-    // Rename `warp.log.old.temp` (the temporary file) to `warp.log.old.0`.
+    // Rename `rift.log.old.temp` (the temporary file) to `rift.log.old.0`.
     let temp_file_path = temp_log_file_path(&log_directory);
 
     let _ = fs::rename(
@@ -296,7 +296,7 @@ pub fn init(config: LogConfig) -> Result<()> {
 /// Return the path to the log file that is used within the crash recovery process.
 /// We use a separate log file for the crash recovery process. If the crash
 /// recovery process handles a crash, we'll move the crash recovery process log file to its usual
-/// location at `log_directory/warp.log`.
+/// location at `log_directory/rift.log`.
 fn crash_recovery_process_log_file_path(log_directory: impl AsRef<Path>) -> PathBuf {
     log_directory
         .as_ref()
@@ -317,7 +317,7 @@ pub fn log_file_path() -> Result<PathBuf> {
     Ok(main_process_log_file_path(&dir))
 }
 
-/// Collects paths to the current warp instance's log file and any older
+/// Collects paths to the current rift instance's log file and any older
 /// log files (up to 6 retained, all potentially useful for debugging).
 ///
 /// Returned ordering is newest-first, grouped by session:
@@ -501,7 +501,7 @@ fn init_internal(
     log_destination: Option<LogDestination>,
     max_file_size_bytes: Option<u64>,
 ) -> Result<()> {
-    /// Returns an empty file named `warp.log` to log the current execution, and
+    /// Returns an empty file named `rift.log` to log the current execution, and
     /// renames the previous execution's log to a temporary name.
     fn setup_log_files_for_current_execution(
         log_directory: &Path,
@@ -511,13 +511,13 @@ fn init_internal(
 
         let main_log_path = if is_from_crash_recovery_process {
             // Use a temporary file for logs within the crash recovery process. We intentionally do
-            // not rename the old main log file to `warp.log.temp` like we do below because this
+            // not rename the old main log file to `rift.log.temp` like we do below because this
             // would result in us moving the log file of the parent process.
             crash_recovery_process_log_file_path(log_directory)
         } else {
             let main_log_path = main_process_log_file_path(log_directory);
 
-            // Rename the old main log file to `warp.log.temp`.
+            // Rename the old main log file to `rift.log.temp`.
             // We rotate the log files later in the background to make fewer blocking calls.
             let _ = fs::rename(main_log_path.clone(), temp_log_file_path(log_directory));
             main_log_path
@@ -580,7 +580,7 @@ fn init_internal(
         // Crash-recovery logs are short-lived (the file is renamed into place
         // by the parent on crash, and otherwise deleted on clean exit), so
         // skip in-session rotation for them — `max_file_size_bytes` only
-        // applies to the main process's `warp.log`.
+        // applies to the main process's `rift.log`.
         let target: Box<dyn std::io::Write + Send + 'static> = if is_from_crash_recovery_process {
             Box::new(file)
         } else {

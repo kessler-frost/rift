@@ -238,7 +238,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         context.to_owned(),
     )]);
 
-    // Add command palette entry for toggling between Warp and Classic input modes
+    // Add command palette entry for toggling between Rift and Classic input modes
     app.register_fixed_bindings(vec![FixedBinding::empty(
         "Toggle Input Mode (Warp/Classic)".to_string(),
         builder(SettingsAction::AppearancePageToggle(
@@ -572,7 +572,7 @@ pub struct AppearanceSettingsPageView {
     header_toolbar_inline_editor: ViewHandle<HeaderToolbarInlineEditor>,
 
     /// The context chip renderers based on the most recently
-    /// selected Warp prompt configuration.
+    /// selected Rift prompt configuration.
     context_chips: Vec<ContextChipRenderer>,
 
     /// The information we need to render the PS1 as a grid when we're

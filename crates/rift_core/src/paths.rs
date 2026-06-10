@@ -22,13 +22,13 @@ use directories::BaseDirs;
 use crate::channel::{Channel, ChannelState};
 use crate::AppId;
 
-/// The name of the directory in which to put non-global Warp-specific files.
+/// The name of the directory in which to put non-global Rift-specific files.
 ///
 /// This should be used, for example, as the base directory under which
-/// repository workflows would be stored (in "./.warp/workflows").
+/// repository workflows would be stored (in "./.rift/workflows").
 pub const RIFT_CONFIG_DIR: &str = ".rift";
 
-/// The name of the folder that stores Warp execution logs and network logs.
+/// The name of the folder that stores Rift execution logs and network logs.
 /// This is currently only used on Windows to maintain backwards compatibility.
 pub const RIFT_LOGS_DIR: &str = "logs";
 
@@ -38,9 +38,9 @@ fn base_rift_config_dir_name() -> String {
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
     }
 }
-/// Returns the home-relative Warp config directory name for the current channel and data profile.
+/// Returns the home-relative Rift config directory name for the current channel and data profile.
 ///
-/// This preserves the historical `.warp*` directory shape while still isolating dev, local,
+/// This preserves the historical `.rift*` directory shape while still isolating dev, local,
 /// integration, oss, and optional development profiles.
 pub fn rift_home_config_dir_name() -> String {
     let base_dir_name = base_rift_config_dir_name();
@@ -52,10 +52,10 @@ pub fn rift_home_config_dir_name() -> String {
     }
 }
 
-/// Returns the home-relative Warp config directory for the current channel and data profile.
+/// Returns the home-relative Rift config directory for the current channel and data profile.
 ///
 /// Unlike [`data_dir`] and [`config_local_dir`] on non-macOS platforms, this intentionally keeps
-/// Warp-authored, user-facing config under a `.warp*` directory in the home directory instead of
+/// Rift-authored, user-facing config under a `.rift*` directory in the home directory instead of
 /// using the platform XDG/AppData project directories.
 pub fn warp_home_config_dir() -> Option<PathBuf> {
     dirs::home_dir().map(|home_dir| home_dir.join(rift_home_config_dir_name()))
@@ -71,8 +71,8 @@ pub fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
 
 /// Returns the macOS config directory name for the current channel.
 ///
-/// Stable uses `.warp`, while other channels include a channel suffix
-/// (e.g., `.warp-dev`, `.warp-local`).
+/// Stable uses `.rift`, while other channels include a channel suffix
+/// (e.g., `.rift-dev`, `.rift-local`).
 ///
 /// These suffixes are persisted on disk as directory names and must not be
 /// changed once established, or existing user data will be orphaned.
@@ -129,7 +129,7 @@ pub fn base_config_dir() -> PathBuf {
 ///
 /// This is the appropriate home for files like our sqlite database, which
 /// contains durable but non-critical and non-portable data like what windows
-/// the user had open and cached state of known Warp Drive objects.
+/// the user had open and cached state of known Rift Drive objects.
 pub fn state_dir() -> PathBuf {
     let Some(project_dirs) = project_dirs() else {
         return PathBuf::new();
@@ -155,7 +155,7 @@ pub fn secure_state_dir() -> Option<PathBuf> {
 
     #[cfg(target_os = "macos")]
     if let Some(app_group_root) = app_group_container_path() {
-        // The macOS project_path is the bundle ID (i.e. `dev.warp.Warp-Stable`).
+        // The macOS project_path is the bundle ID (i.e. `dev.rift.Rift-Stable`).
         let project_dirs = project_dirs()?;
         return Some(
             app_group_root
@@ -228,7 +228,7 @@ fn project_dirs_for_app_id(
     cfg_if::cfg_if! {
         if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             // Adjust the base application name so that we end up with
-            // directories like "warp-terminal" and "warp-terminal-dev", to
+            // directories like "rift-terminal" and "rift-terminal-dev", to
             // match our Linux package name.
             let base_app_name = match app_id.application_name() {
                 "Warp" => "Warp-Terminal".to_owned(),
@@ -284,21 +284,21 @@ pub fn app_group_container_path() -> Option<PathBuf> {
     LazyLock::force(&CONTAINER_PATH).clone()
 }
 
-/// Returns the path to resources included in the Warp distribution.
+/// Returns the path to resources included in the Rift distribution.
 ///
 /// Unlike [`riftui_core::AssetProvider`] assets, which are generally embedded in the binary, these are
-/// stored on the filesystem alongside the rest of Warp.
+/// stored on the filesystem alongside the rest of Rift.
 ///
 /// ## macOS
-/// The resources directory is `$APP_DIR/Contents/Resources` (e.g. `/Applications/Warp.app/Contents/Resources`).
+/// The resources directory is `$APP_DIR/Contents/Resources` (e.g. `/Applications/Rift.app/Contents/Resources`).
 ///
 /// ## Linux
 /// The resources directory is `$INSTALL_DIR/resources`, where `$INSTALL_DIR` depends on the
-/// specific package manager. For example, on Ubuntu this might be `/opt/warpdotdev/warp-terminal/resources`.
+/// specific package manager. For example, on Ubuntu this might be `/opt/the upstream repo-terminal/resources`.
 ///
 /// ## Windows
 /// The resources directory is `$INSTALL_DIR/resources`, where `$INSTALL_DIR` is the directory
-/// containing the Warp executable (e.g. `C:\Program Files\WarpDev\resources`).
+/// containing the Rift executable (e.g. `C:\Program Files\WarpDev\resources`).
 pub fn bundled_resources_dir() -> Option<PathBuf> {
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {

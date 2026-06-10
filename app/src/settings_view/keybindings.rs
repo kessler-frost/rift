@@ -594,7 +594,7 @@ impl KeybindingsView {
 
             self.conflict_map.update(&row.binding.trigger, None);
 
-            // Persist the keybinding into the `.warp` directory so that it will last beyond
+            // Persist the keybinding into the `.rift` directory so that it will last beyond
             // this session
             write_custom_keybinding(row.binding.name.clone(), UserDefinedKeybinding::Removed);
             update_binding_list(&row.binding.name, None, &mut self.bindings);

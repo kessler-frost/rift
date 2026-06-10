@@ -36,7 +36,7 @@ pub enum EnvironmentCommand {
         /// Description of the environment (max 240 characters)
         #[arg(long = "description", value_parser = validate_description)]
         description: Option<String>,
-        /// Docker image to use. Run `warp environment image list` to list suggested dev images.
+        /// Docker image to use. Run `rift environment image list` to list suggested dev images.
         /// If not specified, you'll be prompted to select from available images.
         #[arg(long = "docker-image", short = 'd')]
         docker_image: Option<String>,
@@ -130,6 +130,6 @@ pub struct EnvironmentUpdateArgs {
 /// Image-related subcommands.
 #[derive(Debug, Clone, Subcommand)]
 pub enum ImageCommand {
-    /// List available Warp dev base images from Docker Hub.
+    /// List available Rift dev base images from Docker Hub.
     List,
 }

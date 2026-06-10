@@ -48,7 +48,7 @@ impl CommandRegistry {
         registry
     }
 
-    /// Register signatures for Warp CLI commands.
+    /// Register signatures for Rift CLI commands.
     ///
     /// Ideally this would be done outside of the `rift_completer` crate, but it's not currently
     /// possible to configure the shared [`Self::global_instance`].
@@ -76,7 +76,7 @@ impl CommandRegistry {
 
     /// Returns a [`CommandRegistry`] that uses the provided set of signatures
     /// and generators.  This does not utilize any data from the
-    /// warp-command-signatures crate.
+    /// rift-command-signatures crate.
     #[cfg(feature = "test-util")]
     pub fn new_for_test(
         signatures: impl IntoIterator<Item = Signature>,

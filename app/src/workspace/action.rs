@@ -263,9 +263,9 @@ pub enum WorkspaceAction {
         position: RectF,
     },
     DropGroup,
-    /// Toggles the left panel. In Code Mode V1 this toggles Warp Drive.
+    /// Toggles the left panel. In Code Mode V1 this toggles Rift Drive.
     /// In Code Mode V2 this toggles the left panel which contains both the project explorer and
-    /// Warp Drive. This happens as explicit action from the user.
+    /// Rift Drive. This happens as explicit action from the user.
     ToggleLeftPanel,
     /// Toggles the right panel. This happens as an explicit action from the user.
     ToggleRightPanel,
@@ -330,7 +330,7 @@ pub enum WorkspaceAction {
     },
     TerminateApp,
     CloseWindow,
-    /// Help the user call the Warp executable with the [`crate::args::DEBUG_DUMP_FLAG`].
+    /// Help the user call the Rift executable with the [`crate::args::DEBUG_DUMP_FLAG`].
     DumpDebugInfo,
     ToggleRecordingMode,
     ToggleInBandGenerators,
@@ -353,10 +353,10 @@ pub enum WorkspaceAction {
         page: SettingsSection,
         widget_id: &'static str,
     },
-    /// Install the Warp CLI command to /usr/local/bin
+    /// Install the Rift CLI command to /usr/local/bin
     #[cfg(target_os = "macos")]
     InstallCLI,
-    /// Uninstall the Warp CLI command from /usr/local/bin
+    /// Uninstall the Rift CLI command from /usr/local/bin
     #[cfg(target_os = "macos")]
     UninstallCLI,
     /// Open a repository directory via file picker. The `path` is an `Option` because some

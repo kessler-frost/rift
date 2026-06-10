@@ -5,14 +5,14 @@ use riftui_core::{Entity, ModelContext, SingletonEntity};
 // Global execution mode, for logic that runs outside the UI framework.
 static GLOBAL_EXECUTION_MODE: OnceLock<ExecutionMode> = OnceLock::new();
 
-/// Execution mode that Warp is running under.
+/// Execution mode that Rift is running under.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExecutionMode {
-    /// Warp is running as a normal desktop app.
+    /// Rift is running as a normal desktop app.
     App,
-    /// Warp is running as a CLI.
+    /// Rift is running as a CLI.
     Sdk,
-    /// Warp is running as the remote server daemon.
+    /// Rift is running as the remote server daemon.
     RemoteServerDaemon,
 }
 
@@ -28,9 +28,9 @@ impl ExecutionMode {
     }
 }
 
-/// Model tracking the mode that Warp is running in.
+/// Model tracking the mode that Rift is running in.
 ///
-/// This gates functionality that's disabled when Warp is running in SDK mode.
+/// This gates functionality that's disabled when Rift is running in SDK mode.
 #[derive(Clone, Debug)]
 pub struct AppExecutionMode {
     mode: ExecutionMode,
@@ -116,7 +116,7 @@ impl AppExecutionMode {
         self.mode.client_id()
     }
 
-    /// If true, Warp is running in a sandbox like a Docker container or VM, rather than directly
+    /// If true, Rift is running in a sandbox like a Docker container or VM, rather than directly
     /// on a user machine.
     pub fn is_sandboxed(&self) -> bool {
         self.is_sandboxed
@@ -129,7 +129,7 @@ impl Entity for AppExecutionMode {
 
 impl SingletonEntity for AppExecutionMode {}
 
-/// Returns the current global client ID string ("warp-app", "warp-cli", or "warp-remote-server-daemon").
+/// Returns the current global client ID string ("rift-app", "rift-cli", or "rift-remote-server-daemon").
 /// This is set when AppExecutionMode is constructed during application start.
 /// Returns None if the execution mode has not been set yet.
 pub fn current_client_id() -> Option<&'static str> {

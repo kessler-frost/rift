@@ -734,19 +734,19 @@ impl SessionInfo {
 /// which happens *after* the session is bootstrapped.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum BootstrapSessionType {
-    /// The session host is the same host where Warp is running.
+    /// The session host is the same host where Rift is running.
     Local,
 
-    /// The session host is a different host from where Warp is running.
+    /// The session host is a different host from where Rift is running.
     RiftifiedRemote,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SessionType {
-    /// The session host is the same host where Warp is running.
+    /// The session host is the same host where Rift is running.
     Local,
 
-    /// The session host is a different host from where Warp is running.
+    /// The session host is a different host from where Rift is running.
     /// Note that we only know this for sure when we Riftify a block.
     ///
     /// `host_id` is `Some` when the remote server feature flag is enabled and
@@ -1455,7 +1455,7 @@ impl Display for Session {
     }
 }
 
-/// Returns the hostname for the local machine where Warp is running.
+/// Returns the hostname for the local machine where Rift is running.
 pub fn get_local_hostname() -> Result<String> {
     cfg_if::cfg_if! {
         if #[cfg(not(target_family = "wasm"))] {

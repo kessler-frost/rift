@@ -83,7 +83,7 @@ pub fn test_create_team_workflow_pane_from_command_palette() -> Builder {
         )
 }
 
-/// Adds a workflow file, containing two workflows, to a `.warp/workflows`
+/// Adds a workflow file, containing two workflows, to a `.rift/workflows`
 /// directory under a git repository and verifies that the workflows appear
 /// in the workflow menu.
 pub fn test_loading_project_workflows() -> Builder {
