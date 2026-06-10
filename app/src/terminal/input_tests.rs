@@ -38,8 +38,6 @@ use crate::workspace::ToastStack;
 use crate::{GlobalResourceHandles, GlobalResourceHandlesProvider};
 
 pub fn initialize_app(app: &mut App) {
-    initialize_settings_for_tests(app);
-
     // Make sure we set up all necessary custom action bindings.
     app.update(init);
 
