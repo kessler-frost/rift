@@ -32,8 +32,6 @@ pub enum FeatureFlag {
     /// Does grid storage go forwards or backwards
     SequentialStorage,
 
-    /// If set, generators are executed in-band in all SSH sessions.
-    InBandGeneratorsForSSH,
 
     /// If set, generators are executed using cmd.exe on Windows.
     RunGeneratorsWithCmdExe,
@@ -134,8 +132,6 @@ pub enum FeatureFlag {
     /// Enables AI rules for use with Agent Mode.
     AIRules,
 
-    /// Routes SSH sessions through the tmux-backed SSH wrapper.
-    SSHTmuxWrapper,
 
     /// Enables the shell selector, allowing us to open a new tab in
     /// a shell other than the default shell.
@@ -815,10 +811,6 @@ pub enum FeatureFlag {
     /// space is not rendered while the agent is running.
     TrimTrailingBlankLines,
 
-    /// Gates the new SSH remote server flow that installs and connects to a
-    /// persistent binary on the remote machine instead of using ControlMaster
-    /// for command execution.
-    SshRemoteServer,
 
     /// Redux of the setup/initial user query UI for cloud mode.
     CloudModeSetupV2,
@@ -890,7 +882,6 @@ pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
     FeatureFlag::ResizeFix,
     FeatureFlag::AgentModeWorkflows,
     #[cfg(not(windows))]
-    FeatureFlag::SSHTmuxWrapper,
     FeatureFlag::AgentModeAnalytics,
     FeatureFlag::LazySceneBuilding,
     FeatureFlag::SshDragAndDrop,
@@ -922,7 +913,6 @@ pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
     FeatureFlag::GeminiNotifications,
     FeatureFlag::LocalDockerSandbox,
     #[cfg(not(windows))]
-    FeatureFlag::SshRemoteServer,
     FeatureFlag::RemoteCodebaseIndexing,
     FeatureFlag::GroupedTabs,
     FeatureFlag::AsyncFind,
@@ -948,9 +938,6 @@ pub const RELEASE_FLAGS: &[FeatureFlag] = &[
     // Marked text is currently only supported on MacOS.
     #[cfg(target_os = "macos")]
     FeatureFlag::ImeMarkedText,
-    // Remote server binary is not yet supported on Windows.
-    #[cfg(not(windows))]
-    FeatureFlag::SshRemoteServer,
 ];
 
 /// Flags that we want to allow to switch at runtime (assuming RuntimeFeatureFlags is set)

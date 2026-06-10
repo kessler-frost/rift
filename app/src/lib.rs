@@ -162,7 +162,6 @@ pub use rift_core::r#async::debounce;
 // Re-export the send_telemetry_from_ctx macro at the crate root level
 pub use rift_core::send_telemetry_from_app_ctx;
 pub use rift_core::send_telemetry_from_ctx;
-use rift_core::user_preferences::GetUserPreferences as _;
 // Re-export the safe logging macros at the crate root level for backwards compatibility
 pub use rift_core::{safe_debug, safe_error, safe_info, safe_warn};
 #[cfg(feature = "local_fs")]
@@ -1287,17 +1286,6 @@ pub(crate) fn initialize_app(
     timer.mark_interval_end("SINGLETON_MODELS_REGISTERED");
 
     ctx.add_singleton_model(move |_| timer);
-
-    let is_ssh_tmux_wrapper_enabled = ctx
-        .private_user_preferences()
-        .read_value("SshTmuxWrapperOverride")
-        .ok()
-        .flatten()
-        .and_then(|s| s.parse().ok());
-
-    if let Some(is_ssh_tmux_wrapper_enabled) = is_ssh_tmux_wrapper_enabled {
-        FeatureFlag::SSHTmuxWrapper.set_user_preference(is_ssh_tmux_wrapper_enabled);
-    }
 
 
     ctx.add_singleton_model(DefaultTerminal::new);

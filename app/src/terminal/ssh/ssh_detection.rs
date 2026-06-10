@@ -1,4 +1,3 @@
-use rift_core::features::FeatureFlag;
 use rift_core::settings::Setting;
 use rift_util::path::ShellFamily;
 use serde::{Deserialize, Serialize};
@@ -33,10 +32,7 @@ pub fn evaluate_warpify_ssh_host(
         && *warpify_settings.use_ssh_tmux_wrapper.value();
     let matches_subshell = warpify_settings.is_denylisted_subshell_command(command)
         || warpify_settings.is_compatible_subshell_command(command, shell_family);
-    if !should_prompt_ssh_tmux_wrapper
-        || matches_subshell
-        || !FeatureFlag::SSHTmuxWrapper.is_enabled()
-    {
+    if !should_prompt_ssh_tmux_wrapper || matches_subshell {
         return SshInteractiveSessionDetected::FeatureDisabled;
     }
 

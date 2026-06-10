@@ -14,7 +14,6 @@ use super::model::terminal_model::{
     CommandType, ExitReason, HandlerEvent, TmuxControlModeContext, TmuxInstallationState,
 };
 use super::model::tmux::commands::TmuxCommand;
-use crate::features::FeatureFlag;
 use crate::server::telemetry::ImageProtocol;
 use crate::terminal::event::{
     AfterBlockCompletedEvent, BlockCompletedEvent, BlockMetadataReceivedEvent,
@@ -77,31 +76,14 @@ impl ModelEventDispatcher {
                 self.sessions.update(ctx, |sessions, ctx| {
                     sessions.register_pending_session(pending_session_info.as_ref(), ctx);
                 });
-                let is_legacy_ssh = matches!(
-                    pending_session_info.is_legacy_ssh_session,
-                    IsLegacySSHSession::Yes { .. }
-                );
-                if FeatureFlag::SshRemoteServer.is_enabled() && is_legacy_ssh {
-                    ModelEvent::SshInitShell {
-                        pending_session_info,
-                    }
-                } else {
-                    ModelEvent::Handler(AnsiHandlerEvent::InitShell {
-                        pending_session_info,
-                    })
-                }
+                ModelEvent::Handler(AnsiHandlerEvent::InitShell {
+                    pending_session_info,
+                })
             }
             Event::Handler(HandlerEvent::Bootstrapped(bootstrapped_event)) => {
                 let session_id = bootstrapped_event.session_info.session_id;
                 let is_subshell = bootstrapped_event.session_info.subshell_info.is_some();
 
-                // Always initialize the session synchronously. When the
-                // `SshRemoteServer` flag is enabled, the remote-server client
-                // is wired up independently: `Sessions::new` subscribes to
-                // `RemoteServerManagerEvent::SessionConnected` and attaches the
-                // client to the session's `RemoteServerCommandExecutor` when
-                // the connection lands, so it's safe to initialize the session
-                // before the remote server finishes connecting.
                 self.complete_bootstrapped_session(bootstrapped_event, ctx);
 
                 ModelEvent::Handler(AnsiHandlerEvent::Bootstrapped {
@@ -292,7 +274,6 @@ impl ModelEventDispatcher {
 
     /// Finalizes session initialization by calling `Sessions::initialize_bootstrapped_session`.
     ///
-    /// For legacy SSH sessions with the `SshRemoteServer` flag, this also
     /// sends the `SessionBootstrapped` notification to the remote server via
     /// the manager.
     ///
@@ -455,7 +436,6 @@ pub enum ModelEvent {
         body: String,
     },
     /// Emitted when an SSH session's `InitShell` is intercepted by the
-    /// `SshRemoteServer` feature flag. `RemoteServerController` subscribes to
     /// this instead of `Handler(InitShell)` so `PtyController` never sees it.
     SshInitShell {
         pending_session_info: Box<SessionInfo>,

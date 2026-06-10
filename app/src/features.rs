@@ -43,7 +43,6 @@ fn enabled_features() -> HashSet<FeatureFlag> {
         #[cfg(feature = "sequential_storage")]
         FeatureFlag::SequentialStorage,
         #[cfg(feature = "in_band_generators_ssh")]
-        FeatureFlag::InBandGeneratorsForSSH,
         #[cfg(feature = "run_generators_with_cmd_exe")]
         FeatureFlag::RunGeneratorsWithCmdExe,
         #[cfg(feature = "ligatures")]
@@ -79,7 +78,6 @@ fn enabled_features() -> HashSet<FeatureFlag> {
         #[cfg(feature = "ai_rules")]
         FeatureFlag::AIRules,
         #[cfg(feature = "ssh_tmux_wrapper")]
-        FeatureFlag::SSHTmuxWrapper,
         #[cfg(feature = "shell_selector")]
         FeatureFlag::ShellSelector,
         #[cfg(feature = "integration_command")]

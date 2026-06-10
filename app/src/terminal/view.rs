@@ -3658,9 +3658,7 @@ impl TerminalView {
             BootstrapSessionType::WarpifiedRemote => WarpificationSource::Ssh,
             BootstrapSessionType::Local => WarpificationSource::Subshell,
         };
-        let disable_tmux = FeatureFlag::SSHTmuxWrapper.is_enabled()
-            && matches!(warpification_source, WarpificationSource::Ssh)
-            && { !self.model.lock().tmux_control_mode_active() };
+        let disable_tmux = false;
         let ssh_success_block_handle = ctx.add_typed_action_view(|ctx| {
             WarpifySuccessBlock::new(
                 warpification_source,
@@ -11724,11 +11722,7 @@ impl TerminalView {
                 ctx.open_url("https://docs.warp.dev/terminal/warpify/ssh-legacy#implementation");
             }
             Settings => {
-                if FeatureFlag::SSHTmuxWrapper.is_enabled() {
-                    ctx.emit(Event::OpenSettings(SettingsSection::Warpify));
-                } else {
-                    ctx.emit(Event::OpenSettings(SettingsSection::Features));
-                }
+                ctx.emit(Event::OpenSettings(SettingsSection::Features));
             }
         }
     }

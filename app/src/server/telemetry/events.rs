@@ -1159,11 +1159,6 @@ pub enum TelemetryEvent {
     SetSshExtensionInstallMode {
         mode: &'static str,
     },
-    /// User toggled the "Don't ask me this again" checkbox on the SSH
-    /// remote-server choice block.
-    SshRemoteServerChoiceDoNotAskAgainToggled {
-        checked: bool,
-    },
     /// An ssh interactive session was detected.
     SshInteractiveSessionDetected(SshInteractiveSessionDetected),
     SshTmuxWarpifyBannerDisplayed,
@@ -2303,9 +2298,6 @@ impl TelemetryEvent {
             TelemetryEvent::ToggleSshTmuxWrapper { enabled } => Some(json!({"enabled": enabled})),
             TelemetryEvent::ToggleSshWarpification { enabled } => Some(json!({"enabled": enabled})),
             TelemetryEvent::SetSshExtensionInstallMode { mode } => Some(json!({"mode": mode})),
-            TelemetryEvent::SshRemoteServerChoiceDoNotAskAgainToggled { checked } => {
-                Some(json!({"checked": checked}))
-            }
             TelemetryEvent::SshInteractiveSessionDetected(ssh_interactive_session_detected) => {
                 Some(json!({"ssh_interactive_session": ssh_interactive_session_detected}))
             }
@@ -3258,7 +3250,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleSshTmuxWrapper => EnablementState::Always,
             Self::ToggleSshWarpification => EnablementState::Always,
             Self::SetSshExtensionInstallMode => EnablementState::Always,
-            Self::SshRemoteServerChoiceDoNotAskAgainToggled => EnablementState::Always,
             Self::AddDenylistedSshTmuxWrapperHost => EnablementState::Always,
             Self::RemoveDenylistedSshTmuxWrapperHost => EnablementState::Always,
             Self::SshInteractiveSessionDetected => EnablementState::Always,
@@ -3670,9 +3661,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleSshTmuxWrapper => "Toggle SSH Tmux Wrapper",
             Self::ToggleSshWarpification => "Toggle SSH Warpification",
             Self::SetSshExtensionInstallMode => "Set SSH Extension Install Mode",
-            Self::SshRemoteServerChoiceDoNotAskAgainToggled => {
-                "SSH Remote Server Choice Do Not Ask Again Toggled"
-            }
             Self::AddDenylistedSshTmuxWrapperHost => "Add Denylisted SSH Tmux Wrapper Host",
             Self::RemoveDenylistedSshTmuxWrapperHost => "Remove Denylisted SSH Tmux Wrapper Host",
             Self::SshInteractiveSessionDetected => "SSH Interactive Session Detected",
@@ -4253,9 +4241,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleSshWarpification => "Changed the setting for SSH sessions to be warified",
             Self::SetSshExtensionInstallMode => {
                 "Changed the SSH extension install mode (always ask / always allow / always skip)"
-            }
-            Self::SshRemoteServerChoiceDoNotAskAgainToggled => {
-                "Toggled the 'Don't ask me this again' checkbox on the SSH remote-server choice block"
             }
             Self::AddDenylistedSshTmuxWrapperHost => {
                 "Added a SSH host to the denylist for prompting for Tmux Wrapper"

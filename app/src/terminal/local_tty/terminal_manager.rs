@@ -34,7 +34,7 @@ use crate::context_chips::prompt_type::PromptType;
 use crate::features::FeatureFlag;
 use crate::pane_group::TerminalViewResources;
 use crate::persistence::ModelEvent;
-use crate::settings::{DebugSettings, PrivacySettings, SshSettings};
+use crate::settings::{DebugSettings, PrivacySettings};
 use crate::terminal::available_shells::{AvailableShell, AvailableShells};
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::local_tty::{Pty, PtyOptions};
@@ -44,7 +44,6 @@ use crate::terminal::model_events::ModelEventDispatcher;
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::shell::ShellName;
 use crate::terminal::view::Event as TerminalViewEvent;
-use crate::terminal::warpify::settings::WarpifySettings;
 use crate::terminal::writeable_pty::pty_controller::{EventLoopSendError, EventLoopSender};
 use crate::terminal::writeable_pty::terminal_manager_util::{
     init_pty_controller_model, wire_up_pty_controller_with_view,
@@ -529,15 +528,8 @@ impl TerminalManager {
         let is_honor_ps1_enabled = *SessionSettings::as_ref(ctx).honor_ps1;
         let is_crash_reporting_enabled = PrivacySettings::as_ref(ctx).is_crash_reporting_enabled;
 
-        // The TMUX SSH wrapper supercedes the original ControlMaster wrapper.
-        let enable_ssh_wrapper = if FeatureFlag::SSHTmuxWrapper.is_enabled() {
-            *WarpifySettings::as_ref(ctx)
-                .enable_ssh_warpification
-                .value()
-                && !*WarpifySettings::as_ref(ctx).use_ssh_tmux_wrapper.value()
-        } else {
-            *SshSettings::as_ref(ctx).enable_legacy_ssh_wrapper.value()
-        };
+        // SSH wrappers were removed; `ssh` runs as a plain command.
+        let enable_ssh_wrapper = false;
 
         let size: crate::terminal::SizeInfo = model.lock().block_list().size().to_owned();
         let options = PtyOptions {

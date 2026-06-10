@@ -13,7 +13,6 @@ mod ansi_c_decoder;
 mod dcs_hooks;
 mod handler;
 
-use std::collections::HashMap;
 use std::fmt::Write;
 use std::str::FromStr as _;
 use std::time::Duration;
@@ -42,11 +41,6 @@ use crate::terminal::model::completions::{
 use crate::terminal::model::escape_sequences::C0;
 use crate::terminal::model::index::VisibleRow;
 use crate::terminal::model::iterm_image::parse_iterm_image_metadata;
-use crate::terminal::model::tmux::commands::{parse_command, TmuxCommandResponse};
-use crate::terminal::model::tmux::parser::{
-    TmuxControlModeHandler, TmuxControlModeParser, TmuxMessage,
-};
-use crate::terminal::model::tmux::{format_input, ControlModeEvent};
 use crate::{safe_debug, safe_error};
 
 /// Marks an OSC as one that is sent by Warp logic registered in the shell.
@@ -243,30 +237,6 @@ impl DcsData {
     }
 }
 
-struct TmuxControlMode {
-    control_mode_parser: TmuxControlModeParser,
-    control_mode_state: TmuxControlModeState,
-}
-
-impl TmuxControlMode {
-    fn new() -> Self {
-        TmuxControlMode {
-            control_mode_parser: TmuxControlModeParser::new(),
-            control_mode_state: TmuxControlModeState {
-                ansi_processor: Box::new(Processor::new()),
-                pane_for_window: Default::default(),
-                primary_pane: PrimaryPaneState::new(),
-            },
-        }
-    }
-}
-
-struct TmuxControlModeState {
-    ansi_processor: Box<Processor>,
-    pane_for_window: HashMap<u32, u32>,
-    primary_pane: PrimaryPaneState,
-}
-
 /// State to keep track of Synchronized Output.
 ///
 /// Synchronized output is a protocol that allows terminal applications
@@ -389,7 +359,6 @@ struct ProcessorState {
     preceding_char: Option<char>,
     dcs_data: DcsData,
     apc_data: Vec<u8>,
-    tmux_control_mode: Option<TmuxControlMode>, // Present if control mode is active
     sync_output: SyncOutputState,
 }
 
@@ -406,7 +375,6 @@ impl Default for Processor {
                 preceding_char: None,
                 dcs_data: DcsData::default(),
                 apc_data: vec![],
-                tmux_control_mode: None,
                 sync_output: SyncOutputState::Inactive,
             },
             parser: VteParser::new(),
@@ -444,95 +412,29 @@ impl Processor {
         H: Handler,
         W: io::Write,
     {
-        let mut bytes = input.bytes;
+        let bytes = input.bytes;
 
-        // Bytes are parsed fundamentally differently if they're coming from a connection to tmux
-        // control mode vs a standard pty. Though quite uncommon, tmux control mode can potentially
-        // be entered and exited multiple times in a batch of bytes. This loop is so we can
-        // continue to process bytes until we've processed through all tmux control mode state
-        // changes.
-        while !bytes.is_empty() {
-            match &mut self.state.tmux_control_mode {
-                None => {
-                    let mut remaining_bytes_index = bytes.len();
-                    for (idx, byte) in bytes.iter().enumerate() {
-                        let was_sync_output = self.state.sync_output.is_active();
-                        self.parse_byte(handler, writer, *byte);
-                        let is_sync_output = self.state.sync_output.is_active();
+        let mut remaining = bytes;
+        while !remaining.is_empty() {
+            let mut split_index = remaining.len();
+            for (idx, byte) in remaining.iter().enumerate() {
+                let was_sync_output = self.state.sync_output.is_active();
+                self.parse_byte(handler, writer, *byte);
+                let is_sync_output = self.state.sync_output.is_active();
 
-                        if self.state.tmux_control_mode.is_some()
-                            || was_sync_output != is_sync_output
-                        {
-                            // We split up the batch processing in two cases:
-                            // 1. Tmux control mode started. Remaining bytes must be processed in a
-                            //    control mode context.
-                            // 2. Synchronized output was toggled. The pre- and post-toggle bytes should be
-                            //    handled in separate `on_finish_byte_processing` calls.
-                            remaining_bytes_index = idx + 1;
-                            break;
-                        }
-                    }
-                    handler.on_finish_byte_processing(&ProcessorInput {
-                        bytes: &bytes[..remaining_bytes_index],
-                        ..input
-                    });
-
-                    if self.state.tmux_control_mode.is_some() {
-                        // Tmux control mode has just started -- notify the handler.
-                        handler.tmux_control_mode_event(ControlModeEvent::Starting);
-                    }
-
-                    bytes = &bytes[remaining_bytes_index..];
-                }
-
-                Some(tmux_control_mode) => {
-                    let mut tmux_performer = TmuxPerformer::new(
-                        &mut tmux_control_mode.control_mode_state,
-                        handler,
-                        writer,
-                    );
-                    let mut remaining_bytes_index = bytes.len();
-                    for (idx, byte) in bytes.iter().enumerate() {
-                        tmux_control_mode
-                            .control_mode_parser
-                            .advance(&mut tmux_performer, *byte);
-
-                        if tmux_performer.exited {
-                            remaining_bytes_index = idx + 1;
-                            break;
-                        }
-                    }
-
-                    let control_mode_exited = tmux_performer.exited;
-                    let parse_error = tmux_performer.parse_error;
-                    let primary_pane_output = tmux_performer.finish();
-                    handler.on_finish_byte_processing(&ProcessorInput {
-                        bytes: &primary_pane_output,
-                        ..input
-                    });
-
-                    if control_mode_exited {
-                        self.state.tmux_control_mode = None;
-
-                        // Tmux control mode has just exited -- notify the handler.
-                        handler.tmux_control_mode_event(ControlModeEvent::Exited);
-
-                        if parse_error {
-                            // A parse error means that means control mode has exited unexpectedly and we
-                            // shouldn't expect to get the OSC end marker, so we reset our state back to
-                            // default manually.
-                            *self = Default::default();
-
-                            // A parse error also indicates that the last byte read (that caused the parse
-                            // error) actually isn't from tmux control mode, so we should process it along
-                            // with the rest of the remaining input.
-                            remaining_bytes_index -= 1;
-                        }
-                    }
-
-                    bytes = &bytes[remaining_bytes_index..];
+                if was_sync_output != is_sync_output {
+                    // Synchronized output was toggled: the pre- and post-toggle
+                    // bytes should be handled in separate
+                    // `on_finish_byte_processing` calls.
+                    split_index = idx + 1;
+                    break;
                 }
             }
+            handler.on_finish_byte_processing(&ProcessorInput {
+                bytes: &remaining[..split_index],
+                ..input
+            });
+            remaining = &remaining[split_index..];
         }
     }
 
@@ -817,15 +719,7 @@ where
     }
 
     #[inline]
-    fn hook(&mut self, params: &Params, intermediates: &[u8], _ignore: bool, c: char) {
-        if FeatureFlag::SSHTmuxWrapper.is_enabled()
-            && c == 'p'
-            && params.len() == 1
-            && params.iter().next() == Some(&[1000])
-        {
-            debug!("Entering tmux control mode, pending pane information.");
-            self.state.tmux_control_mode = Some(TmuxControlMode::new());
-        }
+    fn hook(&mut self, _params: &Params, intermediates: &[u8], _ignore: bool, c: char) {
         self.state.dcs_data.on_hook(intermediates, c);
     }
 
@@ -1645,217 +1539,6 @@ where
             if !further_chunks {
                 self.handler.end_kitty_action_receiving(writer)
             }
-        }
-    }
-}
-
-enum PrimaryPaneState {
-    Pending {
-        /// Buffer of output from { pane_id: bytes }
-        pane_output_map: HashMap<u32, Vec<u8>>,
-    },
-    Ready {
-        pane_id: u32,
-    },
-}
-
-/// A writer that wraps another writer and converts writes to tmux send-keys format.
-/// This is used when processing pane output in tmux control mode, so that responses
-/// to terminal queries (like cursor position requests) are sent back to the application
-/// inside the pane via tmux's send-keys mechanism.
-struct TmuxPaneWriter<'a, W: io::Write> {
-    inner: &'a mut W,
-    pane_id: u32,
-}
-
-impl<'a, W: io::Write> TmuxPaneWriter<'a, W> {
-    fn new(inner: &'a mut W, pane_id: u32) -> Self {
-        Self { inner, pane_id }
-    }
-}
-
-impl<W: io::Write> io::Write for TmuxPaneWriter<'_, W> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        if buf.is_empty() {
-            return Ok(0);
-        }
-
-        // Format the bytes as a tmux send-keys command.
-        // The format is: send-keys -Ht %{pane_id} {hex} {hex}...\n
-        let formatted = format_input(self.pane_id, buf);
-        self.inner.write_all(formatted.as_bytes())?;
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        self.inner.flush()
-    }
-}
-
-impl PrimaryPaneState {
-    fn new() -> Self {
-        PrimaryPaneState::Pending {
-            pane_output_map: HashMap::new(),
-        }
-    }
-}
-
-struct TmuxPerformer<'a, H: Handler, W: io::Write> {
-    state: &'a mut TmuxControlModeState,
-    exited: bool,
-    parse_error: bool,
-    handler: &'a mut H,
-    writer: &'a mut W,
-    primary_pane_output: Vec<u8>,
-}
-
-impl<'a, H: Handler + 'a, W: io::Write> TmuxPerformer<'a, H, W> {
-    /// Create a performer.
-    #[inline]
-    pub fn new<'b>(
-        state: &'b mut TmuxControlModeState,
-        handler: &'b mut H,
-        writer: &'b mut W,
-    ) -> TmuxPerformer<'b, H, W> {
-        TmuxPerformer {
-            state,
-            exited: false,
-            parse_error: false,
-            handler,
-            writer,
-            primary_pane_output: Vec::new(),
-        }
-    }
-
-    fn init_primary_pane(&mut self, primary_window: u32, primary_pane: u32) {
-        let previous_pane_state = std::mem::replace(
-            &mut self.state.primary_pane,
-            PrimaryPaneState::Ready {
-                pane_id: primary_pane,
-            },
-        );
-
-        let PrimaryPaneState::Pending { pane_output_map } = previous_pane_state else {
-            log::error!("Received primary pane initialization message after primary pane was already initialized!");
-            return;
-        };
-
-        self.handler
-            .tmux_control_mode_event(ControlModeEvent::ControlModeReady {
-                primary_window,
-                primary_pane,
-            });
-
-        for (pane, bytes) in pane_output_map.into_iter() {
-            if primary_pane == pane {
-                for byte in bytes.iter() {
-                    self.process_primary_pane_output(*byte, primary_pane);
-                }
-                self.handler
-                    .on_finish_byte_processing(&ProcessorInput::new(&bytes));
-            } else {
-                for byte in bytes {
-                    self.handler
-                        .tmux_control_mode_event(ControlModeEvent::BackgroundPaneOutput {
-                            pane,
-                            byte,
-                        });
-                }
-            }
-        }
-    }
-
-    fn process_primary_pane_output(&mut self, byte: u8, pane_id: u32) {
-        // TODO(ddfisher): don't create a new performer on every byte
-        //
-        // Use a TmuxPaneWriter to wrap the writer so that responses to terminal
-        // queries (like cursor position requests via ESC[6n) are sent back to
-        // the application inside the pane via tmux's send-keys mechanism.
-        let mut tmux_writer = TmuxPaneWriter::new(self.writer, pane_id);
-        let mut performer = Performer::new(
-            &mut self.state.ansi_processor.state,
-            self.handler,
-            &mut tmux_writer,
-        );
-        self.state
-            .ansi_processor
-            .parser
-            .advance(&mut performer, byte);
-    }
-
-    fn finish(self) -> Vec<u8> {
-        self.primary_pane_output
-    }
-}
-
-impl<'a, H, W> TmuxControlModeHandler for TmuxPerformer<'a, H, W>
-where
-    H: Handler + 'a,
-    W: io::Write + 'a,
-{
-    fn pane_output(&mut self, pane: u32, byte: u8) {
-        let primary_pane_id = match &self.state.primary_pane {
-            PrimaryPaneState::Ready { pane_id } => Some(*pane_id),
-            PrimaryPaneState::Pending { .. } => None,
-        };
-
-        match primary_pane_id {
-            None => {
-                // Buffer output until we know which pane is the primary
-                if let PrimaryPaneState::Pending { pane_output_map } = &mut self.state.primary_pane
-                {
-                    pane_output_map.entry(pane).or_default().push(byte);
-                } else {
-                    debug_assert!(false, "Expected Pending state while buffering pane output");
-                }
-            }
-            Some(primary_pane) => {
-                if pane == primary_pane {
-                    self.primary_pane_output.push(byte);
-                    self.process_primary_pane_output(byte, primary_pane);
-                } else {
-                    self.handler
-                        .tmux_control_mode_event(ControlModeEvent::BackgroundPaneOutput {
-                            pane,
-                            byte,
-                        });
-                }
-            }
-        };
-    }
-
-    fn tmux_control_mode_message(&mut self, message: TmuxMessage) {
-        match message {
-            TmuxMessage::Exit => {
-                self.exited = true;
-            }
-            TmuxMessage::ParseError {
-                message: _,
-                byte: _,
-            } => {
-                self.exited = true;
-                self.parse_error = true;
-            }
-            TmuxMessage::CommandOutput { output_lines } => {
-                if let Ok(output_lines) = output_lines {
-                    for line in output_lines {
-                        let Some(command) = parse_command(line) else {
-                            continue;
-                        };
-                        match command {
-                            TmuxCommandResponse::SetPrimaryWindowPane { window_id, pane_id } => {
-                                self.state.pane_for_window.insert(window_id, pane_id);
-                                self.init_primary_pane(window_id, pane_id);
-                            }
-                            TmuxCommandResponse::BackgroundWindow { window_id, pane_id } => {
-                                self.state.pane_for_window.insert(window_id, pane_id);
-                            }
-                        }
-                    }
-                }
-            }
-            TmuxMessage::Unknown { tag: _, rest: _ } => {}
-            TmuxMessage::WindowClose { window_id: _ } => {}
         }
     }
 }
