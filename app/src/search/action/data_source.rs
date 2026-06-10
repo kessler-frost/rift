@@ -303,7 +303,7 @@ mod full_text_searcher {
     }
 }
 
-// Context on why the search_drive action is excluded can be seen here: https://github.com/the upstream repo-internal/pull/11705
+// Context on why the search_drive action is excluded can be seen here: upstream PR 11705
 fn is_excluded_binding(binding: &CommandBinding) -> bool {
     binding.name == *"workspace:search_drive"
 }

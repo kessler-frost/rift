@@ -210,7 +210,7 @@ pub enum FeatureFlag {
     KittyImages,
 
     /// Enables support for Rift Packs.
-    WarpPacks,
+    RiftPacks,
 
     /// Enables the revised AI analytics policy banner.
     ///

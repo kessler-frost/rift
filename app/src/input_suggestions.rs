@@ -27,7 +27,7 @@ use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
     AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, WeakViewHandle,
 };
-use warp_command_signatures::IconType;
+use command_signatures::IconType;
 
 use crate::appearance::Appearance;
 use crate::terminal::history::LinkedWorkflowData;

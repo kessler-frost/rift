@@ -82,7 +82,7 @@ struct MouseStateHandles {
     cancel_button_handle: MouseStateHandle,
     save_button_handle: MouseStateHandle,
     restore_default_warp_prompt_handle: MouseStateHandle,
-    warp_prompt_mouse_state_handle: MouseStateHandle,
+    rift_prompt_mouse_state_handle: MouseStateHandle,
     ps1_mouse_state_handle: MouseStateHandle,
     same_line_prompt_checkbox_state_handle: MouseStateHandle,
 }
@@ -154,7 +154,7 @@ pub enum EditorModalAction {
     Chip(ChipConfiguratorAction),
     UsePS1,
     UseRiftPrompt,
-    ResetWarpPrompt,
+    ResetRiftPrompt,
     ToggleSameLinePrompt,
     SetRiftPromptSeparator { separator: RiftPromptSeparator },
 }
@@ -391,7 +391,7 @@ impl TypedActionView for EditorModal {
                 self.update_rift_separator_dropdown_state(ctx);
                 ctx.notify();
             }
-            Self::Action::ResetWarpPrompt => {
+            Self::Action::ResetRiftPrompt => {
                 self.is_dirty = true;
                 self.prompt_type = PromptType::RiftDefault;
 
@@ -554,7 +554,7 @@ impl EditorModal {
                     .finish()
             },
         )
-        .on_click(|ctx, _, _| ctx.dispatch_typed_action(EditorModalAction::ResetWarpPrompt))
+        .on_click(|ctx, _, _| ctx.dispatch_typed_action(EditorModalAction::ResetRiftPrompt))
         .with_cursor(Cursor::PointingHand);
 
         if matches!(self.prompt_type, PromptType::RiftDefault) && !self.is_dirty {
@@ -666,7 +666,7 @@ impl EditorModal {
             None,
             body,
             self.mouse_state_handles
-                .warp_prompt_mouse_state_handle
+                .rift_prompt_mouse_state_handle
                 .clone(),
             EditorModalAction::UseRiftPrompt,
         )

@@ -273,7 +273,7 @@ pub fn test_add_workflows_to_rift_config() -> Builder {
         )
 }
 
-pub fn test_launch_warp_with_theme_in_rift_config() -> Builder {
+pub fn test_launch_rift_with_theme_in_rift_config() -> Builder {
     new_builder()
         .with_setup(move |utils| {
             utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
@@ -4033,7 +4033,7 @@ pub fn test_ctrl_r_multi_cursor() -> Builder {
 }
 
 /// This test ensures that the HISTCONTROL env var is not clobbered by our bootstrap process for bash.
-/// See https://linear.app/warpdotdev/issue/WAR-2592 for more details
+/// See upstream issue WAR-2592 for more details
 pub fn test_histcontrol_env_var() -> Builder {
     let histcontrol_val = "ignorespace";
     new_builder()
@@ -5720,7 +5720,7 @@ pub fn test_custom_open_completions_menu_binding() -> Builder {
 }
 
 /// This is a regression test for:
-/// https://linear.app/warpdotdev/issue/WAR-6095/panic-internal-error-entered-unreachable-code-handled-at-model-layer
+/// upstream issue WAR-6095
 pub fn test_color_overrides_in_prompt_dont_crash() -> Builder {
     new_builder()
         .set_should_run_test(|| {

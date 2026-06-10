@@ -29,7 +29,7 @@ fn open_file_tree_panel(app: &mut App) {
 /// Test that clicking a file in the file tree opens it in Rift's editor.
 /// This is a regression test for the bug where files were being opened in
 /// external editors instead of Rift's built-in editor.
-pub fn test_file_tree_opens_files_in_warp() -> Builder {
+pub fn test_file_tree_opens_files_in_rift() -> Builder {
     new_builder()
         .with_setup(|utils| {
             let test_dir = utils.test_dir();

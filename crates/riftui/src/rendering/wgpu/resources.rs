@@ -455,7 +455,7 @@ fn is_newer_nondx12_nvidia_adapter_on_windows(adapter_info: &wgpu::AdapterInfo) 
 
 /// Returns whether this adapter is the integrated OpenGL driver for Windows running in Parallels.
 /// It caused problems with theme background images.
-/// https://linear.app/warpdotdev/issue/CORE-3692/background-images-broken-in-parallels
+/// upstream issue CORE-3692
 fn is_gl_to_metal_adapter_on_windows_in_parallels(adapter_info: &wgpu::AdapterInfo) -> bool {
     cfg!(windows)
         && adapter_info.backend == Backend::Gl

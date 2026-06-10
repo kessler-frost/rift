@@ -3,7 +3,7 @@
 //! We should migrate to these view getters because to make it easier to work
 //! with tabs and panes. The old view getters use `tab_idx` without considering
 //! how many panes are in each tab.
-//! See https://github.com/the upstream repo-internal/pull/4785#issue-1634862270
+//! See upstream PR 4785#issue-1634862270
 
 use riftui::integration::AssertionCallback;
 use riftui::{async_assert, App, Entity, View, ViewHandle, WindowId};

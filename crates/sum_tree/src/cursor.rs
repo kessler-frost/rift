@@ -573,7 +573,7 @@ where
         // until it finds the right element.
         //
         // Note that we don't need special handling for
-        // https://linear.app/warpdotdev/issue/WAR-5942/sumtree-has-consistency-issues-with-floats
+        // upstream issue WAR-5942
         // in the already seeked case - it's only an issue when descending the tree, not when
         // unwinding the stack.
         if self.did_seek {
@@ -736,7 +736,7 @@ where
                             let at_last_item = index == child_trees.len() - 1;
                             if at_last_item {
                                 // Ensure that the child_end is at least as big as the summary's end.
-                                // This handles https://linear.app/warpdotdev/issue/WAR-5942/sumtree-has-consistency-issues-with-floats
+                                // This handles upstream issue WAR-5942
                                 child_end = child_end.max(max_end.clone());
                             }
                             let comparison = if at_last_item && matches!(clamp_max, ClampMax::Yes) {
@@ -811,7 +811,7 @@ where
                             let at_last_item = index == items.len() - 1;
                             if at_last_item {
                                 // Ensure that the child_end is at least as big as the summary's end.
-                                // This handles https://linear.app/warpdotdev/issue/WAR-5942/sumtree-has-consistency-issues-with-floats
+                                // This handles upstream issue WAR-5942
                                 child_end = child_end.max(max_end.clone());
                             }
                             let comparison = if at_last_item && matches!(clamp_max, ClampMax::Yes) {

@@ -6,7 +6,7 @@ pub mod registry;
 
 pub use registry::CommandRegistry;
 #[cfg(feature = "test-util")]
-use warp_command_signatures::Signature;
+use command_signatures::Signature;
 
 static GLOBAL_REGISTRY: OnceLock<Arc<CommandRegistry>> = OnceLock::new();
 
@@ -33,14 +33,14 @@ impl CommandRegistry {
         let registry = CommandRegistry::new(
             |command| {
                 let start = instant::Instant::now();
-                let signature = warp_command_signatures::signature_by_name(command);
+                let signature = command_signatures::signature_by_name(command);
                 log::debug!(
                     "Lazily loaded command signature for {command} in {}s",
                     start.elapsed().as_secs_f32()
                 );
                 signature
             },
-            warp_command_signatures::dynamic_command_signature_data(),
+            command_signatures::dynamic_command_signature_data(),
         );
 
         Self::register_warp_signatures(&registry);
@@ -82,7 +82,7 @@ impl CommandRegistry {
         signatures: impl IntoIterator<Item = Signature>,
         generators: std::collections::HashMap<
             String,
-            warp_command_signatures::DynamicCompletionData,
+            command_signatures::DynamicCompletionData,
         >,
     ) -> Self {
         let registry = CommandRegistry::new(|_| None, generators);

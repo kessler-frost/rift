@@ -1290,9 +1290,9 @@ impl EventLoop {
                 let is_unidentified_key =
                     matches!(event.logical_key, keyboard::Key::Unidentified(_));
                 match convert_keyboard_input_event(event, window_state, is_synthetic) {
-                    Some(warp_ui_event) => Some(ConvertedEvent::KeyDownWithTypedCharacters {
+                    Some(rift_ui_event) => Some(ConvertedEvent::KeyDownWithTypedCharacters {
                         chars: event_text,
-                        event: warp_ui_event,
+                        event: rift_ui_event,
                     }),
                     None if is_unidentified_key
                         && !is_synthetic

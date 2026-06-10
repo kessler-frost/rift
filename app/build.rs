@@ -42,7 +42,7 @@ fn main() -> Result<()> {
 
         cc::Build::new()
             .file("src/platform/mac/objc/services.m")
-            .compile("warp_objc");
+            .compile("rift_objc");
 
         // Build the dock tile plugin
         println!("cargo:rerun-if-changed=DockTilePlugin/WarpDockTilePlugin.m");

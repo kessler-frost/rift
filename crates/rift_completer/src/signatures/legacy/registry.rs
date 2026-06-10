@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 use memo_map::MemoMap;
-use warp_command_signatures::{Argument, DynamicCompletionData, IsArgumentOptional, Signature};
+use command_signatures::{Argument, DynamicCompletionData, IsArgumentOptional, Signature};
 
 use crate::completer::{CommandExitStatus, CompletionContext, TopLevelCommandCaseSensitivity};
 use crate::parsers::SignatureAtTokenIndex;
@@ -480,9 +480,9 @@ fn classify_token<'a>(
 
 /// Finds an option by exact name match against the token.
 fn find_option_by_name<'a>(
-    options: &'a [warp_command_signatures::Opt],
+    options: &'a [command_signatures::Opt],
     token: &str,
-) -> Option<&'a warp_command_signatures::Opt> {
+) -> Option<&'a command_signatures::Opt> {
     options
         .iter()
         .find(|option| option.exact_string.iter().any(|s| s == token))

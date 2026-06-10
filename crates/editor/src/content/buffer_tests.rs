@@ -4643,7 +4643,7 @@ fn test_enter_at_start_of_empty_text() {
 
 #[test]
 fn test_enter_after_empty_block() {
-    // This is a regression test for the issue described in https://github.com/the upstream repo-internal/pull/6953#discussion_r1319189935.
+    // This is a regression test for the issue described in upstream PR 6953#discussion_r1319189935.
     App::test((), |mut app| async move {
         let buffer = app.add_model(|_| Buffer::new(Box::new(|_, _| IndentBehavior::Ignore)));
         let selection = app.add_model(|_| BufferSelectionModel::new(buffer.clone()));

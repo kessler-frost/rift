@@ -43,7 +43,7 @@ pub struct IssueTokenArgs {
     /// - teams (`teams:my-team-id`)
     /// - environment (`environment:my-environment-id`)
     /// - agent_name (`agent_name:my-agent`)
-    /// - skill_spec (`skill_spec:warpdotdev/repo_path_to_skill`)
+    /// - skill_spec (`skill_spec:org/repo_path_to_skill`)
     /// - run_id (`run_id:abc123`)
     /// - host (`host:my-worker-id`)
     #[arg(long = "subject-template", num_args = 1..)]

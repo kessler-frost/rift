@@ -144,7 +144,7 @@ impl WindowManager {
     /// same thing as a physical monitor, but a grouping of monitors into a single coordinate
     /// space. All our app's windows must be on the same screen, and hence will have the same scale
     /// factor. For more in-depth explanation:
-    /// https://github.com/the upstream repo-internal/pull/8431#discussion_r1460629912
+    /// upstream PR 8431#discussion_r1460629912
     #[cfg(any(target_os = "linux", target_os = "freebsd"))]
     fn get_x11_backing_scale_factor(&self) -> f32 {
         use crate::platform::WindowContext;
@@ -657,7 +657,7 @@ fn enable_decorations_if_needed(window: &winit::window::Window, adapter_info: &A
     if adapter_has_rendering_offset_bug(adapter_info) {
         log::warn!(
             "Enabling native window decorations to work around a rendering offset bug in the \
-            selected GPU adapter ({}). See: https://github.com/warpdotdev/Warp/issues/6120",
+            selected GPU adapter ({}). See: upstream issue 6120",
             adapter_info.name,
         );
         window.set_decorations(true);

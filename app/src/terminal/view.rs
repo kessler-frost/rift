@@ -8885,7 +8885,7 @@ impl TerminalView {
     /// WARNING: this method takes a lock on the TerminalModel.
     /// Caller must ensure the model is not already locked!
     ///
-    /// TODO: https://linear.app/warpdotdev/issue/CORE-277
+    /// TODO: upstream issue CORE-277
     pub fn redetermine_global_focus(&mut self, ctx: &mut ViewContext<Self>) {
         if self.context_menu_state.is_some() {
             // This is a hack to avoid focusing on the terminal which

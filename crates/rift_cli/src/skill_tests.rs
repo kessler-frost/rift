@@ -20,8 +20,8 @@ fn test_parse_repo_qualified() {
 
 #[test]
 fn test_parse_org_repo_qualified() {
-    let spec: SkillSpec = "warpdotdev/warp-internal:code-review".parse().unwrap();
-    assert_eq!(spec.org, Some("warpdotdev".to_string()));
+    let spec: SkillSpec = "kessler-frost/rift:code-review".parse().unwrap();
+    assert_eq!(spec.org, Some("kessler-frost".to_string()));
     assert_eq!(spec.repo, Some("warp-internal".to_string()));
     assert_eq!(spec.skill_identifier, "code-review");
     assert!(!spec.is_full_path());
@@ -29,10 +29,10 @@ fn test_parse_org_repo_qualified() {
 
 #[test]
 fn test_parse_full_path_with_org_repo() {
-    let spec: SkillSpec = "warpdotdev/warp-internal:.claude/skills/deploy/SKILL.md"
+    let spec: SkillSpec = "kessler-frost/rift:.claude/skills/deploy/SKILL.md"
         .parse()
         .unwrap();
-    assert_eq!(spec.org, Some("warpdotdev".to_string()));
+    assert_eq!(spec.org, Some("kessler-frost".to_string()));
     assert_eq!(spec.repo, Some("warp-internal".to_string()));
     assert_eq!(spec.skill_identifier, ".claude/skills/deploy/SKILL.md");
     assert!(spec.is_full_path());
@@ -62,23 +62,23 @@ fn test_display_repo_qualified() {
 #[test]
 fn test_display_org_repo_qualified() {
     let spec = SkillSpec::with_org_and_repo(
-        "warpdotdev".to_string(),
+        "kessler-frost".to_string(),
         "warp-internal".to_string(),
         "code-review".to_string(),
     );
-    assert_eq!(spec.to_string(), "warpdotdev/warp-internal:code-review");
+    assert_eq!(spec.to_string(), "kessler-frost/rift:code-review");
 }
 
 #[test]
 fn test_display_full_path() {
     let spec = SkillSpec::with_org_and_repo(
-        "warpdotdev".to_string(),
+        "kessler-frost".to_string(),
         "warp-internal".to_string(),
         ".claude/skills/deploy/SKILL.md".to_string(),
     );
     assert_eq!(
         spec.to_string(),
-        "warpdotdev/warp-internal:.claude/skills/deploy/SKILL.md"
+        "kessler-frost/rift:.claude/skills/deploy/SKILL.md"
     );
 }
 
@@ -127,7 +127,7 @@ fn test_skill_name_simple_name() {
 
 #[test]
 fn test_skill_name_repo_qualified_name() {
-    let spec: SkillSpec = "warpdotdev/feedback-triage-bot:feedback-triage-bot"
+    let spec: SkillSpec = "kessler-frost/feedback-triage-bot:feedback-triage-bot"
         .parse()
         .unwrap();
     assert_eq!(spec.skill_name(), "feedback-triage-bot");
@@ -135,7 +135,7 @@ fn test_skill_name_repo_qualified_name() {
 
 #[test]
 fn test_skill_name_repo_qualified_path() {
-    let spec: SkillSpec = "warpdotdev/feedback-triage-bot:.agents/skills/slack-triage/SKILL.md"
+    let spec: SkillSpec = "kessler-frost/feedback-triage-bot:.agents/skills/slack-triage/SKILL.md"
         .parse()
         .unwrap();
     assert_eq!(spec.skill_name(), "slack-triage");

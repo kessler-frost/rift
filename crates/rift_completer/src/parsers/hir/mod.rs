@@ -1,4 +1,4 @@
-use warp_command_signatures::{Argument, ArgumentType, GeneratorName, Template, TemplateType};
+use command_signatures::{Argument, ArgumentType, GeneratorName, Template, TemplateType};
 
 use crate::meta::{HasSpan, Span, Spanned, SpannedItem};
 use crate::parsers::{ParsedExpression, ParsedToken};

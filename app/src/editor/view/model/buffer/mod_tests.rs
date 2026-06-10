@@ -4156,7 +4156,7 @@ fn test_merging_selections_with_remote_edits() {
     })
 }
 
-// See https://github.com/the upstream repo-internal/pull/9249 for discussion
+// See upstream PR 9249 for discussion
 // about possible strategies to address this.
 #[ignore = "The test points out an eventual consistency problem with selections."]
 #[test]

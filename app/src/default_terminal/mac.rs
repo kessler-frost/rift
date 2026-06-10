@@ -43,7 +43,7 @@ pub fn is_rift_default_terminal() -> bool {
     // `CFRetained` releases it on every exit path.
     let handler_string = unsafe { CFRetained::from_raw(handler) };
 
-    let Some(warp_bundle_id) = get_warp_bundle_id() else {
+    let Some(warp_bundle_id) = get_rift_bundle_id() else {
         return false;
     };
 
@@ -52,10 +52,10 @@ pub fn is_rift_default_terminal() -> bool {
     current_handler == warp_bundle_id
 }
 
-pub fn set_warp_as_default_terminal() -> Result<(), String> {
+pub fn set_rift_as_default_terminal() -> Result<(), String> {
     log::debug!("Setting Warp as default terminal");
 
-    let bundle_id = get_warp_bundle_id().ok_or("No bundle ID".to_string())?;
+    let bundle_id = get_rift_bundle_id().ok_or("No bundle ID".to_string())?;
 
     set_default_terminal(&bundle_id)
 }
@@ -85,6 +85,6 @@ fn set_default_terminal(bundle_id: &str) -> Result<(), String> {
 
 /// Gets Rift's bundle identifier. This may be `None` if not running as a bundle, i.e. through
 /// `cargo run` without `cargo bundle`.
-fn get_warp_bundle_id() -> Option<String> {
+fn get_rift_bundle_id() -> Option<String> {
     Some(NSBundle::mainBundle().bundleIdentifier()?.to_string())
 }

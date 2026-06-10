@@ -26,7 +26,7 @@ const CONFIRM_MARGIN_TOP: f32 = 16.;
 pub struct OnboardingPromptBlock {
     learn_more_highlight_index: HighlightedHyperlink,
     mouse_state_handle_look_incorrect: MouseStateHandle,
-    mouse_state_handle_warp_prompt: MouseStateHandle,
+    mouse_state_handle_rift_prompt: MouseStateHandle,
     mouse_state_handle_existing_prompt: MouseStateHandle,
     mouse_state_handle_confirm: MouseStateHandle,
     ps1_grid_info: Option<(BlockGrid, SizeInfo)>,
@@ -39,7 +39,7 @@ impl OnboardingPromptBlock {
         Self {
             learn_more_highlight_index: Default::default(),
             mouse_state_handle_look_incorrect: Default::default(),
-            mouse_state_handle_warp_prompt: Default::default(),
+            mouse_state_handle_rift_prompt: Default::default(),
             mouse_state_handle_existing_prompt: Default::default(),
             mouse_state_handle_confirm: Default::default(),
             ps1_grid_info,
@@ -238,7 +238,7 @@ impl OnboardingPromptBlock {
         const NO_PS1_TEXT: &str = "No existing prompt.";
         const CORRECTION_TEXT: &str = "Look incorrect? ";
         const LINK_TEXT: &str = "Let us know.";
-        const LINK_DESTINATION: &str = "https://github.com/warpdotdev/Warp/issues/new?assignees=&labels=Bug&projects=&template=01_bug_report.yml";
+        const LINK_DESTINATION: &str = "https://github.com/kessler-frost/rift/issues/new";
 
         const HEADER_MARGIN_LEFT: f32 = 4.;
         const PS1_PADDING_VERTICAL: f32 = 12.;
@@ -437,7 +437,7 @@ impl View for OnboardingPromptBlock {
                     .with_main_axis_alignment(MainAxisAlignment::Start)
                     .with_child(self.render_prompt_button(
                         appearance,
-                        self.mouse_state_handle_warp_prompt.clone(),
+                        self.mouse_state_handle_rift_prompt.clone(),
                         OnboardingPromptType::RiftDefault,
                     ))
                     .with_child(self.render_prompt_button(

@@ -19,7 +19,7 @@ mod non_mac {
     }
 
     /// Sets Rift as the default terminal
-    pub fn set_warp_as_default_terminal() -> Result<(), String> {
+    pub fn set_rift_as_default_terminal() -> Result<(), String> {
         Err("Not implemented".to_string())
     }
 }
@@ -91,7 +91,7 @@ impl DefaultTerminal {
     /// This is a one-way operation. Once we set the default terminal to Rift, we can't really
     /// "unset" it unless we pick a new default terminal. Picking a new default is complicated.
     pub fn make_rift_default(&mut self, ctx: &mut ModelContext<Self>) {
-        if let Err(e) = set_warp_as_default_terminal() {
+        if let Err(e) = set_rift_as_default_terminal() {
             log::error!("Error setting Warp as default terminal: {e:#}");
         } else {
             self.set_is_rift_default(true, ctx);

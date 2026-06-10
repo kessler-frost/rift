@@ -1,5 +1,5 @@
 //! Contains the legacy implementation of argument suggestion generation that depends on the legacy
-//! command signature struct (`warp_command_signatures::Signature`).
+//! command signature struct (`command_signatures::Signature`).
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -7,7 +7,7 @@ use itertools::Itertools;
 use rift_core::features::FeatureFlag;
 use rift_util::path::ShellFamily;
 use smol_str::SmolStr;
-use warp_command_signatures::{
+use command_signatures::{
     Argument, ArgumentType, DynamicCompletionData, Generator, GeneratorProcess, Signature,
     Template, TemplateFilter, TemplateType,
 };
@@ -762,11 +762,11 @@ fn shell_command<'a>(
     command_env_vars: &[String],
 ) -> Cow<'a, str> {
     let shell = if cfg!(windows) && FeatureFlag::RunGeneratorsWithCmdExe.is_enabled() {
-        warp_command_signatures::Shell::CmdExe
+        command_signatures::Shell::CmdExe
     } else {
         match shell_family {
-            ShellFamily::Posix => warp_command_signatures::Shell::Posix,
-            ShellFamily::PowerShell => warp_command_signatures::Shell::Powershell,
+            ShellFamily::Posix => command_signatures::Shell::Posix,
+            ShellFamily::PowerShell => command_signatures::Shell::Powershell,
         }
     };
 
@@ -806,10 +806,10 @@ fn filter_path_suggestions<'a>(
         .collect()
 }
 
-impl From<warp_command_signatures::Suggestion> for Suggestion {
-    /// Convert the `warp_command_signatures::Suggestion`s (which are meant to map
+impl From<command_signatures::Suggestion> for Suggestion {
+    /// Convert the `command_signatures::Suggestion`s (which are meant to map
     /// 1:1 to the `completer::Suggestion`s)
-    fn from(suggestion: warp_command_signatures::Suggestion) -> Self {
+    fn from(suggestion: command_signatures::Suggestion) -> Self {
         let exact_string: SmolStr = suggestion.exact_string.into();
         let display = suggestion
             .display_name
@@ -829,9 +829,9 @@ impl From<warp_command_signatures::Suggestion> for Suggestion {
     }
 }
 
-impl From<Suggestion> for warp_command_signatures::Suggestion {
-    fn from(suggestion: Suggestion) -> warp_command_signatures::Suggestion {
-        warp_command_signatures::Suggestion {
+impl From<Suggestion> for command_signatures::Suggestion {
+    fn from(suggestion: Suggestion) -> command_signatures::Suggestion {
+        command_signatures::Suggestion {
             exact_string: suggestion.display.as_ref().into(),
             description: suggestion.description,
             priority: suggestion.priority.into(),

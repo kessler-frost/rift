@@ -22,7 +22,7 @@ pub fn main() -> Result<()> {
                 if cfg!(target_os = "macos") {
                     "Warp-Integration"
                 } else {
-                    "WarpIntegration"
+                    "RiftIntegration"
                 },
             ),
             logfile_name: "warp_integration.log".into(),

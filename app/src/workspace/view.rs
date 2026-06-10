@@ -6771,8 +6771,8 @@ impl Workspace {
                 .size()
         });
 
-        let warp_ai_width = modal_sizes.map(|ms| {
-            ms.warp_ai_width
+        let ai_width = modal_sizes.map(|ms| {
+            ms.ai_width
                 .lock()
                 .expect("should be able to lock warp_ai resizable state handle")
                 .size()
@@ -6785,8 +6785,8 @@ impl Workspace {
                 .size()
         });
 
-        let warp_drive_index_width = modal_sizes.map(|ms| {
-            ms.warp_drive_index_width
+        let drive_index_width = modal_sizes.map(|ms| {
+            ms.drive_index_width
                 .lock()
                 .expect("should be able to lock warp drive resizable state handle")
                 .size()
@@ -6813,9 +6813,9 @@ impl Workspace {
             fullscreen_state: window_fullscreen_state,
             quake_mode,
             universal_search_width,
-            warp_ai_width,
+            ai_width,
             voltron_width,
-            warp_drive_index_width,
+            drive_index_width,
             left_panel_open: self.left_panel_open,
             vertical_tabs_panel_open: self.vertical_tabs_panel_open,
             left_panel_width,

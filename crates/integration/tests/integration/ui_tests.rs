@@ -97,7 +97,7 @@ integration_tests! {
     #[ignore = "Affected by agent_view feature flag UI changes"]
     test_accepting_completion_inserts_space,
     test_palette_opens_when_theme_chooser_is_open,
-    test_launch_warp_with_theme_in_rift_config,
+    test_launch_rift_with_theme_in_rift_config,
     #[cfg(target_os="macos")]
     test_preview_config_dir_migration,
     #[ignore = "Flakes in CI"]
@@ -187,7 +187,7 @@ integration_tests! {
     // For some reason, disabling the `AgentMode` flag does not actually disable Agent Mode in the test
     // run. Ignore for now.
     #[ignore]
-    test_ask_warp_ai_keybinding_for_selected_block,
+    test_ask_ai_keybinding_for_selected_block,
 
     test_create_folder_from_command_palette,
 
@@ -315,7 +315,7 @@ integration_tests! {
     test_rule_pane_opening,
     test_undo_close_stack_timeout_cleanup,
 
-    test_file_tree_opens_files_in_warp,
+    test_file_tree_opens_files_in_rift,
     test_file_tree_open_in_new_pane,
     test_file_tree_open_in_new_tab,
     test_file_tree_keyboard_navigation,

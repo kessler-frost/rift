@@ -41,7 +41,7 @@ version-compare.workspace = true
 rift = { workspace = true, features = ["integration_tests"] }
 rift_cli = { workspace = true, features = ["integration_tests"] }
 rift_core.workspace = true
-warp-command-signatures.workspace = true
+command-signatures.workspace = true
 riftui_core.workspace = true
 riftui_extras = { workspace = true, features = [
     "user_preferences-file",

@@ -765,7 +765,7 @@ fn decode_wsl_path_result(result: io::Result<process::Output>) -> Option<UnixPat
 /// 2. A UTF-16 encoded CRLF.
 /// 3. A UTF-16 error message.
 /// See this ticket for an example and why this is necessary:
-/// https://linear.app/warpdotdev/issue/CORE-3539
+/// upstream issue CORE-3539
 fn take_until_utf16_crlf(bytes: Vec<u8>) -> Vec<u8> {
     const UTF16_CRLF: &[u8] = b"\r\0\n\0";
     match bytes

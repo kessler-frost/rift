@@ -501,7 +501,7 @@ impl TerminalManager {
     fn enqueue_init_script(&self, shell_starter: &ShellStarter) -> Result<(), SendError<Message>> {
         let shell_type = shell_starter.shell_type();
         if shell_type == crate::terminal::shell::ShellType::Zsh
-            // For more on why this is necessary on Git Bash, see https://linear.app/warpdotdev/issue/CORE-3202.
+            // For more on why this is necessary on Git Bash, see upstream issue CORE-3202.
             || shell_starter.is_msys2()
         {
             let init_shell_script =

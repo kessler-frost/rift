@@ -1124,7 +1124,7 @@ pub fn test_complete_last_arg_after_variadic_option() {
 /// TODO: we should fix these failing tests. These tests are currently failing
 /// because we don't have a way of computing the positional index correctly
 /// when nesting arguments under options.
-/// See more here: https://linear.app/warpdotdev/issue/WAR-3660/fix-completions-for-arguments-under-options
+/// See more here: upstream issue WAR-3660
 #[ignore]
 #[test]
 pub fn test_completions_after_arguments_under_option() {

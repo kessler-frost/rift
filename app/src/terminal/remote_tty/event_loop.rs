@@ -156,7 +156,7 @@ impl EventLoop {
 
     /// Writes the ZSH init shell script to the "PTY", mimicking how we send the init shell script
     /// when there is a local pty:
-    /// <https://github.com/the upstream repo-internal/blob/747da2df83f2caa97e781ce284ceb226fb97a66c/app/src/terminal/local_tty/unix.rs#L338-L347>.
+    /// <the upstream source
     async fn write_zsh_init_shell_script(sink: &mut impl Sink) -> anyhow::Result<()> {
         let zsh_init_shell_script = init_shell_script_for_shell(ShellType::Zsh, &crate::ASSETS);
         sink.send(Message::new_binary(

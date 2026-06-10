@@ -33,7 +33,7 @@ pub fn main() -> Result<()> {
                 if cfg!(target_os = "macos") {
                     "Warp-Integration"
                 } else {
-                    "WarpIntegration"
+                    "RiftIntegration"
                 },
             ),
             logfile_name: "warp_integration.log".into(),
@@ -215,7 +215,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_palette_opens_when_theme_chooser_is_open);
     #[cfg(target_os = "macos")]
     register_test!(test_preview_config_dir_migration);
-    register_test!(test_launch_warp_with_theme_in_rift_config);
+    register_test!(test_launch_rift_with_theme_in_rift_config);
     register_test!(test_add_launch_config_to_rift_config);
     register_test!(test_add_workflows_to_rift_config);
     register_test!(test_loading_project_workflows);
@@ -303,7 +303,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_can_auto_bootstrap);
 
-    register_test!(test_ask_warp_ai_keybinding_for_selected_block);
+    register_test!(test_ask_ai_keybinding_for_selected_block);
     register_test!(test_create_folder_from_command_palette);
 
     register_test!(test_tab_behavior_setting);
@@ -422,7 +422,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_undo_close_stack_timeout_cleanup);
 
     // File tree tests
-    register_test!(test_file_tree_opens_files_in_warp);
+    register_test!(test_file_tree_opens_files_in_rift);
     register_test!(test_file_tree_open_in_new_pane);
     register_test!(test_file_tree_open_in_new_tab);
     register_test!(test_file_tree_keyboard_navigation);

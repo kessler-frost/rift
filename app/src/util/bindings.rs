@@ -800,7 +800,7 @@ pub fn cmd_or_ctrl_shift(key: &str) -> String {
             }
             // The need to uppercase the key because of the addition of the `shift`.
             // Keystroke::parse debug asserts if this the modifier is lowercase:
-            // https://github.com/the upstream repo-internal/blob/c225b8cedd94fdba33e957cf1efb99d84768d193/ui/src/keymap.rs#L637/
+            // the upstream source
             key.to_ascii_uppercase().into()
         };
         format!("ctrl-shift-{key}")

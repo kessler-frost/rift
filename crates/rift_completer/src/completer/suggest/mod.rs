@@ -15,7 +15,7 @@ use itertools::Itertools;
 pub use priority::Priority;
 use rift_core::ui::theme::AnsiColorIdentifier;
 use smol_str::SmolStr;
-use warp_command_signatures::IconType;
+use command_signatures::IconType;
 
 use super::coalesce::coalesce_completion_results;
 use super::context::CompletionContext;
@@ -195,7 +195,7 @@ impl MatchedSuggestion {
 pub enum MatchRequirement {
     /// For an option to be recognized, its whole name must be spelled out.
     EntireName,
-    /// This variant signifies [`warp_command_signatures::ParserDirectives::flags_match_unique_prefix`]
+    /// This variant signifies [`command_signatures::ParserDirectives::flags_match_unique_prefix`]
     /// being `true`. Only a prefix which is long enough to make the intended option unambiguous is
     /// needed.
     UniquePrefixOnly,

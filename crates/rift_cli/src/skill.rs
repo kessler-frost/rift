@@ -33,7 +33,7 @@ use std::str::FromStr;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkillSpec {
-    /// Optional GitHub organization (e.g., "warpdotdev" in "the upstream repo-internal:code-review")
+    /// Optional GitHub organization (e.g., "kessler-frost" in "kessler-frost/rift:code-review")
     pub org: Option<String>,
     /// Optional repository name (e.g., "rift-internal")
     pub repo: Option<String>,

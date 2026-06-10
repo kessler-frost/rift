@@ -27,12 +27,12 @@ async fn git(repo: &Path, args: &[&str]) -> String {
 fn repository_info_from_gh_output_parses_name_and_owner() {
     assert_eq!(
         super::repository_info_from_gh_output(
-            r#"{"name":"warp-internal","owner":{"login":"warpdotdev"}}"#
+            r#"{"name":"rift","owner":{"login":"kessler-frost"}}"#
         )
         .unwrap(),
         RepositoryInfo {
             name: "warp-internal".to_owned(),
-            owner: Some("warpdotdev".to_owned()),
+            owner: Some("kessler-frost".to_owned()),
         }
     );
 }
@@ -40,7 +40,7 @@ fn repository_info_from_gh_output_parses_name_and_owner() {
 #[cfg(feature = "local_fs")]
 #[test]
 fn repository_info_from_gh_output_rejects_missing_name() {
-    assert!(super::repository_info_from_gh_output(r#"{"owner":{"login":"warpdotdev"}}"#).is_err());
+    assert!(super::repository_info_from_gh_output(r#"{"owner":{"login":"kessler-frost"}}"#).is_err());
 }
 
 #[cfg(feature = "local_fs")]
@@ -55,7 +55,7 @@ fn repository_info_from_gh_output_rejects_missing_owner_login() {
 #[test]
 fn repository_info_from_gh_output_rejects_empty_fields() {
     assert!(
-        super::repository_info_from_gh_output(r#"{"name":"","owner":{"login":"warpdotdev"}}"#)
+        super::repository_info_from_gh_output(r#"{"name":"","owner":{"login":"kessler-frost"}}"#)
             .is_err()
     );
     assert!(super::repository_info_from_gh_output(
@@ -94,7 +94,7 @@ async fn get_repository_info_reads_gh_repo_view() {
     let gh_path = fake_bin.path().join("gh");
     fs::write(
         &gh_path,
-        "#!/bin/sh\nprintf '{\"name\":\"warp-internal\",\"owner\":{\"login\":\"warpdotdev\"}}\\n'\n",
+        "#!/bin/sh\nprintf '{\"name\":\"rift\",\"owner\":{\"login\":\"kessler-frost\"}}\\n'\n",
     )
     .expect("failed to write fake gh");
     let mut permissions = fs::metadata(&gh_path).unwrap().permissions();
@@ -113,7 +113,7 @@ async fn get_repository_info_reads_gh_repo_view() {
             .unwrap(),
         Some(RepositoryInfo {
             name: "warp-internal".to_owned(),
-            owner: Some("warpdotdev".to_owned()),
+            owner: Some("kessler-frost".to_owned()),
         })
     );
 }
