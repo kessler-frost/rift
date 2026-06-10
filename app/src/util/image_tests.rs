@@ -26,22 +26,6 @@ fn create_small_test_png() -> Vec<u8> {
 }
 
 #[test]
-fn test_process_image_for_agent_small_image() {
-    let small_png = create_small_test_png();
-    let result = process_image_for_agent(&small_png);
-
-    match result {
-        ProcessImageResult::Success { data } => {
-            // The processed image should be non-empty
-            assert!(!data.is_empty());
-            // For a small image, it should not be resized, so data should be similar
-            assert!(data.len() <= MAX_IMAGE_SIZE_BYTES);
-        }
-        other => panic!("Expected Success, got {:?}", other),
-    }
-}
-
-#[test]
 fn test_resize_image_small_image_unchanged() {
     let small_png = create_small_test_png();
     let original_len = small_png.len();
@@ -49,19 +33,6 @@ fn test_resize_image_small_image_unchanged() {
     let result = resize_image(&small_png).unwrap();
     // Small images should be returned as-is
     assert_eq!(result.len(), original_len);
-}
-
-#[test]
-fn test_process_image_for_agent_invalid_data() {
-    let invalid_data = vec![0u8; 100];
-    let result = process_image_for_agent(&invalid_data);
-
-    match result {
-        ProcessImageResult::Error(_) => {
-            // Expected - invalid data should produce an error
-        }
-        other => panic!("Expected Error, got {:?}", other),
-    }
 }
 
 /// Creates a large test PNG image that exceeds MAX_IMAGE_PIXELS.

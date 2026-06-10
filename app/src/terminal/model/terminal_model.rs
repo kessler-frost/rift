@@ -81,18 +81,6 @@ use crate::util::AsciiDebug;
 /// Max size of the window title stack.
 const TITLE_STACK_MAX_DEPTH: usize = 4096;
 
-/// The status of a conversation transcript viewer.
-/// This tracks both the loading state and the type of conversation being viewed.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ConversationTranscriptViewerStatus {
-    /// Loading conversation data from the server.
-    Loading,
-    /// Viewing a local conversation (not from ambient agent).
-    ViewingLocalConversation,
-    /// Viewing an ambient agent conversation.
-    ViewingAmbientConversation,
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct FindOptions {
     pub query: Option<Arc<String>>,
@@ -527,17 +515,6 @@ pub struct TerminalModel {
     /// Whether this terminal model was created as a cloud mode dummy session
     /// (no local shell process, deferred shared-session viewer backing).
     is_dummy_cloud_mode_session: bool,
-
-    /// If Some, this terminal is displaying a read-only conversation transcript.
-    /// Tracks both the loading state and the type of conversation being viewed.
-    conversation_transcript_viewer_status: Option<ConversationTranscriptViewerStatus>,
-
-
-
-    /// Whether this viewer is currently receiving historical agent conversation replay.
-    /// Used to suppress live-conversation-specific actions (e.g. tombstone insertion)
-    /// until the replay is complete.
-    is_receiving_agent_conversation_replay: bool,
 
     tmux_background_outputs: HashMap<u32, Vec<u8>>,
 
@@ -1093,8 +1070,6 @@ impl TerminalModel {
             shell_launch_state: shell_state,
             obfuscate_secrets,
             is_dummy_cloud_mode_session,
-            conversation_transcript_viewer_status: None,
-            is_receiving_agent_conversation_replay: false,
             tmux_background_outputs: HashMap::new(),
             tmux_control_mode_context: None,
             notify_on_end_of_ssh_login: None,
@@ -1155,14 +1130,6 @@ impl TerminalModel {
 
     /// Whether the session sharing server is currently replaying
     /// conversation events (for conversation reconstruction).
-    pub fn is_receiving_agent_conversation_replay(&self) -> bool {
-        self.is_receiving_agent_conversation_replay
-    }
-
-    pub fn set_is_receiving_agent_conversation_replay(&mut self, value: bool) {
-        self.is_receiving_agent_conversation_replay = value;
-    }
-
 
 
 
@@ -1216,31 +1183,7 @@ impl TerminalModel {
     }
 
     pub fn is_read_only(&self) -> bool {
-        self.handled_exit || self.is_conversation_transcript_viewer()
-    }
-
-    pub fn is_conversation_transcript_viewer(&self) -> bool {
-        self.conversation_transcript_viewer_status.is_some()
-    }
-
-    pub fn is_loading_conversation_transcript(&self) -> bool {
-        matches!(
-            self.conversation_transcript_viewer_status,
-            Some(ConversationTranscriptViewerStatus::Loading)
-        )
-    }
-
-    pub fn conversation_transcript_viewer_status(
-        &self,
-    ) -> Option<&ConversationTranscriptViewerStatus> {
-        self.conversation_transcript_viewer_status.as_ref()
-    }
-
-    pub fn set_conversation_transcript_viewer_status(
-        &mut self,
-        status: Option<ConversationTranscriptViewerStatus>,
-    ) {
-        self.conversation_transcript_viewer_status = status;
+        self.handled_exit
     }
 
     pub fn colors(&self) -> color::List {

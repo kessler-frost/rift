@@ -105,28 +105,11 @@ impl TerminalView {
             .map_or(SplitPaneState::NotInSplitPane, |h| h.split_pane_state(app))
     }
 
-    /// Renders the back button for the pane header, or an empty element if the
-    /// back button should not be shown.
-    fn maybe_render_header_back_button(&self, _app: &AppContext) -> Box<dyn Element> {
-        // The agent-view back button was an AI feature and has been removed.
-        Flex::row().finish()
-    }
-
     fn render_header_title(
         &self,
-        _is_fullscreen_agent_view: bool,
         header_ctx: &view::HeaderRenderContext,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        // V2 swap-panes semantics: every conversation in the orchestration
-        // tree (orchestrator + each child) gets the orchestration pill bar
-        // rendered above the agent view header, so the pane title here
-        // falls back to the regular conversation title. Breadcrumbs used
-        // to render here for split-off child views, but the swap-panes
-        // refactor removed the split-off code path — the pill bar is now
-        // shown on every view, so a breadcrumb row alongside it would
-        // double-render the same navigation affordance.
-
         let appearance = Appearance::as_ref(app);
         let pane_config = self.pane_configuration.as_ref(app);
         let title = pane_config.title().to_owned();
@@ -162,41 +145,18 @@ impl TerminalView {
         app: &AppContext,
     ) -> (Box<dyn Element>, f32) {
         let appearance = Appearance::as_ref(app);
-        let is_fullscreen_agent_view = false;
         let icon_color = Some(
             appearance
                 .theme()
                 .sub_text_color(appearance.theme().background()),
         );
-        let button_size = if is_fullscreen_agent_view {
-            Some(24.0)
-        } else {
-            None
-        };
-
-        let mut left_of_overflow: Option<Box<dyn Element>> = None;
+        let button_size = None;
 
         let mut icon_button_count: u32 = 0;
-
-        // Ambient-agent cancel + conversation-details toggle were AI features, removed.
-        let button_element: Option<Box<dyn Element>> = None;
-
-        if let Some(button) = button_element {
-            icon_button_count += 1;
-            if let Some(existing) = left_of_overflow {
-                left_of_overflow =
-                    Some(Flex::row().with_child(existing).with_child(button).finish());
-            } else {
-                left_of_overflow = Some(button);
-            }
-        }
 
         let mut right_row = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Min);
-        if let Some(content) = left_of_overflow {
-            right_row.add_child(content);
-        }
         let sharing_element = header_ctx.sharing_controls(app, icon_color, button_size);
         let has_sharing_element = sharing_element.is_some();
         if let Some(sharing) = sharing_element {
@@ -261,11 +221,10 @@ impl TerminalView {
         header_ctx: &view::HeaderRenderContext,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        let is_fullscreen_agent_view = false;
         let parent_conversation_header_card = self.render_parent_conversation_header_card(app);
 
-        let left = self.maybe_render_header_back_button(app);
-        let center = self.render_header_title(is_fullscreen_agent_view, header_ctx, app);
+        let left = Flex::row().finish();
+        let center = self.render_header_title(header_ctx, app);
         let (right, min_actions_width) = self.render_header_actions(header_ctx, app);
 
         let header = render_three_column_header(
@@ -295,7 +254,6 @@ impl TerminalView {
             app,
         );
 
-        let _ = is_fullscreen_agent_view;
         header
     }
 }

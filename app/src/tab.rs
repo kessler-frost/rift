@@ -660,8 +660,6 @@ pub struct TabComponent<'a> {
     close_button_position: TabCloseButtonPosition,
     appearance: &'a Appearance,
     tooltip_message: Option<String>,
-    tooltip_directory: Option<String>,
-    tooltip_git_branch: Option<String>,
     is_drag_target: bool,
     background_opacity: u8,
     /// Set to `true` when this `TabComponent` is being rendered inside the
@@ -781,8 +779,6 @@ impl<'a> TabComponent<'a> {
         };
 
         let tooltip_message = Self::get_tooltip_message(&indicator, tab, ctx);
-        let tooltip_directory = Self::get_tooltip_directory(&indicator, tab, ctx);
-        let tooltip_git_branch = Self::get_tooltip_git_branch(&indicator, tab, ctx);
         let window_id = tab.pane_group.window_id(ctx);
         let background_opacity = WindowSettings::as_ref(ctx)
             .background_opacity
@@ -801,8 +797,6 @@ impl<'a> TabComponent<'a> {
             close_button_position,
             appearance,
             tooltip_message,
-            tooltip_directory,
-            tooltip_git_branch,
             is_drag_target,
             background_opacity,
             for_drag_ghost: false,
@@ -834,14 +828,7 @@ impl<'a> TabComponent<'a> {
         self.tab.draggable_state.is_dragging()
     }
 
-    /// Whether the tab title comes from an agent conversation rather than the
-    /// terminal (e.g. shell path). Derived from the already-computed indicator
-    /// so the text-clipping direction matches the title content.
-    fn has_ai_conversation_title(&self) -> bool {
-        Self::is_agent_task_indicator(&self.indicator)
-    }
-
-    /// Get the tooltip message for tabs - handles both agent tasks and regular tab titles
+    /// Get the tooltip message for tabs.
     fn get_tooltip_message(
         _indicator: &Indicator,
         tab: &TabData,
@@ -863,60 +850,6 @@ impl<'a> TabComponent<'a> {
         None
     }
 
-    /// Check if the given indicator is an agent task indicator. Agent task
-    /// indicators have been removed, so this is always `false`.
-    fn is_agent_task_indicator(_indicator: &Indicator) -> bool {
-        false
-    }
-
-    /// Get the current working directory for the tooltip if this is an agent task
-    fn get_tooltip_directory(
-        indicator: &Indicator,
-        tab: &TabData,
-        ctx: &AppContext,
-    ) -> Option<String> {
-        if !Self::is_agent_task_indicator(indicator) {
-            return None;
-        }
-
-        tab.pane_group
-            .as_ref(ctx)
-            .focused_session_view(ctx)
-            .and_then(|view| {
-                view.as_ref(ctx)
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .metadata()
-                    .current_working_directory()
-                    .map(|s| s.to_string())
-            })
-    }
-
-    /// Get the git branch for the tooltip if this is an agent task
-    fn get_tooltip_git_branch(
-        indicator: &Indicator,
-        tab: &TabData,
-        ctx: &AppContext,
-    ) -> Option<String> {
-        if !Self::is_agent_task_indicator(indicator) {
-            return None;
-        }
-
-        tab.pane_group
-            .as_ref(ctx)
-            .focused_session_view(ctx)
-            .and_then(|view| {
-                view.as_ref(ctx)
-                    .model
-                    .lock()
-                    .block_list()
-                    .active_block()
-                    .git_branch()
-                    .cloned()
-            })
-    }
 
     /// Generate the SavePosition ID for the tab text content
     fn tab_text_position_id(&self) -> String {
@@ -1120,7 +1053,7 @@ impl<'a> TabComponent<'a> {
     }
 
     fn should_clip_text_start(&self) -> bool {
-        !self.has_custom_title && !self.has_ai_conversation_title()
+        !self.has_custom_title
     }
 
     fn render_tab_container_internal(
@@ -1420,8 +1353,6 @@ impl UiComponent for TabComponent<'_> {
 
         // Extract values before moving self into closure
         let tooltip_text = self.tooltip_message.clone();
-        let tooltip_directory = self.tooltip_directory.clone();
-        let tooltip_git_branch = self.tooltip_git_branch.clone();
         let tab_text_position_id = self.tab_text_position_id();
         let tooltip_mouse_state = self.tab.tooltip_mouse_state.clone();
 
@@ -1434,8 +1365,6 @@ impl UiComponent for TabComponent<'_> {
         // Add tooltip hover on top with delay if we have a tooltip message
         if let Some(tooltip_text) = tooltip_text {
             let tooltip_text_clone = tooltip_text.clone();
-            let tooltip_directory_clone = tooltip_directory.clone();
-            let tooltip_git_branch_clone = tooltip_git_branch.clone();
 
             // Layer the tooltip hover on top
             tab = Hoverable::new(tooltip_mouse_state, move |tooltip_state| {
@@ -1452,81 +1381,7 @@ impl UiComponent for TabComponent<'_> {
                     .with_color(font_color)
                     .finish();
 
-                    let has_extra_info =
-                        tooltip_directory_clone.is_some() || tooltip_git_branch_clone.is_some();
-
-                    let tooltip_content: Box<dyn Element> = if has_extra_info {
-                        let mut column = Flex::column().with_child(title_text);
-
-                        if let Some(directory) = &tooltip_directory_clone {
-                            let folder_icon = Icon::Folder
-                                .to_riftui_icon(ThemeFill::Solid(font_color))
-                                .finish();
-
-                            let directory_row = Flex::row()
-                                .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                                .with_child(
-                                    ConstrainedBox::new(folder_icon)
-                                        .with_height(appearance.ui_font_size())
-                                        .with_width(appearance.ui_font_size())
-                                        .finish(),
-                                )
-                                .with_child(
-                                    Container::new(
-                                        Text::new(
-                                            directory.clone(),
-                                            appearance.ui_font_family(),
-                                            appearance.ui_font_size(),
-                                        )
-                                        .with_color(font_color)
-                                        .finish(),
-                                    )
-                                    .with_margin_left(4.)
-                                    .finish(),
-                                )
-                                .finish();
-
-                            column.add_child(
-                                Container::new(directory_row).with_margin_top(4.).finish(),
-                            );
-                        }
-
-                        if let Some(branch) = &tooltip_git_branch_clone {
-                            let branch_icon = Icon::GitBranch
-                                .to_riftui_icon(ThemeFill::Solid(font_color))
-                                .finish();
-
-                            let branch_row = Flex::row()
-                                .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                                .with_child(
-                                    ConstrainedBox::new(branch_icon)
-                                        .with_height(appearance.ui_font_size())
-                                        .with_width(appearance.ui_font_size())
-                                        .finish(),
-                                )
-                                .with_child(
-                                    Container::new(
-                                        Text::new(
-                                            branch.clone(),
-                                            appearance.ui_font_family(),
-                                            appearance.ui_font_size(),
-                                        )
-                                        .with_color(font_color)
-                                        .finish(),
-                                    )
-                                    .with_margin_left(4.)
-                                    .finish(),
-                                )
-                                .finish();
-
-                            column
-                                .add_child(Container::new(branch_row).with_margin_top(4.).finish());
-                        }
-
-                        column.finish()
-                    } else {
-                        title_text
-                    };
+                    let tooltip_content: Box<dyn Element> = title_text;
 
                     let tooltip = Container::new(tooltip_content)
                         .with_background(appearance.theme().tooltip_background())

@@ -87,7 +87,7 @@ use riftui::elements::new_scrollable::{
 };
 use riftui::elements::{
     get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped,
-    ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
+    ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius,
     DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Fill, Flex,
     Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
     ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
@@ -2577,19 +2577,11 @@ impl TerminalView {
         &self.sessions
     }
 
-    /// Returns whether a specific session is local, treating shared-session
-    /// viewers and conversation transcript viewers as non-local even when
-    /// their session hasn't been joined yet.
+    /// Returns whether a specific session is local.
     pub fn session_is_local<C: ModelAsRef>(&self, session_id: SessionId, ctx: &C) -> bool {
-        let forced_non_local = {
-            let model = self.model.lock();
-            model.is_conversation_transcript_viewer()
-        };
-        !forced_non_local
-            && self
-                .sessions
-                .as_ref(ctx)
-                .get(session_id)
+        self.sessions
+            .as_ref(ctx)
+            .get(session_id)
                 .is_some_and(|session| session.is_local())
     }
 
@@ -10601,34 +10593,6 @@ impl TerminalView {
         .finish()
     }
 
-    fn render_viewer_loading(&self, app: &AppContext) -> Box<dyn Element> {
-        let appearance = Appearance::as_ref(app);
-        let color = appearance
-            .theme()
-            .sub_text_color(appearance.theme().background());
-
-        SavePosition::new(
-            Align::new(
-                Flex::column()
-                    .with_child(
-                        ConstrainedBox::new(Icon::new("bundled/svg/refresh.svg", color).finish())
-                            .with_height(16.)
-                            .with_width(16.)
-                            .finish(),
-                    )
-                    .with_child(
-                        Text::new_inline("Loading session...", appearance.ui_font_family(), 14.)
-                            .with_color(color.into())
-                            .finish(),
-                    )
-                    .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                    .finish(),
-            )
-            .finish(),
-            &self.content_element_position_id,
-        )
-        .finish()
-    }
 
     fn render_block_list_element(
         &self,
@@ -12402,10 +12366,7 @@ impl View for TerminalView {
                 self.render_waterfall_gap_element(&model, &viewport, active_gap, appearance, app)
             }
             (input_mode, _, _) => {
-                let should_show_loading = model.is_loading_conversation_transcript();
-                let output_area = if should_show_loading {
-                    self.render_viewer_loading(app)
-                } else if is_alt_screen_active {
+                let output_area = if is_alt_screen_active {
                     did_wrap_terminal_size = true;
                     wrap_in_terminal_size_element(
                         &self.resize_tx,

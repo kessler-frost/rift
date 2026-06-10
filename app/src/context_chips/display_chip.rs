@@ -288,7 +288,6 @@ pub struct DisplayChip {
     is_shared_session_viewer: bool,
     /// Cached display string for the code review keybinding.
     code_review_keybinding: Option<String>,
-    /// The terminal view this chip belongs to, used to check CLI agent session state.
     terminal_view_id: EntityId,
 }
 
@@ -765,12 +764,6 @@ impl DisplayChip {
         }
     }
 
-    /// Returns `true` when a CLI agent session is active for this chip's terminal,
-    /// meaning interactive behaviors (menus, hover, click) should be suppressed.
-    fn is_cli_agent_session_active(&self, _app: &AppContext) -> bool {
-        false
-    }
-
     fn close_node_version_popup(&mut self, ctx: &mut ViewContext<'_, DisplayChip>) {
         if let DisplayChipKind::NodeVersion { popup_open, .. } = &mut self.display_chip_kind {
             *popup_open = false;
@@ -949,8 +942,7 @@ impl DisplayChip {
         let appearance = Appearance::as_ref(app);
         let font_color = appearance.theme().ansi_fg_green();
 
-        let is_interactive =
-            !self.is_shared_session_viewer && !self.is_cli_agent_session_active(app);
+        let is_interactive = !self.is_shared_session_viewer;
         let chip_text = self.text.clone();
         let hover = Hoverable::new(self.mouse_state.clone(), move |state| {
             let hovered = state.is_hovered() && is_interactive;
@@ -1101,10 +1093,7 @@ impl DisplayChip {
 
         let mut stack = Stack::new();
 
-        // Menu is only allowed when the caller requests it and we're not in a
-        // CLI agent session.
-        let is_cli_agent_active = self.is_cli_agent_session_active(app);
-        let allow_show_menu = show_menu && !is_cli_agent_active;
+        let allow_show_menu = show_menu;
 
         let button = if allow_show_menu {
             let chip_text = self.text.clone();
@@ -1137,7 +1126,7 @@ impl DisplayChip {
             .with_cursor(Cursor::PointingHand)
             .finish()
         } else {
-            // Non-interactive chip (show_menu is false or CLI agent session active)
+            // Non-interactive chip (show_menu is false)
             let font_color = theme.ansi_fg_cyan();
 
             let chip_text = self.text.clone();
@@ -1149,7 +1138,7 @@ impl DisplayChip {
                 let chip_element = render_udi_chip(config, appearance);
                 let mut stack = Stack::new().with_child(chip_element);
 
-                if state.is_hovered() && !is_cli_agent_active {
+                if state.is_hovered() {
                     let tool_tip = appearance
                         .ui_builder()
                         .tool_tip("Working directory".to_string())
@@ -1374,12 +1363,6 @@ impl TypedActionView for DisplayChip {
                 }
             },
             DisplayChipAction::ToggleMenu => {
-                // All ToggleMenu consumers (WorkingDirectory, GitBranch, NodeVersion)
-                // route through shell commands (cd, git checkout, nvm use) that don't
-                // work in CLI agent context, so we suppress all of them.
-                if self.is_cli_agent_session_active(ctx) {
-                    return;
-                }
                 match &mut self.display_chip_kind {
                     DisplayChipKind::GitBranch { menu, menu_open } => {
                         *menu_open = !*menu_open;
@@ -1562,7 +1545,7 @@ pub(crate) fn chip_container(
         Border::all(CHIP_BORDER_WIDTH).with_border_color(internal_colors::neutral_3(theme)),
     );
     // Solid surface fill keeps the chip readable even when its parent isn't
-    // `theme.background()` (for example, over an alt-screen CLI agent).
+    // `theme.background()` (for example, over an alt-screen TUI).
     Container::new(content)
         .with_background(theme.surface_1())
         .with_border(border)

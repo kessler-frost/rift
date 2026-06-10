@@ -2505,21 +2505,6 @@ impl Workspace {
 
 
 
-    pub fn is_conversation_transcript_viewer_focused(&self, app: &AppContext) -> bool {
-        self.active_tab_pane_group()
-            .as_ref(app)
-            .active_session_view(app)
-            .is_some_and(|view| {
-                view.as_ref(app)
-                    .model
-                    .lock()
-                    .is_conversation_transcript_viewer()
-            })
-    }
-
-    /// Returns the type of simplified WASM tab bar content to display, if any.
-    /// Used to determine whether to show the simplified tab bar layout on WASM.
-
 
     fn current_focus_region(&self, ctx: &mut ViewContext<Self>) -> FocusRegion {
         let app = ctx;
