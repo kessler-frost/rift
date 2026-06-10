@@ -3,7 +3,7 @@
 #![cfg_attr(feature = "release_bundle", windows_subsystem = "windows")]
 
 use anyhow::Result;
-use rift_core::channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig};
+use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::features::FeatureFlag;
 use rift_core::AppId;
 
@@ -31,12 +31,6 @@ fn main() -> Result<()> {
         ChannelConfig {
             app_id: AppId::new("dev", "warp", "WarpOss"),
             logfile_name: "warp-oss.log".into(),
-            server_config: WarpServerConfig::production(),
-            oz_config: OzConfig::production(),
-            telemetry_config: None,
-            crash_reporting_config: None,
-            autoupdate_config: None,
-            mcp_static_config: None,
         },
     )
     .with_disabled_features(OSS_DISABLED_FLAGS);

@@ -6,7 +6,7 @@ use clap::Parser;
 use integration::test::*;
 use integration::Builder;
 use rift_cli::WorkerCommand;
-use rift_core::channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig};
+use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::AppId;
 
 /// The Warp integration test runner.
@@ -37,25 +37,6 @@ pub fn main() -> Result<()> {
                 },
             ),
             logfile_name: "warp_integration.log".into(),
-            server_config: WarpServerConfig {
-                firebase_auth_api_key: "".into(),
-                iap_config: None,
-                // Use an IP in the IANA testing range, with the TCP discard port, to
-                // black-hole server traffic.
-                server_root_url: "http://192.0.2.0:9".into(),
-                rtc_server_url: "ws://192.0.2.0:9/graphql/v2".into(),
-                session_sharing_server_url: None,
-            },
-            oz_config: OzConfig {
-                // Use an IP in the IANA testing range, with the TCP discard port, to
-                // black-hole server traffic.
-                oz_root_url: "http://192.0.2.0:9".into(),
-                workload_audience_url: None,
-            },
-            telemetry_config: None,
-            crash_reporting_config: None,
-            autoupdate_config: None,
-            mcp_static_config: None,
         },
     ));
 

@@ -1,7 +1,6 @@
 use std::io;
 use std::process::ExitStatus;
 use std::sync::OnceLock;
-use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use rift_core::channel::{Channel, ChannelState};
@@ -24,7 +23,6 @@ const RIFT_ISOLATION_PLATFORM_ENV: &str = "RIFT_ISOLATION_PLATFORM";
 /// Environment variable containing the generic Warp-managed workload token that we use
 /// for isolation platforms that don't issue their own tokens.
 #[cfg(not(target_family = "wasm"))]
-const RIFT_WORKLOAD_TOKEN_ENV: &str = "RIFT_WORKLOAD_TOKEN";
 
 /// A kind of isolation platform. For our usage, isolation platforms are different ways where Warp
 /// can be sandboxed, such as VMs, containers, or cloud hosts. This may also include weaker forms
@@ -106,48 +104,6 @@ pub fn detect() -> Option<IsolationPlatformType> {
         }
 
         platform
-    })
-}
-
-/// Issue a workload identity token for the current isolation platform.
-///
-/// This will fail if no isolation platform is detected and no platform-agnostic workload token
-/// is available.
-#[cfg_attr(target_family = "wasm", allow(unused_variables))]
-pub async fn issue_workload_token(
-    duration: Option<Duration>,
-) -> Result<WorkloadToken, IsolationPlatformError> {
-    match detect() {
-        #[cfg(not(target_family = "wasm"))]
-        Some(IsolationPlatformType::DockerSandbox) => {
-            docker_sandbox::issue_workload_token(duration).await
-        }
-        #[cfg(not(target_family = "wasm"))]
-        Some(IsolationPlatformType::Namespace) => namespace::issue_workload_token(duration).await,
-        #[cfg(not(target_family = "wasm"))]
-        // Check for a platform-agnostic workload token if there's no
-        // isolation platform or if the detected platform doesn't have
-        // its own workload token mechanism.
-        _ => read_generic_workload_token()
-            .inspect_err(|err| log::debug!("No platform-agnostic workload token: {err}"))
-            .map_err(|_| IsolationPlatformError::NoIsolationPlatformDetected),
-        #[cfg(target_family = "wasm")]
-        _ => Err(IsolationPlatformError::NoIsolationPlatformDetected),
-    }
-}
-
-/// Read a platform-agnostic workload token from the `RIFT_WORKLOAD_TOKEN` environment variable.
-/// Returns a `WorkloadToken` with no expiration, or an error if the variable is missing/empty.
-#[cfg(not(target_family = "wasm"))]
-fn read_generic_workload_token() -> Result<WorkloadToken, IsolationPlatformError> {
-    let token = std::env::var(RIFT_WORKLOAD_TOKEN_ENV)
-        .map_err(|_| IsolationPlatformError::GenericWorkloadTokenMissing)?;
-    if token.is_empty() {
-        return Err(IsolationPlatformError::GenericWorkloadTokenMissing);
-    }
-    Ok(WorkloadToken {
-        token,
-        expires_at: None,
     })
 }
 

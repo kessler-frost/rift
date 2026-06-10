@@ -36,7 +36,6 @@ use super::settings_page::{
 };
 use super::{flags, SettingsAction, SettingsSection, ToggleSettingActionPair};
 use crate::appearance::Appearance;
-use crate::channel::ChannelState;
 use crate::modal::{Modal, ModalEvent, ModalViewState};
 use crate::settings::{AISettings, CustomSecretRegex, PrivacySettings, RegexDisplayInfo};
 use crate::settings_view::privacy::AddRegexModalViewState;
@@ -1389,14 +1388,9 @@ impl SettingsWidget for AppAnalyticsWidget {
         "telemetry usage analytics data collection"
     }
 
-    fn should_render(&self, app: &AppContext) -> bool {
-        // Builds without a telemetry config (e.g. OpenWarp) cannot ship
-        // telemetry, so the toggle would be a no-op. Hide it in that case.
-        if !ChannelState::is_telemetry_available() {
-            return false;
-        }
-        let privacy_settings = PrivacySettings::as_ref(app);
-        !privacy_settings.is_telemetry_force_enabled()
+    fn should_render(&self, _app: &AppContext) -> bool {
+        // Rift ships no telemetry config; the toggle would be a no-op.
+        false
     }
 
     fn render(
@@ -1557,14 +1551,9 @@ impl SettingsWidget for CrashReportsWidget {
         "telemetry crash reports stability data collection"
     }
 
-    fn should_render(&self, app: &AppContext) -> bool {
-        // Builds without a crash reporting config (e.g. OpenWarp) cannot ship
-        // crash reports, so the toggle would be a no-op. Hide it in that case.
-        if !ChannelState::is_crash_reporting_available() {
-            return false;
-        }
-        let privacy_settings = PrivacySettings::as_ref(app);
-        !privacy_settings.is_telemetry_force_enabled()
+    fn should_render(&self, _app: &AppContext) -> bool {
+        // Rift ships no crash-reporting config; the toggle would be a no-op.
+        false
     }
 
     fn render(
