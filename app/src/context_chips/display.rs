@@ -13,7 +13,9 @@ use riftui::{
 
 use super::display_chip::{DisplayChip, DisplayChipConfig, PromptDisplayChipEvent};
 use super::prompt_type::PromptType;
-use super::{git_line_changes_from_chips, ChipResult, ContextChipKind};
+use super::{git_line_changes_from_chips, ChipResult};
+#[cfg(feature = "integration_tests")]
+use super::ContextChipKind;
 use crate::completer::SessionContext;
 use crate::context_chips::display_chip::{format_git_branch_command, DisplayChipAction};
 use crate::settings::InputSettings;
@@ -341,10 +343,6 @@ impl View for PromptDisplay {
 
         self.display_chips.iter().for_each(|display_chip| {
             let chip = display_chip.as_ref(app);
-            // AgentPlanAndTodoList is only shown in the agent input footer
-            if matches!(chip.chip_kind(), ContextChipKind::AgentPlanAndTodoList) {
-                return;
-            }
             if chip.should_render(app) {
                 row.add_child(ChildView::new(display_chip).finish());
             }

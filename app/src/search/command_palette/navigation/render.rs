@@ -179,7 +179,7 @@ fn render_prompt_udi(snapshot: &PromptSnapshot, appearance: &Appearance) -> Box<
 
         let color = chip_result
             .kind()
-            .default_styles(appearance, false)
+            .default_styles(appearance)
             .value_color;
         let value_text = value.to_string();
         let config = if let Some(icon) = chip_result.kind().udi_icon() {
