@@ -202,7 +202,7 @@ use crate::util::bindings::is_binding_cross_platform;
 use crate::vim_registers::VimRegisters;
 use crate::rift_managed_paths_watcher::{ensure_rift_watch_roots_exist, RiftManagedPathsWatcher};
 use crate::workspace::{
-    ActiveSession, OneTimeModalModel, PaneViewLocator, ToastStack, Workspace, WorkspaceAction,
+    ActiveSession, PaneViewLocator, ToastStack, Workspace, WorkspaceAction,
 };
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::workspaces::update_manager::TeamUpdateManager;
@@ -1177,7 +1177,6 @@ pub(crate) fn initialize_app(
     ctx.add_singleton_model(|_| VimRegisters::new());
     ctx.add_singleton_model(UndoCloseStack::new);
     ctx.add_singleton_model(|_| ToastStack);
-    ctx.add_singleton_model(workspace::OneTimeModalModel::new);
     #[cfg(feature = "local_fs")]
     ctx.add_singleton_model(FileModel::new);
     #[cfg(windows)]
@@ -1495,12 +1494,6 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
                     "root_view:update_quake_mode_state",
                     &update_quake_mode_arg,
                 );
-            }
-
-            if let Some(active_window_id) = active_window_id {
-                OneTimeModalModel::handle(ctx).update(ctx, |model, ctx| {
-                    model.update_target_window_id(active_window_id, ctx);
-                });
             }
 
             ctx.dispatch_global_action("workspace:save_app", &());

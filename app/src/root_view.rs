@@ -1549,19 +1549,6 @@ impl RootView {
     }
 
 
-    /// Opens the Codex modal in an existing window.
-    pub fn open_codex_in_existing_window(&mut self, _: &(), ctx: &mut ViewContext<Self>) -> bool {
-        let window_id = ctx.window_id();
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            handle.update(ctx, |workspace, ctx| {
-                workspace.open_codex_modal(ctx);
-            });
-            ctx.windows().show_window_and_focus_app(window_id);
-        } else {
-            log::error!("Auth not complete before trying to open Codex modal");
-        }
-        true
-    }
 
     /// Opens a new tab with agent view for a Linear issue work deeplink.
     pub fn open_linear_issue_work_in_existing_window(

@@ -294,7 +294,7 @@ use crate::view_components::find::{Event as FindEvent, Find, FindDirection, Find
 use crate::view_components::ToastFlavor;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
-    CommandSearchOptions, OneTimeModalModel,
+    CommandSearchOptions,
 };
 use crate::{
     report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
@@ -5358,12 +5358,9 @@ impl TerminalView {
 
         self.ignore_next_set_title_event = true;
 
-        let is_launch_modal_open = OneTimeModalModel::as_ref(ctx).is_oz_launch_modal_open();
-
         if FeatureFlag::AgentView.is_enabled()
             && TerminalSettings::as_ref(ctx).should_show_zero_state_block(ctx)
             && !self.model.lock().block_list().is_restored_session()
-            && !is_launch_modal_open
             && !is_subshell_or_ssh
         {
             let agent_view_zero_state = ctx.add_typed_action_view(|ctx| {
@@ -8892,10 +8889,6 @@ impl TerminalView {
             // calls on_blur and closes the context menu when it is supposed
             // to open after closing the command palette
             // TODO: refactor in the future
-            return;
-        }
-
-        if OneTimeModalModel::as_ref(ctx).is_any_modal_open() {
             return;
         }
 

@@ -7,10 +7,8 @@ pub(crate) mod cross_window_tab_drag;
 mod global_actions;
 pub mod header_toolbar_editor;
 pub mod header_toolbar_item;
-pub mod hoa_onboarding;
 mod lightbox_view;
 mod native_modal;
-mod one_time_modal_model;
 mod registry;
 pub mod sync_inputs;
 pub mod tab_group;
@@ -52,7 +50,6 @@ pub fn panel_header_corner_radius() -> riftui::elements::CornerRadius {
     riftui::elements::CornerRadius::with_top(riftui::elements::Radius::Pixels(8.))
 }
 
-pub use one_time_modal_model::OneTimeModalModel;
 pub use registry::WorkspaceRegistry;
 pub use toast_stack::ToastStack;
 
@@ -72,11 +69,7 @@ pub fn init(app: &mut AppContext) {
     native_modal::init(app);
     lightbox_view::init(app);
     crate::tab_configs::remove_confirmation_dialog::init(app);
-    hoa_onboarding::init(app);
     tab_configs::session_config_modal::init(app);
-    view::launch_modal::oz_launch::init(app);
-    view::orchestration_launch_modal::init(app);
-    view::codex_modal::init(app);
     view::global_search::view::GlobalSearchView::init(app);
     header_toolbar_editor::init(app);
 
