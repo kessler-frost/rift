@@ -5076,9 +5076,7 @@ impl Workspace {
     }
 
     pub fn toggle_resource_center(&mut self, ctx: &mut ViewContext<Self>) {
-        // Close AI Assistant panel when resource center is opened
         if !self.current_workspace_state.is_resource_center_open {
-            self.current_workspace_state.is_ai_assistant_panel_open = false;
             self.focus_active_tab(ctx);
         }
 
@@ -5207,8 +5205,6 @@ impl Workspace {
                     resource_center_view.set_current_page(ResourceCenterPage::Keybindings, ctx)
                 });
 
-            // Ensure other right panels are closed
-            self.current_workspace_state.is_ai_assistant_panel_open = false;
             // Open side panel
             self.current_workspace_state.is_resource_center_open = true;
             send_telemetry_from_ctx!(TelemetryEvent::KeybindingsPageOpened, ctx);
@@ -8710,7 +8706,6 @@ impl Workspace {
         self.current_workspace_state.is_palette_open = false;
         self.current_workspace_state.is_ctrl_tab_palette_open = false;
         self.previous_workspace_state = Some(self.current_workspace_state);
-        self.current_workspace_state.is_ai_assistant_panel_open = false;
         self.current_workspace_state.is_theme_chooser_open = true;
 
         self.previous_theme = Some(current_theme);

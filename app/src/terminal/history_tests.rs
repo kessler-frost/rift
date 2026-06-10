@@ -67,7 +67,6 @@ impl HistoryEntry {
             completed_ts: None,
             git_head: None,
             shell_host: None,
-            is_agent_executed: false,
             is_for_restored_block: false,
         }
     }
@@ -88,7 +87,6 @@ impl HistoryEntry {
             completed_ts: None,
             git_head: None,
             shell_host: None,
-            is_agent_executed: false,
             is_for_restored_block: false,
         }
     }
@@ -696,7 +694,6 @@ fn append_command_with_rich_history_data() {
                 git_branch: None,
                 workflow_id: None,
                 workflow_command: None,
-                is_agent_executed: false,
             },
             PersistedCommand {
                 id: 0,
@@ -710,7 +707,6 @@ fn append_command_with_rich_history_data() {
                 git_branch: Some(String::from("foobar")),
                 workflow_id: None,
                 workflow_command: None,
-                is_agent_executed: false,
             },
         ];
 
@@ -745,7 +741,6 @@ fn append_command_with_rich_history_data() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: None,
                         shell_host: None,
-                        is_agent_executed: false,
                         is_for_restored_block: false,
                     },
                     HistoryEntry {
@@ -759,7 +754,6 @@ fn append_command_with_rich_history_data() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: None,
                         shell_host: None,
-                        is_agent_executed: false,
                         is_for_restored_block: false,
                     },
                 ],
@@ -782,7 +776,6 @@ fn append_command_with_rich_history_data() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: Some(String::from("foobar")),
                         shell_host: Some(shell_host.clone()),
-                        is_agent_executed: false,
                         is_for_restored_block: false,
                     },
                     &HistoryEntry {
@@ -796,7 +789,6 @@ fn append_command_with_rich_history_data() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: None,
                         shell_host: None,
-                        is_agent_executed: false,
                         is_for_restored_block: false,
                     },
                     &HistoryEntry {
@@ -810,7 +802,6 @@ fn append_command_with_rich_history_data() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: None,
                         shell_host: None,
-                        is_agent_executed: false,
                         is_for_restored_block: false,
                     },
                 ]
@@ -846,7 +837,6 @@ fn append_restored_command_doesnt_overwrite_rich_history() {
             git_branch: None,
             workflow_id: None,
             workflow_command: None,
-            is_agent_executed: false,
         }];
         let mut history_handle = app.add_model(|_| History::new(persisted_commands));
         initialize_history_for_testing(
@@ -872,7 +862,6 @@ fn append_restored_command_doesnt_overwrite_rich_history() {
                     exit_code: Some(ExitCode::from(0)),
                     git_head: None,
                     shell_host: None,
-                    is_agent_executed: false,
                     is_for_restored_block: true,
                 }],
             );
@@ -894,7 +883,6 @@ fn append_restored_command_doesnt_overwrite_rich_history() {
                         exit_code: Some(ExitCode::from(0)),
                         git_head: None,
                         shell_host: None,
-                        is_agent_executed: false,
                         is_for_restored_block: true,
                     },
                 ]

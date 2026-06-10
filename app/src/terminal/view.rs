@@ -2773,10 +2773,6 @@ impl TerminalView {
         self.is_ssh_file_uploader = is_uploader;
     }
 
-    pub fn is_shared_ambient_agent_session(&self) -> bool {
-        self.model.lock().is_shared_ambient_agent_session()
-    }
-
 
 
 
@@ -10522,7 +10518,6 @@ impl TerminalView {
         &self,
         appearance: &Appearance,
         app: &AppContext,
-        model: &TerminalModel,
     ) -> HashMap<usize, Box<dyn Element>> {
         let mut inline_banners = HashMap::new();
 
@@ -10598,7 +10593,6 @@ impl TerminalView {
             && ContextFlag::CreateSharedSession.is_enabled())
             || FeatureFlag::ViewingSharedSessions.is_enabled()
         {
-            let is_shared_ambient_agent_session = model.is_shared_ambient_agent_session();
             match &self.inline_banners_state.shared_session_banner_state {
                 SharedSessionBanners::ActiveShare {
                     started_banner_id,
@@ -10609,7 +10603,6 @@ impl TerminalView {
                         *started_banner_id,
                         render_inline_shared_session_started_banner(
                             true,
-                            is_shared_ambient_agent_session,
                             *is_remote_control,
                             *started_at,
                             appearance,
@@ -10627,7 +10620,6 @@ impl TerminalView {
                         *started_banner_id,
                         render_inline_shared_session_started_banner(
                             false,
-                            is_shared_ambient_agent_session,
                             *is_remote_control,
                             *started_at,
                             appearance,
@@ -10636,7 +10628,6 @@ impl TerminalView {
                     inline_banners.insert(
                         *ended_banner_id,
                         render_inline_shared_session_ended_banner(
-                            is_shared_ambient_agent_session,
                             *is_remote_control,
                             *ended_at,
                             appearance,
@@ -10791,7 +10782,7 @@ impl TerminalView {
         let padding_x = self.size_info.padding_x_px;
         let sessions = self.sessions.clone();
 
-        let inline_banners = self.render_inline_banners(appearance, app, model);
+        let inline_banners = self.render_inline_banners(appearance, app);
 
         let mut subshell_separators = HashMap::new();
 

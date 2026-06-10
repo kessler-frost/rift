@@ -433,13 +433,6 @@ pub enum CommandExecutionSource {
     },
 }
 
-impl CommandExecutionSource {
-    /// Whether this command execution originates from an AI command.
-    pub fn is_ai_command(&self) -> bool {
-        false
-    }
-}
-
 #[derive(PartialEq, Eq, Copy, Clone)]
 pub enum HistoryUpMode {
     // Show prefixed results.

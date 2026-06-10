@@ -1176,11 +1176,6 @@ impl TerminalModel {
         self.is_dummy_cloud_mode_session = value;
     }
 
-    pub fn is_shared_ambient_agent_session(&self) -> bool {
-        false
-    }
-
-
 
     pub fn obfuscate_secrets(&self) -> ObfuscateSecrets {
         self.obfuscate_secrets
