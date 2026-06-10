@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Rift"]
 publish.workspace = true
 license.workspace = true
-description = "Language Server Protocol implementation for Warp"
+description = "Language Server Protocol implementation for Rift"
 
 [features]
 local_fs = []
