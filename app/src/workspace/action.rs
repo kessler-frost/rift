@@ -337,12 +337,6 @@ pub enum WorkspaceAction {
     ToggleDebugNetworkStatus,
     ToggleShowMemoryStats,
     RunCommand(String),
-    InsertInInput {
-        content: String,
-        replace_buffer: bool,
-        /// Whether to ensure agent mode is enabled when inserting content
-        ensure_agent_mode: bool,
-    },
     /// Dismisses the Wayland crash recovery banner and opens a link to our docs page with more
     /// information.
     #[cfg(target_os = "linux")]

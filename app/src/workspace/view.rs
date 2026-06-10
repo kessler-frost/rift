@@ -6,8 +6,6 @@ mod startup_directory;
 #[path = "view_tests.rs"]
 mod tests;
 mod vertical_tabs;
-#[cfg(target_family = "wasm")]
-mod wasm_view;
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -51,8 +49,6 @@ use riftui::accessibility::{
     AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, RiftA11yRole,
 };
 use riftui::clipboard::ClipboardContent;
-#[cfg(target_family = "wasm")]
-use riftui::elements::Percentage;
 use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult, DraggableState, DropTarget,
@@ -72,7 +68,6 @@ use riftui::platform::{
 use riftui::text_layout::ClipConfig;
 use riftui::ui_components::button::Button;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use riftui::windowing::state::ApplicationStage;
 use riftui::windowing::{StateEvent, WindowManager};
 use riftui::{
     AppContext, Entity, EntityId, FocusContext, ModelHandle, SingletonEntity, TypedActionView,
@@ -82,8 +77,6 @@ use riftui::{
 use sentry::protocol::{Attachment, AttachmentType};
 use serde_json;
 use session_sharing_protocol::common::SessionId as SharedSessionId;
-#[cfg(target_family = "wasm")]
-use url::Url;
 
 use self::vertical_tabs::{
     render_detail_sidecar, render_settings_popup, vtab_group_position_id, VerticalTabsPanelState,
@@ -229,8 +222,6 @@ use crate::ui_components::buttons::{combo_inner_button, icon_button_with_color};
 use crate::ui_components::window_focus_dimming::WindowFocusDimming;
 use crate::ui_components::icons;
 use crate::undo_close::UndoCloseStack;
-#[cfg(target_family = "wasm")]
-use crate::uri::browser_url_handler::{parse_current_url, update_browser_url};
 #[cfg(feature = "local_fs")]
 use crate::user_config::{
     ensure_default_worktree_config, find_unused_tab_config_path, find_unused_toml_path,
@@ -251,16 +242,12 @@ use crate::util::openable_file_type::FileTarget;
 use crate::util::openable_file_type::{resolve_file_target_with_editor_choice, EditorLayout};
 use crate::util::traffic_lights::{traffic_light_data, TrafficLightMouseStates, TrafficLightSide};
 use crate::util::truncation::truncate_from_end;
-#[cfg(target_family = "wasm")]
-use crate::view_components::action_button::ActionButton;
 use crate::view_components::callout_bubble::{
     render_callout_bubble, CalloutArrowDirection, CalloutArrowPosition, CalloutBubbleConfig,
 };
 use crate::view_components::{
     DismissibleToast, DismissibleToastStack, ToastLink,
 };
-#[cfg(target_family = "wasm")]
-use crate::wasm_nux_dialog::WasmNUXDialog;
 use crate::window_settings::{WindowSettings, WindowSettingsChangedEvent, ZoomLevel};
 use crate::notification::NotificationContext;
 use crate::terminal::input::MenuPositioning;
@@ -316,7 +303,6 @@ const TAB_BAR_ICON_PADDING: f32 = 4.;
 
 const TAB_BAR_OVERFLOW_MENU_WIDTH: f32 = 300.;
 
-#[cfg(not(target_family = "wasm"))]
 const RESOURCE_CENTER_WIDTH: f32 = 361.;
 
 // Ratio of terminal : theme chooser when theme chooser is active
@@ -376,10 +362,6 @@ const KEYBINDINGS_TO_CACHE: [&str; 4] = [
     TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME,
 ];
 
-#[cfg(target_family = "wasm")]
-const MOBILE_OVERLAY_PANEL_WIDTH_RATIO: f32 = 0.9;
-#[cfg(target_family = "wasm")]
-const MOBILE_OVERLAY_SCRIM_ALPHA: u8 = 128;
 
 pub const NEW_TAB_BUTTON_POSITION_ID: &str = "new_tab_button";
 pub const NEW_SESSION_MENU_BUTTON_POSITION_ID: &str = "new_session_menu_button";
@@ -481,16 +463,6 @@ impl ShowTabBar {
 
 /// The type of content being displayed when the simplified WASM tab bar is shown.
 /// Used to determine which elements to render (e.g., icon, info button).
-#[cfg(target_family = "wasm")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum SimplifiedWasmTabBarContent {
-    /// Viewing a Rift Drive object (notebook, workflow, env vars, AI facts, MCP servers)
-    DriveObject,
-    /// Participating in a shared session (viewer or writer).
-    SharedSession,
-    /// Viewing a conversation transcript.
-    ConversationTranscript,
-}
 
 type WorkspaceMenuHandles = (
     ViewHandle<Menu<WorkspaceAction>>,
@@ -543,7 +515,7 @@ struct WorkspaceBannerFields {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DefaultSessionModeBehavior {
-    /// Respect the user's default-session-mode setting and auto-enter agent view when applicable.
+    /// Respect the user's default-session-mode setting when creating the session.
     Apply,
     /// Skip default-session-mode auto-entry because the caller is explicitly specifying the mode for the new session.
     Ignore,
@@ -653,18 +625,6 @@ pub struct Workspace {
 
     // When user's open WEB for the first time, we ask them to select a preference of
     // always opening in web or opening in native app.
-    #[cfg(target_family = "wasm")]
-    show_wasm_nux_dialog: bool,
-    #[cfg(target_family = "wasm")]
-    wasm_nux_dialog: ViewHandle<WasmNUXDialog>,
-    #[cfg(target_family = "wasm")]
-    open_in_rift_button: ViewHandle<ActionButton>,
-    #[cfg(target_family = "wasm")]
-    view_cloud_runs_button: ViewHandle<ActionButton>,
-    #[cfg(target_family = "wasm")]
-    transcript_info_button: ViewHandle<ActionButton>,
-    #[cfg(target_family = "wasm")]
-    transcript_details_panel: ViewHandle<ConversationDetailsPanel>,
 
     left_panel_open: bool,
     vertical_tabs_panel_open: bool,
@@ -1529,8 +1489,6 @@ impl Workspace {
         // Save and open the tab config. The user's `default_session_mode`
         // is intentionally left untouched: creating a tab config should not
         // change the global default for new tabs.
-        // Agent view entry for Oz is handled by PaneMode::Agent in the tab config,
-        // so no manual enter_agent_view call is needed.
         let dir = crate::user_config::tab_configs_dir();
         if let Err(e) = write_tab_config(&config, &dir, "startup_config") {
             log::warn!("Failed to write startup tab config: {e:?}");
@@ -1976,36 +1934,12 @@ impl Workspace {
         let update_toast_stack =
             ctx.add_typed_action_view(|_| DismissibleToastStack::new(Duration::from_secs(4)));
 
-        #[cfg(target_family = "wasm")]
-        let wasm_nux_dialog = Self::build_wasm_nux_dialog(ctx);
 
-        #[cfg(target_family = "wasm")]
-        let open_in_rift_button = Self::build_open_in_rift_button(ctx);
 
-        #[cfg(target_family = "wasm")]
-        let transcript_info_button = Self::build_transcript_info_button(ctx);
 
-        #[cfg(target_family = "wasm")]
-        let view_cloud_runs_button = Self::build_view_cloud_runs_button(ctx);
 
-        #[cfg(target_family = "wasm")]
-        let transcript_details_panel = Self::build_transcript_details_panel(ctx);
 
         // Subscribe to task updates so the transcript details panel can refresh when task data arrives
-        #[cfg(target_family = "wasm")]
-        ctx.subscribe_to_model(
-            &AgentConversationsModel::handle(ctx),
-            |me, _, event, ctx| match event {
-                // Update transcript details if task or conversation data is updated
-                AgentConversationsModelEvent::NewTasksReceived
-                | AgentConversationsModelEvent::TasksUpdated
-                | AgentConversationsModelEvent::ConversationUpdated { .. }
-                | AgentConversationsModelEvent::ConversationArtifactsUpdated { .. } => {
-                    me.update_transcript_details_panel_data(ctx);
-                }
-                _ => {}
-            },
-        );
 
         let cached_keybindings = KEYBINDINGS_TO_CACHE
             .iter()
@@ -2103,18 +2037,6 @@ impl Workspace {
             vertical_tabs_panel: Default::default(),
             working_directories_model,
 
-            #[cfg(target_family = "wasm")]
-            show_wasm_nux_dialog: WasmNUXDialog::should_display(ctx),
-            #[cfg(target_family = "wasm")]
-            wasm_nux_dialog,
-            #[cfg(target_family = "wasm")]
-            open_in_rift_button,
-            #[cfg(target_family = "wasm")]
-            transcript_info_button,
-            #[cfg(target_family = "wasm")]
-            view_cloud_runs_button,
-            #[cfg(target_family = "wasm")]
-            transcript_details_panel,
             tab_fixed_width: None,
             command_search_view,
             lightbox_view: None,
@@ -2497,14 +2419,7 @@ impl Workspace {
             | NewWorkspaceSource::FromTemplate { .. }
             | NewWorkspaceSource::Session { .. }
             | NewWorkspaceSource::NotebookFromFilePath { .. } => should_default_open,
-            #[cfg(not(target_family = "wasm"))]
             NewWorkspaceSource::SharedSessionAsViewer { .. } => should_default_open,
-            #[cfg(target_family = "wasm")]
-            NewWorkspaceSource::SharedSessionAsViewer { .. } => {
-                // Web opens these as single-purpose views without exposed multi-tab UI, so keep
-                // the tabs panel closed even though native windows still expose workspace chrome.
-                false
-            }
         }
     }
 
@@ -2604,40 +2519,6 @@ impl Workspace {
 
     /// Returns the type of simplified WASM tab bar content to display, if any.
     /// Used to determine whether to show the simplified tab bar layout on WASM.
-    #[cfg(target_family = "wasm")]
-    fn get_simplified_wasm_tab_bar_content(
-        &self,
-        ctx: &AppContext,
-    ) -> Option<SimplifiedWasmTabBarContent> {
-        let pane_group = self.active_tab_pane_group().as_ref(ctx);
-
-        // Check if focused pane is a terminal with special state
-        if let Some(terminal_view) = pane_group.focused_session_view(ctx) {
-            let model = terminal_view.as_ref(ctx).model.lock();
-
-            // Conversation transcript viewer takes priority
-            if model.is_conversation_transcript_viewer() {
-                return Some(SimplifiedWasmTabBarContent::ConversationTranscript {
-                    task_id: model.ambient_agent_task_id(),
-                });
-            }
-
-            // Check for shared session (viewer or writer)
-            if model.shared_session_status().is_sharer_or_viewer() {
-                return Some(SimplifiedWasmTabBarContent::SharedSession {
-                    task_id: model.ambient_agent_task_id(),
-                });
-            }
-        }
-
-        // Check if focused pane is a Rift Drive object
-        let focused_pane_id = pane_group.focused_pane_id(ctx);
-        if focused_pane_id.is_drive_object_pane() {
-            return Some(SimplifiedWasmTabBarContent::DriveObject);
-        }
-
-        None
-    }
 
 
     fn current_focus_region(&self, ctx: &mut ViewContext<Self>) -> FocusRegion {
@@ -2964,8 +2845,6 @@ impl Workspace {
                 self.close_palette(false, None, ctx);
             }
 
-            // If the agent management view is open, we want to close it when we activate a new tab.
-
             self.set_active_tab_index(index, ctx);
             self.focus_active_tab(ctx);
             self.update_window_title(ctx);
@@ -2997,13 +2876,6 @@ impl Workspace {
     }
 
 
-    /// The agent-views/notifications models were removed; this is now a no-op.
-    fn notify_terminal_focus_change(
-        &self,
-        _focused_terminal_view_id: Option<EntityId>,
-        _ctx: &mut ViewContext<Self>,
-    ) {
-    }
 
     /// Change the active tab index. This must be used instead of setting `self.active_tab_index`
     /// directly, as it updates related state.
@@ -3037,14 +2909,6 @@ impl Workspace {
         }
 
 
-        let pane_group = self.active_tab_pane_group();
-        let focused_terminal_view_id = self
-            .active_tab_pane_group()
-            .as_ref(ctx)
-            .terminal_view_from_pane_id(pane_group.as_ref(ctx).focused_pane_id(ctx), ctx)
-            .map(|tv| tv.id());
-        self.notify_terminal_focus_change(focused_terminal_view_id, ctx);
-
         self.update_active_session(ctx);
     }
 
@@ -3070,9 +2934,6 @@ impl Workspace {
         if index >= self.tab_count() {
             return;
         }
-
-        // If the agent management view is open, we want to close it when we change focus to rename a tab.
-        // This function doesn't call `activate_tab_internal`, which is why we need the extra check here.
 
         self.set_active_tab_index(index, ctx);
 
@@ -3681,7 +3542,6 @@ impl Workspace {
         ctx.open_url(&links::feedback_form_url());
     }
 
-    #[cfg(not(target_family = "wasm"))]
     fn view_logs(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.spawn(
             async { tokio::task::spawn_blocking(rift_logging::create_log_bundle_zip).await },
@@ -5131,7 +4991,6 @@ impl Workspace {
                 .into_item(),
         ]);
 
-        #[cfg(not(target_family = "wasm"))]
         items.push(
             MenuItemFields::new("View Rift logs")
                 .with_on_select_action(WorkspaceAction::ViewLogs)
@@ -6866,12 +6725,7 @@ impl Workspace {
             return;
         }
 
-        // Preserve split-off child-agent tabs by moving their lone pane back
-        // before close cleanup. Skip tab moves so the destination keeps the
-        // pane.
-        let re_adopted = false;
-
-        if !re_adopted && detach_panes_for_close {
+        if detach_panes_for_close {
             let working_directories_model = self.working_directories_model.clone();
             pane_group.update(ctx, |pane_group, ctx| {
                 pane_group.for_all_terminal_panes(
@@ -6898,9 +6752,7 @@ impl Workspace {
         let removed_pane_group_id = tab_data.pane_group.id();
         self.tab_mru_order.retain(|id| *id != removed_pane_group_id);
 
-        // Re-adopted child tabs leave no useful tab contents to restore; the
-        // live pane already moved back.
-        if add_to_undo_stack && !re_adopted {
+        if add_to_undo_stack {
             let handle = ctx.handle();
             UndoCloseStack::handle(ctx).update(ctx, |stack, ctx| {
                 log::info!("storing data for closed tab");
@@ -7024,13 +6876,10 @@ impl Workspace {
                     ctx
                 );
 
-                if cfg!(all(not(target_family = "wasm"), target_os = "macos")) {
+                if cfg!(target_os = "macos") {
                     AppContext::show_native_platform_modal(ctx, dialog);
                     return false;
-                } else if cfg!(all(
-                    not(target_family = "wasm"),
-                    any(target_os = "linux", windows)
-                )) {
+                } else if cfg!(any(target_os = "linux", windows)) {
                     self.show_native_modal(dialog, ctx);
                     return false;
                 }
@@ -8462,7 +8311,6 @@ impl Workspace {
         content: &str,
         replace_buffer: bool,
         should_submit: bool,
-        ensure_agent_mode: bool,
         ctx: &mut ViewContext<Self>,
     ) {
         let active_input_handle = self.get_active_input_view_handle(ctx);
@@ -8474,8 +8322,6 @@ impl Workspace {
                 } else {
                     input.append_to_buffer(content, ctx);
                 }
-
-                let _ = ensure_agent_mode;
 
                 if should_submit {
                     input.input_enter(ctx);
@@ -8887,27 +8733,6 @@ impl Workspace {
             StateEvent::ValueChanged { current, previous } => {
                 let did_window_change_focus =
                     WindowManager::did_window_change_focus(self.window_id, current, previous);
-                let cached_window_is_active = current.active_window == Some(self.window_id);
-                let app_became_active = previous.stage != ApplicationStage::Active
-                    && current.stage == ApplicationStage::Active;
-                let platform_window_is_active =
-                    ctx.windows().active_window() == Some(self.window_id);
-
-                // Notify focus listeners when this window is active after either a window focus
-                // change or app reactivation while the active window stayed the same.
-                // On macOS, app activation can beat the deferred key-window update, so
-                // reactivation also verifies the live platform window.
-                if cached_window_is_active
-                    && (did_window_change_focus || (app_became_active && platform_window_is_active))
-                {
-                    if let Some(terminal_view) = self
-                        .active_tab_pane_group()
-                        .as_ref(ctx)
-                        .focused_session_view(ctx)
-                    {
-                        self.notify_terminal_focus_change(Some(terminal_view.id()), ctx);
-                    }
-                }
 
                 // Re-render if fullscreen state for active window has changed.
                 if current.is_active_window_fullscreen != previous.is_active_window_fullscreen {
@@ -9042,15 +8867,6 @@ impl Workspace {
             .build()
             .finish()
         }
-    }
-
-    fn render_agent_management_view_button(
-        &self,
-        _appearance: &Appearance,
-        _ctx: &AppContext,
-    ) -> Box<dyn Element> {
-        // Agent management panel was an AI feature and has been removed.
-        Empty::new().finish()
     }
 
     fn render_left_toggle_button(
@@ -9361,7 +9177,7 @@ impl Workspace {
                         Shrinkable::new(
                             1.,
                             Text::new_inline(
-                                "Search sessions, agents, files...",
+                                "Search sessions, files...",
                                 appearance.ui_font_family(),
                                 14.,
                             )
@@ -9411,90 +9227,6 @@ impl Workspace {
         let mut tab_bar = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
 
         // Simplified mode for viewing Rift Drive objects, shared sessions, or conversation transcripts on WASM
-        #[cfg(target_family = "wasm")]
-        if let Some(content_type) = self.get_simplified_wasm_tab_bar_content(ctx) {
-            // Use MainAxisAlignment::SpaceBetween and expand to fill width
-            tab_bar = tab_bar
-                .with_main_axis_alignment(MainAxisAlignment::SpaceBetween)
-                .with_main_axis_size(MainAxisSize::Max);
-            let bg_color = blended_colors::neutral_1(appearance.theme());
-
-            // Left: Rift logo - clickable to link to the upstream site
-            let rift_logo = Hoverable::new(self.mouse_states.rift_logo.clone(), |_state| {
-                ConstrainedBox::new(
-                    rift_core::ui::Icon::Rift
-                        .to_riftui_icon(appearance.theme().foreground())
-                        .finish(),
-                )
-                .with_height(24.)
-                .with_width(24.)
-                .finish()
-            })
-            .on_click(|ctx, _, _| {
-                ctx.dispatch_typed_action(WorkspaceAction::OpenLink("https://rift.dev".to_owned()));
-            })
-            .with_cursor(Cursor::PointingHand)
-            .finish();
-            tab_bar.add_child(rift_logo);
-
-            // Right: Info button + "View all cloud runs" button (for ambient agent sessions) + "Open in Rift" button
-            let mut right_row = Flex::row()
-                .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                .with_main_axis_size(MainAxisSize::Min);
-
-            // Extract task_id from conversation transcripts and shared sessions
-            let task_id = match content_type {
-                SimplifiedWasmTabBarContent::ConversationTranscript { task_id }
-                | SimplifiedWasmTabBarContent::SharedSession { task_id } => task_id,
-                SimplifiedWasmTabBarContent::DriveObject => None,
-            };
-
-            // Show info button for conversation transcripts and shared sessions (if there's content to display)
-            let should_show_info_button =
-                !matches!(content_type, SimplifiedWasmTabBarContent::DriveObject)
-                    && self
-                        .active_tab_pane_group()
-                        .as_ref(ctx)
-                        .focused_session_view(ctx)
-                        .is_some_and(|view| {
-                            Self::should_show_conversation_details_panel(&view, ctx)
-                        });
-
-            if should_show_info_button {
-                right_row.add_child(
-                    Container::new(ChildView::new(&self.transcript_info_button).finish())
-                        .with_margin_right(8.)
-                        .finish(),
-                );
-
-                // Add "View all cloud runs" button when task_id exists (with 4px gap)
-                if task_id.is_some() {
-                    right_row.add_child(
-                        Container::new(ChildView::new(&self.view_cloud_runs_button).finish())
-                            .with_margin_right(4.)
-                            .finish(),
-                    );
-                }
-            }
-
-            // Hide "Open in Rift" button on mobile devices
-            if !riftui::platform::wasm::is_mobile_device() {
-                right_row.add_child(ChildView::new(&self.open_in_rift_button).finish());
-            }
-            tab_bar.add_child(right_row.finish());
-
-            return Container::new(tab_bar.finish())
-                .with_background_color(bg_color)
-                .with_border(
-                    Border::bottom(1.0)
-                        .with_border_fill(blended_colors::neutral_2(appearance.theme())),
-                )
-                .with_padding_left(24.)
-                .with_padding_right(24.)
-                .with_padding_top(4.)
-                .with_padding_bottom(4.)
-                .finish();
-        }
 
         // Check if vertical tabs mode is active
         let vertical_tabs_active =
@@ -9706,9 +9438,8 @@ impl Workspace {
                     self.render_left_toggle_button(appearance, ctx)
                 }
             }
-            HeaderToolbarItemKind::AgentManagement => {
-                self.render_agent_management_view_button(appearance, ctx)
-            }
+            // Kept only for persisted-layout compatibility; never supported.
+            HeaderToolbarItemKind::AgentManagement => Empty::new().finish(),
             HeaderToolbarItemKind::CodeReview => self.render_right_panel_button(appearance, ctx),
             // Kept only for persisted-layout compatibility; never supported.
             HeaderToolbarItemKind::NotificationsMailbox => Empty::new().finish(),
@@ -10430,7 +10161,6 @@ impl Workspace {
             .finish()
     }
 
-    #[cfg(not(target_family = "wasm"))]
     fn render_resource_center(&self) -> Box<dyn Element> {
         ConstrainedBox::new(ChildView::new(&self.resource_center_view).finish())
             .with_width(RESOURCE_CENTER_WIDTH)
@@ -10905,19 +10635,8 @@ impl Workspace {
             }
         }
 
-        #[cfg(target_family = "wasm")]
-        if !riftui::platform::wasm::is_mobile_device()
-            && self
-                .current_workspace_state
-                .is_transcript_details_panel_open
-        {
-            if let Some(panel_content) = self.render_transcript_details_panel(app) {
-                panels_view = panels_view.with_child(panel_content);
-            }
-        }
 
         // Resource center and AI assistant are workspace-level panels, not configurable.
-        #[cfg(not(target_family = "wasm"))]
         if self.current_workspace_state.is_right_panel_open() {
             let right_panel_content = if self.current_workspace_state.is_resource_center_open {
                 Some(self.render_panel(app, self.render_resource_center(), &PanelPosition::Right))
@@ -11278,12 +10997,6 @@ impl Workspace {
         }
         if *tab_settings.show_code_review_diff_stats.value() {
             context.set.insert(flags::SHOW_CODE_REVIEW_DIFF_STATS_FLAG);
-        }
-        if *general_settings
-            .auto_open_code_review_pane_on_first_agent_change
-            .value()
-        {
-            context.set.insert(flags::AUTO_OPEN_CODE_REVIEW_PANE_FLAG);
         }
         if *tab_settings.use_vertical_tabs.value() {
             context.set.insert(flags::USE_VERTICAL_TABS_FLAG);
@@ -11786,7 +11499,6 @@ impl TypedActionView for Workspace {
             ViewUserDocs => self.view_user_docs(ctx),
             ViewPrivacyPolicy => self.view_privacy_policy(ctx),
             SendFeedback => self.send_feedback(ctx),
-            #[cfg(not(target_family = "wasm"))]
             ViewLogs => self.view_logs(ctx),
             ChangeCursor(cursor) => self.change_cursor(*cursor, ctx),
             ToggleErrorUnderlining => self.toggle_error_underlining(ctx),
@@ -12094,15 +11806,7 @@ impl TypedActionView for Workspace {
             }
             RunCommand(code) => {
                 let command = code.trim().to_string();
-                self.insert_in_input(&command, true, true, false, ctx);
-                ctx.notify();
-            }
-            InsertInInput {
-                content,
-                replace_buffer,
-                ensure_agent_mode,
-            } => {
-                self.insert_in_input(content, *replace_buffer, false, *ensure_agent_mode, ctx);
+                self.insert_in_input(&command, true, true, ctx);
                 ctx.notify();
             }
             #[cfg(all(enable_crash_recovery, target_os = "linux"))]
@@ -12405,10 +12109,6 @@ impl View for Workspace {
 
         }
 
-        #[cfg(target_family = "wasm")]
-        if self.is_conversation_transcript_viewer_focused(app) {
-            context.set.insert("Workspace_CloudConversationWebViewer");
-        }
 
         context
     }
@@ -12418,15 +12118,7 @@ impl View for Workspace {
 
         let tab_bar_mode = self.tab_bar_mode(app);
 
-        // For WASM simplified tab bar views (Rift Drive objects, shared sessions, conversation transcripts),
-        // we render the tab bar outside of panels so that the details panel only affects content below the tab bar.
-        cfg_if::cfg_if! {
-            if #[cfg(target_family = "wasm")] {
-                let use_simplified_wasm_tab_bar = self.get_simplified_wasm_tab_bar_content(app).is_some();
-            } else {
-                let use_simplified_wasm_tab_bar = false;
-            }
-        }
+        let use_simplified_wasm_tab_bar = false;
 
         let panels = if use_simplified_wasm_tab_bar {
             // For the simplified WASM tab bar, we want to render the tab bar on top of all other content
@@ -12517,53 +12209,6 @@ impl View for Workspace {
         }
 
         // Transcript details panel overlay (right side, mobile only)
-        #[cfg(target_family = "wasm")]
-        if riftui::platform::wasm::is_mobile_device()
-            && self
-                .current_workspace_state
-                .is_transcript_details_panel_open
-        {
-            // Dimming scrim on the left (10% width); tapping closes the panel
-            let scrim = Rect::new()
-                .with_background(Fill::Solid(ColorU::new(
-                    0,
-                    0,
-                    0,
-                    MOBILE_OVERLAY_SCRIM_ALPHA,
-                )))
-                .finish();
-            let clickable_scrim = EventHandler::new(scrim)
-                .on_left_mouse_down(|ctx, _, _| {
-                    ctx.dispatch_typed_action(
-                        WorkspaceAction::ToggleConversationTranscriptDetailsPanel,
-                    );
-                    DispatchEventResult::StopPropagation
-                })
-                .finish();
-            stack.add_positioned_overlay_child(
-                Percentage::width(1.0 - MOBILE_OVERLAY_PANEL_WIDTH_RATIO, clickable_scrim).finish(),
-                OffsetPositioning::offset_from_save_position_element(
-                    TAB_BAR_POSITION_ID,
-                    vec2f(0., 0.),
-                    PositionedElementOffsetBounds::WindowBySize,
-                    PositionedElementAnchor::BottomLeft,
-                    ChildAnchor::TopLeft,
-                ),
-            );
-
-            // Details panel overlay (90% width, positioned on the right)
-            let panel_content = ChildView::new(&self.transcript_details_panel).finish();
-            stack.add_positioned_overlay_child(
-                Percentage::width(MOBILE_OVERLAY_PANEL_WIDTH_RATIO, panel_content).finish(),
-                OffsetPositioning::offset_from_save_position_element(
-                    TAB_BAR_POSITION_ID,
-                    vec2f(0., 0.),
-                    PositionedElementOffsetBounds::WindowBySize,
-                    PositionedElementAnchor::BottomRight,
-                    ChildAnchor::TopRight,
-                ),
-            );
-        }
 
         if let Some(position) = self.show_header_toolbar_context_menu {
             stack.add_positioned_overlay_child(
@@ -12854,7 +12499,7 @@ impl View for Workspace {
                 }
             }
 
-            // Action sidecar for actionable items (Terminal, Agent, Cloud Agent, tab configs).
+            // Action sidecar for actionable items (Terminal, tab configs).
             if let Some(sidecar_item) = &self.tab_config_action_sidecar_item {
                 let anchor_label = self.new_session_dropdown_menu.read(app, |menu, _| {
                     menu.hovered_index().and_then(|idx| {
@@ -13182,18 +12827,6 @@ impl View for Workspace {
             }
         }
 
-        #[cfg(target_family = "wasm")]
-        if self.show_wasm_nux_dialog {
-            stack.add_positioned_overlay_child(
-                ChildView::new(&self.wasm_nux_dialog).finish(),
-                OffsetPositioning::offset_from_parent(
-                    vec2f(-10., 67.),
-                    ParentOffsetBounds::WindowByPosition,
-                    ParentAnchor::TopRight,
-                    ChildAnchor::TopRight,
-                ),
-            );
-        }
 
         // Add workspace-wide UI event handling.
         let stack = if FeatureFlag::VerticalTabs.is_enabled()
@@ -13810,13 +13443,6 @@ impl Workspace {
                 // Re-evaluate which region is focused and update pane dimming accordingly.
                 self.update_pane_dimming_for_current_focus_region(ctx);
 
-                let focused_terminal_view_id = {
-                    let pane_group = self.active_tab_pane_group().as_ref(ctx);
-                    pane_group
-                        .terminal_view_from_pane_id(pane_group.focused_pane_id(ctx), ctx)
-                        .map(|tv| tv.id())
-                };
-                self.notify_terminal_focus_change(focused_terminal_view_id, ctx);
             }
             pane_group::Event::RepoChanged => {
                 self.refresh_working_directories_for_pane_group(&pane_group, ctx);
@@ -13837,8 +13463,8 @@ impl Workspace {
                 }
             }
             pane_group::Event::RemoteRepoNavigated { .. } => {}
-            // Pane-to-tab-bar moves relied on pane-move helpers that were removed
-            // with the agent/code panes; the drop is ignored.
+            // Pane-to-tab-bar moves relied on pane-move helpers that were
+            // removed; the drop is ignored.
             pane_group::Event::DroppedOnTabBar { .. } => {}
             pane_group::Event::SwitchTabFocusAndMovePane { .. } => {}
             pane_group::Event::UpdateHoveredTabIndex { tab_hover_index } => {
