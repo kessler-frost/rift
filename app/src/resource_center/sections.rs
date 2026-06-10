@@ -90,7 +90,7 @@ fn maximize_rift_items(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Fea
 
     maximize_rift_items.push(FeatureItem::new(
         "Command search",
-        "Find and run previously executed commands, workflows, and more.",
+        "Find and run previously executed commands and more.",
         Tip::Action(TipAction::CommandSearch),
         ctx,
     ));

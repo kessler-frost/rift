@@ -77,7 +77,7 @@ impl SearchItem for HistorySearchItem {
         .left()
         .finish();
 
-        let command_and_workflow = Flex::column()
+        let command_column = Flex::column()
             .with_main_axis_alignment(MainAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Max)
             .with_child(command);
@@ -85,7 +85,7 @@ impl SearchItem for HistorySearchItem {
         let mut item = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Max)
-            .with_child(Shrinkable::new(1., command_and_workflow.finish()).finish());
+            .with_child(Shrinkable::new(1., command_column.finish()).finish());
 
         if let Some(metadata) = self.render_command_level_metadata(&highlight_state, appearance) {
             item.add_child(metadata);

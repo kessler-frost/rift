@@ -41,7 +41,6 @@ use crate::search::search_bar::{
 };
 use crate::search::QueryFilter;
 use crate::send_telemetry_from_ctx;
-use crate::server::ids::SyncId;
 use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::History;
 use crate::themes::theme::RiftTheme;
@@ -69,18 +68,6 @@ pub enum Event {
     Close,
     ParentAction {
         action: WelcomeViewAction,
-    },
-    /// Execute the workflow identified by `id`.
-    ExecuteWorkflow {
-        id: SyncId,
-    },
-    /// Invoke the env vars identified by `id`.
-    InvokeEnvironmentVariables {
-        id: SyncId,
-    },
-    /// Open a notebook identified by `id`.
-    OpenNotebook {
-        id: SyncId,
     },
     /// Open a file at the given path.
     OpenFile {

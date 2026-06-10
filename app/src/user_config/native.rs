@@ -26,8 +26,7 @@ use crate::rift_managed_paths_watcher::{
 
 impl super::RiftConfig {
     pub fn new(ctx: &mut ModelContext<Self>) -> Self {
-        // Load launch configs, and workflows from disk asynchronously on a background
-        // thread.
+        // Load launch configs from disk asynchronously on a background thread.
         //
         // Themes are required during initialization by `Settings`, so we load this synchronously
         // on startup. We should investigate the possibility of offloading theme loading to a
@@ -152,8 +151,8 @@ pub fn load_theme_configs(theme_path: &Path) -> RiftThemeConfig {
     theme_configs
 }
 
-/// Loads all launch configs relative to the `launch_config_path`. Each workflow is assumed to be in an
-/// individual YAML file.
+/// Loads all launch configs relative to the `launch_config_path`. Each launch config is assumed to
+/// be in an individual YAML file.
 pub fn load_launch_configs(launch_config_path: &Path) -> Vec<LaunchConfig> {
     for_each_dir_entry(launch_config_path, parse_multi_launch_config_dir_entry)
         .into_iter()

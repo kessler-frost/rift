@@ -208,8 +208,6 @@ pub enum TelemetryInputSuggestionsMode {
     CompletionSuggestions,
     HistoryUp,
     NaturalLanguageCommandSearch,
-    StaticWorkflowEnumSuggestions,
-    DynamicWorkflowEnumSuggestions,
     AIContextMenu,
     SlashCommands,
     ConversationMenu,
@@ -773,9 +771,8 @@ pub fn init(app: &mut AppContext) {
             CustomAction::History,
             InputAction::Up,
             "Show History",
-            // We need to ensure the workflow info box is not open as the "up" arrow
-            // key is used to navigate the environment variables dropdown.
-            // Same goes with the LLM menu.
+            // The "up" arrow key is used to navigate the environment variables
+            // dropdown, so ensure it is not open here. Same goes with the LLM menu.
             id!("Input")
                 & !id!("IMEOpen")
                 & !id!("VoltronActive")
@@ -1609,8 +1606,7 @@ impl Input {
     }
 
     /// Executes the given command if the terminal session is in a valid state to accept and
-    /// execute a command. Afterwards, ensures the workflows info menu and input suggestions menu
-    /// are both closed.
+    /// execute a command. Afterwards, ensures the input suggestions menu is closed.
     ///
     /// This will _not_ execute a command if any of the following are true:
     ///     1. The history list and/or blocklist are not yet bootstrapped.
@@ -2806,9 +2802,8 @@ impl Input {
                     init_content: InitContent::Custom(term.clone().unwrap_or("".to_owned())),
                 }));
             }
-            // For this view, the terminal Input, we do not support ex-commands. The closest
-            // analogy we have in this view would be workflows. So, open command search with the
-            // workflows filter to handle this event.
+            // For this view, the terminal Input, we do not support ex-commands. Instead, open
+            // command search with the history filter to handle this event.
             EditorEvent::ExCommand => ctx.emit(Event::ShowCommandSearch(CommandSearchOptions {
                 filter: Some(QueryFilter::History),
                 init_content: InitContent::Custom("".to_owned()),

@@ -55,9 +55,6 @@ use crate::editor::{
 use crate::features::FeatureFlag;
 use crate::gpu_state::{GPUState, GPUStateEvent};
 use crate::root_view::QuakeModePinPosition;
-use crate::search::command_search::settings::{
-    CommandSearchSettings, ShowGlobalWorkflowsInUniversalSearch,
-};
 use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::native_preference::{NativePreferenceSettings, UserNativePreference};
 use crate::settings::{
@@ -575,22 +572,6 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             ),
         );
     }
-    toggle_binding_pairs.push(
-        ToggleSettingActionPair::new(
-            "global workflows in Command Search",
-            builder(SettingsAction::FeaturesPageToggle(
-                FeaturesPageAction::ToggleGlobalWorkflowsInUniversalSearch,
-            )),
-            context,
-            flags::GLOBAL_WORKFLOWS_IN_COMMAND_SEARCH_FLAG,
-        )
-        .is_supported_on_current_platform(
-            CommandSearchSettings::as_ref(app)
-                .show_global_workflows_in_universal_search
-                .is_supported_on_current_platform(),
-        ),
-    );
-
     if GPUState::as_ref(app).is_low_power_gpu_available() {
         toggle_binding_pairs.push(
             ToggleSettingActionPair::new(
@@ -697,7 +678,6 @@ pub enum FeaturesPageAction {
     ToggleLeftMetaKey,
     ToggleRightMetaKey,
     ToggleMouseReporting,
-    ToggleGlobalWorkflowsInUniversalSearch,
     ToggleScrollReporting,
     ToggleFocusReporting,
     ToggleLongRunningNotifications,
@@ -909,13 +889,6 @@ impl TypedActionView for FeaturesPageView {
                 BlockListSettings::handle(ctx).update(ctx, |blocklist_settings, ctx| {
                     report_if_error!(blocklist_settings
                         .snackbar_enabled
-                        .toggle_and_save_value(ctx));
-                });
-            }
-            ToggleGlobalWorkflowsInUniversalSearch => {
-                CommandSearchSettings::handle(ctx).update(ctx, |workflow_settings, ctx| {
-                    report_if_error!(workflow_settings
-                        .show_global_workflows_in_universal_search
                         .toggle_and_save_value(ctx));
                 });
             }
@@ -1562,9 +1535,6 @@ impl FeaturesPageView {
         });
         ctx.subscribe_to_model(&BlockListSettings::handle(ctx), |_, _, _, ctx| ctx.notify());
         ctx.subscribe_to_model(&AliasExpansionSettings::handle(ctx), |_, _, _, ctx| {
-            ctx.notify()
-        });
-        ctx.subscribe_to_model(&CommandSearchSettings::handle(ctx), |_, _, _, ctx| {
             ctx.notify()
         });
         ctx.subscribe_to_model(&GPUSettings::handle(ctx), |me, _, _, ctx| {
@@ -2331,10 +2301,6 @@ impl FeaturesPageView {
             Category::new("Terminal Input", editor_widgets),
             Category::new("Terminal", terminal_widgets),
             Category::new("Notifications", notifications_widgets),
-            Category::new(
-                "Workflows",
-                vec![Box::new(WorkflowsInCommandSearch::default())],
-            ),
             Category::new("System", system_widgets),
         ];
 
@@ -6294,62 +6260,6 @@ impl SettingsWidget for DefaultSessionModeWidget {
     }
 }
 
-#[derive(Default)]
-struct WorkflowsInCommandSearch {
-    additional_info_link: MouseStateHandle,
-    switch_state: SwitchStateHandle,
-}
-
-impl SettingsWidget for WorkflowsInCommandSearch {
-    type View = FeaturesPageView;
-
-    fn search_terms(&self) -> &str {
-        "global workflows command search"
-    }
-
-    fn render(
-        &self,
-        view: &Self::View,
-        appearance: &Appearance,
-        app: &AppContext,
-    ) -> Box<dyn Element> {
-        let ui_builder = appearance.ui_builder();
-        let workflow_settings = CommandSearchSettings::as_ref(app);
-        render_body_item::<FeaturesPageAction>(
-            "Show Global Workflows in Command Search (ctrl-r)".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/entry/yaml-workflows".into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
-            LocalOnlyIconState::for_setting(
-                ShowGlobalWorkflowsInUniversalSearch::storage_key(),
-                ShowGlobalWorkflowsInUniversalSearch::sync_to_cloud(),
-                &mut view
-                    .button_mouse_states
-                    .local_only_icon_tooltip_states
-                    .borrow_mut(),
-                app,
-            ),
-            ToggleState::Enabled,
-            appearance,
-            ui_builder
-                .switch(self.switch_state.clone())
-                .check(*workflow_settings.show_global_workflows_in_universal_search)
-                .build()
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(
-                        FeaturesPageAction::ToggleGlobalWorkflowsInUniversalSearch,
-                    )
-                })
-                .finish(),
-            None,
-        )
-    }
-}
 
 #[derive(Default)]
 struct LinuxSelectionClipboardWidget {

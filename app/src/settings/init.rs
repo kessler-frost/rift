@@ -19,7 +19,6 @@ use super::{
 };
 use crate::banner::BannerState;
 use crate::resource_center::TipsCompleted;
-use crate::search::command_search::settings::CommandSearchSettings;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
@@ -58,7 +57,6 @@ pub fn register_all_settings(ctx: &mut AppContext) {
     SafeModeSettings::register(ctx);
     TerminalSettings::register(ctx);
     PaneSettings::register(ctx);
-    CommandSearchSettings::register(ctx);
     AliasExpansionSettings::register(ctx);
     CodeSettings::register(ctx);
     LigatureSettings::register(ctx);

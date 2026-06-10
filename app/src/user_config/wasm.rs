@@ -13,12 +13,11 @@ impl super::RiftConfig {
             tab_configs: Default::default(),
             tab_config_errors: Default::default(),
             theme_config: RiftThemeConfig::new(),
-            local_user_workflows: Default::default(),
         }
     }
 }
 
-/// Loads all themes relative to the `workflow_path`.
+/// Loads all themes relative to the `theme_path`.
 pub fn load_theme_configs(_theme_path: &Path) -> RiftThemeConfig {
     // There's no local filesystem for wasm, so we'll never be able to retrieve
     // themes from any path.

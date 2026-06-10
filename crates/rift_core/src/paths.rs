@@ -25,7 +25,7 @@ use crate::AppId;
 /// The name of the directory in which to put non-global Rift-specific files.
 ///
 /// This should be used, for example, as the base directory under which
-/// repository workflows would be stored (in "./.rift/workflows").
+/// repository-local Rift configuration would be stored (in "./.rift").
 pub const RIFT_CONFIG_DIR: &str = ".rift";
 
 /// The name of the folder that stores Rift execution logs and network logs.
@@ -87,7 +87,7 @@ fn macos_config_dir_name() -> String {
 /// Returns the path to the directory where portable user data should be
 /// stored.
 ///
-/// This is the appropriate home for things like custom themes and workflows.
+/// This is the appropriate home for things like custom themes.
 pub fn data_dir() -> PathBuf {
     cfg_if! {
         if #[cfg(target_os = "macos")] {

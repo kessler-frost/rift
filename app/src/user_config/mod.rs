@@ -68,11 +68,10 @@ pub enum RiftConfigUpdateEvent {
     SettingsErrorsCleared,
 }
 
-/// Singleton model containing user configurable file entities like themes, launch configs, and
-/// workflows.
+/// Singleton model containing user configurable file entities like themes and launch configs.
 ///
 /// Emits events when entities are changed, which are detected via filesystem
-/// watchers on the user's `data_dir()` (themes, workflows, launch configs,
+/// watchers on the user's `data_dir()` (themes, launch configs,
 /// tab configs, etc.) and, on platforms where it differs, `config_local_dir()`
 /// (`settings.toml`, `keybindings.yaml`, `user_preferences.json`).
 #[derive(Default)]

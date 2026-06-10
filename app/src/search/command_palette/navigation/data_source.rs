@@ -64,8 +64,8 @@ impl SyncDataSource for DataSource {
 }
 
 impl DataSource {
-    /// Returns a [`QueryResult`] for a workflow identified by `sync_id`. `None` if no result was
-    /// found with the given ID.
+    /// Returns a [`QueryResult`] for the session at the given `pane_view_locator`. `None` if no
+    /// matching session was found.
     pub fn query_result(
         &self,
         pane_view_locator: PaneViewLocator,

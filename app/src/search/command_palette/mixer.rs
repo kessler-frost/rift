@@ -115,9 +115,9 @@ impl CommandPaletteItemAction {
 /// unique way to identify a selected item  so  we can show it in the "recent" section of the
 /// palette. We choose to not use the entire [`CommandPaletteItemAction`] since we only need a
 /// unique identifier to store. Additionally, parts of the `CommandPaletteItemAction` could change
-/// in between invocations of the command palette (such as the content or title of a workflow or the
-/// trigger for a keybinding) that should not be factored in when determining whether to show it in
-/// the recent section of the palette.
+/// in between invocations of the command palette (such as the trigger for a keybinding) that
+/// should not be factored in when determining whether to show it in the recent section of the
+/// palette.
 #[derive(Clone, Debug, PartialEq, IntoStaticStr)]
 pub enum ItemSummary {
     Action {

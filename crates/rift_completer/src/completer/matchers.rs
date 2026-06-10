@@ -94,7 +94,7 @@ pub enum MatchType {
     },
     Fuzzy,
     /// The `Other` variant is used when we have matches that aren't related to the
-    /// search pattern, for example, workflow enum suggestions
+    /// search pattern.
     Other,
 }
 

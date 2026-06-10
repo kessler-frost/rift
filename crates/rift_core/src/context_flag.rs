@@ -22,7 +22,6 @@ pub enum ContextFlag {
     HideOpenOnDesktopButton,
     PromptForVersionUpdates,
     NetworkLogConsole,
-    RunWorkflow,
     LaunchConfigurations,
     RiftEssentials,
     AllowSettingsModalToClose,
@@ -60,7 +59,6 @@ impl ContextFlag {
         disable_flag(Self::ForceSidePanelOpen);
         disable_flag(Self::ShowRewardModal);
         disable_flag(Self::HideOpenOnDesktopButton);
-        disable_flag(Self::RunWorkflow);
         disable_flag(Self::CreateSharedSession);
         disable_flag(Self::CreateNewSession);
         disable_flag(Self::CloseWindow);
@@ -74,7 +72,6 @@ impl ContextFlag {
         disable_flag(Self::ForceSidePanelOpen);
         disable_flag(Self::ShowRewardModal);
         disable_flag(Self::HideOpenOnDesktopButton);
-        disable_flag(Self::RunWorkflow);
         disable_flag(Self::CreateSharedSession);
         disable_flag(Self::CreateNewSession);
         disable_flag(Self::CloseWindow);
@@ -91,7 +88,6 @@ impl ContextFlag {
         disable_flag(Self::ForceSidePanelOpen);
         disable_flag(Self::ShowRewardModal);
         disable_flag(Self::HideOpenOnDesktopButton);
-        disable_flag(Self::RunWorkflow);
         disable_flag(Self::CreateSharedSession);
         disable_flag(Self::CreateNewSession);
         disable_flag(Self::CloseWindow);
@@ -128,7 +124,6 @@ impl ContextFlag {
         disable_flag(Self::LaunchConfigurations);
         disable_flag(Self::RiftEssentials);
         disable_flag(Self::ShowMCPServers);
-        disable_flag(Self::RunWorkflow);
     }
 }
 
@@ -145,7 +140,6 @@ impl FromStr for ContextFlag {
             "HideOpenOnDesktopButton" => Ok(Self::HideOpenOnDesktopButton),
             "PromptForVersionUpdates" => Ok(Self::PromptForVersionUpdates),
             "NetworkLogConsole" => Ok(Self::NetworkLogConsole),
-            "RunWorkflow" => Ok(Self::RunWorkflow),
             "LaunchConfigurations" => Ok(Self::LaunchConfigurations),
             "RiftEssentials" => Ok(Self::RiftEssentials),
             _ => Err(()),

@@ -26,7 +26,6 @@ pub fn initialize_settings_for_tests_with_mode(
     use rift_core::execution_mode::AppExecutionMode;
     use rift_core::semantic_selection::SemanticSelection;
 
-    use crate::search::command_search::settings::CommandSearchSettings;
     use crate::settings::app_icon::AppIconSettings;
     use crate::settings::manager::SettingsManager;
     use crate::settings::{
@@ -62,7 +61,6 @@ pub fn initialize_settings_for_tests_with_mode(
     BlockVisibilitySettings::register(app);
     BlockListSettings::register(app);
     ChangelogSettings::register(app);
-    CommandSearchSettings::register(app);
     DebugSettings::register(app);
     AppIconSettings::register(app);
     EmacsBindingsSettings::register(app);

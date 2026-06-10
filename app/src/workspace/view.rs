@@ -145,7 +145,6 @@ use crate::search::command_palette::view::{
     Event as CommandPaletteEvent, NavigationMode, View as CommandPalette,
 };
 use crate::search::command_search::searcher::{AcceptedHistoryItem, CommandSearchItemAction};
-use crate::search::command_search::settings::CommandSearchSettings;
 use crate::search::command_search::view::{CommandSearchEvent, CommandSearchView};
 use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
@@ -4722,8 +4721,7 @@ impl Workspace {
         // Open new tab and update current page
         self.settings_pane.update(ctx, move |settings_pane, ctx| {
             // TODO: This check shouldn't be necessary, but `active_session_ps1_grid_info` returns
-            // None when the active tab has no running terminal sessions, e.g. if it contains only
-            // notebooks/workflow panes.
+            // None when the active tab has no running terminal sessions.
             if ps1_grid_info.is_some() {
                 settings_pane.set_ps1_info(ps1_grid_info, ctx);
             }
@@ -7907,10 +7905,7 @@ impl Workspace {
             CommandPaletteEvent::Close {
                 accepted_action_type,
             } => self.close_palette(true, *accepted_action_type, ctx),
-            CommandPaletteEvent::ExecuteWorkflow { .. }
-            | CommandPaletteEvent::InvokeEnvironmentVariables { .. }
-            | CommandPaletteEvent::OpenNotebook { .. }
-            | CommandPaletteEvent::OpenFile { .. } => {}
+            CommandPaletteEvent::OpenFile { .. } => {}
             CommandPaletteEvent::OpenDirectory { path } => {
                 let active_terminal_view = self
                     .active_tab_pane_group()
@@ -7943,10 +7938,6 @@ impl Workspace {
     pub fn is_palette_open(&self) -> bool {
         self.current_workspace_state.is_palette_open
             || self.current_workspace_state.is_ctrl_tab_palette_open
-    }
-
-    pub fn is_workflow_modal_open(&self) -> bool {
-        self.current_workspace_state.is_workflow_modal_open
     }
 
     pub fn is_drive_open(&self) -> bool {
@@ -8262,7 +8253,7 @@ impl Workspace {
 
         terminal_view_handle.update(ctx, |terminal, ctx| {
             let shell_family = terminal.shell_family(ctx);
-            // Recovered inline from the deleted workflows module.
+            // Build a shell-appropriate command to tail the LSP log file.
             let tail_command = match shell_family {
                 rift_util::path::ShellFamily::Posix => format!("tail -f {log_path:?}"),
                 rift_util::path::ShellFamily::PowerShell => {
@@ -10745,7 +10736,6 @@ impl Workspace {
         let window_settings = WindowSettings::as_ref(app);
         let pane_settings = PaneSettings::as_ref(app);
         let keys_settings = KeysSettings::as_ref(app);
-        let command_search_settings = CommandSearchSettings::as_ref(app);
 
         let is_compact_mode =
             matches!(terminal_settings.spacing_mode.value(), SpacingMode::Compact);
@@ -11041,15 +11031,6 @@ impl Workspace {
         let gpu_settings = GPUSettings::as_ref(app);
         if *gpu_settings.prefer_low_power_gpu {
             context.set.insert(flags::PREFER_LOW_POWER_GPU_FLAG);
-        }
-
-        if *command_search_settings
-            .show_global_workflows_in_universal_search
-            .value()
-        {
-            context
-                .set
-                .insert(flags::GLOBAL_WORKFLOWS_IN_COMMAND_SEARCH_FLAG);
         }
 
         if ChannelState::enable_debug_features() {

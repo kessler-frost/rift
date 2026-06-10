@@ -608,7 +608,6 @@ pub struct BlockListElement {
     overflow_menu_button: Option<Box<dyn Element>>,
     snackbar_toggle_button: Option<Box<dyn Element>>,
     ask_ai_assistant_button: Option<Box<dyn Element>>,
-    save_as_workflow_button: Option<Box<dyn Element>>,
     restored_session_separator: Option<Box<dyn Element>>,
     inline_banners: HashMap<InlineBannerId, Box<dyn Element>>,
     /// Subshell separators are similar to banners, except they are smaller and only meant to show
@@ -818,7 +817,6 @@ pub struct BlockListMouseStates {
     pub bookmark_mouse_states: HashMap<BlockIndex, MouseStateHandle>,
     pub overflow_menu_button_mouse_state: MouseStateHandle,
     pub ai_assistant_button_mouse_state: MouseStateHandle,
-    pub save_as_workflow_button_mouse_state: MouseStateHandle,
     pub filter_mouse_states: HashMap<BlockIndex, MouseStateHandle>,
     pub snackbar_toggle_button_mouse_state: MouseStateHandle,
 }
@@ -885,7 +883,6 @@ impl BlockListElement {
             hovered_block_index: None,
             overflow_menu_button: None,
             ask_ai_assistant_button: None,
-            save_as_workflow_button: None,
             snackbar_toggle_button: None,
             restored_session_separator: None,
             inline_banners,
@@ -2597,17 +2594,6 @@ impl Element for BlockListElement {
                 app,
             );
         }
-        if let Some(save_as_workflow_button) = &mut self.save_as_workflow_button {
-            save_as_workflow_button.layout(
-                // The size constraint needs to be big enough to cover the total rect when tooltip is rendered.
-                SizeConstraint::new(
-                    vec2f(BLOCK_HOVER_BUTTON_HEIGHT, BLOCK_HOVER_BUTTON_HEIGHT),
-                    vec2f(240., 64.),
-                ),
-                ctx,
-                app,
-            );
-        }
         if let Some(cursor_hint_text) = &mut self.cursor_hint_text_element {
             cursor_hint_text.layout(constraint, ctx, app);
         }
@@ -3513,11 +3499,6 @@ impl Element for BlockListElement {
                         {
                             ask_ai_assistant_button.paint(ask_ai_assistant_button_origin, ctx, app);
                         }
-
-                        if let Some(save_as_workflow_button) = self.save_as_workflow_button.as_mut()
-                        {
-                            save_as_workflow_button.paint(bookmark_button_origin, ctx, app);
-                        }
                     }
 
                     // When a block has an active filter on it, we want the filter icon to show even when the block is not hovered over.
@@ -3753,11 +3734,6 @@ impl Element for BlockListElement {
             if let Some(ask_ai_assistant_button) = &mut self.ask_ai_assistant_button {
                 handled_by_floating_button |=
                     ask_ai_assistant_button.dispatch_event(event, ctx, app);
-            }
-
-            if let Some(save_as_workflow_button) = &mut self.save_as_workflow_button {
-                handled_by_floating_button |=
-                    save_as_workflow_button.dispatch_event(event, ctx, app);
             }
 
             for bookmark_element in self.bookmark_elements.values_mut() {
