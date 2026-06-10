@@ -30,7 +30,6 @@ use riftui::{
 use command_signatures::IconType;
 
 use crate::appearance::Appearance;
-use crate::terminal::history::LinkedWorkflowData;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::rich_history::render_rich_history;
 use crate::terminal::HistoryEntry;
@@ -106,15 +105,6 @@ impl Item {
 
     pub fn match_type(&self) -> MatchType {
         self.match_type
-    }
-
-    /// Returns LinkedWorkflowData for this `Item`, if the `Item` is a history command that was
-    /// created using a workflow.
-    pub fn linked_workflow_data(&self) -> Option<LinkedWorkflowData> {
-        match self.details.as_ref() {
-            Some(DetailContent::RichHistory(history_entry)) => history_entry.linked_workflow_data(),
-            _ => None,
-        }
     }
 
     pub fn is_ai_query(&self) -> bool {

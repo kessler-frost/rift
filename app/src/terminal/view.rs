@@ -161,7 +161,6 @@ use crate::persistence::{self, FinishedCommandMetadata};
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
-use crate::server::ids::SyncId;
 use crate::server::telemetry::{
     BlockLatencyInfo, LinkOpenMethod,
     TelemetryEvent, ToggleBlockFilterSource, 
@@ -1040,12 +1039,6 @@ impl IndicatorPositionArg {
 pub struct ExecuteCommandEvent {
     pub command: String,
     pub session_id: SessionId,
-
-    /// If the command was executed from a [`CloudWorkflow`], pass its ID here.
-    pub workflow_id: Option<SyncId>,
-    /// If the command was executed from a [`CloudWorkflow`] or WorkflowType::Local, store the
-    /// templated command here.
-    pub workflow_command: Option<String>,
 
     /// `true` if the executed command should be added to session history.
     pub should_add_command_to_history: bool,
@@ -4599,7 +4592,6 @@ impl TerminalView {
                 command_finished_to_precmd_delay,
                 block_type,
                 num_secrets_obfuscated: _,
-                cloud_workflow_id: _,
                 cloud_env_var_collection_id: _,
             }) => {
                 // To automatically riftify a subshell, we run the relevant command to open the

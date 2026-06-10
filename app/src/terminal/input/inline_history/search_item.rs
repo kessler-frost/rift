@@ -12,7 +12,6 @@ use riftui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::search::{ItemHighlightState, SearchItem};
-use crate::terminal::history::LinkedWorkflowData;
 use crate::terminal::input::inline_history::data_source::AcceptHistoryItem;
 use crate::terminal::input::inline_menu::styles as inline_styles;
 use crate::util::time_format::format_approx_duration_from_now_utc;
@@ -29,23 +28,13 @@ pub struct InlineHistoryItem {
 
 #[derive(Debug, Clone)]
 enum HistoryItemType {
-    Command {
-        command: String,
-        linked_workflow_data: Option<LinkedWorkflowData>,
-    },
+    Command { command: String },
 }
 
 impl InlineHistoryItem {
-    pub fn command(
-        command: String,
-        linked_workflow_data: Option<LinkedWorkflowData>,
-        timestamp: DateTime<Local>,
-    ) -> Self {
+    pub fn command(command: String, timestamp: DateTime<Local>) -> Self {
         Self {
-            item_type: HistoryItemType::Command {
-                command,
-                linked_workflow_data,
-            },
+            item_type: HistoryItemType::Command { command },
             prefix_match_len: 0,
             score: OrderedFloat(f64::MIN),
             timestamp,
@@ -172,12 +161,8 @@ impl SearchItem for InlineHistoryItem {
 
     fn accept_result(&self) -> Self::Action {
         match &self.item_type {
-            HistoryItemType::Command {
-                command,
-                linked_workflow_data,
-            } => AcceptHistoryItem::Command {
+            HistoryItemType::Command { command } => AcceptHistoryItem::Command {
                 command: command.clone(),
-                linked_workflow_data: linked_workflow_data.clone(),
             },
         }
     }

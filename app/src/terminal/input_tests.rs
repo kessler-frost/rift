@@ -774,8 +774,6 @@ fn test_histignorespace_support_in_zsh() {
                 &ExecuteCommandEvent {
                     command: "cd".into(),
                     session_id,
-                    workflow_id: None,
-                    workflow_command: None,
                     should_add_command_to_history: true,
                     source: CommandExecutionSource::User,
                 },
@@ -789,8 +787,6 @@ fn test_histignorespace_support_in_zsh() {
                 &ExecuteCommandEvent {
                     command: " ls".into(),
                     session_id,
-                    workflow_id: None,
-                    workflow_command: None,
                     should_add_command_to_history: true,
                     source: CommandExecutionSource::User,
                 },

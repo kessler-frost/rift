@@ -36,8 +36,6 @@ pub fn update_command_history(
                 event.command.to_string(),
                 active_block,
                 session_ref,
-                event.workflow_id.to_owned(),
-                event.workflow_command.to_owned(),
             )],
         )
     });

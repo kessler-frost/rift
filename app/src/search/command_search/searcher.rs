@@ -1,14 +1,10 @@
 use crate::search::mixer::SearchMixer;
-use crate::terminal::history::LinkedWorkflowData;
 
 pub type CommandSearchMixer = SearchMixer<CommandSearchItemAction>;
 
 #[derive(Clone, Debug)]
 pub struct AcceptedHistoryItem {
     pub command: String,
-
-    /// The workflow used to construct the command, if any.
-    pub linked_workflow_data: Option<LinkedWorkflowData>,
 }
 
 /// The set of events that may be produced by accepting or executing a search

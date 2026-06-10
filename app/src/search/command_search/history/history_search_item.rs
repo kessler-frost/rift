@@ -106,7 +106,6 @@ impl SearchItem for HistorySearchItem {
     fn accept_result(&self) -> CommandSearchItemAction {
         CommandSearchItemAction::AcceptHistory(AcceptedHistoryItem {
             command: self.entry.command.clone(),
-            linked_workflow_data: self.entry.linked_workflow_data(),
         })
     }
 

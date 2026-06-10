@@ -11,7 +11,6 @@ use riftui::{AppContext, Element, Entity, EntityId, ModelHandle, View, ViewConte
 use crate::features::FeatureFlag;
 use crate::search::data_source::{Query, QueryFilter};
 use crate::search::mixer::{SearchMixer, SearchMixerEvent};
-use crate::terminal::history::LinkedWorkflowData;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};
 use crate::terminal::input::inline_history::data_source::{
     AcceptHistoryItem, InlineHistoryMenuDataSource,
@@ -32,14 +31,12 @@ use crate::workspace::WorkspaceAction;
 pub enum InlineHistoryMenuEvent {
     AcceptCommand {
         command: String,
-        linked_workflow_data: Option<LinkedWorkflowData>,
     },
     AcceptAIPrompt {
         query_text: String,
     },
     SelectCommand {
         command: String,
-        linked_workflow_data: Option<LinkedWorkflowData>,
     },
     SelectAIPrompt {
         query_text: String,
@@ -273,13 +270,9 @@ impl InlineHistoryMenuView {
 
         ctx.subscribe_to_view(&menu_view, |me, _, event, ctx| match event {
             InlineMenuEvent::AcceptedItem { item, .. } => match item {
-                AcceptHistoryItem::Command {
-                    command,
-                    linked_workflow_data,
-                } => {
+                AcceptHistoryItem::Command { command } => {
                     ctx.emit(InlineHistoryMenuEvent::AcceptCommand {
                         command: command.clone(),
-                        linked_workflow_data: linked_workflow_data.clone(),
                     });
                 }
                 AcceptHistoryItem::AIPrompt { query_text } => {
@@ -289,13 +282,9 @@ impl InlineHistoryMenuView {
                 }
             },
             InlineMenuEvent::SelectedItem { item } => match item {
-                AcceptHistoryItem::Command {
-                    command,
-                    linked_workflow_data,
-                } => {
+                AcceptHistoryItem::Command { command } => {
                     ctx.emit(InlineHistoryMenuEvent::SelectCommand {
                         command: command.clone(),
-                        linked_workflow_data: linked_workflow_data.clone(),
                     });
                 }
                 AcceptHistoryItem::AIPrompt { query_text } => {

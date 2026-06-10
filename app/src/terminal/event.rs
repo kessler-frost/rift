@@ -207,9 +207,6 @@ pub struct AfterBlockCompletedEvent {
     pub block_type: BlockType,
     pub num_secrets_obfuscated: usize,
 
-    /// If the completed block was a workflow, this is its id.
-    pub cloud_workflow_id: Option<SyncId>,
-
     /// If the completed block had an env var object associated.
     pub cloud_env_var_collection_id: Option<SyncId>,
 }

@@ -4243,9 +4243,7 @@ impl Input {
 
         ctx.emit(Event::ExecuteCommand(Box::new(ExecuteCommandEvent {
             command: command.to_string(),
-            workflow_id: None,
             session_id,
-            workflow_command: None,
             should_add_command_to_history: true,
             source,
         })));
