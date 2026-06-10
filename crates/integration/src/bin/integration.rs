@@ -288,6 +288,8 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_private_settings_preloaded_and_not_leaked_to_toml);
 
     register_test!(test_command_search_loads_history);
+    register_test!(test_up_arrow_history);
+    register_test!(test_command_search_loads_history_from_nondefault_histfile_path);
     register_test!(test_histfile_left_joined_with_persisted_history);
 
 

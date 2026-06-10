@@ -1,5 +1,8 @@
 
-use rift::integration_testing::command_search::assert_command_search_is_open;
+use rift::integration_testing::command_search::{
+    assert_command_search_has_results, assert_command_search_is_open,
+    assert_history_filter_is_active,
+};
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::terminal::{
     assert_input_editor_contents, wait_until_bootstrapped_single_pane_for_tab,
@@ -150,13 +153,13 @@ pub fn test_command_search_loads_history() -> Builder {
                 .with_keystrokes(&["tab"])
                 .add_named_assertion(
                     "History filter is active",
-                    assert_command_search_is_open(),
+                    assert_history_filter_is_active(),
                 ),
         )
         .with_step(
             new_step_with_default_assertions("Wait for history results").add_named_assertion(
                 "Command search has history results",
-                assert_command_search_is_open(),
+                assert_command_search_has_results(),
             ),
         )
         .with_step(
@@ -206,13 +209,13 @@ pub fn test_command_search_loads_history_from_nondefault_histfile_path() -> Buil
                 .with_keystrokes(&["tab"])
                 .add_named_assertion(
                     "History filter is active",
-                    assert_command_search_is_open(),
+                    assert_history_filter_is_active(),
                 ),
         )
         .with_step(
             new_step_with_default_assertions("Wait for history results").add_named_assertion(
                 "Command search has history results",
-                assert_command_search_is_open(),
+                assert_command_search_has_results(),
             ),
         )
         .with_step(
@@ -271,13 +274,13 @@ pub fn test_histfile_left_joined_with_persisted_history() -> Builder {
                 .with_keystrokes(&["tab"])
                 .add_named_assertion(
                     "History filter is active",
-                    assert_command_search_is_open(),
+                    assert_history_filter_is_active(),
                 ),
         )
         .with_step(
             new_step_with_default_assertions("Wait for history results").add_named_assertion(
                 "Command search has history results",
-                assert_command_search_is_open(),
+                assert_command_search_has_results(),
             ),
         )
         .with_step(

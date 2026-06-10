@@ -12,6 +12,7 @@ use crate::input_suggestions::InputSuggestions;
 use crate::pane_group::{PaneGroup, PaneView};
 use crate::root_view::RootView;
 use crate::search::command_palette::{self};
+use crate::search::command_search::view::CommandSearchView;
 use crate::settings_view::keybindings::KeybindingsView;
 use crate::terminal::input::Input;
 use crate::terminal::TerminalView;
@@ -188,6 +189,10 @@ pub fn root_view(app: &App, window_id: WindowId) -> ViewHandle<RootView> {
 pub fn command_palette_view(app: &App, window_id: WindowId) -> ViewHandle<command_palette::View> {
     let workspace = singleton_view_of_type::<Workspace>(app, window_id);
     workspace.read(app, |workspace, _ctx| workspace.command_palette_view())
+}
+
+pub fn command_search_view(app: &App, window_id: WindowId) -> ViewHandle<CommandSearchView> {
+    singleton_view_of_type(app, window_id)
 }
 
 pub fn assert_no_views_of_type<T: View>() -> AssertionCallback {

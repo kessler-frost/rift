@@ -69,7 +69,7 @@ use riftui::fonts::{Properties, Weight};
 use riftui::geometry::vector::{vec2f, Vector2F};
 use riftui::keymap::Context;
 use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
-use riftui::notification::{NotificationSendError, RequestPermissionsOutcome};
+use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
 use riftui::platform::{
     Cursor, FilePickerConfiguration, FullscreenState, SystemTheme, TerminationMode,
 };
@@ -159,7 +159,9 @@ use crate::root_view::{NewWorkspaceSource, OpenLaunchConfigArg};
 use crate::search::command_palette::view::{
     Event as CommandPaletteEvent, NavigationMode, View as CommandPalette,
 };
+use crate::search::command_search::searcher::{AcceptedHistoryItem, CommandSearchItemAction};
 use crate::search::command_search::settings::CommandSearchSettings;
+use crate::search::command_search::view::{CommandSearchEvent, CommandSearchView};
 use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
 use crate::server::telemetry::{
@@ -268,6 +270,9 @@ use crate::view_components::{
 #[cfg(target_family = "wasm")]
 use crate::wasm_nux_dialog::WasmNUXDialog;
 use crate::window_settings::{WindowSettings, WindowSettingsChangedEvent, ZoomLevel};
+use crate::notification::NotificationContext;
+use crate::terminal::input::MenuPositioning;
+use crate::workspace::action::InitContent;
 use crate::workspace::action::CommandSearchOptions;
 #[cfg(target_os = "macos")]
 use crate::workspace::cli_install;
@@ -661,6 +666,7 @@ pub struct Workspace {
     show_header_toolbar_context_menu: Option<Vector2F>,
     theme_creator_modal: ViewHandle<ThemeCreatorModal>,
     theme_deletion_modal: ViewHandle<ThemeDeletionModal>,
+    command_search_view: ViewHandle<CommandSearchView>,
     oz_launch_modal: ModalWithTab<LaunchModal<OzLaunchSlide>>,
     orchestration_launch_modal: ViewHandle<OrchestrationLaunchModal>,
     codex_modal: ViewHandle<CodexModal>,
@@ -2017,6 +2023,11 @@ impl Workspace {
 
 
 
+        let command_search_view = ctx.add_typed_action_view(CommandSearchView::new);
+        ctx.subscribe_to_view(&command_search_view, |me, _, event, ctx| {
+            me.handle_command_search_event(event, ctx);
+        });
+
         let oz_launch_view = ctx.add_typed_action_view(LaunchModal::<OzLaunchSlide>::new);
         ctx.subscribe_to_view(&oz_launch_view, |me, _, event, ctx| {
             me.handle_oz_launch_modal_event(event, ctx);
@@ -2268,6 +2279,7 @@ impl Workspace {
             #[cfg(target_family = "wasm")]
             transcript_details_panel,
             tab_fixed_width: None,
+            command_search_view,
             oz_launch_modal: ModalWithTab {
                 view: oz_launch_view,
                 tab_pane_group_id: None,
@@ -2960,6 +2972,31 @@ impl Workspace {
                 }
             }
         }
+    }
+
+    fn update_pane_dimming_for_current_focus_region(&mut self, ctx: &mut ViewContext<Self>) {
+        let current_region = self.current_focus_region(ctx);
+        self.set_pane_dimming_for_region(current_region, ctx);
+    }
+
+    fn process_sync_event_for_all_synced_pane_groups(
+        &mut self,
+        event: &SyncEvent,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        for tab in self.tab_views() {
+            // We have to get the latest SyncInputStatus each iteration because
+            // tab.update below could potentially change it.
+            let synced_pane_group_ids = SyncedInputState::as_ref(ctx);
+
+            if synced_pane_group_ids.should_sync_this_pane_group(tab.id(), ctx.window_id()) {
+                tab.update(ctx, |pane_group, ctx| {
+                    pane_group.send_sync_event_to_panes(event, ctx);
+                });
+            }
+        }
+
+        self.update_pane_dimming_for_current_focus_region(ctx);
     }
 
     fn set_pane_dimming_for_region(&mut self, region: FocusRegion, ctx: &mut ViewContext<Self>) {
@@ -7515,6 +7552,10 @@ impl Workspace {
                 pane_group.set_title(&title, ctx);
             }
             pane_group
+        });
+
+        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
+            me.handle_pane_group_event(pane_group, event, ctx)
         });
 
 
@@ -12302,9 +12343,7 @@ impl TypedActionView for Workspace {
             ShowCommandSearch(CommandSearchOptions {
                 filter,
                 init_content,
-            }) => {
-                let _ = (filter, init_content);
-            }
+            }) => self.show_command_search(*filter, init_content, ctx),
             ToggleMouseReporting => self.toggle_mouse_reporting(ctx),
             ToggleScrollReporting => self.toggle_scroll_reporting(ctx),
             ToggleFocusReporting => self.toggle_focus_reporting(ctx),
@@ -13441,6 +13480,42 @@ impl View for Workspace {
         }
 
 
+        if self.current_workspace_state.is_command_search_open {
+            if let Some(active_input_handle) = self.get_active_input_view_handle(app) {
+                let input_position = app.view(&active_input_handle).save_position_id();
+                let menu_positioning = app.view(&self.command_search_view).menu_positioning();
+                // Position the CommandSearchView over the active pane's input.
+                let search_panel_margin = 4.;
+                let positioning = match menu_positioning {
+                    MenuPositioning::AboveInputBox => {
+                        OffsetPositioning::offset_from_save_position_element(
+                            input_position,
+                            vec2f(search_panel_margin, -search_panel_margin),
+                            PositionedElementOffsetBounds::WindowBySize,
+                            PositionedElementAnchor::BottomLeft,
+                            ChildAnchor::BottomLeft,
+                        )
+                    }
+                    MenuPositioning::BelowInputBox => {
+                        OffsetPositioning::offset_from_save_position_element(
+                            input_position,
+                            vec2f(search_panel_margin, 0.),
+                            PositionedElementOffsetBounds::WindowBySize,
+                            PositionedElementAnchor::TopLeft,
+                            ChildAnchor::TopLeft,
+                        )
+                    }
+                };
+
+                stack.add_positioned_child(
+                    Container::new(ChildView::new(&self.command_search_view).finish())
+                        .with_margin_right(search_panel_margin)
+                        .finish(),
+                    positioning,
+                );
+            }
+        }
+
         if self.welcome_tips_view_state.is_popup_open() {
             stack.add_child(ChildView::new(&self.welcome_tips_view).finish());
         }
@@ -14131,6 +14206,9 @@ impl Workspace {
         // `Exited` but `handle_file_tree_event` is never invoked, so the
         // workspace never calls `close_tab` and cmd-W appears to do nothing.
         ctx.unsubscribe_to_view(&placeholder_pane_group);
+        ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
+            me.handle_pane_group_event(pane_group, event, ctx)
+        });
 
         let working_directories_model = self.working_directories_model.clone();
         placeholder_pane_group.update(ctx, |pg, ctx| {
@@ -14139,6 +14217,367 @@ impl Workspace {
         self.pending_pane_group_transfer = false;
         ctx.dispatch_global_action("workspace:save_app", ());
         ctx.notify();
+    }
+
+    fn show_command_search(
+        &mut self,
+        query_filter: Option<crate::search::QueryFilter>,
+        init_content: &InitContent,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        // Close all overlays including chip menus before opening command search
+        self.close_all_overlays(ctx);
+
+        if let Some(session_id) = self.active_session_id(ctx) {
+            let active_input_handle = self.get_active_input_view_handle(ctx);
+
+            let initial_query = match init_content {
+                InitContent::FromInputBuffer => {
+                    if let Some(input_handle) = &active_input_handle {
+                        input_handle.read(ctx, |input, ctx| input.buffer_text(ctx))
+                    } else {
+                        "".to_owned()
+                    }
+                }
+                InitContent::Custom(query) => query.to_owned(),
+            };
+
+            let menu_positioning = active_input_handle
+                .as_ref()
+                .map_or_else(MenuPositioning::default, |input_handle| {
+                    input_handle.read(ctx, |input, ctx| input.menu_positioning(ctx))
+                });
+
+            // Make sure we close any already-open input suggestions panel.
+            if let Some(input_handle) = &active_input_handle {
+                input_handle.update(ctx, |input, ctx| {
+                    input.close_input_suggestions(false, ctx);
+                });
+            };
+
+            self.current_workspace_state.is_command_search_open = true;
+            self.command_search_view.update(ctx, |view, ctx| {
+                view.reset_state(session_id, initial_query, query_filter, menu_positioning, ctx);
+            });
+
+            let tip = match query_filter {
+                Some(crate::search::QueryFilter::History) => Tip::Action(TipAction::HistorySearch),
+                _ => Tip::Action(TipAction::CommandSearch),
+            };
+
+            self.tips_completed.update(ctx, |tips_completed, ctx| {
+                mark_feature_used_and_write_to_user_defaults(tip, tips_completed, ctx);
+                ctx.notify();
+            });
+
+            ctx.notify();
+            ctx.focus(&self.command_search_view);
+        } else {
+            log::error!("Command search keybinding triggered but no session is active!");
+        }
+    }
+
+    fn handle_command_search_event(
+        &mut self,
+        event: &CommandSearchEvent,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        use CommandSearchEvent::*;
+        let Some(active_input_handle) = self.get_active_input_view_handle(ctx) else {
+            return;
+        };
+        match event {
+            Close {
+                query: query_when_closed,
+                filter: filter_when_closed,
+            } => {
+                self.current_workspace_state.is_command_search_open = false;
+
+                active_input_handle.update(ctx, |input, ctx| {
+                    input.handle_command_search_closed(query_when_closed, filter_when_closed, ctx);
+                    ctx.notify();
+                });
+
+                ctx.notify();
+            }
+            Blur => {
+                self.current_workspace_state.is_command_search_open = false;
+                ctx.notify();
+            }
+            ItemSelected { query: _, payload } => {
+                use CommandSearchItemAction::*;
+                match payload.as_ref() {
+                    AcceptHistory(AcceptedHistoryItem { command, .. }) => {
+                        active_input_handle.update(ctx, |input, ctx| {
+                            input.replace_buffer_content(command.as_str(), ctx);
+                            input.focus_input_box(ctx);
+                        });
+                    }
+                    ExecuteHistory(command) => {
+                        active_input_handle.update(ctx, |input, ctx| {
+                            input.try_execute_command(command.as_str(), ctx);
+                            ctx.notify();
+                        });
+                    }
+                }
+                self.current_workspace_state.is_command_search_open = false;
+                ctx.notify();
+            }
+            Resize => ctx.notify(),
+        }
+    }
+
+    pub(crate) fn handle_pane_group_event(
+        &mut self,
+        pane_group: ViewHandle<PaneGroup>,
+        event: &pane_group::Event,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        match event {
+            pane_group::Event::AppStateChanged => {
+                ctx.dispatch_global_action("workspace:save_app", ());
+                self.refresh_working_directories_for_pane_group(&pane_group, ctx);
+                self.update_resource_center_action_target(ctx);
+                self.update_active_session(ctx);
+
+                if FeatureFlag::DirectoryTabColors.is_enabled() {
+                    if let Some(tab) = self
+                        .tabs
+                        .iter_mut()
+                        .find(|t| t.pane_group.id() == pane_group.id())
+                    {
+                        Self::sync_codebase_tab_color(tab, ctx);
+                    }
+                }
+            }
+            pane_group::Event::ActiveSessionChanged => {
+                self.update_active_session(ctx);
+                // ctx.notify();
+            }
+            pane_group::Event::Escape => {
+                if self.current_workspace_state.is_resource_center_open {
+                    self.current_workspace_state.is_resource_center_open = false;
+                    ctx.notify()
+                }
+            }
+            pane_group::Event::Exited { add_to_undo_stack } => {
+                let tab = self.tabs.iter().position(|t| {
+                    t.pane_group.id() == pane_group.id()
+                        && t.pane_group.window_id(ctx) == pane_group.window_id(ctx)
+                });
+
+                if let Some(tab_index) = tab {
+                    self.close_tab(tab_index, true, *add_to_undo_stack, ctx);
+                }
+            }
+            pane_group::Event::PaneTitleUpdated => {
+                self.update_window_title(ctx);
+                ctx.notify();
+            }
+            pane_group::Event::ShowCommandSearch(options) => {
+                self.show_command_search(options.filter, &options.init_content, ctx);
+            }
+            pane_group::Event::SendNotification {
+                notification,
+                pane_id,
+            } => {
+                // Right now, all notifications are block-specific, but in the future,
+                // we might want to serialize a block-agnostic notification context.
+                let window_id = ctx.window_id();
+                let pane_group_id = pane_group.id();
+                let pane_id = *pane_id;
+                let notification_data = NotificationContext::BlockOrigin {
+                    window_id,
+                    pane_group_id,
+                    pane_id,
+                };
+
+                if let Ok(notification_data_str) = serde_json::to_string(&notification_data) {
+                    // Read the notification sound setting from SessionSettings
+                    let play_sound = SessionSettings::as_ref(ctx)
+                        .notifications
+                        .play_notification_sound;
+
+                    ctx.send_desktop_notification(
+                        UserNotification::new_with_sound(
+                            notification.title.to_string(),
+                            notification.body.to_string(),
+                            Some(notification_data_str),
+                            play_sound,
+                        ),
+                        move |workspace, notification_error, ctx| {
+                            // Log to sentry if unknown error
+                            if let NotificationSendError::Other { error_message } =
+                                &notification_error
+                            {
+                                log::error!(
+                                    "Unknown error when sending notification. error_msg: {error_message}"
+                                );
+                            }
+                            send_telemetry_from_ctx!(
+                                TelemetryEvent::NotificationFailedToSend {
+                                    error: notification_error.clone()
+                                },
+                                ctx
+                            );
+
+                            // Surface error to user
+                            workspace.show_notification_error(
+                                notification_error,
+                                pane_group_id,
+                                pane_id,
+                                ctx,
+                            );
+                        },
+                    )
+                }
+            }
+            pane_group::Event::OpenSettings(section) => {
+                self.show_settings_with_section(Some(*section), ctx);
+            }
+            pane_group::Event::OpenAutoReloadModal { .. } => {}
+            pane_group::Event::SyncInput(input_type) => {
+                self.process_sync_event_for_all_synced_pane_groups(input_type, ctx);
+            }
+            pane_group::Event::TerminalViewStateChanged => {
+                self.update_active_session(ctx);
+                ctx.notify();
+            }
+            pane_group::Event::OnboardingTutorialCompleted => {
+                self.pending_session_config_tab_config_chip = false;
+                self.show_session_config_tab_config_chip = false;
+                ctx.notify();
+            }
+            pane_group::Event::ExecuteCommand(_) => {}
+            pane_group::Event::CDToDirectory { .. } => {}
+            pane_group::Event::OpenDirectoryInNewTab { .. } => {}
+            pane_group::Event::CloseSharedSessionPaneRequested { .. } => {}
+            pane_group::Event::MaximizePaneToggled => {
+                ctx.notify();
+            }
+            pane_group::Event::FocusPaneGroup => {
+                for (index, tab) in self.tabs.iter().enumerate() {
+                    if tab.pane_group.id() == pane_group.id() {
+                        self.activate_tab(index, ctx);
+                        break;
+                    }
+                }
+            }
+            pane_group::Event::FocusPane { pane_to_focus } => {
+                let Some(tab_index_to_focus) = self
+                    .tabs
+                    .iter()
+                    .position(|tab| tab.pane_group.as_ref(ctx).has_pane_id(*pane_to_focus))
+                else {
+                    log::warn!("Could not find tab to focus pane");
+                    return;
+                };
+
+                self.activate_tab(tab_index_to_focus, ctx);
+
+                // TODO(CODE-266): This should focus the correct pane in the tab,
+                // but for some reason application focus is not being moved to
+                // the correct pane.
+                if let Some(tab) = self.tabs.get_mut(tab_index_to_focus) {
+                    tab.pane_group.update(ctx, |pane_group, ctx| {
+                        if let Some(pane) = pane_group.pane_by_id(*pane_to_focus) {
+                            pane.focus(ctx);
+                        }
+                    });
+                }
+            }
+            pane_group::Event::FocusPaneInWorkspace { locator } => {
+                // Focus an existing pane by its locator (used when avoiding duplicate file panes during undo close pane)
+                self.focus_pane(*locator, ctx);
+            }
+            pane_group::Event::PaneFocused => {
+                self.current_workspace_state.close_all_modals();
+
+                // Re-evaluate which region is focused and update pane dimming accordingly.
+                self.update_pane_dimming_for_current_focus_region(ctx);
+
+                let focused_terminal_view_id = {
+                    let pane_group = self.active_tab_pane_group().as_ref(ctx);
+                    pane_group
+                        .terminal_view_from_pane_id(pane_group.focused_pane_id(ctx), ctx)
+                        .map(|tv| tv.id())
+                };
+                self.notify_terminal_focus_change(focused_terminal_view_id, ctx);
+            }
+            pane_group::Event::RepoChanged => {
+                self.refresh_working_directories_for_pane_group(&pane_group, ctx);
+                // Code review panel setup is handled by the RepositoriesChanged
+                // event emitted from refresh_working_directories, which triggers
+                // ensure_code_review_view_exists on the right panel. Calling
+                // setup_code_review_panel here would race with refresh and
+                // re-create models that were just dropped.
+
+                if FeatureFlag::DirectoryTabColors.is_enabled() {
+                    if let Some(tab) = self
+                        .tabs
+                        .iter_mut()
+                        .find(|t| t.pane_group.id() == pane_group.id())
+                    {
+                        Self::sync_codebase_tab_color(tab, ctx);
+                    }
+                }
+            }
+            pane_group::Event::RemoteRepoNavigated { .. } => {}
+            // Pane-to-tab-bar moves relied on pane-move helpers that were removed
+            // with the agent/code panes; the drop is ignored.
+            pane_group::Event::DroppedOnTabBar { .. } => {}
+            pane_group::Event::SwitchTabFocusAndMovePane { .. } => {}
+            pane_group::Event::UpdateHoveredTabIndex { tab_hover_index } => {
+                self.hovered_tab_index = Some(*tab_hover_index);
+                ctx.notify();
+            }
+            pane_group::Event::ClearHoveredTabIndex => self.hovered_tab_index = None,
+            pane_group::Event::AnonymousUserSignup => {}
+            pane_group::Event::OpenPalette {
+                mode,
+                source,
+                query,
+            } => self.open_palette_action(*mode, *source, query.as_deref(), ctx),
+            pane_group::Event::FileUploadCommand { .. } => {}
+            pane_group::Event::FileUploadPasswordPending { .. } => {}
+            pane_group::Event::FileUploadFinished { .. } => {}
+            pane_group::Event::OpenFileUploadSession { .. } => {}
+            pane_group::Event::TerminateFileUploadSession { .. } => {}
+            pane_group::Event::ShowToast {
+                message,
+                flavor,
+                pane_id,
+            } => {
+                let pane_group_id = pane_group.id();
+                self.toast_stack.update(ctx, |toast_stack, ctx| {
+                    let mut toast = DismissibleToast::new(message.clone(), *flavor);
+                    if let Some(pane_id) = pane_id {
+                        let locator = PaneViewLocator {
+                            pane_group_id,
+                            pane_id: *pane_id,
+                        };
+                        toast = toast.with_on_body_click(move |ctx| {
+                            ctx.dispatch_typed_action(&WorkspaceAction::FocusPane(locator));
+                        });
+                    }
+                    toast_stack.add_ephemeral_toast(toast, ctx);
+                });
+            }
+            pane_group::Event::SignupAnonymousUser { .. } => {}
+            pane_group::Event::OpenThemeChooser => {
+                self.show_theme_chooser(None, ctx);
+            }
+            pane_group::Event::OpenFilesPalette { .. } => {}
+            pane_group::Event::ToggleLeftPanel { .. } => {}
+            #[cfg(feature = "local_fs")]
+            pane_group::Event::OpenFileWithTarget { .. } => {}
+            #[cfg(feature = "local_fs")]
+            pane_group::Event::FileRenamed { .. } => {}
+            #[cfg(feature = "local_fs")]
+            pane_group::Event::FileDeleted { .. } => {}
+            pane_group::Event::OpenLspLogs { .. } => {}
+            pane_group::Event::LeftPanelToggled { .. } => {}
+        }
     }
 
     /// Transfers a dragged tab into the attach target's window by delegating

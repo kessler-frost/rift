@@ -111,7 +111,9 @@ integration_tests! {
     test_can_bootstrap_local_fish_subshell,
 
     // Tests loading command history from shell histfile.
+    test_up_arrow_history,
     test_command_search_loads_history,
+    test_command_search_loads_history_from_nondefault_histfile_path,
     test_histfile_left_joined_with_persisted_history,
 
     // Tests default prompt behavior.
