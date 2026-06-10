@@ -1,4 +1,10 @@
-# Rift
+<p align="center">
+  <img src="branding/rift-hero.png" alt="Rift" width="820">
+</p>
+
+<p align="center">
+  <img src="branding/rift-demo.gif" alt="Rift demo — commands, history menu, command search, tabs" width="820">
+</p>
 
 **Rift** is a personal, frozen, fully-offline fork of [Warp](https://www.warp.dev) — the terminal kept, everything cloud and AI stripped out.
 

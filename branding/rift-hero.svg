@@ -1,0 +1,43 @@
+<svg width="1280" height="340" viewBox="0 0 1280 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0e1219"/>
+      <stop offset="1" stop-color="#05070b"/>
+    </linearGradient>
+    <linearGradient id="seam" x1="0" y1="0" x2="0" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fde68a"/><stop offset="0.5" stop-color="#fbbf24"/><stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="panelL" x1="0" y1="0" x2="0" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#283242"/><stop offset="1" stop-color="#141a25"/>
+    </linearGradient>
+    <linearGradient id="panelR" x1="0" y1="0" x2="0" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#212a39"/><stop offset="1" stop-color="#10151f"/>
+    </linearGradient>
+    <filter id="g" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gbig" x="-200%" y="-80%" width="500%" height="260%">
+      <feGaussianBlur stdDeviation="46" result="b"/><feMerge><feMergeNode in="b"/></feMerge>
+    </filter>
+    <clipPath id="tile"><rect x="96" y="86" width="168" height="168" rx="40" ry="40"/></clipPath>
+  </defs>
+
+  <rect width="1280" height="340" fill="url(#bg)"/>
+  <!-- faint full-height rift glow on the right third -->
+  <g filter="url(#gbig)" opacity="0.18">
+    <path d="M980,-40 L900,150 L1010,300 L920,400" stroke="url(#seam)" stroke-width="40" fill="none"/>
+  </g>
+
+  <!-- icon mark -->
+  <g clip-path="url(#tile)">
+    <rect x="96" y="86" width="168" height="168" fill="#0b0e14"/>
+    <g filter="url(#g)"><path d="M186,80 L170,150 L190,178 L166,250 L186,260 L206,250 L182,178 L202,150 L188,80 Z" fill="url(#seam)" opacity="0.9"/></g>
+    <path d="M88,80 L184,80 L168,150 L188,178 L164,250 L184,260 L88,260 Z" fill="url(#panelL)"/>
+    <path d="M192,80 L272,80 L272,260 L188,260 L208,178 L184,150 Z" fill="url(#panelR)"/>
+    <path d="M188,80 L172,150 L192,178 L168,250 L188,260" stroke="#fffbeb" stroke-width="3" fill="none" stroke-linejoin="round"/>
+  </g>
+
+  <!-- wordmark + tagline -->
+  <text x="312" y="178" font-family="Helvetica, Arial, sans-serif" font-size="104" font-weight="700" fill="#eef1f6" letter-spacing="1">Rift</text>
+  <text x="318" y="224" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#9aa4b6">A fast, fully-offline terminal — a frozen fork of Warp, cloud &amp; AI stripped out.</text>
+</svg>
