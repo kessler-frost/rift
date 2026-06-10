@@ -11,7 +11,6 @@ use riftui::elements::{
     Border, Container, DropTarget, DropTargetData, Flex, MainAxisSize, ParentElement, SavePosition,
     Shrinkable,
 };
-use riftui::keymap::EditableBinding;
 use riftui::presenter::ChildView;
 use riftui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
@@ -25,23 +24,8 @@ use crate::appearance::Appearance;
 use crate::pane_group::focus_state::{PaneFocusHandle, PaneGroupFocusEvent};
 use crate::pane_group::pane::ActionOrigin;
 use crate::pane_group::{Direction, SplitPaneState, TabBarHoverIndex};
-use crate::server::telemetry::SharingDialogSource;
 use crate::settings::{PaneSettings, PaneSettingsChangedEvent};
-use crate::util::bindings::CustomAction;
 
-const HAS_SHARED_OBJECT_CONTEXT_KEY: &str = "PaneView_HasSharedObject";
-
-pub fn init(app: &mut AppContext) {
-    use riftui::keymap::macros::*;
-
-    app.register_editable_bindings([EditableBinding::new(
-        "pane:share_pane_contents",
-        "Share pane",
-        PaneAction::ShareContents,
-    )
-    .with_custom_action(CustomAction::SharePaneContents)
-    .with_context_predicate(id!("PaneView") & id!(HAS_SHARED_OBJECT_CONTEXT_KEY))]);
-}
 
 pub enum PaneViewEvent {
     MovePaneWithinPaneGroup {
@@ -62,9 +46,7 @@ pub enum PaneViewEvent {
 }
 
 #[derive(Debug, Clone)]
-pub enum PaneAction {
-    ShareContents,
-}
+pub enum PaneAction {}
 
 impl<P: BackingView> Entity for PaneView<P> {
     type Event = PaneViewEvent;
@@ -236,16 +218,6 @@ impl<P: BackingView> PaneView<P> {
                     header.set_toolbelt_buttons(buttons, ctx);
                 });
                 ctx.notify();
-            }
-            PaneConfigurationEvent::ToggleSharingDialog(source) => {
-                self.header.update(ctx, |header, ctx| {
-                    header.share_pane_contents(*source, ctx);
-                });
-            }
-            PaneConfigurationEvent::OpenSharingQrCode(source) => {
-                self.header.update(ctx, |header, ctx| {
-                    header.open_shared_session_qr_code(*source, ctx);
-                });
             }
             _ => {}
         }
@@ -420,24 +392,16 @@ impl<P: BackingView> View for PaneView<P> {
         .finish()
     }
 
-    fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {
-        let mut keymap_context = Self::default_keymap_context();
-        if self.header.as_ref(ctx).is_sharing_dialog_enabled(ctx) {
-            keymap_context.set.insert(HAS_SHARED_OBJECT_CONTEXT_KEY);
-        }
-        keymap_context
+    fn keymap_context(&self, _ctx: &AppContext) -> riftui::keymap::Context {
+        Self::default_keymap_context()
     }
 }
 
 impl<P: BackingView> TypedActionView for PaneView<P> {
     type Action = PaneAction;
 
-    fn handle_action(&mut self, action: &Self::Action, ctx: &mut ViewContext<Self>) {
-        match action {
-            PaneAction::ShareContents => self.header.update(ctx, |header, ctx| {
-                header.share_pane_contents(SharingDialogSource::CommandPalette, ctx);
-            }),
-        }
+    fn handle_action(&mut self, action: &Self::Action, _ctx: &mut ViewContext<Self>) {
+        match *action {}
     }
 }
 

@@ -29,13 +29,10 @@ use crate::pane_group::pane::{
 };
 use crate::pane_group::{BackingView, Direction, PaneDragDropLocation, PaneId, TabBarHoverIndex};
 use crate::send_telemetry_from_ctx;
-use crate::server::telemetry::SharingDialogSource;
 use crate::settings::CodeSettings;
 use crate::tab::tab_position_id;
 use crate::view_components::{FeaturePopup, NewFeaturePopupEvent, NewFeaturePopupLabel};
 use crate::workspace::{TabBarDropTargetData, TabBarLocation, VerticalTabsPaneDropTargetData};
-
-mod sharing;
 
 pub(crate) mod components;
 
@@ -91,7 +88,6 @@ pub enum PaneHeaderAction<A: ActionPayload, B: ActionPayload> {
     OverflowMenuAction(A),
     CustomAction(B),
     OpenOverflowMenu,
-    ShareContents,
     Close,
     PaneHeaderDragStarted,
     PaneHeaderDragged {
@@ -459,15 +455,10 @@ impl<P: BackingView> PaneHeader<P> {
             required_controls.add_child(close_button);
         }
 
-        let mut optional_controls = Flex::row()
+        let optional_controls = Flex::row()
             .with_main_axis_alignment(MainAxisAlignment::End)
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_main_axis_size(MainAxisSize::Min);
-
-        if should_show_on_header {
-            let appearance = Appearance::as_ref(app);
-            self.render_sharing_controls(&mut optional_controls, appearance, None, None, app);
-        }
 
         let optional_controls =
             Shrinkable::new(1., Clipped::new(optional_controls.finish()).finish()).finish();
@@ -558,7 +549,6 @@ impl<P: BackingView> PaneHeader<P> {
                 let should_show_on_header = hover_state.is_hovered()
                     || self.open_overlay != OpenOverlay::None
                     || options.has_open_menu
-                    || self.has_shareable_shared_session(app)
                     || options.always_show_icons;
 
                 let (right_justified_row, min_right_width) = self.render_right_justified_row(
@@ -700,16 +690,6 @@ impl<P: BackingView> View for PaneHeader<P> {
             overflow_button_position_id: self.overflow_button_position_id(),
             has_overflow_items,
             header_left_inset,
-            render_sharing_controls_fn: Box::new(|app, icon_color, button_size| {
-                if !self.is_sharing_dialog_enabled(app) {
-                    return None;
-                }
-
-                let appearance = Appearance::as_ref(app);
-                let mut row = Flex::row();
-                self.render_sharing_controls(&mut row, appearance, icon_color, button_size, app);
-                Some(row.finish())
-            }),
         };
         let header_content = self
             .pane_stack
@@ -854,9 +834,6 @@ impl<P: BackingView> TypedActionView for PaneHeader<P> {
                 self.open_overlay = OpenOverlay::OverflowMenu;
                 ctx.emit(Event::PaneHeaderOverflowMenuToggled(true));
                 ctx.notify();
-            }
-            PaneHeaderAction::ShareContents => {
-                self.share_pane_contents(SharingDialogSource::PaneHeader, ctx)
             }
             PaneHeaderAction::PaneHeaderDragStarted => {
                 send_telemetry_from_ctx!(TelemetryEvent::PaneDragInitiated, ctx);

@@ -285,7 +285,6 @@ pub struct DisplayChip {
     first_on_click_value: Option<String>,
     session_context: Option<SessionContext>,
     menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
-    is_shared_session_viewer: bool,
     /// Cached display string for the code review keybinding.
     code_review_keybinding: Option<String>,
     terminal_view_id: EntityId,
@@ -408,7 +407,6 @@ pub struct DisplayChipConfig {
     pub session_context: Option<SessionContext>,
     pub current_repo_path: Option<PathBuf>,
     pub model_events: ModelHandle<ModelEventDispatcher>,
-    pub is_shared_session_viewer: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -758,7 +756,6 @@ impl DisplayChip {
             first_on_click_value: chip_result.on_click_values.first().cloned(),
             session_context: config.session_context,
             menu_positioning_provider: config.menu_positioning_provider,
-            is_shared_session_viewer: config.is_shared_session_viewer,
             code_review_keybinding,
             terminal_view_id: config.terminal_view_id,
         }
@@ -942,17 +939,16 @@ impl DisplayChip {
         let appearance = Appearance::as_ref(app);
         let font_color = appearance.theme().ansi_fg_green();
 
-        let is_interactive = !self.is_shared_session_viewer;
         let chip_text = self.text.clone();
         let hover = Hoverable::new(self.mouse_state.clone(), move |state| {
-            let hovered = state.is_hovered() && is_interactive;
+            let hovered = state.is_hovered();
             let config =
                 UdiChipConfig::new_with_icon(Icon::GitBranch, font_color, chip_text.clone())
                     .with_hovered(hovered);
             let chip_element = render_udi_chip(config, appearance);
 
             let mut stack = Stack::new().with_child(chip_element);
-            if state.is_hovered() && is_interactive && !menu_open {
+            if state.is_hovered() && !menu_open {
                 let tool_tip = appearance
                     .ui_builder()
                     .tool_tip("Change git branch".to_string())
@@ -963,16 +959,12 @@ impl DisplayChip {
             stack.finish()
         });
 
-        let hover = if !is_interactive {
-            hover.finish()
-        } else {
-            hover
-                .on_click(|ctx, _app, _position| {
-                    ctx.dispatch_typed_action(DisplayChipAction::OpenBranchSelector);
-                })
-                .with_cursor(Cursor::PointingHand)
-                .finish()
-        };
+        let hover = hover
+            .on_click(|ctx, _app, _position| {
+                ctx.dispatch_typed_action(DisplayChipAction::OpenBranchSelector);
+            })
+            .with_cursor(Cursor::PointingHand)
+            .finish();
 
         let mut stack = Stack::new().with_child(hover);
 
@@ -1042,10 +1034,6 @@ impl DisplayChip {
         let Some(line_changes_info) = line_changes_info else {
             return None;
         };
-
-        if self.is_shared_session_viewer {
-            return None;
-        }
 
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
