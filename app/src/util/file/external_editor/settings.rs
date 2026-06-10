@@ -122,7 +122,7 @@ define_settings_group!(EditorSettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
         toml_path: "agents.rift_agent.other.open_conversation_layout_preference",
-        description: "Whether to open agent conversations in a new tab or a split pane.",
+        description: "Whether to open linked content in a new tab or a split pane.",
     },
 ]);
 
