@@ -407,13 +407,6 @@ ai_resume_button = []
 autoupdate = []
 figma_detection = []
 bundled_skills = []
-agent_mode = []
-agent_mode_computer_use = []
-agent_mode_debug = []
-agent_mode_primary_xml = []
-agent_mode_pre_plan_xml = []
-agent_onboarding = []
-agent_shared_sessions = []
 ask_user_question = []
 async_find = []
 changelog = []
@@ -439,12 +432,10 @@ creating_shared_sessions = []
 cross_repo_context = []
 codebase_index_persistence = ["full_source_code_embedding"]
 default = [
-    "agent_mode",
     "viewing_shared_sessions",
     "render_continuous_block_selections_with_single_border",
     "shared_with_me",
     "session_sharing_acls",
-    "external_agent_mode_context",
     "shell_selector",
     "minimalist_ui",
     "avatar_in_tab_bar",
@@ -459,11 +450,7 @@ default = [
     "ai_rules",
     "suggested_rules",
     "default_waterfall_mode",
-    "am_workflows",
     "autoupdate_ui_revamp",
-    "render_agent_mode_output_markdown",
-    "agent_mode_primary_xml",
-    "agent_mode_pre_plan_xml",
     "command_correction_key",
     "kitty_images",
     "global_ai_analytics_collection",
@@ -477,15 +464,12 @@ default = [
     "usage_based_pricing",
     "ai_context_menu",
     "at_menu_outside_of_ai_mode",
-    "agent_management_view",
-    "agent_management_details_view",
     "interactive_conversation_management_view",
     "shared_block_title_generation",
     "tab_close_button_on_left",
     "ai_resume_button",
     "code_find_replace",
     "ai_context_menu_code",
-    "agent_decides_command_execution",
     "linked_code_blocks",
     "drive_objects_as_context",
     "search_codebase_ui",
@@ -516,7 +500,6 @@ default = [
     "summarize_conversation_command",
     "inline_code_review",
     "web_search_ui",
-    "agent_shared_sessions",
     "integration_command",
     "artifact_command",
     "conversation_api",
@@ -526,35 +509,22 @@ default = [
     "shared_session_long_running_commands",
     "fork_from_command",
     "context_window_usage_v2",
-    "ambient_agents_command_line",
-    "ambient_agents_image_upload",
-    "scheduled_ambient_agents",
     "v4a_file_diffs",
     "classic_completions",
     "force_classic_completions",
     "team_api_keys",
-    "named_agents",
-    "agent_tips",
     "pluggable_notifications",
-    "agent_onboarding",
     "global_search",
     "cloud_conversations",
     "list_skills",
     "ask_user_question",
     "bundled_skills",
-    "ambient_agents_rtc",
     "cloud_mode",
     "cloud_mode_from_local_session",
     "cloud_mode_image_context",
-    "agent_mode_computer_use",
     "oz_platform_skills",
     "oz_identity_federation",
-    "sync_ambient_plans",
     "conversation_artifacts",
-    "agent_view",
-    "agent_view_block_context",
-    "agent_view_conversation_list_view",
-    "inline_slash_commands",
     "inline_history_menu",
     "inline_model_selector",
     "oz_launch_modal",
@@ -582,20 +552,13 @@ default = [
     "pr_comments_skill",
     "revert_to_checkpoints",
     "rewind_slash_command",
-    "hoa_code_review",
     "riftify_footer",
-    "agent_toolbar_editor",
     "configurable_toolbar",
     "transfer_control_tool",
-    "hoa_notifications",
     "open_code_notifications",
-    "cli_agent_rich_input",
     "vertical_tabs",
     "vertical_tabs_summary_mode",
     "tab_configs",
-    "agent_harness",
-    "hoa_onboarding_flow",
-    "hoa_remote_control",
     "codex_notifications",
     "trim_trailing_blank_lines",
     "skip_firebase_anonymous_user",
@@ -604,7 +567,6 @@ default = [
     "git_credential_refresh",
     "oz_handoff",
     "handoff_local_cloud",
-    "run_agents_tool",
     "orchestration_viewer_streamer",
     "pending_user_query_indicator",
     "queue_slash_command",
@@ -627,12 +589,9 @@ editable_markdown_mermaid = []
 default_adeberry_theme = []
 drag_tabs_to_windows = []
 embedded_code_review_comments = []
-agent_management_view = []
-agent_management_details_view = []
 interactive_conversation_management_view = []
 default_waterfall_mode = []
 enforce_revisions_to_cloud_objects = []
-suggested_agent_mode_workflows = []
 ssh_tmux_wrapper = []
 ssh_enable_host_denylist_in_settings = []
 extern_plist = []
@@ -655,19 +614,7 @@ get_started_tab = []
 code_mode_chip = []
 github_pr_prompt_chip = []
 create_project_flow = []
-agent_mode_evals = [
-    "integration_tests",
-    "full_source_code_embedding",
-    "cross_repo_context",
-    "rust-embed/debug-embed",
-    "riftui/log_named_telemetry_events",
-    "rift_logging/agent_mode_evals",
-]
-ambient_agents_command_line = []
-ambient_agents_image_upload = []
-scheduled_ambient_agents = []
 allow_ignoring_input_suggestions = []
-inline_slash_commands = ["agent_view"]
 
 # Enable this feature to track heap usage and automatically produce a heap
 # profile report when app memory usage exceeds a 10GB threshold.
@@ -686,14 +633,11 @@ kitty_images = []
 kitty_keyboard_protocol = []
 ligatures = []
 trim_trailing_blank_lines = []
-cli_agent_rich_input = []
 list_skills = []
 # This feature is enabled in build.rs when compiling for platforms which
 # support having a local tty/shell session.  It can be used to conditionally
 # include dependencies that should only exist in such environments.
 local_tty = []
-local_computer_use = []
-local_claude_codex_child_harnesses = []
 # This feature is enabled in build.rs when compiling for platforms which
 # have APIs for interacting with a local filesystem.  It can be used to
 # conditionally include dependencies that should only exist in such
@@ -725,7 +669,6 @@ plugin_host = ["dep:rquickjs", "dep:rift_js", "rift_cli/plugin_host"]
 # generated profile will be written to profile.pb in the current directory.
 # NOTE: This may slow down program execution.
 pprof_cpu_profiling = ["dep:pprof"]
-predict_am_queries = []
 quake_mode = []
 record_app_active_events = []
 recording_mode = []
@@ -735,7 +678,6 @@ remote_codebase_indexing = ["full_source_code_embedding"]
 # the bundle script, and can be used to conditionally enable functionality
 # accordingly.
 release_bundle = ["rust-embed/debug-embed", "rift_core/release_bundle"]
-render_agent_mode_output_markdown = []
 render_continuous_block_selections_with_single_border = []
 rich_history = []
 richtext_multiselect = []
@@ -769,14 +711,12 @@ rect_selection = []
 alacritty_settings_import = []
 shared_with_me = []
 ai_rules = []
-am_workflows = []
 shell_selector = []
 shared_session_long_running_commands = []
 blocklist_markdown_table_rendering = []
 blocklist_markdown_images = []
 minimalist_ui = []
 loginless_conversion = []
-external_agent_mode_context = []
 avatar_in_tab_bar = []
 ssh_drag_and_drop = []
 permanent_autosuggestion_hint = []
@@ -793,7 +733,6 @@ suggested_rules = []
 command_correction_key = []
 full_source_code_embedding = []
 use_tantivy_search = []
-agent_management_popup = []
 simulate_github_unauthed = []
 reload_stale_conversation_files = []
 shared_block_title_generation = []
@@ -801,7 +740,6 @@ retry_truncated_code_responses = []
 usage_based_pricing = []
 ai_context_menu = []
 at_menu_outside_of_ai_mode = []
-agent_decides_command_execution = []
 fast_forward_autoexecute_button = []
 code_find_replace = []
 command_palette_file_search = []
@@ -824,7 +762,6 @@ pr_comments_skill = []
 conversation_artifacts = []
 conversations_as_context = []
 conversation_api = []
-sync_ambient_plans = []
 projects = []
 vim_code_editor = []
 allow_opening_file_links_using_editor_env = []
@@ -856,28 +793,20 @@ global_search = []
 file_and_diff_set_comments = []
 revert_to_checkpoints = []
 rewind_slash_command = []
-agent_view = []
-agent_view_block_context = ["agent_view"]
 v4a_file_diffs = []
-agent_tips = []
-agent_toolbar_editor = ["agent_view"]
 cloud_conversations = []
-agent_view_prompt_chip = ["agent_view"]
-ambient_agents_rtc = []
 team_api_keys = []
-named_agents = []
 classic_completions = []
 cloud_mode = []
 cloud_mode_from_local_session = []
 cloud_mode_image_context = []
 force_classic_completions = []
-agent_view_conversation_list_view = ["agent_view"]
-inline_history_menu = ["agent_view"]
-inline_repo_menu = ["agent_view"]
+inline_history_menu = []
+inline_repo_menu = []
 summarization_via_message_replacement = []
 lsp_as_a_tool = []
-inline_model_selector = ["agent_view"]
-inline_profile_selector = ["agent_view"]
+inline_model_selector = []
+inline_profile_selector = []
 restore_prompt_on_inline_model_selector_search = []
 oz_platform_skills = []
 oz_identity_federation = []
@@ -887,7 +816,6 @@ new_tab_styling = []
 skill_arguments = []
 active_conversation_requires_interaction = []
 incremental_auto_reload = []
-run_agents_tool = []
 orchestration_viewer_streamer = []
 owner_orchestration_ancestor_streamer = []
 pending_user_query_indicator = []
@@ -895,15 +823,12 @@ queue_slash_command = []
 queued_prompts_v2 = ["queue_slash_command"]
 inline_menu_headers = []
 directory_tab_colors = []
-hoa_code_review = []
 vertical_tabs = []
 vertical_tabs_summary_mode = []
 tab_configs = []
 grouped_tabs = []
-agent_harness = []
 oz_handoff = []
 handoff_local_cloud = []
-hoa_notifications = []
 open_code_notifications = []
 transfer_control_tool = []
 skip_firebase_anonymous_user = []
@@ -913,9 +838,7 @@ billing_and_usage_page_v2 = []
 gpt_configurable_context_window = []
 configurable_toolbar = []
 riftify_footer = []
-hoa_onboarding_flow = []
 git_operations_in_code_review = []
-hoa_remote_control = []
 codex_notifications = []
 codex_plugin = []
 cloud_mode_setup_v2 = ["cloud_mode"]

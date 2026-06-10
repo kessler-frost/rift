@@ -164,10 +164,6 @@ fn add_features(target_family: &str, target_os: &str) {
     if target_os != "windows" {
         println!("cargo:rustc-cfg=feature=\"iterm_images\"");
     }
-
-    if env::var("PROFILE").ok().is_some_and(|val| val == "debug") {
-        println!("cargo:rustc-cfg=feature=\"agent_mode_debug\"");
-    }
 }
 
 fn build_and_link_sentry() {

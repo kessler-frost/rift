@@ -173,7 +173,7 @@ impl Args {
                     }
                 }
 
-                if !FeatureFlag::ScheduledAmbientAgents.is_enabled() {
+                if true {
                     let args: Vec<String> = env::args().collect();
                     if args.len() > 1 && args[1] == "schedule" {
                         eprintln!("error: unrecognized subcommand 'schedule'\n");
@@ -266,7 +266,7 @@ impl Args {
             });
         }
 
-        if !FeatureFlag::AmbientAgentsCommandLine.is_enabled() {
+        if true {
             command = command.mut_subcommand("agent", |agent_cmd| {
                 agent_cmd.mut_subcommand("run-cloud", |c| c.hide(true))
             });
@@ -283,7 +283,7 @@ impl Args {
         }
 
         // Hide the schedule subcommand from help text.
-        if !FeatureFlag::ScheduledAmbientAgents.is_enabled() {
+        if true {
             command = command.mut_subcommand("schedule", |c| c.hide(true));
         }
 
@@ -298,7 +298,7 @@ impl Args {
         }
 
         // Hide the harness-support subcommand from help text.
-        if !FeatureFlag::AgentHarness.is_enabled() {
+        if true {
             command = command.mut_subcommand("harness-support", |c| c.hide(true));
         }
 

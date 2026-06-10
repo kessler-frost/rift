@@ -2962,25 +2962,25 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
         #[deny(clippy::wildcard_enum_match_arm)]
         match self {
             Self::RepoOutlineConstructionSuccess { .. } => {
-                EnablementState::Flag(FeatureFlag::AgentModeAnalytics)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::RepoOutlineConstructionFailed { .. } => {
-                EnablementState::Flag(FeatureFlag::AgentModeAnalytics)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::ObjectLinkCopied => EnablementState::Always,
             Self::FileTreeToggled => EnablementState::Flag(FeatureFlag::FileTree),
             Self::FileTreeItemAttachedAsContext => EnablementState::Flag(FeatureFlag::FileTree),
-            Self::CodeSelectionAddedAsContext => EnablementState::Flag(FeatureFlag::HoaCodeReview),
+            Self::CodeSelectionAddedAsContext => EnablementState::ChannelSpecific { channels: vec![] },
             Self::FileTreeItemCreated => EnablementState::Flag(FeatureFlag::FileTree),
             Self::ConversationListViewOpened
             | Self::ConversationListItemOpened
             | Self::ConversationListItemDeleted
             | Self::ConversationListLinkCopied => {
-                EnablementState::Flag(FeatureFlag::AgentViewConversationListView)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::InlineConversationMenuOpened
             | Self::InlineConversationMenuItemSelected
-            | Self::AgentShortcutsViewToggled => EnablementState::Flag(FeatureFlag::AgentView),
+            | Self::AgentShortcutsViewToggled => EnablementState::ChannelSpecific { channels: vec![] },
             Self::CreateProjectPromptSubmitted => EnablementState::Flag(FeatureFlag::GetStartedTab),
             Self::CreateProjectPromptSubmittedContent => {
                 EnablementState::Flag(FeatureFlag::GetStartedTab)
@@ -3008,7 +3008,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::JoinedSharedSession => EnablementState::Flag(FeatureFlag::ViewingSharedSessions),
             Self::ToggleSettingsSync { .. } => EnablementState::Always,
             Self::AgentTipShown | Self::AgentTipClicked | Self::ToggleShowAgentTips => {
-                EnablementState::Flag(FeatureFlag::AgentTips)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::AutosuggestionInserted => EnablementState::Always,
             Self::BlockCompleted => EnablementState::Always,
@@ -3239,7 +3239,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             | Self::AgentModeAttachedBlockContext
             | Self::AgentModeToggleAutoDetectionSetting
             | Self::AgentModePotentialAutoDetectionFalsePositive => {
-                EnablementState::Flag(FeatureFlag::AgentMode)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::BlockCompletedOnDogfoodOnly => EnablementState::ChannelSpecific { channels: vec![] },
             Self::CompletedSettingsImport
@@ -3258,7 +3258,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             | Self::TogglePromptSuggestionsSetting
             | Self::ToggleCodeSuggestionsSetting => EnablementState::Always,
             Self::ToggleNaturalLanguageAutosuggestionsSetting => {
-                EnablementState::Flag(FeatureFlag::PredictAMQueries)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::ToggleSharedBlockTitleGenerationSetting => {
                 EnablementState::Flag(FeatureFlag::SharedBlockTitleGeneration)
@@ -3330,7 +3330,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AgentManagementViewToggled { .. }
             | Self::AgentManagementViewOpenedSession
             | Self::AgentManagementViewCopiedSessionLink => {
-                EnablementState::Flag(FeatureFlag::AgentManagementView)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::DetectedIsolationPlatform { .. } => EnablementState::Always,
             Self::CLIAgentToolbarVoiceInputUsed { .. } => EnablementState::Always,
@@ -3340,11 +3340,11 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             | Self::CLIAgentPluginChipDismissed { .. }
             | Self::CLIAgentPluginOperationSucceeded { .. }
             | Self::CLIAgentPluginOperationFailed { .. } => {
-                EnablementState::Flag(FeatureFlag::HOANotifications)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::CLIAgentPluginDetected { .. } => EnablementState::Always,
             Self::CLIAgentRichInputSubmitted { .. } => {
-                EnablementState::Flag(FeatureFlag::CLIAgentRichInput)
+                EnablementState::ChannelSpecific { channels: vec![] }
             }
             Self::ToggleCLIAgentToolbarSetting { .. } => EnablementState::Always,
             Self::ToggleUseAgentToolbarSetting { .. } => EnablementState::Always,
