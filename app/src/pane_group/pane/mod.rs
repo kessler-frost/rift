@@ -28,7 +28,6 @@ use riftui::{
     View, ViewContext, ViewHandle, WeakModelHandle,
 };
 use serde::{Deserialize, Serialize};
-use url::Url;
 use welcome_view::WelcomeView;
 
 pub use self::view::{PaneHeaderAction, PaneHeaderCustomAction, PaneView, PaneViewEvent};
@@ -283,22 +282,6 @@ pub enum DetachType {
     Moved,
 }
 
-pub enum ShareableLink {
-    /// The base app url should be used for the browser url bar
-    Base,
-    /// The url for the active pane to use for the browser url bar
-    Pane { url: Url },
-}
-
-#[derive(Debug)]
-pub enum ShareableLinkError {
-    /// An expected error occurred when attempting to get the shareable link of the active pane.
-    /// For example the pane is not yet in a state where it has a shareable link but will soon.
-    Expected,
-    /// An unexpected error while trying to get the shareable link of the active pane.
-    Unexpected(String),
-}
-
 /// The contents of a leaf pane.
 ///
 /// The [`PaneData`] tree references panes by their [`PaneId`], while the [`PaneGroup`] view owns
@@ -359,16 +342,6 @@ pub trait PaneContent: 'static {
 
     /// Focus this pane's contents.
     fn focus(&self, ctx: &mut ViewContext<PaneGroup>);
-
-    /// Get the shareable link for the pane.
-    ///
-    /// This is called when the focused pane changes. It is used to get the link to the
-    /// for the active pane (if there is one). This link is used to update the browser's
-    /// url bar.
-    fn shareable_link(
-        &self,
-        ctx: &mut ViewContext<PaneGroup>,
-    ) -> Result<ShareableLink, ShareableLinkError>;
 
     /// Pane-agnostic state that all panes have.
     fn pane_configuration(&self) -> ModelHandle<PaneConfiguration>;

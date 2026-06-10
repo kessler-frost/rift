@@ -1,8 +1,5 @@
 mod docker;
 
-#[cfg(target_family = "wasm")]
-pub mod browser_url_handler;
-
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 

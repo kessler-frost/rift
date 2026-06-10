@@ -7,8 +7,7 @@ use riftui::{
 };
 
 use super::{
-    DetachType, PaneConfiguration, PaneContent, PaneId, PaneStackEvent, PaneView, ShareableLink,
-    ShareableLinkError, TerminalPaneId,
+    DetachType, PaneConfiguration, PaneContent, PaneId, PaneStackEvent, PaneView, TerminalPaneId,
 };
 use crate::app_state::{LeafContents, TerminalPaneSnapshot};
 use crate::pane_group::{self, Direction, PaneGroup};
@@ -228,14 +227,6 @@ impl PaneContent for TerminalPane {
     fn focus(&self, ctx: &mut ViewContext<PaneGroup>) {
         self.terminal_view(ctx)
             .update(ctx, |view, ctx| view.redetermine_global_focus(ctx));
-    }
-
-    fn shareable_link(
-        &self,
-        _ctx: &mut ViewContext<PaneGroup>,
-    ) -> Result<ShareableLink, ShareableLinkError> {
-        // Session/conversation sharing was removed; only the base link remains.
-        Ok(ShareableLink::Base)
     }
 
     fn pane_configuration(&self) -> ModelHandle<PaneConfiguration> {

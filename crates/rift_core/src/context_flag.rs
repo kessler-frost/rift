@@ -25,7 +25,6 @@ pub enum ContextFlag {
     RiftEssentials,
     AllowSettingsModalToClose,
     ShowSlowShellStartupBanner,
-    DynamicBrowserUrl,
     ShowMCPServers,
 }
 
@@ -77,7 +76,6 @@ impl ContextFlag {
         disable_flag(Self::NetworkLogConsole);
         disable_flag(Self::AllowSettingsModalToClose);
         disable_flag(Self::ShowSlowShellStartupBanner);
-        disable_flag(Self::DynamicBrowserUrl);
         disable_flag(Self::ShowMCPServers);
     }
 
