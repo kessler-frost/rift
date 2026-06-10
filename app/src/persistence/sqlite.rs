@@ -2,7 +2,6 @@ use std::collections::{HashMap, VecDeque};
 use std::convert::TryInto;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::sync::mpsc::SyncSender;
 use std::sync::Once;
 use std::{fs, thread};
 
@@ -60,7 +59,7 @@ use crate::themes::theme::AnsiColorIdentifier;
 use crate::workspaces::team::Team as TeamMetadata;
 use crate::workspaces::user_profiles::{user_profile_from_persistence, UserProfileWithUID};
 use crate::workspaces::workspace::{Workspace as WorkspaceMetadata, WorkspaceUid};
-use crate::{report_error, report_if_error, safe_info, send_telemetry_from_app_ctx};
+use crate::{report_error, safe_info, send_telemetry_from_app_ctx};
 
 // Choose a power of 2 that seems to be a reasonable upper bound for how many
 // events to queue.
@@ -353,17 +352,6 @@ fn app_database_file_path() -> PathBuf {
     rift_core::paths::secure_state_dir()
         .unwrap_or_else(rift_core::paths::state_dir)
         .join(RIFT_SQLITE_FILE_NAME)
-}
-
-pub(super) fn remove(sender: SyncSender<ModelEvent>) {
-    // Instruct the writer thread to remove the database and pause processing
-    // events.
-    // Ideally, we'd drop any other events in the channel, but it's not worth the complexity right
-    // now. Having the writer thread remove the database file prevents race conditions if the
-    // thread is in the middle of another update.
-    report_if_error!(sender
-        .send(ModelEvent::PauseAndRemoveDatabase)
-        .context("Error requesting database deletion"));
 }
 
 fn start_writer(conn: SqliteConnection, database_path: PathBuf) -> Result<WriterHandles> {

@@ -205,10 +205,6 @@ impl Entity for SessionSource {
     type Event = ();
 }
 
-pub fn num_shared_sessions(_ctx: &AppContext) -> usize {
-    0
-}
-
 /// Metadata for a single tab, used by the Ctrl+Tab MRU switcher.
 #[derive(Clone)]
 pub struct TabNavigationData {

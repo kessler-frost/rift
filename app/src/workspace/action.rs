@@ -11,7 +11,6 @@ use super::tab_settings::{
     VerticalTabsTabItemMode, VerticalTabsViewMode,
 };
 use super::view::WorkspaceBanner;
-use crate::auth::auth_manager::LoginGatedFeature;
 use crate::palette::PaletteMode;
 use crate::search;
 use crate::server::telemetry::{
@@ -435,17 +434,7 @@ pub enum WorkspaceAction {
     OpenSettingsFile,
 }
 
-impl From<&WorkspaceAction> for LoginGatedFeature {
-    fn from(_val: &WorkspaceAction) -> LoginGatedFeature {
-        "Unknown reason"
-    }
-}
-
 impl WorkspaceAction {
-    pub fn blocked_for_anonymous_user(&self) -> bool {
-        false
-    }
-
     /// Matches what actions require the app state to be saved, and which don't. We match all
     /// actions directly, rather than using _, so we're forced to make a conscious decision for each
     /// of them, rather than following some default.

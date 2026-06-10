@@ -3,7 +3,7 @@ use riftui_extras::user_preferences;
 use settings::{PrivatePreferences, PublicPreferences};
 
 use super::*;
-use crate::auth::AuthManager;
+use crate::auth::auth_manager::AuthManager;
 use crate::network::NetworkStatus;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::{AISettings, CodeSettings, FocusedTerminalInfo, PrivacySettings};
