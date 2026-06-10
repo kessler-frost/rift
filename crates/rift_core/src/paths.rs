@@ -34,20 +34,15 @@ pub const RIFT_LOGS_DIR: &str = "logs";
 
 fn base_rift_config_dir_name() -> String {
     match ChannelState::channel() {
-        // Preview shares the same directory as Stable for backward
-        // compatibility — existing users already have config in `.warp`.
-        Channel::Stable | Channel::Preview => RIFT_CONFIG_DIR.to_owned(),
         Channel::Oss => format!("{RIFT_CONFIG_DIR}-oss"),
-        Channel::Dev => format!("{RIFT_CONFIG_DIR}-dev"),
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
-        Channel::Local => format!("{RIFT_CONFIG_DIR}-local"),
     }
 }
 /// Returns the home-relative Warp config directory name for the current channel and data profile.
 ///
 /// This preserves the historical `.warp*` directory shape while still isolating dev, local,
 /// integration, oss, and optional development profiles.
-pub fn warp_home_config_dir_name() -> String {
+pub fn rift_home_config_dir_name() -> String {
     let base_dir_name = base_rift_config_dir_name();
 
     if let Some(data_profile) = ChannelState::data_profile() {
@@ -63,7 +58,7 @@ pub fn warp_home_config_dir_name() -> String {
 /// Warp-authored, user-facing config under a `.warp*` directory in the home directory instead of
 /// using the platform XDG/AppData project directories.
 pub fn warp_home_config_dir() -> Option<PathBuf> {
-    dirs::home_dir().map(|home_dir| home_dir.join(warp_home_config_dir_name()))
+    dirs::home_dir().map(|home_dir| home_dir.join(rift_home_config_dir_name()))
 }
 
 pub fn rift_home_skills_dir() -> Option<PathBuf> {
@@ -84,12 +79,8 @@ pub fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
 #[cfg(target_os = "macos")]
 fn macos_config_dir_name() -> String {
     match ChannelState::channel() {
-        Channel::Stable => RIFT_CONFIG_DIR.to_owned(),
-        Channel::Preview => format!("{RIFT_CONFIG_DIR}-preview"),
         Channel::Oss => format!("{RIFT_CONFIG_DIR}-oss"),
-        Channel::Dev => format!("{RIFT_CONFIG_DIR}-dev"),
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
-        Channel::Local => format!("{RIFT_CONFIG_DIR}-local"),
     }
 }
 

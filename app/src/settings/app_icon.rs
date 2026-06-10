@@ -1,5 +1,4 @@
 use enum_iterator::Sequence;
-use rift_core::channel::{Channel, ChannelState};
 use rift_core::settings::macros::define_settings_group;
 use rift_core::settings::{SupportedPlatforms, SyncToCloud};
 use serde::{Deserialize, Serialize};
@@ -96,12 +95,7 @@ impl AppIconSettings {
     pub fn get_base_icon_file_name(icon: AppIcon) -> &'static str {
         match icon {
             AppIcon::Aurora => "aurora",
-            AppIcon::Default => match ChannelState::channel() {
-                Channel::Dev => "dev",
-                Channel::Preview => "preview",
-                Channel::Local => "local",
-                _ => "warp_2",
-            },
+            AppIcon::Default => "warp_2",
             AppIcon::Classic1 => "classic_1",
             AppIcon::Classic2 => "classic_2",
             AppIcon::Classic3 => "classic_3",

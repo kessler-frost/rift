@@ -16,7 +16,6 @@ use session_sharing_protocol::sharer::SessionSourceType;
 use strum_macros::{EnumDiscriminants, EnumIter};
 
 use crate::auth::auth_manager::LoginGatedFeature;
-use crate::channel::Channel;
 use crate::features::FeatureFlag;
 use crate::launch_configs::save_modal::SaveState;
 use crate::palette::PaletteMode;
@@ -3242,9 +3241,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ResourceUsageStats => EnablementState::Always,
             Self::ToggleGlobalAI => EnablementState::Always,
             Self::ToggleActiveAI => EnablementState::Always,
-            Self::MemoryUsageStats => EnablementState::ChannelSpecific {
-                channels: vec![Channel::Local, Channel::Dev],
-            },
+            Self::MemoryUsageStats => EnablementState::ChannelSpecific { channels: vec![] },
             Self::MemoryUsageHigh => EnablementState::Always,
             Self::AgentModeUserAttemptedQueryAtRequestLimit
             | Self::AgentModeClickedEntrypoint
@@ -3253,9 +3250,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             | Self::AgentModePotentialAutoDetectionFalsePositive => {
                 EnablementState::Flag(FeatureFlag::AgentMode)
             }
-            Self::BlockCompletedOnDogfoodOnly => EnablementState::ChannelSpecific {
-                channels: vec![Channel::Local, Channel::Dev],
-            },
+            Self::BlockCompletedOnDogfoodOnly => EnablementState::ChannelSpecific { channels: vec![] },
             Self::CompletedSettingsImport
             | Self::SettingsImportConfigFocused
             | Self::SettingsImportConfigParsed
