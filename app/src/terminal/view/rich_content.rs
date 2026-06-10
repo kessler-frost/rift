@@ -6,8 +6,6 @@ use crate::terminal::model::blocks::{RemovableBlocklistItem, RichContentItem};
 use crate::terminal::model::rich_content::RichContentType;
 use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::ssh::error::SshErrorBlock;
-use crate::terminal::ssh::install_tmux::SshInstallTmuxBlock;
-use crate::terminal::ssh::warpify::SshWarpifyBlock;
 use crate::terminal::warpify::success_block::WarpifySuccessBlock;
 use crate::terminal::TerminalView;
 
@@ -100,12 +98,6 @@ impl RichContent {
 #[derive(Clone, Debug)]
 pub enum RichContentMetadata {
     UsageFooter,
-    SshWarpifyBlock {
-        ssh_warpify_block_handle: ViewHandle<SshWarpifyBlock>,
-    },
-    SshInstallTmuxBlock {
-        ssh_install_tmux_block_handle: ViewHandle<SshInstallTmuxBlock>,
-    },
     SshErrorBlock {
         ssh_error_block_handle: ViewHandle<SshErrorBlock>,
     },

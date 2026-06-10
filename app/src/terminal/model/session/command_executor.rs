@@ -1,15 +1,13 @@
-mod in_band_command_executor;
 #[cfg(feature = "local_tty")]
+mod in_band_command_executor;
 mod local_command_executor;
 #[cfg(feature = "local_tty")]
 mod msys2_command_executor;
-mod tmux_executor;
 #[cfg(feature = "local_tty")]
 mod wsl_command_executor;
 use std::collections::HashMap;
 mod noop_command_executor;
 #[cfg(feature = "local_tty")]
-mod remote_command_executor;
 #[cfg(feature = "local_tty")]
 mod shared;
 
@@ -27,8 +25,6 @@ pub use in_band_command_executor::{
 #[cfg(feature = "local_tty")]
 pub use local_command_executor::LocalCommandExecutor;
 pub use noop_command_executor::NoOpCommandExecutor;
-#[cfg(feature = "local_tty")]
-pub use remote_command_executor::RemoteCommandExecutor;
 use rift_completer::completer::CommandOutput;
 use riftui::ModelContext;
 pub use shared::{
@@ -145,38 +141,20 @@ fn new_command_executor_for_local_tty_session(
     session_info: &SessionInfo,
     executor_command_tx: &Sender<ExecutorCommandEvent>,
     in_band_command_output_rx: Receiver<ExecutedExecutorCommandEvent>,
-    parent_session_info: Option<&SessionInfo>,
+    _parent_session_info: Option<&SessionInfo>,
     ctx: &mut ModelContext<Sessions>,
 ) -> Arc<dyn CommandExecutor> {
     use msys2_command_executor::MSYS2CommandExecutor;
     use riftui::SingletonEntity as _;
     use settings::Setting as _;
-    use tmux_executor::TmuxCommandExecutor;
     use wsl_command_executor::WslCommandExecutor;
 
     use super::IsLegacySSHSession;
-    use crate::features::FeatureFlag;
+    
     use crate::settings::DebugSettings;
     use crate::terminal::available_shells::AvailableShells;
     use crate::terminal::model::session::{BootstrapSessionType, ShellLaunchData};
     use crate::terminal::shell::ShellType;
-
-    if FeatureFlag::SSHTmuxWrapper.is_enabled()
-        && session_info.tmux_control_mode
-        // We don't allow nested tmux warpification, so if our parent session is already warified using
-        // tmux then we shouldn't.
-        && !parent_session_info.is_some_and(|s| s.tmux_control_mode)
-    {
-        log::info!("creating a tmux executor!");
-        let executor = Arc::new(TmuxCommandExecutor::new(executor_command_tx.clone()));
-        let executor_clone = executor.clone();
-        ctx.spawn_stream_local(
-            in_band_command_output_rx,
-            move |_, event, _| executor_clone.handle_executed_command_event(event),
-            |_, _| {}, /* on_done */
-        );
-        return executor;
-    }
 
     let debug_settings = DebugSettings::as_ref(ctx);
     let are_in_band_generators_for_all_sessions_enabled_debug_setting = debug_settings
@@ -185,7 +163,7 @@ fn new_command_executor_for_local_tty_session(
     let should_force_disable_in_band_generators =
         debug_settings.force_disable_in_band_generators.value();
 
-    let is_legacy_ssh_session = matches!(
+    let _is_legacy_ssh_session = matches!(
         &session_info.is_legacy_ssh_session,
         IsLegacySSHSession::Yes { .. }
     );
@@ -276,21 +254,6 @@ fn new_command_executor_for_local_tty_session(
                         Arc::new(LocalCommandExecutor::new(None, shell_type))
                     }
                 }
-            }
-        }
-        BootstrapSessionType::WarpifiedRemote
-            if is_legacy_ssh_session
-                && !FeatureFlag::InBandGeneratorsForSSH.is_enabled()
-                && !force_use_in_band_generators =>
-        {
-            if let IsLegacySSHSession::Yes { socket_path } = &session_info.is_legacy_ssh_session {
-                let wsl_distro = parent_session_info
-                    .and_then(|session| session.wsl_name())
-                    .map(ToOwned::to_owned);
-                log::info!("creating a legacy ssh executor!");
-                Arc::new(RemoteCommandExecutor::new(socket_path.clone(), wsl_distro))
-            } else {
-                unreachable!("Unreachable because of match! above. Unfortunately if let guards in rust are still experimental.")
             }
         }
         _ => {

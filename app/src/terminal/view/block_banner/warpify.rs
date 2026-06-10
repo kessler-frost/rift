@@ -1,6 +1,6 @@
 use pathfinder_color::ColorU;
 use riftui::elements::{
-    Align, ConstrainedBox, Container, CrossAxisAlignment, Flex, HighlightedHyperlink,
+    Align, Container, CrossAxisAlignment, Flex,
     MouseStateHandle, ParentElement, Shrinkable,
 };
 use riftui::fonts::Weight;
@@ -9,9 +9,8 @@ use riftui::ui_components::button::ButtonVariant;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element};
 
-use super::{render_block_banner, BLOCK_BANNER_DESCRIPTION_MAX_HEIGHT};
+use super::render_block_banner;
 use crate::appearance::Appearance;
-use crate::terminal::ssh::warpify::warpify_description;
 use crate::terminal::view::{RememberForWarpification, TerminalAction};
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
@@ -21,37 +20,14 @@ const STANDARD_PADDING: f32 = 8.0;
 
 #[derive(Clone)]
 pub enum WarpificationMode {
-    Ssh {
-        command: String,
-        host: Option<String>,
-        hyperlink_index: HighlightedHyperlink,
-    },
     Subshell {
         command: String,
     },
 }
 
 impl WarpificationMode {
-    pub fn ssh(command: String, host: Option<String>) -> Self {
-        Self::Ssh {
-            command,
-            host,
-            hyperlink_index: Default::default(),
-        }
-    }
-
-    pub fn has_host(&self) -> bool {
-        matches!(self, Self::Ssh { host: Some(_), .. })
-    }
-
     pub fn subshell(command: String) -> Self {
         Self::Subshell { command }
-    }
-}
-
-impl WarpificationMode {
-    pub fn is_ssh(&self) -> bool {
-        matches!(self, Self::Ssh { .. })
     }
 }
 
@@ -82,41 +58,20 @@ impl WarpifyBannerState {
         }
     }
 
-    pub fn is_ssh(&self) -> bool {
-        self.mode.is_ssh()
-    }
-
     pub fn title(&self) -> &str {
         match &self.mode {
-            WarpificationMode::Ssh { .. } => "Warpify SSH session",
             WarpificationMode::Subshell { .. } => "Warpify subshell",
         }
     }
 
     pub fn action(&self) -> TerminalAction {
         match &self.mode {
-            WarpificationMode::Ssh { .. } => TerminalAction::WarpifySSHSession,
             WarpificationMode::Subshell { .. } => TerminalAction::TriggerSubshellBootstrap,
         }
     }
 
     fn remember_for_warpification(&self, should_remember: bool) -> RememberForWarpification {
         match &self.mode {
-            WarpificationMode::Ssh { command, host, .. } => {
-                let Some(host) = host else {
-                    if should_remember {
-                        return RememberForWarpification::RememberSubshellCommand(
-                            command.to_owned(),
-                        );
-                    }
-                    return RememberForWarpification::DoNotRememberSSHHost;
-                };
-                if should_remember {
-                    RememberForWarpification::RememberSSHHost(host.to_owned())
-                } else {
-                    RememberForWarpification::DoNotRememberSSHHost
-                }
-            }
             WarpificationMode::Subshell { command } => {
                 if should_remember {
                     RememberForWarpification::RememberSubshellCommand(command.to_owned())
@@ -134,7 +89,7 @@ impl WarpifyBannerState {
 pub fn render_warpification_banner(
     state: &WarpifyBannerState,
     appearance: &Appearance,
-    app: &AppContext,
+    _app: &AppContext,
 ) -> Box<dyn Element> {
     let yes_button = render_yes_button(
         state,
@@ -178,7 +133,7 @@ pub fn render_warpification_banner(
         })
         .finish();
 
-    let mut col = Flex::column()
+    let col = Flex::column()
         .with_child(
             Flex::row()
                 .with_child(Align::new(yes_button).finish())
@@ -192,26 +147,7 @@ pub fn render_warpification_banner(
         .with_cross_axis_alignment(CrossAxisAlignment::Start);
 
     render_block_banner(
-        |hover_state| {
-            if let WarpificationMode::Ssh {
-                hyperlink_index, ..
-            } = &state.mode
-            {
-                let description = Container::new(warpify_description(app, hyperlink_index))
-                    .with_uniform_margin(STANDARD_PADDING)
-                    .with_margin_top(4.)
-                    .finish();
-                let description = if hover_state.is_hovered() {
-                    description
-                } else {
-                    ConstrainedBox::new(description)
-                        .with_max_height(2. * BLOCK_BANNER_DESCRIPTION_MAX_HEIGHT)
-                        .finish()
-                };
-                col.add_child(description);
-            }
-            col.finish()
-        },
+        |_hover_state| col.finish(),
         state.hover_state.clone(),
         appearance.theme(),
     )
