@@ -4819,7 +4819,7 @@ impl Workspace {
             match result {
                 Ok(_) => {
                     let command_name = ChannelState::channel().cli_command_name();
-                    let message = format!("Successfully installed the Oz CLI! You can now run '{command_name}' from the command line.");
+                    let message = format!("Successfully installed the Rift CLI! You can now run '{command_name}' from the command line.");
                     view.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::success(message.to_string())
                             .with_link(
@@ -4831,7 +4831,7 @@ impl Workspace {
                     });
                 }
                 Err(error) => {
-                    let error_message = format!("Failed to install Oz command: {error}");
+                    let error_message = format!("Failed to install Rift command: {error}");
                     log::error!("{error_message}");
                     view.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::error(error_message);
@@ -4849,14 +4849,14 @@ impl Workspace {
             async { cli_install::uninstall_cli() },
             |view, result, ctx| match result {
                 Ok(_) => {
-                    let message = "Successfully uninstalled the Oz command.";
+                    let message = "Successfully uninstalled the Rift command.";
                     view.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::success(message.to_string());
                         toast_stack.add_ephemeral_toast(toast, ctx);
                     });
                 }
                 Err(error) => {
-                    let error_message = format!("Failed to uninstall Oz command: {error}");
+                    let error_message = format!("Failed to uninstall Rift command: {error}");
                     log::error!("{error_message}");
                     view.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::error(error_message);
@@ -10172,7 +10172,7 @@ impl Workspace {
         }
         let error = self.settings_file_error.as_ref()?;
         let (heading, description) = error.heading_and_description();
-        // "Fix with Oz" was an AI feature and has been removed.
+        // The "fix settings with AI" action was removed.
         let secondary_button: Option<WorkspaceBannerButtonDetails> = None;
         let _ = app;
         Some(WorkspaceBannerFields {

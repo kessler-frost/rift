@@ -775,14 +775,14 @@ pub fn init(app: &mut AppContext) {
         app.register_editable_bindings([
             EditableBinding::new(
                 "workspace:install_cli",
-                "Install Oz CLI command",
+                "Install Rift CLI command",
                 WorkspaceAction::InstallCLI,
             )
             .with_group(bindings::BindingGroup::Settings.as_str())
             .with_context_predicate(id!("Workspace")),
             EditableBinding::new(
                 "workspace:uninstall_cli",
-                "Uninstall Oz CLI command",
+                "Uninstall Rift CLI command",
                 WorkspaceAction::UninstallCLI,
             )
             .with_group(bindings::BindingGroup::Settings.as_str())
