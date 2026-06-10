@@ -339,10 +339,6 @@ impl<T: Action + Clone> View for SearchResultsMenuView<T> {
     }
 }
 
-fn renderable_title_name(query_filter: QueryFilter) -> Option<&'static str> {
-    if matches!(query_filter, QueryFilter::AgentModeWorkflows) {
-        return Some("Prompts");
-    }
-
+fn renderable_title_name(_query_filter: QueryFilter) -> Option<&'static str> {
     None
 }

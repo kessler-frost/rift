@@ -114,11 +114,8 @@ impl FilterChipRenderer for QueryFilter {
             | QueryFilter::FullTerminalUseModels
             | QueryFilter::CurrentDirectoryConversations
             | QueryFilter::Conversations
-            | QueryFilter::Workflows
-            | QueryFilter::Notebooks
             | QueryFilter::Plans
-            | QueryFilter::EnvironmentVariables
-            | QueryFilter::AgentModeWorkflows => appearance
+            | QueryFilter::EnvironmentVariables => appearance
                 .theme()
                 .main_text_color(appearance.theme().surface_2())
                 .into_solid(),

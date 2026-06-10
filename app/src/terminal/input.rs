@@ -2927,7 +2927,7 @@ impl Input {
             // analogy we have in this view would be workflows. So, open command search with the
             // workflows filter to handle this event.
             EditorEvent::ExCommand => ctx.emit(Event::ShowCommandSearch(CommandSearchOptions {
-                filter: Some(QueryFilter::Workflows),
+                filter: Some(QueryFilter::History),
                 init_content: InitContent::Custom("".to_owned()),
             })),
             EditorEvent::VimStatusUpdate => ctx.notify(),
