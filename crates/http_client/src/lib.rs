@@ -1,8 +1,6 @@
-pub mod iap;
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::Arc;
 use std::time::Duration;
 use std::{fmt, future};
 
@@ -23,7 +21,6 @@ use rift_core::{execution_mode, report_error};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::iap::{IapTokenProvider, proxy_auth_header};
 
 pub mod headers {
     /// Custom Warp header indicating the version of the Warp app.
@@ -66,10 +63,6 @@ pub struct Client {
     /// A callback that is executed on after each response is received.
     after_response_received: Option<ResponseHookFn>,
 
-    /// If set, provides IAP bearer tokens to attach as `Proxy-Authorization`
-    /// headers on outbound requests to the Warp staging server. Wired in by
-    /// the app layer on IAP-enabled builds (staging).
-    iap_token_provider: Option<Arc<dyn IapTokenProvider>>,
 }
 
 /// Type for 'hook' functions to be executed prior to sending a request. A reference to the
@@ -165,7 +158,6 @@ impl Client {
             wrapped: client,
             before_request_sent: None,
             after_response_received: None,
-            iap_token_provider: None,
         })
     }
 
@@ -177,15 +169,10 @@ impl Client {
         self.after_response_received = Some(hook_fn);
     }
 
-    pub fn set_iap_token_provider(&mut self, provider: Arc<dyn IapTokenProvider>) {
-        self.iap_token_provider = Some(provider);
-    }
-
     fn builder(
         &self,
         wrapped: reqwest::RequestBuilder,
         include_warp_headers: bool,
-        iap_token: Option<String>,
     ) -> RequestBuilder<'_> {
         let mut builder = RequestBuilder {
             wrapped,
@@ -198,53 +185,32 @@ impl Client {
             builder = Self::add_warp_http_headers(builder);
         }
 
-        if let Some(token) = iap_token {
-            let (name, value) = proxy_auth_header(&token);
-            builder = builder.header(name, value);
-        }
-
         builder
     }
 
     pub fn get<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
         let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        let iap_token = self.iap_token_for(url.clone());
-        self.builder(self.wrapped.get(url), include_warp_headers, iap_token)
+        self.builder(self.wrapped.get(url), include_warp_headers)
     }
 
     pub fn post<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
         let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        let iap_token = self.iap_token_for(url.clone());
-        self.builder(self.wrapped.post(url), include_warp_headers, iap_token)
+        self.builder(self.wrapped.post(url), include_warp_headers)
     }
 
     pub fn put<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
         let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        let iap_token = self.iap_token_for(url.clone());
-        self.builder(self.wrapped.put(url), include_warp_headers, iap_token)
+        self.builder(self.wrapped.put(url), include_warp_headers)
     }
 
     pub fn patch<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
         let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        let iap_token = self.iap_token_for(url.clone());
-        self.builder(self.wrapped.patch(url), include_warp_headers, iap_token)
+        self.builder(self.wrapped.patch(url), include_warp_headers)
     }
 
     pub fn delete<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
         let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        let iap_token = self.iap_token_for(url.clone());
-        self.builder(self.wrapped.delete(url), include_warp_headers, iap_token)
-    }
-
-    /// Returns the IAP bearer token to attach to a request targeting
-    /// `url`, scoped to the Warp server's origin.
-    fn iap_token_for<U: IntoUrl>(&self, url: U) -> Option<String> {
-        let provider = self.iap_token_provider.as_ref()?;
-        let url = url.into_url().ok()?;
-        if !is_warp_server_origin(&url) {
-            return None;
-        }
-        provider.cached_token()
+        self.builder(self.wrapped.delete(url), include_warp_headers)
     }
 
     /// Helper method to determine if the request should include warp-specific headers. The only case
@@ -384,16 +350,6 @@ impl Client {
 
         Ok(Response(result))
     }
-}
-
-fn is_warp_server_origin(url: &reqwest::Url) -> bool {
-    [
-        ChannelState::server_root_url(),
-        ChannelState::rtc_http_url(),
-    ]
-    .iter()
-    .filter_map(|candidate| reqwest::Url::parse(candidate.as_ref()).ok())
-    .any(|candidate| candidate.origin() == url.origin())
 }
 
 impl<'a> RequestBuilder<'a> {
@@ -740,14 +696,13 @@ impl<'c> oauth2::AsyncHttpClient<'c> for Client {
         Box::pin(async move {
             let uri = request.uri().to_string();
             let include_warp_headers = Self::include_warp_http_headers(uri.clone());
-            let iap_token = self.iap_token_for(uri);
             let builder = reqwest::RequestBuilder::from_parts(
                 self.wrapped.clone(),
                 request.try_into().map_err(Box::new)?,
             );
 
             let response = self
-                .builder(builder, include_warp_headers, iap_token)
+                .builder(builder, include_warp_headers)
                 .send()
                 .await
                 .map_err(Box::new)?;
