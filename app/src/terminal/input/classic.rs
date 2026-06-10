@@ -9,12 +9,11 @@ use settings::Setting;
 
 use super::{should_render_prompt_using_editor_decorator_elements, Input, SubshellRenderState};
 use crate::appearance::Appearance;
-use crate::features::FeatureFlag;
 use crate::settings::{AppEditorSettings, InputModeSettings};
 use crate::terminal::block_list_settings::BlockListSettings;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::input::common::{
-    add_command_xray_overlay, add_input_suggestions_overlays, add_vim_status_to_stack,
+    add_command_xray_overlay, add_input_suggestions_overlays,
     should_show_terminal_input_message_bar,
     wrap_input_with_terminal_padding_and_focus_handler,
 };
@@ -24,9 +23,7 @@ use crate::terminal::view::TerminalAction;
 use crate::terminal::riftify::render::{render_subshell_flag, render_subshell_flag_pole};
 
 impl Input {
-    /// Renders the classic input. This is used when the user has 'Honor PS1' enabled in settings,
-    /// OR if `FeatureFlag::AgentView` is disabled and the user has 'Classic' input type selected
-    /// in settings.
+    /// Renders the classic input. This is used when the user has 'Honor PS1' enabled in settings.
     pub(super) fn render_classic_input(&self, app: &AppContext) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
@@ -151,17 +148,6 @@ impl Input {
             );
         }
 
-        if !FeatureFlag::AgentView.is_enabled() {
-            if let Some(vim_state) = vim_state.as_ref() {
-                if show_vim_status {
-                    add_vim_status_to_stack(
-                        &mut stack, vim_state, appearance,
-                        false, // legacy doesn't use adjusted padding for vim status
-                    );
-                }
-            }
-        }
-
         stack.add_child(wrap_input_with_terminal_padding_and_focus_handler(
             self.is_active_session(app),
             column.finish(),
@@ -187,10 +173,9 @@ impl Input {
 
         let input_mode = *InputModeSettings::as_ref(app).input_mode.value();
 
-        // When AgentView is enabled, match terminal-mode input behavior and only render the
-        // divider adjacent to the status/message line when block dividers are enabled.
-        let show_block_dividers = *BlockListSettings::as_ref(app).show_block_dividers.value();
-        let should_render_divider = !FeatureFlag::AgentView.is_enabled() || show_block_dividers;
+        // Match terminal-mode input behavior and only render the divider
+        // adjacent to the status/message line when block dividers are enabled.
+        let should_render_divider = *BlockListSettings::as_ref(app).show_block_dividers.value();
 
         let border = match input_mode {
             InputMode::PinnedToBottom => Border::top(if should_render_divider {

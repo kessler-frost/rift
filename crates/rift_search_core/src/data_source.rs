@@ -5,7 +5,6 @@ use std::sync::Arc;
 use enum_iterator::{Sequence, all};
 use lazy_static::lazy_static;
 use ordered_float::OrderedFloat;
-use rift_core::features::FeatureFlag;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::icons::Icon;
 use rift_core::ui::theme::Fill;
@@ -336,13 +335,7 @@ impl QueryFilter {
             QueryFilter::Workflows => Some("bundled/svg/workflow.svg"),
             QueryFilter::Notebooks => Some("bundled/svg/notebook.svg"),
             QueryFilter::Plans => Some("bundled/svg/compass-3.svg"),
-            QueryFilter::NaturalLanguage => {
-                if !FeatureFlag::AgentMode.is_enabled() {
-                    Some(Icon::AiAssistant.into())
-                } else {
-                    Some(Icon::Oz.into())
-                }
-            }
+            QueryFilter::NaturalLanguage => Some(Icon::AiAssistant.into()),
             QueryFilter::Actions => None,
             QueryFilter::Sessions => Some("bundled/svg/terminal-input.svg"),
             QueryFilter::Tabs => Some("bundled/svg/terminal-input.svg"),

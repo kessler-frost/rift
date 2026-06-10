@@ -86,18 +86,7 @@ pub fn should_render_prompt_on_same_line(
         return false;
     }
 
-    let should_render_ps1 = should_render_ps1_prompt(terminal_model, app);
-
-    if FeatureFlag::AgentView.is_enabled() {
-        should_render_ps1
-    } else {
-        let session_settings = SessionSettings::as_ref(app);
-        should_render_ps1
-            || session_settings
-                .saved_prompt
-                .value()
-                .same_line_prompt_enabled()
-    }
+    should_render_ps1_prompt(terminal_model, app)
 }
 
 /// Returns `true` if the shell or AI prompt should be rendered using the editors

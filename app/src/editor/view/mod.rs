@@ -38,8 +38,8 @@ use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, Ri
 use riftui::actions::StandardAction;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    Container, CornerRadius, CrossAxisAlignment, Flex, Hoverable, MainAxisSize,
-    MouseStateHandle, ParentElement, Radius, Shrinkable, DEFAULT_UI_LINE_HEIGHT_RATIO,
+    CornerRadius, Hoverable,
+    MouseStateHandle, Radius, DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties, Weight};
 use riftui::keymap::{EditableBinding, FixedBinding, Keystroke, PerPlatformKeystroke};
@@ -48,11 +48,10 @@ use riftui::r#async::{SpawnedFutureHandle, Timer};
 use riftui::text::word_boundaries::WordBoundariesPolicy;
 use riftui::text::TextBuffer;
 use riftui::text_layout::TextStyle;
-use riftui::ui_components::button::ButtonTooltipPosition;
-use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
+use riftui::ui_components::components::UiComponentStyles;
 use riftui::windowing::WindowManager;
 use riftui::{
-    elements, windowing, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId,
+    windowing, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId,
     FocusContext, ModelAsRef, ModelContext, ModelHandle, SingletonEntity, TypedActionView, View,
     ViewContext, ViewHandle, WindowId,
 };
@@ -100,8 +99,6 @@ use crate::terminal::grid_size_util::grid_cell_dimensions;
 use crate::terminal::model::block::BlockId;
 use crate::themes::theme::Fill;
 use crate::ui_components::avatar::{Avatar, AvatarContent};
-use crate::ui_components::buttons::icon_button;
-use crate::ui_components::icons;
 use crate::util::bindings::{cmd_or_ctrl_shift, keybinding_name_to_keystroke, CustomAction};
 use crate::util::clipboard::clipboard_content_with_escaped_paths;
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
@@ -873,25 +870,13 @@ pub fn init(ctx: &mut AppContext) {
         ),
     ]);
 
-    ctx.register_editable_bindings([
-        // With Agent Mode, cmdorctrl-i toggles AI input mode (same as GH Copilot) -- so
-        // reassign command x ray to something else.
-        EditableBinding::new(
-            "editor_view:inspect_command",
-            "Inspect Command",
-            EditorAction::InspectCommand,
-        )
-        .with_enabled(|| FeatureFlag::AgentMode.is_enabled())
-        .with_context_predicate(id!("EditorView") & !id!("IMEOpen")),
-        EditableBinding::new(
-            "editor_view:inspect_command",
-            "Inspect Command",
-            EditorAction::InspectCommand,
-        )
-        .with_enabled(|| !FeatureFlag::AgentMode.is_enabled())
-        .with_context_predicate(id!("EditorView") & !id!("IMEOpen"))
-        .with_key_binding("cmdorctrl-i"),
-    ]);
+    ctx.register_editable_bindings([EditableBinding::new(
+        "editor_view:inspect_command",
+        "Inspect Command",
+        EditorAction::InspectCommand,
+    )
+    .with_context_predicate(id!("EditorView") & !id!("IMEOpen"))
+    .with_key_binding("cmdorctrl-i")]);
 
     ctx.register_editable_bindings([EditableBinding::new(
         "editor_view:clear_buffer",
@@ -1787,7 +1772,6 @@ pub struct EditorView {
     pub image_context_options: ImageContextOptions,
 
     /// The mouse handle for the image context icon.
-    image_context_button_mouse_handle: MouseStateHandle,
 
     /// Whether this editor should delegate handling of paste events to its parent.
     delegate_paste_handling: bool,
@@ -2953,7 +2937,6 @@ impl EditorView {
                 .show_autosuggestion_ignore_button,
             convert_newline_to_space: options.convert_newline_to_space,
             image_context_options: ImageContextOptions::Disabled,
-            image_context_button_mouse_handle: Default::default(),
             delegate_paste_handling: options.delegate_paste_handling,
             drag_drop_path_transformer: options.drag_drop_path_transformer,
             process_attached_images_future_handle: None,
@@ -7525,84 +7508,6 @@ impl EditorView {
         self.user_insert(&input, ctx);
     }
 
-    fn render_menu_button_tooltip(
-        &self,
-        tooltip_text: String,
-        appearance: &Appearance,
-    ) -> Box<dyn FnOnce() -> Box<dyn Element>> {
-        let tooltip_background = appearance.theme().surface_1().into_solid();
-        let tooltip_text_color = appearance
-            .theme()
-            .main_text_color(tooltip_background.into())
-            .into_solid();
-        let ui_builder = appearance.ui_builder().clone();
-
-        Box::new(move || {
-            let tool_tip_style = UiComponentStyles {
-                background: Some(elements::Fill::Solid(tooltip_background)),
-                font_color: Some(tooltip_text_color),
-                ..Default::default()
-            };
-
-            ui_builder
-                .tool_tip(tooltip_text)
-                .with_style(tool_tip_style)
-                .build()
-                .finish()
-        })
-    }
-
-    fn render_image_context_button(
-        &self,
-        disabled: bool,
-        tooltip_text: String,
-        icon_size: f32,
-        appearance: &Appearance,
-    ) -> Box<dyn Element> {
-        let button = icon_button(
-            appearance,
-            icons::Icon::Image,
-            false,
-            self.image_context_button_mouse_handle.clone(),
-        )
-        .with_tooltip_position(ButtonTooltipPosition::Above)
-        .with_tooltip(self.render_menu_button_tooltip(tooltip_text, appearance))
-        .with_style(UiComponentStyles {
-            width: Some(icon_size),
-            height: Some(icon_size),
-            padding: Some(Coords::uniform(icon_size / 10.)),
-            ..Default::default()
-        });
-
-        let button = if disabled {
-            button
-                .with_style(UiComponentStyles {
-                    font_color: Some(
-                        appearance
-                            .theme()
-                            .disabled_text_color(appearance.theme().background())
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .with_hovered_styles(UiComponentStyles {
-                    background: None,
-                    ..Default::default()
-                })
-                .build()
-                .with_cursor(Cursor::Arrow)
-        } else {
-            button
-                .build()
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(EditorAction::AttachFiles);
-                })
-                .with_cursor(Cursor::PointingHand)
-        };
-
-        button.finish()
-    }
-
     /// Commits the currently composed text from the IME (if there is any) to properly handle one of the following:
     /// - a new selection
     /// - clicking outside of the editor
@@ -7675,41 +7580,6 @@ impl EditorView {
         });
     }
 
-    /// If the editor should show any controls, render them.
-    /// Otherwise, return the child element.
-    fn render_controls(&self, ctx: &AppContext) -> Option<Box<dyn Element>> {
-        let should_show_voice = false;
-        let input_settings = InputSettings::as_ref(ctx);
-        let is_universal_input_enabled = input_settings.is_universal_developer_input_enabled(ctx);
-        let should_show_image = !FeatureFlag::AgentView.is_enabled()
-            && self.image_context_options.should_show_button()
-            && !is_universal_input_enabled;
-        if !should_show_voice && !should_show_image {
-            return None;
-        }
-
-        let appearance = Appearance::as_ref(ctx);
-        let font_cache = ctx.font_cache();
-        let icon_size = self.line_height(font_cache, appearance);
-
-        let mut controls = Flex::row().with_main_axis_size(MainAxisSize::Min);
-
-        if should_show_image {
-            controls.add_child(
-                Container::new(self.render_image_context_button(
-                    !self.image_context_options.is_enabled(),
-                    self.image_context_options.tooltip_text(),
-                    icon_size,
-                    appearance,
-                ))
-                .with_margin_left(4.)
-                .finish(),
-            );
-        }
-
-
-        Some(controls.finish())
-    }
 }
 
 /// Try to convert display point to an anchor. If it is not possible, clamp to anchoring at end of buffer.
@@ -8110,16 +7980,7 @@ impl View for EditorView {
             .with_cursor(Cursor::IBeam)
             .finish();
 
-        if let Some(controls) = self.render_controls(ctx) {
-            let mut row = Flex::row()
-                .with_main_axis_size(MainAxisSize::Max)
-                .with_cross_axis_alignment(CrossAxisAlignment::End);
-            row.add_child(Shrinkable::new(1., hoverable).finish());
-            row.add_child(controls);
-            row.finish()
-        } else {
-            hoverable
-        }
+        hoverable
     }
 
     fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {

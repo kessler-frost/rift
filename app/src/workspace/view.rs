@@ -361,9 +361,6 @@ const SHOW_SETTINGS_KEYBINDING_NAME: &str = "workspace:show_settings";
 pub const TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME: &str = "workspace:toggle_command_palette";
 
 const USER_AVATAR_BUTTON_POSITION_ID: &str = "workspace:user_avatar_button";
-const NOTIFICATIONS_MAILBOX_POSITION_ID: &str = "workspace:notifications_mailbox";
-pub(crate) const TOGGLE_NOTIFICATION_MAILBOX_BINDING_NAME: &str =
-    "workspace:toggle_notification_mailbox";
 
 pub(crate) const TOGGLE_RIGHT_PANEL_BINDING_NAME: &str = "workspace:toggle_right_panel";
 pub(crate) const TOGGLE_VERTICAL_TABS_PANEL_BINDING_NAME: &str =
@@ -636,7 +633,6 @@ pub struct Workspace {
     reauth_banner_dismissed: bool,
     settings_file_error: Option<crate::settings::SettingsFileError>,
     settings_error_banner_dismissed: bool,
-    should_show_ai_assistant_warm_welcome: bool,
     prompt_editor_modal: ViewHandle<PromptEditorModal>,
     header_toolbar_editor_modal: ViewHandle<HeaderToolbarEditorModal>,
     header_toolbar_context_menu: ViewHandle<Menu<WorkspaceAction>>,
@@ -1957,7 +1953,6 @@ impl Workspace {
             me.handle_window_settings_changed_event(event, ctx);
         });
 
-        let should_show_ai_assistant_warm_welcome: bool = false;
 
         let tab_settings_handle = TabSettings::handle(ctx);
         ctx.subscribe_to_model(&tab_settings_handle, |me, _, event, ctx| {
@@ -2089,7 +2084,6 @@ impl Workspace {
             reauth_banner_dismissed: false,
             settings_file_error,
             settings_error_banner_dismissed: false,
-            should_show_ai_assistant_warm_welcome,
             theme_creator_modal,
             theme_deletion_modal,
             window_id: ctx.window_id(),
@@ -7448,10 +7442,7 @@ impl Workspace {
 
         // If the previous tab's left panel was open, maintain that state with the new tab
         // (unless we're restoring the tab from a persisted snapshot).
-        if FeatureFlag::AgentViewConversationListView.is_enabled()
-            && !is_restoration
-            && left_panel_was_open
-        {
+        if !is_restoration && left_panel_was_open {
             self.active_tab_pane_group().update(ctx, |pg, ctx| {
                 pg.set_left_panel_open(true, ctx);
             });
@@ -7624,7 +7615,6 @@ impl Workspace {
         let is_tab_menu_open = self.show_tab_bar_overflow_menu
             || (self.show_tab_right_click_menu.is_some() && !is_vertical_tabs_active)
             || (self.show_new_session_dropdown_menu.is_some() && !is_vertical_tabs_active)
-            || (!FeatureFlag::AgentMode.is_enabled() && self.should_show_ai_assistant_warm_welcome)
             || self.is_user_menu_open
             || self.tab_bar_pinned_by_popup;
 
@@ -9588,13 +9578,7 @@ impl Workspace {
             .finish();
         } else {
             // Copy from our saved tab_bar_state to ensure all tabs get rendered with the same state
-            let active_tab_index = if FeatureFlag::AgentManagementView.is_enabled()
-                && self.current_workspace_state.is_agent_management_view_open
-            {
-                None
-            } else {
-                Some(self.active_tab_index)
-            };
+            let active_tab_index = Some(self.active_tab_index);
 
             let drag_model = CrossWindowTabDrag::as_ref(ctx);
             let tab_bar_state = TabBarState {
@@ -9731,9 +9715,8 @@ impl Workspace {
                 self.render_agent_management_view_button(appearance, ctx)
             }
             HeaderToolbarItemKind::CodeReview => self.render_right_panel_button(appearance, ctx),
-            HeaderToolbarItemKind::NotificationsMailbox => {
-                self.render_notifications_mailbox_button(appearance, ctx)
-            }
+            // Kept only for persisted-layout compatibility; never supported.
+            HeaderToolbarItemKind::NotificationsMailbox => Empty::new().finish(),
         };
         Some(
             Container::new(
@@ -9749,67 +9732,6 @@ impl Workspace {
             .with_margin_left(TAB_BAR_ICON_PADDING)
             .finish(),
         )
-    }
-
-    /// Renders the notifications mailbox button (extracted for reuse from
-    /// add_right_side_tab_bar_controls).
-    fn render_notifications_mailbox_button(
-        &self,
-        appearance: &Appearance,
-        ctx: &AppContext,
-    ) -> Box<dyn Element> {
-        let is_inbox_active = self.current_workspace_state.is_notification_mailbox_open;
-        let mailbox_button = self
-            .render_tab_bar_icon_button(
-                appearance,
-                icons::Icon::Inbox,
-                &self.mouse_states.notifications_mailbox,
-                WorkspaceAction::ToggleNotificationMailbox {
-                    select_first: false,
-                },
-                "Notifications".to_string(),
-                keybinding_name_to_display_string(TOGGLE_NOTIFICATION_MAILBOX_BINDING_NAME, ctx),
-                is_inbox_active,
-                false,
-            )
-            .finish();
-
-        // Agent notifications were removed; there is never an unread count.
-        let unread_count = 0usize;
-        let mailbox_element = if unread_count > 0 {
-            let indicator = Container::new(
-                ConstrainedBox::new(
-                    Rect::new()
-                        .with_background(appearance.theme().accent())
-                        .with_corner_radius(CornerRadius::with_all(Radius::Percentage(50.)))
-                        .finish(),
-                )
-                .with_width(6.)
-                .with_height(6.)
-                .finish(),
-            )
-            .finish();
-            let mut stack = Stack::new();
-            stack.add_child(mailbox_button);
-            stack.add_positioned_child(
-                indicator,
-                OffsetPositioning::offset_from_parent(
-                    Vector2F::zero(),
-                    ParentOffsetBounds::WindowByPosition,
-                    ParentAnchor::TopRight,
-                    ChildAnchor::TopRight,
-                ),
-            );
-            stack.finish()
-        } else {
-            mailbox_button
-        };
-
-        SavePosition::new(
-            Container::new(Align::new(mailbox_element).finish()).finish(),
-            NOTIFICATIONS_MAILBOX_POSITION_ID,
-        )
-        .finish()
     }
 
     /// Adds the configurable right-side toolbar items plus the fixed controls
@@ -11931,10 +11853,6 @@ impl TypedActionView for Workspace {
             ToggleRightPanel => {}
             ToggleVerticalTabsPanel => {
                 self.toggle_vertical_tabs_panel(ctx);
-            }
-            ToggleNotificationMailbox { select_first } => {
-                // Agent notification mailbox was an AI feature and has been removed.
-                let _ = select_first;
             }
             ToggleVerticalTabsSettingsPopup => {
                 if FeatureFlag::VerticalTabs.is_enabled()

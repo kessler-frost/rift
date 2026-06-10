@@ -15,8 +15,7 @@ use crate::terminal::input::suggestions_mode_model::{
 };
 use crate::terminal::model::TerminalModel;
 
-/// Renders contextual hint text at the bottom of the terminal input when `FeatureFlag::AgentView`
-/// is enabled.
+/// Renders contextual hint text at the bottom of the terminal input.
 pub struct TerminalInputMessageBar {
     #[allow(dead_code)]
     terminal_model: Arc<FairMutex<TerminalModel>>,

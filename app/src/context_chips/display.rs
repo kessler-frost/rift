@@ -1,13 +1,12 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use rift_core::features::FeatureFlag;
 use riftui::elements::{
     ChildView, Clipped, Container, CrossAxisAlignment, Element, Flex, MainAxisAlignment,
     MainAxisSize, ParentElement, Wrap,
 };
 use riftui::{
-    AppContext, Entity, EntityId, FocusContext, ModelHandle, SingletonEntity, TypedActionView,
+    AppContext, Entity, EntityId, FocusContext, ModelHandle, TypedActionView,
     View, ViewContext, ViewHandle,
 };
 
@@ -18,7 +17,6 @@ use super::{git_line_changes_from_chips, ChipResult};
 use super::ContextChipKind;
 use crate::completer::SessionContext;
 use crate::context_chips::display_chip::{format_git_branch_command, DisplayChipAction};
-use crate::settings::InputSettings;
 use crate::terminal::input::MenuPositioningProvider;
 use crate::terminal::model_events::ModelEventDispatcher;
 
@@ -321,25 +319,13 @@ impl View for PromptDisplay {
     }
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
-        let should_render_udi_chips = InputSettings::as_ref(app)
-            .is_universal_developer_input_enabled(app)
-            || FeatureFlag::AgentView.is_enabled();
-        let mut row = if should_render_udi_chips {
-            RowBuilder::Wrap(
-                Wrap::row()
-                    .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                    .with_main_axis_alignment(MainAxisAlignment::Start)
-                    .with_main_axis_size(MainAxisSize::Min)
-                    .with_run_spacing(super::spacing::UDI_ROW_RUN_SPACING),
-            )
-        } else {
-            RowBuilder::Flex(
-                Flex::row()
-                    .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                    .with_constrain_horizontal_bounds_to_parent(true)
-                    .with_main_axis_size(MainAxisSize::Min),
-            )
-        };
+        let mut row = RowBuilder::Wrap(
+            Wrap::row()
+                .with_cross_axis_alignment(CrossAxisAlignment::Center)
+                .with_main_axis_alignment(MainAxisAlignment::Start)
+                .with_main_axis_size(MainAxisSize::Min)
+                .with_run_spacing(super::spacing::UDI_ROW_RUN_SPACING),
+        );
 
         self.display_chips.iter().for_each(|display_chip| {
             let chip = display_chip.as_ref(app);

@@ -22,9 +22,8 @@ use super::logging::{ChipCommandLogEntry, PromptChipExecutionPhase, PromptChipLo
 use super::prompt::Prompt;
 use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
 use crate::editor::EditorView;
-use crate::features::FeatureFlag;
 use crate::menu::{MenuItem, MenuItemFields};
-use crate::settings::{InputSettings, RiftPromptSeparator};
+use crate::settings::RiftPromptSeparator;
 use crate::terminal::event::{BlockType, UserBlockCompleted};
 use crate::terminal::model::block::{Block, BlockMetadata};
 use crate::terminal::model::session::{ExecuteCommandOptions, Session, Sessions, SessionsEvent};
@@ -233,15 +232,6 @@ impl CurrentPrompt {
         // A WeakViewHandle is used here to avoid leaking the terminal model
         let weak_editor_handle = editor.downgrade();
         ctx.subscribe_to_view(&editor, move |me, _, ctx| {
-            // CurrentPrompt exists and this fn is called even if we're not using rift prompt.
-            // We don't need to do anything if we're honoring PS1 unless universal developer input
-            // or AgentView is enabled (agent view needs chips regardless of PS1 setting).
-            if *SessionSettings::as_ref(ctx).honor_ps1
-                && !InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx)
-                && !FeatureFlag::AgentView.is_enabled()
-            {
-                return;
-            }
             let Some(editor) = weak_editor_handle.upgrade(ctx) else {
                 return;
             };
@@ -894,13 +884,6 @@ impl CurrentPrompt {
         allow_fingerprint_skip: bool,
         ctx: &mut ModelContext<Self>,
     ) {
-        // For periodically-updated chips, we have to check if context chips were disabled while
-        // waiting on the timer. This protects against race conditions between aborting the
-        // previous refresh handle and starting the next one.
-        if !self.active(ctx) {
-            return;
-        }
-
         let Some(chip) = chip_kind.to_chip() else {
             log::error!("Undefined chip: {chip_kind:?}");
             return;
@@ -935,11 +918,6 @@ impl CurrentPrompt {
     }
 
     fn run_chips(&mut self, chips: Vec<ContextChipKind>, ctx: &mut ModelContext<Self>) {
-        if !self.active(ctx) {
-            log::debug!("Context chips are not in use, won't run");
-            return;
-        }
-
         chips.iter().for_each(|chip_kind| {
             let Some(chip) = chip_kind.to_chip() else {
                 log::error!("Undefined chip: {chip_kind:?}");
@@ -1075,16 +1053,10 @@ impl CurrentPrompt {
         ctx: &mut ModelContext<Self>,
     ) {
         if let SessionSettingsChangedEvent::HonorPS1 { .. } = event {
-            if self.active(ctx) {
-                // If switching from PS1 to context chips, we'll need to restart the chip-updating
-                // loops. Any previous async updates will have been cancelled.
-                log::debug!("Re-enabling context chips");
-                self.update_states_with_new_context(ctx)
-            } else {
-                // If switching from context chips to PS1, stop any in-flight chip updates.
-                log::debug!("Using PS1, disabling context chips");
-                self.clear_chips_and_cache();
-            }
+            // Restart the chip-updating loops; any previous async updates will
+            // have been cancelled.
+            log::debug!("Re-enabling context chips");
+            self.update_states_with_new_context(ctx)
         }
 
         if let SessionSettingsChangedEvent::SavedPrompt { .. } = event {
@@ -1343,16 +1315,6 @@ impl CurrentPrompt {
         false
     }
 
-    /// Whether or not context chips are active. If this is false, we can skip running them.
-    fn active(&self, ctx: &AppContext) -> bool {
-        // Context chips are active when:
-        // 1. PS1 is not honored (normal case), OR
-        // 2. Universal developer input is enabled (overrides PS1 behavior), OR
-        // 3. AgentView feature is enabled (agent view needs chips regardless of PS1)
-        !*SessionSettings::as_ref(ctx).honor_ps1
-            || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx)
-            || FeatureFlag::AgentView.is_enabled()
-    }
 }
 
 impl Entity for CurrentPrompt {

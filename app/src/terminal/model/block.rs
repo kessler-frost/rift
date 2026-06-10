@@ -255,10 +255,6 @@ pub struct Block {
     /// Only set on restored blocks. Indicates whether the block was local or from a remote session.
     restored_block_was_local: Option<bool>,
 
-    /// Tracks which views (terminal and/or agent conversations) this block should be visible in.
-    ///
-    /// This is only used if `FeatureFlag::AgentView` is enabled.
-
     /// Whether natural language detection (NLD) was overridden (i.e., the user had manually locked
     /// the input type) at the time this block's command was submitted.
     ///

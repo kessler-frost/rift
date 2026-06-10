@@ -3166,17 +3166,6 @@ impl TerminalView {
             // event. When it is triggered on TypedCharacters, we should pass
             // the received string down to input view.
 
-            // Only clear selected blocks and text if we're not in AI mode since in AI mode we
-            // don't want to clear the selected blocks or text (context) when we start typing.
-            //
-            // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in
-            // terminal mode. Selections are preserved so they can be attached to the query when
-            // entering the agent view.
-            if !FeatureFlag::AgentView.is_enabled() {
-                self.clear_selected_blocks(ctx);
-                self.clear_selected_text(ctx);
-            }
-
             self.update_scroll_position_locking(ScrollPositionUpdate::AfterTypedCharacters, ctx);
             self.input
                 .update(ctx, |input, ctx| input.system_insert(characters, ctx));
@@ -8740,16 +8729,6 @@ impl TerminalView {
     }
 
     fn clear_selections_when_shell_mode(&mut self, ctx: &mut ViewContext<Self>) {
-        // Don't clear selected blocks or text in AI mode because those are context blocks.
-        //
-        // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in terminal
-        // mode. Selections are preserved so they can be attached to the query when entering the
-        // agent view.
-        if !FeatureFlag::AgentView.is_enabled() {
-            self.clear_selected_blocks(ctx);
-            self.clear_selected_text(ctx);
-        }
-
         self.focus_input_box(ctx);
         ctx.notify();
     }
@@ -8765,29 +8744,10 @@ impl TerminalView {
         &mut self,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Don't clear selected blocks or text in AI mode because those are context blocks.
-        //
-        // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in terminal
-        // mode. Selections are preserved so they can be attached to the query when entering the
-        // agent view.
-        if !FeatureFlag::AgentView.is_enabled() {
-            self.clear_selected_blocks(ctx);
-            self.clear_selected_text(ctx);
-        }
         ctx.notify();
     }
 
     fn focus_input_box(&mut self, ctx: &mut ViewContext<Self>) {
-        // Only clear selected blocks and text if we're not in AI mode since in AI mode we don't want to clear
-        // the selected blocks or text (context) when we focus the input.
-        //
-        // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in terminal
-        // mode. Selections are preserved so they can be attached to the query when entering the
-        // agent view.
-        if !FeatureFlag::AgentView.is_enabled() {
-            self.clear_selected_blocks(ctx);
-        }
-
         self.update_find_selection(ctx);
         ctx.focus(&self.input);
         ctx.notify();

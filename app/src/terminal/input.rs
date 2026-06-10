@@ -79,7 +79,7 @@ use super::safe_mode_settings::{
     get_secret_obfuscation_mode, SafeModeSettings, SafeModeSettingsChangedEvent,
 };
 use super::session_settings::{SessionSettings, SessionSettingsChangedEvent};
-use super::settings::{SpacingMode, TerminalSettings, TerminalSettingsChangedEvent};
+use super::settings::{TerminalSettings, TerminalSettingsChangedEvent};
 use super::view::{
     ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
 };
@@ -217,7 +217,6 @@ const MIN_BUFFER_LEN_TO_SHOW_COMPLETIONS_WHILE_TYPING: usize = 2;
 
 const AI_COMMAND_SEARCH_TRIGGER: &str = "#";
 
-const VIM_STATUS_BAR_BOTTOM_PADDING: f32 = 20.;
 
 const DYNAMIC_ENUM_GENERATE_MESSAGE: &str = "Run the following command to generate variants:";
 const DYNAMIC_ENUM_RUN_MESSAGE: &str = "Run command";
@@ -4330,21 +4329,6 @@ impl Input {
         // NaturalLanguageCommandSearch has its own `cmd+enter` behaviour, not expected to execute here
         let mode = self.suggestions_mode_model.as_ref(ctx).mode().clone();
         match &mode {
-            InputSuggestionsMode::CompletionSuggestions { .. }
-            | InputSuggestionsMode::HistoryUp { .. }
-                // If FeatureFlag::AgentView is enabled, cmd-enter should unconditionally enter the
-                // agent view with the current buffer contents as agent input.
-                //
-                // I'm (ZB) not even sure what this legacy behavior is for, because if you have any
-                // selected completion or history suggestion, that suggestion has already been
-                // inserted into the buffer so enter (without cmd- prefix) would directly execute
-                // it anyway.
-                if !FeatureFlag::AgentView.is_enabled() =>
-            {
-                self.input_suggestions.update(ctx, |suggestions, ctx| {
-                    suggestions.confirm_and_execute(ctx);
-                });
-            }
             InputSuggestionsMode::DynamicWorkflowEnumSuggestions {
                 dynamic_enum_status: DynamicEnumSuggestionStatus::Unapproved,
                 command,
@@ -4374,10 +4358,7 @@ impl Input {
         self.editor.as_ref(ctx).buffer_text(ctx)
     }
 
-    /// Inserts the given text into the input buffer. Note that this requires a TerminalModel lock
-    /// because when not in Agent Mode, we clear all active selections when inserting text into the
-    /// editor! Any upstream caller should NOT be holding a lock on the TerminalModel when calling
-    /// this method, to avoid a deadlock.
+    /// Inserts the given text into the input buffer.
     fn insert_internal(
         &mut self,
         text: &str,
@@ -4386,16 +4367,6 @@ impl Input {
     ) -> bool {
         if matches!(edit_origin, EditOrigin::UserTyped) {
             self.model.lock().set_is_input_dirty(true);
-        }
-        // If not in Agent Mode, clear any active text selections in the blocklist when inserting
-        // new text. Note that the TerminalModel lock is instantly dropped after this expression,
-        // since it's stored in a temporary variable.
-        //
-        // When `FeatureFlag::AgentView` is enabled, blocks are attachable as AI context in terminal
-        // mode. Selections are preserved so they can be attached to the query when entering the
-        // agent view.
-        if !FeatureFlag::AgentView.is_enabled() {
-            self.model.lock().block_list_mut().clear_selection();
         }
 
         ctx.focus(&self.editor);
@@ -4712,7 +4683,7 @@ impl Input {
 
     fn render_input_box(
         &self,
-        show_vim_status: bool,
+        _show_vim_status: bool,
         appearance: &Appearance,
         app: &AppContext,
     ) -> Box<dyn Element> {
@@ -4731,25 +4702,9 @@ impl Input {
         let terminal_settings = TerminalSettings::as_ref(app);
         let terminal_spacing =
             terminal_settings.terminal_input_spacing(appearance.line_height_ratio(), app);
-        let mut bottom_padding = terminal_spacing.editor_bottom_padding;
-
-        // When `FeatureFlag::AgentView` is enabled, always render with UDI-style spacing values,
-        // regardless of terminal/agent mode or prompt setting.
-        let is_udi_style_spacing =
-            self.should_show_universal_developer_input(app) || FeatureFlag::AgentView.is_enabled();
-
-        let is_compact_mode =
-            matches!(terminal_settings.spacing_mode.value(), SpacingMode::Compact)
-                && !is_udi_style_spacing;
-
-        // In compact mode, allocate some extra padding for the Vim status bar.
-        if is_compact_mode && show_vim_status {
-            bottom_padding = VIM_STATUS_BAR_BOTTOM_PADDING;
-        }
-
-        if is_udi_style_spacing {
-            bottom_padding = terminal_spacing.editor_bottom_padding - 4.;
-        }
+        // Always render with UDI-style spacing values, regardless of terminal
+        // mode or prompt setting.
+        let bottom_padding = terminal_spacing.editor_bottom_padding - 4.;
 
         let input_box = Container::new(
             ConstrainedBox::new(Clipped::new(ChildView::new(&self.editor).finish()).finish())
@@ -4912,13 +4867,6 @@ impl View for Input {
 
         if self.buffer_text(app).is_empty() {
             ctx.set.insert(flags::EMPTY_INPUT_BUFFER);
-        }
-
-        if *InputSettings::as_ref(app)
-            .enable_slash_commands_in_terminal
-            .value()
-        {
-            ctx.set.insert(flags::SLASH_COMMANDS_IN_TERMINAL_FLAG);
         }
 
         if self.prompt_render_helper.has_open_chip_menu(app) {

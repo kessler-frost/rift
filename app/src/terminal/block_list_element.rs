@@ -1886,7 +1886,7 @@ impl BlockListElement {
         rift_theme: &RiftTheme,
         block_borders_enabled: bool,
         snackbar_header: &Option<SnackbarHeader>,
-        ai_render_context: &BlocklistAIRenderContext,
+        _ai_render_context: &BlocklistAIRenderContext,
         ctx: &mut PaintContext,
         _app: &AppContext,
     ) {
@@ -1900,16 +1900,6 @@ impl BlockListElement {
                 .with_background(rift_theme.restored_blocks_overlay());
         }
 
-        let mut did_render_ai_stripe = false;
-        if !FeatureFlag::AgentView.is_enabled() {
-            if let Some(ai_context_stripe_color) =
-                ai_render_context.context_color_for_block(block, rift_theme)
-            {
-                draw_flag_pole(grid_origin, block_height, ai_context_stripe_color, ctx);
-                did_render_ai_stripe = true;
-            }
-        }
-
         if block.has_failed() {
             ctx.scene
                 .draw_rect_with_hit_recording(RectF::new(
@@ -1918,7 +1908,7 @@ impl BlockListElement {
                 ))
                 .with_background(rift_theme.failed_block_color().with_opacity(10));
 
-            if !is_selected_by_anyone && !did_render_ai_stripe {
+            if !is_selected_by_anyone {
                 draw_flag_pole(
                     grid_origin,
                     block_height,
@@ -3629,25 +3619,8 @@ impl Element for BlockListElement {
                 VisibleItem::RichContent {
                     view_id, height_px, ..
                 } => {
-                    let block_origin = grid_origin;
                     if let Some(rich_content) = self.rich_content_elements.get_mut(view_id) {
                         rich_content.paint(grid_origin, ctx, app);
-                    }
-
-                    if !FeatureFlag::AgentView.is_enabled() {
-                        let ai_render_context = self.ai_render_context.borrow();
-                        if let Some(ai_context_color) = self
-                            .rich_content_metadata
-                            .get(view_id)
-                            .and_then(|metadata| {
-                                ai_render_context
-                                    .context_color_for_rich_content(metadata, &self.rift_theme)
-                            })
-                        {
-                            ctx.scene.start_layer(ClipBounds::ActiveLayer);
-                            draw_flag_pole(block_origin, *height_px, ai_context_color, ctx);
-                            ctx.scene.stop_layer();
-                        }
                     }
 
                     draw_border_above_block = true;

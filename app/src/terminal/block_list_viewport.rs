@@ -3,7 +3,6 @@ use std::rc::Rc;
 use std::sync::MutexGuard;
 
 use pathfinder_geometry::vector::Vector2F;
-use rift_core::features::FeatureFlag;
 use riftui::elements::ClippedScrollStateHandle;
 use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
 use riftui::{AppContext, ModelHandle};
@@ -2017,7 +2016,8 @@ impl Iterator for ViewportIter<'_> {
                     return next;
                 }
                 _ => {
-                    if !FeatureFlag::AgentView.is_enabled() || block_height.as_f64() > 0. {
+                    // Skip zero-height blocks.
+                    if block_height.as_f64() > 0. {
                         return next;
                     }
                 }

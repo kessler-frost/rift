@@ -55,7 +55,7 @@ pub use toast_stack::ToastStack;
 
 use crate::workspace::view::{
     NEW_TAB_BINDING_NAME,
-    NEW_TERMINAL_TAB_BINDING_NAME, TOGGLE_NOTIFICATION_MAILBOX_BINDING_NAME, TOGGLE_RIGHT_PANEL_BINDING_NAME,
+    NEW_TERMINAL_TAB_BINDING_NAME, TOGGLE_RIGHT_PANEL_BINDING_NAME,
     TOGGLE_TAB_CONFIGS_MENU_BINDING_NAME, TOGGLE_VERTICAL_TABS_PANEL_BINDING_NAME,
 };
 
@@ -835,17 +835,6 @@ pub fn init(app: &mut AppContext) {
     ]);
 
 
-
-    app.register_editable_bindings([EditableBinding::new(
-        TOGGLE_NOTIFICATION_MAILBOX_BINDING_NAME,
-        "Toggle notification mailbox",
-        WorkspaceAction::ToggleNotificationMailbox { select_first: true },
-    )
-    .with_enabled(|| FeatureFlag::HOANotifications.is_enabled())
-    .with_context_predicate(id!("Workspace"))
-    .with_mac_key_binding("cmd-shift-U")
-    .with_linux_or_windows_key_binding("ctrl-shift-U")
-    .with_group(bindings::BindingGroup::Navigation.as_str())]);
 
     add_open_setting_pages_as_editable_binding(app);
     add_overflow_menu_items_as_editable_binding(app);

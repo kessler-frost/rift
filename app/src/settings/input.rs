@@ -122,15 +122,6 @@ define_settings_group!(InputSettings,
             toml_path: "terminal.input.at_context_menu_in_terminal_mode",
             description: "Whether the @ context menu is available in terminal mode.",
         },
-        enable_slash_commands_in_terminal: EnableSlashCommandsInTerminal {
-            type: bool,
-            default: true,
-            supported_platforms: SupportedPlatforms::ALL,
-            sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-            private: false,
-            toml_path: "terminal.input.enable_slash_commands_in_terminal",
-            description: "Whether slash commands are available in the terminal input.",
-        },
         outline_codebase_symbols_for_at_context_menu: OutlineCodebaseSymbolsForAtContextMenu {
             type: bool,
             default: true,
@@ -164,7 +155,6 @@ define_settings_group!(InputSettings,
             description: "Whether agent tips are displayed in the input.",
         },
         // Whether to show the terminal input message bar (contextual hints at the bottom of terminal input).
-        // Only applicable when FeatureFlag::AgentView is enabled.
         show_terminal_input_message_bar: ShowTerminalInputMessageBar {
             type: bool,
             default: true,

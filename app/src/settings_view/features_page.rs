@@ -65,7 +65,7 @@ use crate::settings::{
     AtContextMenuInTerminalMode, AutocompleteSymbols, AutosuggestionKeybindingHint,
     CodeEditorLineNumberMode,
     CodeEditorLineNumberModeSetting, CodeSettings, CommandCorrections, CompletionsOpenWhileTyping,
-    CopyOnSelect, CtrlTabBehavior, DefaultSessionMode, EnableSlashCommandsInTerminal, ErrorUnderliningEnabled, ExtraMetaKeys, GPUSettings, GlobalHotkeyMode,
+    CopyOnSelect, CtrlTabBehavior, DefaultSessionMode, ErrorUnderliningEnabled, ExtraMetaKeys, GPUSettings, GlobalHotkeyMode,
     InputSettings, InputSettingsChangedEvent, LinuxSelectionClipboard, MiddleClickPasteEnabled,
     MouseScrollMultiplier, OutlineCodebaseSymbolsForAtContextMenu, PreferLowPowerGPU,
     PreferredGraphicsBackend, QuakeModeSettings, ScrollSettings, ScrollSettingsChangedEvent,
@@ -546,8 +546,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
             )),
             context,
             flags::SHOW_TERMINAL_INPUT_MESSAGE_LINE_FLAG,
-        )
-        .with_enabled(|| FeatureFlag::AgentView.is_enabled()),
+        ),
     );
     toggle_binding_pairs.push(
         ToggleSettingActionPair::new(
@@ -745,7 +744,6 @@ pub enum FeaturesPageAction {
     ToggleAutosuggestionKeybindingHint,
     ToggleShowAutosuggestionIgnoreButton,
     ToggleAtContextMenuInTerminalMode,
-    ToggleSlashCommandsInTerminalMode,
     ToggleOutlineCodebaseSymbolsForAtContextMenu,
     ToggleAutoOpenCodeReviewPane,
     ToggleShowTerminalInputMessageLine,
@@ -1500,13 +1498,6 @@ impl TypedActionView for FeaturesPageView {
                 InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
                     report_if_error!(input_settings
                         .at_context_menu_in_terminal_mode
-                        .toggle_and_save_value(ctx));
-                });
-            }
-            ToggleSlashCommandsInTerminalMode => {
-                InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
-                    report_if_error!(input_settings
-                        .enable_slash_commands_in_terminal
                         .toggle_and_save_value(ctx));
                 });
             }
@@ -2283,14 +2274,6 @@ impl FeaturesPageView {
             editor_widgets.push(Box::new(AtContextMenuInTerminalModeWidget::default()));
         }
 
-        if FeatureFlag::AgentView.is_enabled()
-            && input_settings
-                .enable_slash_commands_in_terminal
-                .is_supported_on_current_platform()
-        {
-            editor_widgets.push(Box::new(SlashCommandsInTerminalModeWidget::default()));
-        }
-
         if input_settings
             .outline_codebase_symbols_for_at_context_menu
             .is_supported_on_current_platform()
@@ -2301,9 +2284,7 @@ impl FeaturesPageView {
             ));
         }
 
-        if FeatureFlag::AgentView.is_enabled() {
-            editor_widgets.push(Box::new(ShowTerminalInputMessageLineWidget::default()));
-        }
+        editor_widgets.push(Box::new(ShowTerminalInputMessageLineWidget::default()));
 
         editor_widgets.push(Box::new(TabKeyBehaviorWidget::default()));
 
@@ -2345,9 +2326,7 @@ impl FeaturesPageView {
             terminal_widgets.push(Box::new(AudibleBellWidget::default()));
         }
 
-        if FeatureFlag::AgentView.is_enabled() {
-            terminal_widgets.push(Box::new(ShowTerminalZeroStateBlockWidget::default()));
-        }
+        terminal_widgets.push(Box::new(ShowTerminalZeroStateBlockWidget::default()));
 
         terminal_widgets.push(Box::new(SmartSelectWidget::default()));
         terminal_widgets.push(Box::new(CopyOnSelectWidget::default()));
@@ -5413,62 +5392,6 @@ impl SettingsWidget for AtContextMenuInTerminalModeWidget {
                 .on_click(move |ctx, _, _| {
                     ctx.dispatch_typed_action(
                         FeaturesPageAction::ToggleAtContextMenuInTerminalMode,
-                    );
-                })
-                .finish(),
-            None,
-        )
-    }
-}
-
-#[derive(Default)]
-struct SlashCommandsInTerminalModeWidget {
-    switch_state: SwitchStateHandle,
-}
-
-impl SettingsWidget for SlashCommandsInTerminalModeWidget {
-    type View = FeaturesPageView;
-
-    fn search_terms(&self) -> &str {
-        "slash commands terminal mode input menu"
-    }
-
-    fn should_render(&self, _app: &AppContext) -> bool {
-        false
-    }
-
-    fn render(
-        &self,
-        view: &Self::View,
-        appearance: &Appearance,
-        app: &AppContext,
-    ) -> Box<dyn Element> {
-        let ui_builder = appearance.ui_builder();
-        render_body_item::<FeaturesPageAction>(
-            "Enable slash commands in terminal mode".into(),
-            None,
-            LocalOnlyIconState::for_setting(
-                EnableSlashCommandsInTerminal::storage_key(),
-                EnableSlashCommandsInTerminal::sync_to_cloud(),
-                &mut view
-                    .button_mouse_states
-                    .local_only_icon_tooltip_states
-                    .borrow_mut(),
-                app,
-            ),
-            ToggleState::Enabled,
-            appearance,
-            ui_builder
-                .switch(self.switch_state.clone())
-                .check(
-                    *InputSettings::as_ref(app)
-                        .enable_slash_commands_in_terminal
-                        .value(),
-                )
-                .build()
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(
-                        FeaturesPageAction::ToggleSlashCommandsInTerminalMode,
                     );
                 })
                 .finish(),

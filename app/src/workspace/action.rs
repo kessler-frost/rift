@@ -377,9 +377,6 @@ pub enum WorkspaceAction {
     /// Take a process sample of the app (equivalent to Activity Monitor > Sample Process).
     #[cfg(target_os = "macos")]
     SampleProcess,
-    ToggleNotificationMailbox {
-        select_first: bool,
-    },
     /// Open a full-window lightbox displaying the given images.
     OpenLightbox {
         images: Vec<lightbox::LightboxImage>,
