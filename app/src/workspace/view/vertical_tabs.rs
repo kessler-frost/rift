@@ -2762,7 +2762,7 @@ fn render_pane_row(props: PaneProps<'_>, app: &AppContext) -> Box<dyn Element> {
     );
 
     // Top-align the icon when there are multiple lines of content so it sits next to
-    // the first line; center it for single-line rows (Settings, Notebook with no subtitle, etc.).
+    // the first line; center it for single-line rows (Settings with no subtitle, etc.).
     let icon_alignment =
         if matches!(props.typed, TypedPane::Terminal(_)) || !effective_subtitle.is_empty() {
             CrossAxisAlignment::Start
@@ -3864,8 +3864,8 @@ fn render_summary_pane_kind_icons(
     }
 }
 
-// Inline rendering for summary kinds — for an icon (e.g. Terminal, Code,
-// Notebook) sized to fill its `total_size` bounding box.
+// Inline rendering for summary kinds — for an icon (e.g. Terminal, Code)
+// sized to fill its `total_size` bounding box.
 const SUMMARY_INLINE_ICON_RATIO: f32 = 2. / 3.;
 const SUMMARY_INLINE_PADDING_RATIO: f32 = (1. - SUMMARY_INLINE_ICON_RATIO) / 2.;
 

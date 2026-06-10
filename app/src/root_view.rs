@@ -265,12 +265,6 @@ pub fn init(app: &mut AppContext) {
         RootView::open_settings_page_in_existing_window,
     );
 
-    app.add_action("root_view:add_file_pane", RootView::add_file_pane);
-    app.add_global_action(
-        "root_view:open_new_with_file_notebook",
-        open_new_with_file_notebook,
-    );
-
     app.register_fixed_bindings([
         FixedBinding::empty(
             "Hide All Windows",
@@ -778,16 +772,6 @@ fn open_settings_page_in_new_window(section: &SettingsSection, ctx: &mut AppCont
 
 
 
-/// Opens a new window with a file-based notebook open.
-fn open_new_with_file_notebook(arg: &PathBuf, ctx: &mut AppContext) {
-    open_new_with_workspace_source(
-        NewWorkspaceSource::NotebookFromFilePath {
-            file_path: Some(arg.to_owned()),
-        },
-        ctx,
-    );
-}
-
 /// Creates a new window and returns its [`WindowId`] and root view's [`ViewHandle`].
 pub(crate) fn open_new_window_get_handles(
     shell: Option<AvailableShell>,
@@ -1159,9 +1143,6 @@ pub enum NewWorkspaceSource {
     SharedSessionAsViewer {
         session_id: SessionId,
     },
-    NotebookFromFilePath {
-        file_path: Option<PathBuf>,
-    },
     /// A tab is being transferred from another window via the transferable views framework.
     /// The workspace will create a placeholder tab, which will be replaced by the transferred
     /// PaneGroup after window creation.
@@ -1470,20 +1451,6 @@ impl RootView {
         let window_id = ctx.window_id();
         ctx.windows().show_window_and_focus_app(window_id);
         ctx.notify();
-        true
-    }
-
-    pub fn add_file_pane(&mut self, path: &PathBuf, ctx: &mut ViewContext<Self>) -> bool {
-        if let AuthOnboardingState::Terminal(handle) = &self.auth_onboarding_state {
-            handle.update(ctx, |workspace, ctx| {
-                workspace.add_tab_for_file_notebook(Some(path.to_owned()), ctx);
-            });
-            let window_id = ctx.window_id();
-            ctx.windows().show_window_and_focus_app(window_id);
-            ctx.notify();
-        } else {
-            log::warn!("Auth not complete before trying to open file pane");
-        }
         true
     }
 

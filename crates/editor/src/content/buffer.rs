@@ -842,8 +842,8 @@ impl Buffer {
             Ok(parsed) => parsed,
             Err(e) => {
                 safe_error! {
-                    safe: ("Failed to parse markdown to start notebook"),
-                    full: ("Failed to parse markdown to start notebook: {e}")
+                    safe: ("Failed to parse markdown"),
+                    full: ("Failed to parse markdown: {e}")
                 }
 
                 // Return a default formatted text instead of panicking.

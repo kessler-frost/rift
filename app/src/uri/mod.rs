@@ -26,7 +26,7 @@ use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings_view::SettingsSection;
 use crate::tab_configs::TabConfig;
 use crate::user_config::{load_launch_configs, load_tab_configs, tab_configs_dir};
-use crate::util::openable_file_type::{is_file_openable_in_rift, is_markdown_file};
+use crate::util::openable_file_type::is_file_openable_in_rift;
 use crate::view_components::DismissibleToast;
 use crate::workspace::util::PaneViewLocator;
 use crate::workspace::{
@@ -823,33 +823,12 @@ fn get_primary_window(
     non_quake_mode_windows.next()
 }
 
-/// What `open_file` should do with an incoming `file://` URL.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum OpenFileAction {
-    /// Open in the markdown notebook pane.
-    Notebook,
-    /// Open a session at the parent directory and queue the file as the pending command,
-    /// or just open a session at the directory path if `path` is a directory.
-    ExecuteInSession,
-}
-
-/// Pure routing decision for `open_file`. Extracted so it can be unit-tested without
-/// standing up a full `AppContext`.
-fn classify_open_file_action(path: &Path) -> OpenFileAction {
-    if is_markdown_file(path) {
-        OpenFileAction::Notebook
-    } else {
-        OpenFileAction::ExecuteInSession
-    }
-}
-
 #[cfg(feature = "local_fs")]
 fn can_open_file_editor_path(path: &Path) -> bool {
     path.is_file() && is_file_openable_in_rift(path).is_some()
 }
 
 /// Handle an incoming `file://` URL.
-/// * Markdown files are opened as notebook panes.
 /// * For directories, open a new session at the directory path.
 /// * For other files, open a new session at the parent directory path, then possibly execute the
 ///   file.
@@ -859,64 +838,48 @@ fn open_file(window_id: Option<WindowId>, path: PathBuf, ctx: &mut AppContext) {
             .map(|view_id| (window_id, view_id))
     });
 
-    let action = classify_open_file_action(&path);
-
-    if action == OpenFileAction::Notebook {
-        if let Some((primary_window_id, root_view_id)) = primary_window_and_view {
-            ctx.dispatch_action(
-                primary_window_id,
-                &[root_view_id],
-                "root_view:add_file_pane",
-                &path,
-                log::Level::Info,
-            );
-        } else {
-            ctx.dispatch_global_action("root_view:open_new_with_file_notebook", &path);
+    let directory_path = if path.is_file() {
+        match path.parent() {
+            Some(parent) => parent.to_path_buf(),
+            None => PathBuf::new(),
         }
     } else {
-        let directory_path = if path.is_file() {
-            match path.parent() {
-                Some(parent) => parent.to_path_buf(),
-                None => PathBuf::new(),
+        path.clone()
+    };
+
+    if let Some((primary_window_id, root_view_id)) = primary_window_and_view {
+        ctx.dispatch_action(
+            primary_window_id,
+            &[root_view_id],
+            "root_view:add_session_at_path",
+            &directory_path,
+            log::Level::Info,
+        );
+
+        // Run command after session has been added
+        if path.is_file() {
+            if let Some(path_str) = path.to_str() {
+                execute_file(primary_window_id, path_str, ctx);
             }
-        } else {
-            path.clone()
+        }
+    } else {
+        let open_path = OpenPath {
+            path: directory_path,
         };
+        ctx.dispatch_global_action("root_view:open_new_from_path", &open_path);
 
-        if let Some((primary_window_id, root_view_id)) = primary_window_and_view {
-            ctx.dispatch_action(
-                primary_window_id,
-                &[root_view_id],
-                "root_view:add_session_at_path",
-                &directory_path,
-                log::Level::Info,
-            );
-
-            // Run command after session has been added
-            if path.is_file() {
+        // Run command after window has been added
+        if path.is_file() {
+            let active_window_id = ctx.windows().active_window();
+            if let Some(primary_window_id) = get_primary_window(active_window_id, ctx) {
                 if let Some(path_str) = path.to_str() {
                     execute_file(primary_window_id, path_str, ctx);
                 }
             }
-        } else {
-            let open_path = OpenPath {
-                path: directory_path,
-            };
-            ctx.dispatch_global_action("root_view:open_new_from_path", &open_path);
-
-            // Run command after window has been added
-            if path.is_file() {
-                let active_window_id = ctx.windows().active_window();
-                if let Some(primary_window_id) = get_primary_window(active_window_id, ctx) {
-                    if let Some(path_str) = path.to_str() {
-                        execute_file(primary_window_id, path_str, ctx);
-                    }
-                }
-            }
         }
-
-        send_telemetry_from_app_ctx!(TelemetryEvent::OpenNewSessionFromFilePath, ctx);
     }
+
+    send_telemetry_from_app_ctx!(TelemetryEvent::OpenNewSessionFromFilePath, ctx);
 }
 
 #[cfg(feature = "local_fs")]

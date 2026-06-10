@@ -1996,7 +1996,7 @@ pub trait VimHandler {
     /// only characters in the current line are toggled.
     fn toggle_case(&mut self, char_count: u32, ctx: &mut ViewContext<Self>);
     /// Open the search experience for the relevant context, e.g. in a shell, that may be searching
-    /// shell history, while in notebooks, that may be searching the editor buffer.
+    /// shell history, while in an editor, that may be searching the editor buffer.
     fn search(&mut self, direction: &Direction, ctx: &mut ViewContext<Self>);
     /// Cycle through matches for the existing search query (if any). Mapped to 'n'/'N'.
     fn cycle_search(&mut self, direction: &Direction, ctx: &mut ViewContext<Self>);

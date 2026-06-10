@@ -517,7 +517,7 @@ struct LastWordInsertion {
 }
 
 /// Data pertaining to the session state and history is bundled together, making
-/// it accessible to other objects coupled with the same terminal session, such as a notebook.
+/// it accessible to other objects coupled with the same terminal session.
 #[derive(Clone)]
 pub struct CompleterData {
     pub sessions: ModelHandle<Sessions>,

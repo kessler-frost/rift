@@ -2326,9 +2326,7 @@ impl PaneGroup {
             }
             // Pane-splitting events always create a new terminal pane, regardless of the original
             // pane's type. This makes it easy to get a terminal session next to a non-terminal
-            // pane like a notebook. Once it's possible to open the same notebook more than once,
-            // we may revisit this so that splitting from a terminal pane starts a new session, but
-            // splitting from a notebook pane reopens the notebook side-by-side.
+            // pane.
             PaneEvent::SplitLeft(chosen_shell) => {
                 self.insert_terminal_pane(Direction::Left, pane_id, chosen_shell.clone(), ctx);
             }

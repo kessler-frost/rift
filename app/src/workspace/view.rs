@@ -2322,9 +2322,6 @@ impl Workspace {
             NewWorkspaceSource::SharedSessionAsViewer { session_id } => {
                 self.add_tab_for_joining_shared_session(session_id, ctx);
             }
-            NewWorkspaceSource::NotebookFromFilePath { file_path } => {
-                self.add_tab_for_file_notebook(file_path, ctx);
-            }
             #[cfg(feature = "local_fs")]
             NewWorkspaceSource::TransferredTab {
                 tab_color,
@@ -2412,8 +2409,7 @@ impl Workspace {
             } => *vertical_tabs_panel_open,
             NewWorkspaceSource::Empty { .. }
             | NewWorkspaceSource::FromTemplate { .. }
-            | NewWorkspaceSource::Session { .. }
-            | NewWorkspaceSource::NotebookFromFilePath { .. } => should_default_open,
+            | NewWorkspaceSource::Session { .. } => should_default_open,
             NewWorkspaceSource::SharedSessionAsViewer { .. } => should_default_open,
         }
     }
@@ -4786,8 +4782,8 @@ impl Workspace {
                 .read(ctx, |pane_group_view, ctx| {
                     pane_group_view.active_session_view(ctx)
                 });
-            // A tab may not have any active session, say if it only contains notebook(s). If
-            // that's the case, create a new tab.
+            // A tab may not have any active session, say if it only contains non-terminal
+            // pane(s). If that's the case, create a new tab.
             if active_session_handle.is_none() {
                 self.add_new_session_tab_with_default_mode(
                     NewSessionSource::Tab,
@@ -7275,17 +7271,6 @@ impl Workspace {
 
 
 
-
-    /// The built-in notebook viewer was removed; open the file in the external editor instead.
-    pub fn add_tab_for_file_notebook(
-        &mut self,
-        file_path: Option<PathBuf>,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        if let Some(path) = file_path {
-            crate::util::file::open_file_path_with_editor(None, path, None, ctx);
-        }
-    }
 
     fn open_repository(&mut self, path: Option<&str>, ctx: &mut ViewContext<Self>) {
         match path {
@@ -10512,7 +10497,7 @@ impl Workspace {
         let mut prev_panel_added = false;
 
         // Config-driven vertical-tabs-era panels (left side).
-        // Hidden for simplified WASM views (notebooks, shared sessions, etc.)
+        // Hidden for simplified WASM views (shared sessions, etc.)
         // where these panels are unnecessary.
         let vertical_tabs_active = !hide_vertical_tabs
             && FeatureFlag::VerticalTabs.is_enabled()
@@ -10726,7 +10711,6 @@ impl Workspace {
         let alias_expansion_settings = AliasExpansionSettings::as_ref(app);
         let code_settings = CodeSettings::as_ref(app);
         let input_settings = InputSettings::as_ref(app);
-        let font_settings = FontSettings::as_ref(app);
         let reporting_setings = AltScreenReporting::as_ref(app);
         let general_settings = GeneralSettings::as_ref(app);
         let theme_settings = ThemeSettings::as_ref(app);
@@ -10908,12 +10892,6 @@ impl Workspace {
                 .insert(flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG);
         }
 
-
-        if *font_settings.match_notebook_to_monospace_font_size {
-            context
-                .set
-                .insert(flags::MATCH_NOTEBOOK_FONT_SIZE_TO_TERMINAL_FONT_SIZE_FLAG);
-        }
 
         if *pane_settings.focus_panes_on_hover {
             context.set.insert(flags::FOCUS_PANES_ON_HOVER_CONTEXT_FLAG);
@@ -12046,7 +12024,7 @@ impl View for Workspace {
                 outer_column.add_child(self.render_tab_bar(self.tab_fixed_width, appearance, app));
             }
             let content = self.render_banner_and_active_tab(app, appearance);
-            // Hide the vertical tab rail for simplified WASM views (notebooks, shared sessions, etc.)
+            // Hide the vertical tab rail for simplified WASM views (shared sessions, etc.)
             let panels_row = self.render_panels(app, Shrinkable::new(1.0, content).finish(), true);
             outer_column.add_child(Shrinkable::new(1.0, panels_row).finish());
             Container::new(outer_column.finish())

@@ -1812,7 +1812,7 @@ pub struct AutosuggestionState {
     pub current_autosuggestion_text: Option<String>,
 
     /// Optionally, the autosuggestion might exist somewhere besides the very end of the Editor. This
-    /// is the case for Notebooks, which support inlined autosuggestions. The location refers to a logical row
+    /// is the case for multi-line editors that support inlined autosuggestions. The location refers to a logical row
     /// number in the editor where the autosuggestion should be rendered. By default, this should be
     /// the end of the buffer.
     pub location: AutosuggestionLocation,
@@ -6227,7 +6227,7 @@ impl EditorView {
     }
 
     /// If the autosuggestion is location-less (e.g., the input view), the autosuggestion beginning is the
-    /// very end of the buffer. If the autosuggestion has a location (e.g., notebooks), it's
+    /// very end of the buffer. If the autosuggestion has a location (e.g., multi-line editors), it's
     /// the end of the line that is the basis for the autosuggestion.
     pub fn single_cursor_at_autosuggestion_beginning(&mut self, ctx: &AppContext) -> bool {
         if let Some(location) = self.autosuggestion_location() {

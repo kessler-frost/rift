@@ -76,9 +76,8 @@ pub type HighlightedHyperlink = Arc<Mutex<Option<HyperlinkPosition>>>;
 
 const CODE_BLOCK_OFFSET: usize = 1;
 
-// TODO: We should think about whether line height applies to notebooks as well.
-// Consider whether this element really needs a different default than DEFAULT_UI_LINE_HEIGHT_RATIO
-// used by the Text element.
+// TODO: Consider whether this element really needs a different default than
+// DEFAULT_UI_LINE_HEIGHT_RATIO used by the Text element.
 pub const DEFAULT_LINE_HEIGHT_RATIO: f32 = 1.4;
 const FRAME_SPACER_HEIGHT: f32 = 4.;
 const LINE_BREAK_HEIGHT: f32 = 13.;

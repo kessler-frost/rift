@@ -650,47 +650,6 @@ fn test_parse_tab_path_bare_tilde() {
     assert_eq!(parse_tab_path(&url), Some(home));
 }
 
-// Regression coverage for issue #9005: shell scripts opened via `file://` should run,
-// not open in the editor. Exercised through the pure routing helper to avoid standing
-// up a full `AppContext`.
-
-#[test]
-#[cfg(unix)]
-fn test_open_file_executable_sh_routes_to_execute() {
-    use std::os::unix::fs::PermissionsExt;
-    let dir = tempfile::tempdir().unwrap();
-    let p = dir.path().join("run.sh");
-    std::fs::write(&p, b"#!/bin/sh\n:\n").unwrap();
-    std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
-    let action = classify_open_file_action(&p);
-    assert_eq!(action, OpenFileAction::ExecuteInSession);
-}
-
-#[test]
-#[cfg(unix)]
-fn test_open_file_executable_bash_zsh_fish_route_to_execute() {
-    use std::os::unix::fs::PermissionsExt;
-    let dir = tempfile::tempdir().unwrap();
-    for name in ["run.bash", "run.zsh", "run.fish", "run.command"] {
-        let p = dir.path().join(name);
-        std::fs::write(&p, b"#!/bin/sh\n:\n").unwrap();
-        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
-        assert_eq!(
-            classify_open_file_action(&p),
-            OpenFileAction::ExecuteInSession,
-            "{name} should route to ExecuteInSession",
-        );
-    }
-}
-
-#[test]
-fn test_open_file_markdown_unchanged() {
-    let dir = tempfile::tempdir().unwrap();
-    let p = dir.path().join("README.md");
-    std::fs::write(&p, b"# hi\n").unwrap();
-    assert_eq!(classify_open_file_action(&p), OpenFileAction::Notebook);
-}
-
 #[test]
 #[cfg(unix)]
 fn test_open_file_editor_executable_sh_opens_in_editor() {
@@ -718,15 +677,6 @@ fn test_open_file_editor_binary_file_is_rejected() {
     let p = dir.path().join("image.png");
     std::fs::write(&p, b"\x89PNG\r\n\x1a\n\0\0\0\rIHDR").unwrap();
     assert!(!can_open_file_editor_path(&p));
-}
-
-#[test]
-fn test_open_file_directory_routes_to_session() {
-    let dir = tempfile::tempdir().unwrap();
-    assert_eq!(
-        classify_open_file_action(dir.path()),
-        OpenFileAction::ExecuteInSession
-    );
 }
 
 #[test]
