@@ -27,8 +27,6 @@ mod download_method;
 mod dynamic_libraries;
 mod experiments;
 mod external_secrets;
-#[cfg(target_family = "wasm")]
-mod font_fallback;
 mod global_resource_handles;
 mod gpu_state;
 mod input_classifier;
@@ -1729,10 +1727,6 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
     IntervalTimer::handle(ctx).update(ctx, |timer, _ctx| {
         timer.mark_interval_end("KEYBINDINGS_LOADED");
     });
-
-    // For now, we only specify application-level fallback fonts on web.
-    #[cfg(target_family = "wasm")]
-    ctx.set_fallback_font_fn(font_fallback::fallback_font_fn);
 
     match launch_mode {
         LaunchMode::App { .. } | LaunchMode::Test { .. } => {
