@@ -2,14 +2,14 @@
 
 ## How do migrations work?
 A sqlite database is one single file on the user's computer, and instead of being a separate process, it's a set of C functions
-that are bundled in our app. When the warp app starts, we upgrade the schema to the latest version in a transaction.
+that are bundled in our app. When the rift app starts, we upgrade the schema to the latest version in a transaction.
 Since we don't control the machine, we need to be super careful about the migrations that we ship.
 
 TODO: C.I. and remediation of failed migrations
 
 ## Step 1: One-time setup
 Make sure you have run `/script/bootstrap` at least once before. That installs our fork of
-`diesel_cli`. Our fork is an old version that [bundles](https://github.com/warpdotdev/diesel/blob/b2c58897c39c519a946314bd5b63765d3af56204/diesel_cli/Cargo.toml#L54)
+`diesel_cli`. Our fork is an old version that [bundles](the upstream diesel fork)
 SQLite in with the `diesel_cli`. We use these version of Diesel and SQLite instead of relying on
 the versions on our machines. So do not follow the official Diesel CLI installation instructions.
 
@@ -27,20 +27,20 @@ This will create a new folder with an up.sql and down.sql.
 ## Step 3: Run the migration + generate the schema
 ```
 cd <repo root>
-diesel migration run --database-url="/Users/$USER/Library/Application Support/dev.warp.Warp-Local/warp.sqlite"
+diesel migration run --database-url="/Users/$USER/Library/Application Support/dev.rift.Rift/rift.sqlite"
 ```
-This will run the migration on the same warp that runs when you run the app locally. This automatically generates or updates the `crates/persistence/src/schema.rs`. We do not make manual edits to `schema.rs`.
+This will run the migration on the same rift that runs when you run the app locally. This automatically generates or updates the `crates/persistence/src/schema.rs`. We do not make manual edits to `schema.rs`.
 
 You can also print the schema from a database that already has the migration with:
 ```
-diesel print-schema --database-url="/Users/$USER/Library/Application Support/dev.warp.Warp-Local/warp.sqlite"
+diesel print-schema --database-url="/Users/$USER/Library/Application Support/dev.rift.Rift/rift.sqlite"
 ```
 
 ## Reverting/redo-ing migrations
 As you are writing features and changing branches, you'll want to undo migrations to fix your database and make it compatible with older code. Redo-ing can also be helpful as you are iterating on your schema.
 ```
-diesel migration revert --database-url="/Users/$USER/Library/Application Support/dev.warp.Warp-Local/warp.sqlite"
-diesel migration redo --database-url="/Users/$USER/Library/Application Support/dev.warp.Warp-Local/warp.sqlite"
+diesel migration revert --database-url="/Users/$USER/Library/Application Support/dev.rift.Rift/rift.sqlite"
+diesel migration redo --database-url="/Users/$USER/Library/Application Support/dev.rift.Rift/rift.sqlite"
 ```
 
 # Schema style

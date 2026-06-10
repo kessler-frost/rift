@@ -1,11 +1,11 @@
 ---
 name: remove-feature-flag
-description: Remove a feature flag after it has been rolled out and stabilized in the Warp codebase.
+description: Remove a feature flag after it has been rolled out and stabilized in the Rift codebase.
 ---
 
 # remove-feature-flag
 
-Remove a feature flag after it has been rolled out and stabilized in the Warp codebase.
+Remove a feature flag after it has been rolled out and stabilized in the Rift codebase.
 
 ## Overview
 
@@ -35,7 +35,7 @@ default = [
 ```
 
 ### 2. Remove from FeatureFlag enum
-Remove the variant from the `FeatureFlag` enum in `warp_core/src/features.rs`:
+Remove the variant from the `FeatureFlag` enum in `rift_core/src/features.rs`:
 
 ```rust
 #[derive(Sequence)]
@@ -81,7 +81,7 @@ if FeatureFlag::YourFeatureName.is_enabled() {
 
 Use ripgrep to find all occurrences:
 ```bash
-rg "YourFeatureName" app/ warp_core/
+rg "YourFeatureName" app/ rift_core/
 ```
 
 ### 6. Remove keybinding predicates
@@ -138,7 +138,7 @@ cargo run
 
 ```bash
 # Find all occurrences of the flag name
-rg "YourFeatureName" app/ warp_core/
+rg "YourFeatureName" app/ rift_core/
 
 # Find feature flag checks
 rg "FeatureFlag::YourFeatureName" app/

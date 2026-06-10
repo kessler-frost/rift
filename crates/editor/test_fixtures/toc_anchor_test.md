@@ -1,6 +1,6 @@
 # Markdown ToC Manual Test
 
-Use this file in a Warp notebook to verify fragment link navigation.
+Use this file in a Rift notebook to verify fragment link navigation.
 
 ## Table of contents
 

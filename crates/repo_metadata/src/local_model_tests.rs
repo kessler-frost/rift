@@ -429,7 +429,7 @@ fn test_lazy_loaded_path_does_not_build_standing_rule_results_below_shallow_tree
     VirtualFS::test("lazy_loaded_path_standing_rules", |dirs, mut vfs| {
         vfs.mkdir("workspace/src/deep")
             .with_files(vec![Stub::FileWithContent(
-                "workspace/src/deep/WARP.md",
+                "workspace/src/deep/RIFT.md",
                 "project rules",
             )]);
 
@@ -438,7 +438,7 @@ fn test_lazy_loaded_path_does_not_build_standing_rule_results_below_shallow_tree
             let model_handle = app.add_model(|_| LocalRepoMetadataModel::new_for_test());
             let workspace_path = StandardizedPath::from_local_canonicalized(&workspace).unwrap();
             let rule_path =
-                StandardizedPath::try_from_local(&workspace.join("src/deep/WARP.md")).unwrap();
+                StandardizedPath::try_from_local(&workspace.join("src/deep/RIFT.md")).unwrap();
 
             model_handle.update(&mut app, |model, ctx| {
                 model.index_lazy_loaded_path(&workspace_path, ctx).unwrap();
@@ -464,13 +464,13 @@ fn test_lazy_loaded_path_discovers_force_included_skills_and_emits_watcher_delta
             .mkdir("workspace/src/deep")
             .with_files(vec![
                 Stub::FileWithContent("workspace/.agents/skills/review/SKILL.md", "name: review"),
-                Stub::FileWithContent("workspace/src/deep/WARP.md", "project rules"),
+                Stub::FileWithContent("workspace/src/deep/RIFT.md", "project rules"),
             ]);
 
         let workspace = dirs.tests().join("workspace");
         let skill_path = workspace.join(".agents/skills/review/SKILL.md");
         let src_path = workspace.join("src");
-        let rule_path = workspace.join("src/deep/WARP.md");
+        let rule_path = workspace.join("src/deep/RIFT.md");
         App::test((), |mut app| async move {
             let model_handle = app.add_model(|_| {
                 let mut model = LocalRepoMetadataModel::new_for_test();

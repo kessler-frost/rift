@@ -2,7 +2,7 @@
 name = "syntax_tree"
 version = "0.1.0"
 edition = "2021"
-authors = ["Warp Team <dev@warp.dev>"]
+authors = ["Rift"]
 publish.workspace = true
 license.workspace = true
 

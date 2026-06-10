@@ -46,7 +46,7 @@ Here's an image from the parent directory:
 
 You can also use absolute paths (though they're less portable):
 
-![Absolute path](/Users/zach/Projects/warp/editor/test_fixtures/images/sample2.jpg)
+![Absolute path](/Users/dev/Projects/rift/editor/test_fixtures/images/sample2.jpg)
 
 ## Empty Alt Text
 

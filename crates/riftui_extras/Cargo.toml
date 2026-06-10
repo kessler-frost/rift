@@ -1,5 +1,5 @@
 [package]
-authors = ["Warp Team <dev@warp.dev>"]
+authors = ["Rift"]
 edition = "2021"
 name = "riftui_extras"
 version = "0.0.0"

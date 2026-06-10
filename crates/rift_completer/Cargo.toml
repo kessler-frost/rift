@@ -1,6 +1,6 @@
 [package]
 name = "rift_completer"
-authors = ["Warp Team <dev@warp.dev>"]
+authors = ["Rift"]
 version = "0.1.0"
 edition = "2021"
 description = "Warp completions engine"

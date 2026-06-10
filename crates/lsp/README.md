@@ -1,6 +1,6 @@
 # lsp
 
-This crate provides a stdio-only Language Server Protocol (LSP) client transport for Warp. It:
+This crate provides a stdio-only Language Server Protocol (LSP) client transport for Rift. It:
 
 - Spawns and manages a language server process (child process)
 - Communicates over stdio using JSON-RPC with proper Content-Length framing

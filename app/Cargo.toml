@@ -1,7 +1,7 @@
 [package]
 authors = ["Rift"]
 default-run = "rift-oss"
-description = "The cloud-backed terminal for individuals and teams"
+description = "Rift: a fast, fully offline terminal"
 edition = "2021"
 autobins = false
 name = "rift"
@@ -642,9 +642,9 @@ global_ai_analytics_banner = []
 global_ai_analytics_collection = []
 grab_the_baton_editing = []
 grep_tool = []
-# This feature is enabled in graphical builds of Warp, and groups together other features
+# This feature is enabled in graphical builds of Rift, and groups together other features
 # that are not needed in headless builds. Because Cargo features are additive, the default
-# feature set is for a minimal build of Warp, and we add on GUI-specific features here.
+# feature set is for a minimal build of Rift, and we add on GUI-specific features here.
 # For the most part, including GUI code in headless builds is fine; the main use case is
 # for things that pull in external dependencies.
 gui = []
@@ -672,7 +672,7 @@ inline_slash_commands = ["agent_view"]
 # Enable this feature to track heap usage and automatically produce a heap
 # profile report when app memory usage exceeds a 10GB threshold.
 #
-# Enabled on WarpDev by default.
+# Was enabled on upstream dev builds by default.
 heap_usage_tracking = ["jemalloc_pprof", "crash_reporting"]
 image_as_context = []
 in_band_generators_ssh = []
@@ -717,7 +717,7 @@ resize_fix = []
 pluggable_notifications = []
 # This enables `read_files` to support images.
 read_image_files = []
-# This feature enables plugin support in Warp. Note that its typically checked
+# This feature enables plugin support in Rift. Note that its typically checked
 # directly, rather than via the `FeatureFlag` enum, because its value is
 # required early in the app lifecycle prior to `FeatureFlag` initialization.
 plugin_host = ["dep:rquickjs", "dep:rift_js", "rift_cli/plugin_host"]

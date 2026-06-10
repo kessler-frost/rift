@@ -15,7 +15,7 @@ fn main() -> anyhow::Result<()> {
                 r#"Failed to build command signatures JS: {e:?}.
 
 Most likely, this is fixed by:
-    1) Ensuring you have an up-to-date Node version; 18.14.1 (required for warp-server development) should suffice.
+    1) Ensuring you have an up-to-date Node version; 18.14.1 or newer should suffice.
     2) Running `corepack enable` (this can be done in any directory).
     3) Removing a conflicting yarn installed by brew by running:
         brew uninstall yarn

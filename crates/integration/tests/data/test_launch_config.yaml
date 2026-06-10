@@ -1,4 +1,4 @@
-# Warp Launch Configuration
+# Rift Launch Configuration
 #
 #
 # Use this to start a certain configuration of windows, tabs, and panes
@@ -7,7 +7,7 @@
 # This file defines your launch configuration
 # More on how to do so here: [link to docs]
 #
-# All launch configurations are stored under ~/.warp/launch_configurations/
+# All launch configurations are stored under ~/.rift-oss/launch_configurations/
 # Edit them anytime!
 
 ---
@@ -17,12 +17,12 @@ windows:
       - layout:
           split_direction: horizontal
           panes:
-            - cwd: /Users/zhengtao/src/warp-internal/app/src/terminal
-            - cwd: /Users/zhengtao/src/warp-internal
+            - cwd: /Users/dev/src/rift/app/src/terminal
+            - cwd: /Users/dev/src/rift
       - layout:
-          cwd: /Users/zhengtao/src/warp-internal
+          cwd: /Users/dev/src/rift
       - layout:
-          cwd: /Users/zhengtao/src/warp-internal
+          cwd: /Users/dev/src/rift
   - tabs:
       - layout:
           split_direction: horizontal

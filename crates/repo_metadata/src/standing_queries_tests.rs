@@ -21,7 +21,7 @@ fn records_provider_skill_files_and_project_rules() {
     let mut results = StandingQueryResults::default();
     let skills_provider = repo_path(".agents/skills");
     let skill_file = repo_path(".agents/skills/review/SKILL.md");
-    let root_rule = repo_path("WARP.md");
+    let root_rule = repo_path("RIFT.md");
     let nested_rule = repo_path("packages/api/AGENTS.md");
 
     results.record_path(&skills_provider, true, &definitions);

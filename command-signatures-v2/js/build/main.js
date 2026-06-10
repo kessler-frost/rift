@@ -12,8 +12,8 @@ let generatedArgument = {
         }
     ],
 };
-export function activate(warp) {
-    warp.completions.registerCommandSignature({
+export function activate(rift) {
+    rift.completions.registerCommandSignature({
         command: {
             name: "jack",
             alias: "j",

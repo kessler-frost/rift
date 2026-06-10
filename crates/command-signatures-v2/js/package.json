@@ -1,14 +1,14 @@
 {
   "name": "js",
   "version": "1.0.0",
-  "description": "Warp Command Signatures",
+  "description": "Rift Command Signatures",
   "main": "build/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "npm run build -- --watch",
     "clean": "rm -r build"
   },
-  "author": "eng@warp.dev",
+  "author": "Rift",
   "license": "",
   "devDependencies": {
     "typescript": "^5.2.2"
