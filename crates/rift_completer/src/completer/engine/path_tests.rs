@@ -21,11 +21,11 @@ use unix_constants::*;
 
 #[test]
 fn test_split_path() {
-    let path = TypedPathBuf::from_unix("/Users/warpuser");
+    let path = TypedPathBuf::from_unix("/Users/riftuser");
     let split_path = SplitPath::new(
         path.to_path(),
         "~/Warp.app",
-        Some("/Users/warpuser"),
+        Some("/Users/riftuser"),
         &['/'],
     );
 
@@ -41,13 +41,13 @@ fn test_split_path() {
     let split_path = SplitPath::new(
         path.to_path(),
         "Warp.app/Contents",
-        Some("/Users/warpuser"),
+        Some("/Users/riftuser"),
         &['/'],
     );
     assert_eq!(
         split_path,
         SplitPath {
-            directory_absolute_path: TypedPathBuf::from("/Users/warpuser/Warp.app/"),
+            directory_absolute_path: TypedPathBuf::from("/Users/riftuser/Warp.app/"),
             directory_relative_path_name: "Warp.app/".to_owned(),
             file_name: "Contents".to_owned()
         }
@@ -56,13 +56,13 @@ fn test_split_path() {
     let split_path = SplitPath::new(
         path.to_path(),
         "Warp.app/macOS/bin/warp.o",
-        Some("/Users/warpuser"),
+        Some("/Users/riftuser"),
         &['/'],
     );
     assert_eq!(
         split_path,
         SplitPath {
-            directory_absolute_path: TypedPathBuf::from("/Users/warpuser/Warp.app/macOS/bin/"),
+            directory_absolute_path: TypedPathBuf::from("/Users/riftuser/Warp.app/macOS/bin/"),
             directory_relative_path_name: "Warp.app/macOS/bin/".to_owned(),
             file_name: "warp.o".to_owned()
         }

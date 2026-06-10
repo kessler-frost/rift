@@ -11,7 +11,7 @@ use walkdir::{DirEntry, WalkDir};
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::{ThemeKind, WarpTheme, WarpThemeConfig};
+use crate::themes::theme::{ThemeKind, RiftTheme, RiftThemeConfig};
 
 const CONFIG_FILE_SUFFIXES: &[&str] = &[".yaml", ".yml"];
 const TOML_CONFIG_FILE_SUFFIX: &str = ".toml";
@@ -140,15 +140,15 @@ fn name_to_camel_case(name: &str) -> String {
     name.split('_').map(title_case).join(" ")
 }
 
-pub(super) fn parse_single_theme_dir_entry(item: &DirEntry) -> Option<(ThemeKind, WarpTheme)> {
-    parse_single_item_file(item, |file_name, mut theme: WarpTheme| {
+pub(super) fn parse_single_theme_dir_entry(item: &DirEntry) -> Option<(ThemeKind, RiftTheme)> {
+    parse_single_item_file(item, |file_name, mut theme: RiftTheme| {
         // If the name exists in the .yaml, we use it. Otherwise we treat a "human readable" version of the filename as the theme name.
         let theme_kind = if let Some(name) = theme.name() {
-            WarpThemeConfig::file_to_theme(name, item.path().into())
+            RiftThemeConfig::file_to_theme(name, item.path().into())
         } else {
             let name = file_name_to_human_readable_name(file_name.as_str());
             theme.set_name(name.clone());
-            WarpThemeConfig::file_to_theme(name, item.path().into())
+            RiftThemeConfig::file_to_theme(name, item.path().into())
         };
 
         (theme_kind, theme)

@@ -35,7 +35,7 @@ pub fn block_size() -> BlockSize {
         size: SizeInfo::new_without_font_metrics(10, 7),
         block_padding: block_padding(),
         max_block_scroll_limit: 1000,
-        warp_prompt_height_lines: 0.6,
+        rift_prompt_height_lines: 0.6,
     }
 }
 

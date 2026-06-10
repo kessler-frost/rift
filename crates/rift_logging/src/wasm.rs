@@ -171,7 +171,7 @@ impl Log for WasmLogger {
                             .map_or_else(|| "[Unknown]".to_string(), |line| line.to_string()),
                     );
                     // Send error logs to Sentry.
-                    rift_web_event_bus::emit_event(rift_web_event_bus::WarpEvent::ErrorLogged {
+                    rift_web_event_bus::emit_event(rift_web_event_bus::RiftEvent::ErrorLogged {
                         error,
                     });
 

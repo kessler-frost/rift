@@ -508,7 +508,7 @@ impl View for TabConfigParamsModal {
             .with_corner_radius(CornerRadius::with_all(Radius::Pixels(3.)))
             .finish();
 
-            let close_icon = ConstrainedBox::new(Icon::X.to_warpui_icon(sub_text).finish())
+            let close_icon = ConstrainedBox::new(Icon::X.to_riftui_icon(sub_text).finish())
                 .with_width(14.)
                 .with_height(14.)
                 .finish();

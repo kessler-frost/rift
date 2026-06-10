@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn serialize_test() {
-    let theme = WarpTheme::new(
+    let theme = RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),
         ColorU::from_u32(0x20A5BAFF),
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),
@@ -45,7 +45,7 @@ name: test_theme
 
 #[test]
 fn deserialize_with_name_test() {
-    let theme = serde_yaml::from_str::<WarpTheme>(
+    let theme = serde_yaml::from_str::<RiftTheme>(
         r##"---
 background: "#20a5ba"
 accent: "#20a5ba"
@@ -75,7 +75,7 @@ name: test_theme
     )
     .expect("Couldn't deserialize");
 
-    let expected_theme = WarpTheme::new(
+    let expected_theme = RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),
         ColorU::from_u32(0x20A5BAFF),
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),
@@ -91,7 +91,7 @@ name: test_theme
 
 #[test]
 fn deserialize_without_name_test() {
-    let theme = serde_yaml::from_str::<WarpTheme>(
+    let theme = serde_yaml::from_str::<RiftTheme>(
         r##"---
 background: "#20a5ba"
 accent: "#20a5ba"
@@ -120,7 +120,7 @@ terminal_colors:
     )
     .expect("Couldn't deserialize");
 
-    let expected_theme = WarpTheme::new(
+    let expected_theme = RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),
         ColorU::from_u32(0x20A5BAFF),
         Fill::Solid(ColorU::from_u32(0x20A5BAFF)),

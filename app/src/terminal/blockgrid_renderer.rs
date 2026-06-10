@@ -18,10 +18,10 @@ use crate::terminal::model::grid::grid_handler::Link;
 use crate::terminal::model::index::Point;
 use crate::terminal::model::ObfuscateSecrets;
 use crate::terminal::{color, SizeInfo};
-use crate::themes::theme::WarpTheme;
+use crate::themes::theme::RiftTheme;
 
 pub struct GridRenderParams {
-    pub warp_theme: WarpTheme,
+    pub rift_theme: RiftTheme,
     pub font_family: FamilyId,
     pub font_size: f32,
     pub font_weight: Weight,
@@ -91,7 +91,7 @@ impl BlockGrid {
             end_row,
             &block_grid_params.colors,
             &block_grid_params.override_colors,
-            &block_grid_params.grid_render_params.warp_theme,
+            &block_grid_params.grid_render_params.rift_theme,
             properties,
             block_grid_params.grid_render_params.font_family,
             block_grid_params.grid_render_params.font_size,

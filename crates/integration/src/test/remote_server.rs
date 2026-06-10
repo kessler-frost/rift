@@ -22,7 +22,7 @@ use rift::integration_testing::terminal::{
     wait_until_bootstrapped_single_pane_for_tab,
 };
 use rift::terminal::shell::ShellType;
-use rift::terminal::warpify::settings::{SshExtensionInstallMode, SshExtensionInstallModeSetting};
+use rift::terminal::riftify::settings::{SshExtensionInstallMode, SshExtensionInstallModeSetting};
 use riftui_core::integration::TestStep;
 use settings::Setting as _;
 

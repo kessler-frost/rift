@@ -73,7 +73,7 @@ impl FeaturePopup {
             FeaturePopupBadge::AlertIcon => Container::new(
                 ConstrainedBox::new(
                     Icon::AlertCircle
-                        .to_warpui_icon(appearance.theme().main_text_color(
+                        .to_riftui_icon(appearance.theme().main_text_color(
                             appearance.theme().terminal_colors().normal.green.into(),
                         ))
                         .finish(),
@@ -122,7 +122,7 @@ impl View for FeaturePopup {
                         Hoverable::new(self.dismiss_mouse_state.clone(), |_| {
                             ConstrainedBox::new(
                                 Icon::X
-                                    .to_warpui_icon(appearance.theme().sub_text_color(
+                                    .to_riftui_icon(appearance.theme().sub_text_color(
                                         appearance.theme().main_text_color(background),
                                     ))
                                     .finish(),

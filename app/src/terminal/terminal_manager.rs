@@ -68,7 +68,7 @@ pub(super) fn compute_block_size(initial_size: Vector2F, ctx: &mut AppContext) -
         block_padding: terminal_spacing.block_padding,
         size: size_info,
         max_block_scroll_limit: maximum_grid_size,
-        warp_prompt_height_lines: RIFT_PROMPT_HEIGHT_LINES,
+        rift_prompt_height_lines: RIFT_PROMPT_HEIGHT_LINES,
     }
 }
 

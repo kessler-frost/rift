@@ -4,7 +4,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use pathfinder_color::ColorU;
 use rift_core::ui::color::hex_color::HexColorError as UiHexColorError;
-use rift_core::ui::theme::{AnsiColors, WarpTheme};
+use rift_core::ui::theme::{AnsiColors, RiftTheme};
 use riftui::fonts::FontInfo;
 use riftui::keymap::Keystroke;
 use riftui::DisplayIdx;
@@ -26,8 +26,8 @@ use crate::{themes::theme_creator_body::ThemeCreatorBody, user_config};
 
 #[derive(Debug)]
 pub enum ThemeType {
-    LightAndDark { light: WarpTheme, dark: WarpTheme },
-    Single(WarpTheme),
+    LightAndDark { light: RiftTheme, dark: RiftTheme },
+    Single(RiftTheme),
 }
 
 #[derive(Clone, Debug)]

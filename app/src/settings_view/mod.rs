@@ -34,7 +34,7 @@ use settings_page::{
     MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle,
     HEADER_PADDING,
 };
-use warpify_page::{WarpifyPageAction, WarpifyPageView};
+use riftify_page::{RiftifyPageAction, RiftifyPageView};
 
 use crate::appearance::Appearance;
 use crate::editor::{
@@ -66,7 +66,7 @@ mod privacy;
 mod privacy_page;
 mod settings_file_footer;
 pub(crate) mod settings_page;
-mod warpify_page;
+mod riftify_page;
 
 pub use features_page::FeaturesPageAction;
 pub use privacy_page::PrivacyPageAction;
@@ -148,7 +148,7 @@ pub enum SettingsSection {
     Features,
     Keybindings,
     Privacy,
-    Warpify,
+    Riftify,
 }
 
 use std::fmt::{self, Display};
@@ -192,7 +192,7 @@ impl FromStr for SettingsSection {
             "Features" => Ok(Self::Features),
             "Keyboard shortcuts" => Ok(Self::Keybindings),
             "Privacy" => Ok(Self::Privacy),
-            "Warpify" => Ok(Self::Warpify),
+            "Riftify" => Ok(Self::Riftify),
             _ => Err(()),
         }
     }
@@ -233,9 +233,9 @@ pub mod flags {
     pub const MOUSE_REPORTING_CONTEXT_FLAG: &str = "Mouse_Reporting";
     pub const SCROLL_REPORTING_CONTEXT_FLAG: &str = "Scroll_Reporting";
     pub const FOCUS_REPORTING_CONTEXT_FLAG: &str = "Focus_Reporting";
-    #[deprecated = "Use `SSH_TMUX_WRAPPER_CONTEXT_FLAG` for new ssh warpification logic"]
+    #[deprecated = "Use `SSH_TMUX_WRAPPER_CONTEXT_FLAG` for new ssh riftification logic"]
     pub const LEGACY_SSH_WRAPPER_CONTEXT_FLAG: &str = "SSH_Wrapper";
-    pub const SSH_WARPIFICATION_CONTEXT_FLAG: &str = "SSH_Warpification";
+    pub const SSH_WARPIFICATION_CONTEXT_FLAG: &str = "SSH_Riftification";
     pub const SSH_TMUX_WRAPPER_CONTEXT_FLAG: &str = "SSH_Tmux_Wrapper";
     pub const NOTIFICATIONS_CONTEXT_FLAG: &str = "Notifications_Enabled";
     pub const LONG_RUNNING_NOTIFICATIONS_FLAG: &str = "Long_Running_Notifications";
@@ -355,7 +355,7 @@ pub mod flags {
     pub const IS_AUTOINDEXING_ENABLED: &str = "IsAutoIndexingEnabled";
     pub const LIGATURE_RENDERING_CONTEXT_FLAG: &str = "Ligature_Rendering_Enabled";
     pub const HAS_SETTINGS_TO_IMPORT_FLAG: &str = "HasSettingsToImport";
-    /// The user's setting enabled UDI, but we may show a classic input (e.g. ssh/subshell warpification)
+    /// The user's setting enabled UDI, but we may show a classic input (e.g. ssh/subshell riftification)
     pub const UNIVERSAL_DEVELOPER_INPUT_ENABLED: &str = "UniversalDeveloperInputEnabled";
     pub const AGENT_MODE_INPUT: &str = "InputAgentMode";
     pub const TERMINAL_MODE_INPUT: &str = "InputTerminalMode";
@@ -400,7 +400,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
 ) {
     appearance_page::init_actions_from_parent_view(app, context, builder);
     features_page::init_actions_from_parent_view(app, context, builder);
-    warpify_page::init_actions_from_parent_view(app, context, builder);
+    riftify_page::init_actions_from_parent_view(app, context, builder);
     privacy_page::init_actions_from_parent_view(app, context, builder);
 
     if ChannelState::enable_debug_features() || cfg!(windows) {
@@ -702,7 +702,7 @@ pub enum SettingsAction {
     AppearancePageToggle(AppearancePageAction),
     FeaturesPageToggle(FeaturesPageAction),
     PrivacyPageToggle(PrivacyPageAction),
-    WarpifyPageToggle(WarpifyPageAction),
+    RiftifyPageToggle(RiftifyPageAction),
     Tab,
     Split(Direction),
     ToggleMaximizePane,
@@ -845,7 +845,7 @@ macro_rules! update_page {
             SettingsPageViewHandle::Appearance(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Features(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Keybindings(handle) => $ctx.update_view(handle, $update),
-            SettingsPageViewHandle::Warpify(handle) => $ctx.update_view(handle, $update),
+            SettingsPageViewHandle::Riftify(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Privacy(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::About(handle) => $ctx.update_view(handle, $update),
         }
@@ -907,9 +907,9 @@ impl SettingsView {
         // Keybindings page
         let keybindings_handle = ctx.add_typed_action_view(KeybindingsView::new);
 
-        let warpify_page_handle = ctx.add_typed_action_view(WarpifyPageView::new);
-        ctx.subscribe_to_view(&warpify_page_handle, |me, _, event, ctx| {
-            me.handle_warpify_page_event(event, ctx);
+        let riftify_page_handle = ctx.add_typed_action_view(RiftifyPageView::new);
+        ctx.subscribe_to_view(&riftify_page_handle, |me, _, event, ctx| {
+            me.handle_riftify_page_event(event, ctx);
         });
 
         // Render the privacy page only if telemetry opt-out is enabled.
@@ -950,7 +950,7 @@ impl SettingsView {
             SettingsPage::new(appearance_page_handle),
             SettingsPage::new(features_page_handle),
             SettingsPage::new(keybindings_handle),
-            SettingsPage::new(warpify_page_handle),
+            SettingsPage::new(riftify_page_handle),
             SettingsPage::new(privacy_page_handle),
             SettingsPage::new(about_page_handle),
         ];
@@ -960,7 +960,7 @@ impl SettingsView {
             SettingsNavItem::Page(SettingsSection::Appearance),
             SettingsNavItem::Page(SettingsSection::Features),
             SettingsNavItem::Page(SettingsSection::Keybindings),
-            SettingsNavItem::Page(SettingsSection::Warpify),
+            SettingsNavItem::Page(SettingsSection::Riftify),
             SettingsNavItem::Page(SettingsSection::Privacy),
             SettingsNavItem::Page(SettingsSection::About),
         ];
@@ -1291,7 +1291,7 @@ impl SettingsView {
         }
     }
 
-    fn handle_warpify_page_event(
+    fn handle_riftify_page_event(
         &mut self,
         event: &SettingsPageEvent,
         ctx: &mut ViewContext<Self>,
@@ -1436,7 +1436,7 @@ impl SettingsView {
             SettingsPageViewHandle::Appearance(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::About(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Privacy(v) => v.as_ref(app).should_render(app),
-            SettingsPageViewHandle::Warpify(v) => v.as_ref(app).should_render(app),
+            SettingsPageViewHandle::Riftify(v) => v.as_ref(app).should_render(app),
         }
     }
 
@@ -1619,7 +1619,7 @@ impl SettingsView {
                     Container::new(
                         ConstrainedBox::new(
                             icons::Icon::SearchSmall
-                                .to_warpui_icon(appearance.theme().active_ui_text_color())
+                                .to_riftui_icon(appearance.theme().active_ui_text_color())
                                 .finish(),
                         )
                         .with_width(16.)
@@ -1951,11 +1951,11 @@ impl TypedActionView for SettingsView {
                     }
                 }
             }
-            SettingsAction::WarpifyPageToggle(warpify_action) => {
-                if let Some(warpify_page) = self.settings_page(SettingsSection::Warpify) {
-                    if let SettingsPageViewHandle::Warpify(view) = &warpify_page.view_handle {
+            SettingsAction::RiftifyPageToggle(riftify_action) => {
+                if let Some(riftify_page) = self.settings_page(SettingsSection::Riftify) {
+                    if let SettingsPageViewHandle::Riftify(view) = &riftify_page.view_handle {
                         view.update(ctx, |view, ctx| {
-                            view.handle_action(warpify_action, ctx);
+                            view.handle_action(riftify_action, ctx);
                         })
                     }
                 }

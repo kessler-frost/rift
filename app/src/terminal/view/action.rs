@@ -33,7 +33,7 @@ use crate::terminal::view::RichContentSecretTooltipInfo;
 /// This represents whether entering a subshell for a particular command should become automatic in
 /// the future, or to ask again.
 #[derive(Clone, Debug)]
-pub enum RememberForWarpification {
+pub enum RememberForRiftification {
     /// If yes, need to transmit the command itself so it can be persisted to user-defaults
     RememberSubshellCommand(String),
     RememberSSHHost(String),
@@ -41,22 +41,22 @@ pub enum RememberForWarpification {
     DoNotRememberSSHHost,
 }
 
-impl RememberForWarpification {
+impl RememberForRiftification {
     pub fn as_bool(&self) -> bool {
         match self {
-            RememberForWarpification::RememberSubshellCommand(_) => true,
-            RememberForWarpification::RememberSSHHost(_) => true,
-            RememberForWarpification::DoNotRememberSubshellCommand => false,
-            RememberForWarpification::DoNotRememberSSHHost => false,
+            RememberForRiftification::RememberSubshellCommand(_) => true,
+            RememberForRiftification::RememberSSHHost(_) => true,
+            RememberForRiftification::DoNotRememberSubshellCommand => false,
+            RememberForRiftification::DoNotRememberSSHHost => false,
         }
     }
 
     pub fn is_ssh(&self) -> bool {
         match self {
-            RememberForWarpification::RememberSSHHost(_) => true,
-            RememberForWarpification::DoNotRememberSSHHost => true,
-            RememberForWarpification::RememberSubshellCommand(_) => false,
-            RememberForWarpification::DoNotRememberSubshellCommand => false,
+            RememberForRiftification::RememberSSHHost(_) => true,
+            RememberForRiftification::DoNotRememberSSHHost => true,
+            RememberForRiftification::RememberSubshellCommand(_) => false,
+            RememberForRiftification::DoNotRememberSubshellCommand => false,
         }
     }
 }
@@ -197,14 +197,14 @@ pub enum TerminalAction {
     OpenFileInWarp(PathBuf),
     /// Starts a subshell in the active session.
     TriggerSubshellBootstrap,
-    /// If the user says "no" to Warpification, possibly requesting not to be asked again
-    DismissWarpifyBanner(RememberForWarpification),
+    /// If the user says "no" to Riftification, possibly requesting not to be asked again
+    DismissRiftifyBanner(RememberForRiftification),
     /// Triggers the banner asking to turn the running block into a subshell. The String is the
     /// command that the user entered.
     ShowSubshellBanner(String),
-    /// Triggers the banner asking to Warpify the active ssh session. The String is the
+    /// Triggers the banner asking to Riftify the active ssh session. The String is the
     /// command that the user entered.
-    ShowWarpifySshBanner(String, Option<String>),
+    ShowRiftifySshBanner(String, Option<String>),
     InsertMostRecentCommandCorrection,
     AliasExpansionBanner(AliasExpansionBannerAction),
     OpenInWarpBanner(OpenInWarpBannerAction),
@@ -214,8 +214,8 @@ pub enum TerminalAction {
     VimModeBanner(VimModeBannerAction),
     ToggleSnackbarInActivePane,
     DragAndDropFiles(Vec<String>),
-    /// Triggers an ssh session to warpify, even if there is no Warpify Block.
-    WarpifySSHSession,
+    /// Triggers an ssh session to riftify, even if there is no Riftify Block.
+    RiftifySSHSession,
     NotifySshErrorBlock(SshErrorBlockAction),
 
     HyperlinkClick(HyperlinkUrl),
@@ -228,7 +228,7 @@ pub enum TerminalAction {
     ClearMarkedText,
     HideTelemetryBannerPermanently,
     ShowInitializationBlock,
-    ShowWarpifySettings,
+    ShowRiftifySettings,
     OpenInlineHistoryMenu,
     /// Toggle PTY recording for this session.
     ToggleSessionRecording,
@@ -365,9 +365,9 @@ impl fmt::Debug for TerminalAction {
             OpenFileInWarp(_) => f.write_str("OpenFileInWarp"),
             OpenBlockListContextMenu => f.write_str("OpenBlockListContextMenu"),
             TriggerSubshellBootstrap => f.write_str("TriggerSubshellBootstrap"),
-            DismissWarpifyBanner(remember) => write!(f, "DismissWarpifyBanner({remember:?})"),
+            DismissRiftifyBanner(remember) => write!(f, "DismissRiftifyBanner({remember:?})"),
             ShowSubshellBanner(_) => f.write_str("ShowSubshellBanner"),
-            ShowWarpifySshBanner(_, _) => f.write_str("ShowWarpifySshBanner"),
+            ShowRiftifySshBanner(_, _) => f.write_str("ShowRiftifySshBanner"),
             InsertMostRecentCommandCorrection => f.write_str("InsertMostRecentCommandCorrection"),
             AliasExpansionBanner(action) => write!(f, "AliasExpansionBanner({action:?}"),
             OpenInWarpBanner(action) => write!(f, "OpenInWarpBanner({action:?})"),
@@ -385,7 +385,7 @@ impl fmt::Debug for TerminalAction {
             }
             MiddleClickOnInput => write!(f, "MiddleClickOnInput"),
             DragAndDropFiles(_) => write!(f, "DragAndDropFiles"),
-            WarpifySSHSession => write!(f, "WarpifySSHSession"),
+            RiftifySSHSession => write!(f, "RiftifySSHSession"),
             NotifySshErrorBlock(action) => write!(f, "NotifySshErrorBlock({action:?})"),
             HyperlinkClick(hyperlink_url) => write!(f, "HyperlinkClick({hyperlink_url:?})"),
             StartFileDropTarget => write!(f, "StartFileDropTarget"),
@@ -400,7 +400,7 @@ impl fmt::Debug for TerminalAction {
             ClearMarkedText => write!(f, "ClearMarkedText"),
             HideTelemetryBannerPermanently => write!(f, "HideTelemetryBannerPermanently"),
             ShowInitializationBlock => write!(f, "ShowInitializationBlock"),
-            ShowWarpifySettings => write!(f, "ShowWarpifySettings"),
+            ShowRiftifySettings => write!(f, "ShowRiftifySettings"),
             OpenInlineHistoryMenu => write!(f, "OpenInlineHistoryMenu"),
             ToggleSessionRecording => write!(f, "ToggleSessionRecording"),
         }

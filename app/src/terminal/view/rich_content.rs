@@ -6,7 +6,7 @@ use crate::terminal::model::blocks::{RemovableBlocklistItem, RichContentItem};
 use crate::terminal::model::rich_content::RichContentType;
 use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::ssh::error::SshErrorBlock;
-use crate::terminal::warpify::success_block::WarpifySuccessBlock;
+use crate::terminal::riftify::success_block::RiftifySuccessBlock;
 use crate::terminal::TerminalView;
 
 /// Specifies where to insert rich content in the blocklist.
@@ -101,8 +101,8 @@ pub enum RichContentMetadata {
     SshErrorBlock {
         ssh_error_block_handle: ViewHandle<SshErrorBlock>,
     },
-    WarpifySuccessBlock {
-        bootstrap_success_block_handle: ViewHandle<WarpifySuccessBlock>,
+    RiftifySuccessBlock {
+        bootstrap_success_block_handle: ViewHandle<RiftifySuccessBlock>,
     },
     TerminalViewZeroState,
     PluginInstructionsBlock,

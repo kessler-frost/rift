@@ -791,8 +791,8 @@ pub enum FeatureFlag {
     /// Enables Custom Inference endpoints for enterprise users.
     CustomInferenceEndpointsEnterprise,
 
-    /// Replaces the in-block warpification banner with a warpify footer.
-    WarpifyFooter,
+    /// Replaces the in-block riftification banner with a riftify footer.
+    RiftifyFooter,
 
     /// Enables conversation retrieval via the CLI (oz run conversation get, oz run get --conversation).
     ConversationApi,

@@ -21,7 +21,7 @@ use crate::context_chips::{ChipAvailability, ChipDisabledReason, ContextChipKind
 use crate::features::FeatureFlag;
 use crate::menu::MenuItem;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
-use crate::settings::WarpPromptSeparator;
+use crate::settings::RiftPromptSeparator;
 #[cfg(windows)]
 use crate::system::SystemInfo;
 use crate::terminal::model::block::BlockMetadata;
@@ -43,7 +43,7 @@ fn test_context_menu_items() {
                     ContextChipKind::VirtualEnvironment,
                 ],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);
@@ -101,7 +101,7 @@ fn test_prompt_to_string() {
                     ContextChipKind::ShellGitBranch,
                 ],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);
@@ -157,7 +157,7 @@ fn test_fingerprint_skips_contextual_chip_recompute_when_context_is_unchanged() 
             Prompt::mock_with(
                 [ContextChipKind::WorkingDirectory],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);
@@ -217,7 +217,7 @@ fn test_shell_chip_is_disabled_when_required_executable_is_missing() {
             Prompt::mock_with(
                 [ContextChipKind::ShellGitBranch],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);
@@ -320,7 +320,7 @@ fn test_invalidating_command_count_unaffected_for_chips_without_invalidate_on_co
             Prompt::mock_with(
                 [ContextChipKind::WorkingDirectory],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);
@@ -366,7 +366,7 @@ fn test_disabling_chips() {
             Prompt::mock_with(
                 [ContextChipKind::ShellGitBranch],
                 false,
-                WarpPromptSeparator::None,
+                RiftPromptSeparator::None,
             )
         });
         app.add_singleton_model(SessionSettings::new_with_defaults);

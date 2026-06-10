@@ -235,10 +235,10 @@ impl platform::WindowManager for WindowManager {
         let mut result = Vec::with_capacity(count);
         for i in 0..count {
             let window = ordered_windows.objectAtIndex(i);
-            // SAFETY: `is_warp_window` is an FFI call into the WarpWindow class, and
+            // SAFETY: `is_rift_window` is an FFI call into the RiftWindow class, and
             // warp windows always carry the window-state ivar.
             unsafe {
-                if is_warp_window(&window).as_bool() {
+                if is_rift_window(&window).as_bool() {
                     result.push(get_window_state(as_objc_object(&window)).window_id);
                 }
             }
@@ -438,7 +438,7 @@ extern "C" {
         backgroundBlurRadiusPixels: u8,
         testMode: Bool,
     ) -> *mut NSWindow;
-    fn is_warp_window(window: &NSWindow) -> Bool;
+    fn is_rift_window(window: &NSWindow) -> Bool;
     fn get_frontmost_window() -> *mut NSWindow;
     fn set_accessibility_contents(
         window: &NSWindow,
@@ -583,21 +583,21 @@ impl Window {
                     ),
                 }
             };
-            // SAFETY: `native_window` is either null or a valid `WarpWindow`.
+            // SAFETY: `native_window` is either null or a valid `RiftWindow`.
             let Some(native_window_ref) = (unsafe { native_window.as_ref() }) else {
-                return Err(anyhow!("WarpWindow returned nil from initializer"));
+                return Err(anyhow!("RiftWindow returned nil from initializer"));
             };
 
             if options.fullscreen_state == FullscreenState::Fullscreen {
                 // Instead of directly calling toggleFullScreen, we call a wrapper method that
                 // ensures MacOS window animations don't overlap.
-                // SAFETY: `enqueueFullscreenTransition` is a custom WarpWindow selector.
+                // SAFETY: `enqueueFullscreenTransition` is a custom RiftWindow selector.
                 let _: () = unsafe { msg_send![native_window_ref, enqueueFullscreenTransition] };
             }
 
             let native_view = native_window_ref
                 .contentView()
-                .expect("WarpWindow always has a content view");
+                .expect("RiftWindow always has a content view");
 
             let device = match metal_device {
                 Some(metal_device) => Some(Device::new(
@@ -634,7 +634,7 @@ impl Window {
                     .set_ivar(WINDOW_STATE_IVAR, Ivar::from_state(&window_state));
                 let native_window_delegate = native_window_ref
                     .delegate()
-                    .expect("WarpWindow always has a delegate");
+                    .expect("RiftWindow always has a delegate");
                 (*Retained::as_ptr(&native_window_delegate)
                     .cast::<Object>()
                     .cast_mut())
@@ -682,10 +682,10 @@ impl Window {
 
     pub fn active_window_id() -> Option<WindowId> {
         let native_window = Self::key_window()?;
-        // SAFETY: `is_warp_window` and the window-state ivar accessor are FFI calls
-        // into the WarpWindow class.
+        // SAFETY: `is_rift_window` and the window-state ivar accessor are FFI calls
+        // into the RiftWindow class.
         unsafe {
-            if is_warp_window(&native_window).as_bool() {
+            if is_rift_window(&native_window).as_bool() {
                 Some(get_window_state(as_objc_object(&native_window)).window_id)
             } else {
                 None
@@ -694,11 +694,11 @@ impl Window {
     }
 
     pub fn frontmost_window_id() -> Option<WindowId> {
-        // SAFETY: `get_frontmost_window` returns null or a valid `WarpWindow`, and
+        // SAFETY: `get_frontmost_window` returns null or a valid `RiftWindow`, and
         // the window-state ivar accessor reads its ivar.
         unsafe {
             let native_window = get_frontmost_window().as_ref()?;
-            if is_warp_window(native_window).as_bool() {
+            if is_rift_window(native_window).as_bool() {
                 Some(get_window_state(as_objc_object(native_window)).window_id)
             } else {
                 None
@@ -710,7 +710,7 @@ impl Window {
         let Some(native_window) = Self::key_window() else {
             return false;
         };
-        // `isModalPanel` is a custom WarpWindow selector returning a BOOL.
+        // `isModalPanel` is a custom RiftWindow selector returning a BOOL.
         // SAFETY: messaging a valid window.
         unsafe { msg_send![&*native_window, isModalPanel] }
     }
@@ -719,15 +719,15 @@ impl Window {
         let Some(native_window) = Self::key_window() else {
             return;
         };
-        // SAFETY: `is_warp_window` is an FFI call into the WarpWindow class.
-        if unsafe { is_warp_window(&native_window) }.as_bool() {
+        // SAFETY: `is_rift_window` is an FFI call into the RiftWindow class.
+        if unsafe { is_rift_window(&native_window) }.as_bool() {
             Self::send_close_ime_msg(&native_window);
         }
     }
 
     fn send_close_ime_msg(native_window: &NSWindow) {
         // SAFETY: warp windows carry the window-state ivar, and the content view is a
-        // WarpHostView exposing the custom `closeIMEAsync` selector.
+        // RiftHostView exposing the custom `closeIMEAsync` selector.
         unsafe {
             let state = get_window_state(as_objc_object(native_window));
             if let Some(view) = (*state.native_window).contentView() {
@@ -813,10 +813,10 @@ impl Window {
         let Some(native_window) = Self::key_window() else {
             return false;
         };
-        // SAFETY: `is_warp_window` and the window-state ivar accessor are FFI calls
-        // into the WarpWindow class.
+        // SAFETY: `is_rift_window` and the window-state ivar accessor are FFI calls
+        // into the RiftWindow class.
         unsafe {
-            if is_warp_window(&native_window).as_bool() {
+            if is_rift_window(&native_window).as_bool() {
                 get_window_state(as_objc_object(&native_window))
                     .ime_active
                     .get()
@@ -830,8 +830,8 @@ impl Window {
         let Some(native_window) = Self::key_window() else {
             return;
         };
-        // SAFETY: `is_warp_window` is an FFI call into the WarpWindow class.
-        if unsafe { is_warp_window(&native_window) }.as_bool() {
+        // SAFETY: `is_rift_window` is an FFI call into the RiftWindow class.
+        if unsafe { is_rift_window(&native_window) }.as_bool() {
             let frame = if let Some(frame) = content.frame {
                 RectF::new(
                     transform_origin_from_rect_coord_to_frame_coord(frame.origin(), frame.size()),
@@ -868,10 +868,10 @@ impl Window {
         let windows = NSApplication::sharedApplication(mtm).windows();
         for i in 0..windows.count() {
             let window = windows.objectAtIndex(i);
-            // SAFETY: `is_warp_window` / `set_window_background_blur_radius` are FFI
-            // calls into the WarpWindow class.
+            // SAFETY: `is_rift_window` / `set_window_background_blur_radius` are FFI
+            // calls into the RiftWindow class.
             unsafe {
-                if is_warp_window(&window).as_bool() {
+                if is_rift_window(&window).as_bool() {
                     set_window_background_blur_radius(&window, blur_radius_pixels)
                 }
             }
@@ -905,7 +905,7 @@ impl Window {
         }
     }
 
-    /// Returns a reference to a `WarpWindow` identified by `window_id`, if any.
+    /// Returns a reference to a `RiftWindow` identified by `window_id`, if any.
     ///
     /// # Safety
     /// This code is unsafe since it requires interfacing with platform code.
@@ -915,7 +915,7 @@ impl Window {
         (0..windows.count())
             .find(|&i| {
                 let window = windows.objectAtIndex(i);
-                is_warp_window(&window).as_bool()
+                is_rift_window(&window).as_bool()
                     && get_window_state(as_objc_object(&window)).window_id == window_id
             })
             .map(|idx| windows.objectAtIndex(idx))
@@ -927,7 +927,7 @@ impl Window {
             TerminationMode::ForceTerminate | TerminationMode::ContentTransferred => true,
         };
         // SAFETY: `find_window_with_id` enumerates the window list; `closeWindowAsync:`
-        // is a custom WarpWindow selector taking a BOOL.
+        // is a custom RiftWindow selector taking a BOOL.
         unsafe {
             if let Some(window) = Self::find_window_with_id(window_id) {
                 let _: () = msg_send![&*window, closeWindowAsync: Bool::new(force_terminate)];
@@ -984,13 +984,13 @@ impl platform::Window for Window {
     }
 
     fn toggle_fullscreen(&self) {
-        // `enqueueFullscreenTransition` is a custom WarpWindow selector.
+        // `enqueueFullscreenTransition` is a custom RiftWindow selector.
         // SAFETY: messaging a valid window.
         let _: () = unsafe { msg_send![self.0.window(), enqueueFullscreenTransition] };
     }
 
     fn toggle_maximized(&self) {
-        // `zoomAsync:` is a custom WarpWindow selector taking a nil sender.
+        // `zoomAsync:` is a custom RiftWindow selector taking a nil sender.
         // SAFETY: messaging a valid window.
         let _: () = unsafe { msg_send![self.0.window(), zoomAsync: ptr::null_mut::<AnyObject>()] };
     }
@@ -1081,7 +1081,7 @@ impl WindowState {
         let view = self
             .window()
             .contentView()
-            .expect("WarpWindow always has a content view");
+            .expect("RiftWindow always has a content view");
         let view_frame = view.frame();
         vec2f(view_frame.size.width as f32, view_frame.size.height as f32)
     }
@@ -1118,10 +1118,10 @@ impl WindowState {
         let view = self
             .window()
             .contentView()
-            .expect("WarpHostView content view");
+            .expect("RiftHostView content view");
         let layer = view
             .layer()
-            .expect("WarpHostView always has a backing layer");
+            .expect("RiftHostView always has a backing layer");
         layer
             .downcast::<CAMetalLayer>()
             .expect("backing layer is a CAMetalLayer")
@@ -1171,7 +1171,7 @@ impl platform::WindowContext for WindowState {
         let view = self
             .window()
             .contentView()
-            .expect("WarpWindow always has a content view");
+            .expect("RiftWindow always has a content view");
         let view_frame = view.frame();
         vec2f(view_frame.size.width as f32, view_frame.size.height as f32)
     }
@@ -1195,14 +1195,14 @@ impl platform::WindowContext for WindowState {
 
     fn render_scene(&self, scene: Rc<Scene>) {
         *self.next_scene.borrow_mut() = Some(scene);
-        // `setNeedsDisplayAsync` is a custom WarpWindow selector.
+        // `setNeedsDisplayAsync` is a custom RiftWindow selector.
         // SAFETY: messaging a valid window.
         let _: () = unsafe { msg_send![self.window(), setNeedsDisplayAsync] };
     }
 
     fn request_redraw(&self) {
         let _ = self.next_scene.borrow_mut().take();
-        // `setNeedsDisplayAsync` is a custom WarpWindow selector.
+        // `setNeedsDisplayAsync` is a custom RiftWindow selector.
         // SAFETY: messaging a valid window.
         let _: () = unsafe { msg_send![self.window(), setNeedsDisplayAsync] };
     }
@@ -1212,7 +1212,7 @@ impl platform::WindowContext for WindowState {
         callback: Box<dyn FnOnce(platform::CapturedFrame) + Send + 'static>,
     ) {
         *self.capture_callback.borrow_mut() = Some(callback);
-        // `setNeedsDisplayAsync` is a custom WarpWindow selector.
+        // `setNeedsDisplayAsync` is a custom RiftWindow selector.
         // SAFETY: messaging a valid window.
         let _: () = unsafe { msg_send![self.window(), setNeedsDisplayAsync] };
     }
@@ -1256,14 +1256,14 @@ impl WindowExt for &dyn platform::Window {
 
 #[no_mangle]
 extern "C-unwind" fn warp_view_did_change_backing_properties(this: &Object, async_callback: bool) {
-    // SAFETY: `this` is a WarpHostView carrying the window-state ivar; its backing
+    // SAFETY: `this` is a RiftHostView carrying the window-state ivar; its backing
     // layer is always a CAMetalLayer.
     let (window, layer) = unsafe {
         let window = get_window_state(this);
         let view = &*(this as *const Object).cast::<NSView>();
         let layer = view
             .layer()
-            .expect("WarpHostView always has a backing layer");
+            .expect("RiftHostView always has a backing layer");
         (window, layer)
     };
     layer.setContentsScale(window.backing_scale_factor());
@@ -1281,7 +1281,7 @@ extern "C-unwind" fn warp_view_did_change_backing_properties(this: &Object, asyn
         );
         layer
             .downcast_ref::<CAMetalLayer>()
-            .expect("WarpHostView backing layer is a CAMetalLayer")
+            .expect("RiftHostView backing layer is a CAMetalLayer")
             .setDrawableSize(drawable_size);
     }
 
@@ -1352,14 +1352,14 @@ pub extern "C-unwind" fn warp_ime_position(object: &mut Object, content_rect: NS
 
 #[no_mangle]
 extern "C-unwind" fn warp_view_set_frame_size(this: &Object, size: NSSize, async_callback: bool) {
-    // SAFETY: `this` is a WarpHostView carrying the window-state ivar; its backing
+    // SAFETY: `this` is a RiftHostView carrying the window-state ivar; its backing
     // layer is always a CAMetalLayer.
     let (window, layer) = unsafe {
         let window = get_window_state(this);
         let view = &*(this as *const Object).cast::<NSView>();
         let layer = view
             .layer()
-            .expect("WarpHostView always has a backing layer");
+            .expect("RiftHostView always has a backing layer");
         (window, layer)
     };
     // Manually convert the size into the drawable size by multiplying by the scale factor. For
@@ -1372,7 +1372,7 @@ extern "C-unwind" fn warp_view_set_frame_size(this: &Object, size: NSSize, async
     };
     layer
         .downcast_ref::<CAMetalLayer>()
-        .expect("WarpHostView backing layer is a CAMetalLayer")
+        .expect("RiftHostView backing layer is a CAMetalLayer")
         .setDrawableSize(drawable_size);
 
     window.resize_renderer();
@@ -1654,7 +1654,7 @@ unsafe fn remove_state_ivar_from_object(object: &mut Object) -> Rc<WindowState> 
 pub extern "C-unwind" fn warp_dealloc_window(native_window: &mut Object) {
     log::info!("dealloc native window {native_window:p}");
     let state;
-    // SAFETY: `native_window` is a WarpWindow being deallocated; its content view
+    // SAFETY: `native_window` is a RiftWindow being deallocated; its content view
     // and delegate both carry the window-state ivar.
     unsafe {
         let window = &*(native_window as *const Object).cast::<NSWindow>();
@@ -1662,13 +1662,13 @@ pub extern "C-unwind" fn warp_dealloc_window(native_window: &mut Object) {
         // Remove the window state from the content NSView and drop a reference.
         let native_view = window
             .contentView()
-            .expect("WarpWindow always has a content view");
+            .expect("RiftWindow always has a content view");
         let _ = remove_state_ivar_from_object(
             &mut *Retained::as_ptr(&native_view).cast::<Object>().cast_mut(),
         );
 
         // Remove the window state from the NSWindowDelegate and drop a reference.
-        let native_window_delegate = window.delegate().expect("WarpWindow always has a delegate");
+        let native_window_delegate = window.delegate().expect("RiftWindow always has a delegate");
         let _ = remove_state_ivar_from_object(
             &mut *Retained::as_ptr(&native_window_delegate)
                 .cast::<Object>()

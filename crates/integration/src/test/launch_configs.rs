@@ -24,7 +24,7 @@ use crate::Builder;
 
 /// Adds a launch config to the mocked out warp config directory and verifies that
 /// the launch config appears in the launch config palette.
-pub fn test_add_launch_config_to_warp_config() -> Builder {
+pub fn test_add_launch_config_to_rift_config() -> Builder {
     new_builder()
         .with_setup(move |utils| {
             utils.set_env("RIFT_CONFIG_WATCHER_DELAY_MS", Some((10).to_string()));
@@ -44,7 +44,7 @@ pub fn test_add_launch_config_to_warp_config() -> Builder {
                         .clone();
                     launch_config_data_source.read(app, |palette, app| {
                         // Note that this can be a synchronous assertion because unlike the next test step,
-                        // we don't have concurrency with a WarpConfig watcher thread
+                        // we don't have concurrency with a RiftConfig watcher thread
                         assert_eq!(
                             palette.run_query(&Query::from(""), app).unwrap().len(),
                             0,

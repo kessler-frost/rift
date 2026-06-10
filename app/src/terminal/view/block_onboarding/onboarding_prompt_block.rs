@@ -176,7 +176,7 @@ impl OnboardingPromptBlock {
                         };
 
                     ConstrainedBox::new(
-                        Container::new(if prompt_type == OnboardingPromptType::WarpDefault {
+                        Container::new(if prompt_type == OnboardingPromptType::RiftDefault {
                             self.render_warp_prompt_button_interior(appearance)
                         } else {
                             self.render_existing_prompt_button_interior(appearance)
@@ -407,7 +407,7 @@ impl OnboardingPromptBlock {
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum OnboardingPromptType {
     PS1,
-    WarpDefault,
+    RiftDefault,
 }
 
 impl Entity for OnboardingPromptBlock {
@@ -438,7 +438,7 @@ impl View for OnboardingPromptBlock {
                     .with_child(self.render_prompt_button(
                         appearance,
                         self.mouse_state_handle_warp_prompt.clone(),
-                        OnboardingPromptType::WarpDefault,
+                        OnboardingPromptType::RiftDefault,
                     ))
                     .with_child(self.render_prompt_button(
                         appearance,
@@ -477,8 +477,8 @@ impl TypedActionView for OnboardingPromptBlock {
                 self.selected_prompt = Some(*prompt);
 
                 match prompt {
-                    OnboardingPromptType::WarpDefault => {
-                        self.selected_prompt = Some(OnboardingPromptType::WarpDefault);
+                    OnboardingPromptType::RiftDefault => {
+                        self.selected_prompt = Some(OnboardingPromptType::RiftDefault);
                         Prompt::handle(ctx).update(ctx, |prompt, ctx| {
                             report_if_error!(prompt.reset(ctx));
                         });

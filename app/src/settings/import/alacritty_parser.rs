@@ -6,7 +6,7 @@ use async_recursion::async_recursion;
 use async_trait::async_trait;
 use pathfinder_color::ColorU;
 use rift_core::ui::color::hex_color::coloru_from_hex_string;
-use rift_core::ui::theme::{AnsiColor, AnsiColors, TerminalColors, WarpTheme};
+use rift_core::ui::theme::{AnsiColor, AnsiColors, TerminalColors, RiftTheme};
 use riftui::fonts::FontInfo;
 use serde::Deserialize;
 
@@ -290,7 +290,7 @@ impl AlacrittyTheme {
         } else {
             let bright = terminal_colors.bright;
             let accent = calculate_accent_color(background, foreground, cursor_color, bright);
-            Ok(ThemeType::Single(WarpTheme::new(
+            Ok(ThemeType::Single(RiftTheme::new(
                 background.into(),
                 foreground.into(),
                 accent.into(),

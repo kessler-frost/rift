@@ -158,7 +158,7 @@ impl View for GlowingEditor {
         let agent_icon = Container::new(
             ConstrainedBox::new(
                 Icon::AgentMode
-                    .to_warpui_icon(theme.sub_text_color(theme.background()))
+                    .to_riftui_icon(theme.sub_text_color(theme.background()))
                     .finish(),
             )
             .with_height(font_size)

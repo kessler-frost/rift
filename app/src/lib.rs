@@ -70,7 +70,7 @@ mod user_config;
 pub mod util;
 mod view_components;
 mod vim_registers;
-mod warp_managed_paths_watcher;
+mod rift_managed_paths_watcher;
 mod window_settings;
 mod workspaces;
 
@@ -198,10 +198,10 @@ use crate::terminal::resizable_data::ResizableData;
 use crate::terminal::view::inline_banner::ByoLlmAuthBannerSessionState;
 use crate::terminal::{AudibleBell, CustomSecretRegexUpdater, History};
 use crate::undo_close::UndoCloseStack;
-use crate::user_config::WarpConfig;
+use crate::user_config::RiftConfig;
 use crate::util::bindings::is_binding_cross_platform;
 use crate::vim_registers::VimRegisters;
-use crate::warp_managed_paths_watcher::{ensure_warp_watch_roots_exist, WarpManagedPathsWatcher};
+use crate::rift_managed_paths_watcher::{ensure_rift_watch_roots_exist, RiftManagedPathsWatcher};
 use crate::workspace::{
     ActiveSession, OneTimeModalModel, PaneViewLocator, ToastStack, Workspace, WorkspaceAction,
 };
@@ -843,14 +843,14 @@ pub(crate) fn initialize_app(
 
     // One-time migration: give Preview its own config directory by
     // symlinking contents from the shared ~/.rift location. Must run
-    // before ensure_warp_watch_roots_exist() creates the new directory.
+    // before ensure_rift_watch_roots_exist() creates the new directory.
     #[cfg(target_os = "macos")]
     preview_config_migration::migrate_preview_config_dir_if_needed();
 
-    ensure_warp_watch_roots_exist();
-    ctx.add_singleton_model(WarpManagedPathsWatcher::new);
+    ensure_rift_watch_roots_exist();
+    ctx.add_singleton_model(RiftManagedPathsWatcher::new);
 
-    ctx.add_singleton_model(WarpConfig::new);
+    ctx.add_singleton_model(RiftConfig::new);
     ctx.add_singleton_model(|_ctx| SettingsManager::default());
 
     let user_defaults_on_startup = settings::init(startup_toml_parse_error, ctx);

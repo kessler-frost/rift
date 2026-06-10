@@ -6,10 +6,10 @@ use wasm_bindgen::JsCast;
 
 /// Events emitted from Warp on Web to the host JavaScript app.
 ///
-/// These must stay in sync with the [`WarpEvent` TypeScript type](https://github.com/warpdotdev/warp-server/blob/develop/client/src/warp-client/index.ts).
+/// These must stay in sync with the [`RiftEvent` TypeScript type](https://github.com/warpdotdev/warp-server/blob/develop/client/src/warp-client/index.ts).
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "kind", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum WarpEvent {
+pub enum RiftEvent {
     LoggedOut,
     SessionJoined,
     ErrorLogged { error: String },
@@ -42,7 +42,7 @@ mod ffi {
 }
 
 /// Emit an event to the host JavaScript app.
-pub fn emit_event(event: WarpEvent) {
+pub fn emit_event(event: RiftEvent) {
     let serialized =
         serde_wasm_bindgen::to_value(&event).expect("Event must convert to JavaScript");
     match ffi::emit_event(serialized) {

@@ -54,7 +54,7 @@ use riftui::{AppContext, Element, WindowId};
 #[cfg(target_os = "windows")]
 use windows_only::*;
 
-use crate::themes::theme::WarpTheme;
+use crate::themes::theme::RiftTheme;
 
 #[cfg(any(target_os = "windows", any(target_os = "linux", target_os = "freebsd")))]
 const BUTTON_ICON_SIZE: f32 = 22.;
@@ -154,7 +154,7 @@ impl TrafficLightData {
         &self,
         fullscreen_state: FullscreenState,
         mouse_states: &TrafficLightMouseStates,
-        theme: &WarpTheme,
+        theme: &RiftTheme,
         _app: &AppContext,
     ) -> Box<dyn Element> {
         if !cfg!(any(target_os = "linux", target_os = "freebsd")) {
@@ -290,7 +290,7 @@ impl TrafficLightData {
     fn render_button(
         mouse_state: MouseStateHandle,
         child: Box<dyn Element>,
-        theme: &WarpTheme,
+        theme: &RiftTheme,
     ) -> Hoverable {
         Hoverable::new(mouse_state, |state| {
             let background_color = if state.is_hovered() {
@@ -315,7 +315,7 @@ impl TrafficLightData {
         &self,
         fullscreen_state: FullscreenState,
         mouse_states: &TrafficLightMouseStates,
-        theme: &WarpTheme,
+        theme: &RiftTheme,
         app: &AppContext,
     ) -> Box<dyn Element> {
         self.render_tab_row(fullscreen_state, mouse_states, theme, app)
@@ -414,7 +414,7 @@ impl TrafficLightData {
     fn render_windows_close_button_icon(icon_color: ColorU) -> Box<dyn Element> {
         ConstrainedBox::new(
             IconComponent::X
-                .to_warpui_icon(theme::Fill::Solid(icon_color))
+                .to_riftui_icon(theme::Fill::Solid(icon_color))
                 .finish(),
         )
         .with_height(16.)
@@ -454,7 +454,7 @@ impl TrafficLightData {
         &self,
         _fullscreen_state: FullscreenState,
         _mouse_states: &TrafficLightMouseStates,
-        _theme: &WarpTheme,
+        _theme: &RiftTheme,
         _app: &AppContext,
     ) -> Box<dyn Element> {
         Empty::new().finish()

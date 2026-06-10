@@ -108,7 +108,7 @@ impl CreateProjectView {
             .with_main_axis_size(MainAxisSize::Max)
             .with_children([
                 Container::new(
-                    ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
+                    ConstrainedBox::new(icon.to_riftui_icon(icon_color).finish())
                         .with_height(font_size)
                         .with_width(font_size)
                         .finish(),

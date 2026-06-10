@@ -4,7 +4,7 @@ use super::current_prompt::CurrentPrompt;
 use super::prompt_snapshot::PromptSnapshot;
 use super::{ChipResult, ChipValue, ContextChipKind};
 use crate::menu::{MenuItem, MenuItemFields};
-use crate::settings::WarpPromptSeparator;
+use crate::settings::RiftPromptSeparator;
 use crate::terminal::model::session::Sessions;
 use crate::terminal::session_settings::{SessionSettings, ToolbarChipSelection};
 use crate::terminal::view::{ContextMenuAction, PromptPart, PromptPosition, TerminalAction};
@@ -40,7 +40,7 @@ impl PromptType {
     pub fn new_static(
         chips: Vec<ChipResult>,
         same_line_prompt_enabled: bool,
-        separator: WarpPromptSeparator,
+        separator: RiftPromptSeparator,
     ) -> Self {
         PromptType::Static {
             snapshot: PromptSnapshot::from_chips(chips, same_line_prompt_enabled, separator),
@@ -165,7 +165,7 @@ impl PromptType {
     }
 
     /// The separator for the Warp prompt.
-    pub fn separator(&self, ctx: &AppContext) -> WarpPromptSeparator {
+    pub fn separator(&self, ctx: &AppContext) -> RiftPromptSeparator {
         match self {
             Self::Dynamic { prompt } => prompt.as_ref(ctx).separator(),
             Self::Static { snapshot } => snapshot.separator(),

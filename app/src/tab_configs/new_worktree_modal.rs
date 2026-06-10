@@ -356,7 +356,7 @@ impl View for NewWorktreeModal {
             // X close icon
             let close_icon = ConstrainedBox::new(
                 rift_core::ui::Icon::X
-                    .to_warpui_icon(theme.sub_text_color(theme.background()))
+                    .to_riftui_icon(theme.sub_text_color(theme.background()))
                     .finish(),
             )
             .with_width(CLOSE_ICON_SIZE)

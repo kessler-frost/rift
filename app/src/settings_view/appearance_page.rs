@@ -74,11 +74,11 @@ use crate::terminal::settings::{
 use crate::terminal::{
     BlockListSettings, ShowBlockDividers, ShowJumpToBottomOfBlockButton, SizeInfo,
 };
-use crate::themes::theme::{self, RespectSystemTheme, SelectedSystemThemes, ThemeKind, WarpTheme};
+use crate::themes::theme::{self, RespectSystemTheme, SelectedSystemThemes, ThemeKind, RiftTheme};
 use crate::themes::theme_chooser::ThemeChooserMode;
 use crate::ui_components::color_dot::{render_color_dot, TAB_COLOR_OPTIONS};
 use crate::ui_components::icons::Icon;
-use crate::user_config::WarpConfig;
+use crate::user_config::RiftConfig;
 use crate::util::bindings;
 use crate::view_components::action_button::{ActionButton, ButtonSize, NakedTheme};
 use crate::view_components::{Dropdown, DropdownItem, FilterableDropdown};
@@ -2705,7 +2705,7 @@ impl ThemeSelectWidget {
         is_selected: bool,
         app: &AppContext,
     ) -> Box<dyn Element> {
-        let theme: WarpTheme = WarpConfig::as_ref(app).theme_config().theme(&theme_kind);
+        let theme: RiftTheme = RiftConfig::as_ref(app).theme_config().theme(&theme_kind);
         let mode_ui_label = match theme_chooser_mode {
             ThemeChooserMode::SystemLight => "Light",
             ThemeChooserMode::SystemDark => "Dark",

@@ -21,7 +21,7 @@ use crate::settings::{
     active_theme_kind, FontSettings, FontSettingsChangedEvent, MonospaceFontSize, Settings,
     ThemeSettings,
 };
-use crate::themes::theme::{ThemeKind, WarpTheme};
+use crate::themes::theme::{ThemeKind, RiftTheme};
 use crate::ASSETS;
 
 /// Manages the state of the app-wide Appearance settings, it is responsible
@@ -31,7 +31,7 @@ use crate::ASSETS;
 pub struct AppearanceManager {
     // The transient theme is a theme that is set by the user but not saved
     // as a setting. It is used when the user is actively choosing a theme.
-    transient_theme: Option<WarpTheme>,
+    transient_theme: Option<RiftTheme>,
 
     #[cfg(target_os = "macos")]
     app_icon_at_startup: AppIcon,
@@ -429,10 +429,10 @@ fn build_appearance(ctx: &mut AppContext) -> Appearance {
 }
 
 #[cfg(target_family = "wasm")]
-fn emit_theme_background_event(theme: &WarpTheme) {
+fn emit_theme_background_event(theme: &RiftTheme) {
     let bg = theme.background().into_solid();
     let color = format!("#{:02x}{:02x}{:02x}", bg.r, bg.g, bg.b);
-    crate::platform::wasm::emit_event(crate::platform::wasm::WarpEvent::ThemeBackgroundChanged {
+    crate::platform::wasm::emit_event(crate::platform::wasm::RiftEvent::ThemeBackgroundChanged {
         color,
     });
 }

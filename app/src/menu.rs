@@ -980,7 +980,7 @@ impl<A: Action + Clone> MenuItemFields<A> {
                 Shrinkable::new(
                     1.,
                     Container::new(
-                        ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
+                        ConstrainedBox::new(icon.to_riftui_icon(icon_color).finish())
                             .with_width(icon_size)
                             .with_height(icon_size)
                             .finish(),
@@ -1096,7 +1096,7 @@ impl<A: Action + Clone> MenuItemFields<A> {
                 .finish();
             return Some(Shrinkable::new(1., Align::new(element).right().finish()).finish());
         }
-        let icon_element = ConstrainedBox::new(config.icon.to_warpui_icon(icon_color).finish())
+        let icon_element = ConstrainedBox::new(config.icon.to_riftui_icon(icon_color).finish())
             .with_width(icon_size)
             .with_height(icon_size)
             .finish();

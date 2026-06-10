@@ -169,7 +169,7 @@ lazy_static! {
     /// compliant. We weren't always diligent about avoiding bindings that could conflict with
     /// character codes, unfortunately some bindings on Mac currently conflict with the PTY. We have
     /// this allowlist to special case these legacy actions for the purposes of binding validation.
-    pub static ref MAC_PTY_NON_COMPLIANT_ACTIONS: HashSet<&'static str> = HashSet::from_iter(["terminal:warpify_subshell", "terminal:open_block_list_context_menu_via_keybinding"]);
+    pub static ref MAC_PTY_NON_COMPLIANT_ACTIONS: HashSet<&'static str> = HashSet::from_iter(["terminal:riftify_subshell", "terminal:open_block_list_context_menu_via_keybinding"]);
 
     /// Set of actions on Windows that should be considered valid bindings even though they aren't
     /// PTY compliant. Windows users expect pasting to work using both `ctrl-v` and `ctrl-shift-v`,
@@ -722,7 +722,6 @@ pub enum BindingGroup {
     Settings,
     Close,
     Navigation,
-    WarpAi,
     Workflow,
     Notebooks,
     Folders,
@@ -737,7 +736,6 @@ impl BindingGroup {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Settings => "settings",
-            Self::WarpAi => "warp_ai",
             Self::Navigation => "navigation",
             Self::Workflow => "workflows",
             Self::Notebooks => "notebooks",

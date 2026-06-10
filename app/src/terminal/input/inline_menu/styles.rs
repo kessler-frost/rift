@@ -5,7 +5,7 @@
 //! visual design matching the Figma specifications.
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::color::blend::Blend;
-use rift_core::ui::theme::{Fill, WarpTheme};
+use rift_core::ui::theme::{Fill, RiftTheme};
 use riftui::color::ColorU;
 use riftui::{AppContext, SingletonEntity};
 
@@ -45,15 +45,15 @@ pub fn item_background(
     }
 }
 
-pub fn primary_text_color(theme: &WarpTheme, background: Fill) -> Fill {
+pub fn primary_text_color(theme: &RiftTheme, background: Fill) -> Fill {
     theme.main_text_color(background)
 }
 
-pub fn secondary_text_color(theme: &WarpTheme, background: Fill) -> Fill {
+pub fn secondary_text_color(theme: &RiftTheme, background: Fill) -> Fill {
     theme.sub_text_color(background)
 }
 
-pub fn disabled_text_color(theme: &WarpTheme, background: Fill) -> Fill {
+pub fn disabled_text_color(theme: &RiftTheme, background: Fill) -> Fill {
     theme.disabled_text_color(background)
 }
 

@@ -84,12 +84,12 @@ pub fn render_git_diff_stats_content(
     let icon_element = if has_changes {
         // Use file icon when there are changes
         Icon::File
-            .to_warpui_icon(Fill::Solid(internal_colors::neutral_6(theme)))
+            .to_riftui_icon(Fill::Solid(internal_colors::neutral_6(theme)))
             .finish()
     } else {
         // Use diff icon when there are no changes
         Icon::Diff
-            .to_warpui_icon(Fill::Solid(internal_colors::neutral_6(theme)))
+            .to_riftui_icon(Fill::Solid(internal_colors::neutral_6(theme)))
             .finish()
     };
 
@@ -1742,7 +1742,7 @@ pub(crate) fn render_udi_chip(config: UdiChipConfig, appearance: &Appearance) ->
     if let Some(icon) = config.icon {
         content.add_child(
             Container::new(
-                ConstrainedBox::new(icon.to_warpui_icon(Fill::Solid(config.color)).finish())
+                ConstrainedBox::new(icon.to_riftui_icon(Fill::Solid(config.color)).finish())
                     .with_height(icon_size)
                     .with_width(icon_size)
                     .finish(),

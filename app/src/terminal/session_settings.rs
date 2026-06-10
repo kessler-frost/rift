@@ -395,7 +395,7 @@ define_settings_group!(SessionSettings, settings: [
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
-        toml_path: "agents.warp_agent.input.show_model_selectors_in_prompt",
+        toml_path: "agents.rift_agent.input.show_model_selectors_in_prompt",
         description: "Whether to show AI model selectors in the input prompt.",
     },
     agent_footer_chip_selection: AgentToolbarChipSelectionSetting {
@@ -404,7 +404,7 @@ define_settings_group!(SessionSettings, settings: [
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
-        toml_path: "agents.warp_agent.input.agent_toolbar_chip_selection_setting",
+        toml_path: "agents.rift_agent.input.agent_toolbar_chip_selection_setting",
         description: "Controls the layout of context chips in the Agent Mode toolbar.",
     },
     cli_agent_footer_chip_selection: CLIAgentToolbarChipSelectionSetting {

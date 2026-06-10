@@ -255,7 +255,7 @@ fn build_host_shell_command(
 
     // Specify terminal name and capabilities.
     builder.env("TERM", "xterm-256color");
-    builder.env("TERM_PROGRAM", "WarpTerminal");
+    builder.env("TERM_PROGRAM", "RiftTerminal");
     // Advertise 24-bit color support.
     builder.env("COLORTERM", "truecolor");
 
@@ -754,7 +754,7 @@ fn build_docker_sandbox_command(
     builder.env("USER", pw.name);
     builder.env("HOME", &home_dir);
     builder.env("TERM", "xterm-256color");
-    builder.env("TERM_PROGRAM", "WarpTerminal");
+    builder.env("TERM_PROGRAM", "RiftTerminal");
     builder.env("COLORTERM", "truecolor");
     builder.env_remove("DESKTOP_STARTUP_ID");
     if let Some(version) = ChannelState::app_version() {

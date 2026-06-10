@@ -51,7 +51,7 @@ impl crate::Component for Button {
                 Content::Icon(icon) | Content::IconAndLabel(icon, _) => {
                     let icon_size = size.icon_size();
                     row.add_child(
-                        ConstrainedBox::new(icon.to_warpui_icon(text_color.into()).finish())
+                        ConstrainedBox::new(icon.to_riftui_icon(text_color.into()).finish())
                             .with_width(icon_size)
                             .with_height(icon_size)
                             .finish(),

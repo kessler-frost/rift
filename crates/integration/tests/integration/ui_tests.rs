@@ -97,15 +97,15 @@ integration_tests! {
     #[ignore = "Affected by agent_view feature flag UI changes"]
     test_accepting_completion_inserts_space,
     test_palette_opens_when_theme_chooser_is_open,
-    test_launch_warp_with_theme_in_warp_config,
+    test_launch_warp_with_theme_in_rift_config,
     #[cfg(target_os="macos")]
     test_preview_config_dir_migration,
     #[ignore = "Flakes in CI"]
-    test_add_launch_config_to_warp_config,
+    test_add_launch_config_to_rift_config,
     #[ignore = "Flakes in CI"]
-    test_add_workflows_to_warp_config,
+    test_add_workflows_to_rift_config,
     #[ignore = "Flakes in CI"]
-    test_add_theme_to_warp_config,
+    test_add_theme_to_rift_config,
     test_loading_project_workflows,
     test_completions_as_you_type,
     test_completions_as_you_type_one_matching_entry_tab,

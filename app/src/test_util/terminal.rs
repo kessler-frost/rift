@@ -26,7 +26,7 @@ use crate::terminal::resizable_data::ResizableData;
 use crate::terminal::view::inline_banner::ByoLlmAuthBannerSessionState;
 use crate::terminal::{History, TerminalView};
 use crate::undo_close::UndoCloseStack;
-use crate::warp_managed_paths_watcher::WarpManagedPathsWatcher;
+use crate::rift_managed_paths_watcher::RiftManagedPathsWatcher;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{ActiveSession, OneTimeModalModel, WorkspaceRegistry};
 use crate::workspaces::team_tester::TeamTesterStatus;
@@ -62,7 +62,7 @@ pub fn initialize_app_for_terminal_view(app: &mut App) {
     app.add_singleton_model(RepoMetadataModel::new);
     app.add_singleton_model(FileSearchModel::new);
     app.add_singleton_model(HomeDirectoryWatcher::new_for_test);
-    app.add_singleton_model(WarpManagedPathsWatcher::new_for_testing);
+    app.add_singleton_model(RiftManagedPathsWatcher::new_for_testing);
     #[cfg(not(target_family = "wasm"))]
     app.add_singleton_model(SystemInfo::new);
 

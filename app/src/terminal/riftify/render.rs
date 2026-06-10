@@ -3,7 +3,7 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use rift_core::ui::appearance::Appearance;
-use rift_core::ui::theme::{Fill, WarpTheme};
+use rift_core::ui::theme::{Fill, RiftTheme};
 use riftui::elements::{
     Align, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, FormattedTextElement,
     HighlightedHyperlink, Icon, MouseStateHandle, ParentElement, Radius, Rect, Shrinkable, Stack,
@@ -13,7 +13,7 @@ use riftui::fonts::{FamilyId, Properties, Weight};
 use riftui::ui_components::components::{UiComponent as _, UiComponentStyles};
 use riftui::{AppContext, Element, EventContext, PaintContext, SingletonEntity as _};
 
-use super::settings::WarpifySettings;
+use super::settings::RiftifySettings;
 use super::SubshellSource;
 use crate::ui_components::blended_colors;
 
@@ -30,8 +30,8 @@ const RIFT_DRIVE_ENV_VAR_COLLECTION_ICON_COLOR: u32 = 0xC464FFFF;
 const ICON_MARGIN: f32 = 4.;
 const TERMINAL_ICON: &str = "bundled/svg/terminal.svg";
 pub const HORIZONTAL_TEXT_MARGIN: f32 = 20.;
-pub const SSH_DOCS_URL: &str = "https://docs.warp.dev/terminal/warpify/ssh";
-pub const SUBSHELL_DOCS_URL: &str = "https://docs.warp.dev/terminal/warpify/subshells";
+pub const SSH_DOCS_URL: &str = "https://docs.warp.dev/terminal/riftify/ssh";
+pub const SUBSHELL_DOCS_URL: &str = "https://docs.warp.dev/terminal/riftify/subshells";
 
 /// Errored blocks have a red stripe, and subshells have a gray one.
 pub const LEFT_STRIPE_WIDTH: f32 = 5.;
@@ -39,7 +39,7 @@ pub const LEFT_STRIPE_WIDTH: f32 = 5.;
 pub fn build_header_row(
     text: &'static str,
     icon: Icon,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     appearance: &Appearance,
 ) -> Container {
     let mut row = Flex::row();
@@ -78,7 +78,7 @@ pub fn apply_spacing_styles(header_row: Container) -> Container {
 pub fn header_row(
     text: &'static str,
     icon: Icon,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     apply_spacing_styles(build_header_row(text, icon, theme, appearance)).finish()
@@ -97,10 +97,10 @@ fn green_check_icon(appearance: &Appearance, size: f32) -> Box<dyn Element> {
         .finish()
 }
 
-/// UI helper to render the ssh command that caused the warpification prompt.
+/// UI helper to render the ssh command that caused the riftification prompt.
 pub fn build_command_row(
     command: String,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     appearance: &Appearance,
     show_green_check: bool,
 ) -> Container {
@@ -135,7 +135,7 @@ pub fn build_command_row(
 /// UI helper to render the description row of an SSH rich content block.
 pub fn build_description_row(
     text: FormattedText,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     appearance: &Appearance,
     highlight_index: HighlightedHyperlink,
 ) -> FormattedTextElement {
@@ -154,7 +154,7 @@ pub fn build_description_row(
     )
 }
 
-pub fn description_row(text: &str, theme: &WarpTheme, appearance: &Appearance) -> Box<dyn Element> {
+pub fn description_row(text: &str, theme: &RiftTheme, appearance: &Appearance) -> Box<dyn Element> {
     let text = FormattedText::new(vec![FormattedTextLine::Line(vec![
         FormattedTextFragment::plain_text(text),
     ])]);
@@ -165,32 +165,32 @@ pub fn description_row(text: &str, theme: &WarpTheme, appearance: &Appearance) -
     .finish()
 }
 
-/// Renders a "Never Warpify this host" link or nothing.
-pub fn render_never_warpify_ssh_link(
+/// Renders a "Never Riftify this host" link or nothing.
+pub fn render_never_riftify_ssh_link(
     ssh_host: &Option<String>,
     app: &AppContext,
     appearance: &Appearance,
     mouse_state_handle: MouseStateHandle,
-    on_never_warpify: fn(&mut EventContext<'_>, ssh_host: String),
+    on_never_riftify: fn(&mut EventContext<'_>, ssh_host: String),
 ) -> Option<Box<dyn Element>> {
     let Some(ssh_host) = ssh_host else {
         return None;
     };
 
-    let settings = WarpifySettings::handle(app);
+    let settings = RiftifySettings::handle(app);
     if settings.as_ref(app).is_ssh_host_denylisted(ssh_host) {
-        // Should only happen if user manually attempts to Warpify a denylisted host.
+        // Should only happen if user manually attempts to Riftify a denylisted host.
         return None;
     }
 
     let link = appearance
         .ui_builder()
         .link(
-            "Never Warpify this host".into(),
+            "Never Riftify this host".into(),
             None,
             Some(Box::new({
                 let ssh_host = ssh_host.clone();
-                move |ctx| on_never_warpify(ctx, ssh_host.to_owned())
+                move |ctx| on_never_riftify(ctx, ssh_host.to_owned())
             })),
             mouse_state_handle,
         )
@@ -206,7 +206,7 @@ pub fn render_never_warpify_ssh_link(
     Some(Align::new(link).bottom_right().finish())
 }
 
-fn get_subshell_flag_info(subshell_source: &SubshellSource, theme: &WarpTheme) -> (String, Fill) {
+fn get_subshell_flag_info(subshell_source: &SubshellSource, theme: &RiftTheme) -> (String, Fill) {
     match subshell_source {
         SubshellSource::EnvVarCollection(environment_name) => (
             environment_name.to_string(),
@@ -249,7 +249,7 @@ pub fn render_subshell_flag(
     subshell_source: SubshellSource,
     font_family: FamilyId,
     font_size: f32,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     let (flag_name, background_color) = get_subshell_flag_info(&subshell_source, theme);
     let container = Container::new(

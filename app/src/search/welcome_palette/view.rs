@@ -44,7 +44,7 @@ use crate::send_telemetry_from_ctx;
 use crate::server::ids::SyncId;
 use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::History;
-use crate::themes::theme::WarpTheme;
+use crate::themes::theme::RiftTheme;
 use crate::ui_components::icons::Icon;
 
 /// Position ID for the command palette list.
@@ -589,7 +589,7 @@ impl WelcomePalette {
         })
     }
 
-    fn render_palette_list(&self, theme: &WarpTheme, app: &AppContext) -> Box<dyn Element> {
+    fn render_palette_list(&self, theme: &RiftTheme, app: &AppContext) -> Box<dyn Element> {
         match self.search_bar_state.as_ref(app).query_result_renderers() {
             None => {
                 self.placeholder_query_renderer
@@ -615,7 +615,7 @@ impl WelcomePalette {
         &self,
         renderers: &[QueryResultRenderer<CommandPaletteItemAction>],
         selected_item: SelectedItem,
-        theme: &WarpTheme,
+        theme: &RiftTheme,
         app: &AppContext,
     ) -> Box<dyn Element> {
         let selected_index = match selected_item {
@@ -668,7 +668,7 @@ impl WelcomePalette {
                     Some(keystroke) => format!("Add repository {keystroke}"),
                     None => "Add repository".to_string(),
                 },
-                Icon::Plus.to_warpui_icon(theme.foreground()),
+                Icon::Plus.to_riftui_icon(theme.foreground()),
                 MainAxisSize::Max,
                 MainAxisAlignment::Center,
                 vec2f(16., 16.),
@@ -691,7 +691,7 @@ impl WelcomePalette {
                     Some(keystroke) => format!("Terminal session {keystroke}"),
                     None => "Terminal session".to_string(),
                 },
-                Icon::Terminal.to_warpui_icon(theme.foreground()),
+                Icon::Terminal.to_riftui_icon(theme.foreground()),
                 MainAxisSize::Max,
                 MainAxisAlignment::Center,
                 vec2f(16., 16.),

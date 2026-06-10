@@ -12,12 +12,12 @@ pub(crate) use imp::load_tab_configs;
 #[cfg(feature = "local_fs")]
 pub use imp::{load_launch_configs, load_theme_configs};
 use lazy_static::lazy_static;
-use rift_core::ui::theme::WarpTheme;
+use rift_core::ui::theme::RiftTheme;
 use riftui::{Entity, ModelContext, SingletonEntity};
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::{ThemeKind, WarpThemeConfig};
+use crate::themes::theme::{ThemeKind, RiftThemeConfig};
 
 lazy_static! {
     pub static ref LAUNCH_CONFIG_COMMENT: String = format!(
@@ -49,7 +49,7 @@ lazy_static! {
 }
 
 #[derive(Clone)]
-pub enum WarpConfigUpdateEvent {
+pub enum RiftConfigUpdateEvent {
     Themes,
     LaunchConfigs,
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
@@ -76,23 +76,23 @@ pub enum WarpConfigUpdateEvent {
 /// tab configs, etc.) and, on platforms where it differs, `config_local_dir()`
 /// (`settings.toml`, `keybindings.yaml`, `user_preferences.json`).
 #[derive(Default)]
-pub struct WarpConfig {
+pub struct RiftConfig {
     launch_configs: Vec<LaunchConfig>,
     tab_configs: Vec<TabConfig>,
     #[cfg_attr(target_family = "wasm", allow(dead_code))]
     tab_config_errors: Vec<TabConfigError>,
-    theme_config: WarpThemeConfig,
+    theme_config: RiftThemeConfig,
 }
 
-/// Platform-independent parts of WarpConfig.
+/// Platform-independent parts of RiftConfig.
 ///
 /// Additional platform-dependent functionality can be found in impl blocks
 /// in native.rs and wasm.rs.
-impl WarpConfig {
+impl RiftConfig {
     #[cfg(test)]
     pub fn mock(_ctx: &mut ModelContext<Self>) -> Self {
         Self {
-            theme_config: WarpThemeConfig::new(),
+            theme_config: RiftThemeConfig::new(),
             ..Default::default()
         }
     }
@@ -105,12 +105,12 @@ impl WarpConfig {
         &self.tab_configs
     }
 
-    pub fn theme_config(&self) -> &WarpThemeConfig {
+    pub fn theme_config(&self) -> &RiftThemeConfig {
         &self.theme_config
     }
 
 
-    /// Saving the newly created launch configuration to the WarpConfig that we currently
+    /// Saving the newly created launch configuration to the RiftConfig that we currently
     /// have.
     pub fn append_launch_config(
         &mut self,
@@ -119,27 +119,27 @@ impl WarpConfig {
     ) {
         if !self.launch_configs.contains(launch_config) {
             self.launch_configs.push(launch_config.to_owned());
-            ctx.emit(WarpConfigUpdateEvent::LaunchConfigs);
+            ctx.emit(RiftConfigUpdateEvent::LaunchConfigs);
         }
     }
 
     pub fn update_theme_config(
         &mut self,
-        theme_config: WarpThemeConfig,
+        theme_config: RiftThemeConfig,
         ctx: &mut ModelContext<Self>,
     ) {
         self.theme_config = theme_config;
-        ctx.emit(WarpConfigUpdateEvent::Themes);
+        ctx.emit(RiftConfigUpdateEvent::Themes);
     }
 
     pub fn add_new_theme_to_config(
         &mut self,
         theme_name: ThemeKind,
-        theme: WarpTheme,
+        theme: RiftTheme,
         ctx: &mut ModelContext<Self>,
     ) {
         self.theme_config.add_new_theme(theme_name, theme);
-        ctx.emit(WarpConfigUpdateEvent::Themes);
+        ctx.emit(RiftConfigUpdateEvent::Themes);
     }
 
     /// Eagerly removes a tab config by its source path and emits a `TabConfigs` event.
@@ -151,7 +151,7 @@ impl WarpConfig {
         self.tab_configs
             .retain(|c| c.source_path.as_deref() != Some(path));
         if self.tab_configs.len() != before {
-            ctx.emit(WarpConfigUpdateEvent::TabConfigs);
+            ctx.emit(RiftConfigUpdateEvent::TabConfigs);
         }
     }
 }
@@ -359,11 +359,11 @@ pub(crate) fn find_unused_worktree_config_path(dir: &Path, branch_name: &str) ->
     }
 }
 
-impl Entity for WarpConfig {
-    type Event = WarpConfigUpdateEvent;
+impl Entity for RiftConfig {
+    type Event = RiftConfigUpdateEvent;
 }
 
-impl SingletonEntity for WarpConfig {}
+impl SingletonEntity for RiftConfig {}
 
 #[cfg(test)]
 #[path = "mod_tests.rs"]

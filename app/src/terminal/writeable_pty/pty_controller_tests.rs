@@ -4,7 +4,7 @@ use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::model::block::{BlockSize, SerializedBlock};
 use crate::terminal::shell::ShellType;
 use crate::terminal::BlockPadding;
-use crate::theme::WarpTheme;
+use crate::theme::RiftTheme;
 
 use super::*;
 
@@ -42,7 +42,7 @@ fn terminal_model(background_executor: Arc<Background>) -> Arc<FairMutex<Termina
             max_block_scroll_limit: 1000,
             prompt_height: 1.,
         },
-        List::from(&WarpTheme::default().into()),
+        List::from(&RiftTheme::default().into()),
         ChannelEventListener::new_for_test(),
         background_executor,
         false,

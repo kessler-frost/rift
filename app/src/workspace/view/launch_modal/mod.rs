@@ -372,7 +372,7 @@ impl<S: Slide> LaunchModal<S> {
                                         .with_child(
                                             Container::new(
                                                 ConstrainedBox::new(
-                                                    icon.to_warpui_icon(Fill::Solid(
+                                                    icon.to_riftui_icon(Fill::Solid(
                                                         blended_colors::text_main(
                                                             theme,
                                                             blended_colors::neutral_2(theme),

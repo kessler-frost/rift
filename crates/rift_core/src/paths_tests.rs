@@ -12,7 +12,7 @@ fn test_data_dir_path() {
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(data_dir(), home_dir.join(".local/share/warp-oss"));
         } else if #[cfg(windows)] {
-            assert_eq!(data_dir(), home_dir.join("AppData\\Roaming\\warp\\WarpOss\\data"));
+            assert_eq!(data_dir(), home_dir.join("AppData\\Roaming\\warp\\Rift\\data"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -29,7 +29,7 @@ fn test_config_local_dir_path() {
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(config_local_dir(), home_dir.join(".config/warp-oss"));
         } else if #[cfg(windows)] {
-            assert_eq!(config_local_dir(), home_dir.join("AppData\\Local\\warp\\WarpOss\\config"));
+            assert_eq!(config_local_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\config"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -56,7 +56,7 @@ fn test_warp_home_skills_and_mcp_paths() {
         panic!("Should be able to compute Warp home config directory");
     };
 
-    assert_eq!(warp_home_skills_dir(), Some(config_dir.join("skills")));
+    assert_eq!(rift_home_skills_dir(), Some(config_dir.join("skills")));
     assert_eq!(
         warp_home_mcp_config_file_path(),
         Some(config_dir.join(".mcp.json"))
@@ -68,11 +68,11 @@ fn test_cache_dir_path() {
     // ChannelState, by default, is configured for Channel::Oss.
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(cache_dir(), home_dir.join("Library/Application Support/dev.warp.WarpOss"));
+            assert_eq!(cache_dir(), home_dir.join("Library/Application Support/dev.rift.Rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(cache_dir(), home_dir.join(".cache/warp-oss"));
         } else if #[cfg(windows)] {
-            assert_eq!(cache_dir(), home_dir.join("AppData\\Local\\warp\\WarpOss\\cache"));
+            assert_eq!(cache_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\cache"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -85,11 +85,11 @@ fn test_state_dir_path() {
     cfg_if::cfg_if! {
         // ChannelState, by default, is configured for Channel::Oss.
         if #[cfg(target_os = "macos")] {
-            assert_eq!(state_dir(), home_dir.join("Library/Application Support/dev.warp.WarpOss"));
+            assert_eq!(state_dir(), home_dir.join("Library/Application Support/dev.rift.Rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(state_dir(), home_dir.join(".local/state/warp-oss"));
         } else if #[cfg(windows)] {
-            assert_eq!(state_dir(), home_dir.join("AppData\\Local\\warp\\WarpOss\\data"));
+            assert_eq!(state_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\data"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -132,15 +132,15 @@ fn test_project_path_for_warp_dev_app_id() {
 
 #[test]
 fn test_project_path_for_oss_app_id() {
-    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "warp", "WarpOss"), None)
+    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "warp", "Rift"), None)
         .expect("should be able to compute project dirs");
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(project_dirs.project_path(), "dev.warp.WarpOss");
+            assert_eq!(project_dirs.project_path(), "dev.rift.Rift");
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(project_dirs.project_path(), "warp-oss");
         } else if #[cfg(windows)] {
-            assert_eq!(project_dirs.project_path(), "warp\\WarpOss");
+            assert_eq!(project_dirs.project_path(), "warp\\Rift");
         } else {
             unimplemented!("Need to update tests for current platform!");
         }

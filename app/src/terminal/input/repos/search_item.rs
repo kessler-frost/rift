@@ -62,7 +62,7 @@ impl SearchItem for RepoSearchItem {
         let icon_size = inline_styles::font_size(appearance);
         let icon_color = inline_styles::icon_color(appearance);
 
-        let icon = ConstrainedBox::new(Icon::Folder.to_warpui_icon(icon_color).finish())
+        let icon = ConstrainedBox::new(Icon::Folder.to_riftui_icon(icon_color).finish())
             .with_width(icon_size)
             .with_height(icon_size)
             .finish();

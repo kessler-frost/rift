@@ -30,7 +30,7 @@ use super::appearance_page::AppearanceSettingsPageView;
 use super::features_page::FeaturesPageView;
 use super::keybindings::KeybindingsView;
 use super::privacy_page::PrivacyPageView;
-use super::warpify_page::WarpifyPageView;
+use super::riftify_page::RiftifyPageView;
 use super::SettingsSection;
 use crate::appearance::Appearance;
 use crate::themes::theme::Fill;
@@ -91,7 +91,7 @@ pub enum SettingsPageViewHandle {
     Keybindings(ViewHandle<KeybindingsView>),
     About(ViewHandle<AboutPageView>),
     Privacy(ViewHandle<PrivacyPageView>),
-    Warpify(ViewHandle<WarpifyPageView>),
+    Riftify(ViewHandle<RiftifyPageView>),
 }
 
 impl SettingsPageViewHandle {
@@ -103,7 +103,7 @@ impl SettingsPageViewHandle {
             Keybindings(view_handle) => ChildView::new(view_handle).finish(),
             About(view_handle) => ChildView::new(view_handle).finish(),
             Privacy(view_handle) => ChildView::new(view_handle).finish(),
-            Warpify(view_handle) => ChildView::new(view_handle).finish(),
+            Riftify(view_handle) => ChildView::new(view_handle).finish(),
         }
     }
 }
@@ -347,7 +347,7 @@ pub fn render_info_icon<T: Clone + Action>(
     let icon = Container::new(
         ConstrainedBox::new(
             Icon::Info
-                .to_warpui_icon(appearance.theme().active_ui_text_color())
+                .to_riftui_icon(appearance.theme().active_ui_text_color())
                 .finish(),
         )
         .with_width(13.)
@@ -450,7 +450,7 @@ pub fn render_body_item_label_internal<T: Clone + Action>(
     if let Some(icon) = label_icon {
         label.add_child(
             Container::new(
-                ConstrainedBox::new(icon.to_warpui_icon(label_color).finish())
+                ConstrainedBox::new(icon.to_riftui_icon(label_color).finish())
                     .with_width(16.)
                     .with_height(16.)
                     .finish(),
@@ -467,15 +467,15 @@ pub fn render_body_item_label_internal<T: Clone + Action>(
         // `additional_info` gets moved into `render_info_icon()`.
         let secondary_text_child =
             if let Some(secondary_text) = additional_info.secondary_text.clone() {
-                let warp_theme = appearance.theme();
+                let rift_theme = appearance.theme();
                 Some(
                     appearance
                         .ui_builder()
                         .span(secondary_text)
                         .with_style(UiComponentStyles {
                             font_color: Some(
-                                warp_theme
-                                    .sub_text_color(warp_theme.surface_2())
+                                rift_theme
+                                    .sub_text_color(rift_theme.surface_2())
                                     .into_solid(),
                             ),
                             margin: Some(Coords {
@@ -643,14 +643,14 @@ pub fn render_dropdown_item_label(
         )
         .finish();
     let label = if let Some(secondary_text) = secondary_text {
-        let warp_theme = appearance.theme();
+        let rift_theme = appearance.theme();
         let secondary_text_child = appearance
             .ui_builder()
             .span(secondary_text)
             .with_style(UiComponentStyles {
                 font_color: Some(
                     color_override
-                        .unwrap_or(warp_theme.sub_text_color(warp_theme.surface_2()))
+                        .unwrap_or(rift_theme.sub_text_color(rift_theme.surface_2()))
                         .into_solid(),
                 ),
                 margin: Some(Coords {

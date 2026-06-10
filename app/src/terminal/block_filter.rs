@@ -472,7 +472,7 @@ impl BlockFilterEditor {
             };
             let icon = Container::new(
                 ConstrainedBox::new(
-                    icon.to_warpui_icon(appearance.theme().active_ui_text_color())
+                    icon.to_riftui_icon(appearance.theme().active_ui_text_color())
                         .finish(),
                 )
                 .with_height(size)
@@ -638,7 +638,7 @@ impl View for BlockFilterEditor {
             |state| {
                 let context_line_icon = ConstrainedBox::new(
                     Icon::DistributeSpacingVertical
-                        .to_warpui_icon(
+                        .to_riftui_icon(
                             blended_colors::text_main(
                                 appearance.theme(),
                                 appearance.theme().background(),

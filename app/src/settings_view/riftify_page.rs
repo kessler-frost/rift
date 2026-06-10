@@ -21,7 +21,7 @@ use super::settings_page::{
 };
 use super::{SettingsAction, SettingsSection, ToggleSettingActionPair};
 use crate::appearance::Appearance;
-use crate::terminal::warpify::settings::WarpifySettings;
+use crate::terminal::riftify::settings::RiftifySettings;
 use crate::ui_components::blended_colors;
 use crate::view_components::{SubmittableTextInput, SubmittableTextInputEvent};
 use crate::send_telemetry_from_ctx;
@@ -31,7 +31,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
     _context: &ContextPredicate,
     _builder: fn(SettingsAction) -> T,
 ) {
-    // All Warpify-page palette toggles were SSH features and have been removed.
+    // All Riftify-page palette toggles were SSH features and have been removed.
     let toggle_binding_pairs: Vec<ToggleSettingActionPair<T>> = vec![];
     ToggleSettingActionPair::add_toggle_setting_action_pairs_as_bindings(toggle_binding_pairs, app);
 }
@@ -42,12 +42,12 @@ const ITEM_VERTICAL_SPACING: f32 = 24.;
 const BUILT_IN_TEXT_INPUT_MARGIN: f32 = 10.;
 const SPACE_AFTER_TEXT_INPUT: f32 = ITEM_VERTICAL_SPACING - BUILT_IN_TEXT_INPUT_MARGIN;
 
-/// This page lets users configure when they get asked to warpify a session. Some shell commands
+/// This page lets users configure when they get asked to riftify a session. Some shell commands
 /// are recognized by default. Users can add new shell commands, or prevent the default ones from
 /// asking. Users can also enable the SSH wrapper, and add hosts to a denylist.
 /// This page is essentially the View for the SubshellSettings model, as well as the SshSettings
-/// related to warpification.
-pub struct WarpifyPageView {
+/// related to riftification.
+pub struct RiftifyPageView {
     page: PageType<Self>,
     /// This needs to mirror the length of SubshellSettings::added_remove_button_states.
     remove_added_command_button_states: Vec<MouseStateHandle>,
@@ -58,12 +58,12 @@ pub struct WarpifyPageView {
 
 }
 
-impl WarpifyPageView {
+impl RiftifyPageView {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        let warpify_settings_handle = WarpifySettings::handle(ctx);
+        let riftify_settings_handle = RiftifySettings::handle(ctx);
 
-        ctx.observe(&warpify_settings_handle, Self::update_button_states);
-        ctx.subscribe_to_model(&warpify_settings_handle, move |me, model, _event, ctx| {
+        ctx.observe(&riftify_settings_handle, Self::update_button_states);
+        ctx.subscribe_to_model(&riftify_settings_handle, move |me, model, _event, ctx| {
             me.update_button_states(model, ctx);
             ctx.notify();
         });
@@ -101,7 +101,7 @@ impl WarpifyPageView {
             add_denylisted_commands_editor,
         };
 
-        instance.update_button_states(warpify_settings_handle, ctx);
+        instance.update_button_states(riftify_settings_handle, ctx);
         instance
     }
 
@@ -119,16 +119,16 @@ impl WarpifyPageView {
     /// its delete button in the View.
     fn update_button_states(
         &mut self,
-        warpify_settings_handle: ModelHandle<WarpifySettings>,
+        riftify_settings_handle: ModelHandle<RiftifySettings>,
         ctx: &mut ViewContext<Self>,
     ) {
-        let warpify_settings = warpify_settings_handle.as_ref(ctx);
-        self.remove_denylisted_command_button_states = warpify_settings
+        let riftify_settings = riftify_settings_handle.as_ref(ctx);
+        self.remove_denylisted_command_button_states = riftify_settings
             .subshell_command_denylist
             .iter()
             .map(|_| Default::default())
             .collect();
-        self.remove_added_command_button_states = warpify_settings
+        self.remove_added_command_button_states = riftify_settings
             .added_subshell_commands
             .iter()
             .map(|_| Default::default())
@@ -144,8 +144,8 @@ impl WarpifyPageView {
     ) {
         match event {
             SubmittableTextInputEvent::Submit(new_command) => {
-                WarpifySettings::handle(ctx).update(ctx, |warpify_settings, ctx| {
-                    warpify_settings.add_subshell_command(new_command, ctx);
+                RiftifySettings::handle(ctx).update(ctx, |riftify_settings, ctx| {
+                    riftify_settings.add_subshell_command(new_command, ctx);
                 });
 
                 send_telemetry_from_ctx!(TelemetryEvent::AddAddedSubshellCommand, ctx);
@@ -162,8 +162,8 @@ impl WarpifyPageView {
     ) {
         match event {
             SubmittableTextInputEvent::Submit(new_command) => {
-                WarpifySettings::handle(ctx).update(ctx, |warpify_settings, ctx| {
-                    warpify_settings.denylist_subshell_command(new_command, ctx);
+                RiftifySettings::handle(ctx).update(ctx, |riftify_settings, ctx| {
+                    riftify_settings.denylist_subshell_command(new_command, ctx);
                 });
 
                 send_telemetry_from_ctx!(TelemetryEvent::AddDenylistedSubshellCommand, ctx);
@@ -174,21 +174,21 @@ impl WarpifyPageView {
 
     fn remove_denylisted_command(&self, index: usize, ctx: &mut ViewContext<Self>) {
         send_telemetry_from_ctx!(TelemetryEvent::RemoveDenylistedSubshellCommand, ctx);
-        WarpifySettings::handle(ctx).update(ctx, |warpify, ctx| {
-            warpify.remove_denylisted_subshell_command(index, ctx)
+        RiftifySettings::handle(ctx).update(ctx, |riftify, ctx| {
+            riftify.remove_denylisted_subshell_command(index, ctx)
         });
     }
 
     fn remove_added_command(&self, index: usize, ctx: &mut ViewContext<Self>) {
         send_telemetry_from_ctx!(TelemetryEvent::RemoveAddedSubshellCommand, ctx);
-        WarpifySettings::handle(ctx).update(ctx, |warpify, ctx| {
-            warpify.remove_added_subshell_command(index, ctx)
+        RiftifySettings::handle(ctx).update(ctx, |riftify, ctx| {
+            riftify.remove_added_subshell_command(index, ctx)
         });
     }
 
 }
 
-impl Entity for WarpifyPageView {
+impl Entity for RiftifyPageView {
     type Event = SettingsPageEvent;
 }
 
@@ -203,7 +203,7 @@ fn build_sub_sub_title(title: &str, appearance: &Appearance) -> Container {
         .build()
 }
 
-impl WarpifyPageView {
+impl RiftifyPageView {
     /// Renders a title, a list of items that can be removed, and an input field to add new items.
     fn build_input_list<
         ListItem: Display,
@@ -248,9 +248,9 @@ impl WarpifyPageView {
     }
 }
 
-impl View for WarpifyPageView {
+impl View for RiftifyPageView {
     fn ui_name() -> &'static str {
-        "WarpifyPageView"
+        "RiftifyPageView"
     }
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
@@ -259,17 +259,17 @@ impl View for WarpifyPageView {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum WarpifyPageAction {
+pub enum RiftifyPageAction {
     RemoveAddedCommand(usize),
     RemoveDenylistedCommand(usize),
     OpenUrl(String),
 }
 
-impl TypedActionView for WarpifyPageView {
-    type Action = WarpifyPageAction;
+impl TypedActionView for RiftifyPageView {
+    type Action = RiftifyPageAction;
 
     fn handle_action(&mut self, action: &Self::Action, ctx: &mut ViewContext<Self>) {
-        use WarpifyPageAction::*;
+        use RiftifyPageAction::*;
         match action {
             RemoveDenylistedCommand(index) => self.remove_denylisted_command(*index, ctx),
             RemoveAddedCommand(index) => self.remove_added_command(*index, ctx),
@@ -280,9 +280,9 @@ impl TypedActionView for WarpifyPageView {
     }
 }
 
-impl SettingsPageMeta for WarpifyPageView {
+impl SettingsPageMeta for RiftifyPageView {
     fn section() -> SettingsSection {
-        SettingsSection::Warpify
+        SettingsSection::Riftify
     }
 
     fn should_render(&self, _ctx: &AppContext) -> bool {
@@ -302,9 +302,9 @@ impl SettingsPageMeta for WarpifyPageView {
     }
 }
 
-impl From<ViewHandle<WarpifyPageView>> for SettingsPageViewHandle {
-    fn from(view_handle: ViewHandle<WarpifyPageView>) -> Self {
-        SettingsPageViewHandle::Warpify(view_handle)
+impl From<ViewHandle<RiftifyPageView>> for SettingsPageViewHandle {
+    fn from(view_handle: ViewHandle<RiftifyPageView>) -> Self {
+        SettingsPageViewHandle::Riftify(view_handle)
     }
 }
 
@@ -315,19 +315,19 @@ struct TitleWidget {
 
 impl TitleWidget {
     fn render_top_of_page(&self, appearance: &Appearance, _app: &AppContext) -> Box<dyn Element> {
-        let warpify_description = vec![
+        let riftify_description = vec![
             FormattedTextFragment::plain_text(
-                "Configure whether Warp attempts to “Warpify” (add support for blocks, \
+                "Configure whether Warp attempts to “Riftify” (add support for blocks, \
                     input modes, etc) certain shells. ",
             ),
             FormattedTextFragment::hyperlink(
                 "Learn more",
-                "https://docs.warp.dev/terminal/warpify/subshells",
+                "https://docs.warp.dev/terminal/riftify/subshells",
             ),
         ];
 
-        let warpify_description = FormattedTextElement::new(
-            FormattedText::new([FormattedTextLine::Line(warpify_description)]),
+        let riftify_description = FormattedTextElement::new(
+            FormattedText::new([FormattedTextLine::Line(riftify_description)]),
             CONTENT_FONT_SIZE,
             appearance.ui_font_family(),
             appearance.ui_font_family(),
@@ -341,17 +341,17 @@ impl TitleWidget {
         .finish();
 
         Flex::column()
-            .with_child(render_page_title("Warpify", HEADER_FONT_SIZE, appearance))
-            .with_child(warpify_description)
+            .with_child(render_page_title("Riftify", HEADER_FONT_SIZE, appearance))
+            .with_child(riftify_description)
             .finish()
     }
 }
 
 impl SettingsWidget for TitleWidget {
-    type View = WarpifyPageView;
+    type View = RiftifyPageView;
 
     fn search_terms(&self) -> &str {
-        "ssh subshell warpify session"
+        "ssh subshell riftify session"
     }
 
     fn render(
@@ -372,20 +372,20 @@ struct SubshellsWidget {}
 impl SubshellsWidget {
     fn render_subshells_section(
         &self,
-        view: &WarpifyPageView,
+        view: &RiftifyPageView,
         appearance: &Appearance,
         app: &AppContext,
     ) -> Box<dyn Element> {
         let mut column = Flex::column();
 
-        let warpify_settings = WarpifySettings::as_ref(app);
+        let riftify_settings = RiftifySettings::as_ref(app);
 
         column.add_child(
             view.build_input_list(
                 "Added commands",
-                &warpify_settings.added_subshell_commands,
+                &riftify_settings.added_subshell_commands,
                 &view.remove_added_command_button_states,
-                WarpifyPageAction::RemoveAddedCommand,
+                RiftifyPageAction::RemoveAddedCommand,
                 &view.add_added_commands_editor,
                 appearance,
             )
@@ -395,9 +395,9 @@ impl SubshellsWidget {
         column.add_child(
             view.build_input_list(
                 "Denylisted commands",
-                &warpify_settings.subshell_command_denylist,
+                &riftify_settings.subshell_command_denylist,
                 &view.remove_denylisted_command_button_states,
-                WarpifyPageAction::RemoveDenylistedCommand,
+                RiftifyPageAction::RemoveDenylistedCommand,
                 &view.add_denylisted_commands_editor,
                 appearance,
             )
@@ -410,10 +410,10 @@ impl SubshellsWidget {
 }
 
 impl SettingsWidget for SubshellsWidget {
-    type View = WarpifyPageView;
+    type View = RiftifyPageView;
 
     fn search_terms(&self) -> &str {
-        "warpify subshell"
+        "riftify subshell"
     }
 
     fn render(

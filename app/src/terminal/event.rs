@@ -8,7 +8,7 @@ use std::time::Duration;
 use instant::Instant;
 
 use super::history::HistoryEntry;
-use super::model::ansi::{FinishUpdateValue, WarpificationUnavailableReason};
+use super::model::ansi::{FinishUpdateValue, RiftificationUnavailableReason};
 use super::model::block::BlockId;
 use super::model::session::{SessionId, SessionInfo};
 use super::model::terminal_model::{BlockIndex, ExitReason, TmuxInstallationState};
@@ -85,7 +85,7 @@ pub enum Event {
     },
     /// See comment above [crate::terminal::ModelEvent::DetectedEndOfSshLogin].
     DetectedEndOfSshLogin(SshLoginStatus),
-    RemoteWarpificationIsUnavailable(WarpificationUnavailableReason),
+    RemoteRiftificationIsUnavailable(RiftificationUnavailableReason),
     SshTmuxInstaller(TmuxInstallationState),
     TmuxInstallFailed {
         line: String,
@@ -167,9 +167,9 @@ pub enum TerminalMode {
 #[derive(Clone, Debug)]
 pub enum SshLoginStatus {
     /// We have some evidence login is complete but should check again.
-    RecheckBeforeWarpifying,
+    RecheckBeforeRiftifying,
     /// We have high confidence login is complete.
-    ReadyToWarpify,
+    ReadyToRiftify,
 }
 
 #[derive(Clone, Debug)]
@@ -247,7 +247,7 @@ pub enum BlockType {
     /// This is a block containing background process output.
     Background(Arc<SerializedBlock>),
 
-    /// This is a block containing static/hardcoded content (e.g. the subshell Warpification
+    /// This is a block containing static/hardcoded content (e.g. the subshell Riftification
     /// welcome block).
     Static,
 }
@@ -445,8 +445,8 @@ impl Debug for Event {
             Event::DetectedEndOfSshLogin(check_type) => {
                 write!(f, "DetectedEndOfSshLogin: {check_type:?}")
             }
-            Event::RemoteWarpificationIsUnavailable(_) => {
-                write!(f, "RemoteWarpificationIsUnavailable")
+            Event::RemoteRiftificationIsUnavailable(_) => {
+                write!(f, "RemoteRiftificationIsUnavailable")
             }
             Event::SshTmuxInstaller(installer) => {
                 write!(f, "SshTmuxInstaller({installer:?})")

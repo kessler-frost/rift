@@ -207,7 +207,7 @@ impl<T: Action + Clone> Banner<T> {
 
     fn render_icon(appearance: &Appearance, icon: &Icon) -> Box<dyn Element> {
         let icon_size = font_size(appearance);
-        ConstrainedBox::new(icon.to_warpui_icon(appearance.theme().accent()).finish())
+        ConstrainedBox::new(icon.to_riftui_icon(appearance.theme().accent()).finish())
             .with_width(icon_size)
             .with_height(icon_size)
             .finish()

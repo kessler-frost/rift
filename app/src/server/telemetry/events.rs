@@ -31,7 +31,7 @@ use crate::settings::AgentModeCodingPermissionsType;
 use crate::tab::TabTelemetryAction;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::input::TelemetryInputSuggestionsMode;
-use crate::terminal::model::ansi::WarpificationUnavailableReason;
+use crate::terminal::model::ansi::RiftificationUnavailableReason;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::model::terminal_model::{BlockSelectionCardinality, TmuxInstallationState};
 use crate::terminal::settings::AltScreenPaddingMode;
@@ -290,8 +290,6 @@ pub enum CommandCorrectionEvent {
 pub enum CommandSearchResultType {
     History,
     Workflow,
-    OpenWarpAI,
-    TranslateUsingWarpAI,
     Notebook,
     EnvVarCollection,
     ViewInWarpDrive,
@@ -330,36 +328,9 @@ pub enum PtySpawnMode {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum OpenedWarpAISource {
-    GlobalEntryButton,
-    HelpWithBlock,
-    HelpWithTextSelection,
-    FromAICommandSearch,
-    WarmWelcome,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum WarpAIRequestResult {
-    Succeeded { latency_ms: i64, truncated: bool },
-    OutOfRequests,
-    Failed,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum WarpAIActionType {
-    CopyTranscript,
-    Restart,
-    CopyAnswer,
-    CopyCode,
-    InsertIntoInput,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum SaveAsWorkflowModalSource {
     Block,
     Input,
-    WarpAIWorkflowCard,
-    WarpAIPanel,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -1079,25 +1050,9 @@ pub enum TelemetryEvent {
     InitialWorkingDirectoryConfigurationChanged {
         advanced_mode_enabled: bool,
     },
-    /// Opened legacy Warp AI.
-    OpenedWarpAI {
-        source: OpenedWarpAISource,
-    },
-    /// Issued legacy Warp AI request.
-    WarpAIRequestIssued {
-        result: WarpAIRequestResult,
-    },
-    WarpAIAction {
-        action_type: WarpAIActionType,
-    },
-    /// This is purely for static prompts! Do not send user-written prompts with this event.
-    UsedWarpAIPreparedPrompt {
-        prompt: &'static str,
-    },
     ToggleFocusPaneOnHover {
         enabled: bool,
     },
-    WarpAICharacterLimitExceeded,
     OpenInputContextMenu,
     InputCutSelectedText,
     InputCopySelectedText,
@@ -1105,7 +1060,6 @@ pub enum TelemetryEvent {
     InputPaste,
     InputCommandSearch,
     InputAICommandSearch,
-    InputAskWarpAI,
     SaveAsWorkflowModal {
         source: SaveAsWorkflowModalSource,
     },
@@ -1152,7 +1106,7 @@ pub enum TelemetryEvent {
     ToggleSshTmuxWrapper {
         enabled: bool,
     },
-    ToggleSshWarpification {
+    ToggleSshRiftification {
         enabled: bool,
     },
     /// User changed the SSH extension install mode.
@@ -1161,26 +1115,26 @@ pub enum TelemetryEvent {
     },
     /// An ssh interactive session was detected.
     SshInteractiveSessionDetected(SshInteractiveSessionDetected),
-    SshTmuxWarpifyBannerDisplayed,
-    /// A SSH Warpify Block was accepted
-    SshTmuxWarpifyBlockAccepted,
-    /// A SSH Warpify Block was dismissed
-    SshTmuxWarpifyBlockDismissed,
-    WarpifyFooterShown {
+    SshTmuxRiftifyBannerDisplayed,
+    /// A SSH Riftify Block was accepted
+    SshTmuxRiftifyBlockAccepted,
+    /// A SSH Riftify Block was dismissed
+    SshTmuxRiftifyBlockDismissed,
+    RiftifyFooterShown {
         is_ssh: bool,
     },
     AgentToolbarDismissed,
-    WarpifyFooterAcceptedWarpify {
+    RiftifyFooterAcceptedRiftify {
         is_ssh: bool,
     },
-    /// How long until the warpify process succeeded
-    SshTmuxWarpificationSuccess {
+    /// How long until the riftify process succeeded
+    SshTmuxRiftificationSuccess {
         tmux_installation: Option<TmuxInstallationState>,
         duration_ms: u64,
     },
     /// An SSH Error block was displayed to the user.
-    SshTmuxWarpificationErrorBlock {
-        error: WarpificationUnavailableReason,
+    SshTmuxRiftificationErrorBlock {
+        error: RiftificationUnavailableReason,
         tmux_installation: Option<TmuxInstallationState>,
     },
     /// A SSH Install Tmux Block was displayed.
@@ -1209,10 +1163,6 @@ pub enum TelemetryEvent {
     WarpDriveOpened {
         source: WarpDriveSource,
         is_code_mode_v2: bool,
-    },
-    // Toggled the legacy Warp AI side panel.
-    ToggleWarpAI {
-        opened: bool,
     },
     ToggleSecretRedaction {
         enabled: bool,
@@ -1268,7 +1218,7 @@ pub enum TelemetryEvent {
         num_teammates: usize,
         team_uid: ServerId,
     },
-    OpenAndWarpifyDockerSubshell {
+    OpenAndRiftifyDockerSubshell {
         /// Some variant if we support this shell type, and None otherwise.
         shell_type: Option<ShellType>,
     },
@@ -2170,11 +2120,6 @@ impl TelemetryEvent {
             TelemetryEvent::InitialWorkingDirectoryConfigurationChanged {
                 advanced_mode_enabled,
             } => Some(json!({ "advanced_mode_enabled": advanced_mode_enabled })),
-            TelemetryEvent::OpenedWarpAI { source } => Some(json!({ "source": source })),
-            TelemetryEvent::WarpAIRequestIssued { result } => Some(json!({ "result": result })),
-            TelemetryEvent::WarpAIAction { action_type } => {
-                Some(json!({ "action_type": action_type }))
-            }
             TelemetryEvent::KnowledgePaneOpened { entrypoint } => {
                 Some(json!({ "entrypoint": entrypoint }))
             }
@@ -2203,9 +2148,6 @@ impl TelemetryEvent {
             TelemetryEvent::CodeSelectionAddedAsContext { destination } => Some(json!({
                 "destination": destination,
             })),
-            TelemetryEvent::UsedWarpAIPreparedPrompt { prompt } => {
-                Some(json!({ "prompt": prompt }))
-            }
             TelemetryEvent::ExperimentTriggered {
                 experiment,
                 layer,
@@ -2227,8 +2169,8 @@ impl TelemetryEvent {
                 Some(json!({ "remember": remember }))
             }
             TelemetryEvent::AgentToolbarDismissed => None,
-            TelemetryEvent::WarpifyFooterShown { is_ssh }
-            | TelemetryEvent::WarpifyFooterAcceptedWarpify { is_ssh } => {
+            TelemetryEvent::RiftifyFooterShown { is_ssh }
+            | TelemetryEvent::RiftifyFooterAcceptedRiftify { is_ssh } => {
                 Some(json!({ "is_ssh": is_ssh }))
             }
             TelemetryEvent::ToggleSameLinePrompt { enabled } => Some(json!({ "enabled": enabled })),
@@ -2243,7 +2185,6 @@ impl TelemetryEvent {
             } => Some(
                 json!({ "ui_location": ui_location, "open_in_active_window": open_in_active_window }),
             ),
-            TelemetryEvent::ToggleWarpAI { opened } => Some(json!({ "opened": opened })),
             TelemetryEvent::ToggleSecretRedaction { enabled } => {
                 Some(json!({ "enabled": enabled }))
             }
@@ -2271,7 +2212,7 @@ impl TelemetryEvent {
                 is_down,
             } => Some(json!({"is_empty_editor": is_empty_editor, "is_down": is_down})),
             TelemetryEvent::UnsupportedShell { shell } => Some(json!({ "shell": shell })),
-            TelemetryEvent::OpenAndWarpifyDockerSubshell { shell_type } => {
+            TelemetryEvent::OpenAndRiftifyDockerSubshell { shell_type } => {
                 Some(json!({ "shell_type": shell_type }))
             }
             TelemetryEvent::ToggleBlockFilterQuery { enabled, source } => {
@@ -2296,19 +2237,19 @@ impl TelemetryEvent {
                 Some(json!({"enabled": enabled}))
             }
             TelemetryEvent::ToggleSshTmuxWrapper { enabled } => Some(json!({"enabled": enabled})),
-            TelemetryEvent::ToggleSshWarpification { enabled } => Some(json!({"enabled": enabled})),
+            TelemetryEvent::ToggleSshRiftification { enabled } => Some(json!({"enabled": enabled})),
             TelemetryEvent::SetSshExtensionInstallMode { mode } => Some(json!({"mode": mode})),
             TelemetryEvent::SshInteractiveSessionDetected(ssh_interactive_session_detected) => {
                 Some(json!({"ssh_interactive_session": ssh_interactive_session_detected}))
             }
-            TelemetryEvent::SshTmuxWarpificationSuccess {
+            TelemetryEvent::SshTmuxRiftificationSuccess {
                 duration_ms,
                 tmux_installation,
             } => Some(json!({
                 "duration_ms": duration_ms,
                 "tmux_installation": *tmux_installation,
             })),
-            TelemetryEvent::SshTmuxWarpificationErrorBlock {
+            TelemetryEvent::SshTmuxRiftificationErrorBlock {
                 error,
                 tmux_installation,
             } => Some(json!({
@@ -2661,7 +2602,6 @@ impl TelemetryEvent {
             | TelemetryEvent::QuitModalDisabled
             | TelemetryEvent::UserInitiatedLogOut
             | TelemetryEvent::LogOutModalShown
-            | TelemetryEvent::WarpAICharacterLimitExceeded
             | TelemetryEvent::OpenInputContextMenu
             | TelemetryEvent::InputCutSelectedText
             | TelemetryEvent::InputCopySelectedText
@@ -2669,11 +2609,10 @@ impl TelemetryEvent {
             | TelemetryEvent::InputPaste
             | TelemetryEvent::InputCommandSearch
             | TelemetryEvent::InputAICommandSearch
-            | TelemetryEvent::InputAskWarpAI
             | TelemetryEvent::SetNewWindowsAtCustomSize
             | TelemetryEvent::DisableInputSync
             | TelemetryEvent::ShowSubshellBanner
-            | TelemetryEvent::SshTmuxWarpifyBannerDisplayed
+            | TelemetryEvent::SshTmuxRiftifyBannerDisplayed
             | TelemetryEvent::AddDenylistedSubshellCommand
             | TelemetryEvent::RemoveDenylistedSubshellCommand
             | TelemetryEvent::AddAddedSubshellCommand
@@ -2681,8 +2620,8 @@ impl TelemetryEvent {
             | TelemetryEvent::ReceivedSubshellRcFileDcs
             | TelemetryEvent::AddDenylistedSshTmuxWrapperHost
             | TelemetryEvent::RemoveDenylistedSshTmuxWrapperHost
-            | TelemetryEvent::SshTmuxWarpifyBlockAccepted
-            | TelemetryEvent::SshTmuxWarpifyBlockDismissed
+            | TelemetryEvent::SshTmuxRiftifyBlockAccepted
+            | TelemetryEvent::SshTmuxRiftifyBlockDismissed
             | TelemetryEvent::SshInstallTmuxBlockDisplayed
             | TelemetryEvent::SshInstallTmuxBlockAccepted
             | TelemetryEvent::SshInstallTmuxBlockDismissed
@@ -3218,11 +3157,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputModeChanged => EnablementState::Always,
             Self::PtySpawned => EnablementState::Always,
             Self::InitialWorkingDirectoryConfigurationChanged => EnablementState::Always,
-            Self::OpenedWarpAI => EnablementState::Always,
-            Self::WarpAIRequestIssued => EnablementState::Always,
-            Self::WarpAIAction => EnablementState::Always,
-            Self::UsedWarpAIPreparedPrompt => EnablementState::Always,
-            Self::WarpAICharacterLimitExceeded => EnablementState::Always,
             Self::OpenInputContextMenu => EnablementState::Always,
             Self::InputCutSelectedText => EnablementState::Always,
             Self::InputCopySelectedText => EnablementState::Always,
@@ -3230,7 +3164,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputPaste => EnablementState::Always,
             Self::InputCommandSearch => EnablementState::Always,
             Self::InputAICommandSearch => EnablementState::Always,
-            Self::InputAskWarpAI => EnablementState::Always,
             Self::SaveAsWorkflowModal => EnablementState::Always,
             Self::ExperimentTriggered => EnablementState::Always,
             Self::ToggleSyncAllPanesInAllTabs => EnablementState::Always,
@@ -3242,24 +3175,24 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleTabIndicators => EnablementState::Always,
             Self::TogglePreserveActiveTabColor => EnablementState::Always,
             Self::ShowSubshellBanner => EnablementState::Always,
-            Self::SshTmuxWarpifyBannerDisplayed => EnablementState::Always,
+            Self::SshTmuxRiftifyBannerDisplayed => EnablementState::Always,
             Self::DeclineSubshellBootstrap => EnablementState::Always,
             Self::TriggerSubshellBootstrap => EnablementState::Always,
             Self::AddDenylistedSubshellCommand => EnablementState::Always,
             Self::RemoveDenylistedSubshellCommand => EnablementState::Always,
             Self::ToggleSshTmuxWrapper => EnablementState::Always,
-            Self::ToggleSshWarpification => EnablementState::Always,
+            Self::ToggleSshRiftification => EnablementState::Always,
             Self::SetSshExtensionInstallMode => EnablementState::Always,
             Self::AddDenylistedSshTmuxWrapperHost => EnablementState::Always,
             Self::RemoveDenylistedSshTmuxWrapperHost => EnablementState::Always,
             Self::SshInteractiveSessionDetected => EnablementState::Always,
-            Self::SshTmuxWarpifyBlockAccepted => EnablementState::Always,
-            Self::SshTmuxWarpifyBlockDismissed => EnablementState::Always,
-            Self::WarpifyFooterShown
+            Self::SshTmuxRiftifyBlockAccepted => EnablementState::Always,
+            Self::SshTmuxRiftifyBlockDismissed => EnablementState::Always,
+            Self::RiftifyFooterShown
             | Self::AgentToolbarDismissed
-            | Self::WarpifyFooterAcceptedWarpify => EnablementState::Always,
-            Self::SshTmuxWarpificationSuccess => EnablementState::Always,
-            Self::SshTmuxWarpificationErrorBlock => EnablementState::Always,
+            | Self::RiftifyFooterAcceptedRiftify => EnablementState::Always,
+            Self::SshTmuxRiftificationSuccess => EnablementState::Always,
+            Self::SshTmuxRiftificationErrorBlock => EnablementState::Always,
             Self::SshInstallTmuxBlockDisplayed => EnablementState::Always,
             Self::SshInstallTmuxBlockAccepted => EnablementState::Always,
             Self::SshInstallTmuxBlockDismissed => EnablementState::Always,
@@ -3275,7 +3208,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InitiateReauth => EnablementState::Always,
             Self::NeedsReauth => EnablementState::Always,
             Self::WarpDriveOpened => EnablementState::Always,
-            Self::ToggleWarpAI => EnablementState::Always,
             Self::ToggleSecretRedaction => EnablementState::Always,
             Self::CustomSecretRegexAdded => EnablementState::Always,
             Self::ToggleObfuscateSecret => EnablementState::Always,
@@ -3289,7 +3221,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::LogOut => EnablementState::Always,
             Self::SettingsImportInitiated => EnablementState::Always,
             Self::InviteTeammates => EnablementState::Always,
-            Self::OpenAndWarpifyDockerSubshell => EnablementState::Always,
+            Self::OpenAndRiftifyDockerSubshell => EnablementState::Always,
             Self::UpdateBlockFilterQuery => EnablementState::Always,
             Self::UpdateBlockFilterQueryContextLines => EnablementState::Always,
             Self::ToggleBlockFilterQuery => EnablementState::Always,
@@ -3628,11 +3560,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "InitialWorkingDirectoryConfigurationChanged"
             }
             Self::InputModeChanged => "Input Mode Changed",
-            Self::OpenedWarpAI => "Opened Warp AI",
-            Self::WarpAIRequestIssued => "Warp AI Request Issued",
-            Self::WarpAIAction => "Warp AI Action",
-            Self::UsedWarpAIPreparedPrompt => "Used Warp AI Prepared Prompt",
-            Self::WarpAICharacterLimitExceeded => "Warp AI Character Limit Exceeded",
             Self::OpenInputContextMenu => "OpenInputBoxContextMenu",
             Self::InputCutSelectedText => "InputBoxCutSelectedText",
             Self::InputCopySelectedText => "InputBoxCutSelectedText",
@@ -3640,7 +3567,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputPaste => "InputBoxPaste",
             Self::InputCommandSearch => "InputBoxCommandSearch",
             Self::InputAICommandSearch => "InputBoxAICommandSearch",
-            Self::InputAskWarpAI => "InputBoxAskWarpAI",
             Self::SaveAsWorkflowModal => "Opened Save As Workflow Modal",
             Self::ExperimentTriggered => "experiments.client.enroll_client",
             Self::ToggleSyncAllPanesInAllTabs => "Toggle Sync Inputs Across All Panes in All Tabs",
@@ -3650,7 +3576,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleTabIndicators => "Toggle Tab Indicators",
             Self::TogglePreserveActiveTabColor => "Toggle Preserve Active Tab Color",
             Self::ShowSubshellBanner => "Show Subshell Banner",
-            Self::SshTmuxWarpifyBannerDisplayed => "Show Warpify SSH Banner",
+            Self::SshTmuxRiftifyBannerDisplayed => "Show Riftify SSH Banner",
             Self::DeclineSubshellBootstrap => "Decline Subshell Bootstrap",
             Self::TriggerSubshellBootstrap => "Trigger Subshell Bootstrap",
             Self::AddDenylistedSubshellCommand => "Add Denylisted Subshell Command",
@@ -3659,18 +3585,18 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::RemoveAddedSubshellCommand => "Remove Added Subshell Command",
             Self::ReceivedSubshellRcFileDcs => "Received Subshell RC File DCS",
             Self::ToggleSshTmuxWrapper => "Toggle SSH Tmux Wrapper",
-            Self::ToggleSshWarpification => "Toggle SSH Warpification",
+            Self::ToggleSshRiftification => "Toggle SSH Riftification",
             Self::SetSshExtensionInstallMode => "Set SSH Extension Install Mode",
             Self::AddDenylistedSshTmuxWrapperHost => "Add Denylisted SSH Tmux Wrapper Host",
             Self::RemoveDenylistedSshTmuxWrapperHost => "Remove Denylisted SSH Tmux Wrapper Host",
             Self::SshInteractiveSessionDetected => "SSH Interactive Session Detected",
-            Self::SshTmuxWarpifyBlockAccepted => "SSH Tmux Warpify Block Accepted",
-            Self::SshTmuxWarpifyBlockDismissed => "SSH Tmux Warpify Block Dismissed",
-            Self::WarpifyFooterShown => "Warpify Footer Shown",
+            Self::SshTmuxRiftifyBlockAccepted => "SSH Tmux Riftify Block Accepted",
+            Self::SshTmuxRiftifyBlockDismissed => "SSH Tmux Riftify Block Dismissed",
+            Self::RiftifyFooterShown => "Riftify Footer Shown",
             Self::AgentToolbarDismissed => "Agent Toolbar Dismissed",
-            Self::WarpifyFooterAcceptedWarpify => "Warpify Footer Accepted Warpify",
-            Self::SshTmuxWarpificationSuccess => "SSH Tmux Warpification Succeeded",
-            Self::SshTmuxWarpificationErrorBlock => "SSH Tmux Warpification Error Block",
+            Self::RiftifyFooterAcceptedRiftify => "Riftify Footer Accepted Riftify",
+            Self::SshTmuxRiftificationSuccess => "SSH Tmux Riftification Succeeded",
+            Self::SshTmuxRiftificationErrorBlock => "SSH Tmux Riftification Error Block",
             Self::SshInstallTmuxBlockDisplayed => "SSH Install Tmux Block Displayed",
             Self::SshInstallTmuxBlockAccepted => "SSH Install Tmux Block Accepted",
             Self::SshInstallTmuxBlockDismissed => "SSH Install Tmux Block Dismissed",
@@ -3680,7 +3606,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InitiateReauth => "Initiate Reauth",
             Self::NeedsReauth => "Needs Reauth",
             Self::WarpDriveOpened => "Warp Drive Opened",
-            Self::ToggleWarpAI => "Toggle Warp AI",
             Self::ToggleSecretRedaction => "Toggle Secret Redaction",
             Self::CustomSecretRegexAdded => "Custom Secret Regex Added",
             Self::ToggleObfuscateSecret => "Toggle Obfuscate Secret",
@@ -3702,7 +3627,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::UnsupportedShell => "Unsupported Shell",
             Self::SettingsImportInitiated => "Settings Import Initiated",
             Self::InviteTeammates => "Invited Teammates",
-            Self::OpenAndWarpifyDockerSubshell => "OpenAndWarpifyDockerSubshell",
+            Self::OpenAndRiftifyDockerSubshell => "OpenAndRiftifyDockerSubshell",
             Self::UpdateBlockFilterQuery => "Update Block Filter Query",
             Self::ToggleBlockFilterQuery => "Toggle Block Filter Query",
             Self::ToggleBlockFilterCaseSensitivity => "Toggle Block Filter Case Sensitivity",
@@ -4154,15 +4079,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InitialWorkingDirectoryConfigurationChanged => {
                 "Replaced the default working directory with a different path"
             }
-            Self::OpenedWarpAI => "Activated Warp AI",
-            Self::WarpAIRequestIssued => "Issued a question to Warp AI",
-            Self::WarpAIAction => "Executed a Warp AI action: Restart, Copy, Insert into terminal",
-            Self::UsedWarpAIPreparedPrompt => {
-                "Used one of the Warp-provided prompts, like \"Show examples\""
-            }
-            Self::WarpAICharacterLimitExceeded => {
-                "Attempted to ask a question longer than 1k chars to Warp AI"
-            }
             Self::OpenInputContextMenu => "Opened the Input Editor's context menu",
             Self::InputCutSelectedText => {
                 "Cut the highlighted text via the Input Editor's context menu (right clicking the buffer)"
@@ -4180,7 +4096,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InputAICommandSearch => {
                 "Opened AI Command Search via the Input Editor's context menu (right clicking the buffer)"
             }
-            Self::InputAskWarpAI => "Clicked \"Ask Warp AI\" from the Input Editor's context menu",
             Self::SaveAsWorkflowModal => {
                 "Opened the modal to create a new workflow using a Block's context--command, etc."
             }
@@ -4211,34 +4126,34 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Enabled or disabled preserving the active tab color"
             }
             Self::ShowSubshellBanner => {
-                "Displayed the banner asking whether Warp should Warpify the current session via Warp's subshell wrapper"
+                "Displayed the banner asking whether Warp should Riftify the current session via Warp's subshell wrapper"
             }
-            Self::SshTmuxWarpifyBannerDisplayed => {
-                "Displayed the banner asking whether Warp should Warpify the current SSH session via Warp's SSH Wrapper"
+            Self::SshTmuxRiftifyBannerDisplayed => {
+                "Displayed the banner asking whether Warp should Riftify the current SSH session via Warp's SSH Wrapper"
             }
             Self::DeclineSubshellBootstrap => {
-                "Developer declined the Warp banner to Warpify the current session"
+                "Developer declined the Warp banner to Riftify the current session"
             }
             Self::TriggerSubshellBootstrap => {
-                "Attempted to Warpify the current session via Warp's subshell wrapper"
+                "Attempted to Riftify the current session via Warp's subshell wrapper"
             }
             Self::AddDenylistedSubshellCommand => {
-                "Explicitly prevent a command from being Warpified via Warp's subshell wrapper"
+                "Explicitly prevent a command from being Riftified via Warp's subshell wrapper"
             }
             Self::RemoveDenylistedSubshellCommand => {
-                "Removed a command from the list of commands to IGNORE when trying to Warpify via Warp's subshell wrapper"
+                "Removed a command from the list of commands to IGNORE when trying to Riftify via Warp's subshell wrapper"
             }
             Self::AddAddedSubshellCommand => {
-                "Added a command to be automatically Warpified via Warp's subshell wrapper"
+                "Added a command to be automatically Riftified via Warp's subshell wrapper"
             }
             Self::RemoveAddedSubshellCommand => {
-                "Removed a command from the list of commands to automatically Warpify via Warp's subshell wrapper"
+                "Removed a command from the list of commands to automatically Riftify via Warp's subshell wrapper"
             }
-            Self::ReceivedSubshellRcFileDcs => "Spawned a subshell to be automatically Warpified",
+            Self::ReceivedSubshellRcFileDcs => "Spawned a subshell to be automatically Riftified",
             Self::ToggleSshTmuxWrapper => {
                 "Changed the setting for SSH sessions to prompt for Tmux Wrapper"
             }
-            Self::ToggleSshWarpification => "Changed the setting for SSH sessions to be warified",
+            Self::ToggleSshRiftification => "Changed the setting for SSH sessions to be warified",
             Self::SetSshExtensionInstallMode => {
                 "Changed the SSH extension install mode (always ask / always allow / always skip)"
             }
@@ -4249,15 +4164,15 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Removed an SSH host from the denylist from prompting for Tmux Wrapper"
             }
             Self::SshInteractiveSessionDetected => "An interactive SSH session was detected",
-            Self::SshTmuxWarpifyBlockAccepted => "User accepted an ssh tmux warpify block",
-            Self::SshTmuxWarpifyBlockDismissed => "User dismissed an ssh tmux warpify block",
-            Self::WarpifyFooterShown => {
-                "Displayed the warpify footer for a detected subshell or SSH session"
+            Self::SshTmuxRiftifyBlockAccepted => "User accepted an ssh tmux riftify block",
+            Self::SshTmuxRiftifyBlockDismissed => "User dismissed an ssh tmux riftify block",
+            Self::RiftifyFooterShown => {
+                "Displayed the riftify footer for a detected subshell or SSH session"
             }
             Self::AgentToolbarDismissed => "User dismissed the use-agent toolbar",
-            Self::WarpifyFooterAcceptedWarpify => "User clicked Warpify in the warpify footer",
-            Self::SshTmuxWarpificationSuccess => "Ssh tmux warpification succeeded",
-            Self::SshTmuxWarpificationErrorBlock => "Ssh tmux warpification errored out",
+            Self::RiftifyFooterAcceptedRiftify => "User clicked Riftify in the riftify footer",
+            Self::SshTmuxRiftificationSuccess => "Ssh tmux riftification succeeded",
+            Self::SshTmuxRiftificationErrorBlock => "Ssh tmux riftification errored out",
             Self::SshInstallTmuxBlockDisplayed => "Displayed an ssh install tmux block",
             Self::SshInstallTmuxBlockAccepted => "User accepted an ssh install tmux block",
             Self::SshInstallTmuxBlockDismissed => "User dismissed an ssh install tmux block",
@@ -4282,9 +4197,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::InitiateReauth => "Started the flow to re-authenticate the client",
             Self::NeedsReauth => "User needs to re-authenticate",
             Self::WarpDriveOpened => "Opened Warp Drive panel",
-            Self::ToggleWarpAI => {
-                "Toggled Warp AI--an AI assistant to help you debug errors, look up forgotten commands and more"
-            }
             Self::ToggleSecretRedaction => {
                 "Toggled on/off the setting for Secret Redaction - attempts to redact secrets and sensitive information"
             }
@@ -4327,8 +4239,8 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::LogOut => "Logged out of the Warp client",
             Self::SettingsImportInitiated => "Started the import settings flow for new users",
             Self::InviteTeammates => "Sent emails to invite teammates to join Warp Drive team",
-            Self::OpenAndWarpifyDockerSubshell => {
-                "Warpifying a docker subshell from using the docker extension"
+            Self::OpenAndRiftifyDockerSubshell => {
+                "Riftifying a docker subshell from using the docker extension"
             }
             Self::UpdateBlockFilterQuery => "When a new filter is applied to a block",
             Self::UpdateBlockFilterQueryContextLines => {

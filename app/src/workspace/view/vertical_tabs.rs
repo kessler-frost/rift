@@ -9,8 +9,8 @@ use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::context_flag::ContextFlag;
 use rift_core::ui::color::blend::Blend;
 use rift_core::ui::theme::color::internal_colors;
-use rift_core::ui::theme::{AnsiColorIdentifier, Fill as WarpThemeFill, WarpTheme};
-use rift_core::ui::Icon as WarpIcon;
+use rift_core::ui::theme::{AnsiColorIdentifier, Fill as RiftThemeFill, RiftTheme};
+use rift_core::ui::Icon as RiftIcon;
 use riftui::elements::{
     resizable_state_handle, Border, ChildAnchor, Clipped, ClippedScrollStateHandle,
     ClippedScrollable, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
@@ -226,8 +226,8 @@ enum TerminalPrimaryLineFont {
 }
 
 fn render_pane_icon_with_status(
-    (icon, icon_color): (WarpIcon, WarpThemeFill),
-    theme: &WarpTheme,
+    (icon, icon_color): (RiftIcon, RiftThemeFill),
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     render_icon_with_status(icon, icon_color, VERTICAL_TABS_ICON_SIZE, theme)
 }
@@ -256,7 +256,7 @@ fn pane_row_background(
     is_selected: bool,
     is_hovered: bool,
     is_being_dragged: bool,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Option<ThemeFill> {
     if let Some(color) = pane_color {
         let opacity = if is_selected || is_hovered {
@@ -279,7 +279,7 @@ fn render_pane_row_element(
     padding: Padding,
     defer_events_to_children: bool,
     content: Box<dyn Element>,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     let detail_target = supports_vertical_tabs_detail_sidecar(&props.typed).then(|| {
         detail_target_for_hovered_row(
@@ -1087,7 +1087,7 @@ fn vertical_tabs_tab_bar_location(insert_index: usize, tab_count: usize) -> TabB
     }
 }
 
-fn render_vertical_tab_hover_indicator(theme: &WarpTheme) -> Box<dyn Element> {
+fn render_vertical_tab_hover_indicator(theme: &RiftTheme) -> Box<dyn Element> {
     ConstrainedBox::new(
         Container::new(Empty::new().finish())
             .with_background(ThemeFill::Solid(theme.accent().into()))
@@ -1118,7 +1118,7 @@ fn render_vertical_tab_insertion_target(
     insert_index: usize,
     tab_count: usize,
     is_drag_target: bool,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     let content = if is_drag_target {
         render_vertical_tab_hover_indicator(theme)
@@ -1143,7 +1143,7 @@ fn add_vertical_tab_insertion_target_overlay(
     is_drag_target: bool,
     parent_anchor: ParentAnchor,
     child_anchor: ChildAnchor,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) {
     stack.add_positioned_overlay_child(
         render_vertical_tab_insertion_target(insert_index, tab_count, is_drag_target, theme),
@@ -1166,7 +1166,7 @@ fn render_control_bar(
     let theme = appearance.theme();
     let sub_text = theme.sub_text_color(theme.background());
 
-    let search_icon = ConstrainedBox::new(WarpIcon::Search.to_warpui_icon(sub_text).finish())
+    let search_icon = ConstrainedBox::new(RiftIcon::Search.to_riftui_icon(sub_text).finish())
         .with_width(SEARCH_ICON_SIZE)
         .with_height(SEARCH_ICON_SIZE)
         .finish();
@@ -1219,8 +1219,8 @@ fn render_detail_kind_badge_icon(
     let sub_text = theme.sub_text_color(theme.background());
     let disabled_text = detail_sidecar_text_colors(theme).disabled;
     match &props.typed {
-        TypedPane::Terminal(_) => WarpIcon::Terminal.to_warpui_icon(disabled_text).finish(),
-        typed => typed.icon().to_warpui_icon(sub_text).finish(),
+        TypedPane::Terminal(_) => RiftIcon::Terminal.to_riftui_icon(disabled_text).finish(),
+        typed => typed.icon().to_riftui_icon(sub_text).finish(),
     }
 }
 
@@ -1238,8 +1238,8 @@ fn render_settings_button(
         state.settings_button_mouse_state.clone(),
         move |hover_state| {
             let icon = ConstrainedBox::new(
-                WarpIcon::Settings
-                    .to_warpui_icon(if is_popup_open { main_text } else { sub_text })
+                RiftIcon::Settings
+                    .to_riftui_icon(if is_popup_open { main_text } else { sub_text })
                     .finish(),
             )
             .with_width(16.)
@@ -2185,13 +2185,13 @@ fn render_group_action_buttons(
     action_buttons_mouse_state: MouseStateHandle,
     kebab_mouse_state: MouseStateHandle,
     close_mouse_state: MouseStateHandle,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     let meta_color = theme.sub_text_color(theme.background());
 
     let kebab_button = Hoverable::new(kebab_mouse_state, move |button_state| {
         let mut container = Container::new(
-            ConstrainedBox::new(WarpIcon::DotsVertical.to_warpui_icon(meta_color).finish())
+            ConstrainedBox::new(RiftIcon::DotsVertical.to_riftui_icon(meta_color).finish())
                 .with_width(GROUP_ACTION_BUTTON_ICON_SIZE)
                 .with_height(GROUP_ACTION_BUTTON_ICON_SIZE)
                 .finish(),
@@ -2214,7 +2214,7 @@ fn render_group_action_buttons(
 
     let close_button = Hoverable::new(close_mouse_state, move |button_state| {
         let mut container = Container::new(
-            ConstrainedBox::new(WarpIcon::X.to_warpui_icon(meta_color).finish())
+            ConstrainedBox::new(RiftIcon::X.to_riftui_icon(meta_color).finish())
                 .with_width(GROUP_ACTION_BUTTON_ICON_SIZE)
                 .with_height(GROUP_ACTION_BUTTON_ICON_SIZE)
                 .finish(),
@@ -2288,16 +2288,16 @@ pub(crate) fn render_tab_group_for_drag_ghost(
 
 /// Small icon button for the tab-group header; consumes clicks so they don't bubble.
 fn render_tab_group_header_icon_button(
-    icon: WarpIcon,
+    icon: RiftIcon,
     icon_size: f32,
-    icon_color: WarpThemeFill,
-    hover_background: WarpThemeFill,
+    icon_color: RiftThemeFill,
+    hover_background: RiftThemeFill,
     mouse_state: MouseStateHandle,
     on_click_action: Option<WorkspaceAction>,
 ) -> Box<dyn Element> {
     Hoverable::new(mouse_state, move |button_state| {
         let mut container = Container::new(
-            ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
+            ConstrainedBox::new(icon.to_riftui_icon(icon_color).finish())
                 .with_width(icon_size)
                 .with_height(icon_size)
                 .finish(),
@@ -2341,9 +2341,9 @@ fn render_grouped_tabs_header(
     let group_id = group.id;
 
     let chevron_icon = if is_collapsed {
-        WarpIcon::ChevronRight
+        RiftIcon::ChevronRight
     } else {
-        WarpIcon::ChevronDown
+        RiftIcon::ChevronDown
     };
     let chevron_button = render_tab_group_header_icon_button(
         chevron_icon,
@@ -2399,7 +2399,7 @@ fn render_grouped_tabs_header(
     let action_buttons = if show_action_buttons {
         let kebab_button = SavePosition::new(
             render_tab_group_header_icon_button(
-                WarpIcon::DotsVertical,
+                RiftIcon::DotsVertical,
                 TAB_GROUP_HEADER_ACTION_ICON_SIZE,
                 sub_text_color,
                 internal_colors::fg_overlay_2(theme),
@@ -2413,7 +2413,7 @@ fn render_grouped_tabs_header(
         )
         .finish();
         let close_button = render_tab_group_header_icon_button(
-            WarpIcon::X,
+            RiftIcon::X,
             TAB_GROUP_HEADER_ACTION_ICON_SIZE,
             sub_text_color,
             internal_colors::fg_overlay_3(theme),
@@ -2455,7 +2455,7 @@ fn render_grouped_tabs_header(
         let border_fill = if is_header_selected {
             internal_colors::fg_overlay_3(theme)
         } else {
-            WarpThemeFill::Solid(ColorU::transparent_black())
+            RiftThemeFill::Solid(ColorU::transparent_black())
         };
         let mut container = Container::new(row)
             .with_padding(Padding::uniform(GROUP_HORIZONTAL_PADDING))
@@ -2727,14 +2727,14 @@ fn resolve_icon_with_status_variant(
     _title: &str,
     appearance: &Appearance,
     _app: &AppContext,
-) -> (WarpIcon, WarpThemeFill) {
+) -> (RiftIcon, RiftThemeFill) {
     let theme = appearance.theme();
     let main_text = theme.main_text_color(theme.background());
     let sub_text = theme.sub_text_color(theme.background());
 
     match typed {
         // Plain terminal: use foreground color per design spec
-        TypedPane::Terminal(_) => (WarpIcon::Terminal, main_text),
+        TypedPane::Terminal(_) => (RiftIcon::Terminal, main_text),
         TypedPane::Settings => (typed.icon(), main_text),
         other => (other.icon(), sub_text),
     }
@@ -2746,10 +2746,10 @@ fn has_unread_activity(_typed: &TypedPane<'_>, _app: &AppContext) -> bool {
 
 const INDICATOR_DOT_SIZE: f32 = 8.;
 
-fn render_title_indicator(theme: &WarpTheme) -> Box<dyn Element> {
+fn render_title_indicator(theme: &RiftTheme) -> Box<dyn Element> {
     ConstrainedBox::new(
-        WarpIcon::CircleFilled
-            .to_warpui_icon(theme.accent())
+        RiftIcon::CircleFilled
+            .to_riftui_icon(theme.accent())
             .finish(),
     )
     .with_width(INDICATOR_DOT_SIZE)
@@ -2887,11 +2887,11 @@ impl TypedPane<'_> {
         }
     }
 
-    fn icon(&self) -> WarpIcon {
+    fn icon(&self) -> RiftIcon {
         match self {
-            TypedPane::Terminal(_) => WarpIcon::Terminal,
-            TypedPane::Settings => WarpIcon::Gear,
-            TypedPane::Other => WarpIcon::File,
+            TypedPane::Terminal(_) => RiftIcon::Terminal,
+            TypedPane::Settings => RiftIcon::Gear,
+            TypedPane::Other => RiftIcon::File,
         }
     }
 }
@@ -3480,7 +3480,7 @@ fn compact_branch_subtitle_display(
 
 fn render_git_branch_text(
     branch: &str,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     font_size: f32,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -3488,7 +3488,7 @@ fn render_git_branch_text(
         .with_cross_axis_alignment(CrossAxisAlignment::Center)
         .with_spacing(2.)
         .with_child(
-            ConstrainedBox::new(UiIcon::GitBranch.to_warpui_icon(text_color).finish())
+            ConstrainedBox::new(UiIcon::GitBranch.to_riftui_icon(text_color).finish())
                 .with_width(font_size - 2.)
                 .with_height(font_size - 2.)
                 .finish(),
@@ -3513,7 +3513,7 @@ enum MetadataLeftContent {
 
 fn render_text_line(
     text: &str,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     clip: ClipConfig,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -3546,7 +3546,7 @@ fn render_inline_tab_rename_editor(
 fn render_title_override(
     props: &PaneProps<'_>,
     font_size: f32,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     clip: ClipConfig,
     appearance: &Appearance,
     app: &AppContext,
@@ -3580,7 +3580,7 @@ fn render_pane_title_slot(
     props: &PaneProps<'_>,
     generated_title: impl FnOnce() -> Box<dyn Element>,
     font_size: f32,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     clip: ClipConfig,
     appearance: &Appearance,
     app: &AppContext,
@@ -3805,7 +3805,7 @@ fn render_summary_tab_item(
 fn render_summary_primary_label_line(
     label: &VerticalTabsSummaryPrimaryLabel,
     reserve_prefix_slot: bool,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let _ = reserve_prefix_slot;
@@ -3814,7 +3814,7 @@ fn render_summary_primary_label_line(
 
 fn render_summary_overflow_line(
     hidden_count: usize,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     Text::new_inline(
@@ -3899,7 +3899,7 @@ fn render_summary_pane_kind_icon_circle(
     let padding = total_size * SUMMARY_INLINE_PADDING_RATIO;
     let (icon, icon_color) = summary_pane_kind_icon(kind, appearance);
     Container::new(
-        ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
+        ConstrainedBox::new(icon.to_riftui_icon(icon_color).finish())
             .with_width(icon_size)
             .with_height(icon_size)
             .finish(),
@@ -3915,15 +3915,15 @@ fn render_summary_pane_kind_icon_circle(
 fn summary_pane_kind_icon(
     kind: SummaryPaneKind,
     appearance: &Appearance,
-) -> (WarpIcon, WarpThemeFill) {
+) -> (RiftIcon, RiftThemeFill) {
     let theme = appearance.theme();
     let main_text = theme.main_text_color(theme.background());
     let sub_text = theme.sub_text_color(theme.background());
 
     match kind {
-        SummaryPaneKind::Terminal => (WarpIcon::Terminal, main_text),
-        SummaryPaneKind::Settings => (WarpIcon::Gear, main_text),
-        SummaryPaneKind::Other => (WarpIcon::File, sub_text),
+        SummaryPaneKind::Terminal => (RiftIcon::Terminal, main_text),
+        SummaryPaneKind::Settings => (RiftIcon::Gear, main_text),
+        SummaryPaneKind::Other => (RiftIcon::File, sub_text),
     }
 }
 
@@ -3978,7 +3978,7 @@ fn render_summary_branch_line(
 fn render_terminal_primary_line_for_view(
     terminal_view: &TerminalView,
     appearance: &Appearance,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     app: &AppContext,
 ) -> Box<dyn Element> {
     let title_text = terminal_view.terminal_title_from_shell();
@@ -4003,7 +4003,7 @@ fn render_terminal_primary_line(
     primary_line: TerminalPrimaryLineData,
     terminal_view: &TerminalView,
     appearance: &Appearance,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
 ) -> Box<dyn Element> {
     let theme = appearance.theme();
 
@@ -4021,7 +4021,7 @@ fn render_terminal_primary_line(
             .with_child(
                 ConstrainedBox::new(
                     UiIcon::AlertTriangle
-                        .to_warpui_icon(error_color.into())
+                        .to_riftui_icon(error_color.into())
                         .finish(),
                 )
                 .with_width(BADGE_ICON_SIZE)
@@ -4282,7 +4282,7 @@ fn render_pull_request_badge_content(label: &str, appearance: &Appearance) -> Bo
         .with_cross_axis_alignment(CrossAxisAlignment::Center)
         .with_spacing(4.)
         .with_child(
-            ConstrainedBox::new(UiIcon::Github.to_warpui_icon(main_text_color).finish())
+            ConstrainedBox::new(UiIcon::Github.to_riftui_icon(main_text_color).finish())
                 .with_width(BADGE_ICON_SIZE)
                 .with_height(BADGE_ICON_SIZE)
                 .finish(),
@@ -4299,7 +4299,7 @@ fn compute_tab_group_color_mode(
     tab: &TabData,
     pane_group: &PaneGroup,
     visible_pane_ids: &[PaneId],
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     app: &AppContext,
 ) -> TabGroupColorMode {
     // Manual override applies to the whole group.
@@ -4581,7 +4581,7 @@ pub(super) fn render_settings_popup(
                 Expanded::new(
                     1.,
                     render_popup_segment(
-                        WarpIcon::Menu01,
+                        RiftIcon::Menu01,
                         matches!(current_mode, VerticalTabsViewMode::Compact),
                         state.compact_segment_mouse_state.clone(),
                         VerticalTabsViewMode::Compact,
@@ -4595,7 +4595,7 @@ pub(super) fn render_settings_popup(
                 Expanded::new(
                     1.,
                     render_popup_segment(
-                        WarpIcon::Grid,
+                        RiftIcon::Grid,
                         matches!(current_mode, VerticalTabsViewMode::Expanded),
                         state.expanded_segment_mouse_state.clone(),
                         VerticalTabsViewMode::Expanded,
@@ -4620,7 +4620,7 @@ pub(super) fn render_settings_popup(
         .finish();
 
     // Divider between toggle and "Pane title as" section
-    let make_divider = |theme: &WarpTheme| {
+    let make_divider = |theme: &RiftTheme| {
         Container::new(
             ConstrainedBox::new(
                 Container::new(Empty::new().finish())
@@ -4821,7 +4821,7 @@ fn render_compact_subtitle_option(
     mouse_state: MouseStateHandle,
     value: VerticalTabsCompactSubtitle,
     appearance: &Appearance,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     const ICON_SIZE: f32 = 16.;
     const FONT_SIZE: f32 = 12.;
@@ -4831,7 +4831,7 @@ fn render_compact_subtitle_option(
     let main_text = theme.main_text_color(theme.background());
     Hoverable::new(mouse_state, move |hover_state| {
         let check_icon: Box<dyn Element> = if is_selected {
-            ConstrainedBox::new(WarpIcon::Check.to_warpui_icon(main_text).finish())
+            ConstrainedBox::new(RiftIcon::Check.to_riftui_icon(main_text).finish())
                 .with_width(ICON_SIZE)
                 .with_height(ICON_SIZE)
                 .finish()
@@ -4874,7 +4874,7 @@ fn render_tab_item_mode_option(
     mouse_state: MouseStateHandle,
     value: VerticalTabsTabItemMode,
     appearance: &Appearance,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     const ICON_SIZE: f32 = 16.;
     const FONT_SIZE: f32 = 12.;
@@ -4884,7 +4884,7 @@ fn render_tab_item_mode_option(
     let main_text = theme.main_text_color(theme.background());
     Hoverable::new(mouse_state, move |hover_state| {
         let check_icon: Box<dyn Element> = if is_selected {
-            ConstrainedBox::new(WarpIcon::Check.to_warpui_icon(main_text).finish())
+            ConstrainedBox::new(RiftIcon::Check.to_riftui_icon(main_text).finish())
                 .with_width(ICON_SIZE)
                 .with_height(ICON_SIZE)
                 .finish()
@@ -4927,7 +4927,7 @@ fn render_primary_info_option(
     mouse_state: MouseStateHandle,
     value: VerticalTabsPrimaryInfo,
     appearance: &Appearance,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     const ICON_SIZE: f32 = 16.;
     const FONT_SIZE: f32 = 12.;
@@ -4937,7 +4937,7 @@ fn render_primary_info_option(
     let main_text = theme.main_text_color(theme.background());
     Hoverable::new(mouse_state, move |hover_state| {
         let check_icon: Box<dyn Element> = if is_selected {
-            ConstrainedBox::new(WarpIcon::Check.to_warpui_icon(main_text).finish())
+            ConstrainedBox::new(RiftIcon::Check.to_riftui_icon(main_text).finish())
                 .with_width(ICON_SIZE)
                 .with_height(ICON_SIZE)
                 .finish()
@@ -4986,7 +4986,7 @@ fn render_show_toggle_option(
     action: WorkspaceAction,
     info_tooltip: Option<ShowToggleInfoTooltip>,
     appearance: &Appearance,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     const ICON_SIZE: f32 = 16.;
     const FONT_SIZE: f32 = 12.;
@@ -5004,7 +5004,7 @@ fn render_show_toggle_option(
 
     Hoverable::new(mouse_state, move |hover_state| {
         let check_icon: Box<dyn Element> = if is_enabled {
-            ConstrainedBox::new(WarpIcon::Check.to_warpui_icon(main_text).finish())
+            ConstrainedBox::new(RiftIcon::Check.to_riftui_icon(main_text).finish())
                 .with_width(ICON_SIZE)
                 .with_height(ICON_SIZE)
                 .finish()
@@ -5027,7 +5027,7 @@ fn render_show_toggle_option(
         {
             let builder = ui_builder.clone();
             let info_icon = Hoverable::new(info_ms, move |info_hover| {
-                let icon = ConstrainedBox::new(UiIcon::Info.to_warpui_icon(info_color).finish())
+                let icon = ConstrainedBox::new(UiIcon::Info.to_riftui_icon(info_color).finish())
                     .with_width(INFO_ICON_SIZE)
                     .with_height(INFO_ICON_SIZE)
                     .finish();
@@ -5074,12 +5074,12 @@ fn render_show_toggle_option(
 }
 
 fn render_popup_segment(
-    icon: WarpIcon,
+    icon: RiftIcon,
     is_selected: bool,
     mouse_state: MouseStateHandle,
     mode: VerticalTabsViewMode,
-    theme: &WarpTheme,
-    icon_color: WarpThemeFill,
+    theme: &RiftTheme,
+    icon_color: RiftThemeFill,
 ) -> Box<dyn Element> {
     Hoverable::new(mouse_state, move |hover_state| {
         let background = if is_selected {
@@ -5092,7 +5092,7 @@ fn render_popup_segment(
 
         Container::new(
             Align::new(
-                ConstrainedBox::new(icon.to_warpui_icon(icon_color).finish())
+                ConstrainedBox::new(icon.to_riftui_icon(icon_color).finish())
                     .with_width(COMPACT_ICON_SIZE)
                     .with_height(COMPACT_ICON_SIZE)
                     .finish(),
@@ -5117,7 +5117,7 @@ fn render_popup_text_segment(
     mouse_state: MouseStateHandle,
     granularity: VerticalTabsDisplayGranularity,
     appearance: &Appearance,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
 ) -> Box<dyn Element> {
     let label = label.to_string();
     let main_text = theme.main_text_color(theme.background());
@@ -5285,25 +5285,25 @@ fn detail_sidecar_width_and_bounds(available_width: f32) -> (f32, PositionedElem
 }
 
 struct DetailSidecarTextColors {
-    main: WarpThemeFill,
-    sub: WarpThemeFill,
-    disabled: WarpThemeFill,
+    main: RiftThemeFill,
+    sub: RiftThemeFill,
+    disabled: RiftThemeFill,
 }
 
-fn detail_sidecar_background(theme: &WarpTheme) -> ColorU {
+fn detail_sidecar_background(theme: &RiftTheme) -> ColorU {
     theme
         .background()
         .blend(&internal_colors::fg_overlay_2(theme))
         .into_solid()
 }
 
-fn detail_sidecar_border_fill(theme: &WarpTheme) -> ThemeFill {
+fn detail_sidecar_border_fill(theme: &RiftTheme) -> ThemeFill {
     theme
         .background()
         .blend(&internal_colors::fg_overlay_4(theme))
 }
 
-fn detail_sidecar_text_colors(theme: &WarpTheme) -> DetailSidecarTextColors {
+fn detail_sidecar_text_colors(theme: &RiftTheme) -> DetailSidecarTextColors {
     let bg = ThemeFill::Solid(detail_sidecar_background(theme));
     DetailSidecarTextColors {
         main: theme.main_text_color(bg),
@@ -5316,7 +5316,7 @@ fn render_detail_badge(
     label: impl Into<String>,
     icon: Option<Box<dyn Element>>,
     background: Option<ThemeFill>,
-    text_color: WarpThemeFill,
+    text_color: RiftThemeFill,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let mut content = Flex::row()
@@ -5351,7 +5351,7 @@ fn render_detail_badge(
 fn render_detail_wrapping_text(
     text: impl Into<String>,
     font_size: f32,
-    color: WarpThemeFill,
+    color: RiftThemeFill,
     style: Option<Properties>,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -5366,7 +5366,7 @@ fn render_detail_wrapping_text(
 
 fn render_terminal_detail_primary_line(
     primary_line: &TerminalPrimaryLineData,
-    color: WarpThemeFill,
+    color: RiftThemeFill,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let font_family = match primary_line {

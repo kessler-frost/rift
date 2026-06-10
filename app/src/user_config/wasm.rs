@@ -4,22 +4,22 @@ use riftui::ModelContext;
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::WarpThemeConfig;
+use crate::themes::theme::RiftThemeConfig;
 
-impl super::WarpConfig {
+impl super::RiftConfig {
     pub fn new(_ctx: &mut ModelContext<Self>) -> Self {
         Self {
             launch_configs: Default::default(),
             tab_configs: Default::default(),
             tab_config_errors: Default::default(),
-            theme_config: WarpThemeConfig::new(),
+            theme_config: RiftThemeConfig::new(),
             local_user_workflows: Default::default(),
         }
     }
 }
 
 /// Loads all themes relative to the `workflow_path`.
-pub fn load_theme_configs(_theme_path: &Path) -> WarpThemeConfig {
+pub fn load_theme_configs(_theme_path: &Path) -> RiftThemeConfig {
     // There's no local filesystem for wasm, so we'll never be able to retrieve
     // themes from any path.
     Default::default()

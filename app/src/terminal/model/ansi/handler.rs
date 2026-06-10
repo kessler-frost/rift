@@ -302,9 +302,9 @@ pub trait Handler {
     /// assisted auto-update.
     fn finish_update(&mut self, _data: FinishUpdateValue) {}
 
-    /// Callback emitted from the warpify_ssh_session script if it's discovered
-    /// that we can't warpify the remote session.
-    fn remote_warpification_is_unavailable(&mut self, _data: WarpificationUnavailableReason) {}
+    /// Callback emitted from the riftify_ssh_session script if it's discovered
+    /// that we can't riftify the remote session.
+    fn remote_riftification_is_unavailable(&mut self, _data: RiftificationUnavailableReason) {}
 
     /// How tmux was installed.
     fn notify_ssh_tmux_is_installed(&mut self, _tmux_installation: TmuxInstallationState) {}

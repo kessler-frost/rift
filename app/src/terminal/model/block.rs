@@ -369,7 +369,7 @@ impl From<&Block> for BlockType {
 
         match block.bootstrap_stage() {
             BootstrapStage::RestoreBlocks => BlockType::Restored,
-            BootstrapStage::WarpInput | BootstrapStage::Bootstrapped => BlockType::BootstrapHidden,
+            BootstrapStage::RiftInput | BootstrapStage::Bootstrapped => BlockType::BootstrapHidden,
             BootstrapStage::ScriptExecution => {
                 if block.is_empty() {
                     BlockType::BootstrapHidden
@@ -446,7 +446,7 @@ pub struct BlockSize {
     pub block_padding: BlockPadding,
     pub size: SizeInfo,
     pub max_block_scroll_limit: usize,
-    pub warp_prompt_height_lines: f32,
+    pub rift_prompt_height_lines: f32,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -1157,7 +1157,7 @@ impl Block {
             return true;
         }
 
-        let is_bootstrap_block = self.bootstrap_stage == BootstrapStage::WarpInput;
+        let is_bootstrap_block = self.bootstrap_stage == BootstrapStage::RiftInput;
         let is_empty_bootstrap_script_execution_block = self.bootstrap_stage
             == BootstrapStage::ScriptExecution
             && self.command_should_show_as_empty_when_finished()

@@ -71,9 +71,9 @@ pub(super) enum DProtoHook {
     FinishUpdate {
         value: FinishUpdateValue,
     },
-    RemoteWarpificationIsUnavailable {
+    RemoteRiftificationIsUnavailable {
         // If a value is provided, it's suggesting a way to install TMUX on the remote.
-        value: WarpificationUnavailableReason,
+        value: RiftificationUnavailableReason,
     },
     SshTmuxInstaller {
         value: String,
@@ -102,8 +102,8 @@ impl DProtoHook {
             DProtoHook::SourcedRcFileForWarp { .. } => "SourcedRcFileForWarp",
             DProtoHook::InitSsh { .. } => "InitSsh",
             DProtoHook::FinishUpdate { .. } => "FinishUpdate",
-            DProtoHook::RemoteWarpificationIsUnavailable { .. } => {
-                "RemoteWarpificationIsUnavailable"
+            DProtoHook::RemoteRiftificationIsUnavailable { .. } => {
+                "RemoteRiftificationIsUnavailable"
             }
             DProtoHook::SshTmuxInstaller { .. } => "SshTmuxInstaller",
             DProtoHook::TmuxInstallFailed { .. } => "TmuxInstallFailed",
@@ -372,11 +372,11 @@ pub struct SystemDetails {
     pub writable_home: Option<bool>,
 }
 
-/// The reason that warpification was not available when the user tried
-/// to warpify.
+/// The reason that riftification was not available when the user tried
+/// to riftify.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all(serialize = "snake_case"))]
-pub enum WarpificationUnavailableReason {
+pub enum RiftificationUnavailableReason {
     TmuxFailed,
     UnsupportedTmuxVersion {
         #[serde(flatten)]

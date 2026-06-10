@@ -4,7 +4,7 @@ use std::ops::{Index, IndexMut};
 use riftui::color::ColorU;
 
 use crate::terminal::model::ansi::color_index;
-use crate::themes::theme::{AnsiColors, WarpTheme};
+use crate::themes::theme::{AnsiColors, RiftTheme};
 
 pub const COUNT: usize = 269;
 
@@ -43,8 +43,8 @@ impl Colors {
     }
 }
 
-impl From<WarpTheme> for Colors {
-    fn from(theme: WarpTheme) -> Self {
+impl From<RiftTheme> for Colors {
+    fn from(theme: RiftTheme) -> Self {
         let colors = theme.terminal_colors();
         Colors::new(
             PrimaryColors::new(

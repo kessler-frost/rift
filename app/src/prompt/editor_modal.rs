@@ -23,7 +23,7 @@ use crate::context_chips::{
     available_chips, ChipAvailability, ChipRuntimeCapabilities, ContextChipKind,
 };
 use crate::server::telemetry::PromptChoice;
-use crate::settings::{FontSettings, WarpPromptSeparator};
+use crate::settings::{FontSettings, RiftPromptSeparator};
 use crate::terminal::blockgrid_element::BlockGridElement;
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::model::ObfuscateSecrets;
@@ -110,9 +110,9 @@ pub struct EditorModal {
 
     /// Dropdown to select the separator for the Warp prompt, in the case of
     /// same line prompt. This separator is added at the end of the Warp prompt.
-    warp_prompt_separator_dropdown: ViewHandle<Dropdown<EditorModalAction>>,
+    rift_prompt_separator_dropdown: ViewHandle<Dropdown<EditorModalAction>>,
     /// The separator currently selected for the Warp prompt.
-    warp_prompt_separator: WarpPromptSeparator,
+    rift_prompt_separator: RiftPromptSeparator,
 
     /// True if there was any change while the modal was open.
     is_dirty: bool,
@@ -124,14 +124,14 @@ pub struct EditorModal {
 enum PromptType {
     PS1,
     Warp,
-    WarpDefault,
+    RiftDefault,
 }
 
 impl PromptType {
     fn warp_prompt_from_settings(app: &AppContext) -> PromptType {
         let session_settings = SessionSettings::as_ref(app);
         if matches!(*session_settings.saved_prompt, PromptSelection::Default) {
-            PromptType::WarpDefault
+            PromptType::RiftDefault
         } else {
             PromptType::Warp
         }
@@ -156,7 +156,7 @@ pub enum EditorModalAction {
     UseWarpPrompt,
     ResetWarpPrompt,
     ToggleSameLinePrompt,
-    SetWarpPromptSeparator { separator: WarpPromptSeparator },
+    SetRiftPromptSeparator { separator: RiftPromptSeparator },
 }
 
 impl EditorModal {
@@ -168,40 +168,40 @@ impl EditorModal {
             .value()
             .same_line_prompt_enabled();
 
-        let warp_prompt_separator = match SessionSettings::as_ref(ctx).saved_prompt.value() {
+        let rift_prompt_separator = match SessionSettings::as_ref(ctx).saved_prompt.value() {
             PromptSelection::CustomChipSelection(config) => config.separator(),
             // If the "default Warp prompt" i.e. no context chips, is selected, then default to no Warp prompt separator.
-            _ => WarpPromptSeparator::None,
+            _ => RiftPromptSeparator::None,
         };
-        let warp_prompt_separator_label = warp_prompt_separator.dropdown_item_label().to_owned();
+        let rift_prompt_separator_label = rift_prompt_separator.dropdown_item_label().to_owned();
 
-        let warp_prompt_separator_dropdown = ctx.add_typed_action_view(|ctx| {
+        let rift_prompt_separator_dropdown = ctx.add_typed_action_view(|ctx| {
             let mut dropdown = Dropdown::new(ctx);
             dropdown.set_top_bar_max_width(DROPDOWN_WIDTH);
             dropdown.set_menu_width(DROPDOWN_WIDTH, ctx);
             let items = vec![
                 DropdownItem::new(
-                    WarpPromptSeparator::None.dropdown_item_label(),
-                    EditorModalAction::SetWarpPromptSeparator {
-                        separator: WarpPromptSeparator::None,
+                    RiftPromptSeparator::None.dropdown_item_label(),
+                    EditorModalAction::SetRiftPromptSeparator {
+                        separator: RiftPromptSeparator::None,
                     },
                 ),
                 DropdownItem::new(
-                    WarpPromptSeparator::PercentSign.dropdown_item_label(),
-                    EditorModalAction::SetWarpPromptSeparator {
-                        separator: WarpPromptSeparator::PercentSign,
+                    RiftPromptSeparator::PercentSign.dropdown_item_label(),
+                    EditorModalAction::SetRiftPromptSeparator {
+                        separator: RiftPromptSeparator::PercentSign,
                     },
                 ),
                 DropdownItem::new(
-                    WarpPromptSeparator::DollarSign.dropdown_item_label(),
-                    EditorModalAction::SetWarpPromptSeparator {
-                        separator: WarpPromptSeparator::DollarSign,
+                    RiftPromptSeparator::DollarSign.dropdown_item_label(),
+                    EditorModalAction::SetRiftPromptSeparator {
+                        separator: RiftPromptSeparator::DollarSign,
                     },
                 ),
                 DropdownItem::new(
-                    WarpPromptSeparator::ChevronSymbol.dropdown_item_label(),
-                    EditorModalAction::SetWarpPromptSeparator {
-                        separator: WarpPromptSeparator::ChevronSymbol,
+                    RiftPromptSeparator::ChevronSymbol.dropdown_item_label(),
+                    EditorModalAction::SetRiftPromptSeparator {
+                        separator: RiftPromptSeparator::ChevronSymbol,
                     },
                 ),
             ];
@@ -213,7 +213,7 @@ impl EditorModal {
             }
 
             dropdown.set_items(items, ctx);
-            dropdown.set_selected_by_name(warp_prompt_separator_label, ctx);
+            dropdown.set_selected_by_name(rift_prompt_separator_label, ctx);
             dropdown
         });
 
@@ -225,8 +225,8 @@ impl EditorModal {
             prompt_type,
             chip_runtime_capabilities: Default::default(),
             same_line_prompt_enabled,
-            warp_prompt_separator_dropdown,
-            warp_prompt_separator,
+            rift_prompt_separator_dropdown,
+            rift_prompt_separator,
         }
     }
 
@@ -266,12 +266,12 @@ impl EditorModal {
     fn update_warp_separator_dropdown_state(&mut self, ctx: &mut ViewContext<Self>) {
         // If we are using the Warp prompt and SLP is enabled, then we enable the dropdown. Otherwise, disable it.
         if self.prompt_type != PromptType::PS1 && self.same_line_prompt_enabled {
-            self.warp_prompt_separator_dropdown
+            self.rift_prompt_separator_dropdown
                 .update(ctx, |dropdown, ctx| {
                     dropdown.set_enabled(ctx);
                 });
         } else {
-            self.warp_prompt_separator_dropdown
+            self.rift_prompt_separator_dropdown
                 .update(ctx, |dropdown, ctx| {
                     dropdown.set_disabled(ctx);
                 });
@@ -287,7 +287,7 @@ impl EditorModal {
                         report_if_error!(settings.honor_ps1.set_value(true, ctx));
                     });
                 }
-                PromptType::WarpDefault => {
+                PromptType::RiftDefault => {
                     Prompt::handle(ctx).update(ctx, |prompt, ctx| {
                         report_if_error!(prompt.reset(ctx));
                     });
@@ -316,7 +316,7 @@ impl EditorModal {
                         report_if_error!(prompt.update(
                             new_setup,
                             self.same_line_prompt_enabled,
-                            self.warp_prompt_separator,
+                            self.rift_prompt_separator,
                             ctx
                         ));
                     });
@@ -325,7 +325,7 @@ impl EditorModal {
 
             let _prompt_info = match self.prompt_type {
                 PromptType::PS1 => PromptChoice::PS1,
-                PromptType::WarpDefault => PromptChoice::Default,
+                PromptType::RiftDefault => PromptChoice::Default,
                 PromptType::Warp => PromptChoice::Custom {
                     builtin_chips: self
                         .chip_configurator
@@ -393,11 +393,11 @@ impl TypedActionView for EditorModal {
             }
             Self::Action::ResetWarpPrompt => {
                 self.is_dirty = true;
-                self.prompt_type = PromptType::WarpDefault;
+                self.prompt_type = PromptType::RiftDefault;
 
                 let default_prompt = PromptConfiguration::default_prompt();
                 self.same_line_prompt_enabled = default_prompt.same_line_prompt_enabled();
-                self.warp_prompt_separator = default_prompt.separator();
+                self.rift_prompt_separator = default_prompt.separator();
                 // Disable the Warp separator dropdown, since SLP is off for the default Warp prompt.
                 self.update_warp_separator_dropdown_state(ctx);
                 let restored_chips = default_prompt.chip_kinds();
@@ -415,9 +415,9 @@ impl TypedActionView for EditorModal {
                 self.update_warp_separator_dropdown_state(ctx);
                 ctx.notify();
             }
-            Self::Action::SetWarpPromptSeparator { separator } => {
+            Self::Action::SetRiftPromptSeparator { separator } => {
                 self.is_dirty = true;
-                self.warp_prompt_separator = *separator;
+                self.rift_prompt_separator = *separator;
                 ctx.notify();
             }
         }
@@ -557,7 +557,7 @@ impl EditorModal {
         .on_click(|ctx, _, _| ctx.dispatch_typed_action(EditorModalAction::ResetWarpPrompt))
         .with_cursor(Cursor::PointingHand);
 
-        if matches!(self.prompt_type, PromptType::WarpDefault) && !self.is_dirty {
+        if matches!(self.prompt_type, PromptType::RiftDefault) && !self.is_dirty {
             button.disable().finish()
         } else {
             button.finish()
@@ -620,7 +620,7 @@ impl EditorModal {
                 .finish(),
             )
             .with_child(
-                Container::new(ChildView::new(&self.warp_prompt_separator_dropdown).finish())
+                Container::new(ChildView::new(&self.rift_prompt_separator_dropdown).finish())
                     .with_margin_left(DROPDOWN_LABEL_MARGIN_RIGHT)
                     .finish(),
             )
@@ -661,7 +661,7 @@ impl EditorModal {
 
         self.render_prompt_section(
             appearance,
-            matches!(self.prompt_type, PromptType::Warp | PromptType::WarpDefault),
+            matches!(self.prompt_type, PromptType::Warp | PromptType::RiftDefault),
             header_row,
             None,
             body,

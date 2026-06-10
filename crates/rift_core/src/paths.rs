@@ -32,7 +32,7 @@ pub const RIFT_CONFIG_DIR: &str = ".rift";
 /// This is currently only used on Windows to maintain backwards compatibility.
 pub const RIFT_LOGS_DIR: &str = "logs";
 
-fn base_warp_config_dir_name() -> String {
+fn base_rift_config_dir_name() -> String {
     match ChannelState::channel() {
         // Preview shares the same directory as Stable for backward
         // compatibility — existing users already have config in `.warp`.
@@ -48,7 +48,7 @@ fn base_warp_config_dir_name() -> String {
 /// This preserves the historical `.warp*` directory shape while still isolating dev, local,
 /// integration, oss, and optional development profiles.
 pub fn warp_home_config_dir_name() -> String {
-    let base_dir_name = base_warp_config_dir_name();
+    let base_dir_name = base_rift_config_dir_name();
 
     if let Some(data_profile) = ChannelState::data_profile() {
         format!("{base_dir_name}-{data_profile}")
@@ -66,12 +66,12 @@ pub fn warp_home_config_dir() -> Option<PathBuf> {
     dirs::home_dir().map(|home_dir| home_dir.join(warp_home_config_dir_name()))
 }
 
-pub fn warp_home_skills_dir() -> Option<PathBuf> {
-    warp_home_config_dir().map(|warp_config_dir| warp_config_dir.join("skills"))
+pub fn rift_home_skills_dir() -> Option<PathBuf> {
+    warp_home_config_dir().map(|rift_config_dir| rift_config_dir.join("skills"))
 }
 
 pub fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
-    warp_home_config_dir().map(|warp_config_dir| warp_config_dir.join(".mcp.json"))
+    warp_home_config_dir().map(|rift_config_dir| rift_config_dir.join(".mcp.json"))
 }
 
 /// Returns the macOS config directory name for the current channel.
@@ -241,7 +241,7 @@ fn project_dirs_for_app_id(
             // match our Linux package name.
             let base_app_name = match app_id.application_name() {
                 "Warp" => "Warp-Terminal".to_owned(),
-                "WarpOss" => "Warp-Oss".to_owned(),
+                "Rift" => "Warp-Oss".to_owned(),
                 other if other.starts_with("Warp") => other.replace("Warp", "Warp-Terminal-"),
                 _ => app_id.application_name().to_owned(),
             };

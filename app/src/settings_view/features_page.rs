@@ -99,7 +99,7 @@ use crate::terminal::settings::{
 };
 use crate::terminal::{BlockListSettings, PreserveInputFocusOnBlockSelection, SnackbarEnabled};
 use crate::undo_close::UndoCloseSettings;
-use crate::user_config::{WarpConfig, WarpConfigUpdateEvent};
+use crate::user_config::{RiftConfig, RiftConfigUpdateEvent};
 use crate::util::bindings::{
     keybinding_name_to_display_string, reset_keybinding_to_default, set_custom_keybinding,
 };
@@ -705,7 +705,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         app.register_fixed_bindings([FixedBinding::empty(
             "Make Warp the default terminal",
             builder(SettingsAction::FeaturesPageToggle(
-                FeaturesPageAction::MakeWarpDefaultTerminal,
+                FeaturesPageAction::MakeRiftDefaultTerminal,
             )),
             context.to_owned() & !id!(flags::RIFT_IS_DEFAULT_TERMINAL),
         )]);
@@ -796,7 +796,7 @@ pub enum FeaturesPageAction {
     ToggleShowTerminalInputMessageLine,
     TogglePreserveInputFocusOnBlockSelection,
     ToggleAgentInAppNotifications,
-    MakeWarpDefaultTerminal,
+    MakeRiftDefaultTerminal,
     SetCodeEditorLineNumberMode(CodeEditorLineNumberMode),
 }
 
@@ -1605,7 +1605,7 @@ impl TypedActionView for FeaturesPageView {
                     }
                 }
             }
-            MakeWarpDefaultTerminal => {
+            MakeRiftDefaultTerminal => {
                 DefaultTerminal::handle(ctx).update(ctx, |default_terminal, ctx| {
                     default_terminal.make_warp_default(ctx);
                 });
@@ -1660,7 +1660,7 @@ impl FeaturesPageView {
 
         ctx.subscribe_to_model(&SelectionSettings::handle(ctx), |_, _, _, ctx| ctx.notify());
 
-        // TODO(CORE-3029): Remove when we launch the new SSH Warpification.
+        // TODO(CORE-3029): Remove when we launch the new SSH Riftification.
         ctx.subscribe_to_model(&SshSettings::handle(ctx), |_, _, _, ctx| ctx.notify());
         ctx.subscribe_to_model(&AltScreenReporting::handle(ctx), |_, _, _, ctx| {
             ctx.notify()
@@ -1862,8 +1862,8 @@ impl FeaturesPageView {
         let default_session_mode_dropdown = ctx.add_typed_action_view(FilterableDropdown::new);
         Self::update_default_session_mode_dropdown(default_session_mode_dropdown.clone(), ctx);
 
-        ctx.subscribe_to_model(&WarpConfig::handle(ctx), |me, _, event, ctx| {
-            if matches!(event, WarpConfigUpdateEvent::TabConfigs) {
+        ctx.subscribe_to_model(&RiftConfig::handle(ctx), |me, _, event, ctx| {
+            if matches!(event, RiftConfigUpdateEvent::TabConfigs) {
                 Self::update_default_session_mode_dropdown(
                     me.default_session_mode_dropdown.clone(),
                     ctx,
@@ -3106,7 +3106,7 @@ impl FeaturesPageView {
                     .collect();
 
                 // Append each loaded tab config
-                let tab_configs = WarpConfig::as_ref(ctx).tab_configs().to_vec();
+                let tab_configs = RiftConfig::as_ref(ctx).tab_configs().to_vec();
                 for config in &tab_configs {
                     if let Some(path) = &config.source_path {
                         items.push(DropdownItem::new(
@@ -4524,7 +4524,7 @@ impl SettingsWidget for DefaultTerminalWidget {
                     "Make Warp the default terminal".to_string(),
                     None,
                     Some(Box::new(|ctx| {
-                        ctx.dispatch_typed_action(FeaturesPageAction::MakeWarpDefaultTerminal);
+                        ctx.dispatch_typed_action(FeaturesPageAction::MakeRiftDefaultTerminal);
                     })),
                     self.link_state.clone(),
                 )
@@ -6913,15 +6913,15 @@ impl SettingsWidget for WindowSystemWidget {
         if view.force_x11_changed {
             secondary_text.push_str("\n\nRestart Warp for changes to take effect.");
         }
-        let warp_theme = appearance.theme();
+        let rift_theme = appearance.theme();
         children.add_child(
             appearance
                 .ui_builder()
                 .wrappable_text(secondary_text, true)
                 .with_style(UiComponentStyles {
                     font_color: Some(
-                        warp_theme
-                            .sub_text_color(warp_theme.background())
+                        rift_theme
+                            .sub_text_color(rift_theme.background())
                             .into_solid(),
                     ),
                     ..Default::default()

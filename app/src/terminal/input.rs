@@ -86,7 +86,7 @@ use super::settings::{SpacingMode, TerminalSettings, TerminalSettingsChangedEven
 use super::view::{
     ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
 };
-use super::warpify::SubshellSource;
+use super::riftify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::completer::SessionContext;

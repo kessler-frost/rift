@@ -8,7 +8,7 @@ use riftui::{AppContext, AssetProvider, SingletonEntity};
 #[cfg(feature = "local_fs")]
 use super::{
     model::session::{BootstrapSessionType, SessionInfo},
-    warpify::settings::{PIPENV_SUBSHELL_COMMAND_REGEX, POETRY_SUBSHELL_COMMAND_REGEX},
+    riftify::settings::{PIPENV_SUBSHELL_COMMAND_REGEX, POETRY_SUBSHELL_COMMAND_REGEX},
 };
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::shell::ShellType;
@@ -96,7 +96,7 @@ pub fn should_use_rc_file_bootstrap_method(
                     && shell_type == ShellType::Zsh)
                 || is_msys2
         }
-        BootstrapSessionType::WarpifiedRemote => false,
+        BootstrapSessionType::RiftifiedRemote => false,
     }
 }
 

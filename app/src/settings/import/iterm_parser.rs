@@ -6,7 +6,7 @@ use itertools::Itertools;
 use palette::Srgba;
 use pathfinder_color::ColorU;
 use plist::{Dictionary, Value};
-use rift_core::ui::theme::{AnsiColors, TerminalColors, WarpTheme};
+use rift_core::ui::theme::{AnsiColors, TerminalColors, RiftTheme};
 use riftui::fonts::FontInfo;
 use riftui::keymap::Keystroke;
 use riftui::platform::mac::utils::unicode_char_to_key;
@@ -76,11 +76,11 @@ impl TryFrom<ITermThemeType> for ThemeType {
         let (default_light, default_dark) = default_iterm_themes();
         match theme_type {
             ITermThemeType::LightAndDark { light, dark } => Ok(ThemeType::LightAndDark {
-                light: light.into_warp_theme(" (Light)", &default_light)?,
-                dark: dark.into_warp_theme(" (Dark)", &default_dark)?,
+                light: light.into_rift_theme(" (Light)", &default_light)?,
+                dark: dark.into_rift_theme(" (Dark)", &default_dark)?,
             }),
             ITermThemeType::Single(normal) => Ok(ThemeType::Single(
-                normal.into_warp_theme("", &default_dark)?,
+                normal.into_rift_theme("", &default_dark)?,
             )),
         }
     }
@@ -115,11 +115,11 @@ impl ITermTheme {
         }
     }
 
-    fn into_warp_theme(
+    fn into_rift_theme(
         mut self,
         suffix: &'static str,
         default_theme: &ITermTheme,
-    ) -> Result<WarpTheme, ThemeError> {
+    ) -> Result<RiftTheme, ThemeError> {
         if self.foreground == default_theme.foreground
             || self.background == default_theme.background
         {
@@ -142,7 +142,7 @@ impl ITermTheme {
 
         let accent = calculate_accent_color(background, foreground, cursor, bright);
 
-        Ok(WarpTheme::new(
+        Ok(RiftTheme::new(
             background.into(),
             foreground,
             accent.into(),

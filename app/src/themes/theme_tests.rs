@@ -439,7 +439,7 @@ fn in_memory_theme_generation_test() {
     let mountains_bg_path_string = mountains_bg_path.to_str().unwrap_or_default().to_owned();
     assert_eq!(
         in_memory_theme.theme(),
-        WarpTheme::new(
+        RiftTheme::new(
             // the theme defaults to the 0th bg color
             ColorU::new(35, 31, 44, OPAQUE).into(),
             // this background color makes it a "dark" theme, so the foreground is white
@@ -463,7 +463,7 @@ fn in_memory_theme_generation_test() {
 
     assert_eq!(
         in_memory_theme.theme(),
-        WarpTheme::new(
+        RiftTheme::new(
             // now the background is the 2nd one
             ColorU::new(229, 142, 113, OPAQUE).into(),
             // changing the background color made this a light theme

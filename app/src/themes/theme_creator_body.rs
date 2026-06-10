@@ -7,7 +7,7 @@ use std::{fs::copy, io::Write};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 #[cfg(feature = "local_fs")]
-use rift_core::ui::theme::WarpTheme;
+use rift_core::ui::theme::RiftTheme;
 use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DispatchEventResult,
     EventHandler, Fill, Flex, Icon, MainAxisAlignment, MainAxisSize, MouseStateHandle,
@@ -221,7 +221,7 @@ impl ThemeCreatorBody {
     /// Note: the image option should be (original_theme_image_path, theme_name, image_extension).
     #[cfg(feature = "local_fs")]
     pub fn write_theme<T>(
-        theme: &WarpTheme,
+        theme: &RiftTheme,
         dir: PathBuf,
         theme_yaml_file_name: String,
         image_option: Option<(PathBuf, String, &str)>,

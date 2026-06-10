@@ -121,7 +121,7 @@ pub fn render_welcome_banner(
     for item in FEATURE_ITEMS {
         let icon_el = ConstrainedBox::new(
             item.icon
-                .to_warpui_icon(Fill::Solid(PhenomenonStyle::modal_feature_title_text()))
+                .to_riftui_icon(Fill::Solid(PhenomenonStyle::modal_feature_title_text()))
                 .finish(),
         )
         .with_width(16.)

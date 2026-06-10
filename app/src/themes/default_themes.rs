@@ -5,7 +5,7 @@ use rift_core::ui::color::{coloru_with_opacity, OPAQUE};
 use rift_core::ui::theme::color::CustomDetails;
 use rift_core::ui::theme::{
     AnsiColor, AnsiColors, Details, Fill, HorizontalGradient, Image, TerminalColors,
-    VerticalGradient, WarpTheme,
+    VerticalGradient, RiftTheme,
 };
 
 const DARK_MODE_NORMAL_COLORS: AnsiColors = AnsiColors::new(
@@ -259,8 +259,8 @@ pub(super) fn adeberry_colors() -> TerminalColors {
 }
 
 /// Default bundled themes
-pub fn dark_theme() -> WarpTheme {
-    WarpTheme::new(
+pub fn dark_theme() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x000000FF)),
         ColorU::from_u32(0xffffffff),
         Fill::Solid(ColorU::from_u32(0x19AAD8FF)),
@@ -272,8 +272,8 @@ pub fn dark_theme() -> WarpTheme {
     )
 }
 
-pub fn light_theme() -> WarpTheme {
-    WarpTheme::new(
+pub fn light_theme() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::white()),
         ColorU::new(17, 17, 17, OPAQUE),
         Fill::Solid(ColorU::from_u32(0x00c2ffff)),
@@ -285,8 +285,8 @@ pub fn light_theme() -> WarpTheme {
     )
 }
 
-pub(super) fn dracula() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn dracula() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x282A36FF)),
         ColorU::from_u32(0xF8F8F2FF),
         Fill::Solid(ColorU::from_u32(0xFF79C6FF)),
@@ -298,8 +298,8 @@ pub(super) fn dracula() -> WarpTheme {
     )
 }
 
-pub(super) fn solarized_light() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn solarized_light() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0xFDF6E3FF)),
         ColorU::from_u32(0x586E75FF),
         Fill::Solid(ColorU::from_u32(0x66B5A9FF)),
@@ -311,8 +311,8 @@ pub(super) fn solarized_light() -> WarpTheme {
     )
 }
 
-pub(super) fn solarized_dark() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn solarized_dark() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x002B36FF)),
         ColorU::from_u32(0xF8F8F2FF),
         Fill::Solid(ColorU::from_u32(0xCB4B16FF)),
@@ -324,8 +324,8 @@ pub(super) fn solarized_dark() -> WarpTheme {
     )
 }
 
-pub(super) fn gruvbox_dark() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn gruvbox_dark() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x282828FF)),
         ColorU::from_u32(0xEBDBB2FF),
         Fill::Solid(ColorU::from_u32(0xFC802DFF)),
@@ -337,8 +337,8 @@ pub(super) fn gruvbox_dark() -> WarpTheme {
     )
 }
 
-pub(super) fn gruvbox_light() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn gruvbox_light() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0xFBF1C7FF)),
         ColorU::from_u32(0x3C3836FF),
         Fill::Solid(ColorU::from_u32(0xAD3B14FF)),
@@ -351,8 +351,8 @@ pub(super) fn gruvbox_light() -> WarpTheme {
 }
 
 /// Bundled gradient themes
-pub(super) fn cyber_wave() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn cyber_wave() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::black().blend(&coloru_with_opacity(ColorU::from_u32(0x00C2FFFF), 20)),
             ColorU::black(),
@@ -370,8 +370,8 @@ pub(super) fn cyber_wave() -> WarpTheme {
     )
 }
 
-pub(super) fn willow_dream() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn willow_dream() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::from_u32(0x206169FF),
             ColorU::from_u32(0x022F27FF),
@@ -389,8 +389,8 @@ pub(super) fn willow_dream() -> WarpTheme {
     )
 }
 
-pub(super) fn fancy_dracula() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn fancy_dracula() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::from_u32(0x252630FF),
             ColorU::from_u32(0x3D3F4FFF),
@@ -408,8 +408,8 @@ pub(super) fn fancy_dracula() -> WarpTheme {
     )
 }
 
-pub(super) fn phenomenon() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn phenomenon() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x121212FF)),
         ColorU::from_u32(0xFAF9F6FF),
         Fill::Solid(ColorU::from_u32(0x2E5D9EFF)),
@@ -425,8 +425,8 @@ pub(super) fn phenomenon() -> WarpTheme {
 }
 
 /// Bundled themes with background images
-pub(super) fn jellyfish() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn jellyfish() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x1B1718FF)),
         ColorU::white(),
         Fill::Solid(ColorU::from_u32(0x538682FF)),
@@ -441,8 +441,8 @@ pub(super) fn jellyfish() -> WarpTheme {
     )
 }
 
-pub(super) fn koi() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn koi() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x211719FF)),
         ColorU::white(),
         Fill::Solid(ColorU::from_u32(0xFF3131FF)),
@@ -457,8 +457,8 @@ pub(super) fn koi() -> WarpTheme {
     )
 }
 
-pub(super) fn leafy() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn leafy() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::black()),
         ColorU::white(),
         Fill::Solid(ColorU::from_u32(0x55972DFF)),
@@ -473,8 +473,8 @@ pub(super) fn leafy() -> WarpTheme {
     )
 }
 
-pub(super) fn marble() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn marble() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0xE3E3E3FF)),
         ColorU::black(),
         Fill::Solid(ColorU::from_u32(0x585858FF)),
@@ -489,11 +489,11 @@ pub(super) fn marble() -> WarpTheme {
     )
 }
 
-pub(super) fn pink_city() -> WarpTheme {
+pub(super) fn pink_city() -> RiftTheme {
     let details = CustomDetails {
         ..CustomDetails::lighter_details()
     };
-    WarpTheme::new(
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0xFBEFF6FF)),
         ColorU::black(),
         Fill::Solid(ColorU::from_u32(0xE10087FF)),
@@ -508,8 +508,8 @@ pub(super) fn pink_city() -> WarpTheme {
     )
 }
 
-pub(super) fn snowy() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn snowy() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::from_u32(0xFFFFFFFF),
             ColorU::from_u32(0xDEE6EBFF),
@@ -527,8 +527,8 @@ pub(super) fn snowy() -> WarpTheme {
     )
 }
 
-pub(super) fn red_rock() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn red_rock() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::from_u32(0x211719FF)
                 .blend(&coloru_with_opacity(ColorU::from_u32(0x4C3435FF), 45)),
@@ -548,8 +548,8 @@ pub(super) fn red_rock() -> WarpTheme {
     )
 }
 
-pub(super) fn dark_city() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn dark_city() -> RiftTheme {
+    RiftTheme::new(
         Fill::VerticalGradient(VerticalGradient::new(
             ColorU::from_u32(0x01181FFF)
                 .blend(&coloru_with_opacity(ColorU::from_u32(0x1A363FFF), 45)),
@@ -569,8 +569,8 @@ pub(super) fn dark_city() -> WarpTheme {
     )
 }
 
-pub(super) fn sent_referral_reward() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn sent_referral_reward() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x334567FF)),
         ColorU::white(),
         Fill::Solid(ColorU::from_u32(0xCD51FFFF)),
@@ -585,8 +585,8 @@ pub(super) fn sent_referral_reward() -> WarpTheme {
     )
 }
 
-pub(super) fn solar_flare() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn solar_flare() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x1B1C18FF)),
         ColorU::from_u32(0xDDE6EEFF),
         Fill::Solid(ColorU::from_u32(0x34895CFF)),
@@ -601,8 +601,8 @@ pub(super) fn solar_flare() -> WarpTheme {
     )
 }
 
-pub(super) fn adeberry() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn adeberry() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0x1D2022FF)),
         ColorU::from_u32(0xE4EEF5FF),
         Fill::Solid(ColorU::from_u32(0x6C96B4FF)),
@@ -614,8 +614,8 @@ pub(super) fn adeberry() -> WarpTheme {
     )
 }
 
-pub(super) fn received_referral_reward() -> WarpTheme {
-    WarpTheme::new(
+pub(super) fn received_referral_reward() -> RiftTheme {
+    RiftTheme::new(
         Fill::Solid(ColorU::from_u32(0xFFFFFFFF)),
         ColorU::black(),
         Fill::Solid(ColorU::from_u32(0xCD51FFFF)),

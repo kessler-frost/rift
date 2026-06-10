@@ -1,5 +1,5 @@
 use js_sys::ReferenceError;
-pub use rift_web_event_bus::{emit_event, WarpEvent};
+pub use rift_web_event_bus::{emit_event, RiftEvent};
 use thiserror::Error;
 use wasm_bindgen::{JsCast, JsValue};
 

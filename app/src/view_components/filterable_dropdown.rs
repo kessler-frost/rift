@@ -356,7 +356,7 @@ where
                     TextAndIconAlignment::TextFirst,
                     selected_item_text,
                     icons::Icon::ChevronDown
-                        .to_warpui_icon(appearance.theme().active_ui_text_color()),
+                        .to_riftui_icon(appearance.theme().active_ui_text_color()),
                     self.main_axis_size,
                     MainAxisAlignment::SpaceBetween,
                     vec2f(15., 15.),
@@ -423,7 +423,7 @@ where
 
         let search_icon = ConstrainedBox::new(
             icons::Icon::SearchSmall
-                .to_warpui_icon(appearance.theme().active_ui_text_color())
+                .to_riftui_icon(appearance.theme().active_ui_text_color())
                 .finish(),
         )
         .with_width(12.)

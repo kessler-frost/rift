@@ -228,7 +228,7 @@ pub struct BlockList {
     bootstrap_stage: BootstrapStage,
 
     padding: BlockPadding,
-    warp_prompt_height_lines: f32,
+    rift_prompt_height_lines: f32,
 
     /// Executor used for spawning threads in the background.
     background_executor: Arc<Background>,
@@ -532,7 +532,7 @@ impl BlockList {
     /// the block as the input and consider that one whole block to create,
     /// feed input into, and finish whereas `finalize_block_and_advance_list` will create the _subsequent_
     /// block.
-    /// 3. Create the `BootstrapStage::WarpInput` block through
+    /// 3. Create the `BootstrapStage::RiftInput` block through
     /// `create_warp_input_block`. From here on, there is always a default
     /// block which is hidden while it is empty.
     /// 4. We progress through the bootstrap stages with the `finalize_block_and_advance_list` function.
@@ -570,7 +570,7 @@ impl BlockList {
             smart_select_override: None,
             bootstrap_stage,
             padding: sizes.block_padding,
-            warp_prompt_height_lines: sizes.warp_prompt_height_lines,
+            rift_prompt_height_lines: sizes.rift_prompt_height_lines,
             background_executor,
             show_warp_bootstrap_block: show_warp_bootstrap_input,
             show_in_band_command_blocks,
@@ -631,13 +631,13 @@ impl BlockList {
     fn create_warp_input_block(&mut self) {
         self.create_new_block(
             BlockId::new(),
-            BootstrapStage::WarpInput,
+            BootstrapStage::RiftInput,
             Default::default(),
             None,
         );
         self.start_active_block();
         self.update_active_block_height();
-        self.bootstrap_stage = BootstrapStage::WarpInput;
+        self.bootstrap_stage = BootstrapStage::RiftInput;
     }
 
     pub fn restored_session_ts(&self) -> &Option<DateTime<Local>> {
@@ -2190,7 +2190,7 @@ impl BlockList {
             block_padding: self.padding,
             size: self.size,
             max_block_scroll_limit: self.max_grid_size_limit,
-            warp_prompt_height_lines: self.warp_prompt_height_lines,
+            rift_prompt_height_lines: self.rift_prompt_height_lines,
         }
     }
 
@@ -2727,7 +2727,7 @@ impl BlockList {
         let mut contents = String::new();
         for block in self.blocks.iter() {
             match block.bootstrap_stage() {
-                BootstrapStage::WarpInput | BootstrapStage::ScriptExecution => {
+                BootstrapStage::RiftInput | BootstrapStage::ScriptExecution => {
                     contents.push_str(&block.command_to_string());
                     contents.push('\n');
                 }

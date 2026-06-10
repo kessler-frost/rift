@@ -12,19 +12,19 @@ use super::util::{
     parse_single_theme_dir_entry, parse_tab_config_dir_entry,
 };
 use super::{
-    launch_configs_dir, tab_configs_dir, themes_dir, WarpConfigUpdateEvent,
+    launch_configs_dir, tab_configs_dir, themes_dir, RiftConfigUpdateEvent,
     LAUNCH_CONFIG_COMMENT,
 };
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::WarpThemeConfig;
-use crate::warp_managed_paths_watcher::{
-    repository_update_touches_path, repository_update_touches_prefix, WarpManagedPathsWatcher,
-    WarpManagedPathsWatcherEvent,
+use crate::themes::theme::RiftThemeConfig;
+use crate::rift_managed_paths_watcher::{
+    repository_update_touches_path, repository_update_touches_prefix, RiftManagedPathsWatcher,
+    RiftManagedPathsWatcherEvent,
 };
 
-impl super::WarpConfig {
+impl super::RiftConfig {
     pub fn new(ctx: &mut ModelContext<Self>) -> Self {
         // Load launch configs, and workflows from disk asynchronously on a background
         // thread.
@@ -36,7 +36,7 @@ impl super::WarpConfig {
             async move { load_launch_configs(&launch_configs_dir()) },
             |me, launch_configs, ctx| {
                 me.launch_configs = launch_configs;
-                ctx.emit(WarpConfigUpdateEvent::LaunchConfigs);
+                ctx.emit(RiftConfigUpdateEvent::LaunchConfigs);
             },
         );
         if FeatureFlag::TabConfigs.is_enabled() {
@@ -45,7 +45,7 @@ impl super::WarpConfig {
                 |me, (tab_configs, tab_config_errors), ctx| {
                     me.tab_configs = tab_configs;
                     me.tab_config_errors = tab_config_errors;
-                    ctx.emit(WarpConfigUpdateEvent::TabConfigs);
+                    ctx.emit(RiftConfigUpdateEvent::TabConfigs);
                     // Don't emit TabConfigErrors on startup — the error toast
                     // should only appear when the user saves a config file,
                     // not on app restart.
@@ -53,8 +53,8 @@ impl super::WarpConfig {
             );
         }
         ctx.subscribe_to_model(
-            &WarpManagedPathsWatcher::handle(ctx),
-            Self::handle_warp_managed_paths_event,
+            &RiftManagedPathsWatcher::handle(ctx),
+            Self::handle_rift_managed_paths_event,
         );
 
         Self {
@@ -63,12 +63,12 @@ impl super::WarpConfig {
         }
     }
 
-    fn handle_warp_managed_paths_event(
+    fn handle_rift_managed_paths_event(
         &mut self,
-        event: &WarpManagedPathsWatcherEvent,
+        event: &RiftManagedPathsWatcherEvent,
         ctx: &mut ModelContext<Self>,
     ) {
-        let WarpManagedPathsWatcherEvent::FilesChanged(update) = event;
+        let RiftManagedPathsWatcherEvent::FilesChanged(update) = event;
 
         if update_touches_dir(update, &themes_dir()) {
             let theme_dir = themes_dir();
@@ -76,7 +76,7 @@ impl super::WarpConfig {
                 async move { load_theme_configs(&theme_dir) },
                 |me, theme_config, ctx| {
                     me.theme_config = theme_config;
-                    ctx.emit(WarpConfigUpdateEvent::Themes);
+                    ctx.emit(RiftConfigUpdateEvent::Themes);
                 },
             );
         }
@@ -87,7 +87,7 @@ impl super::WarpConfig {
                 async move { load_launch_configs(&launch_config_dir) },
                 |me, launch_configs, ctx| {
                     me.launch_configs = launch_configs;
-                    ctx.emit(WarpConfigUpdateEvent::LaunchConfigs);
+                    ctx.emit(RiftConfigUpdateEvent::LaunchConfigs);
                 },
             );
         }
@@ -99,9 +99,9 @@ impl super::WarpConfig {
                 |me, (configs, errors), ctx| {
                     me.tab_configs = configs;
                     me.tab_config_errors = errors.clone();
-                    ctx.emit(WarpConfigUpdateEvent::TabConfigs);
+                    ctx.emit(RiftConfigUpdateEvent::TabConfigs);
                     if !errors.is_empty() {
-                        ctx.emit(WarpConfigUpdateEvent::TabConfigErrors(errors));
+                        ctx.emit(RiftConfigUpdateEvent::TabConfigErrors(errors));
                     }
                 },
             );
@@ -110,7 +110,7 @@ impl super::WarpConfig {
         if FeatureFlag::SettingsFile.is_enabled()
             && update_touches_path(update, &crate::settings::user_preferences_toml_file_path())
         {
-            ctx.emit(WarpConfigUpdateEvent::Settings);
+            ctx.emit(RiftConfigUpdateEvent::Settings);
         }
     }
 
@@ -144,8 +144,8 @@ impl super::WarpConfig {
     }
 }
 
-pub fn load_theme_configs(theme_path: &Path) -> WarpThemeConfig {
-    let mut theme_configs = WarpThemeConfig::new();
+pub fn load_theme_configs(theme_path: &Path) -> RiftThemeConfig {
+    let mut theme_configs = RiftThemeConfig::new();
     for_each_dir_entry(theme_path, parse_single_theme_dir_entry)
         .into_iter()
         .for_each(|(theme_name, theme)| theme_configs.add_new_theme(theme_name, theme));

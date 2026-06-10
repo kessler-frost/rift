@@ -10,11 +10,11 @@
 #import "host_view.h"
 #import "window_blur.h"
 
-// NSWindow.delegate is a weak reference, so the WarpWindowDelegate we create in
+// NSWindow.delegate is a weak reference, so the RiftWindowDelegate we create in
 // `create_warp_nswindow` / `create_warp_nspanel` would otherwise be leaked with a +1
 // retain count. Associating it with the window ties its lifetime to the window: the
 // associated object is released by the runtime when the window itself is deallocated.
-static const void *kWarpWindowDelegateAssocKey = &kWarpWindowDelegateAssocKey;
+static const void *kRiftWindowDelegateAssocKey = &kRiftWindowDelegateAssocKey;
 
 NSWindowStyleMask warpWindowMask = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
                                    NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
@@ -54,7 +54,7 @@ dispatch_once_t fullscreenQueueOnce;
 }
 @end
 
-@protocol WarpWindowProtocol
+@protocol RiftWindowProtocol
 
 @property BOOL testMode;
 
@@ -75,7 +75,7 @@ dispatch_once_t fullscreenQueueOnce;
 
 @end
 
-@class WarpWindow;
+@class RiftWindow;
 @class WarpPanel;
 
 // Declaration of functions implemented in Rust.
@@ -114,13 +114,13 @@ NSNumber *previouslyActiveAppPID;
 }
 @end
 
-@interface WarpWindow : NSWindow <WarpWindowProtocol>
+@interface RiftWindow : NSWindow <RiftWindowProtocol>
 @end
 
-@interface WarpWindowDelegate : NSObject <NSWindowDelegate>
+@interface RiftWindowDelegate : NSObject <NSWindowDelegate>
 @end
 
-@implementation WarpWindowDelegate {
+@implementation RiftWindowDelegate {
     void *windowState;
 
     BOOL forceTermination;
@@ -134,8 +134,8 @@ NSNumber *previouslyActiveAppPID;
 }
 
 - (void)windowWillStartLiveResize:(NSNotification *)notification {
-    WarpWindow *warp_window = notification.object;
-    WarpHostView *warp_view = warp_window.contentView;
+    RiftWindow *rift_window = notification.object;
+    RiftHostView *warp_view = rift_window.contentView;
 
     // This is a hack to get around `borrowMut` errors within the UI framework
     // caused by the fact that it incorrectly assumes that callbacks cannot
@@ -151,8 +151,8 @@ NSNumber *previouslyActiveAppPID;
 }
 
 - (void)windowDidEndLiveResize:(NSNotification *)notification {
-    WarpWindow *warp_window = notification.object;
-    WarpHostView *warp_view = warp_window.contentView;
+    RiftWindow *rift_window = notification.object;
+    RiftHostView *warp_view = rift_window.contentView;
 
     // Reset state changed in `windowWillStartLiveResize`.
     [warp_view setAsyncCallback:YES];
@@ -190,7 +190,7 @@ NSNumber *previouslyActiveAppPID;
 }
 
 - (void)windowWillEnterFullScreen:(NSNotification *)notification {
-    NSWindow<WarpWindowProtocol> *window = notification.object;
+    NSWindow<RiftWindowProtocol> *window = notification.object;
     [window applyFullscreenTitlebarHeight];
     // macOS automatically detaches the title bar in fullscreen (see
     // willUseFullScreenPresentationOptions), and shows it along with the mac menu on hover. Since
@@ -199,7 +199,7 @@ NSNumber *previouslyActiveAppPID;
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification {
-    NSWindow<WarpWindowProtocol> *window = notification.object;
+    NSWindow<RiftWindowProtocol> *window = notification.object;
     window.titlebarAppearsTransparent = window.hideTitleBar;
     [window restoreConfiguredTitlebarHeight];
 }
@@ -292,7 +292,7 @@ static NSLayoutConstraint *configure_titlebar_height(NSWindow *window, CGFloat h
 }
 
 // Initializes an NSWindow that conforms to our window protocol.
-void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, bool hideTitleBar) {
+void init_warp_nswindow(NSWindow<RiftWindowProtocol> *window, bool testMode, bool hideTitleBar) {
     window.testMode = testMode;
     window.hideTitleBar = hideTitleBar;
     NSSize minWindowSize = testMode ? TEST_MIN_WINDOW_SIZE : MIN_WINDOW_SIZE;
@@ -316,7 +316,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
     }
 }
 
-@implementation WarpWindow {
+@implementation RiftWindow {
     // The windowState is managed on the Rust side.
     void *windowState;
     // Height constraint for the titlebar view (also indicates if constraints are configured)
@@ -453,7 +453,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
         // keyDownImpl and Rust suppresses the keystroke (composing mode), we return NO, and AppKit
         // proceeds to call keyDown: — running interpretKeyEvents a second time for the same event.
         // See #9709.
-        if ([(WarpHostView *)self.contentView hasMarkedText]) {
+        if ([(RiftHostView *)self.contentView hasMarkedText]) {
             return [super performKeyEquivalent:event];
         }
 
@@ -478,7 +478,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
 
 - (void)closeWindowAsync:(BOOL)forceTermination {
     dispatch_async(dispatch_get_main_queue(), ^{
-      WarpWindowDelegate *delegate = self.delegate;
+      RiftWindowDelegate *delegate = self.delegate;
       if (forceTermination) {
           [delegate setForceTermination];
           // Bypass performClose: (which can be deferred or vetoed by the
@@ -518,7 +518,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
 }
 
 // Note this returns a retained object ("create" rule).
-+ (WarpWindow *)createWithContentRect:(NSRect)contentRect
++ (RiftWindow *)createWithContentRect:(NSRect)contentRect
                           metalDevice:(id)metalDevice
                        hidingTitleBar:(BOOL)hideTitleBar
            backgroundBlurRadiusPixels:(uint8)backgoundBlurRadiusPixels
@@ -529,7 +529,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
         mask |= NSWindowStyleMaskFullSizeContentView;
     }
 
-    WarpWindow *window_result = [[WarpWindow alloc] initWithContentRect:contentRect
+    RiftWindow *window_result = [[RiftWindow alloc] initWithContentRect:contentRect
                                                               styleMask:mask
                                                                 backing:NSBackingStoreBuffered
                                                                   defer:NO];
@@ -542,7 +542,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
 
 // A panel is basically a NSWindow with the exception that it could be displayed
 // above fullscreen apps.
-@interface WarpPanel : NSPanel <WarpWindowProtocol>
+@interface WarpPanel : NSPanel <RiftWindowProtocol>
 @end
 
 @implementation WarpPanel {
@@ -633,7 +633,7 @@ void init_warp_nswindow(NSWindow<WarpWindowProtocol> *window, bool testMode, boo
 
 - (void)closeWindowAsync:(BOOL)forceTermination {
     dispatch_async(dispatch_get_main_queue(), ^{
-      WarpWindowDelegate *delegate = self.delegate;
+      RiftWindowDelegate *delegate = self.delegate;
       [delegate setForceTermination];
       [self close];
     });
@@ -716,17 +716,17 @@ void set_window_background_blur_radius(id window, uint8 blurRadiusPixels) {
     }
 }
 
-// Attaches a WarpWindowDelegate to |window| and ties its lifetime to the window.
+// Attaches a RiftWindowDelegate to |window| and ties its lifetime to the window.
 //
 // NSWindow.delegate is a weak property, so the delegate must be kept alive
 // externally. We do this by associating it with the window via
 // objc_setAssociatedObject, which retains the delegate and releases it when
 // the window is deallocated. The caller's +1 from alloc/init is then balanced
 // by the final [delegate release].
-static void attach_warp_window_delegate(NSWindow *window) {
-    WarpWindowDelegate *delegate = [[WarpWindowDelegate alloc] init];
+static void attach_rift_window_delegate(NSWindow *window) {
+    RiftWindowDelegate *delegate = [[RiftWindowDelegate alloc] init];
     [window setDelegate:delegate];
-    objc_setAssociatedObject(window, kWarpWindowDelegateAssocKey, delegate,
+    objc_setAssociatedObject(window, kRiftWindowDelegateAssocKey, delegate,
                              OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [delegate release];
 }
@@ -748,12 +748,12 @@ id create_warp_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
                               backgroundBlurRadiusPixels:backgroundBlurRadiusPixels
                                             withTestMode:testMode];
 
-    WarpHostView *hostView = [[[WarpHostView alloc] initWithFrame:contentRect
+    RiftHostView *hostView = [[[RiftHostView alloc] initWithFrame:contentRect
                                                       metalDevice:metalDevice
                                                enableTitlebarDrag:NO
                                                          testMode:testMode] autorelease];
 
-    attach_warp_window_delegate(window);
+    attach_rift_window_delegate(window);
 
     window.contentView = hostView;
     [window makeFirstResponder:hostView];
@@ -762,7 +762,7 @@ id create_warp_nspanel(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
     return window;
 }
 
-// \return a new, retained WarpWindow with the given content rect.
+// \return a new, retained RiftWindow with the given content rect.
 id create_warp_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
                         uint8 backgroundBlurRadiusPixels, BOOL testMode) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -773,18 +773,18 @@ id create_warp_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
         });
     }
 
-    WarpWindow *window = [WarpWindow createWithContentRect:contentRect
+    RiftWindow *window = [RiftWindow createWithContentRect:contentRect
                                                metalDevice:metalDevice
                                             hidingTitleBar:hideTitleBar
                                 backgroundBlurRadiusPixels:backgroundBlurRadiusPixels
                                               withTestMode:testMode];
 
-    WarpHostView *hostView = [[[WarpHostView alloc] initWithFrame:contentRect
+    RiftHostView *hostView = [[[RiftHostView alloc] initWithFrame:contentRect
                                                       metalDevice:metalDevice
                                                enableTitlebarDrag:YES
                                                          testMode:testMode] autorelease];
 
-    attach_warp_window_delegate(window);
+    attach_rift_window_delegate(window);
 
     window.contentView = hostView;
     [window makeFirstResponder:hostView];
@@ -793,8 +793,8 @@ id create_warp_nswindow(NSRect contentRect, id metalDevice, BOOL hideTitleBar,
     return window;
 }
 
-BOOL is_warp_window(id window) {
-    return [window isKindOfClass:[WarpWindow class]] || [window isKindOfClass:[WarpPanel class]];
+BOOL is_rift_window(id window) {
+    return [window isKindOfClass:[RiftWindow class]] || [window isKindOfClass:[WarpPanel class]];
 }
 
 // Returns the front-most window in the app's window list, or null if there are
@@ -976,7 +976,7 @@ void activate_app() {
     }
 }
 
-void show_window_and_focus_app(WarpWindow<WarpWindowProtocol> *window, bool bringToFront) {
+void show_window_and_focus_app(RiftWindow<RiftWindowProtocol> *window, bool bringToFront) {
     previouslyActiveAppPID = [PreviousStateHelper storePreviousState];
 
     // Make sure the window is included in the application's window list.  This
@@ -1012,7 +1012,7 @@ void show_window_and_focus_app(WarpWindow<WarpWindowProtocol> *window, bool brin
     }
 }
 
-void hide_window(WarpWindow<WarpWindowProtocol> *window) {
+void hide_window(RiftWindow<RiftWindowProtocol> *window) {
     NSRunningApplication *runningApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
 
     // Don't activate to previous state if:
@@ -1035,7 +1035,7 @@ void hide_window(WarpWindow<WarpWindowProtocol> *window) {
 // cheaper way to visually hide a window (e.g. a tab drag preview) without
 // triggering AppKit's `orderOut:` machinery or the previous-app activation
 // dance.
-void set_window_alpha(WarpWindow<WarpWindowProtocol> *window, double alpha) {
+void set_window_alpha(RiftWindow<RiftWindowProtocol> *window, double alpha) {
     [window setAlphaValue:alpha];
 }
 
@@ -1051,12 +1051,12 @@ void set_window_title(id window, NSString *title) {
 }
 
 void set_titlebar_height(id window, CGFloat height) {
-    if ([window conformsToProtocol:@protocol(WarpWindowProtocol)]) {
-        [(id<WarpWindowProtocol>)window configureTitlebarHeight:height];
+    if ([window conformsToProtocol:@protocol(RiftWindowProtocol)]) {
+        [(id<RiftWindowProtocol>)window configureTitlebarHeight:height];
     }
 }
 
-void position_and_order_front(WarpWindow<WarpWindowProtocol> *window) {
+void position_and_order_front(RiftWindow<RiftWindowProtocol> *window) {
     // Called from Rust to position ourselves and order front.
     // TODO: use NSUserDefaults to remember window locations.
     // We cascade relative to the front-most window.  This will typically be the
@@ -1077,7 +1077,7 @@ void position_and_order_front(WarpWindow<WarpWindowProtocol> *window) {
     [window makeKeyAndOrderFront:nil];
 }
 
-void position_at_given_location(WarpWindow<WarpWindowProtocol> *window, NSPoint origin) {
+void position_at_given_location(RiftWindow<RiftWindowProtocol> *window, NSPoint origin) {
     // Use an explicit top-left point for drag handoff windows. Unlike the cascade helper above,
     // tab transfer needs deterministic placement at a Rust-provided screen position.
     NSPoint topLeft = NSMakePoint(origin.x, origin.y + [window frame].size.height);
@@ -1085,7 +1085,7 @@ void position_at_given_location(WarpWindow<WarpWindowProtocol> *window, NSPoint 
     [window makeKeyAndOrderFront:nil];
 }
 
-void order_front_without_focus(WarpWindow<WarpWindowProtocol> *window, NSPoint origin) {
+void order_front_without_focus(RiftWindow<RiftWindowProtocol> *window, NSPoint origin) {
     [window setFrameOrigin:origin];
     [window orderFront:nil];
 }

@@ -1068,22 +1068,22 @@ impl<'a> TabComponent<'a> {
             Indicator::None => None,
             Indicator::Synced => Some(
                 Icon::LinkHorizontal
-                    .to_warpui_icon(self.styles.synced_input_indicator_color.into())
+                    .to_riftui_icon(self.styles.synced_input_indicator_color.into())
                     .finish(),
             ),
             Indicator::Error => Some(
                 Icon::AlertTriangle
-                    .to_warpui_icon(self.styles.error_color.into())
+                    .to_riftui_icon(self.styles.error_color.into())
                     .finish(),
             ),
             Indicator::Shared => Some(
                 Icon::Sharing
-                    .to_warpui_icon(self.styles.sharing_color.into())
+                    .to_riftui_icon(self.styles.sharing_color.into())
                     .finish(),
             ),
             Indicator::Maximized => Some(
                 Icon::Maximize
-                    .to_warpui_icon(
+                    .to_riftui_icon(
                         self.styles
                             .default
                             .font_color
@@ -1095,7 +1095,7 @@ impl<'a> TabComponent<'a> {
             Indicator::Shell(shell_indicator_type) => Some(
                 shell_indicator_type
                     .to_icon()
-                    .to_warpui_icon(internal_colors::neutral_5(self.appearance.theme()).into())
+                    .to_riftui_icon(internal_colors::neutral_5(self.appearance.theme()).into())
                     .finish(),
             ),
         };
@@ -1223,7 +1223,7 @@ impl<'a> TabComponent<'a> {
             } else {
                 // Fallback to terminal icon if no indicator is present
                 Icon::Terminal
-                    .to_warpui_icon(
+                    .to_riftui_icon(
                         self.styles
                             .default
                             .font_color
@@ -1373,7 +1373,7 @@ impl<'a> TabComponent<'a> {
             Container::new(tab.finish())
                 .with_background_color(
                     self.ui_builder
-                        .warp_theme()
+                        .rift_theme()
                         .background()
                         .into_solid_bias_top_color(),
                 )
@@ -1460,7 +1460,7 @@ impl UiComponent for TabComponent<'_> {
 
                         if let Some(directory) = &tooltip_directory_clone {
                             let folder_icon = Icon::Folder
-                                .to_warpui_icon(ThemeFill::Solid(font_color))
+                                .to_riftui_icon(ThemeFill::Solid(font_color))
                                 .finish();
 
                             let directory_row = Flex::row()
@@ -1493,7 +1493,7 @@ impl UiComponent for TabComponent<'_> {
 
                         if let Some(branch) = &tooltip_git_branch_clone {
                             let branch_icon = Icon::GitBranch
-                                .to_warpui_icon(ThemeFill::Solid(font_color))
+                                .to_riftui_icon(ThemeFill::Solid(font_color))
                                 .finish();
 
                             let branch_row = Flex::row()

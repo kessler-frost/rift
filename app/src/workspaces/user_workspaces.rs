@@ -79,38 +79,6 @@ impl UserWorkspaces {
         &self.joinable_teams
     }
 
-    /// Whether Prompt Suggestions should be toggleable for the current user, based on the active policies.
-    pub fn is_prompt_suggestions_toggleable(&self) -> bool {
-        self.current_team().is_none_or(|team| {
-            team.billing_metadata
-                .tier
-                .warp_ai_policy
-                .is_some_and(|policy| policy.is_prompt_suggestions_toggleable)
-        })
-    }
-
-    /// Whether Next Command should be toggleable for the current user, based on the active policies.
-    pub fn is_next_command_enabled(&self) -> bool {
-        self.current_team().is_none_or(|team| {
-            team.billing_metadata
-                .tier
-                .warp_ai_policy
-                .is_some_and(|policy| policy.is_next_command_enabled)
-        })
-    }
-
-    /// Whether voice input should be toggleable for the current user, based on the active policies.
-    /// If voice input support is not compiled into this build, always returns `false`.
-    pub fn is_voice_enabled(&self) -> bool {
-        false
-            && self.current_team().is_none_or(|team| {
-                team.billing_metadata
-                    .tier
-                    .warp_ai_policy
-                    .is_some_and(|policy| policy.is_voice_enabled)
-            })
-    }
-
     pub fn is_enterprise_secret_redaction_enabled(&self) -> bool {
         self.current_team()
             .map(|team| {

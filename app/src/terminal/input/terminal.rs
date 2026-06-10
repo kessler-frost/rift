@@ -133,9 +133,9 @@ impl Input {
 
 pub mod styles {
     use pathfinder_color::ColorU;
-    use rift_core::ui::theme::WarpTheme;
+    use rift_core::ui::theme::RiftTheme;
 
-    pub fn default_border_color(theme: &WarpTheme) -> ColorU {
+    pub fn default_border_color(theme: &RiftTheme) -> ColorU {
         theme.outline().into()
     }
 }

@@ -24,7 +24,7 @@ use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
 use crate::editor::EditorView;
 use crate::features::FeatureFlag;
 use crate::menu::{MenuItem, MenuItemFields};
-use crate::settings::{InputSettings, WarpPromptSeparator};
+use crate::settings::{InputSettings, RiftPromptSeparator};
 use crate::terminal::event::{BlockType, UserBlockCompleted};
 use crate::terminal::model::block::{Block, BlockMetadata};
 use crate::terminal::model::session::{ExecuteCommandOptions, Session, Sessions, SessionsEvent};
@@ -145,7 +145,7 @@ pub struct CurrentPrompt {
 
     same_line_prompt_enabled: bool,
     /// The separator to use as a trailing character at the end of Warp prompt, if any.
-    separator: WarpPromptSeparator,
+    separator: RiftPromptSeparator,
 
     latest_context: Option<PromptContext>,
     sessions: ModelHandle<Sessions>,
@@ -302,7 +302,7 @@ impl CurrentPrompt {
     }
 
     /// The separator for the current Warp prompt.
-    pub fn separator(&self) -> WarpPromptSeparator {
+    pub fn separator(&self) -> RiftPromptSeparator {
         self.separator
     }
 

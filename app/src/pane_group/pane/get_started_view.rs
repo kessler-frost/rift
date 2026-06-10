@@ -275,7 +275,7 @@ impl GetStartedView {
                             keybinding_name_to_display_string("workspace:new_tab", app)
                                 .unwrap_or_default()
                         ),
-                        ui::Icon::Terminal.to_warpui_icon(theme.foreground()),
+                        ui::Icon::Terminal.to_riftui_icon(theme.foreground()),
                         MainAxisSize::Min,
                         MainAxisAlignment::Center,
                         vec2f(16., 16.),

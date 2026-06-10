@@ -1474,7 +1474,7 @@ impl EditorElement {
             .with_cross_axis_alignment(CrossAxisAlignment::End)
             .with_children([
                 Container::new(
-                    ConstrainedBox::new(Icon::ArrowDown.to_warpui_icon(color).finish())
+                    ConstrainedBox::new(Icon::ArrowDown.to_riftui_icon(color).finish())
                         .with_max_height(icon_height)
                         .with_max_width(icon_height)
                         .finish(),

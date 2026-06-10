@@ -4,7 +4,7 @@ use std::sync::Arc;
 use channel_versions::overrides::TargetOS;
 use parking_lot::RwLock;
 use rift_core::semantic_selection::SemanticSelection;
-use rift_core::ui::theme::WarpTheme;
+use rift_core::ui::theme::RiftTheme;
 use riftui::elements::{
     Border, Container, CrossAxisAlignment, Flex, Icon, MainAxisAlignment, MainAxisSize,
     MouseStateHandle, ParentElement, SelectableArea, SelectionHandle, Text,
@@ -13,8 +13,8 @@ use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use super::render::{HORIZONTAL_TEXT_MARGIN, SSH_DOCS_URL, SUBSHELL_DOCS_URL};
-use super::settings::WarpifySettings;
-use super::{render, subshell_bootstrap_success_block_bytes, WarpificationSource};
+use super::settings::RiftifySettings;
+use super::{render, subshell_bootstrap_success_block_bytes, RiftificationSource};
 use crate::appearance::Appearance;
 use crate::terminal::model::terminal_model::SubshellInitializationInfo;
 use crate::terminal::shell::Shell;
@@ -24,20 +24,20 @@ use crate::ui_components::icons::Icon as UiIcon;
 const VERTICAL_TEXT_MARGIN: f32 = 16.;
 
 #[derive(Debug, Clone)]
-pub enum WarpifySuccessBlockEvent {
-    OpenWarpifySettings,
+pub enum RiftifySuccessBlockEvent {
+    OpenRiftifySettings,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum WarpifySuccessBlockAction {
-    ClearAutoWarpifySnippet,
-    OpenWarpifySettings,
+pub enum RiftifySuccessBlockAction {
+    ClearAutoRiftifySnippet,
+    OpenRiftifySettings,
     OpenUrl(String),
 }
 
-struct AutoWarpifySnippet {
+struct AutoRiftifySnippet {
     /// On subshell initialization, this will contain the output grid to display,
-    /// containing info like how to auto-warpify the subshell.
+    /// containing info like how to auto-riftify the subshell.
     output_grid: Cow<'static, str>,
     /// The output grid needs to be selectable to allow users to copy the command to their clipboard.
     selection_handle: SelectionHandle,
@@ -46,24 +46,24 @@ struct AutoWarpifySnippet {
     description: Cow<'static, str>,
 }
 
-pub struct WarpifySuccessBlock {
-    source: WarpificationSource,
+pub struct RiftifySuccessBlock {
+    source: RiftificationSource,
     spawning_command: String,
     learn_more_link_mouse_states: MouseStateHandle,
-    auto_warpify_snippet: Option<AutoWarpifySnippet>,
+    auto_riftify_snippet: Option<AutoRiftifySnippet>,
 }
 
-impl WarpifySuccessBlock {
+impl RiftifySuccessBlock {
     #[allow(clippy::new_without_default)]
     pub fn new(
-        source: WarpificationSource,
+        source: RiftificationSource,
         spawning_command: String,
         subshell_info: Option<SubshellInitializationInfo>,
         shell: Shell,
         disable_tmux: bool,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        ctx.subscribe_to_model(&WarpifySettings::handle(ctx), move |_, _, _, ctx| {
+        ctx.subscribe_to_model(&RiftifySettings::handle(ctx), move |_, _, _, ctx| {
             ctx.notify();
         });
 
@@ -71,17 +71,17 @@ impl WarpifySuccessBlock {
         // getting the OS to write to the correct RC file.
         let remote_os = TargetOS::Linux;
 
-        let is_auto_warpify_configured = subshell_info
+        let is_auto_riftify_configured = subshell_info
             .as_ref()
             .map(|info| info.was_triggered_by_rc_file_snippet)
             .unwrap_or_default();
 
-        let auto_warpify_snippet = if is_auto_warpify_configured {
+        let auto_riftify_snippet = if is_auto_riftify_configured {
             None
         } else {
             subshell_info.and_then(|subshell_info| {
-                // If warpification wasn't triggered automatically, show a snippet about
-                // how to automatically warpify.
+                // If riftification wasn't triggered automatically, show a snippet about
+                // how to automatically riftify.
                 (!subshell_info.was_triggered_by_rc_file_snippet).then(|| {
                     let (command, is_executable) = subshell_bootstrap_success_block_bytes(
                         &subshell_info,
@@ -104,10 +104,10 @@ impl WarpifySuccessBlock {
                 })
             })
         };
-        let auto_warpify_snippet = auto_warpify_snippet.map(|(output_grid, _can_write_to_rc)| {
-            AutoWarpifySnippet {
+        let auto_riftify_snippet = auto_riftify_snippet.map(|(output_grid, _can_write_to_rc)| {
+            AutoRiftifySnippet {
                 description: (if !output_grid.is_empty() {
-                    "Run the following to automatically Warpify in the future:"
+                    "Run the following to automatically Riftify in the future:"
                 } else {
                     "In remote subshells, Warp runs commands in the background to power completions, syntax highlighting, and other features."
                 }).into(),
@@ -121,19 +121,19 @@ impl WarpifySuccessBlock {
             source,
             learn_more_link_mouse_states: Default::default(),
             spawning_command,
-            auto_warpify_snippet,
+            auto_riftify_snippet,
         }
     }
 
     pub fn selected_text(&self) -> Option<String> {
-        self.auto_warpify_snippet
+        self.auto_riftify_snippet
             .as_ref()
             .and_then(|snippet| snippet.selected_text.read().clone())
     }
 
     pub fn render_spawning_command(
         &self,
-        theme: &WarpTheme,
+        theme: &RiftTheme,
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let spawning_command = self.spawning_command.clone();
@@ -142,9 +142,9 @@ impl WarpifySuccessBlock {
             .finish()
     }
 
-    pub fn render_title_ui(&self, theme: &WarpTheme, appearance: &Appearance) -> Box<dyn Element> {
+    pub fn render_title_ui(&self, theme: &RiftTheme, appearance: &Appearance) -> Box<dyn Element> {
         let header_contents = render::build_header_row(
-            "Session Warpified",
+            "Session Riftified",
             Icon::new(UiIcon::Warp.into(), theme.active_ui_detail()),
             theme,
             appearance,
@@ -173,8 +173,8 @@ impl WarpifySuccessBlock {
 
     fn render_learn_more_link(&self, appearance: &Appearance) -> Box<dyn Element> {
         let url = match self.source {
-            WarpificationSource::Ssh => SSH_DOCS_URL,
-            WarpificationSource::Subshell => SUBSHELL_DOCS_URL,
+            RiftificationSource::Ssh => SSH_DOCS_URL,
+            RiftificationSource::Subshell => SUBSHELL_DOCS_URL,
         };
 
         let font_family_id = appearance.monospace_font_family();
@@ -186,7 +186,7 @@ impl WarpifySuccessBlock {
                 None,
                 Some(Box::new({
                     move |ctx| {
-                        ctx.dispatch_typed_action(WarpifySuccessBlockAction::OpenUrl(
+                        ctx.dispatch_typed_action(RiftifySuccessBlockAction::OpenUrl(
                             url.to_owned(),
                         ));
                     }
@@ -203,13 +203,13 @@ impl WarpifySuccessBlock {
             .finish()
     }
 
-    /// Fired when a block ends and we are not in a Warpified session.
-    pub fn on_warpified_session_complete(&mut self, ctx: &mut ViewContext<Self>) {
-        self.clear_auto_warpify_snippet(ctx);
+    /// Fired when a block ends and we are not in a Riftified session.
+    pub fn on_riftified_session_complete(&mut self, ctx: &mut ViewContext<Self>) {
+        self.clear_auto_riftify_snippet(ctx);
     }
 
-    pub fn clear_auto_warpify_snippet(&mut self, ctx: &mut ViewContext<Self>) {
-        self.auto_warpify_snippet = None;
+    pub fn clear_auto_riftify_snippet(&mut self, ctx: &mut ViewContext<Self>) {
+        self.auto_riftify_snippet = None;
         ctx.notify();
     }
 
@@ -220,15 +220,15 @@ impl WarpifySuccessBlock {
         appearance: &Appearance,
     ) -> Option<Box<dyn Element>> {
         let theme = appearance.theme();
-        let auto_warpify_snippet = self.auto_warpify_snippet.as_ref()?;
+        let auto_riftify_snippet = self.auto_riftify_snippet.as_ref()?;
 
-        if auto_warpify_snippet.output_grid.is_empty() {
+        if auto_riftify_snippet.output_grid.is_empty() {
             return None;
         }
 
         let runnable_command = Container::new(
             Text::new(
-                auto_warpify_snippet.output_grid.to_string(),
+                auto_riftify_snippet.output_grid.to_string(),
                 appearance.monospace_font_family(),
                 appearance.monospace_font_size() - 1.,
             )
@@ -240,14 +240,14 @@ impl WarpifySuccessBlock {
         .finish();
 
         let semantic_selection = SemanticSelection::as_ref(app);
-        let selected_text = auto_warpify_snippet.selected_text.clone();
+        let selected_text = auto_riftify_snippet.selected_text.clone();
 
-        // TODO(Simon): Implement full selection and copying functionality for the WarpifySuccessBlock.
+        // TODO(Simon): Implement full selection and copying functionality for the RiftifySuccessBlock.
         // Look to the `EnvVarCollectionBlock` for the existing implementation paradigm. We don't
         // yet have a robust way of ensuring that every aspect of text selection is implemented
         // properly, so be extra careful not to miss any details!
         let output_grid = SelectableArea::new(
-            auto_warpify_snippet.selection_handle.clone(),
+            auto_riftify_snippet.selection_handle.clone(),
             move |selection_args, _, _| {
                 *selected_text.write() = selection_args.selection;
             },
@@ -261,7 +261,7 @@ impl WarpifySuccessBlock {
             .with_child(
                 Container::new(
                     Text::new(
-                        auto_warpify_snippet.description.clone(),
+                        auto_riftify_snippet.description.clone(),
                         appearance.monospace_font_family(),
                         appearance.monospace_font_size(),
                     )
@@ -283,15 +283,15 @@ impl WarpifySuccessBlock {
     }
 }
 
-impl Entity for WarpifySuccessBlock {
-    type Event = WarpifySuccessBlockEvent;
+impl Entity for RiftifySuccessBlock {
+    type Event = RiftifySuccessBlockEvent;
 }
 
-pub const WARPIFY_SUCCESS_BLOCK_VISIBLE_KEY: &str = "WarpifySuccessBlockVisible";
+pub const RIFTIFY_SUCCESS_BLOCK_VISIBLE_KEY: &str = "RiftifySuccessBlockVisible";
 
-impl View for WarpifySuccessBlock {
+impl View for RiftifySuccessBlock {
     fn ui_name() -> &'static str {
-        "WarpifySuccessBlock"
+        "RiftifySuccessBlock"
     }
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
@@ -316,19 +316,19 @@ impl View for WarpifySuccessBlock {
     }
 }
 
-impl TypedActionView for WarpifySuccessBlock {
-    type Action = WarpifySuccessBlockAction;
+impl TypedActionView for RiftifySuccessBlock {
+    type Action = RiftifySuccessBlockAction;
 
     fn handle_action(&mut self, action: &Self::Action, ctx: &mut ViewContext<Self>) {
         match action {
-            WarpifySuccessBlockAction::OpenWarpifySettings => {
-                ctx.emit(WarpifySuccessBlockEvent::OpenWarpifySettings);
+            RiftifySuccessBlockAction::OpenRiftifySettings => {
+                ctx.emit(RiftifySuccessBlockEvent::OpenRiftifySettings);
             }
-            WarpifySuccessBlockAction::OpenUrl(url) => {
+            RiftifySuccessBlockAction::OpenUrl(url) => {
                 ctx.open_url(url);
             }
-            WarpifySuccessBlockAction::ClearAutoWarpifySnippet => {
-                self.clear_auto_warpify_snippet(ctx);
+            RiftifySuccessBlockAction::ClearAutoRiftifySnippet => {
+                self.clear_auto_riftify_snippet(ctx);
             }
         }
     }

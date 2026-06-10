@@ -115,7 +115,7 @@ pub fn render_callout_bubble(
         .with_child(
             ConstrainedBox::new(
                 border_icon
-                    .to_warpui_icon(Fill::Solid(border_color))
+                    .to_riftui_icon(Fill::Solid(border_color))
                     .finish(),
             )
             .with_width(24.)
@@ -123,7 +123,7 @@ pub fn render_callout_bubble(
             .finish(),
         )
         .with_child(
-            ConstrainedBox::new(fill_icon.to_warpui_icon(background).finish())
+            ConstrainedBox::new(fill_icon.to_riftui_icon(background).finish())
                 .with_width(24.)
                 .with_height(24.)
                 .finish(),

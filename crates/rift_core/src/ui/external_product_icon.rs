@@ -1,4 +1,4 @@
-use riftui_core::elements::Icon as WarpUiIcon;
+use riftui_core::elements::Icon as RiftUiIcon;
 
 use crate::ui::theme::Fill;
 
@@ -36,8 +36,8 @@ impl ExternalProductIcon {
         }
     }
 
-    pub fn to_warpui_icon(&self, color: Fill) -> WarpUiIcon {
+    pub fn to_riftui_icon(&self, color: Fill) -> RiftUiIcon {
         let path = self.get_path();
-        WarpUiIcon::new(path, color.into_solid())
+        RiftUiIcon::new(path, color.into_solid())
     }
 }

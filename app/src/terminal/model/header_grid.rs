@@ -120,7 +120,7 @@ pub struct HeaderGrid {
     /// TODO(CORE-2403): Rename this field to should_populate_prompt_preview_grid.
     ignore_next_prompt_preview: bool,
     /// The height of the Warp prompt in lines (non-PS1).
-    warp_prompt_height_lines: f32,
+    rift_prompt_height_lines: f32,
     // whether to honor users ps1 and rprompt values, can be changed by a user in the settings
     // note that the change will only apply to the active block; historical blocks will keep the
     // previous setting
@@ -167,7 +167,7 @@ impl HeaderGrid {
             prompt_and_command_grid,
             receiving_chars_for_prompt: None,
             ignore_next_prompt_preview: false,
-            warp_prompt_height_lines: sizes.warp_prompt_height_lines,
+            rift_prompt_height_lines: sizes.rift_prompt_height_lines,
             honor_ps1,
             command_started: false,
             command_start_time: None,
@@ -788,7 +788,7 @@ impl HeaderGrid {
         } else if self.honor_ps1 {
             self.prompt_grid.len().into_lines()
         } else {
-            self.warp_prompt_height_lines.into_lines()
+            self.rift_prompt_height_lines.into_lines()
         }
     }
 

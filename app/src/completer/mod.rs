@@ -84,7 +84,7 @@ impl SessionContext {
                     .filter_map(|res| res.and_then(EngineDirEntry::try_from).ok())
                     .collect::<Vec<_>>()
             }
-            SessionType::WarpifiedRemote { .. } => {
+            SessionType::RiftifiedRemote { .. } => {
                 let env_vars = self
                     .session
                     .path()

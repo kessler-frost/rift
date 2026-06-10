@@ -6,7 +6,7 @@ use settings::Setting as _;
 pub use super::ContextChipKind;
 use crate::settings::{
     AISettings, AISettingsChangedEvent, InputSettings, InputSettingsChangedEvent,
-    WarpPromptSeparator,
+    RiftPromptSeparator,
 };
 use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 
@@ -97,7 +97,7 @@ pub struct PromptConfiguration {
     same_line_prompt_enabled: bool,
     /// The separator to use as a trailing character at the end of Warp prompt, if any.
     #[schemars(description = "Trailing separator character for the prompt.")]
-    separator: WarpPromptSeparator,
+    separator: RiftPromptSeparator,
 }
 
 #[derive(
@@ -137,9 +137,9 @@ impl PromptSelection {
         }
     }
 
-    pub fn separator(&self) -> WarpPromptSeparator {
+    pub fn separator(&self) -> RiftPromptSeparator {
         match self {
-            PromptSelection::Default => WarpPromptSeparator::None,
+            PromptSelection::Default => RiftPromptSeparator::None,
             PromptSelection::CustomChipSelection(config) => config.separator(),
         }
     }
@@ -176,7 +176,7 @@ impl Prompt {
         &mut self,
         chips: I,
         same_line_prompt_enabled: bool,
-        separator: WarpPromptSeparator,
+        separator: RiftPromptSeparator,
         ctx: &mut ModelContext<Self>,
     ) -> anyhow::Result<()>
     where
@@ -237,7 +237,7 @@ impl Prompt {
     pub fn mock_with(
         chips: impl IntoIterator<Item = ContextChipKind>,
         same_line_prompt_enabled: bool,
-        separator: WarpPromptSeparator,
+        separator: RiftPromptSeparator,
     ) -> Self {
         Self {
             config: PromptConfiguration::from_chips(chips, same_line_prompt_enabled, separator),
@@ -250,7 +250,7 @@ impl Prompt {
     }
 
     /// The separator to be used for the Warp prompt.
-    pub fn separator(&self) -> WarpPromptSeparator {
+    pub fn separator(&self) -> RiftPromptSeparator {
         self.config.separator
     }
 
@@ -339,13 +339,13 @@ impl PromptConfiguration {
             chips.push(ContextChipKind::GithubPullRequest);
         }
 
-        Self::from_chips(chips, false, WarpPromptSeparator::None)
+        Self::from_chips(chips, false, RiftPromptSeparator::None)
     }
 
     pub fn from_chips(
         chips: impl IntoIterator<Item = ContextChipKind>,
         same_line_prompt_enabled: bool,
-        separator: WarpPromptSeparator,
+        separator: RiftPromptSeparator,
     ) -> Self {
         Self {
             chips: chips
@@ -399,7 +399,7 @@ impl PromptConfiguration {
         self.same_line_prompt_enabled
     }
 
-    pub fn separator(&self) -> WarpPromptSeparator {
+    pub fn separator(&self) -> RiftPromptSeparator {
         self.separator
     }
 

@@ -62,7 +62,7 @@ use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container,
     CornerRadius, CrossAxisAlignment, Dismiss, DispatchEventResult, DraggableState, DropTarget,
     Element, Empty, EventHandler, Expanded, Fill as ElementFill, Flex, Highlight, Hoverable,
-    Icon as WarpUiIcon, Image, MainAxisAlignment, MainAxisSize, MouseInBehavior, MouseStateHandle,
+    Icon as RiftUiIcon, Image, MainAxisAlignment, MainAxisSize, MouseInBehavior, MouseStateHandle,
     OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, PositionedElementAnchor,
     PositionedElementOffsetBounds, Radius, Rect, SavePosition, Shrinkable, Stack, Text,
 };
@@ -223,7 +223,7 @@ use crate::terminal::view::{
     SyncEvent, SyncInputType,
     NOTIFICATIONS_TROUBLESHOOT_URL,
 };
-use crate::terminal::warpify::settings::WarpifySettings;
+use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::{self, BlockListSettings, SizeInfo, TerminalModel, TerminalView};
 use crate::terminal::model::block::SerializedBlockListItem;
 use crate::themes::theme::{AnsiColorIdentifier, RespectSystemTheme, ThemeKind};
@@ -244,7 +244,7 @@ use crate::user_config::{
     find_unused_worktree_config_path, materialize_default_worktree_config, sanitize_toml_base_name,
     tab_configs_dir,
 };
-use crate::user_config::{WarpConfig, WarpConfigUpdateEvent};
+use crate::user_config::{RiftConfig, RiftConfigUpdateEvent};
 use crate::util::bindings::{
     keybinding_name_to_display_string, keybinding_name_to_keystroke,
 };
@@ -1482,8 +1482,8 @@ impl Workspace {
                         );
                     });
                 } else {
-                    WarpConfig::handle(ctx).update(ctx, |warp_config, ctx| {
-                        warp_config.remove_tab_config_by_path(path, ctx);
+                    RiftConfig::handle(ctx).update(ctx, |rift_config, ctx| {
+                        rift_config.remove_tab_config_by_path(path, ctx);
                     });
                 }
                 self.current_workspace_state
@@ -1726,7 +1726,7 @@ impl Workspace {
             |hover_state| {
                 let icon = ConstrainedBox::new(
                     icons::Icon::X
-                        .to_warpui_icon(Fill::Solid(PhenomenonStyle::modal_close_button_text()))
+                        .to_riftui_icon(Fill::Solid(PhenomenonStyle::modal_close_button_text()))
                         .finish(),
                 )
                 .with_width(16.)
@@ -1822,7 +1822,7 @@ impl Workspace {
         );
     }
 
-    /// Subscribes to `WarpConfigUpdateEvent::TabConfigErrors` and shows a persistent
+    /// Subscribes to `RiftConfigUpdateEvent::TabConfigErrors` and shows a persistent
     /// error toast for each tab config file that failed to parse.  Uses `object_id`
     /// keyed by file path so that re-saving the same file auto-dismisses the stale
     /// toast.
@@ -1830,9 +1830,9 @@ impl Workspace {
         toast_stack: ViewHandle<DismissibleToastStack<WorkspaceAction>>,
         ctx: &mut ViewContext<Self>,
     ) {
-        ctx.subscribe_to_model(&WarpConfig::handle(ctx), move |_me, _, event, ctx| {
+        ctx.subscribe_to_model(&RiftConfig::handle(ctx), move |_me, _, event, ctx| {
             match event {
-                WarpConfigUpdateEvent::TabConfigs => {
+                RiftConfigUpdateEvent::TabConfigs => {
                     // On every tab config reload, dismiss error toasts for
                     // files that now parse successfully.  The model has already
                     // been updated with the current error set before this event
@@ -1847,7 +1847,7 @@ impl Workspace {
                         toast_stack.dismiss_toasts_by_prefix("tab_config_error:", ctx);
                     });
                 }
-                WarpConfigUpdateEvent::TabConfigErrors(errors) => {
+                RiftConfigUpdateEvent::TabConfigErrors(errors) => {
                     let home_dir = dirs::home_dir();
                     for error in errors {
                         let object_id = format!("tab_config_error:{}", error.file_path.display());
@@ -1881,17 +1881,17 @@ impl Workspace {
         });
     }
 
-    /// Subscribes to `WarpConfigUpdateEvent::SettingsErrors` and
+    /// Subscribes to `RiftConfigUpdateEvent::SettingsErrors` and
     /// `SettingsErrorsCleared` to update the workspace settings-error banner
     /// and mirror the state into the settings pane for its nav-rail footer.
     fn subscribe_to_settings_errors(ctx: &mut ViewContext<Self>) {
-        ctx.subscribe_to_model(&WarpConfig::handle(ctx), |me, _, event, ctx| match event {
-            WarpConfigUpdateEvent::SettingsErrors(error) => {
+        ctx.subscribe_to_model(&RiftConfig::handle(ctx), |me, _, event, ctx| match event {
+            RiftConfigUpdateEvent::SettingsErrors(error) => {
                 me.settings_file_error = Some(error.clone());
                 me.sync_settings_error_state_into_settings_pane(ctx);
                 ctx.notify();
             }
-            WarpConfigUpdateEvent::SettingsErrorsCleared => {
+            RiftConfigUpdateEvent::SettingsErrorsCleared => {
                 me.settings_file_error = None;
                 me.sync_settings_error_state_into_settings_pane(ctx);
                 ctx.notify();
@@ -3940,7 +3940,7 @@ impl Workspace {
 
         // 4. User tab configs
         if FeatureFlag::TabConfigs.is_enabled() {
-            let tab_configs = WarpConfig::as_ref(ctx).tab_configs().to_vec();
+            let tab_configs = RiftConfig::as_ref(ctx).tab_configs().to_vec();
 
             // Count occurrences of each config name so we can disambiguate
             // duplicates in the menu (e.g. "My Tab Config", "My Tab Config (1)").
@@ -5705,7 +5705,7 @@ impl Workspace {
                 let theme = appearance.theme();
                 let search_icon = ConstrainedBox::new(
                     icons::Icon::SearchSmall
-                        .to_warpui_icon(theme.sub_text_color(theme.surface_2()))
+                        .to_riftui_icon(theme.sub_text_color(theme.surface_2()))
                         .finish(),
                 )
                 .with_width(16.)
@@ -6051,8 +6051,8 @@ impl Workspace {
                 ctx.notify();
             }
             LaunchConfigModalEvent::SuccessfullySavedConfig(launch_config) => {
-                ctx.update_model(&WarpConfig::handle(ctx), move |warp_config, ctx| {
-                    warp_config.append_launch_config(launch_config, ctx);
+                ctx.update_model(&RiftConfig::handle(ctx), move |rift_config, ctx| {
+                    rift_config.append_launch_config(launch_config, ctx);
                 });
                 ctx.notify();
             }
@@ -8464,7 +8464,7 @@ impl Workspace {
     }
 
     /// Insert the given command that should open a subshell. And set a flag that we should
-    /// automatically bootstrap AKA "warpify" that subshell if we support it. No-op if there is
+    /// automatically bootstrap AKA "riftify" that subshell if we support it. No-op if there is
     /// no active terminal session.
     pub fn insert_subshell_command_and_bootstrap_if_supported(
         &mut self,
@@ -9411,7 +9411,7 @@ impl Workspace {
         };
 
         // Build the button content: Diff icon + optional diff stats
-        let icon = ConstrainedBox::new(icons::Icon::Diff.to_warpui_icon(font_color).finish())
+        let icon = ConstrainedBox::new(icons::Icon::Diff.to_riftui_icon(font_color).finish())
             .with_width(16.)
             .with_height(16.)
             .finish();
@@ -9598,7 +9598,7 @@ impl Workspace {
                     .with_spacing(10.)
                     .with_child(
                         ConstrainedBox::new(
-                            icons::Icon::Search.to_warpui_icon(text_color).finish(),
+                            icons::Icon::Search.to_riftui_icon(text_color).finish(),
                         )
                         .with_width(16.)
                         .with_height(16.)
@@ -9674,7 +9674,7 @@ impl Workspace {
             let warp_logo = Hoverable::new(self.mouse_states.warp_logo.clone(), |_state| {
                 ConstrainedBox::new(
                     rift_core::ui::Icon::Warp
-                        .to_warpui_icon(appearance.theme().foreground())
+                        .to_riftui_icon(appearance.theme().foreground())
                         .finish(),
                 )
                 .with_height(24.)
@@ -10096,7 +10096,7 @@ impl Workspace {
             );
         } else {
             let resource_center_closed = !self.current_workspace_state.is_resource_center_open;
-            if resource_center_closed && ContextFlag::WarpEssentials.is_enabled() {
+            if resource_center_closed && ContextFlag::RiftEssentials.is_enabled() {
                 target.add_child(
                     Container::new(self.render_resource_center_button(appearance, ctx))
                         .with_margin_left(TAB_BAR_PADDING_LEFT)
@@ -10494,7 +10494,7 @@ impl Workspace {
             const INDICATOR_DIAMETER: f32 = 6.;
             let indicator = Container::new(
                 ConstrainedBox::new(
-                    WarpUiIcon::new(ELLIPSE_SVG_PATH, appearance.theme().accent()).finish(),
+                    RiftUiIcon::new(ELLIPSE_SVG_PATH, appearance.theme().accent()).finish(),
                 )
                 .with_height(INDICATOR_DIAMETER)
                 .with_width(INDICATOR_DIAMETER)
@@ -10624,7 +10624,7 @@ impl Workspace {
         let icon = ConstrainedBox::new(
             Container::new(
                 icons::Icon::CloudOffline
-                    .to_warpui_icon(appearance.theme().foreground())
+                    .to_riftui_icon(appearance.theme().foreground())
                     .finish(),
             )
             .with_uniform_padding(3.)
@@ -10932,7 +10932,7 @@ impl Workspace {
 
         // Left side: alert icon + bold heading + regular description, all inline.
         let icon =
-            ConstrainedBox::new(Icon::AlertCircle.to_warpui_icon(text_color.into()).finish())
+            ConstrainedBox::new(Icon::AlertCircle.to_riftui_icon(text_color.into()).finish())
                 .with_width(16.)
                 .with_height(16.)
                 .finish();
@@ -11033,7 +11033,7 @@ impl Workspace {
                                     // `x-close.svg`), matching the Figma
                                     // design. `Icon::XCircle` wraps the x in
                                     // a circle which is not what we want.
-                                    Icon::X.to_warpui_icon(text_color.into()).finish(),
+                                    Icon::X.to_riftui_icon(text_color.into()).finish(),
                                 )
                                 .with_width(16.)
                                 .with_height(16.)
@@ -11096,7 +11096,7 @@ impl Workspace {
             if let Some(icon) = icon {
                 row.add_child(
                     Container::new(
-                        ConstrainedBox::new(icon.to_warpui_icon(text_color.into()).finish())
+                        ConstrainedBox::new(icon.to_riftui_icon(text_color.into()).finish())
                             .with_width(14.)
                             .with_height(14.)
                             .finish(),
@@ -11486,7 +11486,7 @@ impl Workspace {
         let general_settings = GeneralSettings::as_ref(app);
         let theme_settings = ThemeSettings::as_ref(app);
         let ssh_settings = SshSettings::as_ref(app);
-        let warpify_settings = WarpifySettings::as_ref(app);
+        let riftify_settings = RiftifySettings::as_ref(app);
         let terminal_settings = TerminalSettings::as_ref(app);
         let window_settings = WindowSettings::as_ref(app);
         let pane_settings = PaneSettings::as_ref(app);
@@ -11536,11 +11536,11 @@ impl Workspace {
             #[allow(deprecated)]
             context.set.insert(flags::LEGACY_SSH_WRAPPER_CONTEXT_FLAG);
         }
-        if *warpify_settings.enable_ssh_warpification.value() {
+        if *riftify_settings.enable_ssh_riftification.value() {
             context.set.insert(flags::SSH_WARPIFICATION_CONTEXT_FLAG);
         }
 
-        if *warpify_settings.use_ssh_tmux_wrapper.value() {
+        if *riftify_settings.use_ssh_tmux_wrapper.value() {
             context.set.insert(flags::SSH_TMUX_WRAPPER_CONTEXT_FLAG);
         }
 
@@ -12935,11 +12935,6 @@ impl View for Workspace {
 
         if AISettings::as_ref(app).is_active_ai_enabled(app) {
             context.set.insert(flags::IS_ACTIVE_AI_ENABLED);
-        }
-        if AISettings::as_ref(app).is_voice_input_enabled(app)
-            && UserWorkspaces::as_ref(app).is_voice_enabled()
-        {
-            context.set.insert(flags::IS_VOICE_INPUT_ENABLED);
         }
 
         if self

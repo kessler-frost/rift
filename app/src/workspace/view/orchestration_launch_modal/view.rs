@@ -306,7 +306,7 @@ impl OrchestrationLaunchModal {
     fn render_feature_row(&self, item: &FeatureItem, appearance: &Appearance) -> Box<dyn Element> {
         let icon_el = ConstrainedBox::new(
             item.icon
-                .to_warpui_icon(Fill::Solid(modal_text_sub(appearance)))
+                .to_riftui_icon(Fill::Solid(modal_text_sub(appearance)))
                 .finish(),
         )
         .with_width(16.)

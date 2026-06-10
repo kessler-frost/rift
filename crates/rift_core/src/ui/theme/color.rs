@@ -11,7 +11,7 @@ use self::internal_colors::{
     accent_overlay_2, fg_overlay_1, fg_overlay_2, fg_overlay_3, neutral_1, neutral_2, neutral_3,
     neutral_4,
 };
-use super::{AnsiColor, AnsiColorIdentifier, Fill, TerminalColors, WarpTheme};
+use super::{AnsiColor, AnsiColorIdentifier, Fill, TerminalColors, RiftTheme};
 use crate::ui::color::blend::Blend;
 use crate::ui::color::contrast::{pick_best_foreground_color, MinimumAllowedContrast};
 use crate::ui::color::Opacity;
@@ -85,7 +85,7 @@ impl Default for CustomDetails {
 }
 
 // Core colors
-impl WarpTheme {
+impl RiftTheme {
     pub fn accent(&self) -> Fill {
         self.accent
     }
@@ -222,7 +222,7 @@ impl WarpTheme {
 }
 
 // Feature-specific theme colors
-impl WarpTheme {
+impl RiftTheme {
     pub fn foreground_button_color(&self) -> Fill {
         let details = self.details();
         self.background.blend(
@@ -359,7 +359,7 @@ impl WarpTheme {
 }
 
 // ANSI color blends
-impl WarpTheme {
+impl RiftTheme {
     pub fn ansi_bg(&self, ansi_color: AnsiColor) -> ColorU {
         let ansi_fill = Fill::from(ansi_color);
         self.background()
@@ -424,181 +424,181 @@ impl WarpTheme {
 }
 
 /// Internal color system tokens, defined in "Colors" [Figma project](https://www.figma.com/design/dnvTdLbfFaosFSP00F30S0/Colors).
-/// Should not be used directly outside of reusable components. Use color methods on `WarpTheme` instead.
+/// Should not be used directly outside of reusable components. Use color methods on `RiftTheme` instead.
 pub mod internal_colors {
     use riftui_core::color::ColorU;
 
-    use super::{Fill, WarpTheme};
+    use super::{Fill, RiftTheme};
     use crate::ui::color::blend::Blend;
     use crate::ui::color::coloru_with_opacity;
 
     /// Calculates the font color based on contrast needs for text legibility.
-    /// The font color is a mixture of the `warp_theme`'s background and foreground
+    /// The font color is a mixture of the `rift_theme`'s background and foreground
     /// colors, and the supplied `background` color.
-    fn font_color(warp_theme: &WarpTheme, background: impl Into<ColorU>) -> ColorU {
-        warp_theme.font_color(background).into_solid()
+    fn font_color(rift_theme: &RiftTheme, background: impl Into<ColorU>) -> ColorU {
+        rift_theme.font_color(background).into_solid()
     }
 
     /// Used for UI elements like buttons to which we want to call attention.
     /// Allows gradients so shouldn't be used for small elements.
-    pub fn accent(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.accent()
+    pub fn accent(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.accent()
     }
 
     /// Hover state for UI elements like buttons to which we want to call attention.
     /// Allows gradients so shouldn't be used for small elements.
-    pub fn accent_hover(warp_theme: &WarpTheme) -> Fill {
-        warp_theme
+    pub fn accent_hover(rift_theme: &RiftTheme) -> Fill {
+        rift_theme
             .accent()
-            .blend(&warp_theme.foreground().with_opacity(40))
+            .blend(&rift_theme.foreground().with_opacity(40))
     }
 
     /// Pressed state for UI elements like buttons
     /// to which we want to call attention.
     /// Allows gradients so shouldn't be used for small elements.
     #[allow(dead_code)]
-    pub fn accent_pressed(warp_theme: &WarpTheme) -> Fill {
-        warp_theme
+    pub fn accent_pressed(rift_theme: &RiftTheme) -> Fill {
+        rift_theme
             .accent()
-            .blend(&warp_theme.background().with_opacity(30))
+            .blend(&rift_theme.background().with_opacity(30))
     }
 
     /// The color of most text throughout the UI.
-    pub fn text_main(warp_theme: &WarpTheme, background: impl Into<ColorU>) -> ColorU {
-        coloru_with_opacity(font_color(warp_theme, background), 90)
+    pub fn text_main(rift_theme: &RiftTheme, background: impl Into<ColorU>) -> ColorU {
+        coloru_with_opacity(font_color(rift_theme, background), 90)
     }
 
     /// The color of subheaders and similar lower priority text.
-    pub fn text_sub(warp_theme: &WarpTheme, background: impl Into<ColorU>) -> ColorU {
-        coloru_with_opacity(font_color(warp_theme, background), 60)
+    pub fn text_sub(rift_theme: &RiftTheme, background: impl Into<ColorU>) -> ColorU {
+        coloru_with_opacity(font_color(rift_theme, background), 60)
     }
 
     /// The color of text elements that are disabled or the lowest priority.
-    pub fn text_disabled(warp_theme: &WarpTheme, background: impl Into<ColorU>) -> ColorU {
-        coloru_with_opacity(font_color(warp_theme, background), 40)
+    pub fn text_disabled(rift_theme: &RiftTheme, background: impl Into<ColorU>) -> ColorU {
+        coloru_with_opacity(font_color(rift_theme, background), 40)
     }
 
     // TODO (roland): evaluate whether text_disabled above is intentionally different or if it should be consolidated with this
     // which matches figma mocks.
-    pub fn semantic_text_disabled(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn semantic_text_disabled(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&fg_overlay_5(warp_theme))
+            .blend(&fg_overlay_5(rift_theme))
             .into()
     }
 
-    pub fn neutral_1(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_1(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(5))
+            .blend(&rift_theme.foreground().with_opacity(5))
             .into_solid()
     }
 
-    pub fn neutral_2(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_2(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(10))
+            .blend(&rift_theme.foreground().with_opacity(10))
             .into_solid()
     }
 
-    pub fn neutral_3(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_3(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(15))
+            .blend(&rift_theme.foreground().with_opacity(15))
             .into_solid()
     }
 
-    pub fn neutral_4(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_4(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(20))
+            .blend(&rift_theme.foreground().with_opacity(20))
             .into_solid()
     }
 
-    pub fn neutral_5(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_5(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(40))
+            .blend(&rift_theme.foreground().with_opacity(40))
             .into_solid()
     }
 
-    pub fn neutral_6(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_6(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(60))
+            .blend(&rift_theme.foreground().with_opacity(60))
             .into_solid()
     }
 
-    pub fn neutral_7(warp_theme: &WarpTheme) -> ColorU {
-        warp_theme
+    pub fn neutral_7(rift_theme: &RiftTheme) -> ColorU {
+        rift_theme
             .background()
-            .blend(&warp_theme.foreground().with_opacity(90))
+            .blend(&rift_theme.foreground().with_opacity(90))
             .into_solid()
     }
 
-    pub fn fg_overlay_1(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(5)
+    pub fn fg_overlay_1(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(5)
     }
 
-    pub fn fg_overlay_2(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(10)
+    pub fn fg_overlay_2(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(10)
     }
 
-    pub fn fg_overlay_3(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(15)
+    pub fn fg_overlay_3(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(15)
     }
 
-    pub fn fg_overlay_4(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(20)
+    pub fn fg_overlay_4(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(20)
     }
 
-    pub fn fg_overlay_5(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(40)
+    pub fn fg_overlay_5(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(40)
     }
 
-    pub fn fg_overlay_6(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(60)
+    pub fn fg_overlay_6(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(60)
     }
 
-    pub fn fg_overlay_7(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.foreground().with_opacity(90)
+    pub fn fg_overlay_7(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.foreground().with_opacity(90)
     }
 
-    pub fn accent_bg_strong(warp_theme: &WarpTheme) -> Fill {
-        Fill::Solid(warp_theme.background().into_solid())
-            .blend(&warp_theme.accent().with_opacity(60))
+    pub fn accent_bg_strong(rift_theme: &RiftTheme) -> Fill {
+        Fill::Solid(rift_theme.background().into_solid())
+            .blend(&rift_theme.accent().with_opacity(60))
     }
 
-    pub fn accent_bg(warp_theme: &WarpTheme) -> Fill {
-        Fill::Solid(warp_theme.background().into_solid())
-            .blend(&warp_theme.accent().with_opacity(40))
+    pub fn accent_bg(rift_theme: &RiftTheme) -> Fill {
+        Fill::Solid(rift_theme.background().into_solid())
+            .blend(&rift_theme.accent().with_opacity(40))
     }
 
-    pub fn accent_fg_strong(warp_theme: &WarpTheme) -> Fill {
-        warp_theme
+    pub fn accent_fg_strong(rift_theme: &RiftTheme) -> Fill {
+        rift_theme
             .foreground()
-            .blend(&warp_theme.accent().with_opacity(60))
+            .blend(&rift_theme.accent().with_opacity(60))
     }
 
-    pub fn accent_fg(warp_theme: &WarpTheme) -> Fill {
-        warp_theme
+    pub fn accent_fg(rift_theme: &RiftTheme) -> Fill {
+        rift_theme
             .foreground()
-            .blend(&warp_theme.accent().with_opacity(40))
+            .blend(&rift_theme.accent().with_opacity(40))
     }
 
-    pub fn accent_overlay_1(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.accent().with_opacity(10)
+    pub fn accent_overlay_1(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.accent().with_opacity(10)
     }
 
-    pub fn accent_overlay_2(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.accent().with_opacity(25)
+    pub fn accent_overlay_2(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.accent().with_opacity(25)
     }
 
-    pub fn accent_overlay_3(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.accent().with_opacity(40)
+    pub fn accent_overlay_3(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.accent().with_opacity(40)
     }
 
-    pub fn accent_overlay_4(warp_theme: &WarpTheme) -> Fill {
-        warp_theme.accent().with_opacity(60)
+    pub fn accent_overlay_4(rift_theme: &RiftTheme) -> Fill {
+        rift_theme.accent().with_opacity(60)
     }
 }

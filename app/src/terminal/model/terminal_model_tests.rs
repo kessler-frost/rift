@@ -120,7 +120,7 @@ pub fn test_restored_empty_command_block() {
         !restored_block.is_command_empty(),
         "The empty block should have nonzero length"
     );
-    // The mocked terminal model comes with a WarpInput block and the active block.
+    // The mocked terminal model comes with a RiftInput block and the active block.
     assert_eq!(model.block_list().blocks().len(), 3);
 }
 
@@ -133,7 +133,7 @@ fn test_restored_blocks_on_different_host() {
         SerializedBlock {
             id: BlockId::new(),
             stylized_command: str_to_byte_vec("echo $TERM_PROGRAM"),
-            stylized_output: str_to_byte_vec("WarpTerminal"),
+            stylized_output: str_to_byte_vec("RiftTerminal"),
             pwd: Some("/".to_owned()),
             git_head: None,
             git_branch_name: None,
@@ -272,7 +272,7 @@ fn test_restored_blocks_on_different_host() {
         .into(),
     ];
     let model = TerminalModel::mock(Some(&restored_blocks), None);
-    // The mocked terminal model comes with a WarpInput block and the active block.
+    // The mocked terminal model comes with a RiftInput block and the active block.
     assert_eq!(model.block_list().blocks().len(), restored_blocks.len() + 2);
     for restored_block in model
         .block_list()
@@ -287,7 +287,7 @@ fn test_restored_blocks_on_different_host() {
     }
     let blocks = model.block_list().blocks();
     assert_eq!(blocks[0].command_to_string(), "echo $TERM_PROGRAM",);
-    assert_eq!(blocks[0].output_to_string(), "WarpTerminal",);
+    assert_eq!(blocks[0].output_to_string(), "RiftTerminal",);
     assert_eq!(blocks[1].command_to_string(), "pwd",);
     assert_eq!(blocks[1].output_to_string(), "/",);
     assert_eq!(blocks[2].command_to_string(), "uname",);

@@ -582,7 +582,7 @@ impl TerminalColors {
 }
 
 #[derive(Serialize, Clone, Debug, Deserialize, PartialEq, Eq)]
-pub struct WarpTheme {
+pub struct RiftTheme {
     background: Fill,
     accent: Fill,
     #[serde(with = "hex_color")]
@@ -600,7 +600,7 @@ pub struct WarpTheme {
     name: Option<String>,
 }
 
-impl WarpTheme {
+impl RiftTheme {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         bg: Fill,
@@ -612,7 +612,7 @@ impl WarpTheme {
         background_image: Option<Image>,
         name: Option<String>,
     ) -> Self {
-        WarpTheme {
+        RiftTheme {
             background: bg,
             foreground,
             accent,

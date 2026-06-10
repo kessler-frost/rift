@@ -26,7 +26,7 @@ use crate::terminal::keys_settings::KeysSettings;
 use crate::terminal::session_settings::SessionSettings;
 use crate::themes::theme::{CustomTheme, SelectedSystemThemes, ThemeKind};
 use crate::ui_components::blended_colors;
-use crate::user_config::{self, WarpConfig};
+use crate::user_config::{self, RiftConfig};
 use crate::window_settings::WindowSettings;
 use crate::{
     report_if_error, send_telemetry_from_ctx, GlobalResourceHandlesProvider,
@@ -765,10 +765,10 @@ impl SettingsImportView {
                     ));
                     report_if_error!(theme_settings.use_system_theme.set_value(true, ctx));
                 });
-                WarpConfig::handle(ctx).update(ctx, |config, ctx| {
+                RiftConfig::handle(ctx).update(ctx, |config, ctx| {
                     config.add_new_theme_to_config(dark_kind, dark, ctx)
                 });
-                WarpConfig::handle(ctx).update(ctx, |config, ctx| {
+                RiftConfig::handle(ctx).update(ctx, |config, ctx| {
                     config.add_new_theme_to_config(light_kind, light, ctx)
                 });
             }
@@ -785,7 +785,7 @@ impl SettingsImportView {
                         .set_value(theme_kind.clone(), ctx,));
                     report_if_error!(theme_settings.use_system_theme.set_value(false, ctx));
                 });
-                WarpConfig::handle(ctx).update(ctx, |config, ctx| {
+                RiftConfig::handle(ctx).update(ctx, |config, ctx| {
                     config.add_new_theme_to_config(theme_kind, theme, ctx)
                 });
             }

@@ -123,7 +123,7 @@ impl View for TerminalViewZeroStateBlock {
                 Container::new(
                     ConstrainedBox::new(
                         Icon::Warp
-                            .to_warpui_icon(theme.main_text_color(theme.background()))
+                            .to_riftui_icon(theme.main_text_color(theme.background()))
                             .finish(),
                     )
                     .with_height(title_font_size)

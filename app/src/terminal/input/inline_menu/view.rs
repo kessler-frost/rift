@@ -828,7 +828,7 @@ impl<A: InlineMenuAction, T: 'static + Send + Sync> InlineMenuView<A, T> {
         let drag_indicator = Hoverable::new(self.drag_indicator_mouse_state.clone(), |_| {
             ConstrainedBox::new(
                 Icon::DragIndicator
-                    .to_warpui_icon(Fill::Solid(
+                    .to_riftui_icon(Fill::Solid(
                         theme.disabled_text_color(header_bg.into()).into_solid(),
                     ))
                     .finish(),

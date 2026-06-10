@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::builder::UiBuilder;
 use rift_core::ui::theme::color::internal_colors;
-use rift_core::ui::theme::WarpTheme;
+use rift_core::ui::theme::RiftTheme;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::*;
 use riftui::text_layout::ClipConfig;
@@ -152,7 +152,7 @@ impl TerminationType {
         Container::new(
             ConstrainedBox::new(
                 icon_type
-                    .to_warpui_icon(appearance.theme().background())
+                    .to_riftui_icon(appearance.theme().background())
                     .finish(),
             )
             .with_width(ICON_SIZE)
@@ -183,8 +183,8 @@ impl TerminationType {
                 format!("{pty_spawn_error:#}").into()
             }
             TerminationType::Premature { shell_detail, .. } => format!(
-                "Something went wrong while starting {shell_detail} and Warpifying it, causing the \
-                process to terminate. Warpify script output is displayed here, which may point at \
+                "Something went wrong while starting {shell_detail} and Riftifying it, causing the \
+                process to terminate. Riftify script output is displayed here, which may point at \
                 a cause."
             )
             .into(),
@@ -276,7 +276,7 @@ impl TerminationType {
 
 fn inverted_color_ui_builder(appearance: &Appearance) -> UiBuilder {
     let theme = appearance.theme();
-    let theme = WarpTheme::new(
+    let theme = RiftTheme::new(
         theme.foreground(),
         theme.background().into_solid(),
         theme.background(),

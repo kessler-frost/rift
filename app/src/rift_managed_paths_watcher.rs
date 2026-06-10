@@ -22,10 +22,10 @@ pub(crate) fn warp_data_dir() -> PathBuf {
 }
 
 #[cfg(target_family = "wasm")]
-pub(crate) fn ensure_warp_watch_roots_exist() {}
+pub(crate) fn ensure_rift_watch_roots_exist() {}
 
 #[cfg(not(target_family = "wasm"))]
-pub(crate) fn ensure_warp_watch_roots_exist() {
+pub(crate) fn ensure_rift_watch_roots_exist() {
     let data_dir = warp_data_dir();
     if let Err(err) = fs::create_dir_all(&data_dir) {
         log::warn!(
@@ -46,8 +46,8 @@ pub(crate) fn ensure_warp_watch_roots_exist() {
 }
 
 #[cfg_attr(target_family = "wasm", allow(dead_code))]
-pub(crate) fn warp_home_skills_dir() -> Option<PathBuf> {
-    rift_core::paths::warp_home_skills_dir()
+pub(crate) fn rift_home_skills_dir() -> Option<PathBuf> {
+    rift_core::paths::rift_home_skills_dir()
 }
 
 #[cfg_attr(target_family = "wasm", allow(dead_code))]
@@ -112,23 +112,23 @@ fn filesystem_event_to_repository_update(event: &BulkFilesystemWatcherEvent) -> 
 
 #[cfg(target_family = "wasm")]
 #[allow(dead_code)]
-pub(crate) enum WarpManagedPathsWatcherEvent {}
+pub(crate) enum RiftManagedPathsWatcherEvent {}
 
 #[cfg(not(target_family = "wasm"))]
-pub(crate) enum WarpManagedPathsWatcherEvent {
+pub(crate) enum RiftManagedPathsWatcherEvent {
     FilesChanged(RepositoryUpdate),
 }
 
 #[cfg(not(target_family = "wasm"))]
-pub(crate) struct WarpManagedPathsWatcher {
+pub(crate) struct RiftManagedPathsWatcher {
     _watcher: ModelHandle<BulkFilesystemWatcher>,
 }
 
 #[cfg(target_family = "wasm")]
-pub(crate) struct WarpManagedPathsWatcher;
+pub(crate) struct RiftManagedPathsWatcher;
 
 #[cfg(not(target_family = "wasm"))]
-impl WarpManagedPathsWatcher {
+impl RiftManagedPathsWatcher {
     pub(crate) fn new(ctx: &mut ModelContext<Self>) -> Self {
         Self::new_internal(ctx, true)
     }
@@ -178,16 +178,16 @@ impl WarpManagedPathsWatcher {
                     "Warp config directory",
                 );
             }
-            if let Some(warp_home_skills_dir) = warp_home_skills_dir() {
-                if warp_home_skills_dir.exists()
-                    && !warp_home_skills_dir.starts_with(&data_dir)
+            if let Some(rift_home_skills_dir) = rift_home_skills_dir() {
+                if rift_home_skills_dir.exists()
+                    && !rift_home_skills_dir.starts_with(&data_dir)
                     && (!should_register_config_local_dir
-                        || !warp_home_skills_dir.starts_with(&config_local_dir))
+                        || !rift_home_skills_dir.starts_with(&config_local_dir))
                 {
                     Self::register_path(
                         ctx,
                         &watcher,
-                        warp_home_skills_dir,
+                        rift_home_skills_dir,
                         WatchFilter::accept_all(),
                         RecursiveMode::Recursive,
                         "Warp home skills directory",
@@ -229,13 +229,13 @@ impl WarpManagedPathsWatcher {
     ) {
         let update = filesystem_event_to_repository_update(event);
         if !update.is_empty() {
-            ctx.emit(WarpManagedPathsWatcherEvent::FilesChanged(update));
+            ctx.emit(RiftManagedPathsWatcherEvent::FilesChanged(update));
         }
     }
 }
 
 #[cfg(target_family = "wasm")]
-impl WarpManagedPathsWatcher {
+impl RiftManagedPathsWatcher {
     pub(crate) fn new(_ctx: &mut ModelContext<Self>) -> Self {
         Self
     }
@@ -246,8 +246,8 @@ impl WarpManagedPathsWatcher {
     }
 }
 
-impl Entity for WarpManagedPathsWatcher {
-    type Event = WarpManagedPathsWatcherEvent;
+impl Entity for RiftManagedPathsWatcher {
+    type Event = RiftManagedPathsWatcherEvent;
 }
 
-impl SingletonEntity for WarpManagedPathsWatcher {}
+impl SingletonEntity for RiftManagedPathsWatcher {}

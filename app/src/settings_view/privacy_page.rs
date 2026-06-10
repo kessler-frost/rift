@@ -8,7 +8,7 @@ use pathfinder_geometry::vector::vec2f;
 use regex::Regex;
 use rift_core::features::FeatureFlag;
 use rift_core::ui::theme::color::internal_colors;
-use rift_core::ui::theme::WarpTheme;
+use rift_core::ui::theme::RiftTheme;
 use riftui::elements::{
     Align, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     Empty, Expanded, Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle,
@@ -1033,7 +1033,7 @@ impl SecretRedactionWidget {
         let info_icon = Container::new(
             ConstrainedBox::new(
                 Icon::Info
-                    .to_warpui_icon(
+                    .to_riftui_icon(
                         appearance
                             .theme()
                             .hint_text_color(appearance.theme().background()),
@@ -1073,7 +1073,7 @@ impl SecretRedactionWidget {
         TextAndIcon::new(
             TextAndIconAlignment::IconFirst,
             text,
-            Icon::Plus.to_warpui_icon(appearance.theme().active_ui_text_color()),
+            Icon::Plus.to_riftui_icon(appearance.theme().active_ui_text_color()),
             MainAxisSize::Min,
             MainAxisAlignment::SpaceBetween,
             vec2f(16., 16.),
@@ -1786,6 +1786,6 @@ mod styles {
     pub const DESCRIPTION_LINE_MARGIN_BOTTOM: f32 = 6.;
 }
 
-fn description_text_color(theme: &WarpTheme) -> rift_core::ui::theme::Fill {
+fn description_text_color(theme: &RiftTheme) -> rift_core::ui::theme::Fill {
     theme.sub_text_color(theme.surface_2())
 }

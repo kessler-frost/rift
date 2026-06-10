@@ -33,10 +33,10 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use action::RememberForWarpification;
+use action::RememberForRiftification;
 pub use action::TerminalAction;
 use async_channel::{Receiver, Sender};
-use block_banner::{render_warpification_banner, WarpificationMode, WarpifyBannerState};
+use block_banner::{render_riftification_banner, RiftificationMode, RiftifyBannerState};
 pub use block_banner::{WithinBlockBanner, BLOCK_BANNER_HEIGHT};
 use bookmarks::render_floating_block_snapshot;
 use chrono::{DateTime, Local, NaiveDateTime};
@@ -133,11 +133,11 @@ use super::model::session::SessionBootstrappedEvent;
 use super::settings::AltScreenPaddingMode;
 use super::ssh::util::{
     parse_interactive_ssh_command, InteractiveSshCommand,
-    SshWarpifyCommand,
+    SshRiftifyCommand,
 };
-use super::warpify::success_block::{WarpifySuccessBlock, WarpifySuccessBlockEvent};
-use super::warpify::trigger_state::{SshBlockState, WarpifyState};
-use super::warpify::WarpificationSource;
+use super::riftify::success_block::{RiftifySuccessBlock, RiftifySuccessBlockEvent};
+use super::riftify::trigger_state::{SshBlockState, RiftifyState};
+use super::riftify::RiftificationSource;
 use super::GridType;
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
@@ -259,9 +259,9 @@ pub use crate::terminal::view::rich_content::{
 };
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::zero_state_block::TerminalViewZeroStateBlock;
-use crate::terminal::warpify::render::render_subshell_separator;
-use crate::terminal::warpify::settings::WarpifySettings;
-use crate::terminal::warpify::SubshellSource;
+use crate::terminal::riftify::render::render_subshell_separator;
+use crate::terminal::riftify::settings::RiftifySettings;
+use crate::terminal::riftify::SubshellSource;
 use crate::terminal::waterfall_gap_element::WaterfallGapElement;
 use crate::terminal::{
     block_list_element::BlockHoverAction,
@@ -278,7 +278,7 @@ use crate::terminal::{
     CellSizeAndWindowPadding, History, HistoryEntry, ShellHost, ShellLaunchData, SizeInfo,
     SizeUpdate, SizeUpdateReason,
 };
-use crate::themes::theme::WarpTheme;
+use crate::themes::theme::RiftTheme;
 use crate::throttle::throttle;
 use crate::ui_components::icons::{self};
 use crate::util::bindings::{
@@ -296,7 +296,6 @@ use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{
     CommandSearchOptions, OneTimeModalModel,
 };
-use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::{
     report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
     send_telemetry_sync_from_ctx,
@@ -396,7 +395,7 @@ const PROMPT_COMPATIBILITY_URL: &str =
 
 /// Link to troubleshooting steps for ControlMaster errors.
 const CONTROLMASTER_ISSUES_URL: &str =
-    "https://docs.warp.dev/terminal/warpify/ssh-legacy#troubleshooting";
+    "https://docs.warp.dev/terminal/riftify/ssh-legacy#troubleshooting";
 
 /// Link to instructions on how to update p10k.
 const P10K_UPDATE_INSTRUCTIONS_URL: &str =
@@ -421,10 +420,10 @@ const DEBOUNCE_PERIOD: Duration = Duration::from_millis(40);
 /// Key used in user defaults to save whether the user has seen the banner.
 pub const ALIAS_EXPANSION_BANNER_SEEN_KEY: &str = "AliasExpansionBannerSeen";
 
-/// Delay between receiving preexec hook for a command we want to auto-warpify
-/// and triggering the warpification (subshell bootstrapping).
+/// Delay between receiving preexec hook for a command we want to auto-riftify
+/// and triggering the riftification (subshell bootstrapping).
 /// Reached this number after experimenting with different values to find a reliable delay.
-const AUTO_WARPIFY_DELAY: u64 = 1000;
+const AUTO_RIFTIFY_DELAY: u64 = 1000;
 
 /// Binding names to be customized if the user indicates they prefer
 /// Emacs-style keybindings instead of IDE-style keybindings.
@@ -1440,7 +1439,7 @@ impl BlocklistAIRenderContext {
     }
 
     /// Returns the AI context stripe color to use for a block, if any.
-    pub fn context_color_for_block(&self, block: &Block, theme: &WarpTheme) -> Option<ColorU> {
+    pub fn context_color_for_block(&self, block: &Block, theme: &RiftTheme) -> Option<ColorU> {
         match self.context_inclusion_state_for_block(block) {
             Some(AIContextInclusionState::Active) => self.context_color(theme),
             _ => None,
@@ -1451,14 +1450,14 @@ impl BlocklistAIRenderContext {
     pub fn context_color_for_rich_content(
         &self,
         _rich_content: &RichContentMetadata,
-        _theme: &WarpTheme,
+        _theme: &RiftTheme,
     ) -> Option<ColorU> {
         None
     }
 
     /// The context color to use for a block, given its conversation phase.
     /// This assumes the block is part of the active conversation.
-    fn context_color(&self, _theme: &WarpTheme) -> Option<ColorU> {
+    fn context_color(&self, _theme: &RiftTheme) -> Option<ColorU> {
         None
     }
 }
@@ -1559,7 +1558,6 @@ enum SecretTooltip {
 
 pub fn is_prompt_suggestions_enabled(app: &AppContext) -> bool {
     AISettings::as_ref(app).is_prompt_suggestions_enabled(app)
-        && UserWorkspaces::as_ref(app).is_prompt_suggestions_toggleable()
 }
 
 type TerminalViewCallback = Box<dyn FnOnce(&mut TerminalView, &mut ViewContext<TerminalView>)>;
@@ -1771,7 +1769,7 @@ pub struct TerminalView {
     onboarding_prompt_block: Option<ViewHandle<OnboardingPromptBlock>>,
     settings_import_onboarding_block: Option<ViewHandle<SettingsImportView>>,
 
-    /// The type of the subshell that we will bootstrap/"warpify"" on the next [`AfterBlockStarted`]
+    /// The type of the subshell that we will bootstrap/"riftify"" on the next [`AfterBlockStarted`]
     /// terminal model event. Will only be `Some` with a [`ShellType`] we can bootstrap.
     pending_auto_bootstrap_shell_type: Option<ShellType>,
 
@@ -1806,7 +1804,7 @@ pub struct TerminalView {
 
     find_model: ModelHandle<TerminalFindModel>,
 
-    warpify_state: WarpifyState,
+    riftify_state: RiftifyState,
 
     /// The keystroke bound to canceling a command.
     ///
@@ -2218,7 +2216,7 @@ impl TerminalView {
                 FormattedTextFragment::plain_text("). Enabling the SSH extension in "),
                 FormattedTextFragment::hyperlink_action(
                     "settings",
-                    TerminalAction::ShowWarpifySettings,
+                    TerminalAction::ShowRiftifySettings,
                 ),
                 FormattedTextFragment::plain_text(" may resolve this issue."),
             ]))
@@ -2510,7 +2508,7 @@ impl TerminalView {
             input_position_id,
             input_hoverable_handle: Default::default(),
             find_model,
-            warpify_state: Default::default(),
+            riftify_state: Default::default(),
             cancel_command_keystroke: keybinding_name_to_keystroke(CANCEL_COMMAND_KEYBINDING, ctx),
             is_file_drop_target: false,
             is_ssh_file_uploader: false,
@@ -3041,7 +3039,7 @@ impl TerminalView {
     /// the workspace to derive `PendingRemoteSession` without storing
     /// mutable state on the workspace itself.
     pub fn has_pending_ssh_command(&self) -> bool {
-        self.warpify_state.get_pending_ssh_host().is_some() && self.is_long_running()
+        self.riftify_state.get_pending_ssh_host().is_some() && self.is_long_running()
     }
 
     /// Like `is_long_running`, but also requires the user to be in control of the command
@@ -3578,7 +3576,7 @@ impl TerminalView {
         _triggered_by_rc_file_snippet: bool,
         ctx: &mut ViewContext<Self>,
     ) {
-        self.dismiss_warpify_banner(&RememberForWarpification::DoNotRememberSubshellCommand, ctx);
+        self.dismiss_riftify_banner(&RememberForRiftification::DoNotRememberSubshellCommand, ctx);
 
         // Record the active long-running block so we can hide it later once the remote
         // actually confirms subshell bootstrap is in progress.
@@ -3591,7 +3589,7 @@ impl TerminalView {
                 .is_active_and_long_running()
             {
                 let block_id = model.block_list().active_block_id().clone();
-                self.warpify_state.set_block_id(block_id);
+                self.riftify_state.set_block_id(block_id);
             }
         }
 
@@ -3609,7 +3607,7 @@ impl TerminalView {
 
     /// Util method to update the ssh block, with a lock
     fn update_long_running_ssh_block_with_lock(&self, f: impl FnOnce(&mut Block)) -> bool {
-        if let Some(block_id) = self.warpify_state.block_id() {
+        if let Some(block_id) = self.riftify_state.block_id() {
             if let Some(block) = self
                 .model
                 .lock()
@@ -3631,7 +3629,7 @@ impl TerminalView {
     }
 
     fn clear_ssh_blocks(&mut self, ctx: &mut ViewContext<Self>) {
-        self.dismiss_warpify_banner(&RememberForWarpification::DoNotRememberSSHHost, ctx);
+        self.dismiss_riftify_banner(&RememberForRiftification::DoNotRememberSSHHost, ctx);
     }
 
     fn add_bootstrap_success_block(
@@ -3654,14 +3652,14 @@ impl TerminalView {
             });
         }
 
-        let warpification_source = match session_type {
-            BootstrapSessionType::WarpifiedRemote => WarpificationSource::Ssh,
-            BootstrapSessionType::Local => WarpificationSource::Subshell,
+        let riftification_source = match session_type {
+            BootstrapSessionType::RiftifiedRemote => RiftificationSource::Ssh,
+            BootstrapSessionType::Local => RiftificationSource::Subshell,
         };
         let disable_tmux = false;
         let ssh_success_block_handle = ctx.add_typed_action_view(|ctx| {
-            WarpifySuccessBlock::new(
-                warpification_source,
+            RiftifySuccessBlock::new(
+                riftification_source,
                 spawning_command,
                 subshell_info,
                 shell,
@@ -3675,9 +3673,9 @@ impl TerminalView {
 
         self.clear_ssh_blocks(ctx);
         self.insert_rich_content(
-            Some(RichContentType::WarpifySuccessBlock),
+            Some(RichContentType::RiftifySuccessBlock),
             ssh_success_block_handle.clone(),
-            Some(RichContentMetadata::WarpifySuccessBlock {
+            Some(RichContentMetadata::RiftifySuccessBlock {
                 bootstrap_success_block_handle: ssh_success_block_handle.clone(),
             }),
             RichContentInsertionPosition::Append {
@@ -3685,30 +3683,30 @@ impl TerminalView {
             },
             ctx,
         );
-        self.warpify_state
-            .set_ssh_block_state(SshBlockState::WarpifySuccess {
+        self.riftify_state
+            .set_ssh_block_state(SshBlockState::RiftifySuccess {
                 handle: ssh_success_block_handle,
             });
         let active_session_id = self.active_block_session_id();
-        self.warpify_state.on_warpify_start(active_session_id);
+        self.riftify_state.on_riftify_start(active_session_id);
         self.refresh_warp_prompt(ctx);
     }
 
     fn handle_ssh_success_block_events(
         &mut self,
-        event: &WarpifySuccessBlockEvent,
+        event: &RiftifySuccessBlockEvent,
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            WarpifySuccessBlockEvent::OpenWarpifySettings => {
-                ctx.emit(Event::OpenSettings(SettingsSection::Warpify));
+            RiftifySuccessBlockEvent::OpenRiftifySettings => {
+                ctx.emit(Event::OpenSettings(SettingsSection::Riftify));
             }
         }
     }
 
-    fn dismiss_warpify_banner(
+    fn dismiss_riftify_banner(
         &mut self,
-        remember_command: &RememberForWarpification,
+        remember_command: &RememberForRiftification,
         ctx: &mut ViewContext<Self>,
     ) {
         {
@@ -3718,54 +3716,54 @@ impl TerminalView {
 
 
         match remember_command {
-            RememberForWarpification::RememberSubshellCommand(command) => {
-                WarpifySettings::handle(ctx).update(ctx, |warpify, ctx| {
-                    warpify.denylist_subshell_command(command, ctx);
+            RememberForRiftification::RememberSubshellCommand(command) => {
+                RiftifySettings::handle(ctx).update(ctx, |riftify, ctx| {
+                    riftify.denylist_subshell_command(command, ctx);
                 });
             }
-            RememberForWarpification::RememberSSHHost(host) => {
-                WarpifySettings::handle(ctx).update(ctx, |warpify, ctx| {
-                    warpify.denylist_ssh_host(host, ctx);
+            RememberForRiftification::RememberSSHHost(host) => {
+                RiftifySettings::handle(ctx).update(ctx, |riftify, ctx| {
+                    riftify.denylist_ssh_host(host, ctx);
                 });
             }
-            RememberForWarpification::DoNotRememberSubshellCommand
-            | RememberForWarpification::DoNotRememberSSHHost => {}
+            RememberForRiftification::DoNotRememberSubshellCommand
+            | RememberForRiftification::DoNotRememberSSHHost => {}
         }
     }
 
-    fn show_warpify_banner(
+    fn show_riftify_banner(
         &mut self,
-        input: WarpificationMode,
+        input: RiftificationMode,
         title: &str,
         lowercase_title: &str,
-        warpify_keybinding: Option<Keystroke>,
+        riftify_keybinding: Option<Keystroke>,
         _telemetry_event: TelemetryEvent,
         ctx: &mut ViewContext<Self>,
     ) {
-        if FeatureFlag::WarpifyFooter.is_enabled() {
+        if FeatureFlag::RiftifyFooter.is_enabled() {
             return;
         }
 
         let mut model = self.model.lock();
 
-        // Don't show the warpify banner when an agent is monitoring the command.
+        // Don't show the riftify banner when an agent is monitoring the command.
         if model.block_list().active_block().is_agent_monitoring() {
             return;
         }
 
-        let a11y_message = match &warpify_keybinding {
+        let a11y_message = match &riftify_keybinding {
             Some(keystroke) => format!(
-                "You can press {} to Warpify this {} for more Warp features.",
+                "You can press {} to Riftify this {} for more Warp features.",
                 keystroke.displayed(),
                 lowercase_title
             ),
-            None => format!("You can Warpify this {lowercase_title} for more Warp features."),
+            None => format!("You can Riftify this {lowercase_title} for more Warp features."),
         };
 
         model
             .block_list_mut()
-            .set_active_block_banner(Some(WithinBlockBanner::WarpifyBanner(
-                WarpifyBannerState::new(input, warpify_keybinding),
+            .set_active_block_banner(Some(WithinBlockBanner::RiftifyBanner(
+                RiftifyBannerState::new(input, riftify_keybinding),
             )));
 
         let a11y_content = AccessibilityContent::new(
@@ -4224,7 +4222,7 @@ impl TerminalView {
     /// Returns true if the block is considered remote.
     ///
     /// Note that we don't know for sure if a block is remote, because we can only detect
-    /// warpified remote blocks.
+    /// riftified remote blocks.
     ///
     /// For some organizations, we accept a regex list that we run against commands to
     /// further make the determination.
@@ -4547,7 +4545,7 @@ impl TerminalView {
 
                 // If this block ran a possible subshell command, and it exited before the 1s timer
                 // completed, abort showing the banner.
-                if let Some(abort_handle) = self.warpify_state.take_subshell_banner_abort_handle() {
+                if let Some(abort_handle) = self.riftify_state.take_subshell_banner_abort_handle() {
                     abort_handle.abort();
                 }
 
@@ -4648,7 +4646,7 @@ impl TerminalView {
                     .set_prompt_snapshot(prompt_snapshot);
 
                 // If the first word of the command is a shell alias, expand it
-                // for subshell/SSH detection. This enables warpification for
+                // for subshell/SSH detection. This enables riftification for
                 // aliased SSH commands (e.g. `alias myssh='ssh user@host'`).
                 let expanded_command = self
                     .active_block_session_id()
@@ -4658,47 +4656,47 @@ impl TerminalView {
                         let alias_value = session.alias_value(first_word)?;
                         Some(format!("{alias_value}{rest}"))
                     });
-                let warpify_command = expanded_command.as_deref().unwrap_or(command.as_str());
+                let riftify_command = expanded_command.as_deref().unwrap_or(command.as_str());
 
-                // Check if the current running command spawns a subshell eligible for Warpification.
+                // Check if the current running command spawns a subshell eligible for Riftification.
                 let shell_family = self.shell_family(ctx);
-                let warpify_settings = WarpifySettings::as_ref(ctx);
-                let is_compatible_subshell_command = warpify_settings
+                let riftify_settings = RiftifySettings::as_ref(ctx);
+                let is_compatible_subshell_command = riftify_settings
                     .is_compatible_subshell_command(command, shell_family)
-                    || warpify_settings
-                        .is_compatible_subshell_command(warpify_command, shell_family);
-                let command_is_denylisted = warpify_settings
+                    || riftify_settings
+                        .is_compatible_subshell_command(riftify_command, shell_family);
+                let command_is_denylisted = riftify_settings
                     .is_denylisted_subshell_command(command)
-                    || warpify_settings.is_denylisted_subshell_command(warpify_command);
+                    || riftify_settings.is_denylisted_subshell_command(riftify_command);
                 let has_ai_metadata = false;
 
                 if is_compatible_subshell_command {
                     if command_is_denylisted || has_ai_metadata {
-                        // Don't auto-warpify or surface warpification for these commands.
+                        // Don't auto-riftify or surface riftification for these commands.
                     } else if let Some(shell_type) = self.pending_auto_bootstrap_shell_type.take() {
                         // If there is a subshell we're waiting to bootstrap until we receive
                         // the preexec hook, now we can bootstrap it.
-                        let auto_warpify_abort_handle = ctx.spawn_abortable(
-                            Timer::after(Duration::from_millis(AUTO_WARPIFY_DELAY)),
+                        let auto_riftify_abort_handle = ctx.spawn_abortable(
+                            Timer::after(Duration::from_millis(AUTO_RIFTIFY_DELAY)),
                             move |me, _, ctx| {
                                 me.trigger_subshell_bootstrap(Some(shell_type), false, ctx);
                             },
                             |_, _| (),
                         );
-                        self.warpify_state
-                            .add_auto_warpify_abort_handle(auto_warpify_abort_handle);
+                        self.riftify_state
+                            .add_auto_riftify_abort_handle(auto_riftify_abort_handle);
                     } else {
                         // Wait 1 second before showing the banner, just to make sure the
                         // command stays running for a bit. If the command fails instantly,
                         // we don't want to flicker the banner away so quickly.
                         let command = command.clone();
-                        self.warpify_state
+                        self.riftify_state
                             .add_subshell_banner_abort_handle(ctx.spawn_abortable(
                                 Timer::after(*SUBSHELL_BANNER_DELAY_DURATION),
                                 |view, _, ctx| {
-                                    if FeatureFlag::WarpifyFooter.is_enabled() {
-                                        view.show_warpify_footer(
-                                            WarpificationMode::subshell(command),
+                                    if FeatureFlag::RiftifyFooter.is_enabled() {
+                                        view.show_riftify_footer(
+                                            RiftificationMode::subshell(command),
                                             ctx,
                                         );
                                     } else {
@@ -4714,16 +4712,16 @@ impl TerminalView {
                 } else {
                     if !has_ai_metadata {
                         if let Some(ssh_host) =
-                            parse_interactive_ssh_command(warpify_command).map(|cmd| cmd.host)
+                            parse_interactive_ssh_command(riftify_command).map(|cmd| cmd.host)
                         {
                             if !self.model.lock().tmux_control_mode_active() {
-                                self.warpify_state
-                                    .set_pending_ssh_host(warpify_command.to_string(), ssh_host);
+                                self.riftify_state
+                                    .set_pending_ssh_host(riftify_command.to_string(), ssh_host);
                                 self.model.lock().start_notify_on_end_of_ssh_login();
                                 ctx.emit(Event::TerminalViewStateChanged);
                             }
                         } else {
-                            self.warpify_state.clear_pending_ssh_host();
+                            self.riftify_state.clear_pending_ssh_host();
 
                         }
                     }
@@ -4741,14 +4739,14 @@ impl TerminalView {
                 cloud_workflow_id: _,
                 cloud_env_var_collection_id: _,
             }) => {
-                // To automatically warpify a subshell, we run the relevant command to open the
+                // To automatically riftify a subshell, we run the relevant command to open the
                 // subshell and create a future to delay bootstrapping the subshell long enough for
                 // the command to complete. We receive AfterBlockCompleted if the subshell command
                 // returns an error or the user exits the subshell. Here we abort the future to
                 // avoid an attempt to trigger bootstrapping if the subshell command failed. If the
                 // future already resolved, abort has no effect. We handle this as early as possible
                 // because the abort is time sensitive.
-                self.warpify_state.abort_auto_warpify();
+                self.riftify_state.abort_auto_riftify();
 
                 let active_session = self
                     .active_block_session_id()
@@ -4823,14 +4821,14 @@ impl TerminalView {
                 }
                 let active_session_id = self.active_block_session_id();
                 if let Some(block_id) = self
-                    .warpify_state
-                    .get_completed_warpify_session_id(active_session_id, ctx)
+                    .riftify_state
+                    .get_completed_riftify_session_id(active_session_id, ctx)
                 {
                     self.remove_ssh_block_by_id(block_id);
                 }
 
-                self.dismiss_warpify_banner(
-                    &RememberForWarpification::DoNotRememberSubshellCommand,
+                self.dismiss_riftify_banner(
+                    &RememberForRiftification::DoNotRememberSubshellCommand,
                     ctx,
                 );
 
@@ -5161,7 +5159,7 @@ impl TerminalView {
                 self.trigger_subshell_bootstrap(None, false, ctx);
             }
             ModelEvent::DetectedEndOfSshLogin(_) => {}
-            ModelEvent::RemoteWarpificationIsUnavailable(_) => {}
+            ModelEvent::RemoteRiftificationIsUnavailable(_) => {}
             ModelEvent::SshTmuxInstaller(_) => {}
             ModelEvent::TmuxInstallFailed { .. } => {}
             ModelEvent::ExecutedInBandCommand(event) => {
@@ -5317,7 +5315,7 @@ impl TerminalView {
         self.update_incompatible_configuration_banner(session.shell().plugins(), ctx);
 
         if let Some(subshell_info) = session.subshell_info() {
-            self.warpify_state
+            self.riftify_state
                 .add_subshell_separator(subshell_info, self.model.clone(), ctx);
         }
 
@@ -5348,8 +5346,8 @@ impl TerminalView {
             },
         );
 
-        // If we were waiting for a successful warpification, it's come. Stop the timeout.
-        self.warpify_state.abort_ssh_warpify_timeout();
+        // If we were waiting for a successful riftification, it's come. Stop the timeout.
+        self.riftify_state.abort_ssh_riftify_timeout();
 
         if bootstrap_event.subshell_info.is_some() {
             self.add_bootstrap_success_block(bootstrap_event, ctx);
@@ -5709,7 +5707,7 @@ impl TerminalView {
         // https://github.com/warpdotdev/command-corrections/blob/df7848d4fb3da7883623e959889a296a07d88053/src/rules/cd/mod.rs#L31-L36
         // We don't currently support dynamic rules over SSH, so we should not attempt to correct commands if
         // inside ssh session.
-        let is_ssh_command = SshWarpifyCommand::matches(input).is_some();
+        let is_ssh_command = SshRiftifyCommand::matches(input).is_some();
         if is_ssh_command {
             return vec![];
         }
@@ -5746,7 +5744,6 @@ impl TerminalView {
             let rule = correction.rule_applied;
 
             if AISettings::as_ref(ctx).is_intelligent_autosuggestions_enabled(ctx)
-                && UserWorkspaces::as_ref(ctx).is_next_command_enabled()
                 && COMMAND_CORRECTIONS_PREFERRED_DENYLIST.contains(rule.to_str())
             {
                 // Defer to Next Command if the rule is in the denylist.
@@ -8057,7 +8054,7 @@ impl TerminalView {
             .and_then(|id| self.sessions.as_ref(ctx).get(id))
         {
             if let Some(info) = session.subshell_info() {
-                self.warpify_state
+                self.riftify_state
                     .add_subshell_separator(info, self.model.clone(), ctx);
             }
         }
@@ -8777,9 +8774,9 @@ impl TerminalView {
         // except for the rich content block with a matching view ID.
         for rich_content in self.rich_content_views.iter() {
             match rich_content.metadata() {
-                Some(RichContentMetadata::WarpifySuccessBlock { .. }) => {
-                    // TODO(Simon): We should be checking for WarpifySuccessBlocks here as well.
-                    // The `WarpifySuccessBlock` implements a `SelectableArea`.
+                Some(RichContentMetadata::RiftifySuccessBlock { .. }) => {
+                    // TODO(Simon): We should be checking for RiftifySuccessBlocks here as well.
+                    // The `RiftifySuccessBlock` implements a `SelectableArea`.
                 }
                 _ => {}
             }
@@ -10231,7 +10228,7 @@ impl TerminalView {
         } else {
             // Remote session: pair CWD with the session's host_id.
             let host_id = match session.session_type() {
-                SessionType::WarpifiedRemote { host_id } => host_id,
+                SessionType::RiftifiedRemote { host_id } => host_id,
                 SessionType::Local => return None,
             }?;
             let std_path = rift_util::standardized_path::StandardizedPath::try_new(cwd_str).ok()?;
@@ -10328,11 +10325,11 @@ impl TerminalView {
         let icon = Container::new(
             ConstrainedBox::new(if has_active_filter {
                 icons::Icon::FilterFunnelFilled
-                    .to_warpui_icon(appearance.theme().accent())
+                    .to_riftui_icon(appearance.theme().accent())
                     .finish()
             } else {
                 icons::Icon::FilterFunnel
-                    .to_warpui_icon(
+                    .to_riftui_icon(
                         appearance
                             .theme()
                             .sub_text_color(appearance.theme().surface_2()),
@@ -10912,7 +10909,7 @@ impl TerminalView {
 
         let mut subshell_separators = HashMap::new();
 
-        for (id, command) in self.warpify_state.get_subshell_separators() {
+        for (id, command) in self.riftify_state.get_subshell_separators() {
             subshell_separators.insert(*id, render_subshell_separator(command.clone(), appearance));
         }
 
@@ -10924,8 +10921,8 @@ impl TerminalView {
             .active_block()
             .block_banner()
             .map(|banner| match banner {
-                WithinBlockBanner::WarpifyBanner(state) => {
-                    render_warpification_banner(state, appearance, app)
+                WithinBlockBanner::RiftifyBanner(state) => {
+                    render_riftification_banner(state, appearance, app)
                 }
             });
 
@@ -11719,7 +11716,7 @@ impl TerminalView {
 
         match action {
             LearnMore => {
-                ctx.open_url("https://docs.warp.dev/terminal/warpify/ssh-legacy#implementation");
+                ctx.open_url("https://docs.warp.dev/terminal/riftify/ssh-legacy#implementation");
             }
             Settings => {
                 ctx.emit(Event::OpenSettings(SettingsSection::Features));
@@ -11829,7 +11826,7 @@ impl TerminalView {
     }
 
     /// Replace the terminal input buffer with the given command that is meant to open a subshell.
-    /// Set a flag that we should automatically bootstrap AKA "warpify" the subshell when we
+    /// Set a flag that we should automatically bootstrap AKA "riftify" the subshell when we
     /// receive the [`AfterBlockStarted`] event.
     pub fn insert_subshell_command_and_bootstrap_if_supported(
         &mut self,
@@ -11943,7 +11940,7 @@ impl TerminalView {
             return;
         };
 
-        let sshed = self.model.lock().is_warpified_ssh() || session.is_legacy_ssh_session();
+        let sshed = self.model.lock().is_riftified_ssh() || session.is_legacy_ssh_session();
         if sshed && !paths.is_empty() && FeatureFlag::SshDragAndDrop.is_enabled() {
             self.initiate_ssh_file_upload(paths, ctx);
         } else {
@@ -12049,18 +12046,18 @@ impl TerminalView {
         self.shell_indicator_type
     }
 
-    /// Shows the warpify footer for a detected subshell/SSH command.
-    fn show_warpify_footer(&mut self, mode: WarpificationMode, _ctx: &mut ViewContext<Self>) {
+    /// Shows the riftify footer for a detected subshell/SSH command.
+    fn show_riftify_footer(&mut self, mode: RiftificationMode, _ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
 
-        // Don't show the warpify footer when an agent is monitoring the command.
+        // Don't show the riftify footer when an agent is monitoring the command.
         if model.block_list().active_block().is_agent_monitoring() {
             return;
         }
         drop(model);
 
         let _ = mode;
-        send_telemetry_from_ctx!(TelemetryEvent::WarpifyFooterShown { is_ssh: false }, ctx);
+        send_telemetry_from_ctx!(TelemetryEvent::RiftifyFooterShown { is_ssh: false }, ctx);
     }
 
     fn show_initialization_block(&mut self) {
@@ -12233,8 +12230,8 @@ impl TypedActionView for TerminalView {
                 "Showed initialization block",
                 WarpA11yRole::TextareaRole,
             )),
-            ShowWarpifySettings => Custom(AccessibilityContent::new_without_help(
-                "Opened Warpify Settings",
+            ShowRiftifySettings => Custom(AccessibilityContent::new_without_help(
+                "Opened Riftify Settings",
                 WarpA11yRole::ButtonRole,
             )),
             InsertCommandCorrection { .. }
@@ -12278,15 +12275,15 @@ impl TypedActionView for TerminalView {
             | ControlSequence(_)
             | TriggerSubshellBootstrap
             | ShowSubshellBanner(_)
-            | DismissWarpifyBanner(_)
+            | DismissRiftifyBanner(_)
             | OpenBlockListContextMenu
             | AliasExpansionBanner(_)
             | VimModeBanner(_)
             | InsertMostRecentCommandCorrection
             | ImportSettings
             | DragAndDropFiles(_)
-            | WarpifySSHSession
-            | ShowWarpifySshBanner(_, _)
+            | RiftifySSHSession
+            | ShowRiftifySshBanner(_, _)
             | NotifySshErrorBlock(_)
             | ToggleBlockFilterOnSelectedOrLastBlock(_)
             | SetMarkedText { .. }
@@ -12539,22 +12536,22 @@ impl TypedActionView for TerminalView {
             TriggerSubshellBootstrap => self.trigger_subshell_bootstrap(None, false, ctx),
             ShowSubshellBanner(command) => {
                 // Abort handle is no longer needed since we've waited the 1s already.
-                self.warpify_state.take_subshell_banner_abort_handle();
+                self.riftify_state.take_subshell_banner_abort_handle();
 
-                let warpify_keybinding =
-                    keybinding_name_to_keystroke("terminal:warpify_subshell", ctx);
-                self.show_warpify_banner(
-                    WarpificationMode::subshell(command.to_owned()),
+                let riftify_keybinding =
+                    keybinding_name_to_keystroke("terminal:riftify_subshell", ctx);
+                self.show_riftify_banner(
+                    RiftificationMode::subshell(command.to_owned()),
                     "Subshell",
                     "subshell",
-                    warpify_keybinding,
+                    riftify_keybinding,
                     TelemetryEvent::ShowSubshellBanner,
                     ctx,
                 );
             }
-            ShowWarpifySshBanner(..) => {}
-            DismissWarpifyBanner(remember) => {
-                self.dismiss_warpify_banner(remember, ctx);
+            ShowRiftifySshBanner(..) => {}
+            DismissRiftifyBanner(remember) => {
+                self.dismiss_riftify_banner(remember, ctx);
                 send_telemetry_from_ctx!(
                     TelemetryEvent::DeclineSubshellBootstrap {
                         remember: remember.as_bool()
@@ -12586,7 +12583,7 @@ impl TypedActionView for TerminalView {
             DragAndDropFiles(paths) => {
                 self.drag_and_drop_files(paths, ctx);
             }
-            WarpifySSHSession => {}
+            RiftifySSHSession => {}
             NotifySshErrorBlock(..) => {}
             HyperlinkClick(hyperlink) => {
                 ctx.notify();
@@ -12599,7 +12596,7 @@ impl TypedActionView for TerminalView {
                 else {
                     return;
                 };
-                let sshed = self.model.lock().is_warpified_ssh() || session.is_legacy_ssh_session();
+                let sshed = self.model.lock().is_riftified_ssh() || session.is_legacy_ssh_session();
                 if sshed && !self.is_file_drop_target {
                     self.is_file_drop_target = true;
                     ctx.notify();
@@ -12626,7 +12623,7 @@ impl TypedActionView for TerminalView {
             } => self.set_marked_text_on_terminal(marked_text, selected_range, ctx),
             ClearMarkedText => self.clear_marked_text_on_terminal(ctx),
             HideTelemetryBannerPermanently => {}
-            ShowWarpifySettings => ctx.emit(Event::OpenSettings(SettingsSection::Warpify)),
+            ShowRiftifySettings => ctx.emit(Event::OpenSettings(SettingsSection::Riftify)),
             OpenInlineHistoryMenu => {
                 self.input.update(ctx, |input, ctx| {
                     input.handle_action(&InputAction::OpenInlineHistoryMenu, ctx);
@@ -13045,7 +13042,7 @@ impl View for TerminalView {
             context.set.insert(init::KEYBOARD_PROTOCOL_ENABLED_KEY);
         }
 
-        if let Some(WithinBlockBanner::WarpifyBanner(_)) =
+        if let Some(WithinBlockBanner::RiftifyBanner(_)) =
             model_lock.block_list().active_block().block_banner()
         {
             context.set.insert("SubshellBanner");
@@ -13378,7 +13375,7 @@ fn maybe_wrap_terminal_element_in_scrollable(
     vertical_scroll_handle: ScrollStateHandle,
     horizontal_scroll_handle: ClippedScrollStateHandle,
     required_terminal_width: f32,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     element: impl NewScrollableElement + 'static,
 ) -> Box<dyn Element> {
     let nonactive_thumb_background = theme.disabled_text_color(theme.background()).into();

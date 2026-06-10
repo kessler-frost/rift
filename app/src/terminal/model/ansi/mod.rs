@@ -575,8 +575,8 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
                 log::error!("Received hex-encoded SourcedRcFileForWarp escape sequence.");
             }
             Ok(DProtoHook::FinishUpdate { value }) => self.handler.finish_update(value),
-            Ok(DProtoHook::RemoteWarpificationIsUnavailable { value }) => {
-                self.handler.remote_warpification_is_unavailable(value)
+            Ok(DProtoHook::RemoteRiftificationIsUnavailable { value }) => {
+                self.handler.remote_riftification_is_unavailable(value)
             }
             Ok(DProtoHook::SshTmuxInstaller { value }) => {
                 if let Ok(tmux_installation) = TmuxInstallationState::from_str(&value) {

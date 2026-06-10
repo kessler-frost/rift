@@ -29,7 +29,7 @@ use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseSettings;
 #[cfg(windows)]
 use crate::util::traffic_lights::windows::RendererState;
-use crate::warp_managed_paths_watcher::WarpManagedPathsWatcher;
+use crate::rift_managed_paths_watcher::RiftManagedPathsWatcher;
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_profiles::UserProfiles;
@@ -67,7 +67,7 @@ fn initialize_app(app: &mut App) {
     app.add_singleton_model(|_| DetectedRepositories::default());
     app.add_singleton_model(HomeDirectoryWatcher::new_for_test);
     app.add_singleton_model(DirectoryWatcher::new);
-    app.add_singleton_model(WarpManagedPathsWatcher::new_for_testing);
+    app.add_singleton_model(RiftManagedPathsWatcher::new_for_testing);
 
     app.add_singleton_model(|_| GPUState::new());
     app.add_singleton_model(OneTimeModalModel::new);

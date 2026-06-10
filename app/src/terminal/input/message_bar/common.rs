@@ -94,7 +94,7 @@ pub fn render_wrapping_standard_message_bar(
     let appearance = Appearance::as_ref(app);
     let theme = appearance.theme();
     let font_size = styles::font_size(app);
-    let icon = ConstrainedBox::new(icon.to_warpui_icon(Fill::Solid(icon_color)).finish())
+    let icon = ConstrainedBox::new(icon.to_riftui_icon(Fill::Solid(icon_color)).finish())
         .with_height(font_size)
         .with_width(font_size)
         .finish();
@@ -192,7 +192,7 @@ fn render_message_bar_items(items: &[MessageItem], app: &AppContext) -> Box<dyn 
             }
             MessageItem::Icon { icon, color } => {
                 let icon_color = color.unwrap_or(default_font_color);
-                ConstrainedBox::new(icon.to_warpui_icon(Fill::Solid(icon_color)).finish())
+                ConstrainedBox::new(icon.to_riftui_icon(Fill::Solid(icon_color)).finish())
                     .with_height(styles::font_size(app))
                     .with_width(styles::font_size(app))
                     .finish()
@@ -331,7 +331,7 @@ fn render_terminal_message_items(items: &[MessageItem], app: &AppContext) -> Box
                     let rendered_key = if key_text == "⏎" {
                         ConstrainedBox::new(
                             Icon::CornerDownLeft
-                                .to_warpui_icon(Fill::Solid(keystroke_color))
+                                .to_riftui_icon(Fill::Solid(keystroke_color))
                                 .finish(),
                         )
                         .with_height(icon_size)
@@ -340,7 +340,7 @@ fn render_terminal_message_items(items: &[MessageItem], app: &AppContext) -> Box
                     } else if key_text == "⇧" {
                         ConstrainedBox::new(
                             Icon::ArrowBlockUp
-                                .to_warpui_icon(Fill::Solid(keystroke_color))
+                                .to_riftui_icon(Fill::Solid(keystroke_color))
                                 .finish(),
                         )
                         .with_height(icon_size)
@@ -396,7 +396,7 @@ fn render_terminal_message_items(items: &[MessageItem], app: &AppContext) -> Box
             }
             MessageItem::Icon { icon, color } => {
                 let icon_color = color.unwrap_or(default_text_color);
-                ConstrainedBox::new(icon.to_warpui_icon(Fill::Solid(icon_color)).finish())
+                ConstrainedBox::new(icon.to_riftui_icon(Fill::Solid(icon_color)).finish())
                     .with_height(icon_size)
                     .with_width(icon_size)
                     .finish()

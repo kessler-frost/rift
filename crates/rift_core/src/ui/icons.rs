@@ -1,4 +1,4 @@
-use riftui_core::elements::Icon as WarpUiIcon;
+use riftui_core::elements::Icon as RiftUiIcon;
 
 use crate::ui::theme::Fill;
 
@@ -664,13 +664,13 @@ impl From<Icon> for &'static str {
 }
 
 impl Icon {
-    pub fn to_warpui_icon(self, color: Fill) -> WarpUiIcon {
-        WarpUiIcon::new(self.into(), color.into_solid())
+    pub fn to_riftui_icon(self, color: Fill) -> RiftUiIcon {
+        RiftUiIcon::new(self.into(), color.into_solid())
     }
 
-    pub fn icon_for_key(key: &str) -> Option<WarpUiIcon> {
+    pub fn icon_for_key(key: &str) -> Option<RiftUiIcon> {
         match key {
-            "⏎" => Some(Self::CornerDownLeft.to_warpui_icon(Fill::black())),
+            "⏎" => Some(Self::CornerDownLeft.to_riftui_icon(Fill::black())),
             _ => None,
         }
     }

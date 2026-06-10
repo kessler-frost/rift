@@ -80,7 +80,7 @@ impl SettingsUmbrella {
             .with_text_and_icon_label(TextAndIcon::new(
                 TextAndIconAlignment::TextFirst,
                 self.label.to_string(),
-                chevron_icon.to_warpui_icon(text_color),
+                chevron_icon.to_riftui_icon(text_color),
                 MainAxisSize::Max,
                 MainAxisAlignment::SpaceBetween,
                 vec2f(16., 16.),

@@ -86,7 +86,7 @@ impl SessionConfigModal {
         });
 
         let submit_button = ctx.add_view(|ctx| {
-            ActionButton::new("Get Warping", PrimaryTheme)
+            ActionButton::new("Get Started", PrimaryTheme)
                 .with_full_width(true)
                 .with_keybinding(
                     KeystrokeSource::Fixed(Keystroke::parse("enter").unwrap_or_default()),

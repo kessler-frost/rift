@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use rift_core::ui::theme::{Fill, WarpTheme};
+use rift_core::ui::theme::{Fill, RiftTheme};
 use riftui::elements::{
     Border, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Expanded,
     Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning,
@@ -29,7 +29,7 @@ const PILL_GAP: f32 = 8.;
 fn session_type_item_color(
     is_selected: bool,
     on_accent_bg: bool,
-    theme: &WarpTheme,
+    theme: &RiftTheme,
     bg_fill: Fill,
 ) -> ColorU {
     if on_accent_bg {
@@ -106,7 +106,7 @@ where
         let icon = ConstrainedBox::new(
             session_type
                 .icon()
-                .to_warpui_icon(item_color.into())
+                .to_riftui_icon(item_color.into())
                 .finish(),
         )
         .with_width(14.)

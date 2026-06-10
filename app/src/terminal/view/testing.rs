@@ -77,7 +77,7 @@ impl TerminalView {
             block_padding,
             size: size_info,
             max_block_scroll_limit,
-            warp_prompt_height_lines: RIFT_PROMPT_HEIGHT_LINES,
+            rift_prompt_height_lines: RIFT_PROMPT_HEIGHT_LINES,
         };
 
         let terminal_view_resources = TerminalViewResources {

@@ -43,17 +43,17 @@ pub fn initialize_settings_for_tests_with_mode(
     use crate::terminal::safe_mode_settings::SafeModeSettings;
     use crate::terminal::session_settings::SessionSettings;
     use crate::terminal::settings::TerminalSettings;
-    use crate::terminal::warpify::settings::WarpifySettings;
+    use crate::terminal::riftify::settings::RiftifySettings;
     use crate::terminal::BlockListSettings;
     use crate::undo_close::UndoCloseSettings;
-    use crate::user_config::WarpConfig;
+    use crate::user_config::RiftConfig;
     use crate::window_settings::WindowSettings;
     use crate::workspace::tab_settings::TabSettings;
     app.add_singleton_model(|ctx| AppExecutionMode::new(mode, is_sandboxed, ctx));
 
     app.update(init_and_register_user_preferences);
     app.add_singleton_model(|_ctx| SettingsManager::default());
-    app.add_singleton_model(WarpConfig::mock);
+    app.add_singleton_model(RiftConfig::mock);
 
     AccessibilitySettings::register(app);
     app.update(AISettings::register_and_subscribe_to_events);
@@ -92,7 +92,7 @@ pub fn initialize_settings_for_tests_with_mode(
     ScrollSettings::register(app);
     SelectionSettings::register(app);
     app.update(|ctx| {
-        WarpifySettings::register(ctx);
+        RiftifySettings::register(ctx);
     });
     SessionSettings::register(app);
     SshSettings::register(app);

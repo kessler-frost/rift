@@ -2,20 +2,20 @@
 
 #import <Metal/Metal.h>
 
-void warp_view_did_change_backing_properties(WarpHostView *, BOOL);
-void warp_view_set_frame_size(WarpHostView *, NSSize, BOOL);
-void warp_update_layer(WarpHostView *);
-BOOL warp_handle_view_event(WarpHostView *, NSEvent *, BOOL);
-BOOL warp_handle_first_mouse_event(WarpHostView *, NSEvent *);
-void warp_handle_insert_text(WarpHostView *, id);
-void warp_update_ime_state(WarpHostView *, BOOL);
-void warp_handle_drag_and_drop(WarpHostView *, NSArray *, NSPoint);
-void warp_handle_file_drag(WarpHostView *, NSPoint);
-void warp_handle_file_drag_exit(WarpHostView *);
-NSRect warp_ime_position(WarpHostView *, NSRect *);
-id warp_get_accessibility_contents(WarpHostView *);
-void warp_marked_text_updated(WarpHostView *, NSString *, NSRange);
-void warp_marked_text_cleared(WarpHostView *);
+void warp_view_did_change_backing_properties(RiftHostView *, BOOL);
+void warp_view_set_frame_size(RiftHostView *, NSSize, BOOL);
+void warp_update_layer(RiftHostView *);
+BOOL warp_handle_view_event(RiftHostView *, NSEvent *, BOOL);
+BOOL warp_handle_first_mouse_event(RiftHostView *, NSEvent *);
+void warp_handle_insert_text(RiftHostView *, id);
+void warp_update_ime_state(RiftHostView *, BOOL);
+void warp_handle_drag_and_drop(RiftHostView *, NSArray *, NSPoint);
+void warp_handle_file_drag(RiftHostView *, NSPoint);
+void warp_handle_file_drag_exit(RiftHostView *);
+NSRect warp_ime_position(RiftHostView *, NSRect *);
+id warp_get_accessibility_contents(RiftHostView *);
+void warp_marked_text_updated(RiftHostView *, NSString *, NSRange);
+void warp_marked_text_cleared(RiftHostView *);
 
 @implementation NSPasteboard (Warp)
 
@@ -33,7 +33,7 @@ void warp_marked_text_cleared(WarpHostView *);
 
 @end
 
-@implementation WarpHostView {
+@implementation RiftHostView {
     // The windowState is managed on the Rust side.
     // Note Rust expects this name even though we are not a window.
     void *windowState;
@@ -285,7 +285,7 @@ void warp_marked_text_cleared(WarpHostView *);
     return layer;
 }
 
-- (WarpHostView *)initWithFrame:(NSRect)frame
+- (RiftHostView *)initWithFrame:(NSRect)frame
                     metalDevice:(id)device
              enableTitlebarDrag:(BOOL)enableTitlebarDrag
                        testMode:(BOOL)testModeFlag {

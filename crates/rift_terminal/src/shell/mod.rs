@@ -335,7 +335,7 @@ impl ShellType {
     ///
     /// The returned [`TypedPathBuf`]s are encoded for the target OS rather than the
     /// host OS, because the resulting path is rendered into a shell command executed
-    /// on the target (e.g. via SSH or Auto-Warpify). A plain `PathBuf` would pick the
+    /// on the target (e.g. via SSH or Auto-Riftify). A plain `PathBuf` would pick the
     /// host's separator and produce strings like `~\.zshrc` on a Windows host when
     /// targeting a Unix shell, which the remote shell cannot resolve. Encoding for
     /// the target OS lets `TypedPathBuf` enforce the correct separator.

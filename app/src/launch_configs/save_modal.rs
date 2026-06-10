@@ -28,7 +28,7 @@ use crate::launch_configs::launch_config::LaunchConfig;
 use crate::send_telemetry_from_ctx;
 use crate::user_config::launch_configs_dir;
 #[cfg(feature = "local_fs")]
-use crate::user_config::{util::file_name_to_human_readable_name, WarpConfig};
+use crate::user_config::{util::file_name_to_human_readable_name, RiftConfig};
 use crate::util::bindings::keybinding_name_to_display_string;
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
@@ -153,7 +153,7 @@ pub enum LaunchConfigModalEvent {
     /// It's called when the new config was just saved. Note that when we save the configuration,
     /// it take a moment for the file system to register the change, and us to receive it (as there
     /// is a delay in our watcher). But because we actually have the LaunchConfig in our hands
-    /// already, we may as well save it "manually" to the WarpConfig, while waiting for the update
+    /// already, we may as well save it "manually" to the RiftConfig, while waiting for the update
     /// from the file system. This event passes a saved config to the handler to let us do that.
     SuccessfullySavedConfig(LaunchConfig),
     #[cfg(feature = "local_fs")]
@@ -263,7 +263,7 @@ impl LaunchConfigSaveModal {
         let launch_config_name = file_name_to_human_readable_name(&file_name_candidate);
         if let Some(app_state) = &self.current_app_state {
             let launch_config = LaunchConfig::from_snapshot(launch_config_name, app_state);
-            match WarpConfig::save_new_launch_config(file_name_candidate, launch_config.clone()) {
+            match RiftConfig::save_new_launch_config(file_name_candidate, launch_config.clone()) {
                 Ok(file_name) => {
                     self.saved_successfully(file_name, ctx);
                     ctx.emit(LaunchConfigModalEvent::SuccessfullySavedConfig(

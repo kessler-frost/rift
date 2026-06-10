@@ -111,7 +111,7 @@ impl View for AutosuggestionIgnore {
 
             let height_without_border = height - border_width * 2.;
             let close_icon = Container::new(
-                ConstrainedBox::new(Icon::X.to_warpui_icon(Fill::Solid(icon_color)).finish())
+                ConstrainedBox::new(Icon::X.to_riftui_icon(Fill::Solid(icon_color)).finish())
                     .with_height(height_without_border)
                     .with_width(height_without_border)
                     .finish(),

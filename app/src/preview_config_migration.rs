@@ -56,7 +56,7 @@ pub(crate) fn migrate_config_dir_via_symlinks(old_dir: &Path, new_dir: &Path) {
 
     // The existence of new_dir is the migration marker — no separate marker
     // file is needed. Once this directory exists (whether created by the
-    // migration itself or by ensure_warp_watch_roots_exist on a subsequent
+    // migration itself or by ensure_rift_watch_roots_exist on a subsequent
     // launch), this function is a no-op.
     if new_dir.exists() || !old_dir.exists() {
         return;

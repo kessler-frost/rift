@@ -12,7 +12,7 @@ use rift::integration_testing::terminal::wait_until_bootstrapped_single_pane_for
 use rift::integration_testing::view_getters::single_input_view_for_tab;
 use rift::root_view::SubshellCommandArg;
 use rift::terminal::shell::ShellType;
-use rift::terminal::warpify::settings::AddedSubshellCommands;
+use rift::terminal::riftify::settings::AddedSubshellCommands;
 use riftui_core::integration::{AssertionOutcome, TestStep};
 use riftui_core::windowing::state::ApplicationStage;
 use riftui_core::windowing::WindowManager;
@@ -83,7 +83,7 @@ generate_can_bootstrap_remote_subshell_for_shell!(test_can_bootstrap_remote_bash
 // generate_can_bootstrap_remote_subshell_for_shell!(test_can_bootstrap_remote_fish_subshell, "fish");
 
 // Test the flow of creating a new window and running a command that should create a subshell and
-//  automaticall bootstrapping AKA "warpifying" that subshell.
+//  automaticall bootstrapping AKA "riftifying" that subshell.
 pub fn test_can_auto_bootstrap() -> Builder {
     const SUBSHELL_COMMAND: &str = "zsh";
 

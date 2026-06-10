@@ -10,7 +10,7 @@ use super::*;
 use crate::context_chips::prompt::Prompt;
 use crate::editor::{AutosuggestionLocation, AutosuggestionType};
 use crate::features::FeatureFlag;
-use crate::settings::WarpPromptSeparator;
+use crate::settings::RiftPromptSeparator;
 use crate::terminal::alt_screen::should_intercept_mouse;
 use crate::terminal::block_list_element::{SnackbarPoint, SnackbarTranslationMode};
 use crate::terminal::block_list_viewport::{ClampingMode, ScrollLines};
@@ -2176,7 +2176,7 @@ fn test_prompt_context_menu_items_for_context_chips() {
                 .update(
                     [ContextChipKind::Time12],
                     false,
-                    WarpPromptSeparator::None,
+                    RiftPromptSeparator::None,
                     ctx,
                 )
                 .expect("updating prompt to time chip failed");
