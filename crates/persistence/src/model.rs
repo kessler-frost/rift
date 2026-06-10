@@ -1140,7 +1140,7 @@ impl ModelTokenUsage {
         ))
     }
 
-    pub fn to_proto_warp_usage(&self) -> Option<(String, stream_finished::ModelTokenUsage)> {
+    pub fn to_proto_rift_usage(&self) -> Option<(String, stream_finished::ModelTokenUsage)> {
         self.to_proto_usage(self.warp_tokens, &self.warp_token_usage_by_category)
     }
 

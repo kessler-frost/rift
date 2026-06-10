@@ -44,7 +44,7 @@ use rift_core::r#async::debounce;
 use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
 use rift_util::path::ShellFamily;
-use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::clipboard::{ClipboardContent, ImageData};
 use riftui::clipboard_utils::CLIPBOARD_IMAGE_MIME_TYPES;
 use riftui::elements::{
@@ -4211,7 +4211,7 @@ impl Input {
             if trigger == CommandXRayTrigger::Keystroke {
                 ctx.emit_a11y_content(AccessibilityContent::new_without_help(
                     description.a11y_text(),
-                    WarpA11yRole::UserAction,
+                    RiftA11yRole::UserAction,
                 ));
             }
             ctx.notify();
@@ -5030,7 +5030,7 @@ impl TypedActionView for Input {
                     INPUT_A11Y_LABEL,
                     // TODO (a11y) use bindings from user settings
                     INPUT_A11Y_HELPER,
-                    WarpA11yRole::TextareaRole,
+                    RiftA11yRole::TextareaRole,
                 ))
             }
             _ => ActionAccessibilityContent::Empty,
@@ -5092,7 +5092,7 @@ impl View for Input {
             INPUT_A11Y_LABEL,
             // TODO (a11y) use bindings from user settings
             INPUT_A11Y_HELPER,
-            WarpA11yRole::TextareaRole,
+            RiftA11yRole::TextareaRole,
         ))
     }
 

@@ -184,7 +184,7 @@ pub enum PaletteSource {
     PrefixChange,
     Keybinding,
     CtrlTab { shift_pressed_initially: bool },
-    WarpDrive,
+    Drive,
     QuitModal,
     LogOutModal,
     IntegrationTest,
@@ -259,7 +259,7 @@ pub enum PluginChipTelemetryAction {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum WarpDriveSource {
+pub enum DriveSource {
     Legacy,
     LeftPanelToolbelt,
     ForceOpened,
@@ -291,7 +291,7 @@ pub enum CommandSearchResultType {
     Workflow,
     Notebook,
     EnvVarCollection,
-    ViewInWarpDrive,
+    ViewInDrive,
     AIQuery,
     Project,
 }
@@ -399,8 +399,8 @@ pub enum KnowledgePaneEntrypoint {
     #[serde(rename = "settings")]
     Settings,
 
-    #[serde(rename = "warp_drive")]
-    WarpDrive,
+    #[serde(rename = "drive")]
+    Drive,
 
     #[serde(rename = "ai_blocklist")]
     AIBlocklist,
@@ -1159,8 +1159,8 @@ pub enum TelemetryEvent {
     },
     AnonymousUserHitCloudObjectLimit,
     NeedsReauth,
-    WarpDriveOpened {
-        source: WarpDriveSource,
+    DriveOpened {
+        source: DriveSource,
         is_code_mode_v2: bool,
     },
     ToggleSecretRedaction {
@@ -2809,7 +2809,7 @@ impl TelemetryEvent {
                 "banner_toggle_flag_enabled": banner_toggle_flag_enabled,
                 "post_purchase_modal_flag_enabled": post_purchase_modal_flag_enabled,
             })),
-            TelemetryEvent::WarpDriveOpened {
+            TelemetryEvent::DriveOpened {
                 source,
                 is_code_mode_v2,
             } => Some(json!({
@@ -3206,7 +3206,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::DismissVimKeybindingsBanner => EnablementState::Always,
             Self::InitiateReauth => EnablementState::Always,
             Self::NeedsReauth => EnablementState::Always,
-            Self::WarpDriveOpened => EnablementState::Always,
+            Self::DriveOpened => EnablementState::Always,
             Self::ToggleSecretRedaction => EnablementState::Always,
             Self::CustomSecretRegexAdded => EnablementState::Always,
             Self::ToggleObfuscateSecret => EnablementState::Always,
@@ -3600,7 +3600,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::EnableAliasExpansionFromBanner => "Enable Alias Expansion From Banner",
             Self::InitiateReauth => "Initiate Reauth",
             Self::NeedsReauth => "Needs Reauth",
-            Self::WarpDriveOpened => "Warp Drive Opened",
+            Self::DriveOpened => "Warp Drive Opened",
             Self::ToggleSecretRedaction => "Toggle Secret Redaction",
             Self::CustomSecretRegexAdded => "Custom Secret Regex Added",
             Self::ToggleObfuscateSecret => "Toggle Obfuscate Secret",
@@ -4191,7 +4191,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::InitiateReauth => "Started the flow to re-authenticate the client",
             Self::NeedsReauth => "User needs to re-authenticate",
-            Self::WarpDriveOpened => "Opened Warp Drive panel",
+            Self::DriveOpened => "Opened Warp Drive panel",
             Self::ToggleSecretRedaction => {
                 "Toggled on/off the setting for Secret Redaction - attempts to redact secrets and sensitive information"
             }

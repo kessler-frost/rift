@@ -567,12 +567,12 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
             Ok(DProtoHook::Clear { value }) => self.handler.clear(value),
             Ok(DProtoHook::InitSubshell { value }) => self.handler.init_subshell(value),
             Ok(DProtoHook::InitSsh { value }) => self.handler.init_ssh(value),
-            Ok(DProtoHook::SourcedRcFileForWarp { .. }) => {
+            Ok(DProtoHook::SourcedRcFileForRift { .. }) => {
                 // The SourcedRCFileForWarp hook should only be emitted by the
                 // shell without hex encoding. The RC file snippet given to
                 // users is not hex-encoded for the sake of transparency and
                 // debugability.
-                log::error!("Received hex-encoded SourcedRcFileForWarp escape sequence.");
+                log::error!("Received hex-encoded SourcedRcFileForRift escape sequence.");
             }
             Ok(DProtoHook::FinishUpdate { value }) => self.handler.finish_update(value),
             Ok(DProtoHook::RemoteRiftificationIsUnavailable { value }) => {
@@ -598,7 +598,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
     /// Calls the appropriate `ansi::Handler` function according to the given hook. This function
     /// assumes that the hook was never encoded.
     fn handle_unencoded_hook(&mut self, hook: Result<DProtoHook, serde_json::Error>) {
-        // Currently, only the `SourcedRcFileForWarp`, `InitShell`, `InitSubshell`, and `InitSsh`
+        // Currently, only the `SourcedRcFileForRift`, `InitShell`, `InitSubshell`, and `InitSsh`
         // DCS's may be emitted without hex-encoding -- other DCS hooks should be sent hex-encoded.
         // This is because we can guarantee that theses RC file hook don't contain non-ASCII chars
         // that might otherwise corrupt parsing of the PTY output (the same can't be said for the
@@ -608,17 +608,17 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
             Ok(DProtoHook::InitSubshell { value }) => {
                 self.handler.init_subshell(value);
             }
-            Ok(DProtoHook::SourcedRcFileForWarp { value }) => {
+            Ok(DProtoHook::SourcedRcFileForRift { value }) => {
                 self.handler.sourced_rc_file(value);
             }
             Ok(DProtoHook::InitSsh { value }) => {
                 self.handler.init_ssh(value);
             }
             Ok(_) => {
-                log::error!("Received non hex-encoded hook that is not SourcedRcFileForWarp");
+                log::error!("Received non hex-encoded hook that is not SourcedRcFileForRift");
             }
             Err(err) => {
-                log::warn!("Received malformed SourcedRcFileForWarp hook {err:#}");
+                log::warn!("Received malformed SourcedRcFileForRift hook {err:#}");
             }
         }
     }

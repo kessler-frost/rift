@@ -4,7 +4,7 @@
 //! JS objects are converted into Rust with consistent semantics.
 use rquickjs::{Ctx, Object, Result, Value};
 
-use super::{FromWarpJs, JsFunctionRegistry};
+use super::{FromRiftJs, JsFunctionRegistry};
 
 /// Returns the value for an optional property that maybe set to either a single `T` or an array of
 /// `T`'s in Javascript.
@@ -24,7 +24,7 @@ pub fn get_one_or_more_optional<'js, T>(
     ctx: Ctx<'js>,
 ) -> Result<Vec<T>>
 where
-    T: FromWarpJs<'js>,
+    T: FromRiftJs<'js>,
 {
     if object.contains_key(field_name)? {
         get_one_or_more_required(object, field_name, js_function_registry, ctx)
@@ -51,13 +51,13 @@ pub fn get_one_or_more_required<'js, T>(
     ctx: Ctx<'js>,
 ) -> Result<Vec<T>>
 where
-    T: FromWarpJs<'js>,
+    T: FromRiftJs<'js>,
 {
     let value: Value = object.get(field_name)?;
     if value.is_array() {
-        Vec::<T>::from_warp_js(ctx, value, js_function_registry)
+        Vec::<T>::from_rift_js(ctx, value, js_function_registry)
     } else {
-        Ok(vec![T::from_warp_js(ctx, value, js_function_registry)?])
+        Ok(vec![T::from_rift_js(ctx, value, js_function_registry)?])
     }
 }
 
@@ -75,10 +75,10 @@ pub fn get_required<'js, T>(
     ctx: Ctx<'js>,
 ) -> Result<T>
 where
-    T: FromWarpJs<'js>,
+    T: FromRiftJs<'js>,
 {
     let value = object.get(field_name)?;
-    T::from_warp_js(ctx, value, js_function_registry)
+    T::from_rift_js(ctx, value, js_function_registry)
 }
 
 /// Returns the value for an optional property of type `T`.
@@ -95,7 +95,7 @@ pub fn get_optional<'js, T>(
     ctx: Ctx<'js>,
 ) -> Result<Option<T>>
 where
-    T: FromWarpJs<'js>,
+    T: FromRiftJs<'js>,
 {
     if object.contains_key(field_name)? {
         Ok(Some(get_required::<T>(

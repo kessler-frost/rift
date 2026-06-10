@@ -39,18 +39,18 @@ impl VirtualFS {
     pub fn test(tag: &str, test_callback: impl FnOnce(Dirs, VirtualFS)) {
         let root = tempdir().expect("failed create root directory.");
 
-        let warpbox_dir = root.path().join(tag);
+        let riftbox_dir = root.path().join(tag);
 
-        if PathBuf::from(&warpbox_dir).exists() {
-            std::fs::remove_dir_all(PathBuf::from(&warpbox_dir)).expect("can not remove directory");
+        if PathBuf::from(&riftbox_dir).exists() {
+            std::fs::remove_dir_all(PathBuf::from(&riftbox_dir)).expect("can not remove directory");
         }
 
-        std::fs::create_dir(PathBuf::from(&warpbox_dir)).expect("can not create directory");
+        std::fs::create_dir(PathBuf::from(&riftbox_dir)).expect("can not create directory");
 
-        let tests = dunce::canonicalize(&warpbox_dir).unwrap_or_else(|e| {
+        let tests = dunce::canonicalize(&riftbox_dir).unwrap_or_else(|e| {
             panic!(
                 "Couldn't canonicalize test path {}: {:?}",
-                warpbox_dir.display(),
+                riftbox_dir.display(),
                 e
             )
         });
@@ -62,7 +62,7 @@ impl VirtualFS {
 
         let warpbox = VirtualFS {
             root,
-            cwd: warpbox_dir,
+            cwd: riftbox_dir,
             tests: tag.to_string(),
         };
 

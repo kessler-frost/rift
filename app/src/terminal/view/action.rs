@@ -194,7 +194,7 @@ pub enum TerminalAction {
     },
     CopyRichContentSecret(RichContentSecretTooltipInfo),
     ShowInFileExplorer(PathBuf),
-    OpenFileInWarp(PathBuf),
+    OpenFileInRift(PathBuf),
     /// Starts a subshell in the active session.
     TriggerSubshellBootstrap,
     /// If the user says "no" to Riftification, possibly requesting not to be asked again
@@ -362,7 +362,7 @@ impl fmt::Debug for TerminalAction {
             CopyGridSecret(_) => f.write_str("CopyGridSecret"),
             CopyRichContentSecret(_) => f.write_str("CopyRichContentSecret"),
             ShowInFileExplorer(_) => f.write_str("ShowInFileExplorer"),
-            OpenFileInWarp(_) => f.write_str("OpenFileInWarp"),
+            OpenFileInRift(_) => f.write_str("OpenFileInRift"),
             OpenBlockListContextMenu => f.write_str("OpenBlockListContextMenu"),
             TriggerSubshellBootstrap => f.write_str("TriggerSubshellBootstrap"),
             DismissRiftifyBanner(remember) => write!(f, "DismissRiftifyBanner({remember:?})"),

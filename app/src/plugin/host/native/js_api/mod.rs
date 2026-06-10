@@ -6,7 +6,7 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "completions_v2")] {
         use rquickjs::{prelude::MutFn, Value};
         use rift_completer::signatures::CommandSignature;
-        use rift_js::FromWarpJs;
+        use rift_js::FromRiftJs;
     }
 }
 
@@ -59,7 +59,7 @@ fn completions<'js>(plugin: PluginHandle, ctx: Ctx<'js>) -> rquickjs::Result<Obj
             MutFn::from(move |val: Value<'js>| {
                 if val.is_array() {
                     let mut plugin = plugin.get_mut();
-                    match Vec::<CommandSignature>::from_warp_js(
+                    match Vec::<CommandSignature>::from_rift_js(
                         ctx,
                         val,
                         plugin.js_function_registry_mut(),
@@ -71,7 +71,7 @@ fn completions<'js>(plugin: PluginHandle, ctx: Ctx<'js>) -> rquickjs::Result<Obj
                     }
                 } else if val.is_object() {
                     let mut plugin = plugin.get_mut();
-                    match CommandSignature::from_warp_js(
+                    match CommandSignature::from_rift_js(
                         ctx,
                         val,
                         plugin.js_function_registry_mut(),

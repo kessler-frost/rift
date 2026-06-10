@@ -123,7 +123,7 @@ use rift::integration_testing::view_getters::{
     workspace_view,
 };
 use rift::integration_testing::warp_drive::{
-    assert_is_left_panel_open, assert_warp_drive_is_closed, assert_warp_drive_is_open,
+    assert_is_left_panel_open, assert_drive_is_closed, assert_drive_is_open,
 };
 use rift::integration_testing::window::{
     add_and_save_window, add_window, add_window_and_check_bounds, close_window,
@@ -3510,7 +3510,7 @@ pub fn test_osc7_updates_current_working_directory() -> Builder {
                 // the `WorkingDirectory` prompt chip text (read by
                 // `display_working_directory`, which feeds the vertical-tab
                 // subtitle) must be refreshed after OSC 7. Without
-                // `refresh_warp_prompt` in the `BlockWorkingDirectoryUpdated`
+                // `refresh_rift_prompt` in the `BlockWorkingDirectoryUpdated`
                 // path, the block's `pwd` updates but the chip text stays on
                 // the old CWD until the next `BlockCompleted`.
                 .add_assertion(|app, window_id| {
@@ -6713,20 +6713,20 @@ pub fn test_create_folder_from_command_palette() -> Builder {
         .with_step(go_offline())
         .with_steps(
             open_command_palette_and_run_action("Create a New Team Folder")
-                .add_assertion(assert_warp_drive_is_closed()),
+                .add_assertion(assert_drive_is_closed()),
         )
         .with_steps(
             open_command_palette_and_run_action("Create a New Personal Folder")
-                .add_assertion(assert_warp_drive_is_closed()),
+                .add_assertion(assert_drive_is_closed()),
         )
         .with_step(go_online())
         .with_steps(
             open_command_palette_and_run_action("Create a New Team Folder")
-                .add_assertion(assert_warp_drive_is_open()),
+                .add_assertion(assert_drive_is_open()),
         )
         .with_steps(
             open_command_palette_and_run_action("Create a New Personal Folder")
-                .add_assertion(assert_warp_drive_is_open()),
+                .add_assertion(assert_drive_is_open()),
         )
 }
 

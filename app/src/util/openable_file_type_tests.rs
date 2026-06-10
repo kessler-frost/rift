@@ -7,10 +7,10 @@ use super::*;
 
 #[test]
 fn test_binary_files_not_openable() {
-    assert!(is_file_openable_in_warp(Path::new("image.png")).is_none());
-    assert!(is_file_openable_in_warp(Path::new("video.mp4")).is_none());
-    assert!(is_file_openable_in_warp(Path::new("binary.exe")).is_none());
-    assert!(is_file_openable_in_warp(Path::new("archive.zip")).is_none());
+    assert!(is_file_openable_in_rift(Path::new("image.png")).is_none());
+    assert!(is_file_openable_in_rift(Path::new("video.mp4")).is_none());
+    assert!(is_file_openable_in_rift(Path::new("binary.exe")).is_none());
+    assert!(is_file_openable_in_rift(Path::new("archive.zip")).is_none());
 }
 
 #[test]
@@ -82,19 +82,19 @@ fn test_resolve_file_target_binary_uses_env_editor() {
 #[test]
 fn test_markdown_files() {
     assert_eq!(
-        is_file_openable_in_warp(Path::new("README.md")),
+        is_file_openable_in_rift(Path::new("README.md")),
         Some(OpenableFileType::Markdown)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("doc.markdown")),
+        is_file_openable_in_rift(Path::new("doc.markdown")),
         Some(OpenableFileType::Markdown)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("README")),
+        is_file_openable_in_rift(Path::new("README")),
         Some(OpenableFileType::Markdown)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("CHANGELOG")),
+        is_file_openable_in_rift(Path::new("CHANGELOG")),
         Some(OpenableFileType::Markdown)
     );
 }
@@ -103,19 +103,19 @@ fn test_markdown_files() {
 #[cfg(feature = "local_fs")]
 fn test_code_files() {
     assert_eq!(
-        is_file_openable_in_warp(Path::new("main.rs")),
+        is_file_openable_in_rift(Path::new("main.rs")),
         Some(OpenableFileType::Code)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("app.js")),
+        is_file_openable_in_rift(Path::new("app.js")),
         Some(OpenableFileType::Code)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("script.py")),
+        is_file_openable_in_rift(Path::new("script.py")),
         Some(OpenableFileType::Code)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("config.json")),
+        is_file_openable_in_rift(Path::new("config.json")),
         Some(OpenableFileType::Code)
     );
 }
@@ -124,19 +124,19 @@ fn test_code_files() {
 #[cfg(not(feature = "local_fs"))]
 fn test_code_files() {
     assert_eq!(
-        is_file_openable_in_warp(Path::new("main.rs")),
+        is_file_openable_in_rift(Path::new("main.rs")),
         Some(OpenableFileType::Text)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("app.js")),
+        is_file_openable_in_rift(Path::new("app.js")),
         Some(OpenableFileType::Text)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("script.py")),
+        is_file_openable_in_rift(Path::new("script.py")),
         Some(OpenableFileType::Text)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("config.json")),
+        is_file_openable_in_rift(Path::new("config.json")),
         Some(OpenableFileType::Text)
     );
 }
@@ -145,15 +145,15 @@ fn test_code_files() {
 fn test_text_files() {
     // Files that are text but don't have language support
     assert_eq!(
-        is_file_openable_in_warp(Path::new("data.txt")),
+        is_file_openable_in_rift(Path::new("data.txt")),
         Some(OpenableFileType::Text)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("data.csv")),
+        is_file_openable_in_rift(Path::new("data.csv")),
         Some(OpenableFileType::Text)
     );
     assert_eq!(
-        is_file_openable_in_warp(Path::new("file.svg")),
+        is_file_openable_in_rift(Path::new("file.svg")),
         Some(OpenableFileType::Text)
     );
 }

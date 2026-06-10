@@ -1,5 +1,5 @@
 use pathfinder_color::ColorU;
-pub use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+pub use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DropShadow, Element, Flex, Hoverable, MouseStateHandle, OffsetPositioning,
@@ -259,10 +259,10 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
                     self.model.as_ref(ctx).match_count()
                 ),
                 "Use enter and shift-enter to navigate between matches. Escape to quit.",
-                WarpA11yRole::UserAction,
+                RiftA11yRole::UserAction,
             )
         } else {
-            AccessibilityContent::new_without_help("No results.", WarpA11yRole::UserAction)
+            AccessibilityContent::new_without_help("No results.", RiftA11yRole::UserAction)
         };
         ctx.emit_a11y_content(content);
     }
@@ -519,7 +519,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> View for Find<T> {
         Some(AccessibilityContent::new(
             "Type searched phrase.",
             "Press escape to quit, use enter and shift-enter to navigate between matches",
-            WarpA11yRole::TextareaRole,
+            RiftA11yRole::TextareaRole,
         ))
     }
 

@@ -10,8 +10,8 @@ use crate::JsFunctionRegistry;
 ///
 /// This is similar to `rquickjs`'s native `FromJs` trait, except it enables registering JS
 /// functions in the given `JsFunctionRegistry` so these functions can be called arbitrarily.
-pub trait FromWarpJs<'js>: Sized {
-    fn from_warp_js(
+pub trait FromRiftJs<'js>: Sized {
+    fn from_rift_js(
         ctx: Ctx<'js>,
         value: Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -26,15 +26,15 @@ pub trait FromWarpJs<'js>: Sized {
 /// `IntoJs`. `rquickjs` contains recursive blanket implementations of `IntoJs` for generic types
 /// like `Vec`, which causes issues when the Rust compiler attempts to generate `CallableJsFunction`
 /// for monomorphized `TypedJsFunction`s (which have generic type params).
-pub trait IntoWarpJs<'js>: Sized {
-    fn into_warp_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>>;
+pub trait IntoRiftJs<'js>: Sized {
+    fn into_rift_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>>;
 }
 
-impl<'js, T> FromWarpJs<'js> for Vec<T>
+impl<'js, T> FromRiftJs<'js> for Vec<T>
 where
-    T: FromWarpJs<'js>,
+    T: FromRiftJs<'js>,
 {
-    fn from_warp_js(
+    fn from_rift_js(
         ctx: Ctx<'js>,
         value: Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -43,7 +43,7 @@ where
             let values = value.get::<Vec<Value>>()?;
             Ok(values
                 .into_iter()
-                .flat_map(|value| T::from_warp_js(ctx, value, js_function_registry).ok())
+                .flat_map(|value| T::from_rift_js(ctx, value, js_function_registry).ok())
                 .collect())
         } else {
             Err(rquickjs::Error::FromJs {
@@ -55,8 +55,8 @@ where
     }
 }
 
-impl<'js> FromWarpJs<'js> for String {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for String {
+    fn from_rift_js(
         ctx: Ctx<'js>,
         value: Value<'js>,
         _js_function_registry: &mut JsFunctionRegistry,
@@ -65,8 +65,8 @@ impl<'js> FromWarpJs<'js> for String {
     }
 }
 
-impl<'js> FromWarpJs<'js> for bool {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for bool {
+    fn from_rift_js(
         ctx: Ctx<'js>,
         value: Value<'js>,
         _js_function_registry: &mut JsFunctionRegistry,
@@ -75,8 +75,8 @@ impl<'js> FromWarpJs<'js> for bool {
     }
 }
 
-impl<'js> FromWarpJs<'js> for i32 {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for i32 {
+    fn from_rift_js(
         ctx: Ctx<'js>,
         value: Value<'js>,
         _js_function_registry: &mut JsFunctionRegistry,
@@ -85,14 +85,14 @@ impl<'js> FromWarpJs<'js> for i32 {
     }
 }
 
-impl<'js> IntoWarpJs<'js> for String {
-    fn into_warp_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>> {
+impl<'js> IntoRiftJs<'js> for String {
+    fn into_rift_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>> {
         self.into_js(ctx)
     }
 }
 
-impl<'js> IntoWarpJs<'js> for Vec<String> {
-    fn into_warp_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>> {
+impl<'js> IntoRiftJs<'js> for Vec<String> {
+    fn into_rift_js(self, ctx: Ctx<'js>) -> rquickjs::Result<Value<'js>> {
         self.into_js(ctx)
     }
 }

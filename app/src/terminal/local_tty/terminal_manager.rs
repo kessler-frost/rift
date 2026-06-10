@@ -474,9 +474,9 @@ impl TerminalManager {
     /// Sends bindkey to notify shell process to switch to Rift prompt logic for prompt
     /// with the combined prompt/command grid (we unset the PS1, but save the value for potential
     /// future restoration).
-    pub fn send_switch_to_warp_prompt_bindkey(&self, app_ctx: &mut AppContext) {
+    pub fn send_switch_to_rift_prompt_bindkey(&self, app_ctx: &mut AppContext) {
         self.pty_controller.update(app_ctx, |pty_controller, ctx| {
-            pty_controller.send_switch_to_warp_prompt_bindkey(ctx);
+            pty_controller.send_switch_to_rift_prompt_bindkey(ctx);
         });
     }
 

@@ -28,7 +28,7 @@ use crate::themes::theme::Fill;
 pub enum FeatureSection {
     WhatsNew,
     GettingStarted,
-    MaximizeWarp,
+    MaximizeRift,
     AdvancedSetup,
 }
 
@@ -37,7 +37,7 @@ impl FeatureSection {
         match self {
             FeatureSection::WhatsNew => "What's New?",
             FeatureSection::GettingStarted => "Getting Started",
-            FeatureSection::MaximizeWarp => "Maximize Warp",
+            FeatureSection::MaximizeRift => "Maximize Warp",
             FeatureSection::AdvancedSetup => "Advanced Setup",
         }
     }

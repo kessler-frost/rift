@@ -52,7 +52,7 @@ use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
 use rift_util::path::{user_friendly_path, LineAndColumnArg};
 use riftui::accessibility::{
-    AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, WarpA11yRole,
+    AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, RiftA11yRole,
 };
 use riftui::clipboard::ClipboardContent;
 #[cfg(target_family = "wasm")]
@@ -497,7 +497,7 @@ impl ShowTabBar {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SimplifiedWasmTabBarContent {
     /// Viewing a Rift Drive object (notebook, workflow, env vars, AI facts, MCP servers)
-    WarpDriveObject,
+    DriveObject,
     /// Participating in a shared session (viewer or writer).
     SharedSession,
     /// Viewing a conversation transcript.
@@ -2795,8 +2795,8 @@ impl Workspace {
 
         // Check if focused pane is a Rift Drive object
         let focused_pane_id = pane_group.focused_pane_id(ctx);
-        if focused_pane_id.is_warp_drive_object_pane() {
-            return Some(SimplifiedWasmTabBarContent::WarpDriveObject);
+        if focused_pane_id.is_drive_object_pane() {
+            return Some(SimplifiedWasmTabBarContent::DriveObject);
         }
 
         None
@@ -8286,8 +8286,8 @@ impl Workspace {
         self.current_workspace_state.is_workflow_modal_open
     }
 
-    pub fn is_warp_drive_open(&self) -> bool {
-        self.current_workspace_state.is_warp_drive_open
+    pub fn is_drive_open(&self) -> bool {
+        self.current_workspace_state.is_drive_open
     }
 
     pub fn is_left_panel_open(&self, ctx: &AppContext) -> bool {
@@ -9638,7 +9638,7 @@ impl Workspace {
             let bg_color = blended_colors::neutral_1(appearance.theme());
 
             // Left: Rift logo - clickable to link to the upstream site
-            let warp_logo = Hoverable::new(self.mouse_states.warp_logo.clone(), |_state| {
+            let rift_logo = Hoverable::new(self.mouse_states.rift_logo.clone(), |_state| {
                 ConstrainedBox::new(
                     rift_core::ui::Icon::Warp
                         .to_riftui_icon(appearance.theme().foreground())
@@ -9653,7 +9653,7 @@ impl Workspace {
             })
             .with_cursor(Cursor::PointingHand)
             .finish();
-            tab_bar.add_child(warp_logo);
+            tab_bar.add_child(rift_logo);
 
             // Right: Info button + "View all cloud runs" button (for ambient agent sessions) + "Open in Rift" button
             let mut right_row = Flex::row()
@@ -9664,12 +9664,12 @@ impl Workspace {
             let task_id = match content_type {
                 SimplifiedWasmTabBarContent::ConversationTranscript { task_id }
                 | SimplifiedWasmTabBarContent::SharedSession { task_id } => task_id,
-                SimplifiedWasmTabBarContent::WarpDriveObject => None,
+                SimplifiedWasmTabBarContent::DriveObject => None,
             };
 
             // Show info button for conversation transcripts and shared sessions (if there's content to display)
             let should_show_info_button =
-                !matches!(content_type, SimplifiedWasmTabBarContent::WarpDriveObject)
+                !matches!(content_type, SimplifiedWasmTabBarContent::DriveObject)
                     && self
                         .active_tab_pane_group()
                         .as_ref(ctx)
@@ -11753,7 +11753,7 @@ impl Workspace {
         if *ai_settings.rule_suggestions_enabled_internal.value() {
             context.set.insert(flags::SUGGESTED_RULES_FLAG);
         }
-        if *ai_settings.warp_drive_context_enabled.value() {
+        if *ai_settings.drive_context_enabled.value() {
             context.set.insert(flags::RIFT_DRIVE_CONTEXT_FLAG);
         }
         if *ai_settings.can_use_warp_credits_for_fallback.value() {
@@ -11994,7 +11994,7 @@ impl TypedActionView for Workspace {
             WorkspaceAction::SetA11yVerbosityLevel(verbosity) => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
                     format!("{verbosity:?} accessibility announcements set"),
-                    WarpA11yRole::UserAction,
+                    RiftA11yRole::UserAction,
                 ))
             }
             _ => ActionAccessibilityContent::from_debug(),
@@ -12848,7 +12848,7 @@ impl View for Workspace {
         }
 
         if self.team_uid(app).is_some() {
-            context.set.insert("WarpDrive_BelongsToTeam");
+            context.set.insert("Drive_BelongsToTeam");
         }
 
         if self.auth_state.is_anonymous_or_logged_out() {

@@ -171,7 +171,7 @@ impl ActionButtonTheme for CtaButtonTheme {
 pub struct OrchestrationLaunchModal {
     close_button: ViewHandle<ActionButton>,
     learn_more_button: ViewHandle<ActionButton>,
-    go_to_warp_button: ViewHandle<ActionButton>,
+    go_to_rift_button: ViewHandle<ActionButton>,
 }
 
 impl OrchestrationLaunchModal {
@@ -192,7 +192,7 @@ impl OrchestrationLaunchModal {
                 })
         });
 
-        let go_to_warp_button = ctx.add_view(|_ctx| {
+        let go_to_rift_button = ctx.add_view(|_ctx| {
             ActionButton::new("Close", CtaButtonTheme)
                 .with_full_width(true)
                 .on_click(|ctx| ctx.dispatch_typed_action(OrchestrationLaunchModalAction::Close))
@@ -201,7 +201,7 @@ impl OrchestrationLaunchModal {
         Self {
             close_button,
             learn_more_button,
-            go_to_warp_button,
+            go_to_rift_button,
         }
     }
 
@@ -359,7 +359,7 @@ impl OrchestrationLaunchModal {
                 Expanded::new(1., ChildView::new(&self.learn_more_button).finish()).finish(),
             )
             .with_child(
-                Expanded::new(1., ChildView::new(&self.go_to_warp_button).finish()).finish(),
+                Expanded::new(1., ChildView::new(&self.go_to_rift_button).finish()).finish(),
             )
             .finish();
 

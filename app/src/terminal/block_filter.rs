@@ -2,7 +2,7 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use regex_automata::hybrid::BuildError;
 use rift_editor::editor::NavigationKey;
-use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, Dash, Dismiss, DropShadow, Empty, Flex, Hoverable, MouseStateHandle,
@@ -752,7 +752,7 @@ impl View for BlockFilterEditor {
         Some(AccessibilityContent::new(
             "Type searched phrase.",
             "Press escape to quit",
-            WarpA11yRole::TextareaRole,
+            RiftA11yRole::TextareaRole,
         ))
     }
 }

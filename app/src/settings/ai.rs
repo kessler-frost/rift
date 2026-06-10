@@ -1079,13 +1079,13 @@ define_settings_group!(AISettings, settings: [
         description: "Whether the agent uses your saved rules during requests.",
     }
     // Whether rift drive context should be included in AI requests
-    warp_drive_context_enabled: WarpDriveContextEnabled {
+    drive_context_enabled: DriveContextEnabled {
         type: bool,
         default: true,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
-        toml_path: "agents.knowledge.warp_drive_context_enabled",
+        toml_path: "agents.knowledge.drive_context_enabled",
         description: "Whether Warp Drive context is included in AI requests.",
     }
 
@@ -1623,8 +1623,8 @@ impl AISettings {
         self.is_any_ai_enabled(app) && *self.memory_enabled
     }
 
-    pub fn is_warp_drive_context_enabled(&self, app: &riftui::AppContext) -> bool {
-        self.is_any_ai_enabled(app) && *self.warp_drive_context_enabled
+    pub fn is_drive_context_enabled(&self, app: &riftui::AppContext) -> bool {
+        self.is_any_ai_enabled(app) && *self.drive_context_enabled
     }
 
     pub fn is_orchestration_enabled(&self, app: &riftui::AppContext) -> bool {

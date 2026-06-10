@@ -218,10 +218,10 @@ impl PrivacySettings {
     fn new(ctx: &mut ModelContext<Self>) -> Self {
         // Initialize from `DrivePrivacySettings`, which is the source of truth for these
         // booleans.
-        let warp_drive_privacy = DrivePrivacySettings::as_ref(ctx);
-        let is_telemetry_enabled = *warp_drive_privacy.is_telemetry_enabled.value();
-        let is_crash_reporting_enabled = *warp_drive_privacy.is_crash_reporting_enabled.value();
-        let is_cloud_conversation_storage_enabled = *warp_drive_privacy
+        let drive_privacy = DrivePrivacySettings::as_ref(ctx);
+        let is_telemetry_enabled = *drive_privacy.is_telemetry_enabled.value();
+        let is_crash_reporting_enabled = *drive_privacy.is_crash_reporting_enabled.value();
+        let is_cloud_conversation_storage_enabled = *drive_privacy
             .is_cloud_conversation_storage_enabled
             .value();
 
@@ -531,7 +531,7 @@ impl PrivacySettings {
     /// Initializes default secret-redaction regexes. Cloud-preference syncing
     /// (Rift Drive) has been removed, so privacy values are sourced solely from
     /// the local settings store.
-    pub fn maybe_sync_with_warp_drive_prefs(&mut self, ctx: &mut ModelContext<Self>) {
+    pub fn maybe_sync_with_drive_prefs(&mut self, ctx: &mut ModelContext<Self>) {
         self.initialize_default_regexes_once(ctx);
     }
 }

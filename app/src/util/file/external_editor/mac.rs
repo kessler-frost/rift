@@ -347,7 +347,7 @@ pub fn open_file_path_with_line_and_col(
         if let Some(bundle_id) = bundle_id.as_deref() {
             let current = ChannelState::app_id().to_string();
             if bundle_id != current
-                && is_warp_bundle(bundle_id)
+                && is_rift_bundle(bundle_id)
                 && open_with_bundle(&current, full_path)
             {
                 return;
@@ -357,7 +357,7 @@ pub fn open_file_path_with_line_and_col(
     ctx.open_file_path(full_path);
 }
 
-fn is_warp_bundle(bundle_id: &str) -> bool {
+fn is_rift_bundle(bundle_id: &str) -> bool {
     AppId::parse(bundle_id)
         .map(|id| id.qualifier() == "dev" && id.organization() == "warp")
         .unwrap_or(false)

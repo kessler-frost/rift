@@ -132,7 +132,7 @@ impl<'a> TestBlockListBuilder<'a> {
             self.block_sizes,
             self.channel_event_proxy,
             Arc::new(Background::default()),
-            false, /* show_warp_bootstrap_input */
+            false, /* show_rift_bootstrap_input */
             false, /* show_in_band_command_blocks */
             false, /* show_memory_stats */
             self.honor_ps1,
@@ -210,7 +210,7 @@ impl TestBlockBuilder {
             self.event_proxy,
             Arc::new(Background::default()),
             self.bootstrap_stage,
-            false, /* show_warp_bootstrap_input */
+            false, /* show_rift_bootstrap_input */
             false, /* show_in_band_command_blocks */
             false, /* show_memory_stats */
             self.block_index,

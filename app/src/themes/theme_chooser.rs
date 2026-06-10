@@ -1,6 +1,6 @@
 use pathfinder_color::ColorU;
 use rift_editor::editor::NavigationKey;
-use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, Element, Empty, EventHandler, Fill, Flex, Hoverable, Icon,
@@ -819,7 +819,7 @@ impl View for ThemeChooser {
         Some(AccessibilityContent::new(
                 "Theme chooser. Unfortunately, theme chooser window isn't compatible with screen readers yet.",
                 "Press escape to close.",
-                WarpA11yRole::WindowRole,
+                RiftA11yRole::WindowRole,
         ))
     }
 

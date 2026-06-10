@@ -233,7 +233,7 @@ pub struct BlockList {
     /// Executor used for spawning threads in the background.
     background_executor: Arc<Background>,
 
-    show_warp_bootstrap_block: bool,
+    show_rift_bootstrap_block: bool,
 
     show_in_band_command_blocks: bool,
 
@@ -499,7 +499,7 @@ impl BlockList {
         sizes: BlockSize,
         event_proxy: ChannelEventListener,
         background_executor: Arc<Background>,
-        show_warp_bootstrap_input: bool,
+        show_rift_bootstrap_input: bool,
         show_in_band_command_blocks: bool,
         show_memory_stats: bool,
         honor_ps1: bool,
@@ -510,7 +510,7 @@ impl BlockList {
             sizes,
             event_proxy,
             background_executor,
-            show_warp_bootstrap_input,
+            show_rift_bootstrap_input,
             show_in_band_command_blocks,
             show_memory_stats,
             honor_ps1,
@@ -533,7 +533,7 @@ impl BlockList {
     /// feed input into, and finish whereas `finalize_block_and_advance_list` will create the _subsequent_
     /// block.
     /// 3. Create the `BootstrapStage::RiftInput` block through
-    /// `create_warp_input_block`. From here on, there is always a default
+    /// `create_rift_input_block`. From here on, there is always a default
     /// block which is hidden while it is empty.
     /// 4. We progress through the bootstrap stages with the `finalize_block_and_advance_list` function.
     /// 5. After we hit `BootstrapStage::PostBootstrapPrecmd`, it's normal
@@ -546,7 +546,7 @@ impl BlockList {
         sizes: BlockSize,
         event_proxy: ChannelEventListener,
         background_executor: Arc<Background>,
-        show_warp_bootstrap_input: bool,
+        show_rift_bootstrap_input: bool,
         show_in_band_command_blocks: bool,
         show_memory_stats: bool,
         honor_ps1: bool,
@@ -572,7 +572,7 @@ impl BlockList {
             padding: sizes.block_padding,
             rift_prompt_height_lines: sizes.rift_prompt_height_lines,
             background_executor,
-            show_warp_bootstrap_block: show_warp_bootstrap_input,
+            show_rift_bootstrap_block: show_rift_bootstrap_input,
             show_in_band_command_blocks,
             show_memory_stats,
             honor_ps1,
@@ -623,12 +623,12 @@ impl BlockList {
                 }
             }
         }
-        self.create_warp_input_block();
+        self.create_rift_input_block();
     }
 
     /// This is an important function in the block list lifecycle. After this
     /// is called, there's an invariant where we always have an active block.
-    fn create_warp_input_block(&mut self) {
+    fn create_rift_input_block(&mut self) {
         self.create_new_block(
             BlockId::new(),
             BootstrapStage::RiftInput,
@@ -1060,7 +1060,7 @@ impl BlockList {
 
     /// Inserts the `item` into the blocklist at the given `index`.
     /// We only want to use this in the block list lifecycle after
-    /// `create_warp_input_block`. For non-block items before then, we should
+    /// `create_rift_input_block`. For non-block items before then, we should
     /// insert the item directly into the sumtree.
     /// Returns the inserted index (according to the TotalCount dimension).
     fn insert_non_block_item_before_block(
@@ -1745,7 +1745,7 @@ impl BlockList {
     }
 
     pub fn set_show_bootstrap_block(&mut self, show_bootstrap_block: bool) {
-        self.show_warp_bootstrap_block = show_bootstrap_block;
+        self.show_rift_bootstrap_block = show_bootstrap_block;
         self.update_blocks_and_sumtree(
             None,
             None,
@@ -2049,7 +2049,7 @@ impl BlockList {
             self.event_proxy.clone(),
             self.background_executor.clone(),
             bootstrap_stage,
-            self.show_warp_bootstrap_block,
+            self.show_rift_bootstrap_block,
             self.show_in_band_command_blocks,
             self.show_memory_stats,
             self.blocks.len().into(),
@@ -2101,7 +2101,7 @@ impl BlockList {
             self.event_proxy.clone(),
             self.background_executor.clone(),
             self.bootstrap_stage,
-            self.show_warp_bootstrap_block,
+            self.show_rift_bootstrap_block,
             self.show_in_band_command_blocks,
             self.show_memory_stats,
             BlockIndex::zero(),
@@ -2199,7 +2199,7 @@ impl BlockList {
         active_block.finish(0);
         self.update_active_block_height();
 
-        self.create_warp_input_block();
+        self.create_rift_input_block();
     }
 
     /// Starts the active block and resets block-to-block state. For local sessions, this is called

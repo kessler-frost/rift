@@ -27,7 +27,7 @@ use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings_view::SettingsSection;
 use crate::tab_configs::TabConfig;
 use crate::user_config::{load_launch_configs, load_tab_configs, tab_configs_dir};
-use crate::util::openable_file_type::{is_file_openable_in_warp, is_markdown_file};
+use crate::util::openable_file_type::{is_file_openable_in_rift, is_markdown_file};
 use crate::view_components::DismissibleToast;
 use crate::workspace::util::PaneViewLocator;
 use crate::workspace::{
@@ -894,7 +894,7 @@ fn classify_open_file_action(path: &Path) -> OpenFileAction {
 
 #[cfg(feature = "local_fs")]
 fn can_open_file_editor_path(path: &Path) -> bool {
-    path.is_file() && is_file_openable_in_warp(path).is_some()
+    path.is_file() && is_file_openable_in_rift(path).is_some()
 }
 
 /// Handle an incoming `file://` URL.

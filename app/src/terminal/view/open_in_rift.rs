@@ -10,7 +10,7 @@ use rift_completer::parsers::hir::{Command, Expression};
 use rift_completer::parsers::simple::all_parsed_commands;
 use rift_completer::signatures::CommandRegistry;
 use rift_util::path::EscapeChar;
-use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::{SingletonEntity, ViewContext};
 use settings::Setting as _;
 
@@ -20,7 +20,7 @@ use crate::terminal::event::UserBlockCompleted;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::model::session::Session;
 use crate::terminal::view::inline_banner::{OpenInRiftBannerAction, OpenInRiftBannerState};
-use crate::util::openable_file_type::{is_file_openable_in_warp, OpenableFileType};
+use crate::util::openable_file_type::{is_file_openable_in_rift, OpenableFileType};
 
 #[cfg(test)]
 #[path = "open_in_rift_tests.rs"]
@@ -62,7 +62,7 @@ impl TerminalView {
             let escape_char = session.shell_family().escape_char();
             ctx.spawn(
                 async move {
-                    check_openable_in_warp(
+                    check_openable_in_rift(
                         command,
                         working_directory,
                         command_case_sensitivity,
@@ -153,13 +153,13 @@ impl TerminalView {
                 if let Some(banner_state) = self.inline_banners_state.open_in_rift_banner.take() {
                     match banner_state.target.file_type {
                         OpenableFileType::Markdown => {
-                            ctx.emit(Event::OpenFileInWarp {
+                            ctx.emit(Event::OpenFileInRift {
                                 path: banner_state.target.path,
                                 session: banner_state.session,
                             });
                         }
                         OpenableFileType::Code | OpenableFileType::Text => {
-                            ctx.emit(Event::OpenFileInWarp {
+                            ctx.emit(Event::OpenFileInRift {
                                 path: banner_state.target.path,
                                 session: banner_state.session,
                             });
@@ -213,7 +213,7 @@ impl TerminalView {
                     Some(banner_state) => {
                         ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
                             format!("Open {} in Warp", banner_state.target.path.display()),
-                            WarpA11yRole::UserAction,
+                            RiftA11yRole::UserAction,
                         ))
                     }
                     None => ActionAccessibilityContent::Empty,
@@ -222,14 +222,14 @@ impl TerminalView {
             OpenInRiftBannerAction::Close => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
                     "Close View in Warp banner",
-                    WarpA11yRole::UserAction,
+                    RiftA11yRole::UserAction,
                 ))
             }
             OpenInRiftBannerAction::LearnMore => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new(
                     "Learn more",
                     "Learn more about opening Markdown files in Warp",
-                    WarpA11yRole::UserAction,
+                    RiftA11yRole::UserAction,
                 ))
             }
         }
@@ -242,7 +242,7 @@ lazy_static! {
 }
 
 /// Examines `command` for a file openable in Rift, returning the resolved path and type if found.
-async fn check_openable_in_warp(
+async fn check_openable_in_rift(
     command: String,
     working_directory: Option<String>,
     command_case_sensitivity: TopLevelCommandCaseSensitivity,
@@ -286,7 +286,7 @@ async fn check_openable_in_warp(
 
                 let relative_path = Path::new(arg.value().as_str());
 
-                let Some(file_type) = is_file_openable_in_warp(relative_path) else {
+                let Some(file_type) = is_file_openable_in_rift(relative_path) else {
                     continue;
                 };
 

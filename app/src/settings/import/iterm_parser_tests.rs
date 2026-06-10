@@ -294,14 +294,14 @@ fn test_parse_font_without_size() {
 
 #[test]
 fn test_parse_font_with_default_size() {
-    let warp_default_profile = ITermProfile {
+    let rift_default_profile = ITermProfile {
         font_name: Some("CourierNewPSMT".to_string()),
         font_size: Some("13".to_string()),
         ..Default::default()
     };
     let fonts = courier_new();
     assert_eq!(
-        *warp_default_profile
+        *rift_default_profile
             .remove_default_values()
             .parse(&fonts)
             .font
@@ -333,7 +333,7 @@ fn test_parse_font_with_default_size() {
 
 #[test]
 fn test_parse_font_with_default_font() {
-    let warp_default_profile = ITermProfile {
+    let rift_default_profile = ITermProfile {
         font_name: Some("Hack".to_string()),
         font_size: Some("16".to_string()),
         ..Default::default()
@@ -344,7 +344,7 @@ fn test_parse_font_with_default_font() {
         is_monospace: false,
     }];
     assert_eq!(
-        *warp_default_profile
+        *rift_default_profile
             .remove_default_values()
             .parse(&fonts)
             .font

@@ -146,7 +146,7 @@ impl<T: EventLoopSender> PtyController<T> {
                 if honor_ps1 {
                     me.send_switch_to_ps1_bindkey(ctx);
                 } else {
-                    me.send_switch_to_warp_prompt_bindkey(ctx);
+                    me.send_switch_to_rift_prompt_bindkey(ctx);
                 }
             }
             ModelEvent::Handler(AnsiHandlerEvent::TmuxControlModeReady { primary_pane }) => {
@@ -283,7 +283,7 @@ impl<T: EventLoopSender> PtyController<T> {
     /// Sends bindkey to notify shell process to switch to Rift prompt logic for prompt
     /// with the combined prompt/command grid (we unset the PS1, but save the value for potential
     /// future restoration).
-    pub fn send_switch_to_warp_prompt_bindkey(&mut self, ctx: &mut ModelContext<Self>) {
+    pub fn send_switch_to_rift_prompt_bindkey(&mut self, ctx: &mut ModelContext<Self>) {
         self.pending_writes.push_back(PtyWrite::Bytes {
             bytes: SWITCH_TO_WARP_PROMPT_ESCAPE_SEQUENCE.into(),
         });

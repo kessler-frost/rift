@@ -57,16 +57,16 @@ pub fn rift_home_config_dir_name() -> String {
 /// Unlike [`data_dir`] and [`config_local_dir`] on non-macOS platforms, this intentionally keeps
 /// Rift-authored, user-facing config under a `.rift*` directory in the home directory instead of
 /// using the platform XDG/AppData project directories.
-pub fn warp_home_config_dir() -> Option<PathBuf> {
+pub fn rift_home_config_dir() -> Option<PathBuf> {
     dirs::home_dir().map(|home_dir| home_dir.join(rift_home_config_dir_name()))
 }
 
 pub fn rift_home_skills_dir() -> Option<PathBuf> {
-    warp_home_config_dir().map(|rift_config_dir| rift_config_dir.join("skills"))
+    rift_home_config_dir().map(|rift_config_dir| rift_config_dir.join("skills"))
 }
 
 pub fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
-    warp_home_config_dir().map(|rift_config_dir| rift_config_dir.join(".mcp.json"))
+    rift_home_config_dir().map(|rift_config_dir| rift_config_dir.join(".mcp.json"))
 }
 
 /// Returns the macOS config directory name for the current channel.

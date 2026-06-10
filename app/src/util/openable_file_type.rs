@@ -140,7 +140,7 @@ pub fn is_runnable_shell_script(_path: &Path) -> bool {
 
 /// Determines if a file can be opened in Rift and returns its type.
 /// Returns `None` if the file is binary and should not be opened.
-pub fn is_file_openable_in_warp(path: &Path) -> Option<OpenableFileType> {
+pub fn is_file_openable_in_rift(path: &Path) -> Option<OpenableFileType> {
     if is_binary_file(path) {
         return None;
     }
@@ -159,14 +159,14 @@ pub fn is_file_openable_in_warp(path: &Path) -> Option<OpenableFileType> {
 /// Only use this for UI elements that must explicitly open a file in Rift (i.e. "Open in New Tab").
 /// Prefer `resolve_file_target` for all other cases to respect users' preferences.
 /// This would also force any binary file to be opened in Rift's Code Editor, so you should likely check
-/// `is_file_openable_in_warp` before rendering any such UI Elements.
+/// `is_file_openable_in_rift` before rendering any such UI Elements.
 #[cfg(feature = "local_fs")]
 pub fn resolve_file_target_to_open_in_rift(
     path: &Path,
     settings: &EditorSettings,
     layout: Option<EditorLayout>,
 ) -> FileTarget {
-    let openable_file_type = is_file_openable_in_warp(path);
+    let openable_file_type = is_file_openable_in_rift(path);
     let is_markdown = matches!(openable_file_type, Some(OpenableFileType::Markdown));
     let layout = layout.unwrap_or(*settings.open_file_layout);
 
@@ -200,10 +200,10 @@ pub fn resolve_file_target_with_editor_choice(
     default_layout: EditorLayout,
     layout: Option<EditorLayout>,
 ) -> FileTarget {
-    let is_openable_in_warp = is_file_openable_in_warp(path);
-    let is_markdown = matches!(is_openable_in_warp, Some(OpenableFileType::Markdown));
+    let is_openable_in_rift = is_file_openable_in_rift(path);
+    let is_markdown = matches!(is_openable_in_rift, Some(OpenableFileType::Markdown));
     let layout = layout.unwrap_or(default_layout);
-    let is_openable_in_warp = is_openable_in_warp.is_some();
+    let is_openable_in_rift = is_openable_in_rift.is_some();
 
     // 1. Markdown Viewer (only if user preference specified)
     if is_markdown && prefer_markdown_viewer {
@@ -211,7 +211,7 @@ pub fn resolve_file_target_with_editor_choice(
     }
 
     // 2. Rift Code Editor (Explicit user preference)
-    if is_openable_in_warp && matches!(editor_choice, EditorChoice::Warp) {
+    if is_openable_in_rift && matches!(editor_choice, EditorChoice::Warp) {
         return FileTarget::CodeEditor(layout);
     }
 
@@ -221,7 +221,7 @@ pub fn resolve_file_target_with_editor_choice(
     }
 
     // 4. Binary files -> System Default
-    if !is_openable_in_warp {
+    if !is_openable_in_rift {
         return FileTarget::SystemGeneric;
     }
 

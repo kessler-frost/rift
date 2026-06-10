@@ -61,7 +61,7 @@ fn open_in_rift_tooltip(
     let _ = line_and_column_num;
     Some(GridTooltipLink {
         text: "Open in Warp".to_string(),
-        action: TerminalAction::OpenFileInWarp(path),
+        action: TerminalAction::OpenFileInRift(path),
         mouse_state,
         detail,
     })

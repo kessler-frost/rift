@@ -626,9 +626,9 @@ async fn generate_suggestions_for_argument_type(
 ) -> impl IntoIterator<Item = MatchedSuggestion> {
     match argument_type {
         ArgumentType::Suggestion(suggestion) => {
-            let warp_suggestion: Suggestion = suggestion.clone().into();
-            match matcher.get_match_type(parsed_token.as_str(), warp_suggestion.display.as_str()) {
-                Some(match_type) => vec![MatchedSuggestion::new(warp_suggestion, match_type)],
+            let rift_suggestion: Suggestion = suggestion.clone().into();
+            match matcher.get_match_type(parsed_token.as_str(), rift_suggestion.display.as_str()) {
+                Some(match_type) => vec![MatchedSuggestion::new(rift_suggestion, match_type)],
                 None => vec![],
             }
         }

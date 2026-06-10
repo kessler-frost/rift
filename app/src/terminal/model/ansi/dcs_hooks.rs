@@ -62,8 +62,8 @@ pub(super) enum DProtoHook {
     InitSubshell {
         value: InitSubshellValue,
     },
-    SourcedRcFileForWarp {
-        value: SourcedRcFileForWarpValue,
+    SourcedRcFileForRift {
+        value: SourcedRcFileForRiftValue,
     },
     InitSsh {
         value: InitSshValue,
@@ -99,7 +99,7 @@ impl DProtoHook {
             DProtoHook::InputBuffer { .. } => "InputBuffer",
             DProtoHook::Clear { .. } => "Clear",
             DProtoHook::InitSubshell { .. } => "InitSubshell",
-            DProtoHook::SourcedRcFileForWarp { .. } => "SourcedRcFileForWarp",
+            DProtoHook::SourcedRcFileForRift { .. } => "SourcedRcFileForRift",
             DProtoHook::InitSsh { .. } => "InitSsh",
             DProtoHook::FinishUpdate { .. } => "FinishUpdate",
             DProtoHook::RemoteRiftificationIsUnavailable { .. } => {
@@ -145,7 +145,7 @@ impl DProtoHook {
             "InitSubshell" => Some(DProtoHook::InitSubshell {
                 value: Default::default(),
             }),
-            "SourcedRcFileForWarp" => Some(DProtoHook::SourcedRcFileForWarp {
+            "SourcedRcFileForRift" => Some(DProtoHook::SourcedRcFileForRift {
                 value: Default::default(),
             }),
             "InitSsh" => Some(DProtoHook::InitSsh {
@@ -658,7 +658,7 @@ pub struct InitSubshellValue {
 /// created; if the session is for a subshell, this triggers Rift's bootstrap process.
 /// Otherwise, it's ignored.
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-pub struct SourcedRcFileForWarpValue {
+pub struct SourcedRcFileForRiftValue {
     pub shell: String,
     pub uname: Option<String>,
     pub tmux: Option<bool>,

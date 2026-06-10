@@ -377,7 +377,7 @@ impl platform::Delegate for AppDelegate {
         let modal_id: NSUInteger = unsafe { std::mem::transmute(id) };
         // SAFETY: `showModal:modalId:` is a custom rift NSApplication selector.
         unsafe {
-            let app = &*app::get_warp_app().cast::<NSApplication>();
+            let app = &*app::get_rift_app().cast::<NSApplication>();
             let _: () = msg_send![app, showModal: &*alert, modalId: modal_id];
         }
     }

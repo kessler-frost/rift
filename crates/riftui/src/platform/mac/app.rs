@@ -42,7 +42,7 @@ const RUST_WRAPPER_IVAR_NAME: &str = "rustWrapper";
 
 extern "C" {
     // Implemented in ObjC to get the rift NSApplication subclass.
-    pub(super) fn get_warp_app() -> id;
+    pub(super) fn get_rift_app() -> id;
 }
 
 /// An extension trait defining additional configurability for
@@ -129,8 +129,8 @@ impl App {
         // until termination).
         autoreleasepool(|_| {
             // Get (and create, if necessary) the underlying NSApplication.
-            // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
-            let app_ptr = unsafe { get_warp_app() };
+            // SAFETY: `get_rift_app()` returns the rift NSApplication subclass instance.
+            let app_ptr = unsafe { get_rift_app() };
             let app = unsafe { &*app_ptr.cast::<NSApplication>() };
 
             // When running without an application bundle (dev builds), install the
@@ -206,7 +206,7 @@ unsafe fn get_app(object: &mut Object) -> &mut App {
 
 pub(super) fn callback_dispatcher() -> &'static mut AppCallbackDispatcher {
     unsafe {
-        let app = get_warp_app();
+        let app = get_rift_app();
         let app = get_app(&mut *app);
         &mut app.callbacks
     }
@@ -349,9 +349,9 @@ pub(crate) extern "C-unwind" fn warp_app_has_binding_for_keystroke(
     event: id,
 ) -> BOOL {
     let app = unsafe { get_app(this) };
-    let warp_event = unsafe { super::event::from_native(event, None, false) };
+    let rift_event = unsafe { super::event::from_native(event, None, false) };
 
-    let Some(Event::KeyDown { keystroke, .. }) = warp_event else {
+    let Some(Event::KeyDown { keystroke, .. }) = rift_event else {
         return NO;
     };
     let has_binding = app.callbacks.with_mutable_app_context(|ctx| {
@@ -377,9 +377,9 @@ pub(crate) extern "C-unwind" fn warp_app_has_custom_action_for_keystroke(
     event: id,
 ) -> BOOL {
     let app = unsafe { get_app(this) };
-    let warp_event = unsafe { super::event::from_native(event, None, false) };
+    let rift_event = unsafe { super::event::from_native(event, None, false) };
 
-    let Some(Event::KeyDown { keystroke, .. }) = warp_event else {
+    let Some(Event::KeyDown { keystroke, .. }) = rift_event else {
         return NO;
     };
     let has_binding = app.callbacks.with_mutable_app_context(|ctx| {
@@ -573,8 +573,8 @@ pub(crate) extern "C-unwind" fn warp_open_panel_file_selected(urls: id, callback
         log::info!("No file was selected. Dialog was cancelled.")
     }
 
-    // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
-    let app = unsafe { get_app(&mut *get_warp_app()) };
+    // SAFETY: `get_rift_app()` returns the rift NSApplication subclass instance.
+    let app = unsafe { get_app(&mut *get_rift_app()) };
     app.callbacks.with_mutable_app_context(move |ctx| {
         callback(Ok(paths), ctx);
     });
@@ -597,8 +597,8 @@ pub(crate) extern "C-unwind" fn warp_save_panel_file_selected(url: id, callback:
         log::info!("Save dialog was cancelled.");
     }
 
-    // SAFETY: `get_warp_app()` returns the rift NSApplication subclass instance.
-    let app = unsafe { get_app(&mut *get_warp_app()) };
+    // SAFETY: `get_rift_app()` returns the rift NSApplication subclass instance.
+    let app = unsafe { get_app(&mut *get_rift_app()) };
     app.callbacks.with_mutable_app_context(move |ctx| {
         callback(path, ctx);
     });

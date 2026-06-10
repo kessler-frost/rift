@@ -78,7 +78,7 @@ use rift_util::local_or_remote_path::LocalOrRemotePath;
 #[cfg(feature = "local_fs")]
 use rift_util::path::LineAndColumnArg;
 use rift_util::path::ShellFamily;
-use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::assets::asset_cache::{AssetCache, AssetCacheEvent};
 use riftui::clipboard::ClipboardContent;
 use riftui::clipboard_utils::get_image_filepaths_from_paths;
@@ -1150,7 +1150,7 @@ pub enum Event {
         is_for_in_band_command: bool,
     },
     /// Tell the pane group to open a file within Rift.
-    OpenFileInWarp {
+    OpenFileInRift {
         path: PathBuf,
         /// The session that the file belongs to.
         session: Arc<Session>,
@@ -1222,7 +1222,7 @@ pub enum Event {
 #[derive(Clone, Copy, Debug)]
 pub enum LeftPanelTargetView {
     FileTree,
-    WarpDrive,
+    Drive,
 }
 
 #[derive(Clone)]
@@ -3689,7 +3689,7 @@ impl TerminalView {
             });
         let active_session_id = self.active_block_session_id();
         self.riftify_state.on_riftify_start(active_session_id);
-        self.refresh_warp_prompt(ctx);
+        self.refresh_rift_prompt(ctx);
     }
 
     fn handle_ssh_success_block_events(
@@ -3769,7 +3769,7 @@ impl TerminalView {
         let a11y_content = AccessibilityContent::new(
             format!("{title} recognized."),
             a11y_message,
-            WarpA11yRole::TextRole,
+            RiftA11yRole::TextRole,
         );
         ctx.emit_a11y_content(a11y_content);
 
@@ -3882,7 +3882,7 @@ impl TerminalView {
         let a11y_content = AccessibilityContent::new(
             trigger.discovery_banner_copy(),
             "You can enable notifications through the command palette.",
-            WarpA11yRole::TextRole,
+            RiftA11yRole::TextRole,
         );
         ctx.emit_a11y_content(a11y_content);
 
@@ -3921,7 +3921,7 @@ impl TerminalView {
         let a11y_content = AccessibilityContent::new(
             banner_title,
             "Make sure you have enabled access for Warp notifications in System Preferences.",
-            WarpA11yRole::TextRole,
+            RiftA11yRole::TextRole,
         );
         ctx.emit_a11y_content(a11y_content);
 
@@ -4139,7 +4139,7 @@ impl TerminalView {
     }
 
     /// Recomputes the chip values for the Rift prompt (i.e. _not_ PS1).
-    fn refresh_warp_prompt(&mut self, ctx: &mut ViewContext<Self>) {
+    fn refresh_rift_prompt(&mut self, ctx: &mut ViewContext<Self>) {
         self.input.update(ctx, |input, ctx| {
             input.update_prompt_display_chips(ctx);
         });
@@ -4204,11 +4204,6 @@ impl TerminalView {
     }
 
     fn on_user_block_completed(&mut self, block_id: &BlockId, _ctx: &mut ViewContext<Self>) {
-        {
-            self.model
-                .lock()
-                .clear_pending_warp_initiated_control_mode();
-        }
         self.model.lock().end_notify_on_ssh_login_complete();
         let _ = block_id;
     }
@@ -4890,7 +4885,7 @@ impl TerminalView {
                         .block_list()
                         .is_bootstrapping_precmd_done()
                 {
-                    self.refresh_warp_prompt(ctx);
+                    self.refresh_rift_prompt(ctx);
                 }
 
                 if let BlockType::User(block_completed) = block_type {
@@ -5056,7 +5051,7 @@ impl TerminalView {
                 // `WorkingDirectory` chip text that feeds the vertical-tab
                 // subtitle via `display_working_directory`). The chip
                 // generator reads from `CurrentPrompt::latest_context`, which
-                // is only refreshed through `refresh_warp_prompt` →
+                // is only refreshed through `refresh_rift_prompt` →
                 // `current_prompt.update_context`. In the normal precmd flow
                 // that refresh is triggered by `BlockCompleted`, but an OSC 7
                 // fires mid-command — the block never completes — so without
@@ -5069,7 +5064,7 @@ impl TerminalView {
                 // can re-fire chip generators that schedule another in-band
                 // command, leading to a refresh loop.
                 if !block_working_directory_updated_event.is_for_in_band_command {
-                    self.refresh_warp_prompt(ctx);
+                    self.refresh_rift_prompt(ctx);
                 }
             }
 
@@ -5342,7 +5337,7 @@ impl TerminalView {
                         ctx,
                     );
                 });
-                me.refresh_warp_prompt(ctx);
+                me.refresh_rift_prompt(ctx);
             },
         );
 
@@ -5385,7 +5380,7 @@ impl TerminalView {
             );
         }
 
-        self.refresh_warp_prompt(ctx);
+        self.refresh_rift_prompt(ctx);
         ctx.emit(Event::SessionBootstrapped);
     }
 
@@ -5766,7 +5761,7 @@ impl TerminalView {
             let a11y_content = AccessibilityContent::new(
                 format!("Suggested corrected command: {}", correction.command),
                 "Press right arrow to insert or keep editing to ignore",
-                WarpA11yRole::HelpRole,
+                RiftA11yRole::HelpRole,
             );
             ctx.emit_a11y_content(a11y_content);
 
@@ -6482,7 +6477,7 @@ impl TerminalView {
                             if is_markdown_file(&path) {
                                 items.push(
                                     MenuItemFields::new("Open in Warp")
-                                        .with_on_select_action(TerminalAction::OpenFileInWarp(path))
+                                        .with_on_select_action(TerminalAction::OpenFileInRift(path))
                                         .into_item(),
                                 );
                                 // Because the default for cmd-click is to open in Rift, we also
@@ -7739,7 +7734,7 @@ impl TerminalView {
             .active_block_session_id()
             .and_then(|session_id| self.sessions.as_ref(ctx).get(session_id))
         {
-            ctx.emit(Event::OpenFileInWarp { path, session })
+            ctx.emit(Event::OpenFileInRift { path, session })
         }
     }
 
@@ -11560,7 +11555,7 @@ impl TerminalView {
                 // TODO (a11y) Keybindings should be taken from the actual user's
                 // configuration
                 "Press cmd-C to read and copy both command and output, and cmd-option-shift-C to read and copy output only. Press cmd-B to bookmark the block: you could navigate between bookmarked blocks quickly using option-up and option-down.",
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )
         })
     }
@@ -11940,7 +11935,7 @@ impl TerminalView {
             return;
         };
 
-        let sshed = self.model.lock().is_riftified_ssh() || session.is_legacy_ssh_session();
+        let sshed = session.is_legacy_ssh_session();
         if sshed && !paths.is_empty() && FeatureFlag::SshDragAndDrop.is_enabled() {
             self.initiate_ssh_file_upload(paths, ctx);
         } else {
@@ -12100,7 +12095,7 @@ impl TypedActionView for TerminalView {
                     .map_or(Empty, |selected| {
                         Custom(AccessibilityContent::new_without_help(
                             selected,
-                            WarpA11yRole::TextRole,
+                            RiftA11yRole::TextRole,
                         ))
                     })
             }
@@ -12126,7 +12121,7 @@ impl TypedActionView for TerminalView {
             BookmarkBlock(_) | BookmarkSelectedBlock => {
                 Custom(AccessibilityContent::new_without_help(
                     "Toggle Bookmark block",
-                    WarpA11yRole::TextRole,
+                    RiftA11yRole::TextRole,
                 ))
             }
             ExpandBlockSelectionAbove | ExpandBlockSelectionBelow => {
@@ -12148,19 +12143,19 @@ impl TypedActionView for TerminalView {
                     "Selected all {} blocks.",
                     self.num_non_hidden_selected_blocks()
                 ),
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             ScrollToBottomOfSelectedBlocks => Custom(AccessibilityContent::new_without_help(
                 "Scrolled to bottom of selected block".to_string(),
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             ScrollToTopOfSelectedBlocks => Custom(AccessibilityContent::new_without_help(
                 "Scrolled to top of selected block".to_string(),
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             ScrollToBottomOfOverhangingBlock(_) => Custom(AccessibilityContent::new_without_help(
                 "Scrolled to bottom of bottommost visible block".to_string(),
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             CopyOutputs => {
                 let mut outputs = vec![];
@@ -12181,7 +12176,7 @@ impl TypedActionView for TerminalView {
                 );
                 Custom(AccessibilityContent::new_without_help(
                     text,
-                    WarpA11yRole::TextRole,
+                    RiftA11yRole::TextRole,
                 ))
             }
             Copy => {
@@ -12200,7 +12195,7 @@ impl TypedActionView for TerminalView {
                 let text = format!("Copied {} blocks.\n{}", blocks.len(), blocks.join("\n"));
                 Custom(AccessibilityContent::new_without_help(
                     text,
-                    WarpA11yRole::TextRole,
+                    RiftA11yRole::TextRole,
                 ))
             }
             FocusInputAndClearSelection => {
@@ -12208,7 +12203,7 @@ impl TypedActionView for TerminalView {
                     INPUT_A11Y_LABEL,
                     // TODO (a11y) use bindings from user settings
                     INPUT_A11Y_HELPER,
-                    WarpA11yRole::TextareaRole,
+                    RiftA11yRole::TextareaRole,
                 ))
             }
             KeyDown(key) => {
@@ -12219,20 +12214,20 @@ impl TypedActionView for TerminalView {
                 };
                 Custom(AccessibilityContent::new_without_help(
                     label,
-                    WarpA11yRole::TextareaRole,
+                    RiftA11yRole::TextareaRole,
                 ))
             }
             OpenBlockFilterEditor(block_index) => Custom(AccessibilityContent::new_without_help(
                 format!("Open block filter editor for block {block_index}"),
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             ShowInitializationBlock => Custom(AccessibilityContent::new_without_help(
                 "Showed initialization block",
-                WarpA11yRole::TextareaRole,
+                RiftA11yRole::TextareaRole,
             )),
             ShowRiftifySettings => Custom(AccessibilityContent::new_without_help(
                 "Opened Riftify Settings",
-                WarpA11yRole::ButtonRole,
+                RiftA11yRole::ButtonRole,
             )),
             InsertCommandCorrection { .. }
             | BlockListContextMenu(_)
@@ -12265,7 +12260,7 @@ impl TypedActionView for TerminalView {
             | CopyGridSecret(_)
             | CopyRichContentSecret(_)
             | ShowInFileExplorer(_)
-            | OpenFileInWarp(_)
+            | OpenFileInRift(_)
             | CtrlD
             | CtrlC
             | ClearSelectionsWhenShellMode
@@ -12529,7 +12524,7 @@ impl TypedActionView for TerminalView {
 
                 ctx.open_file_path_in_explorer(path);
             }
-            OpenFileInWarp(path) => {
+            OpenFileInRift(path) => {
                 self.open_file_in_warp(path.clone(), ctx);
             }
             OpenBlockListContextMenu => self.open_block_list_context_menu_via_keybinding(ctx),
@@ -12596,7 +12591,7 @@ impl TypedActionView for TerminalView {
                 else {
                     return;
                 };
-                let sshed = self.model.lock().is_riftified_ssh() || session.is_legacy_ssh_session();
+                let sshed = session.is_legacy_ssh_session();
                 if sshed && !self.is_file_drop_target {
                     self.is_file_drop_target = true;
                     ctx.notify();

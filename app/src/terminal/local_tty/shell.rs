@@ -4,7 +4,7 @@ use std::{io, process};
 
 use itertools::Itertools as _;
 use rift_core::channel::{Channel, ChannelState};
-use rift_util::path::{canonicalize_git_bash_path, is_msys2_path, warp_shell_path};
+use rift_util::path::{canonicalize_git_bash_path, is_msys2_path, rift_shell_path};
 use serde::{Deserialize, Serialize};
 use typed_path::UnixPathBuf;
 
@@ -149,18 +149,18 @@ impl ShellStarter {
             }
         }
 
-        if let Some(warp_shell_env_var) = warp_shell_path() {
-            let (warp_shell_path, shell_type) = supported_shell_path_and_type(&warp_shell_env_var)
+        if let Some(rift_shell_env_var) = rift_shell_path() {
+            let (rift_shell_path, shell_type) = supported_shell_path_and_type(&rift_shell_env_var)
                 .unwrap_or_else(|| {
-                    panic!("Cannot spawn shell; $RIFT_SHELL_PATH is invalid: {warp_shell_env_var}")
+                    panic!("Cannot spawn shell; $RIFT_SHELL_PATH is invalid: {rift_shell_env_var}")
                 });
             return Some(
                 ShellStarterSource::Environment(DirectShellStarter {
                     args: arguments_for_session_spawning_command(
-                        warp_shell_path.as_path().to_string_lossy().as_ref(),
+                        rift_shell_path.as_path().to_string_lossy().as_ref(),
                         shell_type,
                     ),
-                    shell_path: warp_shell_path,
+                    shell_path: rift_shell_path,
                     shell_type,
                 })
                 .into(),

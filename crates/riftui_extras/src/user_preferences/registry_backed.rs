@@ -23,7 +23,7 @@ impl RegistryBackedPreferences {
     }
 
     /// Gets Rift's registry key, creating it if it does not already exist.
-    fn get_warp_registry(&self) -> Result<Key, super::Error> {
+    fn get_rift_registry(&self) -> Result<Key, super::Error> {
         CURRENT_USER.create(self.app_key_path.clone()).map_err(|e| {
             log::error!("unable to access Warp app key in Windows Registry: {e:#}");
             super::Error::IoError(io::Error::from(e))
@@ -33,17 +33,17 @@ impl RegistryBackedPreferences {
 
 impl UserPreferences for RegistryBackedPreferences {
     fn read_value(&self, name: &str) -> Result<Option<String>, super::Error> {
-        Ok(self.get_warp_registry()?.get_string(name).ok())
+        Ok(self.get_rift_registry()?.get_string(name).ok())
     }
 
     fn write_value(&self, key: &str, value: String) -> Result<(), super::Error> {
-        self.get_warp_registry()?
+        self.get_rift_registry()?
             .set_string(key, value.as_str())
             .map_err(|e| super::Error::from(io::Error::from(e)))
     }
 
     fn remove_value(&self, key: &str) -> Result<(), super::Error> {
-        match self.get_warp_registry()?.remove_value(key) {
+        match self.get_rift_registry()?.remove_value(key) {
             Ok(_) => Ok(()),
             // If the key doesn't exist, then treat removal of that nonexistent key as a success.
             Err(e) if e.code() == KEY_NOT_FOUND_ERR => Ok(()),

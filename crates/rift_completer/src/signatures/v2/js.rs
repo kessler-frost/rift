@@ -1,11 +1,11 @@
-//! Contains `FromWarpJs` trait implementations for converting JavaScript command signatures to
-//! `rift_completer::signatures::CommandSignature`s, as well as `IntoWarpJs` implementations for
+//! Contains `FromRiftJs` trait implementations for converting JavaScript command signatures to
+//! `rift_completer::signatures::CommandSignature`s, as well as `IntoRiftJs` implementations for
 //! Rust structs that may be passed to JS functions defined on the Command Signature (e.g.
 //! `GeneratorCompletionContext`).
 use rift_js::util::{
     get_one_or_more_optional, get_one_or_more_required, get_optional, get_required,
 };
-use rift_js::{FromWarpJs, IntoWarpJs, JsFunctionRegistry};
+use rift_js::{FromRiftJs, IntoRiftJs, JsFunctionRegistry};
 use rquickjs::{FromJs, Function, Object, Value};
 
 use super::{
@@ -13,20 +13,20 @@ use super::{
     GeneratorResults, GeneratorScript, Opt, Priority, Suggestion, TemplateType,
 };
 
-impl<'js> FromWarpJs<'js> for CommandSignature {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for CommandSignature {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
     ) -> rquickjs::Result<Self> {
         let object = Object::from_value(value)?;
-        let command = Command::from_warp_js(ctx, object.get("command")?, js_function_registry)?;
+        let command = Command::from_rift_js(ctx, object.get("command")?, js_function_registry)?;
         Ok(Self { command })
     }
 }
 
-impl<'js> FromWarpJs<'js> for Command {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for Command {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -57,8 +57,8 @@ impl<'js> FromWarpJs<'js> for Command {
     }
 }
 
-impl<'js> FromWarpJs<'js> for Argument {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for Argument {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -82,8 +82,8 @@ impl<'js> FromWarpJs<'js> for Argument {
     }
 }
 
-impl<'js> FromWarpJs<'js> for ArgumentValue {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for ArgumentValue {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -93,7 +93,7 @@ impl<'js> FromWarpJs<'js> for ArgumentValue {
         if value.is_object() {
             let object = Object::from_value(value)?;
             if object.contains_key("value")? {
-                Ok(ArgumentValue::Suggestion(Suggestion::from_warp_js(
+                Ok(ArgumentValue::Suggestion(Suggestion::from_rift_js(
                     ctx,
                     object.into_value(),
                     js_function_registry,
@@ -131,8 +131,8 @@ impl<'js> FromWarpJs<'js> for ArgumentValue {
     }
 }
 
-impl<'js> FromWarpJs<'js> for Suggestion {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for Suggestion {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -154,13 +154,13 @@ impl<'js> FromWarpJs<'js> for Suggestion {
     }
 }
 
-impl<'js> FromWarpJs<'js> for TemplateType {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for TemplateType {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
     ) -> rquickjs::Result<Self> {
-        let type_string = String::from_warp_js(ctx, value, js_function_registry)?;
+        let type_string = String::from_rift_js(ctx, value, js_function_registry)?;
         match type_string.as_str() {
             "TemplateType.Files" => Ok(TemplateType::Files),
             "TemplateType.Folders" => Ok(TemplateType::Folders),
@@ -174,8 +174,8 @@ impl<'js> FromWarpJs<'js> for TemplateType {
     }
 }
 
-impl<'js> FromWarpJs<'js> for GeneratorFn {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for GeneratorFn {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -183,7 +183,7 @@ impl<'js> FromWarpJs<'js> for GeneratorFn {
         if value.is_object() {
             let object = Object::from_value(value)?;
             let value: Value = object.get("script")?;
-            let script = GeneratorScript::from_warp_js(ctx, value, js_function_registry)?;
+            let script = GeneratorScript::from_rift_js(ctx, value, js_function_registry)?;
             let post_process = if object.contains_key("postProcess")? {
                 let function: Function = object.get("postProcess")?;
                 let function_ref = js_function_registry
@@ -213,8 +213,8 @@ impl<'js> FromWarpJs<'js> for GeneratorFn {
     }
 }
 
-impl<'js> FromWarpJs<'js> for GeneratorScript {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for GeneratorScript {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -236,8 +236,8 @@ impl<'js> FromWarpJs<'js> for GeneratorScript {
     }
 }
 
-impl<'js> FromWarpJs<'js> for Opt {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for Opt {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -263,8 +263,8 @@ impl<'js> FromWarpJs<'js> for Opt {
     }
 }
 
-impl<'js> FromWarpJs<'js> for GeneratorResults {
-    fn from_warp_js(
+impl<'js> FromRiftJs<'js> for GeneratorResults {
+    fn from_rift_js(
         ctx: rquickjs::Ctx<'js>,
         value: rquickjs::Value<'js>,
         js_function_registry: &mut JsFunctionRegistry,
@@ -282,8 +282,8 @@ impl<'js> FromWarpJs<'js> for GeneratorResults {
     }
 }
 
-impl<'js> IntoWarpJs<'js> for GeneratorCompletionContext {
-    fn into_warp_js(self, ctx: rquickjs::Ctx<'js>) -> rquickjs::Result<Value<'js>> {
+impl<'js> IntoRiftJs<'js> for GeneratorCompletionContext {
+    fn into_rift_js(self, ctx: rquickjs::Ctx<'js>) -> rquickjs::Result<Value<'js>> {
         let object = Object::new(ctx)?;
         object.set("tokens", self.tokens)?;
         object.set("pwd", self.pwd)?;

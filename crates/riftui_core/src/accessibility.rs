@@ -71,7 +71,7 @@ pub struct AccessibilityContent {
     /// for example, when the “Command Input” is focused, it announces with a `TextareaRole`.
     /// This is another helper field that lets the user understand what they can potentially do,
     /// or what object is in focus.
-    pub role: WarpA11yRole,
+    pub role: RiftA11yRole,
 }
 
 /// Verbosity level of a11y announcements. By default, all announcements include both the value
@@ -149,14 +149,14 @@ fn string_announcement(s: String) -> String {
 
 impl AccessibilityContent {
     // TODO add frame support
-    pub fn new_without_help<T>(value: T, role: WarpA11yRole) -> Self
+    pub fn new_without_help<T>(value: T, role: RiftA11yRole) -> Self
     where
         T: Into<String>,
     {
         Self::new_internal::<T, String>(value, None, role)
     }
 
-    pub fn new<V, H>(value: V, help: H, role: WarpA11yRole) -> Self
+    pub fn new<V, H>(value: V, help: H, role: RiftA11yRole) -> Self
     where
         V: Into<String>,
         H: Into<String>,
@@ -164,7 +164,7 @@ impl AccessibilityContent {
         Self::new_internal(value, Some(help), role)
     }
 
-    fn new_internal<V, H>(value: V, help: Option<H>, role: WarpA11yRole) -> Self
+    fn new_internal<V, H>(value: V, help: Option<H>, role: RiftA11yRole) -> Self
     where
         V: Into<String>,
         H: Into<String>,
@@ -204,7 +204,7 @@ impl AccessibilityContent {
 }
 
 #[derive(Default, Debug, Clone, Copy)]
-pub enum WarpA11yRole {
+pub enum RiftA11yRole {
     ButtonRole,
     CheckboxRole,
     HelpRole,
@@ -223,9 +223,9 @@ pub enum WarpA11yRole {
     UserAction,
 }
 
-impl std::fmt::Display for WarpA11yRole {
+impl std::fmt::Display for RiftA11yRole {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use WarpA11yRole::*;
+        use RiftA11yRole::*;
         let word = match self {
             ButtonRole => "Button",
             CheckboxRole => "Checkbox",
@@ -258,7 +258,7 @@ pub enum ActionAccessibilityContent {
 impl ActionAccessibilityContent {
     pub fn from_debug() -> Self {
         Self::CustomFn(|action| {
-            AccessibilityContent::new_without_help(format!("{action:?}."), WarpA11yRole::UserAction)
+            AccessibilityContent::new_without_help(format!("{action:?}."), RiftA11yRole::UserAction)
         })
     }
 }

@@ -3,7 +3,7 @@ use std::path::Path;
 use rift_completer::completer::TopLevelCommandCaseSensitivity;
 use rift_util::path::EscapeChar;
 
-use super::{check_openable_in_warp, OpenablePath};
+use super::{check_openable_in_rift, OpenablePath};
 use crate::util::openable_file_type::OpenableFileType;
 
 const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
@@ -17,7 +17,7 @@ fn workspace_root() -> &'static Path {
 
 #[test]
 fn test_single_markdown_file() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "glow README.md".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -34,7 +34,7 @@ fn test_single_markdown_file() {
 
 #[test]
 fn test_any_text_file_type_supported() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cat app/assets/bundled/svg/file.svg".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -52,7 +52,7 @@ fn test_any_text_file_type_supported() {
 
 #[test]
 fn test_unsupported_binary_file_type() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cat app/assets/bundled/png/blue.png".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -64,7 +64,7 @@ fn test_unsupported_binary_file_type() {
 
 #[test]
 fn test_nonexistent_markdown_file() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cat nonexistent.md".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -75,7 +75,7 @@ fn test_nonexistent_markdown_file() {
 
 #[test]
 fn test_compound_command() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cd somedir && less -R README.md && cd ..".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -92,7 +92,7 @@ fn test_compound_command() {
 
 #[test]
 fn test_single_code_file() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cat app/src/bin/oss.rs".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,
@@ -109,7 +109,7 @@ fn test_single_code_file() {
 
 #[test]
 fn test_nonexistent_code_file() {
-    let result = async_io::block_on(check_openable_in_warp(
+    let result = async_io::block_on(check_openable_in_rift(
         "cat nonexistent.rs".to_string(),
         Some(workspace_root().to_string_lossy().to_string()),
         TopLevelCommandCaseSensitivity::CaseInsensitive,

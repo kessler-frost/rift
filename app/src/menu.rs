@@ -7,7 +7,7 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::{vec2f, Vector2F};
 use rift_core::ui::color::blend::Blend;
-use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::assets::asset_cache::AssetSource;
 use riftui::elements::{
     Align, Border, CacheOption, ChildAnchor, ClippedScrollStateHandle, ClippedScrollable,
@@ -2556,28 +2556,28 @@ impl<A: Action + Clone> SubMenu<A> {
                 Custom(AccessibilityContent::new(
                     menu_item,
                     instructions,
-                    WarpA11yRole::TextRole,
+                    RiftA11yRole::TextRole,
                 ))
             }
             OpenSubmenu => Custom(AccessibilityContent::new(
                 String::from("Submenu Expanded"),
                 "Press the right key to open the selected submenu",
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             CloseSubmenu(_) => Custom(AccessibilityContent::new(
                 String::from("Submenu Closed"),
                 "Removing focus from a submenu will close the submenu",
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             Close(_) => Custom(AccessibilityContent::new(
                 String::from("Menu Closed"),
                 "Press the escape key to close the menu",
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             Enter => Custom(AccessibilityContent::new(
                 String::from("Action Selected"),
                 "Press the enter key to execute the selected menu item action",
-                WarpA11yRole::TextRole,
+                RiftA11yRole::TextRole,
             )),
             HoverSubmenuLeafNode { .. }
             | UnhoverSubmenuParent(_)

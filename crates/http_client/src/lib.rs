@@ -172,7 +172,7 @@ impl Client {
     fn builder(
         &self,
         wrapped: reqwest::RequestBuilder,
-        include_warp_headers: bool,
+        include_rift_headers: bool,
     ) -> RequestBuilder<'_> {
         let mut builder = RequestBuilder {
             wrapped,
@@ -181,43 +181,43 @@ impl Client {
             prevent_sleep_reason: None,
         };
 
-        if include_warp_headers {
-            builder = Self::add_warp_http_headers(builder);
+        if include_rift_headers {
+            builder = Self::add_rift_http_headers(builder);
         }
 
         builder
     }
 
     pub fn get<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        self.builder(self.wrapped.get(url), include_warp_headers)
+        let include_rift_headers = Self::include_rift_http_headers(url.clone());
+        self.builder(self.wrapped.get(url), include_rift_headers)
     }
 
     pub fn post<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        self.builder(self.wrapped.post(url), include_warp_headers)
+        let include_rift_headers = Self::include_rift_http_headers(url.clone());
+        self.builder(self.wrapped.post(url), include_rift_headers)
     }
 
     pub fn put<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        self.builder(self.wrapped.put(url), include_warp_headers)
+        let include_rift_headers = Self::include_rift_http_headers(url.clone());
+        self.builder(self.wrapped.put(url), include_rift_headers)
     }
 
     pub fn patch<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        self.builder(self.wrapped.patch(url), include_warp_headers)
+        let include_rift_headers = Self::include_rift_http_headers(url.clone());
+        self.builder(self.wrapped.patch(url), include_rift_headers)
     }
 
     pub fn delete<U: IntoUrl + Clone>(&self, url: U) -> RequestBuilder<'_> {
-        let include_warp_headers = Self::include_warp_http_headers(url.clone());
-        self.builder(self.wrapped.delete(url), include_warp_headers)
+        let include_rift_headers = Self::include_rift_http_headers(url.clone());
+        self.builder(self.wrapped.delete(url), include_rift_headers)
     }
 
     /// Helper method to determine if the request should include rift-specific headers. The only case
     /// where we should include custom headers is if the request is same-origin and is targetted to our server.
     /// For example, app.the upstream site --> app.the upstream site.
     #[cfg(target_family = "wasm")]
-    fn include_warp_http_headers<U: IntoUrl + Clone>(url: U) -> bool {
+    fn include_rift_http_headers<U: IntoUrl + Clone>(url: U) -> bool {
         url.into_url().is_ok_and(|url| {
             url.host_str().is_some_and(|dest_host| {
                 let window_hostname = gloo::utils::window()
@@ -235,11 +235,11 @@ impl Client {
     }
 
     #[cfg(not(target_family = "wasm"))]
-    fn include_warp_http_headers<U: IntoUrl + Clone>(_url: U) -> bool {
+    fn include_rift_http_headers<U: IntoUrl + Clone>(_url: U) -> bool {
         true
     }
 
-    fn add_warp_http_headers(mut builder: RequestBuilder) -> RequestBuilder {
+    fn add_rift_http_headers(mut builder: RequestBuilder) -> RequestBuilder {
         // Include the client ID header.
         if let Some(client_id) = execution_mode::current_client_id() {
             builder = builder.header(headers::RIFT_CLIENT_ID, client_id);
@@ -695,14 +695,14 @@ impl<'c> oauth2::AsyncHttpClient<'c> for Client {
     fn call(&'c self, request: oauth2::HttpRequest) -> Self::Future {
         Box::pin(async move {
             let uri = request.uri().to_string();
-            let include_warp_headers = Self::include_warp_http_headers(uri.clone());
+            let include_rift_headers = Self::include_rift_http_headers(uri.clone());
             let builder = reqwest::RequestBuilder::from_parts(
                 self.wrapped.clone(),
                 request.try_into().map_err(Box::new)?,
             );
 
             let response = self
-                .builder(builder, include_warp_headers)
+                .builder(builder, include_rift_headers)
                 .send()
                 .await
                 .map_err(Box::new)?;

@@ -34,7 +34,7 @@ use rift_core::{safe_error, send_telemetry_from_ctx};
 use rift_editor::editor::NavigationKey;
 use rift_util::path::ShellFamily;
 use rift_util::user_input::UserInput;
-use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::actions::StandardAction;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
@@ -7843,7 +7843,7 @@ impl TypedActionView for EditorView {
     ) -> ActionAccessibilityContent {
         match action {
             EditorAction::UserInsert(text) => ActionAccessibilityContent::Custom(
-                AccessibilityContent::new_without_help(text.to_string(), WarpA11yRole::UserAction),
+                AccessibilityContent::new_without_help(text.to_string(), RiftA11yRole::UserAction),
             ),
             EditorAction::SelectLeft
             | EditorAction::SelectToLineEnd
@@ -7878,7 +7878,7 @@ impl TypedActionView for EditorView {
             EditorAction::Paste => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
                     format!("Pasting: {}", self.clipboard_content(ctx)),
-                    WarpA11yRole::UserAction,
+                    RiftA11yRole::UserAction,
                 ))
             }
             _ => ActionAccessibilityContent::from_debug(),

@@ -26,7 +26,7 @@ pub const MAC_MENUS_CONTEXT: DescriptionContext = DescriptionContext::Custom("ma
 #[repr(isize)]
 pub enum CustomAction {
     NewTab,
-    ShowAboutWarp,
+    ShowAboutRift,
     ShowSettings,
     ConfigureKeybindings,
     ShowAppearance,
@@ -370,7 +370,7 @@ pub fn custom_tag_to_keystroke(custom: CustomTag) -> Option<Keystroke> {
             }
         }
         CustomAction::NewTerminalTab
-        | CustomAction::ShowAboutWarp
+        | CustomAction::ShowAboutRift
         | CustomAction::SplitPaneLeft
         | CustomAction::SelectAllBlocks
         | CustomAction::SplitPaneUp

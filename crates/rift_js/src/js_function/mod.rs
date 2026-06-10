@@ -32,9 +32,9 @@ impl SerializedJsValue {
 /// A unique "ref" to a registered JS function parameterized by the function's input and output
 /// types.
 ///
-/// `I` is the type of the function's input, which must implement `IntoWarpJs` and be
+/// `I` is the type of the function's input, which must implement `IntoRiftJs` and be
 /// deserializable.
-/// `O` is the type of the function's return value, which must implement `FromWarpJs` and be
+/// `O` is the type of the function's return value, which must implement `FromRiftJs` and be
 /// serializable.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct TypedJsFunctionRef<I, O> {

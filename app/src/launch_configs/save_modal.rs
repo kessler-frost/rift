@@ -4,7 +4,7 @@ use markdown_parser::{
 use pathfinder_geometry::vector::vec2f;
 use rift_core::paths::home_relative_path;
 use rift_core::ui::theme::Fill;
-use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ConstrainedBox, Container, CornerRadius,
     Element, Empty, Flex, FormattedTextElement, MouseStateHandle, OffsetPositioning, ParentAnchor,
@@ -661,7 +661,7 @@ impl View for LaunchConfigSaveModal {
             "Type the name of the file to which you want to save your
             current configuration of windows, tabs, and panes. Use enter to save the
             launch configuration, esc to quit the save configuration modal.",
-            WarpA11yRole::PopoverRole,
+            RiftA11yRole::PopoverRole,
         ))
     }
 }

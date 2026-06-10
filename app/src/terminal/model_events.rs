@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use async_channel::Receiver;
-use instant::Instant;
 use riftui::{Entity, ModelContext, ModelHandle};
 
 use super::event::{BootstrappedEvent, SshLoginStatus};
@@ -11,7 +10,7 @@ use super::model::block::BlockId;
 use super::model::completions::ShellCompletion;
 use super::model::session::{IsLegacySSHSession, SessionId, SessionInfo};
 use super::model::terminal_model::{
-    CommandType, ExitReason, HandlerEvent, TmuxControlModeContext, TmuxInstallationState,
+    CommandType, ExitReason, HandlerEvent, TmuxInstallationState,
 };
 use super::model::tmux::commands::TmuxCommand;
 use crate::server::telemetry::ImageProtocol;
@@ -23,7 +22,6 @@ use crate::terminal::event::{
 use crate::terminal::model::session::Sessions;
 use crate::terminal::shell::ShellType;
 use crate::terminal::ClipboardType;
-use crate::send_telemetry_from_ctx;
 
 /// Model that dispatches events that have been emitted by the [`crate::terminal::TerminalModel`],
 /// allowing other models/views to subscribe to `TerminalModel` events like it would any other
@@ -147,27 +145,7 @@ impl ModelEventDispatcher {
             Event::Handler(HandlerEvent::EndTmuxControlMode) => {
                 ModelEvent::Handler(AnsiHandlerEvent::EndTmuxControlMode)
             }
-            Event::Handler(HandlerEvent::TmuxControlModeReady {
-                primary_pane,
-                context,
-            }) => {
-                {
-                    if let Some(TmuxControlModeContext::WarpInitiatedForSsh(control_mode)) = context
-                    {
-                        let _duration_ms = Instant::now()
-                            .duration_since(control_mode.start_time)
-                            .as_millis()
-                            // Clip large durations to u64::MAX
-                            .min(u64::MAX as u128) as u64;
-                        send_telemetry_from_ctx!(
-                            TelemetryEvent::SshTmuxRiftificationSuccess {
-                                duration_ms,
-                                tmux_installation: control_mode.tmux_installation,
-                            },
-                            ctx
-                        );
-                    }
-                }
+            Event::Handler(HandlerEvent::TmuxControlModeReady { primary_pane, .. }) => {
                 ModelEvent::Handler(AnsiHandlerEvent::TmuxControlModeReady { primary_pane })
             }
             Event::Handler(HandlerEvent::RunTmuxCommand(command)) => {

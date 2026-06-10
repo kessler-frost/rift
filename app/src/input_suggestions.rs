@@ -12,7 +12,7 @@ use rift_completer::completer::{
     MatchType, PathSeparators, Suggestion, SuggestionResults, SuggestionType,
 };
 use rift_core::features::FeatureFlag;
-use riftui::accessibility::{AccessibilityContent, WarpA11yRole};
+use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, AnchorPair, Border, ChildAnchor, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DispatchEventResult, DropShadow, Element, Empty, EventHandler, Expanded,
@@ -580,13 +580,13 @@ impl InputSuggestions {
                 ctx.emit_a11y_content(AccessibilityContent::new(
                     format!("Suggestion: {text}.\n"),
                     desc,
-                    WarpA11yRole::MenuItemRole,
+                    RiftA11yRole::MenuItemRole,
                 ));
             }
             (Some(text), None) => {
                 ctx.emit_a11y_content(AccessibilityContent::new_without_help(
                     format!("Suggestion: {text}.\n"),
-                    WarpA11yRole::MenuItemRole,
+                    RiftA11yRole::MenuItemRole,
                 ));
             }
             _ => {}
@@ -610,7 +610,7 @@ impl InputSuggestions {
         if let Some(text) = self.get_selected_item_text() {
             ctx.emit_a11y_content(AccessibilityContent::new_without_help(
                 format!("Selected: {text}"),
-                WarpA11yRole::MenuItemRole,
+                RiftA11yRole::MenuItemRole,
             ));
         }
     }
@@ -635,7 +635,7 @@ impl InputSuggestions {
     ) {
         ctx.emit_a11y_content(AccessibilityContent::new_without_help(
             "Closed suggestions.",
-            WarpA11yRole::UserAction,
+            RiftA11yRole::UserAction,
         ));
         ctx.emit(Event::CloseSuggestion {
             should_restore_buffer_before_history_up,
@@ -1056,7 +1056,7 @@ impl View for InputSuggestions {
             // TODO use bindings from user settings
             "Navigate with tab and shift-tab, and confirm with enter. Execute selected command \
                 with command + enter. Esc leaves the suggestions menu.",
-            WarpA11yRole::MenuRole,
+            RiftA11yRole::MenuRole,
         ))
     }
 }

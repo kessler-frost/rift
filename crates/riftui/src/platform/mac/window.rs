@@ -107,8 +107,8 @@ impl platform::WindowManager for WindowManager {
     }
 
     fn app_is_active(&self) -> bool {
-        // SAFETY: `get_warp_app()` returns the running NSApplication subclass instance.
-        let app = unsafe { &*app::get_warp_app().cast::<NSApplication>() };
+        // SAFETY: `get_rift_app()` returns the running NSApplication subclass instance.
+        let app = unsafe { &*app::get_rift_app().cast::<NSApplication>() };
         app.isActive()
     }
 
@@ -521,7 +521,7 @@ impl Window {
             };
 
             let test_mode = cfg!(feature = "integration_tests")
-                && std::env::var("WARPUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_err();
+                && std::env::var("RIFTUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_err();
 
             // Pick the GPU: for `LowPower`, scan all devices for
             // an integrated GPU and fall back to the system default; otherwise use
@@ -1398,7 +1398,7 @@ extern "C-unwind" fn warp_view_set_frame_size(this: &Object, size: NSSize, async
 }
 
 #[no_mangle]
-extern "C-unwind" fn warp_update_layer(this: &Object) {
+extern "C-unwind" fn rift_update_layer(this: &Object) {
     if !app::callback_dispatcher().can_borrow_mut() {
         #[cfg(debug_assertions)]
         log::warn!(
@@ -1433,19 +1433,19 @@ extern "C-unwind" fn warp_update_layer(this: &Object) {
             "Should not be holding a borrow of the scene RefCell before beginning to render."
         );
 
-        // SAFETY: warp_update_layer should only be invoked for windows
+        // SAFETY: rift_update_layer should only be invoked for windows
         // created via Window::open(), which always sets a non-None device.
         let device = window
             .device
             .as_ref()
-            .expect("warp_update_layer should not be called for a window that has no real display");
-        // SAFETY: warp_update_layer is only invoked by the event loop,
+            .expect("rift_update_layer should not be called for a window that has no real display");
+        // SAFETY: rift_update_layer is only invoked by the event loop,
         // which should never attempt to draw a window while it is already
         // being drawn.
         let mut renderer_manager = window
             .renderer_manager
             .as_ref()
-            .expect("warp_update_layer should never be called twice in parallel")
+            .expect("rift_update_layer should never be called twice in parallel")
             .borrow_mut();
         let renderer = renderer_manager.renderer_for_device(device, window.physical_size());
 

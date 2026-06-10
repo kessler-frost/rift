@@ -333,10 +333,10 @@ impl InBandCommandExecutor {
                         // specifying command patterns to be omitted from history. Ignoring
                         // commands with a leading space is default, non-configurable behavior in
                         // fish.
-                        format!(" warp_run_generator_command {id} '{escaped_command}'")
+                        format!(" rift_run_generator_command {id} '{escaped_command}'")
                     }
                     _ => {
-                        format!("warp_run_generator_command {id} '{escaped_command}'")
+                        format!("rift_run_generator_command {id} '{escaped_command}'")
                     }
                 };
 
@@ -378,7 +378,7 @@ impl CommandExecutor for InBandCommandExecutor {
     /// the `pty_controller` passed to this executor during construction.
     ///
     /// The given `command` is executed in the active session using the
-    /// `warp_run_generator_command`/`Rift-Run-GeneratorCommand` shell script API that is declared as
+    /// `rift_run_generator_command`/`Rift-Run-GeneratorCommand` shell script API that is declared as
     /// part of Rift's bootstrap script.
     ///
     /// Internally, `command` is added to a queue of commands to be executed serially (this is to
@@ -438,7 +438,7 @@ impl CommandExecutor for InBandCommandExecutor {
 pub fn is_in_band_command(command: &str) -> bool {
     let trimmed = command.trim_start();
     trimmed.starts_with("Warp-Run-GeneratorCommand ")
-        || trimmed.starts_with("warp_run_generator_command ")
+        || trimmed.starts_with("rift_run_generator_command ")
 }
 
 #[cfg(test)]

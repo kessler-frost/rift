@@ -128,7 +128,7 @@ impl ResourceCenterMainView {
                         },
                         // Expand Maximize Rift section once user has completed welcome tips,
                         // and keep open after users have completed/skipped all tips
-                        FeatureSection::MaximizeWarp => match ChannelState::app_version() {
+                        FeatureSection::MaximizeRift => match ChannelState::app_version() {
                             Some(version) => {
                                 match Settings::has_changelog_been_shown(version, ctx) {
                                     true => is_tips_completed || is_onboarded,

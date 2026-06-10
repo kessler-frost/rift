@@ -6,12 +6,12 @@ use rquickjs::{Ctx, Function, Persistent};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::{FromWarpJs, IntoWarpJs, JsFunctionId, SerializedJsValue, TypedJsFunctionRef};
+use crate::{FromRiftJs, IntoRiftJs, JsFunctionId, SerializedJsValue, TypedJsFunctionRef};
 
 impl<I, O> TypedJsFunctionRef<I, O>
 where
-    I: for<'a> IntoWarpJs<'a> + DeserializeOwned + Clone + 'static,
-    O: for<'a> FromWarpJs<'a> + Serialize + Clone + 'static,
+    I: for<'a> IntoRiftJs<'a> + DeserializeOwned + Clone + 'static,
+    O: for<'a> FromRiftJs<'a> + Serialize + Clone + 'static,
 {
     fn new(id: JsFunctionId) -> Self {
         Self {
@@ -53,7 +53,7 @@ impl JsFunctionRegistry {
     /// This must be called with specified type parameters, where `I` is the type of the function's
     /// input and `O` is the type of the functions output.
     ///
-    /// `I` and `O` must have corresponding `IntoWarpJs`/`FromWarpJs` implementations so they
+    /// `I` and `O` must have corresponding `IntoRiftJs`/`FromRiftJs` implementations so they
     /// can be converted to/from JavaScript values.
     pub fn register_js_function<'js, I, O>(
         &mut self,
@@ -61,8 +61,8 @@ impl JsFunctionRegistry {
         ctx: Ctx<'js>,
     ) -> TypedJsFunctionRef<I, O>
     where
-        I: for<'a> IntoWarpJs<'a> + DeserializeOwned + Clone + 'static,
-        O: for<'a> FromWarpJs<'a> + Serialize + Clone + 'static,
+        I: for<'a> IntoRiftJs<'a> + DeserializeOwned + Clone + 'static,
+        O: for<'a> FromRiftJs<'a> + Serialize + Clone + 'static,
     {
         let persisted_function = Persistent::save(ctx, js_function);
         let function_id: JsFunctionId = JsFunctionId::new();
@@ -104,8 +104,8 @@ pub enum JsFunctionError {
 /// implementation.
 pub trait CallableJsFunction {
     /// Calls the wrapped JS function with the given `input` deserialized into the appropriate
-    /// `IntoWarpJs`-implemmenting Rust type, and returns the serialized bytes representation of
-    /// the function's output (which is of a Rust type that implemenets `FromWarpJs`).
+    /// `IntoRiftJs`-implemmenting Rust type, and returns the serialized bytes representation of
+    /// the function's output (which is of a Rust type that implemenets `FromRiftJs`).
     fn call(
         &self,
         input: SerializedJsValue,
@@ -116,8 +116,8 @@ pub trait CallableJsFunction {
 
 impl<I, O> CallableJsFunction for TypedJsFunction<I, O>
 where
-    I: for<'a> IntoWarpJs<'a> + DeserializeOwned + Clone + 'static,
-    O: for<'a> FromWarpJs<'a> + Serialize + Clone + 'static,
+    I: for<'a> IntoRiftJs<'a> + DeserializeOwned + Clone + 'static,
+    O: for<'a> FromRiftJs<'a> + Serialize + Clone + 'static,
 {
     fn call(
         &self,
@@ -126,17 +126,17 @@ where
         ctx: Ctx<'_>,
     ) -> Result<SerializedJsValue, JsFunctionError> {
         let input: I = input.to_value().map_err(JsFunctionError::Deserialization)?;
-        let input_value = input.into_warp_js(ctx)?;
+        let input_value = input.into_rift_js(ctx)?;
         let func = self.js_function.clone().restore(ctx)?;
-        let output = O::from_warp_js(ctx, func.call((input_value,))?, function_registry)?;
+        let output = O::from_rift_js(ctx, func.call((input_value,))?, function_registry)?;
         SerializedJsValue::from_value(output).map_err(JsFunctionError::Serialization)
     }
 }
 
 /// A typed wrapper around a "raw" JS function (e.g. an `rquickjs::Function`).
 ///
-/// `I` is the type of the function's input, which must implement `IntoWarpJs`.
-/// `O` is the type of the function's return value, which must implement `FromWarpJs`.
+/// `I` is the type of the function's input, which must implement `IntoRiftJs`.
+/// `O` is the type of the function's return value, which must implement `FromRiftJs`.
 #[derive(Clone)]
 struct TypedJsFunction<I, O> {
     js_function: Persistent<Function<'static>>,
@@ -146,8 +146,8 @@ struct TypedJsFunction<I, O> {
 
 impl<I, O> TypedJsFunction<I, O>
 where
-    I: for<'a> IntoWarpJs<'a> + DeserializeOwned + 'static,
-    O: for<'a> FromWarpJs<'a> + Serialize + 'static,
+    I: for<'a> IntoRiftJs<'a> + DeserializeOwned + 'static,
+    O: for<'a> FromRiftJs<'a> + Serialize + 'static,
 {
     fn new(js_function: Persistent<Function<'static>>) -> Self {
         Self {

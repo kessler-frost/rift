@@ -704,7 +704,7 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         use riftui::AssetProvider as _;
 
         let activate_on_launch = !launch_mode.is_integration_test()
-            || std::env::var("WARPUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_ok();
+            || std::env::var("RIFTUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_ok();
         app_builder.set_activate_on_launch(activate_on_launch);
 
         let dev_icon = ASSETS.get("bundled/png/local.png")?;

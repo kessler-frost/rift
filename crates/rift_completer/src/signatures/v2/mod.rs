@@ -1,7 +1,7 @@
 //! This module contains Command Signature types for use with the v2 (JS-compatible) completions
 //! engine.
 
-// The `js` module contains implementations of `rift_js::{IntoWarpJs, FromWarpJs}` for V2 command
+// The `js` module contains implementations of `rift_js::{IntoRiftJs, FromRiftJs}` for V2 command
 // signatures, which is only supported on native non-wasm platforms.
 #[cfg(not(target_family = "wasm"))]
 mod js;
