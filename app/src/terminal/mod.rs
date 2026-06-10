@@ -43,7 +43,6 @@ pub mod grid_renderer;
 pub mod grid_size_util;
 pub mod history;
 pub mod input;
-pub mod keys;
 pub mod keys_settings;
 pub mod ligature_settings;
 mod line_editor_status;

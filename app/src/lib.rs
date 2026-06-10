@@ -28,7 +28,6 @@ mod global_resource_handles;
 mod gpu_state;
 mod input_classifier;
 mod interval_timer;
-mod linear;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod login_item;
 mod menu;
@@ -192,7 +191,6 @@ use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::DisplayCount;
 use crate::suggestions::ignored_suggestions_model::IgnoredSuggestionsModel;
 use crate::system::SystemStats;
-use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::resizable_data::ResizableData;
 use crate::terminal::{AudibleBell, CustomSecretRegexUpdater, History};
 use crate::undo_close::UndoCloseStack;
@@ -1206,7 +1204,6 @@ pub(crate) fn initialize_app(
 
 
 
-    ctx.add_singleton_model(TerminalKeybindings::new);
     ctx.add_singleton_model(|_| ActiveSession::default());
 
     #[cfg(all(not(target_family = "wasm"), feature = "local_tty"))]

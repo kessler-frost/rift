@@ -37,7 +37,6 @@ use crate::auth::auth_state::AuthState;
 use crate::features::FeatureFlag;
 use crate::interval_timer::IntervalTimer;
 use crate::launch_configs::launch_config;
-use crate::linear::LinearIssueWork;
 use crate::pane_group::{NewTerminalOptions, PanesLayout};
 use crate::persistence::ModelEvent;
 use crate::server::telemetry::LaunchConfigUiLocation;
@@ -1550,17 +1549,6 @@ impl RootView {
 
 
 
-    /// Opens a new tab with agent view for a Linear issue work deeplink.
-    pub fn open_linear_issue_work_in_existing_window(
-        &mut self,
-        args: &LinearIssueWork,
-        ctx: &mut ViewContext<Self>,
-    ) -> bool {
-        let window_id = ctx.window_id();
-        // Linear issue work was an integration feature and has been removed.
-        let _ = (args, window_id);
-        true
-    }
 
     /// Dead in the offline build: there is no server to sync the onboarding flag to, and the
     /// `AuthManagerEvent::AuthComplete` that drove this no longer exists.

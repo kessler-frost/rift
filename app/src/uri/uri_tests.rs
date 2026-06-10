@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use super::*;
 use crate::launch_configs::launch_config::make_mock_single_window_launch_config;
-use crate::linear::{LinearAction, LinearIssueWork};
 use crate::ChannelState;
 
 #[test]
@@ -421,98 +420,6 @@ fn test_action_open_file_editor_parse_rejects_invalid_line_or_column() {
     ))
     .unwrap();
     assert!(Action::parse(&invalid_column).is_err());
-}
-
-#[test]
-fn test_action_cloud_agent_setup_parse() {
-    let url = Url::parse(&format!(
-        "{}://action/cloud_agent_setup",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-
-    let action = Action::parse(&url).unwrap();
-    assert!(matches!(action, Action::CloudAgentSetup));
-}
-#[test]
-fn test_action_new_cloud_agent_conversation_parse() {
-    let url = Url::parse(&format!(
-        "{}://action/new_cloud_agent_conversation",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-
-    let action = Action::parse(&url).unwrap();
-    assert!(matches!(action, Action::NewCloudAgentConversation));
-}
-
-#[test]
-fn test_action_new_agent_conversation_parse() {
-    let url = Url::parse(&format!(
-        "{}://action/new_agent_conversation",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-
-    let action = Action::parse(&url).unwrap();
-    assert!(matches!(action, Action::NewAgentConversation));
-}
-
-#[test]
-fn test_validate_custom_uri_linear() {
-    let url = Url::parse(&format!(
-        "{}://linear/work?prompt=hello",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-    let host = validate_custom_uri(&url).unwrap();
-    assert!(matches!(host, UriHost::Linear));
-}
-
-#[test]
-fn test_linear_action_parse_work() {
-    let url = Url::parse(&format!(
-        "{}://linear/work?prompt=hello",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-    let action = LinearAction::parse(&url).unwrap();
-    assert_eq!(action, LinearAction::WorkOnIssue);
-}
-
-#[test]
-fn test_linear_action_parse_unknown_path() {
-    let url = Url::parse(&format!("{}://linear/unknown", ChannelState::url_scheme())).unwrap();
-    assert!(LinearAction::parse(&url).is_err());
-}
-
-#[test]
-fn test_linear_issue_work_with_prompt() {
-    let url = Url::parse(&format!(
-        "{}://linear/work?prompt=fix+the+bug",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-    let args = LinearIssueWork::from_url(&url);
-    assert_eq!(args.prompt.as_deref(), Some("fix the bug"));
-}
-
-#[test]
-fn test_linear_issue_work_without_prompt() {
-    let url = Url::parse(&format!("{}://linear/work", ChannelState::url_scheme())).unwrap();
-    let args = LinearIssueWork::from_url(&url);
-    assert!(args.prompt.is_none());
-}
-
-#[test]
-fn test_linear_issue_work_empty_prompt() {
-    let url = Url::parse(&format!(
-        "{}://linear/work?prompt=",
-        ChannelState::url_scheme()
-    ))
-    .unwrap();
-    let args = LinearIssueWork::from_url(&url);
-    assert!(args.prompt.is_none());
 }
 
 // -- handle_incoming_uri redaction -------------------------------------------

@@ -24,7 +24,6 @@ use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::PrivacySettings;
 use crate::system::SystemStats;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
-use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::local_tty::spawner::PtySpawner;
 use crate::terminal::resizable_data::ResizableData;
 use crate::test_util::settings::initialize_settings_for_tests;
@@ -63,7 +62,6 @@ fn initialize_app(app: &mut App) {
     app.add_singleton_model(|_| ActiveSession::default());
     let global_resources = GlobalResourceHandles::mock(app);
     app.add_singleton_model(|_| GlobalResourceHandlesProvider::new(global_resources.clone()));
-    app.add_singleton_model(TerminalKeybindings::new);
     #[cfg(feature = "local_fs")]
     app.add_singleton_model(RepoMetadataModel::new);
     app.add_singleton_model(FileSearchModel::new);

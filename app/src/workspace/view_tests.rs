@@ -23,7 +23,6 @@ use crate::suggestions::ignored_suggestions_model::IgnoredSuggestionsModel;
 use crate::system::SystemStats;
 use crate::tab_configs::tab_config::{TabConfigPaneNode, TabConfigPaneType};
 use crate::terminal::history::History;
-use crate::terminal::keys::TerminalKeybindings;
 use crate::terminal::local_tty::spawner::PtySpawner;
 use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseSettings;
@@ -60,7 +59,6 @@ fn initialize_app(app: &mut App) {
     app.add_singleton_model(UndoCloseStack::new);
     app.add_singleton_model(|_| ActiveSession::default());
     app.add_singleton_model(|_| WorkspaceToastStack);
-    app.add_singleton_model(TerminalKeybindings::new);
     app.add_singleton_model(|_| SettingsPaneManager::new());
 
     // Initialize file-based MCP dependencies.

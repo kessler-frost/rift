@@ -1365,8 +1365,6 @@ pub enum TelemetryEvent {
         platform: rift_isolation_platform::IsolationPlatformType,
     },
 
-    /// Emitted when a rift://linear deeplink is opened.
-    LinearIssueLinkOpened,
     /// Emitted when the free tier limit hit interstitial is displayed.
     FreeTierLimitHitInterstitialDisplayed,
     /// Emitted when the user clicks the "Upgrade" button in the free tier limit hit interstitial.
@@ -2289,7 +2287,6 @@ impl TelemetryEvent {
             TelemetryEvent::DetectedIsolationPlatform { platform } => Some(json!({
                 "platform": platform,
             })),
-            TelemetryEvent::LinearIssueLinkOpened => None,
             TelemetryEvent::FreeTierLimitHitInterstitialDisplayed => None,
             TelemetryEvent::FreeTierLimitHitInterstitialUpgradeButtonClicked => None,
             TelemetryEvent::FreeTierLimitHitInterstitialClosed => None,
@@ -2680,7 +2677,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AutoReloadModalClosed => EnablementState::Always,
             Self::AutoReloadToggledFromBillingSettings => EnablementState::Always,
             Self::DetectedIsolationPlatform { .. } => EnablementState::Always,
-            Self::LinearIssueLinkOpened => EnablementState::Always,
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => EnablementState::Always,
             Self::FreeTierLimitHitInterstitialUpgradeButtonClicked { .. } => {
                 EnablementState::Always
@@ -3044,7 +3040,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "revenue.AutoReloadToggledFromBillingSettings"
             }
             Self::DetectedIsolationPlatform { .. } => "Isolation.DetectedIsolationPlatform",
-            Self::LinearIssueLinkOpened => "Linear.IssueLinkOpened",
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => {
                 "FreeTierLimitHitInterstitial.Displayed"
             }
@@ -3642,9 +3637,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::DetectedIsolationPlatform { .. } => {
                 "Detected that Rift is running in an isolated sandbox"
-            }
-            Self::LinearIssueLinkOpened => {
-                "User opened a rift://linear deeplink to work on an issue"
             }
             Self::FreeTierLimitHitInterstitialDisplayed { .. } => {
                 "The free tier limit hit interstitial was displayed"

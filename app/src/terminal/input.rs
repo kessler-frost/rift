@@ -193,19 +193,6 @@ pub const COMPLETIONS_MENU_WIDTH: f32 = 330.;
 pub const OPEN_COMPLETIONS_KEYBINDING_NAME: &str = "input:open_completion_suggestions";
 pub const INPUT_A11Y_LABEL: &str = "Command Input.";
 pub const INPUT_A11Y_HELPER: &str = "Input your shell command, press enter to execute. Press cmd-up to navigate to output of previously executed commands. Press cmd-l to re-focus command input.";
-pub const AI_COMMAND_SEARCH_HINT_TEXT: &str = "Type '#' for AI command suggestions";
-
-/// Action name for setting input mode to agent mode
-pub const SET_INPUT_MODE_AGENT_ACTION_NAME: &str = "input:set_mode_agent";
-
-/// Action name for setting input mode to terminal mode
-pub const SET_INPUT_MODE_TERMINAL_ACTION_NAME: &str = "input:set_mode_terminal";
-
-/// Action name for setting input mode to unlocked agent mode (with natural language detection)
-pub const SET_INPUT_MODE_UNLOCKED_AGENT_ACTION_NAME: &str = "input:set_mode_unlocked_agent";
-
-/// Action name for setting input mode to unlocked terminal mode (with natural language detection)
-pub const SET_INPUT_MODE_UNLOCKED_TERMINAL_ACTION_NAME: &str = "input:set_mode_unlocked_terminal";
 
 /// The position ID used to identify the start of the replacement span for completions.
 const COMPLETIONS_START_OF_REPLACEMENT_SPAN_POSITION_ID: &str =

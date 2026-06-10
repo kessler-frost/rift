@@ -18,7 +18,6 @@ use url::Url;
 use self::docker::open_docker_container;
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::LaunchConfig;
-use crate::linear::{LinearAction, LinearIssueWork};
 use crate::root_view::{
     open_new_window_get_handles,
     OpenLaunchConfigArg,
@@ -55,10 +54,6 @@ pub enum UriHost {
     /// A host prefix for a general-purpose home/landing page. Unlike other intent URIs, the home
     /// page behavior may change over time and vary from platform to platform.
     Home,
-    /// Opens a new tab with the Codex model and starts a conversation.
-    Codex,
-    /// Actions triggered from Linear integrations (e.g. work on issue).
-    Linear,
     /// Opens a saved tab config in an existing window or a new one.
     TabConfig,
     /// Focuses a specific terminal pane by its persistent session UUID.
@@ -79,8 +74,6 @@ impl FromStr for UriHost {
             }
             "settings" => Ok(Self::Settings),
             "home" => Ok(Self::Home),
-            "codex" => Ok(Self::Codex),
-            "linear" => Ok(Self::Linear),
             "tab_config" if FeatureFlag::TabConfigs.is_enabled() => Ok(Self::TabConfig),
             "session" => Ok(Self::Session),
             _ => Err(anyhow!("Received url with unexpected host: {}", s)),
@@ -238,30 +231,6 @@ impl UriHost {
             UriHost::Home => {
                 ctx.dispatch_global_action("root_view::open_new", &());
             }
-            UriHost::Codex => {
-                dispatch_action_in_new_or_existing_window(
-                    primary_window_id,
-                    "root_view:open_codex_in_existing_window",
-                    "root_view:open_codex_in_new_window",
-                    &(),
-                    ctx,
-                );
-            }
-            UriHost::Linear => match LinearAction::parse(url) {
-                Ok(LinearAction::WorkOnIssue) => {
-                    let args = LinearIssueWork::from_url(url);
-                    dispatch_action_in_new_or_existing_window(
-                        primary_window_id,
-                        "root_view:open_linear_issue_work_in_existing_window",
-                        "root_view:open_linear_issue_work_in_new_window",
-                        &args,
-                        ctx,
-                    );
-                }
-                Err(err) => {
-                    log::warn!("{err}");
-                }
-            },
             UriHost::Session => {
                 let uuid_hex = url
                     .path_segments()
@@ -326,10 +295,6 @@ impl UriHost {
             Self::Launch | Self::SharedSession | Self::Home => W::Nothing,
             // This will actually be handled by [`Action::window_behavior_hint`].
             Self::Action => W::Nothing,
-            // Codex opens a new tab with AI mode, use default behavior
-            Self::Codex => W::default(),
-            // Linear deeplink opens a new tab with agent view
-            Self::Linear => W::default(),
             // Handler picks the window itself based on `?new_window=true`.
             Self::TabConfig => W::Nothing,
             Self::Session => W::Nothing,
@@ -647,9 +612,6 @@ enum Action {
     },
     Docker,
     OpenRepo,
-    CloudAgentSetup,
-    NewCloudAgentConversation,
-    NewAgentConversation,
     CreateEnvironment {
         repos: Vec<String>,
     },
@@ -666,9 +628,6 @@ impl Action {
             }
             "/docker/open_subshell" => Ok(Self::Docker),
             "/open-repo" => Ok(Self::OpenRepo),
-            "/cloud_agent_setup" => Ok(Self::CloudAgentSetup),
-            "/new_cloud_agent_conversation" => Ok(Self::NewCloudAgentConversation),
-            "/new_agent_conversation" => Ok(Self::NewAgentConversation),
             "/create_environment" => {
                 let repos = url
                     .query_pairs()
@@ -745,11 +704,6 @@ impl Action {
                     log::warn!("no workspace views in window {window_id} for open repo action");
                 }
             }
-            Action::CloudAgentSetup
-            | Action::NewCloudAgentConversation
-            | Action::NewAgentConversation => {
-                // Cloud/local agent conversations were AI features and have been removed.
-            }
             Action::CreateEnvironment { repos } => {
                 use crate::root_view::CreateEnvironmentArg;
 
@@ -785,10 +739,7 @@ impl Action {
             Self::Docker
             | Self::OpenFileEditor { .. }
             | Self::CreateEnvironment { .. }
-            | Self::OpenRepo
-            | Self::CloudAgentSetup
-            | Self::NewCloudAgentConversation
-            | Self::NewAgentConversation => W::default(),
+            | Self::OpenRepo => W::default(),
             Self::NewTab => W::ShowPrimaryWindow(WindowActivationFallbackBehavior::Notify {
                 title: "New tab created".to_owned(),
                 description: "Go to Rift to see your new tab.".to_owned(),
@@ -1069,8 +1020,6 @@ fn validate_custom_uri(url: &Url) -> Result<UriHost> {
         | UriHost::SharedSession
         | UriHost::Team
         | UriHost::Settings
-        | UriHost::Codex
-        | UriHost::Linear
         | UriHost::TabConfig
         | UriHost::Session => true,
         // Auth and Home only allow the desktop redirect path
