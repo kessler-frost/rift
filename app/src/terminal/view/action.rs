@@ -9,7 +9,7 @@ use riftui::elements::HyperlinkUrl;
 use riftui::event::ModifiersState;
 use riftui::units::Lines;
 
-use super::inline_banner::{OpenInWarpBannerAction, VimModeBannerAction};
+use super::inline_banner::{OpenInRiftBannerAction, VimModeBannerAction};
 use super::{
     AliasExpansionBannerAction, ContextMenuAction, GridHighlightedLink, InputContextMenuAction,
     NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction, RichContentLink,
@@ -207,7 +207,7 @@ pub enum TerminalAction {
     ShowRiftifySshBanner(String, Option<String>),
     InsertMostRecentCommandCorrection,
     AliasExpansionBanner(AliasExpansionBannerAction),
-    OpenInWarpBanner(OpenInWarpBannerAction),
+    OpenInRiftBanner(OpenInRiftBannerAction),
     OpenBlockFilterEditor(BlockIndex),
     ImportSettings,
     ToggleBlockFilterOnSelectedOrLastBlock(ToggleBlockFilterSource),
@@ -370,7 +370,7 @@ impl fmt::Debug for TerminalAction {
             ShowRiftifySshBanner(_, _) => f.write_str("ShowRiftifySshBanner"),
             InsertMostRecentCommandCorrection => f.write_str("InsertMostRecentCommandCorrection"),
             AliasExpansionBanner(action) => write!(f, "AliasExpansionBanner({action:?}"),
-            OpenInWarpBanner(action) => write!(f, "OpenInWarpBanner({action:?})"),
+            OpenInRiftBanner(action) => write!(f, "OpenInRiftBanner({action:?})"),
             OpenBlockFilterEditor(block_index) => {
                 write!(f, "OpenBlockFilterEditor({block_index:?})")
             }

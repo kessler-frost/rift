@@ -241,7 +241,7 @@ where
 /// - Whether this file is openable in Rift (skips binary files and directories)
 /// - Whether Rift is an OS-level default editor (skips Markdown files)
 #[cfg(feature = "local_fs")]
-pub fn should_show_open_in_warp_link(path: &Path, app: &AppContext) -> bool {
+pub fn should_show_open_in_rift_link(path: &Path, app: &AppContext) -> bool {
     use riftui::SingletonEntity;
 
     use crate::util::file::external_editor::settings::EditorChoice;
@@ -258,6 +258,6 @@ pub fn should_show_open_in_warp_link(path: &Path, app: &AppContext) -> bool {
 }
 
 #[cfg(not(feature = "local_fs"))]
-pub fn should_show_open_in_warp_link(_path: &std::path::Path, _app: &AppContext) -> bool {
+pub fn should_show_open_in_rift_link(_path: &std::path::Path, _app: &AppContext) -> bool {
     false
 }

@@ -4,7 +4,7 @@
 mod alias_expansion;
 mod notifications_discovery;
 mod notifications_error;
-mod open_in_warp;
+mod open_in_rift;
 mod session_state;
 mod shared_sessions;
 mod shell_process_terminated;
@@ -14,7 +14,7 @@ mod vim_mode;
 pub use alias_expansion::*;
 pub use notifications_discovery::*;
 pub use notifications_error::*;
-pub use open_in_warp::*;
+pub use open_in_rift::*;
 use pathfinder_color::ColorU;
 use riftui::elements::{
     Align, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Icon,

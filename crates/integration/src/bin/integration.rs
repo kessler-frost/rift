@@ -352,7 +352,7 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_notebook_pane_tracking);
     register_test!(test_close_notebook_tab);
-    register_test!(test_open_in_warp_banner);
+    register_test!(test_open_in_rift_banner);
     register_test!(test_close_notebook_window);
     register_test!(test_backspace_inside_raw_mermaid_block_edits_text_without_removing_block);
 

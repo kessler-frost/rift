@@ -11,18 +11,18 @@ use super::{
 };
 use crate::appearance::Appearance;
 use crate::terminal::model::session::Session;
-use crate::terminal::view::open_in_warp::OpenablePath;
+use crate::terminal::view::open_in_rift::OpenablePath;
 use crate::terminal::view::{InlineBannerId, TerminalAction};
 use crate::util::openable_file_type::OpenableFileType;
 
 #[derive(Clone, Copy, Debug)]
-pub enum OpenInWarpBannerAction {
+pub enum OpenInRiftBannerAction {
     OpenFile,
     LearnMore,
     Close,
 }
 
-pub struct OpenInWarpBannerState {
+pub struct OpenInRiftBannerState {
     pub id: InlineBannerId,
     pub target: OpenablePath,
     pub session: Arc<Session>,
@@ -31,7 +31,7 @@ pub struct OpenInWarpBannerState {
     close_button_mouse_state: MouseStateHandle,
 }
 
-impl OpenInWarpBannerState {
+impl OpenInRiftBannerState {
     pub fn new(id: InlineBannerId, openable_path: OpenablePath, session: Arc<Session>) -> Self {
         Self {
             id,
@@ -72,8 +72,8 @@ fn file_title_text(openable_path: &OpenablePath) -> String {
     }
 }
 
-pub fn render_open_in_warp_banner(
-    state: &OpenInWarpBannerState,
+pub fn render_open_in_rift_banner(
+    state: &OpenInRiftBannerState,
     view_id: EntityId,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -86,14 +86,14 @@ pub fn render_open_in_warp_banner(
         text: button_text.to_string(),
         text_color: appearance.theme().active_ui_text_color().into_solid(),
         button_state: InlineBannerButtonState {
-            on_click_event: TerminalAction::OpenInWarpBanner(OpenInWarpBannerAction::OpenFile),
+            on_click_event: TerminalAction::OpenInRiftBanner(OpenInRiftBannerAction::OpenFile),
             mouse_state_handle: state.open_button_mouse_state.clone(),
         },
         font: InlineBannerTextButtonFont {
             weight: Some(Weight::Bold),
             ..Default::default()
         },
-        position_id: Some(format!("open_in_warp_banner_button_{view_id}")),
+        position_id: Some(format!("open_in_rift_banner_button_{view_id}")),
         variant: InlineBannerTextButtonVariant::Primary,
     };
 
@@ -101,7 +101,7 @@ pub fn render_open_in_warp_banner(
         text: "Learn more".to_string(),
         text_color: appearance.theme().active_ui_text_color().into_solid(),
         button_state: InlineBannerButtonState {
-            on_click_event: TerminalAction::OpenInWarpBanner(OpenInWarpBannerAction::LearnMore),
+            on_click_event: TerminalAction::OpenInRiftBanner(OpenInRiftBannerAction::LearnMore),
             mouse_state_handle: state.learn_more_button_mouse_state.clone(),
         },
         font: Default::default(),
@@ -110,7 +110,7 @@ pub fn render_open_in_warp_banner(
     };
 
     let close_button = InlineBannerCloseButton(InlineBannerButtonState {
-        on_click_event: TerminalAction::OpenInWarpBanner(OpenInWarpBannerAction::Close),
+        on_click_event: TerminalAction::OpenInRiftBanner(OpenInRiftBannerAction::Close),
         mouse_state_handle: state.close_button_mouse_state.clone(),
     });
 

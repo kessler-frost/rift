@@ -688,7 +688,7 @@ pub struct Workspace {
     #[cfg(target_family = "wasm")]
     wasm_nux_dialog: ViewHandle<WasmNUXDialog>,
     #[cfg(target_family = "wasm")]
-    open_in_warp_button: ViewHandle<ActionButton>,
+    open_in_rift_button: ViewHandle<ActionButton>,
     #[cfg(target_family = "wasm")]
     view_cloud_runs_button: ViewHandle<ActionButton>,
     #[cfg(target_family = "wasm")]
@@ -2102,7 +2102,7 @@ impl Workspace {
         let wasm_nux_dialog = Self::build_wasm_nux_dialog(ctx);
 
         #[cfg(target_family = "wasm")]
-        let open_in_warp_button = Self::build_open_in_warp_button(ctx);
+        let open_in_rift_button = Self::build_open_in_rift_button(ctx);
 
         #[cfg(target_family = "wasm")]
         let transcript_info_button = Self::build_transcript_info_button(ctx);
@@ -2272,7 +2272,7 @@ impl Workspace {
             #[cfg(target_family = "wasm")]
             wasm_nux_dialog,
             #[cfg(target_family = "wasm")]
-            open_in_warp_button,
+            open_in_rift_button,
             #[cfg(target_family = "wasm")]
             transcript_info_button,
             #[cfg(target_family = "wasm")]
@@ -9730,7 +9730,7 @@ impl Workspace {
 
             // Hide "Open in Rift" button on mobile devices
             if !riftui::platform::wasm::is_mobile_device() {
-                right_row.add_child(ChildView::new(&self.open_in_warp_button).finish());
+                right_row.add_child(ChildView::new(&self.open_in_rift_button).finish());
             }
             tab_bar.add_child(right_row.finish());
 

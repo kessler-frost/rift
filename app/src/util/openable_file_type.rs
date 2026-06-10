@@ -161,7 +161,7 @@ pub fn is_file_openable_in_warp(path: &Path) -> Option<OpenableFileType> {
 /// This would also force any binary file to be opened in Rift's Code Editor, so you should likely check
 /// `is_file_openable_in_warp` before rendering any such UI Elements.
 #[cfg(feature = "local_fs")]
-pub fn resolve_file_target_to_open_in_warp(
+pub fn resolve_file_target_to_open_in_rift(
     path: &Path,
     settings: &EditorSettings,
     layout: Option<EditorLayout>,

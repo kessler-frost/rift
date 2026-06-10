@@ -219,7 +219,7 @@ impl View for WelcomeView {
                     Container::new(
                         ConstrainedBox::new(
                             Icon::new(
-                                "bundled/svg/warp-logo-neutral.svg",
+                                "bundled/svg/rift-logo-neutral.svg",
                                 appearance.theme().foreground(),
                             )
                             .finish(),

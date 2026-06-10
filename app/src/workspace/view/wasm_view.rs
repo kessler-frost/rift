@@ -35,7 +35,7 @@ impl Workspace {
         wasm_nux_dialog
     }
 
-    pub(super) fn build_open_in_warp_button(
+    pub(super) fn build_open_in_rift_button(
         ctx: &mut ViewContext<Self>,
     ) -> ViewHandle<ActionButton> {
         ctx.add_typed_action_view(|_ctx| {

@@ -7,7 +7,7 @@ pub mod init;
 pub mod inline_banner;
 
 mod link_detection;
-mod open_in_warp;
+mod open_in_rift;
 mod pane_impl;
 pub mod rich_content;
 mod shell_terminated_banner;
@@ -53,8 +53,8 @@ use inline_banner::{
     render_alias_expansion_banner, render_inline_notifications_discovery_banner,
     render_inline_notifications_error_banner, render_inline_shared_session_ended_banner,
     render_inline_shared_session_started_banner, render_inline_ssh_wrapper_banner,
-    render_open_in_warp_banner, render_shell_process_terminated_banner, render_vim_mode_banner,
-    AliasExpansionBanner, AliasExpansionBannerAction, OpenInWarpBannerState, SSHBannerAction,
+    render_open_in_rift_banner, render_shell_process_terminated_banner, render_vim_mode_banner,
+    AliasExpansionBanner, AliasExpansionBannerAction, OpenInRiftBannerState, SSHBannerAction,
     SSHBannerState, VimModeBannerAction,
 };
 pub use inline_banner::{NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction};
@@ -723,7 +723,7 @@ pub enum InlineBannerType {
     SharedSessionStart,
     SharedSessionEnd,
     ShellProcessTerminated,
-    OpenInWarp,
+    OpenInRift,
     VimMode,
     CodebaseIndexSpeedbump,
 }
@@ -769,7 +769,7 @@ struct InlineBannersState {
     /// banner to display.
     shell_process_terminated_banner: Option<ShellProcessTerminatedBanner>,
 
-    open_in_warp_banner: Option<OpenInWarpBannerState>,
+    open_in_rift_banner: Option<OpenInRiftBannerState>,
 
     vim_banner_state: Option<VimModeBannerState>,
 }
@@ -1504,7 +1504,7 @@ struct TerminalViewMouseStates {
     copy_secrets_tooltip: MouseStateHandle,
 
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
-    open_in_warp_tooltip: MouseStateHandle,
+    open_in_rift_tooltip: MouseStateHandle,
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
     show_in_file_explorer_tooltip: MouseStateHandle,
     jump_to_bottom_of_block_button: MouseStateHandle,
@@ -4912,7 +4912,7 @@ impl TerminalView {
                             self.maybe_suggest_alias_expansion(block_completed, ctx);
                         }
 
-                        self.maybe_suggest_open_in_warp(block_completed, ctx);
+                        self.maybe_suggest_open_in_rift(block_completed, ctx);
                     }
 
                     let terminal_view_state = {
@@ -10750,10 +10750,10 @@ impl TerminalView {
             }
         }
 
-        if let Some(open_in_warp_banner) = &self.inline_banners_state.open_in_warp_banner {
+        if let Some(open_in_rift_banner) = &self.inline_banners_state.open_in_rift_banner {
             inline_banners.insert(
-                open_in_warp_banner.id,
-                render_open_in_warp_banner(open_in_warp_banner, self.view_id, appearance),
+                open_in_rift_banner.id,
+                render_open_in_rift_banner(open_in_rift_banner, self.view_id, appearance),
             );
         }
 
@@ -12289,7 +12289,7 @@ impl TypedActionView for TerminalView {
             | SetMarkedText { .. }
             | ClearMarkedText => ActionAccessibilityContent::from_debug(),
             #[cfg(feature = "local_fs")]
-            OpenInWarpBanner(action) => self.open_in_warp_banner_accessibility_content(*action),
+            OpenInRiftBanner(action) => self.open_in_rift_banner_accessibility_content(*action),
             // Below are actions that are most likely irrelevant to users or are very noisy and the
             // debug version shouldn't be announced.
             Scroll { .. }
@@ -12561,7 +12561,7 @@ impl TypedActionView for TerminalView {
             }
             InsertMostRecentCommandCorrection => self.insert_most_recent_command_correction(ctx),
             AliasExpansionBanner(action) => self.alias_expansion_banner_action(*action, ctx),
-            OpenInWarpBanner(action) => self.handle_open_in_warp_banner_action(*action, ctx),
+            OpenInRiftBanner(action) => self.handle_open_in_rift_banner_action(*action, ctx),
             OpenBlockFilterEditor(block_index) => {
                 self.open_block_filter_editor(*block_index, OpenedFromClick::Yes, ctx)
             }

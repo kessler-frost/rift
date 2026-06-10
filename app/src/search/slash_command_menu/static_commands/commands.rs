@@ -202,7 +202,7 @@ pub const INDEX: StaticCommand = StaticCommand {
 pub const INIT: StaticCommand = StaticCommand {
     name: "/init",
     description: "Index this codebase and generate an AGENTS.md file",
-    icon_path: "bundled/svg/warp-2.svg",
+    icon_path: "bundled/svg/rift-2.svg",
     availability: Availability::REPOSITORY
         .union(Availability::AGENT_VIEW)
         .union(Availability::AI_ENABLED),
