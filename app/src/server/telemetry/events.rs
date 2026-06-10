@@ -609,7 +609,6 @@ pub enum TelemetryEvent {
         source: LoginEventSource,
     },
     OpenNewSessionFromFilePath,
-    OpenTeamFromURI,
     SelectNavigationPaletteItem,
     SelectCommandPaletteOption(String),
     PaletteSearchOpened {
@@ -1920,7 +1919,6 @@ impl TelemetryEvent {
             | TelemetryEvent::NotificationClicked
             | TelemetryEvent::SignUpButtonClicked
             | TelemetryEvent::OpenNewSessionFromFilePath
-            | TelemetryEvent::OpenTeamFromURI
             | TelemetryEvent::SelectNavigationPaletteItem
             | TelemetryEvent::DragAndDropTab
             | TelemetryEvent::DragAndDropTabGroup
@@ -2269,7 +2267,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SignUpButtonClicked => EnablementState::Always,
             Self::LoginButtonClicked => EnablementState::Always,
             Self::OpenNewSessionFromFilePath => EnablementState::Always,
-            Self::OpenTeamFromURI => EnablementState::Always,
             Self::SelectCommandPaletteOption => EnablementState::Always,
             Self::PaletteSearchOpened => EnablementState::Always,
             Self::PaletteSearchResultAccepted => EnablementState::Always,
@@ -2581,7 +2578,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SignUpButtonClicked => "Sign Up Button Clicked in App",
             Self::LoginButtonClicked => "Log In Button Clicked in App",
             Self::OpenNewSessionFromFilePath => "New Session From Directory",
-            Self::OpenTeamFromURI => "Open Team from URI",
             Self::SelectCommandPaletteOption => "Select Command Palette Option",
             Self::PaletteSearchOpened => "Open Palette",
             Self::PaletteSearchResultAccepted => "Command Palette Search Accepted",
@@ -2961,9 +2957,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::LoginButtonClicked => "Clicked on \"Log in\" button",
             Self::OpenNewSessionFromFilePath => {
                 "Dragged a file, folder, etc. into Rift to start a session"
-            }
-            Self::OpenTeamFromURI => {
-                "Showed settings view of their newly joined team within the app"
             }
             Self::SelectCommandPaletteOption => "Selected option from command palette (i.e. CMD-P)",
             Self::PaletteSearchOpened => "Opened the palette",

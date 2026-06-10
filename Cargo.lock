@@ -9803,7 +9803,6 @@ dependencies = [
  "serde_with",
  "serde_yaml 0.8.26",
  "serial_test",
- "session-sharing-protocol",
  "settings",
  "settings_value",
  "sha2 0.10.9",
@@ -10190,7 +10189,6 @@ dependencies = [
  "rift_util",
  "riftui_core",
  "serde",
- "session-sharing-protocol",
  "smol_str",
  "static_assertions",
  "string-offset",
@@ -11392,17 +11390,6 @@ dependencies = [
  "quote",
  "rustversion",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "session-sharing-protocol"
-version = "0.0.0"
-source = "git+https://github.com/warpdotdev/session-sharing-protocol.git?rev=c2226e8d9d2c87ac0bea4b01f98e0027355e1a5d#c2226e8d9d2c87ac0bea4b01f98e0027355e1a5d"
-dependencies = [
- "byte-unit",
- "serde",
- "serde_json",
- "uuid",
 ]
 
 [[package]]
