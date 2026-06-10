@@ -311,9 +311,6 @@ pub enum WorkspaceAction {
         position: Vector2F,
     },
     OpenLink(String),
-    /// On WASM, opens a given URL in the desktop Warp app (if installed) or redirects to download page.
-    #[cfg(target_family = "wasm")]
-    OpenLinkOnDesktop(url::Url),
     ReopenClosedSession,
     AddWindow,
     AddWindowWithShell {

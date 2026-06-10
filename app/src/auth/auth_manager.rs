@@ -11,8 +11,6 @@ use riftui::{Entity, ModelContext, SingletonEntity};
 
 pub type LoginGatedFeature = &'static str;
 
-type URLConstructorCallback = Box<dyn FnOnce(Option<&str>) -> String>;
-
 /// Offline auth manager. Holds no server clients and performs no network access.
 pub struct AuthManager;
 
@@ -32,17 +30,6 @@ impl AuthManager {
 
     /// Offline no-op: there is no server to refresh user state from.
     pub fn refresh_user(&self, _ctx: &mut ModelContext<Self>) {}
-
-    /// Opens a URL. In the offline build there is never an anonymous token to attach, so this
-    /// simply opens the constructed URL.
-    pub fn open_url_maybe_with_anonymous_token(
-        &self,
-        ctx: &mut ModelContext<Self>,
-        construct_url: URLConstructorCallback,
-    ) {
-        let url: String = construct_url(None);
-        ctx.open_url(&url);
-    }
 
     /// Offline no-op: the local user is always onboarded; there is no server to update.
     pub fn set_user_onboarded(&self, _ctx: &mut ModelContext<Self>) {}

@@ -73,8 +73,6 @@ pub mod util;
 mod view_components;
 mod vim_registers;
 mod warp_managed_paths_watcher;
-#[cfg(target_family = "wasm")]
-mod wasm_nux_dialog;
 mod window_settings;
 mod workspaces;
 
@@ -129,7 +127,6 @@ pub use util::bindings::cmd_or_ctrl_shift;
 #[cfg(feature = "local_fs")]
 use watcher::HomeDirectoryWatcher;
 
-use crate::uri::web_intent_parser::maybe_rewrite_web_url_to_intent;
 pub mod workspace;
 
 use std::borrow::Cow;
@@ -619,17 +616,6 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
         .install_default()
         .expect("must be able to initialize crypto provider for TLS support");
 
-    // For wasm builds we have this special case to parse out the intent
-    // from the url that is used to visite the app on web.
-    #[cfg(target_family = "wasm")]
-    {
-        use uri::web_intent_parser;
-        if let Some(intent) = web_intent_parser::parse_web_intent_from_current_url() {
-            launch_mode.add_url(intent);
-        }
-        web_intent_parser::set_context_flags_from_current_url();
-    }
-
     // Collect errors that occur in run_internal() before the Sentry client is initialized,
     // so they can be replayed to Sentry once it's ready.
     #[cfg_attr(
@@ -1066,17 +1052,6 @@ pub(crate) fn initialize_app(
         let extra_meta_keys = *KeysSettings::as_ref(ctx).extra_meta_keys;
         apply_extra_meta_keys(event, extra_meta_keys);
         apply_scroll_multiplier(event, ctx);
-    });
-
-    // Rewrite recognized Warp web URLs (sessions, Drive, settings, home) into local
-    // intent URLs when possible so they open directly in the desktop app.
-    ctx.set_before_open_url(|url_str, _ctx| {
-        if let Ok(url) = Url::parse(url_str) {
-            if let Some(intent) = maybe_rewrite_web_url_to_intent(&url) {
-                return intent.to_string();
-            }
-        }
-        url_str.to_owned()
     });
 
     ctx.set_a11y_verbosity(*AccessibilitySettings::as_ref(ctx).a11y_verbosity);
