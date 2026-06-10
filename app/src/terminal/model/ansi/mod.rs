@@ -45,7 +45,7 @@ use crate::{safe_debug, safe_error};
 
 /// Marks an OSC as one that is sent by Rift logic registered in the shell.
 ///
-/// 9277 spells out "WARP" on a dialpad :).
+/// 9277 spells out "RIFT" on a dialpad :).
 const RIFT_IN_BAND_GENERATOR_OSC_MARKER: &[u8] = b"9277";
 const RIFT_IN_BAND_GENERATOR_START_BYTE: &[u8] = b"A";
 const RIFT_IN_BAND_GENERATOR_END_BYTE: &[u8] = b"B";
@@ -568,7 +568,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
             Ok(DProtoHook::InitSubshell { value }) => self.handler.init_subshell(value),
             Ok(DProtoHook::InitSsh { value }) => self.handler.init_ssh(value),
             Ok(DProtoHook::SourcedRcFileForRift { .. }) => {
-                // The SourcedRCFileForWarp hook should only be emitted by the
+                // The SourcedRCFileForRift hook should only be emitted by the
                 // shell without hex encoding. The RC file snippet given to
                 // users is not hex-encoded for the sake of transparency and
                 // debugability.
@@ -1041,14 +1041,14 @@ where
             // Received a Rift OSC used for in-band generators.
             RIFT_IN_BAND_GENERATOR_OSC_MARKER => match params.get(1) {
                 Some(&RIFT_IN_BAND_GENERATOR_START_BYTE) => {
-                    log::info!("Received a Warp OSC marker for starting in-band command output.");
+                    log::info!("Received a Rift OSC marker for starting in-band command output.");
                     self.handler.start_in_band_command_output();
                 }
                 Some(&RIFT_IN_BAND_GENERATOR_END_BYTE) => {
                     self.handler.end_in_band_command_output(true);
                 }
                 _ => {
-                    log::warn!("Received a Warp OSC marker missing required param.");
+                    log::warn!("Received a Rift OSC marker missing required param.");
                 }
             },
 
@@ -1070,12 +1070,12 @@ where
                             .get(2)
                             .map(|osc_data| String::from_utf8_lossy(osc_data))
                         else {
-                            log::error!("Warp OSC marker did not contain payload");
+                            log::error!("Rift OSC marker did not contain payload");
                             return;
                         };
                         safe_debug!(
-                            safe: ("Received Warp OSC string for shell hook"),
-                            full: ("Received Warp OSC string for shell hook with JSON payload: {:?}", data_str)
+                            safe: ("Received Rift OSC string for shell hook"),
+                            full: ("Received Rift OSC string for shell hook with JSON payload: {:?}", data_str)
                         );
                         let decoded_data = hex::decode(&*data_str);
                         self.handle_decoded_data(decoded_data);
@@ -1086,12 +1086,12 @@ where
                             .get(2)
                             .map(|osc_data| String::from_utf8_lossy(osc_data))
                         else {
-                            log::error!("Warp OSC marker did not contain payload");
+                            log::error!("Rift OSC marker did not contain payload");
                             return;
                         };
                         safe_debug!(
-                            safe: ("Received Warp OSC string for shell hook"),
-                            full: ("Received Warp OSC string for shell hook with JSON payload: {:?}", data_str)
+                            safe: ("Received Rift OSC string for shell hook"),
+                            full: ("Received Rift OSC string for shell hook with JSON payload: {:?}", data_str)
                         );
                         let hook = serde_json::from_str::<DProtoHook>(&data_str);
                         self.handle_unencoded_hook(hook)
@@ -1104,7 +1104,7 @@ where
             }
 
             RIFT_RESET_GRID_OSC_MARKER => {
-                log::debug!("Received Warp OSC string for reset grid");
+                log::debug!("Received Rift OSC string for reset grid");
                 self.handler.on_reset_grid();
             }
 
@@ -1116,7 +1116,7 @@ where
                         .map(|osc_data| String::from_utf8_lossy(osc_data))
                         .and_then(|format| CompletionsShellData::from_format_type(&format))
                     else {
-                        log::warn!("Warp start completions OSC marker contained invalid format.");
+                        log::warn!("Rift start completions OSC marker contained invalid format.");
                         return;
                     };
                     self.handler.start_completions_output(format);
@@ -1131,7 +1131,7 @@ where
                         .map(|osc_data| String::from_utf8_lossy(osc_data))
                     else {
                         log::warn!(
-                            "Warp completions match result OSC marker did not contain payload"
+                            "Rift completions match result OSC marker did not contain payload"
                         );
                         return;
                     };
@@ -1155,7 +1155,7 @@ where
                         .map(|osc_data| String::from_utf8_lossy(osc_data))
                     else {
                         log::warn!(
-                            "Warp completions match metadata OSC marker did not contain payload"
+                            "Rift completions match metadata OSC marker did not contain payload"
                         );
                         return;
                     };
@@ -1170,7 +1170,7 @@ where
                             );
                         }
                         _ => {
-                            log::warn!("Invalid Warp OSC marker parameter for completions match metadata: {parameter}");
+                            log::warn!("Invalid Rift OSC marker parameter for completions match metadata: {parameter}");
                         }
                     }
                 }
@@ -1178,7 +1178,7 @@ where
                     self.handler.send_completions_prompt();
                 }
                 _ => {
-                    log::warn!("Received a Warp OSC completions marker missing required param.");
+                    log::warn!("Received a Rift OSC completions marker missing required param.");
                 }
             },
 

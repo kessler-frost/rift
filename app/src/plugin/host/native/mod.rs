@@ -90,7 +90,7 @@ pub fn run() -> Result<()> {
 ///
 /// This assumes that all plugins are located in ~/.rift/plugins.
 fn plugin_paths() -> Vec<PathBuf> {
-    const PLUGIN_PATH_SUFFIX: &str = ".warp/plugins";
+    const PLUGIN_PATH_SUFFIX: &str = ".rift/plugins";
 
     dirs::home_dir()
         .map(|home_dir| home_dir.join(PLUGIN_PATH_SUFFIX))

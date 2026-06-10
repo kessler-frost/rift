@@ -416,7 +416,7 @@ fn collect_log_paths_in(log_directory: &Path, logfile_name: &str) -> Result<Vec<
 
     if files.is_empty() {
         return Err(anyhow::anyhow!(
-            "No warp logs were found for {logfile_name}"
+            "No rift logs were found for {logfile_name}"
         ));
     }
 

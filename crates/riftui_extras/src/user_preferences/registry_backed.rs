@@ -11,7 +11,7 @@ pub struct RegistryBackedPreferences {
     app_key_path: String,
 }
 
-static RIFT_REGISTRY_BASE_PATH: &str = "Software\\Warp.dev\\";
+static RIFT_REGISTRY_BASE_PATH: &str = "Software\\Rift.dev\\";
 pub const KEY_NOT_FOUND_ERR: HRESULT = HRESULT::from_win32(0x80070002);
 
 impl RegistryBackedPreferences {
@@ -25,7 +25,7 @@ impl RegistryBackedPreferences {
     /// Gets Rift's registry key, creating it if it does not already exist.
     fn get_rift_registry(&self) -> Result<Key, super::Error> {
         CURRENT_USER.create(self.app_key_path.clone()).map_err(|e| {
-            log::error!("unable to access Warp app key in Windows Registry: {e:#}");
+            log::error!("unable to access Rift app key in Windows Registry: {e:#}");
             super::Error::IoError(io::Error::from(e))
         })
     }

@@ -32,10 +32,10 @@ pub fn test_ask_ai_keybinding_for_selected_block() -> Builder {
         .with_step(
             new_step_with_default_assertions("select block")
                 .with_keystrokes(&["ctrl-shift-space"])
-                .add_named_assertion("ask warp ai from selected block", |app, window_id| {
+                .add_named_assertion("ask rift ai from selected block", |app, window_id| {
                     let ai_assistant_panel = ai_assistant_panel_view(app, window_id);
                     ai_assistant_panel.read(app, |view, ctx| {
-                        let expected_code_block = "```warp\nfoo\n```";
+                        let expected_code_block = "```rift\nfoo\n```";
                         let editor_content = view.editor().as_ref(ctx).buffer_text(ctx);
                         async_assert!(editor_content.contains(expected_code_block))
                     })

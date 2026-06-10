@@ -72,7 +72,7 @@ pub struct Flatten<'s> {
 }
 
 impl<'s> Flatten<'s> {
-    /// Converts a spanned `Expression` into a completion location for use in `WarpCompleter`.
+    /// Converts a spanned `Expression` into a completion location for use in `RiftCompleter`.
     fn expression(&self, e: &Spanned<ParsedExpression>) -> Vec<CompletionLocation> {
         match e.item.expression() {
             Expression::Command => {

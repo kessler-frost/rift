@@ -758,7 +758,7 @@ fn adapter_stability_sort_func(
         log::warn!(
             "Deprioritizing Vulkan-backed Nvidia adapter due to version < {} (unsupported).\nSee \
             the \"Graphics\" secion of our docs here: \
-            https://docs.warp.dev/help/known-issues#linux-1",
+            https://docs.rift.dev/help/known-issues#linux-1",
             *MIN_SUPPORTED_NVIDIA_VERSION
         );
         AdapterSupport::Unsupported
@@ -787,7 +787,7 @@ enum AdapterSupport {
     Supported = 0,
     /// The adapter is somewhat usable, but there have been some problems.
     SupportedWithIssues = 1,
-    /// The adapter is basically not viable. Warpui will either crash or not render.
+    /// The adapter is basically not viable. Riftui will either crash or not render.
     Unsupported = 2,
 }
 

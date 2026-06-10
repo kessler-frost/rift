@@ -43,7 +43,7 @@ fn focus_reporting_writes_focus_events_in_normal_screen() {
 
         terminal.update(&mut app, |view, ctx| {
             let mut model = view.model.lock();
-            model.simulate_long_running_block("python3 /tmp/warp_focus_test.py", "");
+            model.simulate_long_running_block("python3 /tmp/rift_focus_test.py", "");
             assert!(!model.is_alt_screen_active());
             ansi::Handler::set_mode(&mut *model, ansi::Mode::ReportFocusInOut);
             assert!(model.is_term_mode_set(TermMode::FOCUS_IN_OUT));
@@ -2258,14 +2258,14 @@ fn test_link_at_range_trims_zero_width_spaces() {
         let terminal = add_window_with_terminal(&mut app, None);
 
         // NOTE: this has two zero-width spaces, one after the '(', and one before the ')'
-        let input_url = "(\u{200b}https://warp.dev\u{200b})";
+        let input_url = "(\u{200b}https://rift.dev\u{200b})";
         // NOTE: the final character in this string is a zero-width space
-        let non_escaped_url = "https://warp.dev\u{200b}";
-        let escaped_url = "https://warp.dev";
+        let non_escaped_url = "https://rift.dev\u{200b}";
+        let escaped_url = "https://rift.dev";
 
         terminal.update(&mut app, |view, _ctx| {
             view.model.lock().simulate_block(
-                r"printf '(%bhttps://warp.dev%b)\n' '\U200b' '\U200b'",
+                r"printf '(%bhttps://rift.dev%b)\n' '\U200b' '\U200b'",
                 input_url,
             );
         });

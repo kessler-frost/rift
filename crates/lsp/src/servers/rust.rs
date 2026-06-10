@@ -142,7 +142,7 @@ impl LanguageServerCandidate for RustAnalyzerCandidate {
             "rust-analyzer is not auto-installable on FreeBSD: upstream \
              GitHub releases publish no FreeBSD asset. Install it via \
              `rustup component add rust-analyzer` or `pkg install \
-             rust-analyzer` and warp will pick it up off PATH."
+             rust-analyzer` and rift will pick it up off PATH."
         );
         let asset_kind = AssetKind::from_filename(asset_name()).ok_or_else(|| {
             anyhow::anyhow!("Unsupported archive format for asset: {}", asset_name())

@@ -363,7 +363,7 @@ fn pane_search_fragments_prepend_custom_title_and_keep_generated_metadata() {
         Some("Production API"),
         vec![
             "cargo nextest run".to_string(),
-            "~/warp".to_string(),
+            "~/rift".to_string(),
             "Claude".to_string(),
         ],
     );
@@ -371,7 +371,7 @@ fn pane_search_fragments_prepend_custom_title_and_keep_generated_metadata() {
     assert_eq!(fragments[0], "Production API");
     assert!(search_fragments_contain_query(&fragments, "production api"));
     assert!(search_fragments_contain_query(&fragments, "cargo nextest"));
-    assert!(search_fragments_contain_query(&fragments, "~/warp"));
+    assert!(search_fragments_contain_query(&fragments, "~/rift"));
     assert!(search_fragments_contain_query(&fragments, "claude"));
 }
 
@@ -382,11 +382,11 @@ fn pane_search_fragments_dedupe_custom_title_against_generated_text() {
             Some("  Production   API  "),
             vec![
                 "Production API".to_string(),
-                "~/warp".to_string(),
-                "~/warp".to_string(),
+                "~/rift".to_string(),
+                "~/rift".to_string(),
             ],
         ),
-        vec!["Production API".to_string(), "~/warp".to_string()]
+        vec!["Production API".to_string(), "~/rift".to_string()]
     );
 }
 
@@ -423,15 +423,15 @@ fn diff_stats_text_matches_rendered_badge_text() {
 #[test]
 fn branch_label_display_falls_back_without_branch_icon() {
     assert_eq!(
-        branch_label_display(None, "~/warp"),
-        ("~/warp".to_string(), false)
+        branch_label_display(None, "~/rift"),
+        ("~/rift".to_string(), false)
     );
     assert_eq!(
-        branch_label_display(Some(""), "~/warp"),
-        ("~/warp".to_string(), false)
+        branch_label_display(Some(""), "~/rift"),
+        ("~/rift".to_string(), false)
     );
     assert_eq!(
-        branch_label_display(Some("main"), "~/warp"),
+        branch_label_display(Some("main"), "~/rift"),
         ("main".to_string(), true)
     );
 }
@@ -439,15 +439,15 @@ fn branch_label_display_falls_back_without_branch_icon() {
 #[test]
 fn compact_branch_subtitle_falls_back_to_working_directory_without_branch_icon() {
     assert_eq!(
-        compact_branch_subtitle_display(None, Some("~/warp")),
-        Some(("~/warp".to_string(), false))
+        compact_branch_subtitle_display(None, Some("~/rift")),
+        Some(("~/rift".to_string(), false))
     );
     assert_eq!(
-        compact_branch_subtitle_display(Some(""), Some("~/warp")),
-        Some(("~/warp".to_string(), false))
+        compact_branch_subtitle_display(Some(""), Some("~/rift")),
+        Some(("~/rift".to_string(), false))
     );
     assert_eq!(
-        compact_branch_subtitle_display(Some("main"), Some("~/warp")),
+        compact_branch_subtitle_display(Some("main"), Some("~/rift")),
         Some(("main".to_string(), true))
     );
 }
@@ -469,15 +469,15 @@ fn collect_normalized_unique_summary_texts_dedupes_after_whitespace_normalizatio
 fn collect_normalized_unique_summary_texts_preserves_first_seen_order() {
     assert_eq!(
         collect_normalized_unique_summary_texts([
-            "~/warp-internal",
-            "~/warp-server",
-            "~/warp-internal",
-            "~/warp-terraform",
+            "~/rift-internal",
+            "~/rift-server",
+            "~/rift-internal",
+            "~/rift-terraform",
         ]),
         vec![
-            "~/warp-internal".to_string(),
-            "~/warp-server".to_string(),
-            "~/warp-terraform".to_string(),
+            "~/rift-internal".to_string(),
+            "~/rift-server".to_string(),
+            "~/rift-terraform".to_string(),
         ]
     );
 }
@@ -574,7 +574,7 @@ fn summary_search_fragments_include_hidden_overflow_values() {
             label("code review"),
             label("hidden work"),
         ],
-        working_directories: vec!["~/warp-internal".to_string(), "~/warp-server".to_string()],
+        working_directories: vec!["~/rift-internal".to_string(), "~/rift-server".to_string()],
         branch_entries: vec![
             VerticalTabsSummaryBranchEntry {
                 repo_path: PathBuf::from("/tmp/repo-a"),

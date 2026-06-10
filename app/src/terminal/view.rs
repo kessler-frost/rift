@@ -387,15 +387,15 @@ const BRACKETED_PASTE_SUFFIX: &str = "\x1b[201~";
 /// Duration before we consider a session to have failed bootstrapping.
 const BOOTSTRAP_FAILED_DURATION: Duration = Duration::from_secs(7);
 const KNOWN_ISSUES_URL: &str =
-    "https://docs.warp.dev/support-and-community/troubleshooting-and-support/known-issues";
+    "https://docs.rift.dev/support-and-community/troubleshooting-and-support/known-issues";
 
 /// Link to supported custom prompts.
 const PROMPT_COMPATIBILITY_URL: &str =
-    "https://docs.warp.dev/terminal/appearance/prompt#custom-prompt-compatibility-table";
+    "https://docs.rift.dev/terminal/appearance/prompt#custom-prompt-compatibility-table";
 
 /// Link to troubleshooting steps for ControlMaster errors.
 const CONTROLMASTER_ISSUES_URL: &str =
-    "https://docs.warp.dev/terminal/riftify/ssh-legacy#troubleshooting";
+    "https://docs.rift.dev/terminal/riftify/ssh-legacy#troubleshooting";
 
 /// Link to instructions on how to update p10k.
 const P10K_UPDATE_INSTRUCTIONS_URL: &str =
@@ -411,9 +411,9 @@ const MIN_DELTA_FOR_TEXT_SELECTION: f32 = 0.5;
 /// Notifications-specific info
 /// TODO (suraj): add documentation for notifications in gitbook
 const NOTIFICATIONS_LEARN_MORE_URL: &str =
-    "https://docs.warp.dev/terminal/more-features/notifications";
+    "https://docs.rift.dev/terminal/more-features/notifications";
 pub const NOTIFICATIONS_TROUBLESHOOT_URL: &str =
-    "https://docs.warp.dev/terminal/more-features/notifications#troubleshooting-notifications";
+    "https://docs.rift.dev/terminal/more-features/notifications#troubleshooting-notifications";
 
 const DEBOUNCE_PERIOD: Duration = Duration::from_millis(40);
 
@@ -518,16 +518,16 @@ impl NotificationsTrigger {
     pub fn discovery_banner_copy(&self) -> &'static str {
         match self {
             NotificationsTrigger::LongRunningCommand(..) => {
-                "Warp can notify you when long-running commands finish."
+                "Rift can notify you when long-running commands finish."
             }
             NotificationsTrigger::AgentTaskCompleted(..) => {
-                "Warp can notify you when an agent finishes responding."
+                "Rift can notify you when an agent finishes responding."
             }
             NotificationsTrigger::NeedsAttention => {
-                "Warp can notify you when a command or agent needs your attention."
+                "Rift can notify you when a command or agent needs your attention."
             }
             NotificationsTrigger::PasswordPrompt => {
-                "Warp can notify you when you're prompted to enter a password."
+                "Rift can notify you when you're prompted to enter a password."
             }
         }
     }
@@ -2229,7 +2229,7 @@ impl TerminalView {
         let incompatible_configuration_banner = ctx.add_typed_action_view(|_| {
             Banner::new(BannerTextContent::formatted_text(vec![
                 FormattedTextFragment::plain_text(
-                    "Your shell configuration is incompatible with Warp...  ",
+                    "Your shell configuration is incompatible with Rift...  ",
                 ),
                 FormattedTextFragment::hyperlink("More info", KNOWN_ISSUES_URL),
             ]))
@@ -3753,11 +3753,11 @@ impl TerminalView {
 
         let a11y_message = match &riftify_keybinding {
             Some(keystroke) => format!(
-                "You can press {} to Riftify this {} for more Warp features.",
+                "You can press {} to Riftify this {} for more Rift features.",
                 keystroke.displayed(),
                 lowercase_title
             ),
-            None => format!("You can Riftify this {lowercase_title} for more Warp features."),
+            None => format!("You can Riftify this {lowercase_title} for more Rift features."),
         };
 
         model
@@ -3920,7 +3920,7 @@ impl TerminalView {
 
         let a11y_content = AccessibilityContent::new(
             banner_title,
-            "Make sure you have enabled access for Warp notifications in System Preferences.",
+            "Make sure you have enabled access for Rift notifications in System Preferences.",
             RiftA11yRole::TextRole,
         );
         ctx.emit_a11y_content(a11y_content);
@@ -6476,7 +6476,7 @@ impl TerminalView {
 
                             if is_markdown_file(&path) {
                                 items.push(
-                                    MenuItemFields::new("Open in Warp")
+                                    MenuItemFields::new("Open in Rift")
                                         .with_on_select_action(TerminalAction::OpenFileInRift(path))
                                         .into_item(),
                                 );
@@ -7729,7 +7729,7 @@ impl TerminalView {
     }
 
     /// Tell the pane group to open a file within Rift.
-    fn open_file_in_warp(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
+    fn open_file_in_rift(&mut self, path: PathBuf, ctx: &mut ViewContext<Self>) {
         if let Some(session) = self
             .active_block_session_id()
             .and_then(|session_id| self.sessions.as_ref(ctx).get(session_id))
@@ -9668,7 +9668,7 @@ impl TerminalView {
         let show_banner = if honor_ps1 {
             let banner_content = if shell_plugins.contains("p10k_unsupported") {
                 Some(BannerTextContent::formatted_text(vec![
-                    FormattedTextFragment::bold("Powerlevel10k now supports Warp!  "),
+                    FormattedTextFragment::bold("Powerlevel10k now supports Rift!  "),
                     FormattedTextFragment::plain_text(
                         "You seem to be running an older (unsupported) version, please follow ",
                     ),
@@ -9681,7 +9681,7 @@ impl TerminalView {
             } else if shell_plugins.contains("pure") {
                 Some(BannerTextContent::formatted_text(vec![
                     FormattedTextFragment::plain_text(
-                        "Pure is not yet supported in Warp. You might consider one of the \
+                        "Pure is not yet supported in Rift. You might consider one of the \
                         supported prompts as an alternative.  ",
                     ),
                     FormattedTextFragment::hyperlink("Learn more", PROMPT_COMPATIBILITY_URL),
@@ -11711,7 +11711,7 @@ impl TerminalView {
 
         match action {
             LearnMore => {
-                ctx.open_url("https://docs.warp.dev/terminal/riftify/ssh-legacy#implementation");
+                ctx.open_url("https://docs.rift.dev/terminal/riftify/ssh-legacy#implementation");
             }
             Settings => {
                 ctx.emit(Event::OpenSettings(SettingsSection::Features));
@@ -12525,7 +12525,7 @@ impl TypedActionView for TerminalView {
                 ctx.open_file_path_in_explorer(path);
             }
             OpenFileInRift(path) => {
-                self.open_file_in_warp(path.clone(), ctx);
+                self.open_file_in_rift(path.clone(), ctx);
             }
             OpenBlockListContextMenu => self.open_block_list_context_menu_via_keybinding(ctx),
             TriggerSubshellBootstrap => self.trigger_subshell_bootstrap(None, false, ctx),

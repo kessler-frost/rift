@@ -24,24 +24,24 @@ use serde::de::DeserializeOwned;
 
 pub mod headers {
     /// Custom Rift header indicating the version of the Rift app.
-    pub const CLIENT_RELEASE_VERSION_HEADER_KEY: &str = "X-Warp-Client-Version";
+    pub const CLIENT_RELEASE_VERSION_HEADER_KEY: &str = "X-Rift-Client-Version";
 
     /// Custom Rift header indicating the OS category the request was sent from.
-    pub(crate) const RIFT_OS_CATEGORY: &str = "X-Warp-OS-Category";
+    pub(crate) const RIFT_OS_CATEGORY: &str = "X-Rift-OS-Category";
     /// Custom Rift header indicating the OS name the request was sent from. On Linux this is the
     /// name of the distribution. On all other platforms it should be equivalent to
     /// `RIFT_OS_CATEGORY`.
-    pub(crate) const RIFT_OS_NAME: &str = "X-Warp-OS-Name";
+    pub(crate) const RIFT_OS_NAME: &str = "X-Rift-OS-Name";
     /// Custom Rift header indicating the version of the operating system. On Linux this is the
     /// version of the distribution, not the Linux kernel version.
-    pub(crate) const RIFT_OS_VERSION: &str = "X-Warp-OS-Version";
+    pub(crate) const RIFT_OS_VERSION: &str = "X-Rift-OS-Version";
 
     /// Custom Rift header indicating the linux kernel version. This is only sent from Linux.
-    pub(crate) const RIFT_OS_LINUX_KERNEL_VERSION: &str = "X-Warp-OS-Linux-Kernel-Version";
+    pub(crate) const RIFT_OS_LINUX_KERNEL_VERSION: &str = "X-Rift-OS-Linux-Kernel-Version";
 
     /// Custom Rift header indicating the client role. We don't use the User-Agent header
     /// because it can't be set from WASM.
-    pub(crate) const RIFT_CLIENT_ID: &str = "X-Warp-Client-ID";
+    pub(crate) const RIFT_CLIENT_ID: &str = "X-Rift-Client-ID";
 }
 
 /// The environment variable containing extra HTTP headers to attach to requests.

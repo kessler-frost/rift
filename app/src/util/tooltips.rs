@@ -201,7 +201,7 @@ where
             .with_child(
                 appearance
                     .ui_builder()
-                    .span("*Secrets are not sent to Warp's server.")
+                    .span("*Secrets are not sent to Rift's server.")
                     .with_style(UiComponentStyles {
                         font_size: Some(12.),
                         margin: Some(Coords::default().top(4.)),
@@ -250,7 +250,7 @@ pub fn should_show_open_in_rift_link(path: &Path, app: &AppContext) -> bool {
 
     let settings = EditorSettings::as_ref(app);
 
-    if matches!(*settings.open_file_editor, EditorChoice::Warp) {
+    if matches!(*settings.open_file_editor, EditorChoice::Rift) {
         return false;
     }
 

@@ -624,7 +624,7 @@ pub fn test_basic_bootstrapping() {
         .build();
 
     // Simulate entering the bootstrap script for RiftInput mode.
-    input_string(&mut block_list, "i am the warp input");
+    input_string(&mut block_list, "i am the rift input");
     block_list.linefeed();
     block_list.preexec(Default::default());
     // RiftInput -> ScriptExecution
@@ -1123,7 +1123,7 @@ fn test_removed_gap_with_banner() {
 }
 
 #[test]
-pub fn test_block_heights_combined_prompt_command_grid_warp_prompt() {
+pub fn test_block_heights_combined_prompt_command_grid_rift_prompt() {
     let mut block_list =
         new_bootstrapped_block_list(None, None, ChannelEventListener::new_for_test());
     let bootstrapped_block_list_len = block_list.blocks().len();

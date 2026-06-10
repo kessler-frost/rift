@@ -145,7 +145,7 @@ impl View for RootView {
                             .with_child(
                                 Container::new(
                                     Text::new_inline(
-                                        "WarpUI rendering sample with clickable capture button"
+                                        "RiftUI rendering sample with clickable capture button"
                                             .to_string(),
                                         self.font_family,
                                         16.0,

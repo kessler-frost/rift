@@ -122,7 +122,7 @@ use rift::integration_testing::view_getters::{
     single_terminal_pane_view_for_tab, single_terminal_view, single_terminal_view_for_tab,
     workspace_view,
 };
-use rift::integration_testing::warp_drive::{
+use rift::integration_testing::rift_drive::{
     assert_is_left_panel_open, assert_drive_is_closed, assert_drive_is_open,
 };
 use rift::integration_testing::window::{
@@ -576,7 +576,7 @@ pub fn test_suggestions_menu_positioning() -> Builder {
                 ),
         )
         .with_step(
-            new_step_with_default_assertions("Open Warp Drive")
+            new_step_with_default_assertions("Open Rift Drive")
                 .with_click_on_saved_position("workspace:toggle_left_panel")
                 .add_assertion(assert_is_left_panel_open()),
         )
@@ -6774,7 +6774,7 @@ pub fn test_context_chips_prompt_at_bootstrap() -> Builder {
             (String::from("SavedPrompt"), String::from("Default")),
         ]))
         .with_step(
-            new_step_with_default_assertions("Check Warp prompt")
+            new_step_with_default_assertions("Check Rift prompt")
                 .add_assertion(assert_working_dir_is_present(0)),
         )
 }

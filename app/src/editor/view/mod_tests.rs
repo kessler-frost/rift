@@ -494,7 +494,7 @@ fn test_select_word_with_custom_boundaries() {
                 ctx,
             );
             editor.select_word(&DisplayPoint::new(0, 8), ctx);
-            assert_eq!(editor.selected_text(ctx), "/.warp/themes/foo-bar.yaml");
+            assert_eq!(editor.selected_text(ctx), "/.rift/themes/foo-bar.yaml");
             editor
         });
     });
@@ -514,7 +514,7 @@ fn test_smart_select_with_drag() {
 
         app.add_window(WindowStyle::NotStealFocus, |ctx| {
             let mut editor = EditorView::new_with_base_text(
-                "word ~/.rift/themes/foo-bar.yaml andy@warp.dev",
+                "word ~/.rift/themes/foo-bar.yaml andy@rift.dev",
                 Default::default(),
                 ctx,
             );
@@ -3306,7 +3306,7 @@ fn test_autocomplete_symbols() {
 
         app.add_window(WindowStyle::NotStealFocus, |ctx| {
             let mut editor =
-                EditorView::new_with_base_text("word warp word", Default::default(), ctx);
+                EditorView::new_with_base_text("word rift word", Default::default(), ctx);
 
             editor.set_autocomplete_symbols_allowed(true);
             editor
@@ -3320,12 +3320,12 @@ fn test_autocomplete_symbols() {
                 .unwrap();
             editor.add_next_occurrence(ctx);
             editor.user_insert("[", ctx);
-            assert_eq!(editor.buffer_text(ctx), "[word] warp [word]");
+            assert_eq!(editor.buffer_text(ctx), "[word] rift [word]");
 
             editor.undo(ctx);
-            assert_eq!(editor.buffer_text(ctx), "word warp word");
+            assert_eq!(editor.buffer_text(ctx), "word rift word");
             editor.redo(ctx);
-            assert_eq!(editor.buffer_text(ctx), "[word] warp [word]");
+            assert_eq!(editor.buffer_text(ctx), "[word] rift [word]");
 
             editor
         });
@@ -3346,11 +3346,11 @@ fn test_autocomplete_symbols() {
                 autocomplete_symbols: true,
                 ..Default::default()
             };
-            let mut editor = EditorView::new_with_base_text("word warp word", options, ctx);
+            let mut editor = EditorView::new_with_base_text("word rift word", options, ctx);
 
             editor.cursor_end(ctx);
             editor.user_insert("(", ctx);
-            assert_eq!(editor.buffer_text(ctx), "word warp word(");
+            assert_eq!(editor.buffer_text(ctx), "word rift word(");
 
             editor
         });

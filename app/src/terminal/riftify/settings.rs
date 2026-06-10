@@ -49,7 +49,7 @@ maybe_define_setting!(EnableSshRiftification, group: RiftifySettings, {
     sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
     private: false,
     toml_path: "riftify.ssh.enable_ssh_riftification",
-    description: "Whether to enable Warp features in SSH sessions.",
+    description: "Whether to enable Rift features in SSH sessions.",
 });
 
 maybe_define_setting!(UseSshTmuxWrapper, group: RiftifySettings, {

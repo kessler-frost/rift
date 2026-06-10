@@ -680,7 +680,7 @@ pub struct InputBufferValue {
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct ClearValue {}
 
-/// Received from the pty when warp_finish_update is called at the end of an
+/// Received from the pty when rift_finish_update is called at the end of an
 /// assisted auto-update.
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct FinishUpdateValue {

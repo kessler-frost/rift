@@ -11,7 +11,7 @@ use rift_core::AppId;
 
 /// The Rift integration test runner.
 #[derive(Debug, Default, Parser, Clone)]
-#[command(name = "warp-integration-test")]
+#[command(name = "rift-integration-test")]
 #[clap(args_conflicts_with_subcommands = true)]
 pub struct Args {
     #[command(subcommand)]
@@ -29,14 +29,14 @@ pub fn main() -> Result<()> {
         ChannelConfig {
             app_id: AppId::new(
                 "dev",
-                "warp",
+                "rift",
                 if cfg!(target_os = "macos") {
-                    "Warp-Integration"
+                    "Rift-Integration"
                 } else {
                     "RiftIntegration"
                 },
             ),
-            logfile_name: "warp_integration.log".into(),
+            logfile_name: "rift_integration.log".into(),
         },
     ));
 

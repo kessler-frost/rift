@@ -211,7 +211,7 @@ pub fn resolve_file_target_with_editor_choice(
     }
 
     // 2. Rift Code Editor (Explicit user preference)
-    if is_openable_in_rift && matches!(editor_choice, EditorChoice::Warp) {
+    if is_openable_in_rift && matches!(editor_choice, EditorChoice::Rift) {
         return FileTarget::CodeEditor(layout);
     }
 
@@ -229,7 +229,7 @@ pub fn resolve_file_target_with_editor_choice(
     match editor_choice {
         EditorChoice::ExternalEditor(editor) => FileTarget::ExternalEditor(editor),
         EditorChoice::SystemDefault => FileTarget::SystemDefault,
-        EditorChoice::Warp | EditorChoice::EnvEditor => unreachable!("Already matched above"),
+        EditorChoice::Rift | EditorChoice::EnvEditor => unreachable!("Already matched above"),
     }
 }
 

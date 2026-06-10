@@ -152,7 +152,7 @@ fn resolve_tab_config_shell(name: &str, ctx: &AppContext) -> Option<AvailableShe
     AvailableShell::try_from(name).ok()
 }
 const RIFT_SHELL_COMPATIBILITY_DOCS: &str =
-    "https://docs.warp.dev/getting-started/supported-shells";
+    "https://docs.rift.dev/getting-started/supported-shells";
 // Default minimum width for a newly created Agent Mode pane so that it is legible. Called "default"
 // because this value may be too large for small windows. In that case, we fall back to 50% of the
 // window width.
@@ -1575,7 +1575,7 @@ impl PaneGroup {
             Banner::<PaneGroupAction>::new_permanently_dismissible(
                 BannerTextContent::formatted_text(vec![
                     FormattedTextFragment::plain_text(
-                        "Warp doesn't currently support your default shell, falling back to zsh.  ",
+                        "Rift doesn't currently support your default shell, falling back to zsh.  ",
                     ),
                     FormattedTextFragment::hyperlink("Learn more", RIFT_SHELL_COMPATIBILITY_DOCS),
                 ]),

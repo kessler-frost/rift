@@ -35,7 +35,7 @@ pub fn test_preview_config_dir_migration() -> Builder {
             // Run the migration. We call the inner helper directly because the
             // integration channel is Integration, not Preview, so the public
             // entry point would no-op.
-            let new_dir = home.join(".warp-preview");
+            let new_dir = home.join(".rift-preview");
             rift::integration_testing::preview_config_migration::run_config_dir_symlink_migration(
                 &old_dir, &new_dir,
             );
@@ -46,11 +46,11 @@ pub fn test_preview_config_dir_migration() -> Builder {
                 .add_named_assertion(
                     "new directory exists and is a real directory",
                     |_app, _window_id| {
-                        let new_dir = home_dir().join(".warp-preview");
+                        let new_dir = home_dir().join(".rift-preview");
 
                         if !new_dir.is_dir() {
                             return AssertionOutcome::failure(
-                                ".warp-preview should be a directory".to_string(),
+                                ".rift-preview should be a directory".to_string(),
                             );
                         }
                         // It should be a real directory, not a symlink.
@@ -60,7 +60,7 @@ pub fn test_preview_config_dir_migration() -> Builder {
                             .unwrap_or(false);
                         if is_symlink {
                             return AssertionOutcome::failure(
-                                ".warp-preview should not itself be a symlink".to_string(),
+                                ".rift-preview should not itself be a symlink".to_string(),
                             );
                         }
                         AssertionOutcome::Success
@@ -71,7 +71,7 @@ pub fn test_preview_config_dir_migration() -> Builder {
                     |_app, _window_id| {
                         let home = home_dir();
                         let old_dir = home.join(".rift");
-                        let new_dir = home.join(".warp-preview");
+                        let new_dir = home.join(".rift-preview");
 
                         for name in ["keybindings.yaml", "themes", "workflows", ".mcp.json"] {
                             let link = new_dir.join(name);
@@ -109,7 +109,7 @@ pub fn test_preview_config_dir_migration() -> Builder {
                     },
                 )
                 .add_named_assertion("excluded files were not symlinked", |_app, _window_id| {
-                    let new_dir = home_dir().join(".warp-preview");
+                    let new_dir = home_dir().join(".rift-preview");
 
                     for name in [".DS_Store", "._somefile", "settings.toml"] {
                         if new_dir.join(name).exists() {

@@ -20,7 +20,7 @@
 //! - We need to think about a11y (yeah, I mentioned it in good parts, but given that a11y is usually
 //!   thirdwheeling next to AwesomeFeatures™ and BugFixes® it’s easy to ship features that are not accessible).
 //!
-//! WarpUI framework right now provides 3 ways of announcing what’s happening in the app:
+//! RiftUI framework right now provides 3 ways of announcing what’s happening in the app:
 //! - Accessibility Contents for the currently focused View;
 //! - Accessibility Contents for the currently performed Action;
 //! - On-demand emitting Accessibility Contents.
@@ -66,7 +66,7 @@ pub struct AccessibilityContent {
     /// the description is referring to.
     /// Frame support is a work-in-progress in Rift and right now this field is omitted and not set.
     pub frame: Option<RectF>,
-    /// The role a given element has. Note that we use our own, WarpUI-defined roles (vs those that
+    /// The role a given element has. Note that we use our own, RiftUI-defined roles (vs those that
     /// come from the NSAccessibility framework). The role describes the action/element/event role (
     /// for example, when the “Command Input” is focused, it announces with a `TextareaRole`.
     /// This is another helper field that lets the user understand what they can potentially do,

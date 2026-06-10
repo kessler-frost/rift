@@ -187,7 +187,7 @@ impl Element for Flex {
         app: &AppContext,
     ) -> Vector2F {
         if self.main_axis_size == MainAxisSize::Max {
-            // See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#fff43263616d8008b3e3efe280686886
+            // See https://www.notion.so/riftdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#fff43263616d8008b3e3efe280686886
             #[cfg(debug_assertions)]
             let location_info = self
                 .container_constructor_location
@@ -206,7 +206,7 @@ impl Element for Flex {
             debug_assert!(
                 constraint.max_along(self.axis).is_finite(),
                 "A flex that should expand to a max space can't be rendered in an infinite max constraint\n{location_info}
-See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#fff43263616d8008b3e3efe280686886 for troubleshooting steps"
+See https://www.notion.so/riftdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#fff43263616d8008b3e3efe280686886 for troubleshooting steps"
             );
             if constraint.max_along(self.axis).is_infinite() {
                 log::error!("A flex that should expand to a max space can't be rendered in an infinite max constraint\n{location_info}");
@@ -251,7 +251,7 @@ See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142b
         }
 
         let mut size = if total_flex > 0.0 {
-            // See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#057b1e4ba7b844f7ad2e69433b295363
+            // See https://www.notion.so/riftdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#057b1e4ba7b844f7ad2e69433b295363
             #[cfg(debug_assertions)]
             let location_info = self
                 .container_constructor_location
@@ -270,7 +270,7 @@ See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142b
             debug_assert!(
                 constraint.max_along(self.axis).is_finite(),
                 "flex contains flexible children but has an infinite constraint along the flex axis{location_info}
-See https://www.notion.so/warpdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#057b1e4ba7b844f7ad2e69433b295363 for troubleshooting steps"
+See https://www.notion.so/riftdev/Debugging-Flex-acc03383be5644a8af29d9c52b1142bd?pvs=4#057b1e4ba7b844f7ad2e69433b295363 for troubleshooting steps"
             );
             if constraint.max_along(self.axis).is_infinite() {
                 log::error!("flex contains flexible children but has an infinite constraint along the flex axis{location_info}");

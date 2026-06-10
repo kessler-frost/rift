@@ -27,7 +27,7 @@ const PHRASING_ELEMENT_TAGS: &[&str] = &[
     "span", "i", "code", "strong", "em", "br", "a", "s", "u", "ins",
 ];
 
-pub const RIFT_EMBED_ATTRIBUTE_NAME: &str = "data-warp-embedded-item";
+pub const RIFT_EMBED_ATTRIBUTE_NAME: &str = "data-rift-embedded-item";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct ListArg {

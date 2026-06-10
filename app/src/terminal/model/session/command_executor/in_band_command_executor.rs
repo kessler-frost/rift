@@ -325,7 +325,7 @@ impl InBandCommandExecutor {
 
                 let in_band_command = match shell.shell_type() {
                     ShellType::PowerShell => {
-                        format!("Warp-Run-GeneratorCommand {id} '{escaped_command}' -ErrorAction Ignore")
+                        format!("Rift-Run-GeneratorCommand {id} '{escaped_command}' -ErrorAction Ignore")
                     }
                     ShellType::Fish => {
                         // Add a leading space for in-band commands in fish, which omits them from
@@ -411,7 +411,7 @@ impl CommandExecutor for InBandCommandExecutor {
     /// "Cancels" active in-band commands.
     ///
     /// In reality, this does not cancel command execution (that is, however, actually done on the
-    /// shell side in `warp_preexec`). This merely clears the running and pending command IDs from
+    /// shell side in `rift_preexec`). This merely clears the running and pending command IDs from
     /// the executor's, such that subsequently calling `handle_executed_command_event` with
     /// a cleared command ID is a no-op.
     fn cancel_active_commands(&self) {
@@ -437,7 +437,7 @@ impl CommandExecutor for InBandCommandExecutor {
 /// fish's command history.  Thus we strip leading whitespace before matching the `command`.
 pub fn is_in_band_command(command: &str) -> bool {
     let trimmed = command.trim_start();
-    trimmed.starts_with("Warp-Run-GeneratorCommand ")
+    trimmed.starts_with("Rift-Run-GeneratorCommand ")
         || trimmed.starts_with("rift_run_generator_command ")
 }
 

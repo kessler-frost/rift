@@ -742,7 +742,7 @@ pub mod regexes {
         },
         DefaultRegex {
             pattern: RIFT_API_KEY,
-            name: "Warp API Key",
+            name: "Rift API Key",
         },
     ];
 }

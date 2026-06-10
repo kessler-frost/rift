@@ -30,7 +30,7 @@ use crate::util::path::{resolve_executable, resolve_executable_in_path};
 pub const DOCKER_SANDBOX_HOME_DIR: &str = "/home/agent";
 
 /// Prefix for generated container names: `rift-sandbox-<id>`.
-const DOCKER_SANDBOX_NAME_PREFIX: &str = "warp-sandbox";
+const DOCKER_SANDBOX_NAME_PREFIX: &str = "rift-sandbox";
 
 /// Root directory on the host under which Docker-sandbox scratch files
 /// (bash init scripts, empty workspace mount points) live.

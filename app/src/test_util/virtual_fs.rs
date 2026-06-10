@@ -5,15 +5,15 @@ pub use virtual_fs::{Dirs, Stub, VirtualFS};
 pub trait RiftDirs {
     #[allow(dead_code)]
     fn git_repository_fixture(&self) -> PathBuf {
-        Warp::fixtures().join("git_repository")
+        Rift::fixtures().join("git_repository")
     }
 }
 
 impl RiftDirs for Dirs {}
 
-pub struct Warp;
+pub struct Rift;
 
-impl Warp {
+impl Rift {
     #[allow(dead_code)]
     pub fn executable() -> PathBuf {
         let mut path = {
@@ -29,7 +29,7 @@ impl Warp {
                 .unwrap_or_else(|| Self::root().join(format!("target/{}", &build)))
         };
 
-        path.push("warp");
+        path.push("rift");
         path
     }
 

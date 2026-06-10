@@ -541,12 +541,12 @@ pub enum PromptSuggestionFallbackReason {
 pub enum AgentModeSetupProjectScopedRulesActionType {
     #[serde(rename = "link_from_existing")]
     LinkFromExisting(String),
-    #[serde(rename = "generate_warp_md")]
-    GenerateWarpMd,
+    #[serde(rename = "generate_rift_md")]
+    GenerateRiftMd,
     #[serde(rename = "skip_rules")]
     SkipRules,
-    #[serde(rename = "regenerate_warp_md")]
-    RegenerateWarpMd,
+    #[serde(rename = "regenerate_rift_md")]
+    RegenerateRiftMd,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1179,7 +1179,7 @@ pub enum TelemetryEvent {
         item_type: UndoCloseItemType,
     },
     /// This event is used to measure PTY throughput.
-    /// NOTE: this event is only meant to be used for WarpDev.
+    /// NOTE: this event is only meant to be used for RiftDev.
     PtyThroughput {
         /// The maximum PTY throughput in bytes/sec, aggregated over a 10 minute period.
         max_bytes_per_second: usize,
@@ -2126,9 +2126,9 @@ impl TelemetryEvent {
             TelemetryEvent::CodePanelsFileOpened { entrypoint, target } => {
                 let (target, layout, editor) = match target {
                     FileTarget::MarkdownViewer(layout) => {
-                        ("warp_markdown_viewer", Some(*layout), None)
+                        ("rift_markdown_viewer", Some(*layout), None)
                     }
-                    FileTarget::CodeEditor(layout) => ("warp_code_editor", Some(*layout), None),
+                    FileTarget::CodeEditor(layout) => ("rift_code_editor", Some(*layout), None),
                     FileTarget::EnvEditor => ("env_editor", None, None),
                     FileTarget::SystemDefault => ("system_default", None, None),
                     FileTarget::SystemGeneric => ("system_generic", None, None),
@@ -3600,7 +3600,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::EnableAliasExpansionFromBanner => "Enable Alias Expansion From Banner",
             Self::InitiateReauth => "Initiate Reauth",
             Self::NeedsReauth => "Needs Reauth",
-            Self::DriveOpened => "Warp Drive Opened",
+            Self::DriveOpened => "Rift Drive Opened",
             Self::ToggleSecretRedaction => "Toggle Secret Redaction",
             Self::CustomSecretRegexAdded => "Custom Secret Regex Added",
             Self::ToggleObfuscateSecret => "Toggle Obfuscate Secret",
@@ -3618,7 +3618,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SharerCancelledGrantRole => "Sharer Cancelled Grant Role",
             Self::SharerGrantModalDontShowAgain => "Don't Show Sharer Grant Modal Again",
             Self::JumpToSharedSessionParticipant { .. } => "Jumped to Shared Session Participant",
-            Self::DriveSharingOnboardingBlockShown => "Warp Drive Sharing onboarding block shown",
+            Self::DriveSharingOnboardingBlockShown => "Rift Drive Sharing onboarding block shown",
             Self::UnsupportedShell => "Unsupported Shell",
             Self::SettingsImportInitiated => "Settings Import Initiated",
             Self::InviteTeammates => "Invited Teammates",
@@ -3831,7 +3831,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::InitiateAnonymousUserSignup => "An anonymous user initiated the sign up flow",
             Self::AnonymousUserExpirationLockout => {
-                "An anonymous user opened Warp after their conversion deadline and was locked out"
+                "An anonymous user opened Rift after their conversion deadline and was locked out"
             }
             Self::AnonymousUserLinkedFromBrowser => {
                 "Received an auth payload from anonymous user after linking in browser"
@@ -3843,7 +3843,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Anonymous user attempted to create a cloud object past their personal object limit"
             }
             Self::BackgroundBlockStarted => {
-                "Warp created a background-output Block (whenever a processes has been backgrounded and yields some output)"
+                "Rift created a background-output Block (whenever a processes has been backgrounded and yields some output)"
             }
             Self::BaselineCommandLatency => "Command execution time",
             Self::SessionCreation => "Created a tab",
@@ -3924,9 +3924,9 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Database write error when trying to write app state for session restoration"
             }
             Self::AppStartup => "App is launched",
-            Self::LoggedOutStartup => "Started Warp in the logged-out / signed-out state",
+            Self::LoggedOutStartup => "Started Rift in the logged-out / signed-out state",
             Self::DownloadSource => {
-                "Whether the Warp was installed from the home page or through homebrew"
+                "Whether the Rift was installed from the home page or through homebrew"
             }
             Self::SSHBootstrapAttempt => "Attempted bootstrapping for an SSH session",
             Self::SSHControlMasterError => {
@@ -3958,13 +3958,13 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Recorded outcome of attempting to request desktop notification permissions"
             }
             Self::NotificationFailedToSend => "Failed to send desktop notification",
-            Self::NotificationClicked => "Clicked desktop notification sent from Warp",
+            Self::NotificationClicked => "Clicked desktop notification sent from Rift",
             Self::ToggleShowAgentTips => "Toggled the Show Agent Tips setting in AI settings",
             Self::ToggleFindOption => "Changed settings in Find Toggle",
             Self::SignUpButtonClicked => "Clicked \"Sign Up\" button",
             Self::LoginButtonClicked => "Clicked on \"Log in\" button",
             Self::OpenNewSessionFromFilePath => {
-                "Dragged a file, folder, etc. into Warp to start a session"
+                "Dragged a file, folder, etc. into Rift to start a session"
             }
             Self::OpenTeamFromURI => {
                 "Showed settings view of their newly joined team within the app"
@@ -4018,15 +4018,15 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Opened the launch config YAML file from modal once saved successfully"
             }
             Self::OpenLaunchConfig => "Opened launch config for a session",
-            Self::TeamCreated => "Created a Warp Drive team",
-            Self::TeamJoined => "Joined a Warp Drive team",
-            Self::TeamLeft => "Left a Warp Drive team",
-            Self::TeamLinkCopied => "Copied a Warp Drive team link",
-            Self::RemovedUserFromTeam => "Remove user from Warp Drive team",
-            Self::DeletedWorkflow => "Deleted workflow from Warp Drive team",
-            Self::DeletedNotebook => "Deleted notebook from Warp Drive team",
+            Self::TeamCreated => "Created a Rift Drive team",
+            Self::TeamJoined => "Joined a Rift Drive team",
+            Self::TeamLeft => "Left a Rift Drive team",
+            Self::TeamLinkCopied => "Copied a Rift Drive team link",
+            Self::RemovedUserFromTeam => "Remove user from Rift Drive team",
+            Self::DeletedWorkflow => "Deleted workflow from Rift Drive team",
+            Self::DeletedNotebook => "Deleted notebook from Rift Drive team",
             Self::ToggleApprovalsModal => "Opened or closed teams modal",
-            Self::SendEmailInvites => "Sent email invites for Warp Drive team",
+            Self::SendEmailInvites => "Sent email invites for Rift Drive team",
             Self::CommandCorrection => "Accepted command correction",
             Self::SetLineHeight => "Set line height through Settings -> Appearance",
             Self::ResourceCenterOpened => "Opened Resource Center pane",
@@ -4049,7 +4049,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::QuitModalCancel => "`Cancel` button on the alert modal was pressed",
             Self::QuitModalDisabled => {
-                "The quit modal dialog has been disabled and will not popup when a user closes Warp while a session is running"
+                "The quit modal dialog has been disabled and will not popup when a user closes Rift while a session is running"
             }
             Self::UserInitiatedLogOut => {
                 "Confirms a user has explicitly logged out of the application"
@@ -4121,28 +4121,28 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Enabled or disabled preserving the active tab color"
             }
             Self::ShowSubshellBanner => {
-                "Displayed the banner asking whether Warp should Riftify the current session via Warp's subshell wrapper"
+                "Displayed the banner asking whether Rift should Riftify the current session via Rift's subshell wrapper"
             }
             Self::SshTmuxRiftifyBannerDisplayed => {
-                "Displayed the banner asking whether Warp should Riftify the current SSH session via Warp's SSH Wrapper"
+                "Displayed the banner asking whether Rift should Riftify the current SSH session via Rift's SSH Wrapper"
             }
             Self::DeclineSubshellBootstrap => {
-                "Developer declined the Warp banner to Riftify the current session"
+                "Developer declined the Rift banner to Riftify the current session"
             }
             Self::TriggerSubshellBootstrap => {
-                "Attempted to Riftify the current session via Warp's subshell wrapper"
+                "Attempted to Riftify the current session via Rift's subshell wrapper"
             }
             Self::AddDenylistedSubshellCommand => {
-                "Explicitly prevent a command from being Riftified via Warp's subshell wrapper"
+                "Explicitly prevent a command from being Riftified via Rift's subshell wrapper"
             }
             Self::RemoveDenylistedSubshellCommand => {
-                "Removed a command from the list of commands to IGNORE when trying to Riftify via Warp's subshell wrapper"
+                "Removed a command from the list of commands to IGNORE when trying to Riftify via Rift's subshell wrapper"
             }
             Self::AddAddedSubshellCommand => {
-                "Added a command to be automatically Riftified via Warp's subshell wrapper"
+                "Added a command to be automatically Riftified via Rift's subshell wrapper"
             }
             Self::RemoveAddedSubshellCommand => {
-                "Removed a command from the list of commands to automatically Riftify via Warp's subshell wrapper"
+                "Removed a command from the list of commands to automatically Riftify via Rift's subshell wrapper"
             }
             Self::ReceivedSubshellRcFileDcs => "Spawned a subshell to be automatically Riftified",
             Self::ToggleSshTmuxWrapper => {
@@ -4172,7 +4172,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SshInstallTmuxBlockAccepted => "User accepted an ssh install tmux block",
             Self::SshInstallTmuxBlockDismissed => "User dismissed an ssh install tmux block",
             Self::ShowAliasExpansionBanner => {
-                "Displayed the banner asking whether Warp should automatically expand aliases within the Input Editor"
+                "Displayed the banner asking whether Rift should automatically expand aliases within the Input Editor"
             }
             Self::EnableAliasExpansionFromBanner => {
                 "Enabled automatic alias expansion within the Input Editor from the banner"
@@ -4181,7 +4181,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Dismissed the banner to enable automatic alias expansion within the Input Editor"
             }
             Self::ShowVimKeybindingsBanner => {
-                "Displayed the banner asking whether Warp should enable Vim keybindings in the Input Editor"
+                "Displayed the banner asking whether Rift should enable Vim keybindings in the Input Editor"
             }
             Self::EnableVimKeybindingsFromBanner => {
                 "Enabled Vim keybindings in the Input Editor from the banner"
@@ -4191,7 +4191,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             Self::InitiateReauth => "Started the flow to re-authenticate the client",
             Self::NeedsReauth => "User needs to re-authenticate",
-            Self::DriveOpened => "Opened Warp Drive panel",
+            Self::DriveOpened => "Opened Rift Drive panel",
             Self::ToggleSecretRedaction => {
                 "Toggled on/off the setting for Secret Redaction - attempts to redact secrets and sensitive information"
             }
@@ -4199,21 +4199,21 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleObfuscateSecret => "Revealed or hid a secret",
             Self::CopySecret => "Copied a secret's obfuscated contents to clipboard",
             Self::AutoGenerateMetadataSuccess => {
-                "Successfully generated metadata for a workflow using Warp AI"
+                "Successfully generated metadata for a workflow using Rift AI"
             }
             Self::AutoGenerateMetadataError => {
-                "Failed to generate metadata for a workflow using Warp AI"
+                "Failed to generate metadata for a workflow using Rift AI"
             }
             Self::UndoClose => "Re-opened a closed tab or window (undo closing a tab or window)",
             Self::PtyThroughput => "A sample of the max PTY throughput in bytes/sec",
             Self::CommandFileRun => {
-                "Opened a .cmd or unix executable file and ran it directly in Warp"
+                "Opened a .cmd or unix executable file and ran it directly in Rift"
             }
             Self::PageUpDownInEditorPressed => {
                 "Pressed `PAGE-UP` or `PAGE-DOWN` within the Input Editor"
             }
             Self::JoinedSharedSession => {
-                "When you join another instance of Warp using shared sessions"
+                "When you join another instance of Rift using shared sessions"
             }
             Self::SharedSessionModalUpgradePressed => {
                 "Pressed upgrade after reaching max session sharing limit"
@@ -4228,12 +4228,12 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Clicked on a shared session participant avatar to jump to their location in the session"
             }
             Self::DriveSharingOnboardingBlockShown => {
-                "Showed onboarding block for Warp Drive sharing"
+                "Showed onboarding block for Rift Drive sharing"
             }
-            Self::UnsupportedShell => "Booted Warp with a shell that isn't supported",
-            Self::LogOut => "Logged out of the Warp client",
+            Self::UnsupportedShell => "Booted Rift with a shell that isn't supported",
+            Self::LogOut => "Logged out of the Rift client",
             Self::SettingsImportInitiated => "Started the import settings flow for new users",
-            Self::InviteTeammates => "Sent emails to invite teammates to join Warp Drive team",
+            Self::InviteTeammates => "Sent emails to invite teammates to join Rift Drive team",
             Self::OpenAndRiftifyDockerSubshell => {
                 "Riftifying a docker subshell from using the docker extension"
             }
@@ -4379,11 +4379,11 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             }
             #[cfg(windows)]
             Self::AutoupdateMutexTimeout => {
-                "The Windows auto-update installer timed out waiting for Warp to release its mutex; a force-kill was attempted"
+                "The Windows auto-update installer timed out waiting for Rift to release its mutex; a force-kill was attempted"
             }
             #[cfg(windows)]
             Self::AutoupdateForcekillFailed { .. } => {
-                "The Windows auto-update installer failed to force-kill Warp after the mutex timeout"
+                "The Windows auto-update installer failed to force-kill Rift after the mutex timeout"
             }
             #[cfg(windows)]
             Self::AutoupdateMinidumpCleanupFailed { .. } => {
@@ -4464,7 +4464,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "User copied a session link from the Agent Management View"
             }
             Self::DetectedIsolationPlatform { .. } => {
-                "Detected that Warp is running in an isolated sandbox"
+                "Detected that Rift is running in an isolated sandbox"
             }
             Self::AgentTipShown => "Selected an Agent Tip to show in the Agent Mode status bar",
             Self::AgentTipClicked => "User clicked a link or action in an Agent Tip",
@@ -4502,7 +4502,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::CodexModalOpened => "User opened the Codex modal",
             Self::CodexModalUseCodexClicked => "User clicked 'Use Codex' in the Codex modal",
             Self::LinearIssueLinkOpened => {
-                "User opened a warp://linear deeplink to work on an issue"
+                "User opened a rift://linear deeplink to work on an issue"
             }
             Self::CloudAgentCapacityModalOpened => "User opened the cloud agent capacity modal",
             Self::CloudAgentCapacityModalDismissed => {

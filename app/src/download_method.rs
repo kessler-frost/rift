@@ -54,7 +54,7 @@ async fn check_download_source() -> DownloadSource {
     }
 
     let result = command::r#async::Command::new("brew")
-        .args(["list", "--cask", "warp"])
+        .args(["list", "--cask", "rift"])
         .env("HOMEBREW_NO_AUTO_UPDATE", "1")
         .env("PATH", new_path)
         .stdin(Stdio::null())

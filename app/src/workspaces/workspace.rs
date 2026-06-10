@@ -718,9 +718,9 @@ impl BillingMetadata {
             || self.delinquency_status == DelinquencyStatus::Unpaid
     }
 
-    // Whether the enterprise customer is our Stable Rift Enterprise team (internal team of Warpers).
-    pub fn is_warp_plan(&self) -> bool {
-        self.tier.name == "Warp Plan"
+    // Whether the enterprise customer is our Stable Rift Enterprise team (internal internal team).
+    pub fn is_rift_plan(&self) -> bool {
+        self.tier.name == "Rift Plan"
     }
 
     pub fn has_active_subscription(&self) -> bool {
@@ -862,7 +862,7 @@ pub struct WorkspaceSettings {
     /// The team-level agent attribution setting. When `Enable` or `Disable`, the
     /// user toggle is locked. When `RespectUserSetting` (or absent), the user can choose.
     #[serde(default)]
-    pub enable_warp_attribution: AdminEnablementSetting,
+    pub enable_rift_attribution: AdminEnablementSetting,
     #[serde(default)]
     pub default_host_slug: Option<String>,
 }

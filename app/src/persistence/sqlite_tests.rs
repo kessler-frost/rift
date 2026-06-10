@@ -29,7 +29,7 @@ fn app_scope_database_path_matches_app_database_path() {
 #[test]
 fn sqlite_read_restores_app_state() {
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
+    let database_path = tempdir.path().join("rift.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
 
     let app_state = AppState {
@@ -147,7 +147,7 @@ fn test_terminal_window_snapshot(vertical_tabs_panel_open: bool) -> WindowSnapsh
 #[test]
 fn test_sqlite_round_trips_vertical_tabs_panel_open() {
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
+    let database_path = tempdir.path().join("rift.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
 
     let app_state = AppState {
@@ -178,7 +178,7 @@ fn test_sqlite_round_trips_vertical_tabs_panel_open() {
 #[test]
 fn test_sqlite_round_trips_custom_vertical_tabs_title() {
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
+    let database_path = tempdir.path().join("rift.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
 
     let app_state = AppState {
@@ -251,7 +251,7 @@ fn test_sqlite_drops_too_small_bounds_on_save() {
     use crate::persistence::schema::windows;
 
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
+    let database_path = tempdir.path().join("rift.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
 
     let mut snapshot = test_terminal_window_snapshot(false);
@@ -292,7 +292,7 @@ fn test_sqlite_drops_too_small_bounds_on_save() {
 #[test]
 fn test_sqlite_drops_too_small_bounds_on_read() {
     let tempdir = tempfile::tempdir().expect("tempdir should be created");
-    let database_path = tempdir.path().join("warp.sqlite");
+    let database_path = tempdir.path().join("rift.sqlite");
     let mut conn = setup_database(&database_path).expect("database should initialize");
 
     // Save with no bounds so a row exists, then corrupt it directly to bypass

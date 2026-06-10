@@ -1014,7 +1014,7 @@ pub(crate) fn initialize_app(
     #[cfg(not(target_family = "wasm"))]
 
     log::info!(
-        "Starting warp with channel state {} and version {:?}",
+        "Starting rift with channel state {} and version {:?}",
         ChannelState::debug_str(),
         ChannelState::app_version()
     );

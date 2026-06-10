@@ -66,7 +66,7 @@ fn test_secret_redacted_after_byte_processing() {
 
 #[test]
 fn test_secret_redacted_after_multibyte_prefix() {
-    let secret = "AAAAC3NzaC1lZDI1NTE5AAAAIThisIsNotARealKeyItIsJustForTestingWarpRedact";
+    let secret = "AAAAC3NzaC1lZDI1NTE5AAAAIThisIsNotARealKeyItIsJustForTestingRiftRedact";
     crate::terminal::model::secrets::set_user_and_enterprise_secret_regexes(
         [&Regex::new("AAAAC3NzaC1lZDI1NTE5[A-Za-z0-9+/=]{20,}")
             .expect("Should be able to construct regex")],

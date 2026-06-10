@@ -1023,7 +1023,7 @@ define_settings_group!(AISettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
         toml_path: "cloud_platform.third_party_api_keys.aws_bedrock_credentials_enabled",
-        description: "Whether Warp should use your local AWS credentials for Bedrock-enabled requests.",
+        description: "Whether Rift should use your local AWS credentials for Bedrock-enabled requests.",
     }
     // Whether to automatically run the AWS login command when Bedrock credentials are expired.
     //
@@ -1086,7 +1086,7 @@ define_settings_group!(AISettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
         toml_path: "agents.knowledge.drive_context_enabled",
-        description: "Whether Warp Drive context is included in AI requests.",
+        description: "Whether Rift Drive context is included in AI requests.",
     }
 
     // Whether the codebase speedbump banner has been permanently dismissed for a given repo path.
@@ -1206,15 +1206,15 @@ define_settings_group!(AISettings, settings: [
     }
 
     // Whether or not the user has enabled fallback to Rift credits for user-provided models.
-    can_use_warp_credits_for_fallback: CanUseWarpCreditsForFallback {
+    can_use_rift_credits_for_fallback: CanUseRiftCreditsForFallback {
         type: bool,
         default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
-        storage_key: "CanUseWarpCreditsWithByok",
-        toml_path: "cloud_platform.third_party_api_keys.can_use_warp_credits_with_byok",
-        description: "Whether Warp credits can be used as a fallback for user-provided models.",
+        storage_key: "CanUseRiftCreditsWithByok",
+        toml_path: "cloud_platform.third_party_api_keys.can_use_rift_credits_with_byok",
+        description: "Whether Rift credits can be used as a fallback for user-provided models.",
     }
 
     should_render_use_agent_footer_for_user_commands: ShouldRenderUseAgentToolbarForUserCommands {
@@ -1445,7 +1445,7 @@ define_settings_group!(AISettings, settings: [
 
     // Whether Oz should add attribution (co-author line) to commit messages and PRs.
     // This is the user-level preference; it may be overridden by the team-level
-    // `enable_warp_attribution` AdminEnablementSetting (see
+    // `enable_rift_attribution` AdminEnablementSetting (see
     // `UserWorkspaces::get_agent_attribution_setting`).
     agent_attribution_enabled: AgentAttributionEnabled {
         type: bool,
@@ -1454,7 +1454,7 @@ define_settings_group!(AISettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         private: false,
         toml_path: "agents.rift_agent.other.agent_attribution_enabled",
-        description: "Whether the Warp Agent adds an attribution co-author line to commit messages and pull requests it creates.",
+        description: "Whether the Rift Agent adds an attribution co-author line to commit messages and pull requests it creates.",
     }
 
     should_force_disable_cloud_handoff: ShouldForceDisableCloudHandoff {
@@ -1484,7 +1484,7 @@ define_settings_group!(AISettings, settings: [
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
         toml_path: "agents.rift_agent.other.auto_handoff_on_sleep_enabled",
-        description: "Whether Warp automatically hands off local agent conversations to cloud when the computer is about to sleep.",
+        description: "Whether Rift automatically hands off local agent conversations to cloud when the computer is about to sleep.",
     }
 ]);
 

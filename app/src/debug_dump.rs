@@ -9,7 +9,7 @@ use rift_core::channel::ChannelState;
 use riftui::windowing;
 
 pub(crate) fn run() -> anyhow::Result<()> {
-    println!("Warp version: {:?}", ChannelState::app_version());
+    println!("Rift version: {:?}", ChannelState::app_version());
 
     #[cfg(not(windows))]
     {

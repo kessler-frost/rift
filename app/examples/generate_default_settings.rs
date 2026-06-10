@@ -25,7 +25,7 @@ use settings::schema::SettingSchemaEntry;
 /// dependency tree are linked into the binary.
 ///
 /// Binary targets only link crate code that is transitively referenced.
-/// Without an explicit reference to the `warp` library, the linker will
+/// Without an explicit reference to the `rift` library, the linker will
 /// not include most of the app's object files and the `inventory`
 /// submissions they contain.
 fn ensure_settings_linked() {

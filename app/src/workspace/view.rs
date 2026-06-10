@@ -4111,7 +4111,7 @@ impl Workspace {
                 },
             ),
             NewSessionMenuItem::OpenLaunchConfigDocs => {
-                ctx.open_url("https://docs.warp.dev/terminal/sessions/launch-configurations")
+                ctx.open_url("https://docs.rift.dev/terminal/sessions/launch-configurations")
             }
             #[cfg(feature = "local_fs")]
             NewSessionMenuItem::CreateNewTabConfig => {
@@ -5122,7 +5122,7 @@ impl Workspace {
                         let toast = DismissibleToast::success(message.to_string())
                             .with_link(
                                 ToastLink::new("Learn more".to_string()).with_href(
-                                    "https://docs.warp.dev/reference/cli".to_string(),
+                                    "https://docs.rift.dev/reference/cli".to_string(),
                                 ),
                             );
                         toast_stack.add_ephemeral_toast(toast, ctx);
@@ -5274,7 +5274,7 @@ impl Workspace {
 
         #[cfg(not(target_family = "wasm"))]
         items.push(
-            MenuItemFields::new("View Warp logs")
+            MenuItemFields::new("View Rift logs")
                 .with_on_select_action(WorkspaceAction::ViewLogs)
                 .into_item(),
         );
@@ -6774,7 +6774,7 @@ impl Workspace {
         let ai_width = modal_sizes.map(|ms| {
             ms.ai_width
                 .lock()
-                .expect("should be able to lock warp_ai resizable state handle")
+                .expect("should be able to lock rift_ai resizable state handle")
                 .size()
         });
 
@@ -6788,7 +6788,7 @@ impl Workspace {
         let drive_index_width = modal_sizes.map(|ms| {
             ms.drive_index_width
                 .lock()
-                .expect("should be able to lock warp drive resizable state handle")
+                .expect("should be able to lock rift drive resizable state handle")
                 .size()
         });
 
@@ -7847,7 +7847,7 @@ impl Workspace {
                         let url = NOTIFICATIONS_TROUBLESHOOT_URL.to_string();
                         view.toast_stack.update(ctx, |toast_stack, ctx| {
                             let toast = DismissibleToast::error(
-                                "Warp doesn't have permission to send desktop notifications.".to_string(),
+                                "Rift doesn't have permission to send desktop notifications.".to_string(),
                             )
                             .with_link(ToastLink::new("Troubleshoot notifications".to_string()).with_href(url));
                             toast_stack.add_persistent_toast(toast, ctx);
@@ -9640,7 +9640,7 @@ impl Workspace {
             // Left: Rift logo - clickable to link to the upstream site
             let rift_logo = Hoverable::new(self.mouse_states.rift_logo.clone(), |_state| {
                 ConstrainedBox::new(
-                    rift_core::ui::Icon::Warp
+                    rift_core::ui::Icon::Rift
                         .to_riftui_icon(appearance.theme().foreground())
                         .finish(),
                 )
@@ -9649,7 +9649,7 @@ impl Workspace {
                 .finish()
             })
             .on_click(|ctx, _, _| {
-                ctx.dispatch_typed_action(WorkspaceAction::OpenLink("https://warp.dev".to_owned()));
+                ctx.dispatch_typed_action(WorkspaceAction::OpenLink("https://rift.dev".to_owned()));
             })
             .with_cursor(Cursor::PointingHand)
             .finish();
@@ -10430,7 +10430,7 @@ impl Workspace {
                 icons::Icon::Lightbulb,
                 &self.mouse_states.resource_center_icon,
                 WorkspaceAction::ToggleResourceCenter,
-                "Warp Essentials".to_string(),
+                "Rift Essentials".to_string(),
                 self.cached_keybindings[TOGGLE_RESOURCE_CENTER_KEYBINDING_NAME].clone(),
                 false,
                 false,
@@ -11756,7 +11756,7 @@ impl Workspace {
         if *ai_settings.drive_context_enabled.value() {
             context.set.insert(flags::RIFT_DRIVE_CONTEXT_FLAG);
         }
-        if *ai_settings.can_use_warp_credits_for_fallback.value() {
+        if *ai_settings.can_use_rift_credits_for_fallback.value() {
             context.set.insert(flags::RIFT_CREDIT_FALLBACK_FLAG);
         }
         if *session_settings.show_model_selectors_in_prompt.value() {
@@ -12602,7 +12602,7 @@ impl TypedActionView for Workspace {
             #[cfg(all(enable_crash_recovery, target_os = "linux"))]
             DismissWaylandCrashRecoveryBannerAndOpenLink => {
                 self.dismiss_workspace_banner(ctx, &WorkspaceBanner::WaylandCrashRecovery);
-                ctx.open_url("https://docs.warp.dev/terminal/more-features/linux#native-wayland");
+                ctx.open_url("https://docs.rift.dev/terminal/more-features/linux#native-wayland");
             }
             TabHoverWidthStart { width } => {
                 // Store the fixed width value for the tab to maintain consistent size during hover
@@ -12638,7 +12638,7 @@ impl TypedActionView for Workspace {
                     .unwrap_or_default()
                     .as_secs();
                 let output_path = env::temp_dir()
-                    .join(format!("warp_sample_{timestamp}.txt"))
+                    .join(format!("rift_sample_{timestamp}.txt"))
                     .display()
                     .to_string();
 

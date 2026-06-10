@@ -26,7 +26,7 @@ pub fn run_integration_test(name: &str) -> Result<(), String> {
                 || k.starts_with("RUST_")
                 // Propagate any Rift-specific variables.
                 || k.starts_with("RIFT_")
-                || k.starts_with("WARPUI_")
+                || k.starts_with("RIFTUI_")
                 // Propagate any wgpu-specific variables.
                 || k.starts_with("WGPU_")
                 // Make sure the test knows what X or Wayland server to use.

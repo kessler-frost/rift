@@ -17,7 +17,7 @@ use riftui::{AppContext, Entity, ModelContext, SingletonEntity, WindowId};
 /// handed off into another window's tab bar), and `Transitioning` (a view-tree
 /// transfer is in progress). The `Transitioning` phase blocks `on_drag` from
 /// re-entering the drag handler while views are being moved between windows,
-/// which the WarpUI framework does not support within a single event cycle.
+/// which the RiftUI framework does not support within a single event cycle.
 ///
 /// # Relationship with Workspace views
 ///

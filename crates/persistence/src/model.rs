@@ -1046,7 +1046,7 @@ pub struct ModelTokenUsage {
     /// label once at ingestion time and is not retained separately.
     pub model_id: String,
     /// Aliases for backward compat: old persisted data used `total_tokens`,
-    /// then `warp_tokens`, for rift usage.
+    /// then `rift_tokens`, for rift usage.
     #[serde(default, alias = "total_tokens", alias = "warp_tokens")]
     pub rift_tokens: u32,
     #[serde(default)]

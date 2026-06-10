@@ -58,8 +58,8 @@ const FONT_SIZE: f32 = 12.;
 
 const SAFE_MODE_TITLE: &str = "Secret redaction";
 static SAFE_MODE_DESCRIPTION: LazyLock<&'static str> = LazyLock::new(|| {
-    "When this setting is enabled, Warp will scan blocks, the contents of \
-        Warp Drive objects, and Oz prompts for potential sensitive \
+    "When this setting is enabled, Rift will scan blocks, the contents of \
+        Rift Drive objects, and Oz prompts for potential sensitive \
         information and prevent saving or sending this data to any \
         servers. You can customize this list via regexes."
 });
@@ -71,14 +71,14 @@ const USER_SECRET_REGEX_DESCRIPTION: &str =
 const TELEMETRY_DESCRIPTION_OLD: &str =
     "App analytics help us make the product better for you. We only collect \
     app usage metadata, never console input or output.";
-const TELEMETRY_TITLE: &str = "Help improve Warp";
+const TELEMETRY_TITLE: &str = "Help improve Rift";
 const TELEMETRY_DESCRIPTION: &str =
     "App analytics help us make the product better for you. We may collect \
-    certain console interactions to improve Warp's AI capabilities.";
+    certain console interactions to improve Rift's AI capabilities.";
 const TELEMETRY_FREE_TIER_NOTE: &str =
     "On the free tier, analytics must be enabled to use AI features.";
 const TELEMETRY_DOCS_URL: &str =
-    "https://docs.warp.dev/support-and-community/privacy-and-security/privacy#what-telemetry-data-does-warp-collect-and-why";
+    "https://docs.rift.dev/support-and-community/privacy-and-security/privacy#what-telemetry-data-does-rift-collect-and-why";
 
 
 
@@ -1521,7 +1521,7 @@ impl SettingsWidget for AppAnalyticsWidget {
             Align::new(
                 ui_builder
                     .link(
-                        "Read more about Warp's use of data".into(),
+                        "Read more about Rift's use of data".into(),
                         Some(TELEMETRY_DOCS_URL.into()),
                         None,
                         self.docs_link_mouse_state.clone(),
@@ -1694,7 +1694,7 @@ impl SettingsWidget for CloudConversationStorageWidget {
                         if is_checked {
                             "Agent conversations can be shared with others and are retained \
                             when you log in on different devices. This data is only stored \
-                            for product functionality, and Warp will not use it for analytics."
+                            for product functionality, and Rift will not use it for analytics."
                         } else {
                             "Agent conversations are only stored locally on your machine, are \
                             lost upon logout, and cannot be shared. Note: conversation data \

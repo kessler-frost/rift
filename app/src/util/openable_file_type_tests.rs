@@ -15,12 +15,12 @@ fn test_binary_files_not_openable() {
 
 #[test]
 #[cfg(feature = "local_fs")]
-fn test_open_code_panels_file_editor_default_is_warp() {
+fn test_open_code_panels_file_editor_default_is_rift() {
     use crate::util::file::external_editor::settings::OpenCodePanelsFileEditor;
 
     assert_eq!(
         OpenCodePanelsFileEditor::default_value(),
-        EditorChoice::Warp
+        EditorChoice::Rift
     );
 }
 
@@ -40,10 +40,10 @@ fn test_resolve_file_target_markdown_viewer_precedence() {
 
 #[test]
 #[cfg(feature = "local_fs")]
-fn test_resolve_file_target_warp_uses_default_layout() {
+fn test_resolve_file_target_rift_uses_default_layout() {
     let target = resolve_file_target_with_editor_choice(
         Path::new("data.txt"),
-        EditorChoice::Warp,
+        EditorChoice::Rift,
         true, /* prefer_markdown_viewer */
         EditorLayout::NewTab,
         None,
@@ -57,7 +57,7 @@ fn test_resolve_file_target_warp_uses_default_layout() {
 fn test_resolve_file_target_binary_is_system_generic() {
     let target = resolve_file_target_with_editor_choice(
         Path::new("image.png"),
-        EditorChoice::Warp,
+        EditorChoice::Rift,
         true, /* prefer_markdown_viewer */
         EditorLayout::SplitPane,
         None,

@@ -317,12 +317,12 @@ impl TitleWidget {
     fn render_top_of_page(&self, appearance: &Appearance, _app: &AppContext) -> Box<dyn Element> {
         let riftify_description = vec![
             FormattedTextFragment::plain_text(
-                "Configure whether Warp attempts to “Riftify” (add support for blocks, \
+                "Configure whether Rift attempts to “Riftify” (add support for blocks, \
                     input modes, etc) certain shells. ",
             ),
             FormattedTextFragment::hyperlink(
                 "Learn more",
-                "https://docs.warp.dev/terminal/riftify/subshells",
+                "https://docs.rift.dev/terminal/riftify/subshells",
             ),
         ];
 

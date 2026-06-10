@@ -12,9 +12,9 @@ pub(super) fn register_uri_handler() {
         return;
     };
 
-    // The Windows Registry entry for Rift (assuming the channel is WarpLocal):
-    // warplocal
-    //   (Default) = "WarpLocal"
+    // The Windows Registry entry for Rift (assuming the channel is RiftLocal):
+    // riftlocal
+    //   (Default) = "RiftLocal"
     //   URL Protocol = ""
     //   DefaultIcon
     //      (Default) = "{path_to_channel_icon},0" TODO(CORE-2860): Add icon file path here.

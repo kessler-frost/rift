@@ -136,7 +136,7 @@ fn test_append_commands() {
                 r#"
                     ls
                     pwd
-                    warp --listen --ports=8080,8081
+                    rift --listen --ports=8080,8081
                 "#,
             )]);
 
@@ -168,7 +168,7 @@ fn test_append_commands() {
                 assert_eq!(
                     history.commands(session.id()).unwrap_or_default(),
                     vec![
-                        &HistoryEntry::command_only("warp --listen --ports=8080,8081"),
+                        &HistoryEntry::command_only("rift --listen --ports=8080,8081"),
                         &HistoryEntry::with_session_id(session.id(), "ls"),
                         &HistoryEntry::with_session_id(session.id(), "pwd"),
                         &HistoryEntry::with_session_id(session.id(), "git status"),
@@ -187,7 +187,7 @@ fn test_append_multiple_sessions() {
             sandbox.with_files(vec![Stub::FileWithContentToBeTrimmed(
                 ".bash_history",
                 r#"
-                    cd warp
+                    cd rift
                     cargo run --bin dev
                 "#,
             )]);
@@ -219,7 +219,7 @@ fn test_append_multiple_sessions() {
                 assert_eq!(
                     history.commands(session.id()).unwrap_or_default(),
                     vec![
-                        &HistoryEntry::command_only("cd warp"),
+                        &HistoryEntry::command_only("cd rift"),
                         &HistoryEntry::command_only("cargo run --bin dev"),
                         &HistoryEntry::with_session_id(session.id(), "cargo clean"),
                         &HistoryEntry::with_session_id(session.id(), "ls target/"),
@@ -245,7 +245,7 @@ fn test_append_multiple_sessions() {
                 assert_eq!(
                     history.commands(second_session.id()).unwrap_or_default(),
                     vec![
-                        &HistoryEntry::command_only("cd warp"),
+                        &HistoryEntry::command_only("cd rift"),
                         &HistoryEntry::command_only("cargo run --bin dev"),
                         &HistoryEntry::with_session_id(session.id(), "cargo clean"),
                         &HistoryEntry::with_session_id(second_session.id(), "ls target/"),
@@ -263,7 +263,7 @@ fn test_len() {
             sandbox.with_files(vec![Stub::FileWithContentToBeTrimmed(
                 ".bash_history",
                 r#"
-                    cd warp
+                    cd rift
                     cargo run --bin dev
                     touch
                 "#,
@@ -308,7 +308,7 @@ fn test_len() {
                 assert_eq!(
                     history.commands(session.id()).unwrap_or_default(),
                     vec![
-                        &HistoryEntry::command_only("cd warp"),
+                        &HistoryEntry::command_only("cd rift"),
                         &HistoryEntry::command_only("touch"),
                         &HistoryEntry::with_session_id(session.id(), "ls"),
                         &HistoryEntry::with_session_id(session.id(), "echo 'hello'"),

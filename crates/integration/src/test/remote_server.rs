@@ -101,13 +101,13 @@ pub fn test_remote_server_navigate_to_repo() -> Builder {
         .with_step(record_remote_server_navigation_events())
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "mkdir -p /tmp/warp-test-repo && cd /tmp/warp-test-repo && git init -b main && git config user.email test@test.com && git config user.name TestUser && touch file && git add file && git commit -m init".into(),
+            "mkdir -p /tmp/rift-test-repo && cd /tmp/rift-test-repo && git init -b main && git config user.email test@test.com && git config user.name TestUser && touch file && git add file && git commit -m init".into(),
             ExpectedExitStatus::Success,
             (),
         ))
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "cd /tmp/warp-test-repo".into(),
+            "cd /tmp/rift-test-repo".into(),
             ExpectedExitStatus::Success,
             (),
         ))
@@ -120,7 +120,7 @@ pub fn test_remote_server_navigate_to_repo() -> Builder {
             .set_timeout(Duration::from_secs(15))
             .add_named_assertion_with_data_from_prior_step(
                 "remote server navigated to expected repo path",
-                assert_remote_server_has_navigated(0, "/tmp/warp-test-repo"),
+                assert_remote_server_has_navigated(0, "/tmp/rift-test-repo"),
             ),
         )
         // Verify the connection is still healthy after navigation.
@@ -144,13 +144,13 @@ pub fn test_remote_server_completions() -> Builder {
     builder
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "touch /tmp/warp-rs-completion-target".into(),
+            "touch /tmp/rift-rs-completion-target".into(),
             ExpectedExitStatus::Success,
             (),
         ))
         // Trigger the actual tab-completion request path for a remote file.
         .with_step(
-            run_completer(0, "cat /tmp/warp-rs-completion-t").set_timeout(Duration::from_secs(15)),
+            run_completer(0, "cat /tmp/rift-rs-completion-t").set_timeout(Duration::from_secs(15)),
         )
         // Verify the executor is still the remote server executor after
         // completions have been triggered.
@@ -183,7 +183,7 @@ pub fn test_remote_server_lazy_load_directory() -> Builder {
         // Create a git repo with a subdirectory on the remote.
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "rm -rf /tmp/warp-lazy-repo && mkdir -p /tmp/warp-lazy-repo/subdir && cd /tmp/warp-lazy-repo && git init -b main && git config user.email test@test.com && git config user.name TestUser && touch file subdir/nested && git add . && git commit -m init".into(),
+            "rm -rf /tmp/rift-lazy-repo && mkdir -p /tmp/rift-lazy-repo/subdir && cd /tmp/rift-lazy-repo && git init -b main && git config user.email test@test.com && git config user.name TestUser && touch file subdir/nested && git add . && git commit -m init".into(),
             ExpectedExitStatus::Success,
             (),
         ))
@@ -191,7 +191,7 @@ pub fn test_remote_server_lazy_load_directory() -> Builder {
         // server indexes it.
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "cd /tmp/warp-lazy-repo".into(),
+            "cd /tmp/rift-lazy-repo".into(),
             ExpectedExitStatus::Success,
             (),
         ))
@@ -202,7 +202,7 @@ pub fn test_remote_server_lazy_load_directory() -> Builder {
             .set_timeout(Duration::from_secs(15))
             .add_named_assertion_with_data_from_prior_step(
                 "remote server navigated to expected lazy-load repo path",
-                assert_remote_server_has_navigated(0, "/tmp/warp-lazy-repo"),
+                assert_remote_server_has_navigated(0, "/tmp/rift-lazy-repo"),
             ),
         )
         // Trigger lazy-load of the subdirectory via the proto API.
@@ -210,8 +210,8 @@ pub fn test_remote_server_lazy_load_directory() -> Builder {
             TestStep::new("Load subdirectory via LoadRepoMetadataDirectory")
                 .with_action(load_repo_metadata_directory_via_remote_server(
                     0,
-                    "/tmp/warp-lazy-repo".to_string(),
-                    "/tmp/warp-lazy-repo/subdir".to_string(),
+                    "/tmp/rift-lazy-repo".to_string(),
+                    "/tmp/rift-lazy-repo/subdir".to_string(),
                 ))
                 // Give the async request a moment to complete.
                 .set_post_step_pause(Duration::from_secs(2)),
@@ -235,7 +235,7 @@ pub fn test_remote_server_lazy_load_directory() -> Builder {
         // the nested file through the remote server executor.
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "cat /tmp/warp-lazy-repo/subdir/nested && echo 'file exists'".into(),
+            "cat /tmp/rift-lazy-repo/subdir/nested && echo 'file exists'".into(),
             ExpectedExitStatus::Success,
             "file exists",
         ))
@@ -257,7 +257,7 @@ pub fn test_remote_server_file_operations() -> Builder {
             TestStep::new("Write file via RemoteServerClient proto API")
                 .with_action(write_file_via_remote_server(
                     0,
-                    "/tmp/warp-rs-test-file.txt".to_string(),
+                    "/tmp/rift-rs-test-file.txt".to_string(),
                     "hello from proto".to_string(),
                 ))
                 // Give the async write a moment to complete
@@ -267,14 +267,14 @@ pub fn test_remote_server_file_operations() -> Builder {
         // (which goes through RemoteServerCommandExecutor::run_command).
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "cat /tmp/warp-rs-test-file.txt".into(),
+            "cat /tmp/rift-rs-test-file.txt".into(),
             ExpectedExitStatus::Success,
             "hello from proto",
         ))
         // Step 3: Clean up
         .with_step(execute_command_for_single_terminal_in_tab(
             0,
-            "rm -f /tmp/warp-rs-test-file.txt".into(),
+            "rm -f /tmp/rift-rs-test-file.txt".into(),
             ExpectedExitStatus::Success,
             (),
         ))

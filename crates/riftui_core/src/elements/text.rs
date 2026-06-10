@@ -252,7 +252,7 @@ impl Highlight {
 
 impl Text {
     /// We've changed [`Text::new`] to default to enabling soft-wrap. All usages of [`Text::new_inline`] have not been audited.
-    /// Consider [`new_inline`](`Text::new_inline`) as deprecated and use [`new`](`Text::new`) instead, with [`soft_warp(false)`](`Text::soft_wrap`) if needed.
+    /// Consider [`new_inline`](`Text::new_inline`) as deprecated and use [`new`](`Text::new`) instead, with [`soft_wrap(false)`](`Text::soft_wrap`) if needed.
     #[cfg_attr(debug_assertions, track_caller)]
     pub fn new_inline(
         text: impl Into<Cow<'static, str>>,
@@ -266,7 +266,7 @@ impl Text {
     }
 
     /// **Note!!** Text now defaults to `soft_wrap: true`. If you want to disable soft wrapping,
-    /// use [`soft_warp(false)`](`Text::soft_wrap`) after creating the text element.
+    /// use [`soft_wrap(false)`](`Text::soft_wrap`) after creating the text element.
     #[cfg_attr(debug_assertions, track_caller)]
     pub fn new(text: impl Into<Cow<'static, str>>, family_id: FamilyId, font_size: f32) -> Self {
         Self {

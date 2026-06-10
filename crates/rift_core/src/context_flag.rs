@@ -56,7 +56,7 @@ impl ContextFlag {
         FLAG_STATES[*self as usize].store(value, Ordering::Relaxed);
     }
 
-    pub fn set_warp_home_link_only() {
+    pub fn set_rift_home_link_only() {
         disable_flag(Self::ForceSidePanelOpen);
         disable_flag(Self::ShowRewardModal);
         disable_flag(Self::HideOpenOnDesktopButton);

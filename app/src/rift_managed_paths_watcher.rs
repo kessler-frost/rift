@@ -29,7 +29,7 @@ pub(crate) fn ensure_rift_watch_roots_exist() {
     let data_dir = rift_data_dir();
     if let Err(err) = fs::create_dir_all(&data_dir) {
         log::warn!(
-            "Failed to create Warp data directory {}: {err}",
+            "Failed to create Rift data directory {}: {err}",
             data_dir.display()
         );
     }
@@ -38,7 +38,7 @@ pub(crate) fn ensure_rift_watch_roots_exist() {
     if config_local_dir != data_dir {
         if let Err(err) = fs::create_dir_all(&config_local_dir) {
             log::warn!(
-                "Failed to create Warp config directory {}: {err}",
+                "Failed to create Rift config directory {}: {err}",
                 config_local_dir.display()
             );
         }
@@ -166,7 +166,7 @@ impl RiftManagedPathsWatcher {
                 data_dir.clone(),
                 WatchFilter::with_filter(filter.clone(), filter),
                 RecursiveMode::Recursive,
-                "Warp data directory",
+                "Rift data directory",
             );
             if should_register_config_local_dir {
                 Self::register_path(
@@ -175,7 +175,7 @@ impl RiftManagedPathsWatcher {
                     config_local_dir.clone(),
                     WatchFilter::accept_all(),
                     RecursiveMode::Recursive,
-                    "Warp config directory",
+                    "Rift config directory",
                 );
             }
             if let Some(rift_home_skills_dir) = rift_home_skills_dir() {
@@ -190,7 +190,7 @@ impl RiftManagedPathsWatcher {
                         rift_home_skills_dir,
                         WatchFilter::accept_all(),
                         RecursiveMode::Recursive,
-                        "Warp home skills directory",
+                        "Rift home skills directory",
                     );
                 }
             }

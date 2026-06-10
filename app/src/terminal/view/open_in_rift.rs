@@ -27,8 +27,8 @@ use crate::util::openable_file_type::{is_file_openable_in_rift, OpenableFileType
 mod tests;
 
 const LEARN_MORE_MARKDOWN_URL: &str =
-    "https://docs.warp.dev/terminal/more-features/markdown-viewer";
-const LEARN_MORE_CODE_URL: &str = "https://docs.warp.dev/code/overview#built-in-code-editor";
+    "https://docs.rift.dev/terminal/more-features/markdown-viewer";
+const LEARN_MORE_CODE_URL: &str = "https://docs.rift.dev/code/overview#built-in-code-editor";
 
 /// A path to a file that can be opened in Rift, along with its type.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -212,7 +212,7 @@ impl TerminalView {
                 match &self.inline_banners_state.open_in_rift_banner {
                     Some(banner_state) => {
                         ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                            format!("Open {} in Warp", banner_state.target.path.display()),
+                            format!("Open {} in Rift", banner_state.target.path.display()),
                             RiftA11yRole::UserAction,
                         ))
                     }
@@ -221,14 +221,14 @@ impl TerminalView {
             }
             OpenInRiftBannerAction::Close => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                    "Close View in Warp banner",
+                    "Close View in Rift banner",
                     RiftA11yRole::UserAction,
                 ))
             }
             OpenInRiftBannerAction::LearnMore => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new(
                     "Learn more",
-                    "Learn more about opening Markdown files in Warp",
+                    "Learn more about opening Markdown files in Rift",
                     RiftA11yRole::UserAction,
                 ))
             }

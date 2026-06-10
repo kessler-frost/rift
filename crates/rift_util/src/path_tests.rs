@@ -8,12 +8,12 @@ fn test_user_friendly_path_with_home() {
         "~".to_string(),
     );
     assert_eq!(
-        user_friendly_path("/Users/blue/warp", Some(home)),
-        "~/warp".to_string(),
+        user_friendly_path("/Users/blue/rift", Some(home)),
+        "~/rift".to_string(),
     );
     assert_eq!(
-        user_friendly_path("/Users/admin/warp", Some(home)),
-        "/Users/admin/warp".to_string(),
+        user_friendly_path("/Users/admin/rift", Some(home)),
+        "/Users/admin/rift".to_string(),
     );
 }
 

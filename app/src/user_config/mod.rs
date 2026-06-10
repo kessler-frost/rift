@@ -21,7 +21,7 @@ use crate::themes::theme::{ThemeKind, RiftThemeConfig};
 
 lazy_static! {
     pub static ref LAUNCH_CONFIG_COMMENT: String = format!(
-        "# Warp Launch Configuration
+        "# Rift Launch Configuration
 #
 #
 # Use this to start a certain configuration of windows, tabs, and panes.
@@ -29,7 +29,7 @@ lazy_static! {
 #
 # This file defines your launch configuration.
 # More on how to do so here:
-# https://docs.warp.dev/terminal/sessions/launch-configurations
+# https://docs.rift.dev/terminal/sessions/launch-configurations
 #
 # All launch configurations are stored under {}.
 # Edit them anytime!
@@ -40,7 +40,7 @@ lazy_static! {
 # windows:
 #  - tabs:
 #      - layout:
-#          cwd: /Users/warp-user/project
+#          cwd: /Users/rift-user/project
 #          commands:
 #            - exec: code .
 ",

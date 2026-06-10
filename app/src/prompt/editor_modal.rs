@@ -52,7 +52,7 @@ const MODAL_CONTENT_FONT_SIZE: f32 = 14.;
 const CHECKBOX_SIZE: f32 = 16.;
 
 const MODAL_TITLE: &str = "Edit prompt";
-const RIFT_PROMPT_SECTION_HEADER: &str = "Warp terminal prompt";
+const RIFT_PROMPT_SECTION_HEADER: &str = "Rift terminal prompt";
 const SHELL_PROMPT_SECTION_HEADER: &str = "Shell prompt (PS1)";
 const RESTORE_DEFAULT_BUTTON: &str = "Restore default";
 
@@ -81,7 +81,7 @@ pub enum EditorModalEvent {
 struct MouseStateHandles {
     cancel_button_handle: MouseStateHandle,
     save_button_handle: MouseStateHandle,
-    restore_default_warp_prompt_handle: MouseStateHandle,
+    restore_default_rift_prompt_handle: MouseStateHandle,
     rift_prompt_mouse_state_handle: MouseStateHandle,
     ps1_mouse_state_handle: MouseStateHandle,
     same_line_prompt_checkbox_state_handle: MouseStateHandle,
@@ -534,13 +534,13 @@ impl EditorModal {
         .finish()
     }
 
-    fn render_restore_default_warp_prompt_button(
+    fn render_restore_default_rift_prompt_button(
         &self,
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let button = Hoverable::new(
             self.mouse_state_handles
-                .restore_default_warp_prompt_handle
+                .restore_default_rift_prompt_handle
                 .clone(),
             |_state| {
                 appearance
@@ -627,7 +627,7 @@ impl EditorModal {
             .finish()
     }
 
-    fn render_warp_prompt_section(&self, appearance: &Appearance) -> Box<dyn Element> {
+    fn render_rift_prompt_section(&self, appearance: &Appearance) -> Box<dyn Element> {
         let body = Flex::column()
             .with_child(
                 Container::new(self.render_unused_chips(appearance))
@@ -654,7 +654,7 @@ impl EditorModal {
                     .build()
                     .finish(),
             )
-            .with_child(self.render_restore_default_warp_prompt_button(appearance))
+            .with_child(self.render_restore_default_rift_prompt_button(appearance))
             .with_main_axis_alignment(MainAxisAlignment::SpaceBetween)
             .with_main_axis_size(MainAxisSize::Max)
             .finish();
@@ -815,7 +815,7 @@ impl View for EditorModal {
             ConstrainedBox::new(
                 column
                     .with_child(
-                        Container::new(self.render_warp_prompt_section(appearance))
+                        Container::new(self.render_rift_prompt_section(appearance))
                             .with_margin_bottom(MARGIN_BETWEEN_MODAL_SECTIONS)
                             .finish(),
                     )

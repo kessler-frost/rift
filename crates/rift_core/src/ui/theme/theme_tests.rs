@@ -171,7 +171,7 @@ fn blend_coloru_test() {
 fn test_deserialize_image() {
     // Paths that start with `~` should expand to include the home dir.
     let a = "
-    path: ~/warp.jpg
+    path: ~/rift.jpg
     opacity: 60
     ";
     let image: Image = serde_yaml::from_str(a).unwrap();
@@ -181,7 +181,7 @@ fn test_deserialize_image() {
         AssetSource::LocalFile {
             path: home_dir()
                 .unwrap()
-                .join("warp.jpg")
+                .join("rift.jpg")
                 .to_str()
                 .unwrap_or_default()
                 .to_owned()
@@ -190,7 +190,7 @@ fn test_deserialize_image() {
 
     // Absolute paths should be unchanged.
     let b = "
-    path: /warp.jpg
+    path: /rift.jpg
     opacity: 60
     ";
     let image: Image = serde_yaml::from_str(b).unwrap();
@@ -198,13 +198,13 @@ fn test_deserialize_image() {
     assert_eq!(
         image.source,
         AssetSource::LocalFile {
-            path: "/warp.jpg".to_owned()
+            path: "/rift.jpg".to_owned()
         }
     );
 
     // Relative paths should expand to include the theme dir.
     let c = "
-    path: warp.jpg
+    path: rift.jpg
     opacity: 60
     ";
     let image: Image = serde_yaml::from_str(c).unwrap();
@@ -213,7 +213,7 @@ fn test_deserialize_image() {
         image.source,
         AssetSource::LocalFile {
             path: themes_dir()
-                .join("warp.jpg")
+                .join("rift.jpg")
                 .to_str()
                 .unwrap_or_default()
                 .to_owned()
@@ -222,7 +222,7 @@ fn test_deserialize_image() {
 
     // No opacity should become the default
     let d = "
-    path: warp.jpg
+    path: rift.jpg
     ";
     let image: Image = serde_yaml::from_str(d).unwrap();
     assert_eq!(image.opacity, default_image_opacity());

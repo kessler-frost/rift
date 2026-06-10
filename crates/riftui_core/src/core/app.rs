@@ -4233,7 +4233,7 @@ impl AppContext {
             window_bounds: WindowBounds::ExactPosition(RectF::new(origin, size)),
             anchor_new_windows_from_closed_position:
                 NextNewWindowsHasThisWindowsBoundsUponClose::No,
-            window_instance: Some("dev.warp.riftui-debug".to_owned()),
+            window_instance: Some("dev.rift.riftui-debug".to_owned()),
             title: Some("View Tree Debugger".to_owned()),
             ..Default::default()
         };

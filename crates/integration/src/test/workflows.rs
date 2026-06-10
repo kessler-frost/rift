@@ -124,7 +124,7 @@ pub fn test_loading_project_workflows() -> Builder {
                     "test_workflow.yaml",
                     &utils
                         .test_dir()
-                        .join("repo/.warp/workflows/test_workflow.yaml"),
+                        .join("repo/.rift/workflows/test_workflow.yaml"),
                 );
             }),
         )

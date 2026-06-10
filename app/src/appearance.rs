@@ -223,7 +223,7 @@ impl AppearanceManager {
                 log::warn!("Failed to get dock tile plugin bundle");
                 return;
             };
-            let plugin_name = ns_string!("WarpDockTilePlugin.docktileplugin");
+            let plugin_name = ns_string!("RiftDockTilePlugin.docktileplugin");
             let plugin_path = plugins_path.stringByAppendingPathComponent(plugin_name);
             let Some(plugin_bundle) = NSBundle::bundleWithPath(&plugin_path) else {
                 log::warn!("Failed to get dock tile plugin bundle");

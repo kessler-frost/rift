@@ -109,7 +109,7 @@ impl RiftifySuccessBlock {
                 description: (if !output_grid.is_empty() {
                     "Run the following to automatically Riftify in the future:"
                 } else {
-                    "In remote subshells, Warp runs commands in the background to power completions, syntax highlighting, and other features."
+                    "In remote subshells, Rift runs commands in the background to power completions, syntax highlighting, and other features."
                 }).into(),
                 output_grid: output_grid.into(),
                 selection_handle: Default::default(),
@@ -145,7 +145,7 @@ impl RiftifySuccessBlock {
     pub fn render_title_ui(&self, theme: &RiftTheme, appearance: &Appearance) -> Box<dyn Element> {
         let header_contents = render::build_header_row(
             "Session Riftified",
-            Icon::new(UiIcon::Warp.into(), theme.active_ui_detail()),
+            Icon::new(UiIcon::Rift.into(), theme.active_ui_detail()),
             theme,
             appearance,
         )

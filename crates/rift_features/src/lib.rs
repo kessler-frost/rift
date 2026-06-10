@@ -27,7 +27,7 @@ pub enum FeatureFlag {
 
     /// If `true`, fetch updated Rift channel versions from the Rift server endpoint instead of
     /// from GCP directly.
-    FetchChannelVersionsFromWarpServer,
+    FetchChannelVersionsFromRiftServer,
 
     /// Does grid storage go forwards or backwards
     SequentialStorage,
@@ -66,7 +66,7 @@ pub enum FeatureFlag {
     /// lib will use the user's history as a last-ditch effort to find a reasonable correction.
     CommandCorrectionsHistoryRule,
 
-    /// Used to gate an experiment we're doing on WarpDev ONLY
+    /// Used to gate an experiment we're doing on RiftDev ONLY
     /// to get a sense of PTY throughput over time.
     RecordPtyThroughput,
 
@@ -329,7 +329,7 @@ pub enum FeatureFlag {
 
     /// Expands code diff edits to replace the current pane instead of opening in a new tab.
     ExpandEditToPane,
-    /// Enables fallback model load output messaging in the warping indicator.
+    /// Enables fallback model load output messaging in the loading indicator.
     FallbackModelLoadOutputMessaging,
 
     /// Enables close button on left side of tabs
@@ -555,7 +555,7 @@ pub enum FeatureFlag {
     /// Enables loading conversations in the Agent Management View.
     InteractiveConversationManagementView,
 
-    /// Enables agent tips displayed below the warping indicator in Agent Mode.
+    /// Enables agent tips displayed below the loading indicator in Agent Mode.
     AgentTips,
 
     /// Allows agent mode to use computer use tools.
@@ -914,13 +914,13 @@ pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
 ];
 
 /// Features enabled for feature preview build users (e.g.: Friends of Rift).
-/// All PREVIEW_FLAGS are also automatically added to dogfood builds (WarpDev).
+/// All PREVIEW_FLAGS are also automatically added to dogfood builds (RiftDev).
 pub const PREVIEW_FLAGS: &[FeatureFlag] = &[
     #[cfg(target_os = "macos")]
     FeatureFlag::DragTabsToWindows,
 ];
 
-/// Features enabled for all release builds (i.e.: everything but WarpLocal).
+/// Features enabled for all release builds (i.e.: everything but RiftLocal).
 /// NOTE: if you are promoting a feature from Preview to launch, you'll likely
 /// want to enable the feature by default in app/Cargo.toml, rather than add it to RELEASE_FLAGS.
 pub const RELEASE_FLAGS: &[FeatureFlag] = &[
@@ -1000,14 +1000,14 @@ impl FeatureFlag {
             BlocklistMarkdownImages => {
                 Some("Enables rendering markdown images inline in AI block list responses.")
             }
-            CloudEnvironments => Some("Enables creating and managing Warp Environments via the CLI."),
-            CreateEnvironmentSlashCommand => Some("Enables the /create environment slash command for setting up Warp Environments with custom configurations."),
+            CloudEnvironments => Some("Enables creating and managing Rift Environments via the CLI."),
+            CreateEnvironmentSlashCommand => Some("Enables the /create environment slash command for setting up Rift Environments with custom configurations."),
             GlobalSearch => Some("Enables global search in the left panel"),
             BlocklistMarkdownTableRendering => {
                 Some("Enables rendering markdown tables inline in AI block list responses.")
             }
             MarkdownTables => Some("Enables rendering and interaction support for markdown tables in notebooks."),
-            SettingsFile => Some("Enables configuring Warp via a user-editable `settings.toml` file, with hot reload and error reporting for invalid values."),
+            SettingsFile => Some("Enables configuring Rift via a user-editable `settings.toml` file, with hot reload and error reporting for invalid values."),
             GitOperationsInCodeReview => Some("Enables commit, push, and create-PR actions directly from the code review panel."),
             _ => None,
         }

@@ -37,7 +37,7 @@ const SSH_GITHUB_ISSUE_URL: &str = "https://github.com/kessler-frost/rift/issues
 
 fn get_ssh_github_issue_url(title: &str) -> String {
     let url = if let Some(version) = ChannelState::app_version() {
-        format!("{SSH_GITHUB_ISSUE_URL}&warp-version={version}")
+        format!("{SSH_GITHUB_ISSUE_URL}&rift-version={version}")
     } else {
         SSH_GITHUB_ISSUE_URL.to_string()
     };
@@ -229,7 +229,7 @@ impl View for SshErrorBlock {
 
         if self.should_show_report_to_rift_button() {
             let report_issue_text = build_description_row(FormattedText::new([FormattedTextLine::Line(vec![
-                    FormattedTextFragment::plain_text("We are actively working on improving the stability of SSH in Warp. Please consider "),
+                    FormattedTextFragment::plain_text("We are actively working on improving the stability of SSH in Rift. Please consider "),
                     FormattedTextFragment::hyperlink("filing an issue", get_ssh_github_issue_url(self.error_reason.error_title())),
                     FormattedTextFragment::plain_text(" on GitHub so we can better identify the problem."),
                 ])]),

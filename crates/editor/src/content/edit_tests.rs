@@ -59,7 +59,7 @@ fn test_highlight_urls() {
             block_style: BufferBlockStyle::PlainText,
         },
         StyledBufferRun {
-            run: "https://warp.dev".to_string(),
+            run: "https://rift.dev".to_string(),
             text_styles: TextStylesWithMetadata::default(),
             block_style: BufferBlockStyle::PlainText,
         },
@@ -74,7 +74,7 @@ fn test_highlight_urls() {
             },
             ParsedUrl {
                 url_range: 23..39,
-                link: "https://warp.dev".to_string()
+                link: "https://rift.dev".to_string()
             }
         ]
     );
@@ -83,7 +83,7 @@ fn test_highlight_urls() {
 #[test]
 fn test_highlight_urls_unicode() {
     let test_runs = vec![StyledBufferRun {
-        run: "This (not https://example.com) is a 🔥 link about a 🇨🇦 🏡:\u{a0}https://warp.dev"
+        run: "This (not https://example.com) is a 🔥 link about a 🇨🇦 🏡:\u{a0}https://rift.dev"
             .to_string(),
         text_styles: Default::default(),
         block_style: BufferBlockStyle::PlainText,
@@ -97,7 +97,7 @@ fn test_highlight_urls_unicode() {
             },
             ParsedUrl {
                 url_range: 57..73,
-                link: "https://warp.dev".to_string()
+                link: "https://rift.dev".to_string()
             }
         ]
     )
@@ -127,13 +127,13 @@ fn test_links_not_auto_highlighted() {
     // prevent auto-linking other URLs.
     let runs = &[
         StyledBufferRun {
-            run: "first link is https://warp.dev ".to_string(),
+            run: "first link is https://rift.dev ".to_string(),
             text_styles: Default::default(),
             block_style: BufferBlockStyle::PlainText,
         },
         StyledBufferRun {
             run: "http://example.com".to_string(),
-            text_styles: TextStylesWithMetadata::default().link("https://warp.dev".to_string()),
+            text_styles: TextStylesWithMetadata::default().link("https://rift.dev".to_string()),
             block_style: BufferBlockStyle::PlainText,
         },
         StyledBufferRun {
@@ -148,7 +148,7 @@ fn test_links_not_auto_highlighted() {
         &[
             ParsedUrl {
                 url_range: 14..30,
-                link: "https://warp.dev".to_string()
+                link: "https://rift.dev".to_string()
             },
             ParsedUrl {
                 url_range: 60..78,
@@ -173,7 +173,7 @@ fn test_highlight_url_before_link() {
             block_style: BufferBlockStyle::PlainText,
         },
         StyledBufferRun {
-            run: "https://warp.dev".to_string(),
+            run: "https://rift.dev".to_string(),
             text_styles: Default::default(),
             block_style: BufferBlockStyle::PlainText,
         },
@@ -188,7 +188,7 @@ fn test_highlight_url_before_link() {
             },
             ParsedUrl {
                 url_range: 28..44,
-                link: "https://warp.dev".to_string()
+                link: "https://rift.dev".to_string()
             }
         ]
     )
@@ -205,7 +205,7 @@ fn test_text_around_link_not_auto_highlighted() {
         },
         StyledBufferRun {
             run: "alink".to_string(),
-            text_styles: TextStylesWithMetadata::default().link("https://warp.dev".to_string()),
+            text_styles: TextStylesWithMetadata::default().link("https://rift.dev".to_string()),
             block_style: BufferBlockStyle::PlainText,
         },
         StyledBufferRun {
@@ -892,7 +892,7 @@ fn test_table_inline_style_runs_preserve_markdown_cell_styles() {
             );
             let body_style = text_layout.paragraph_styles(&BufferBlockStyle::table(Vec::new()));
             let table = crate::content::text::table_from_internal_format_with_inline_markdown(
-                "Header\tValue\nText\t**Bold** *Italic* [Link](https://warp.dev) `code`\n",
+                "Header\tValue\nText\t**Bold** *Italic* [Link](https://rift.dev) `code`\n",
                 Vec::new(),
             );
 

@@ -95,7 +95,7 @@ impl AppIconSettings {
     pub fn get_base_icon_file_name(icon: AppIcon) -> &'static str {
         match icon {
             AppIcon::Aurora => "aurora",
-            AppIcon::Default => "warp_2",
+            AppIcon::Default => "rift_2",
             AppIcon::Classic1 => "classic_1",
             AppIcon::Classic2 => "classic_2",
             AppIcon::Classic3 => "classic_3",

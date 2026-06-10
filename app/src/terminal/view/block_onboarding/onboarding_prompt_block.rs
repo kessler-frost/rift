@@ -60,12 +60,12 @@ impl OnboardingPromptBlock {
         let font_color = current_theme.main_text_color(current_theme.background());
 
         // Copy - https://docs.google.com/document/d/1zttBLI5Mw07kUupvrMQoC5aTwTXSHIUOIFFnxZ8GQEU/edit
-        const LINE_ONE: &str = "Next, let’s set up your prompt. Warp has a custom prompt builder or you can select PS1 to honor your pre-existing prompt configuration.";
+        const LINE_ONE: &str = "Next, let’s set up your prompt. Rift has a custom prompt builder or you can select PS1 to honor your pre-existing prompt configuration.";
         const LINE_TWO: &str =
-            "Warp works with many custom prompts like oh-my-zsh, Starship, Powerlevel10K. ";
+            "Rift works with many custom prompts like oh-my-zsh, Starship, Powerlevel10K. ";
         const LINK_TEXT: &str = "Learn more";
         const LINK_DESTINATION: &str =
-            "https://docs.warp.dev/terminal/appearance/prompt#custom-prompt-compatibility-table";
+            "https://docs.rift.dev/terminal/appearance/prompt#custom-prompt-compatibility-table";
 
         Flex::column()
             .with_children([
@@ -177,7 +177,7 @@ impl OnboardingPromptBlock {
 
                     ConstrainedBox::new(
                         Container::new(if prompt_type == OnboardingPromptType::RiftDefault {
-                            self.render_warp_prompt_button_interior(appearance)
+                            self.render_rift_prompt_button_interior(appearance)
                         } else {
                             self.render_existing_prompt_button_interior(appearance)
                         })
@@ -320,10 +320,10 @@ impl OnboardingPromptBlock {
             .finish()
     }
 
-    fn render_warp_prompt_button_interior(&self, appearance: &Appearance) -> Box<dyn Element> {
+    fn render_rift_prompt_button_interior(&self, appearance: &Appearance) -> Box<dyn Element> {
         // Pixel values pulled from Figma mocks
         // https://www.figma.com/file/y888viqzWBoMpFTxQqkQEN/Activation?node-id=568:1595&mode=dev
-        const HEADER_TEXT: &str = "Warp prompt";
+        const HEADER_TEXT: &str = "Rift prompt";
         const HEADER_MARGIN_LEFT: f32 = 4.;
         const SECTION_MARGIN_TOP: f32 = 8.;
         const OUTER_CORNER_RADIUS: f32 = 4.;

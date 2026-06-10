@@ -53,7 +53,7 @@ pub fn is_rift_default_terminal() -> bool {
 }
 
 pub fn set_rift_as_default_terminal() -> Result<(), String> {
-    log::debug!("Setting Warp as default terminal");
+    log::debug!("Setting Rift as default terminal");
 
     let bundle_id = get_rift_bundle_id().ok_or("No bundle ID".to_string())?;
 

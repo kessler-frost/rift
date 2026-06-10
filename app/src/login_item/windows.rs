@@ -48,7 +48,7 @@ pub(super) fn maybe_register_app_as_login_item(ctx: &mut AppContext) {
                     match register(&value_name, &exe) {
                         Ok(()) => true,
                         Err(err) => {
-                            log::warn!("Failed to register Warp as a login item: {err}");
+                            log::warn!("Failed to register Rift as a login item: {err}");
                             false
                         }
                     }
@@ -58,7 +58,7 @@ pub(super) fn maybe_register_app_as_login_item(ctx: &mut AppContext) {
                         Err(err) => {
                             // Don't flip app_added_as_login_item on failure — let a
                             // later retoggle try again.
-                            log::warn!("Failed to unregister Warp as a login item: {err}");
+                            log::warn!("Failed to unregister Rift as a login item: {err}");
                         }
                     }
                     false
@@ -82,7 +82,7 @@ fn current_exe_path() -> Option<PathBuf> {
 /// Returns the per-channel registry value name used under the `Run` subkey.
 ///
 /// Using the channel's application name keeps Dogfood / Preview / Stable installs
-/// isolated (`Rift`, `WarpPreview`, `WarpDev`, etc.) so installing multiple
+/// isolated (`Rift`, `RiftPreview`, `RiftDev`, etc.) so installing multiple
 /// channels doesn't cause one to overwrite another's startup entry.
 fn login_item_value_name() -> String {
     ChannelState::app_id().application_name().to_owned()

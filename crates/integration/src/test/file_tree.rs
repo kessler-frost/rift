@@ -75,7 +75,7 @@ pub fn test_file_tree_opens_files_in_rift() -> Builder {
                 }),
         )
         .with_step(
-            new_step_with_default_assertions("Verify file opened in Warp editor").add_assertion(
+            new_step_with_default_assertions("Verify file opened in Rift editor").add_assertion(
                 assert_pane_title(0, 1, Regex::new(r"test_file\.txt$").unwrap()),
             ),
         )
@@ -254,7 +254,7 @@ pub fn test_file_tree_non_openable_files() -> Builder {
                         async_assert_eq!(
                             pane_group.pane_count(),
                             1,
-                            "Binary file should not open in Warp, should stay at 1 pane"
+                            "Binary file should not open in Rift, should stay at 1 pane"
                         )
                     })
                 }),

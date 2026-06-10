@@ -329,7 +329,7 @@ pub mod flags {
     pub const IN_BAND_COMMAND_BLOCKS_FLAG: &str = "In_Band_Command_Blocks_Visible";
     pub const RECORDING_MODE_FLAG: &str = "Recording_Mode_Enabled";
     pub const IN_BAND_GENERATORS_FLAG: &str = "In_Band_Generators_Enabled";
-    pub const RIFT_SAME_LINE_PROMPT_FLAG: &str = "Warp_Same_Line_Prompt_Enabled";
+    pub const RIFT_SAME_LINE_PROMPT_FLAG: &str = "Rift_Same_Line_Prompt_Enabled";
     pub const DEBUG_NETWORK_ONLINE_FLAG: &str = "Network_Status_Online";
     pub const AI_INPUT_AUTODETECTION_FLAG: &str = "AI_Input_Autodetection";
     pub const NLD_IN_TERMINAL_FLAG: &str = "NLD_In_Terminal";
@@ -342,8 +342,8 @@ pub mod flags {
     pub const INCLUDE_AGENT_COMMANDS_IN_HISTORY_FLAG: &str = "Include_Agent_Commands_In_History";
     pub const AI_RULES_FLAG: &str = "AI_Rules";
     pub const SUGGESTED_RULES_FLAG: &str = "Suggested_Rules";
-    pub const RIFT_DRIVE_CONTEXT_FLAG: &str = "Warp_Drive_Context";
-    pub const RIFT_CREDIT_FALLBACK_FLAG: &str = "Warp_Credit_Fallback";
+    pub const RIFT_DRIVE_CONTEXT_FLAG: &str = "Rift_Drive_Context";
+    pub const RIFT_CREDIT_FALLBACK_FLAG: &str = "Rift_Credit_Fallback";
     pub const SHOW_BASE_MODEL_PICKER_IN_PROMPT_FLAG: &str = "Show_Base_Model_Picker_In_Prompt";
     pub const DEBUG_SHOW_MEMORY_STATS_FLAG: &str = "Debug_Memory_Statistics";
     pub const ALLOW_NATIVE_WAYLAND: &str = "Allow_Native_Wayland";
@@ -359,7 +359,7 @@ pub mod flags {
     pub const UNIVERSAL_DEVELOPER_INPUT_ENABLED: &str = "UniversalDeveloperInputEnabled";
     pub const AGENT_MODE_INPUT: &str = "InputAgentMode";
     pub const TERMINAL_MODE_INPUT: &str = "InputTerminalMode";
-    pub const RIFT_IS_DEFAULT_TERMINAL: &str = "WarpIsDefaultTerminal";
+    pub const RIFT_IS_DEFAULT_TERMINAL: &str = "RiftIsDefaultTerminal";
     pub const PASSIVE_CODE_DIFF_KEYBINDINGS_ENABLED: &str = "PassiveCodeDiffKeybindingsEnabled";
     /// When set, ctrl-enter should accept a prompt suggestion rather than insert a newline.
     /// This flag is set by the terminal Input when there's a pending passive code diff.
@@ -1400,7 +1400,7 @@ impl SettingsView {
 
         #[cfg(feature = "crash_reporting")]
         {
-            crate::crash_reporting::set_tag("warp.settings_page", section.to_string());
+            crate::crash_reporting::set_tag("rift.settings_page", section.to_string());
         }
 
         if let Some(settings_page) = self.current_settings_page() {

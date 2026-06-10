@@ -2093,7 +2093,7 @@ fn test_vim_delete_word_dge() {
     App::test((), |mut app| async move {
         initialize_app(&mut app);
 
-        let editor = add_editor_vim_normal_mode("echo hello-hi warp-dev", &mut app);
+        let editor = add_editor_vim_normal_mode("echo hello-hi rift-dev", &mut app);
 
         editor.update(&mut app, |view, view_ctx| {
             view.select_ranges(
@@ -3084,7 +3084,7 @@ fn test_vim_change_word_cge() {
     App::test((), |mut app| async move {
         initialize_app(&mut app);
 
-        let editor = add_editor_vim_normal_mode("echo hello-hi warp-dev", &mut app);
+        let editor = add_editor_vim_normal_mode("echo hello-hi rift-dev", &mut app);
 
         editor.update(&mut app, |view, view_ctx| {
             view.select_ranges(
