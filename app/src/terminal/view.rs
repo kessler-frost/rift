@@ -4736,7 +4736,6 @@ impl TerminalView {
                     if let BlockType::User(_user_block_completed) = block_type {
                         let _is_universal_developer_input_enabled =
                             InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx);
-                        let _is_in_agent_view = false;
                         send_telemetry_from_ctx!(
                             TelemetryEvent::BlockCompleted {
                                 block_finished_to_precmd_delay_ms: delay_ms,
@@ -4749,7 +4748,6 @@ impl TerminalView {
                                     .serialized_block
                                     .session_id,
                                 is_udi_enabled: is_universal_developer_input_enabled,
-                                is_in_agent_view,
                             },
                             ctx
                         );

@@ -109,16 +109,6 @@ pub struct BlockLatencyInfo {
 }
 
 
-
-
-
-
-
-
-
-
-
-
 /// How the user opened the Rift Drive sharing dialog.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum SharingDialogSource {
@@ -190,7 +180,6 @@ pub enum PaletteSource {
     ConversationManager,
     ContextChip,
     PaneHeader,
-    AgentTip,
     TitleBarSearchBar,
 }
 
@@ -201,8 +190,6 @@ pub enum FileTreeSource {
     Keybinding,
     LeftPanelToolbelt,
     ForceOpened,
-    /// Opened from the CLI agent view footer (e.g., Claude Code).
-    CLIAgentView,
 }
 
 #[cfg(feature = "local_fs")]
@@ -213,26 +200,6 @@ pub enum CodePanelsFileOpenEntrypoint {
     ProjectExplorer,
     GlobalSearch,
 }
-
-/// The CLI agent being used (for telemetry purposes).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum CLIAgentType {
-    Claude,
-    Gemini,
-    Codex,
-    Amp,
-    Droid,
-    OpenCode,
-    Copilot,
-    Pi,
-    Auggie,
-    Cursor,
-    Goose,
-    Hermes,
-    Vibe,
-    Unknown,
-}
-
 
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -387,61 +354,6 @@ pub enum KnowledgePaneEntrypoint {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeEntrypointSelectionType {
-    /// User entered Agent Mode by taking action on a blocklist text selection.
-    Text,
-
-    /// User entered Agent Mode by taking action on a block selection.
-    Block,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AgentModeEntrypoint {
-    /// The stars icon button in the tab bar.
-    #[serde(rename = "tab_bar")]
-    TabBar,
-
-    /// This corresponds to _both_ triggering from the command palette and via keybinding.
-    ///
-    /// Unfortunately due to the way the command palette automatically surfaces any editable
-    /// keybinding as an action, we don't have enough information to discern if the binding was
-    /// triggered by the palette or keyboard.
-    #[serde(rename = "new_pane_binding")]
-    NewPaneBinding,
-
-    /// The stars button in the hoverable block "toolbelt".
-    #[serde(rename = "block_toolbelt")]
-    BlockToolbelt,
-
-    /// The "Ask Agent Mode" option from AI command search.
-    #[serde(rename = "ai_command_search")]
-    AICommandSearch,
-
-    /// Context menu item(s) that attach a blocklist selection as context to an Agent Mode query.
-    #[serde(rename = "context_menu")]
-    ContextMenu {
-        selection_type: AgentModeEntrypointSelectionType,
-    },
-
-    /// The Agent Mode chip in the prompt.
-    #[serde(rename = "prompt_chip")]
-    PromptChip,
-
-    /// The Agent Management popup, where you can see all the most recent tasks for each terminal
-    /// pane across all windows/tabs/panes.
-    #[serde(rename = "agent_management_popup")]
-    AgentManagementPopup,
-
-    /// User manually switched between terminal and AI input modes in UDI interface
-    #[serde(rename = "udi_terminal_input_switcher")]
-    UDITerminalInputSwitcher,
-
-    /// The agent management view, where you can see both local interactive and ambient agent tasks
-    #[serde(rename = "agent_management_view")]
-    AgentManagementView,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ToggleCodeSuggestionsSettingSource {
     Speedbump,
     Settings,
@@ -456,7 +368,6 @@ pub enum InteractionSource {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PromptSuggestionViewType {
     TerminalView,
-    AgentView,
 }
 
 /// Reasons why we fell back to a prompt suggestion from a suggested code diff.
@@ -536,14 +447,6 @@ pub enum AddTabWithShellSource {
     ShellSelectorMenu,
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CodeContextDestination {
-    Pty,
-    AgentInput,
-    RichInput,
-}
-
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub enum ImageProtocol {
@@ -560,15 +463,6 @@ pub enum InputUXChangeOrigin {
 }
 
 
-
-
-
-#[derive(Clone, Copy, Debug, Serialize)]
-pub enum SlashMenuSource {
-    SlashButton,
-    UserTyped,
-}
-
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum LoginEventSource {
@@ -576,16 +470,6 @@ pub enum LoginEventSource {
     AuthModal,
 }
 
-
-
-/// Details about which type of slash command was accepted
-#[derive(Clone, Debug, Serialize)]
-pub enum SlashCommandAcceptedDetails {
-    /// A built-in static command with its specific name (e.g., "/init", "/diff-review")
-    StaticCommand { command_name: String },
-    /// A user-created saved prompt/workflow
-    SavedPrompt,
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AutoReloadModalAction {
@@ -622,8 +506,6 @@ pub enum TelemetryEvent {
         num_output_lines_truncated: u64,
         terminal_session_id: Option<SessionId>,
         is_udi_enabled: bool,
-        /// Whether the command was executed while in an active agent view.
-        is_in_agent_view: bool,
     },
     /// This is identical to the `BlockCompleted` event, but includes extra fields for
     /// the command run / time it took the block to complete / exit code.
@@ -1149,26 +1031,13 @@ pub enum TelemetryEvent {
     FileTreeToggled {
         source: FileTreeSource,
         is_code_mode_v2: bool,
-        /// The CLI agent type if opened from a CLI agent footer (e.g., Claude Code).
-        cli_agent: Option<CLIAgentType>,
     },
     /// User attached a file or directory as context from the file tree
     FileTreeItemAttachedAsContext {
         is_directory: bool,
     },
-    /// User added selected code as context from the code editor.
-    CodeSelectionAddedAsContext {
-        destination: CodeContextDestination,
-    },
     /// User created a new file from the file tree
     FileTreeItemCreated,
-
-
-
-
-
-
-
 
 
     /// Keeps track of number of times the user is presented with a Prompt Suggestions banner.
@@ -1215,12 +1084,6 @@ pub enum TelemetryEvent {
         view: PromptSuggestionViewType,
         interaction_source: InteractionSource,
     },
-
-
-
-
-
-
 
 
     /// Emitted when the user toggles the "Intelligent autosuggestions" setting in the AI settings page.
@@ -1439,18 +1302,6 @@ pub enum TelemetryEvent {
         tokens: Option<u32>,
         model_id: String,
     },
-    OpenSlashMenu {
-        source: SlashMenuSource,
-        /// Whether the inline slash commands UI is enabled.
-        is_inline_ui_enabled: bool,
-        /// Whether the menu was opened in the agent view vs terminal mode.
-        is_in_agent_view: bool,
-    },
-    SlashCommandAccepted {
-        command_details: SlashCommandAcceptedDetails,
-        /// Whether the command was accepted in the agent view vs terminal mode.
-        is_in_agent_view: bool,
-    },
 
     /// User submitted a prompt from the create project view - metadata (non-UGC)
     CreateProjectPromptSubmitted {
@@ -1598,7 +1449,6 @@ impl TelemetryEvent {
                 num_output_lines_truncated,
                 terminal_session_id,
                 is_udi_enabled,
-                is_in_agent_view,
             } => Some(json!({
                 "block_finished_to_precmd_delay_ms": block_finished_to_precmd_delay_ms,
                 "honor_ps1_enabled": honor_ps1_enabled,
@@ -1607,7 +1457,6 @@ impl TelemetryEvent {
                 "num_output_lines_truncated": num_output_lines_truncated,
                 "terminal_session_id": terminal_session_id,
                 "is_udi_enabled": is_udi_enabled,
-                "is_in_agent_view": is_in_agent_view,
             })),
             TelemetryEvent::ToggleFocusPaneOnHover { enabled } => Some(json!({
                 "enabled": enabled,
@@ -1675,10 +1524,7 @@ impl TelemetryEvent {
             TelemetryEvent::FileTreeToggled {
                 source,
                 is_code_mode_v2,
-                cli_agent,
-            } => Some(
-                json!({"source": source, "is_code_mode_v2": is_code_mode_v2, "cli_agent": cli_agent}),
-            ),
+            } => Some(json!({"source": source, "is_code_mode_v2": is_code_mode_v2})),
             TelemetryEvent::FileTreeItemAttachedAsContext { is_directory } => {
                 Some(json!({"is_directory": is_directory}))
             }
@@ -1845,9 +1691,6 @@ impl TelemetryEvent {
             }
             #[cfg(feature = "local_fs")]
             TelemetryEvent::PreviewPanePromoted => None,
-            TelemetryEvent::CodeSelectionAddedAsContext { destination } => Some(json!({
-                "destination": destination,
-            })),
             TelemetryEvent::ExperimentTriggered {
                 experiment,
                 layer,
@@ -1986,7 +1829,7 @@ impl TelemetryEvent {
             TelemetryEvent::TogglePromptSuggestionsSetting {
                 is_prompt_suggestions_enabled,
             } => Some(
-                json!({"is_agent_mode_query_suggestions_enabled": is_prompt_suggestions_enabled}),
+                json!({"is_prompt_suggestions_enabled": is_prompt_suggestions_enabled}),
             ),
             TelemetryEvent::ToggleCodeSuggestionsSetting {
                 source,
@@ -2369,22 +2212,6 @@ impl TelemetryEvent {
                     "model_id": model_id,
                 }))
             }
-            TelemetryEvent::OpenSlashMenu {
-                source,
-                is_inline_ui_enabled,
-                is_in_agent_view,
-            } => Some(json!({
-                "source": source,
-                "is_inline_ui_enabled": is_inline_ui_enabled,
-                "is_in_agent_view": is_in_agent_view,
-            })),
-            TelemetryEvent::SlashCommandAccepted {
-                command_details,
-                is_in_agent_view,
-            } => Some(json!({
-                "command_details": command_details,
-                "is_in_agent_view": is_in_agent_view,
-            })),
             #[cfg(windows)]
             TelemetryEvent::WSLRegistryError
             | TelemetryEvent::AutoupdateUnableToCloseApplications
@@ -2534,7 +2361,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ObjectLinkCopied => EnablementState::Always,
             Self::FileTreeToggled => EnablementState::Flag(FeatureFlag::FileTree),
             Self::FileTreeItemAttachedAsContext => EnablementState::Flag(FeatureFlag::FileTree),
-            Self::CodeSelectionAddedAsContext => EnablementState::ChannelSpecific { channels: vec![] },
             Self::FileTreeItemCreated => EnablementState::Flag(FeatureFlag::FileTree),
             Self::CreateProjectPromptSubmitted => EnablementState::Flag(FeatureFlag::GetStartedTab),
             Self::CreateProjectPromptSubmittedContent => {
@@ -2848,8 +2674,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             | Self::AIExecutionProfileContextWindowSelected { .. } => {
                 EnablementState::Flag(FeatureFlag::MultiProfile)
             }
-            Self::OpenSlashMenu { .. } => EnablementState::Always,
-            Self::SlashCommandAccepted { .. } => EnablementState::Always,
             Self::RecentMenuItemSelected => EnablementState::Always,
             Self::OpenRepoFolderSubmitted => EnablementState::Always,
             Self::OutOfCreditsBannerClosed => EnablementState::Always,
@@ -2897,7 +2721,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ObjectLinkCopied => "Object Link Copied",
             Self::FileTreeToggled => "File Tree Toggled",
             Self::FileTreeItemAttachedAsContext => "FileTree.AttachedAsContext",
-            Self::CodeSelectionAddedAsContext => "CodeView.SelectionAddedAsContext",
             Self::FileTreeItemCreated => "FileTree.ItemCreated",
             Self::CreateProjectPromptSubmitted => "Create Project Prompt Submitted",
             Self::CreateProjectPromptSubmittedContent => "Create Project Prompt Submitted Content",
@@ -3133,14 +2956,13 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ResourceUsageStats => "perf_metrics.resource_usage",
             Self::MemoryUsageStats => "perf_metrics.memory_usage",
             Self::MemoryUsageHigh => "perf_metrics.memory_usage_high",
-            // Agent Mode Query Suggestions is the legacy name for Prompt Suggestions - we avoid renaming
             // the event to avoid breaking historical telemetry data.
-            Self::PromptSuggestionShown => "Agent Mode Query Suggestions Banner Shown",
+            Self::PromptSuggestionShown => "Prompt Suggestions Banner Shown",
             Self::SuggestedCodeDiffFailed => "Suggested Code Diff Failed",
-            Self::PromptSuggestionAccepted => "Agent Mode Query Suggestion Accepted",
+            Self::PromptSuggestionAccepted => "Prompt Suggestion Accepted",
             Self::StaticPromptSuggestionsBannerShown => "Static Prompt Suggestions Banner Shown",
             Self::StaticPromptSuggestionAccepted => "Static Prompt Suggestion Accepted",
-            Self::TogglePromptSuggestionsSetting => "Toggle Agent Mode Query Suggestions Setting",
+            Self::TogglePromptSuggestionsSetting => "Toggle Prompt Suggestions Setting",
             Self::ToggleCodeSuggestionsSetting => "Toggle Code Suggestions Setting",
             Self::ToggleNaturalLanguageAutosuggestionsSetting => {
                 "Toggle Natural Language Autosuggestions Setting"
@@ -3182,12 +3004,12 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AutoupdateMinidumpCleanupFailed { .. } => {
                 "Windows Autoupdate: Minidump Cleanup Failed"
             }
-            Self::ToggleCodebaseContext => "Toggle Agent Mode Codebase Context",
+            Self::ToggleCodebaseContext => "Toggle Codebase Context",
             Self::ToggleAutoIndexing => "Toggle Codebase Context Autoindexing",
             Self::ActiveIndexedReposChanged => "Active Indexed Repos Changed",
             Self::ImageReceived => "Image Received",
-            Self::GrepToolSucceeded => "AgentMode.Grep.Succeeded",
-            Self::FileGlobToolSucceeded => "AgentMode.FileGlob.Succeeded",
+            Self::GrepToolSucceeded => "Grep.Succeeded",
+            Self::FileGlobToolSucceeded => "FileGlob.Succeeded",
             Self::ShellTerminatedPrematurely { .. } => "Shell Terminated Prematurely",
             Self::InputUXModeChanged { .. } => "Input.InputUXModeChanged",
             Self::ContextChipInteracted { .. } => "Input.ContextChipInteracted",
@@ -3214,8 +3036,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AIExecutionProfileContextWindowSelected { .. } => {
                 "AI Execution Profile: Context Window Selected"
             }
-            Self::OpenSlashMenu { .. } => "Open Slash Menu",
-            Self::SlashCommandAccepted { .. } => "Slash Command Accepted",
             Self::RecentMenuItemSelected { .. } => "Recent Menu Item Selected",
             Self::OpenRepoFolderSubmitted { .. } => "Open Repo Folder Submitted",
             Self::OutOfCreditsBannerClosed => "revenue.OutOfCreditsBannerClosed",
@@ -3710,9 +3530,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::FileTreeItemAttachedAsContext => {
                 "Attached a file or directory as context from the file tree"
             }
-            Self::CodeSelectionAddedAsContext => {
-                "Added selected code as context from the code editor"
-            }
             Self::FileTreeItemCreated => "Created a new file from the file tree",
             Self::CreateProjectPromptSubmitted => {
                 "User submitted a prompt from the create project view"
@@ -3772,7 +3589,7 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "The Windows auto-update installer failed to clean up the orphaned minidump server process"
             }
             Self::ToggleCodebaseContext => {
-                "Toggled on/off the enablement of codebase context usage for Agent Mode."
+                "Toggled on/off the enablement of codebase context usage."
             }
             Self::ToggleAutoIndexing => {
                 "Toggled on/off the enablement of autoindexing for codebase context."
@@ -3808,8 +3625,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::AIExecutionProfileModelSelected { .. } => {
                 "An AI model was selected for an AI execution profile"
             }
-            Self::OpenSlashMenu { .. } => "Opened the slash commands menu",
-            Self::SlashCommandAccepted { .. } => "User accepted a slash command",
             Self::RecentMenuItemSelected { .. } => {
                 "User selected an item from the recents list on the new tab zero state"
             }

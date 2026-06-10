@@ -143,7 +143,7 @@ use crate::workspace::{
 use crate::ASSETS;
 #[allow(unused_imports)]
 use crate::{
-    cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx, AgentModeEntrypoint,
+    cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx,
 };
 
 /// Drop target data for dropping content on the [`Input`].
