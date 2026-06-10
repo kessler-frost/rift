@@ -37,7 +37,7 @@ Default binary is `rift-oss`. The toolchain pins via `rust-toolchain.toml`; `pro
 ./script/presubmit   # fmt, clippy, and tests
 ```
 
-See [WARP.md](WARP.md) for the full engineering guide — coding style, testing, and platform notes.
+See [RIFT.md](RIFT.md) for the full engineering guide — coding style, testing, and platform notes.
 
 ## Relationship to upstream
 

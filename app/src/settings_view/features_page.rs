@@ -701,7 +701,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         id!("Workspace"),
     )]);
 
-    if DefaultTerminal::can_warp_become_default() {
+    if DefaultTerminal::can_rift_become_default() {
         app.register_fixed_bindings([FixedBinding::empty(
             "Make Warp the default terminal",
             builder(SettingsAction::FeaturesPageToggle(
@@ -1607,7 +1607,7 @@ impl TypedActionView for FeaturesPageView {
             }
             MakeRiftDefaultTerminal => {
                 DefaultTerminal::handle(ctx).update(ctx, |default_terminal, ctx| {
-                    default_terminal.make_warp_default(ctx);
+                    default_terminal.make_rift_default(ctx);
                 });
             }
             SetCodeEditorLineNumberMode(mode) => {
@@ -2227,7 +2227,7 @@ impl FeaturesPageView {
             general_widgets.push(Box::new(AutoOpenCodeReviewPaneWidget::default()));
         }
 
-        if DefaultTerminal::can_warp_become_default() {
+        if DefaultTerminal::can_rift_become_default() {
             general_widgets.push(Box::new(DefaultTerminalWidget::default()));
         }
 
@@ -4508,7 +4508,7 @@ impl SettingsWidget for DefaultTerminalWidget {
     ) -> Box<dyn Element> {
         let ui_builder = appearance.ui_builder();
         let default_terminal = DefaultTerminal::as_ref(app);
-        if default_terminal.is_warp_default() {
+        if default_terminal.is_rift_default() {
             ui_builder
                 .wrappable_text("Warp is the default terminal", true)
                 .with_style(UiComponentStyles {

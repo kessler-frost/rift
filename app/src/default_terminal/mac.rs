@@ -28,7 +28,7 @@ pub fn can_become_default_terminal() -> bool {
     NSBundle::mainBundle().bundleIdentifier().is_some()
 }
 
-pub fn is_warp_default_terminal() -> bool {
+pub fn is_rift_default_terminal() -> bool {
     let unix_executable_content_type = CFString::from_str("public.unix-executable");
     let handler = unsafe {
         LSCopyDefaultRoleHandlerForContentType(&unix_executable_content_type, K_LS_ROLES_SHELL)

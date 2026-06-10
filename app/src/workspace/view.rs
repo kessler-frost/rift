@@ -13014,7 +13014,7 @@ impl View for Workspace {
         }
 
         let default_terminal = DefaultTerminal::as_ref(app);
-        if default_terminal.is_warp_default() {
+        if default_terminal.is_rift_default() {
             context.set.insert(flags::RIFT_IS_DEFAULT_TERMINAL);
         }
 

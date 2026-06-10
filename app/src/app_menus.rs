@@ -184,18 +184,18 @@ fn make_new_app_menu(ctx: &AppContext) -> Menu {
     menu_items.push(MenuItem::Standard(StandardAction::ShowAllApps));
     menu_items.push(MenuItem::Separator);
     menu_items.push(MenuItem::Custom(CustomMenuItem::new(
-        "Set Warp as Default Terminal",
+        "Set Rift as Default Terminal",
         move |ctx| {
             DefaultTerminal::handle(ctx).update(ctx, |default_terminal, ctx| {
-                default_terminal.make_warp_default(ctx)
+                default_terminal.make_rift_default(ctx)
             });
         },
         move |_props, ctx| {
             let default_terminal = DefaultTerminal::handle(ctx).as_ref(ctx);
             MenuItemPropertyChanges {
                 disabled: Some(
-                    !DefaultTerminal::can_warp_become_default()
-                        || default_terminal.is_warp_default(),
+                    !DefaultTerminal::can_rift_become_default()
+                        || default_terminal.is_rift_default(),
                 ),
                 ..Default::default()
             }
@@ -258,7 +258,7 @@ fn make_new_edit_menu(ctx: &AppContext) -> Menu {
     ];
     let group_5 = vec![
         MenuItem::Custom(CustomMenuItem::new(
-            "Use Warp's Prompt",
+            "Use Rift's Prompt",
             move |ctx| ctx.dispatch_global_action("app:toggle_user_ps1", &()),
             move |_props, ctx| MenuItemPropertyChanges {
                 checked: Some(

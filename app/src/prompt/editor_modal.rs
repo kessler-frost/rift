@@ -123,7 +123,7 @@ pub struct EditorModal {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum PromptType {
     PS1,
-    Warp,
+    Rift,
     RiftDefault,
 }
 
@@ -133,7 +133,7 @@ impl PromptType {
         if matches!(*session_settings.saved_prompt, PromptSelection::Default) {
             PromptType::RiftDefault
         } else {
-            PromptType::Warp
+            PromptType::Rift
         }
     }
 
@@ -292,7 +292,7 @@ impl EditorModal {
                         report_if_error!(prompt.reset(ctx));
                     });
                 }
-                PromptType::Warp => {
+                PromptType::Rift => {
                     let new_setup = self
                         .chip_configurator
                         .used_chips
@@ -326,7 +326,7 @@ impl EditorModal {
             let _prompt_info = match self.prompt_type {
                 PromptType::PS1 => PromptChoice::PS1,
                 PromptType::RiftDefault => PromptChoice::Default,
-                PromptType::Warp => PromptChoice::Custom {
+                PromptType::Rift => PromptChoice::Custom {
                     builtin_chips: self
                         .chip_configurator
                         .used_chips
@@ -373,7 +373,7 @@ impl TypedActionView for EditorModal {
                 let mutated = self.chip_configurator.handle_action(chip_action, ctx);
                 if mutated {
                     self.is_dirty = true;
-                    self.prompt_type = PromptType::Warp;
+                    self.prompt_type = PromptType::Rift;
                 }
                 ctx.notify();
             }
@@ -410,7 +410,7 @@ impl TypedActionView for EditorModal {
 
                 // In case we had previously picked default Warp prompt, but now the user toggled
                 // same line prompt - it's no longer the default prompt.
-                self.prompt_type = PromptType::Warp;
+                self.prompt_type = PromptType::Rift;
 
                 self.update_warp_separator_dropdown_state(ctx);
                 ctx.notify();
@@ -661,7 +661,7 @@ impl EditorModal {
 
         self.render_prompt_section(
             appearance,
-            matches!(self.prompt_type, PromptType::Warp | PromptType::RiftDefault),
+            matches!(self.prompt_type, PromptType::Rift | PromptType::RiftDefault),
             header_row,
             None,
             body,
@@ -766,7 +766,7 @@ impl EditorModal {
         // - there are no changes
         // - the Warp prompt is used but there are no chips selected
         let save_disabled = !self.is_dirty
-            || (matches!(self.prompt_type, PromptType::Warp)
+            || (matches!(self.prompt_type, PromptType::Rift)
                 && self.chip_configurator.used_chips.is_empty());
         let save_button = self.render_primary_button(
             "Save changes".to_string(),
