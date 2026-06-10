@@ -246,22 +246,6 @@ impl Workspace {
         }
     }
 
-    /// Returns the price in cents for the selected auto-reload credit denomination.
-    /// Returns None if auto-reload is not configured or if the denomination can't be found in pricing options.
-    pub fn get_auto_reload_price_cents(
-        &self,
-        addon_credits_options: &[crate::pricing::billing::AddonCreditsOption],
-    ) -> Option<i32> {
-        let selected_credits = self
-            .settings
-            .addon_credits_settings
-            .selected_auto_reload_credit_denomination?;
-
-        addon_credits_options
-            .iter()
-            .find(|option| option.credits == selected_credits)
-            .map(|option| option.price_usd_cents)
-    }
 }
 
 #[derive(Clone, Debug)]

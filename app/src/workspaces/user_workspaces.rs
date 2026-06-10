@@ -6,17 +6,11 @@ use super::workspace::{
     AdminEnablementSetting, EnterpriseSecretRegex, UgcCollectionEnablementSetting, Workspace,
     WorkspaceUid,
 };
-use crate::auth::UserUid;
-use crate::channel::ChannelState;
 use crate::server::ids::ServerId;
 use crate::settings::{AISettings, CodeSettings};
 
-const STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX: &str = "/upgrade";
-
 #[derive(Debug)]
 pub enum UserWorkspacesEvent {
-    GenerateStripeBillingPortalLinkRejected,
-    UpdateWorkspaceSettingsRejected(anyhow::Error),
 }
 
 /// UserWorkspaces is a singleton model that holds workspace metadata (name, members, etc).
@@ -56,25 +50,6 @@ impl UserWorkspaces {
             workspaces: cached_workspaces.into(),
             joinable_teams: Default::default(),
         }
-    }
-
-    pub fn upgrade_link(user_id: UserUid) -> String {
-        format!(
-            "{}{}/{}/{}",
-            ChannelState::server_root_url(),
-            STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX,
-            "user",
-            user_id.as_str()
-        )
-    }
-
-    pub fn upgrade_link_for_team(team_uid: ServerId) -> String {
-        format!(
-            "{}{}/{}",
-            ChannelState::server_root_url(),
-            STRIPE_SUBSCRIPTION_INTERVAL_PAGE_PREFIX,
-            team_uid
-        )
     }
 
     pub fn workspace_from_uid(&self, workspace_uid: WorkspaceUid) -> Option<&Workspace> {
@@ -134,31 +109,6 @@ impl UserWorkspaces {
                     .warp_ai_policy
                     .is_some_and(|policy| policy.is_voice_enabled)
             })
-    }
-
-    /// Offline no-op: there is no server to generate a Stripe billing portal link.
-    pub fn generate_stripe_billing_portal_link(
-        &mut self,
-        _team_uid: ServerId,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        ctx.emit(UserWorkspacesEvent::GenerateStripeBillingPortalLinkRejected);
-        ctx.notify();
-    }
-
-    /// Offline no-op: there is no server to update addon-credit settings on.
-    pub fn update_addon_credits_settings(
-        &mut self,
-        _team_uid: ServerId,
-        _auto_reload_enabled: Option<bool>,
-        _max_monthly_spend_cents: Option<i32>,
-        _selected_auto_reload_credit_denomination: Option<i32>,
-        ctx: &mut ModelContext<Self>,
-    ) {
-        ctx.emit(UserWorkspacesEvent::UpdateWorkspaceSettingsRejected(
-            anyhow::anyhow!("Addon credit settings are not available in the offline build"),
-        ));
-        ctx.notify();
     }
 
     pub fn is_enterprise_secret_redaction_enabled(&self) -> bool {

@@ -1,4 +1,3 @@
-use futures::channel::oneshot::{self, Receiver};
 use riftui::{Entity, ModelContext, SingletonEntity};
 
 pub enum TeamUpdateManagerEvent {}
@@ -19,12 +18,6 @@ impl TeamUpdateManager {
         Self::new(ctx)
     }
 
-    /// Offline no-op: returns an already-resolved receiver since there is no server to refresh from.
-    pub fn refresh_workspace_metadata(&mut self, _ctx: &mut ModelContext<Self>) -> Receiver<()> {
-        let (tx, rx) = oneshot::channel::<()>();
-        let _ = tx.send(());
-        rx
-    }
 }
 
 impl Entity for TeamUpdateManager {

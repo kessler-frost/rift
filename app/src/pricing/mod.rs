@@ -1,7 +1,7 @@
 use riftui::{Entity, SingletonEntity};
 
 pub use self::billing::{
-    AddonCreditsOption, OveragesPricing, PlanPricing, PricingInfo, StripeSubscriptionPlan,
+    OveragesPricing, PlanPricing, PricingInfo, StripeSubscriptionPlan,
 };
 
 /// Local, offline billing data types.
@@ -103,11 +103,6 @@ impl PricingInfoModel {
             .map(|pricing| pricing.monthly_plan_price_per_month_usd_cents as f64 / 100.0)
     }
 
-    pub fn addon_credits_options(&self) -> Option<&[AddonCreditsOption]> {
-        self.pricing_info
-            .as_ref()
-            .map(|info| info.addon_credits_options.as_slice())
-    }
 }
 
 impl Default for PricingInfoModel {
