@@ -178,10 +178,6 @@ impl ChannelState {
     }
 }
 
-#[cfg(all(test, not(feature = "test-util")))]
-#[path = "state_tests.rs"]
-mod tests;
-
 fn app_id_from_bundle() -> Option<AppId> {
     // On macOS, attempt to determine the app ID from the containing bundle,
     // falling back to the channel-keyed "default" ID if we cannot retrieve

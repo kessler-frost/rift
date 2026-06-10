@@ -1,5 +1,5 @@
 {
-  description = "Warp is an agentic development environment, born out of the terminal (Experimental Nix Support, Linux-only).";
+  description = "Rift is a fast, fully offline terminal (Experimental Nix Support, Linux-only).";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -59,34 +59,13 @@
                     postPatch = (old.postPatch or "") + ''
                       find . -name 'Cargo.toml.orig' -delete
 
-                      ${lib.optionalString (hasCrate "rift_multi_agent_api") ''
-                        mkdir -p apis/multi_agent/v1/gen/rust/nix-vendored-protos
-                        cp apis/multi_agent/v1/*.proto \
-                          apis/multi_agent/v1/gen/rust/nix-vendored-protos/
-                        substituteInPlace apis/multi_agent/v1/gen/rust/build.rs \
-                          --replace-fail \
-                            'let proto_path = manifest_dir.parent().unwrap().parent().unwrap();' \
-                            'let proto_path = manifest_dir.join("nix-vendored-protos");'
-                      ''}
-
-                      ${lib.optionalString (hasCrate "warp-workflows") ''
-                        mkdir -p workflows/nix-vendored-specs
-                        cp -R specs/. workflows/nix-vendored-specs/
-                        substituteInPlace workflows/build.rs \
-                          --replace-fail \
-                            'println!("cargo:rerun-if-changed=../specs");' \
-                            'println!("cargo:rerun-if-changed=nix-vendored-specs");' \
-                          --replace-fail \
-                            'for entry in WalkDir::new("../specs") {' \
-                            'for entry in WalkDir::new("nix-vendored-specs") {'
-                      ''}
                     '';
                   });
               };
             in
             # crane writes a root config.toml; buildRustPackage expects the
             # cargoDeps layout to include .cargo/config.toml and Cargo.lock.
-            pkgs.runCommand "warp-terminal-experimental-${version}-cargo-vendor" { } ''
+            pkgs.runCommand "rift-terminal-${version}-cargo-vendor" { } ''
               cp -R ${craneVendorDir}/. "$out"
               chmod u+w "$out"
               mkdir -p "$out/.cargo"
@@ -128,8 +107,8 @@
             "gui"
           ];
 
-          warp-terminal-experimental = rustPlatform.buildRustPackage {
-            pname = "warp-terminal-experimental";
+          rift-terminal = rustPlatform.buildRustPackage {
+            pname = "rift-terminal";
             inherit version;
 
             inherit src;
@@ -152,9 +131,9 @@
 
             cargoBuildFlags = [
               "-p"
-              "warp"
+              "rift"
               "--bin"
-              "warp-oss"
+              "rift-oss"
               "--bin"
               "generate_settings_schema"
             ];
@@ -165,7 +144,7 @@
             doCheck = false;
 
             env = {
-              APPIMAGE_NAME = "WarpOss-${pkgs.stdenv.hostPlatform.parsed.cpu.name}.AppImage";
+              APPIMAGE_NAME = "Rift-${pkgs.stdenv.hostPlatform.parsed.cpu.name}.AppImage";
               LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
               PROTOC = "${pkgs.protobuf}/bin/protoc";
               PROTOC_INCLUDE = "${pkgs.protobuf}/include";
@@ -173,15 +152,15 @@
             };
             postInstall =
               let
-                installDir = "$out/opt/warpdotdev/warp-terminal-experimental";
+                installDir = "$out/opt/rift/rift-terminal";
                 resourcesDir = "${installDir}/resources";
                 releaseChannel = "stable";
                 libraryPath = lib.makeLibraryPath linuxRuntimeLibraries;
                 executablePath = lib.makeBinPath (with pkgs; [ xdg-utils ]);
               in
               ''
-                install -Dm755 "$out/bin/warp-oss" "${installDir}/warp-oss"
-                rm -f "$out/bin/warp-oss"
+                install -Dm755 "$out/bin/rift-oss" "${installDir}/rift-oss"
+                rm -f "$out/bin/rift-oss"
 
                 patchShebangs \
                   ./script/prepare_bundled_resources \
@@ -199,52 +178,52 @@
 
                 install -Dm644 \
                   "${resourcesDir}/THIRD_PARTY_LICENSES.txt" \
-                  "$out/share/licenses/warp-terminal-experimental/THIRD_PARTY_LICENSES.txt"
+                  "$out/share/licenses/rift-terminal/THIRD_PARTY_LICENSES.txt"
 
-                install -Dm644 LICENSE-AGPL "$out/share/licenses/warp-terminal-experimental/LICENSE-AGPL"
-                install -Dm644 LICENSE-MIT "$out/share/licenses/warp-terminal-experimental/LICENSE-MIT"
+                install -Dm644 LICENSE-AGPL "$out/share/licenses/rift-terminal/LICENSE-AGPL"
+                install -Dm644 LICENSE-MIT "$out/share/licenses/rift-terminal/LICENSE-MIT"
 
-                install -Dm644 app/channels/oss/dev.warp.WarpOss.desktop \
-                  "$out/share/applications/dev.warp.WarpOss.desktop"
-                substituteInPlace "$out/share/applications/dev.warp.WarpOss.desktop" \
-                  --replace-fail "Exec=warp-terminal-oss %U" "Exec=warp-terminal-experimental %U"
+                install -Dm644 app/channels/oss/dev.rift.Rift.desktop \
+                  "$out/share/applications/dev.rift.Rift.desktop"
+                substituteInPlace "$out/share/applications/dev.rift.Rift.desktop" \
+                  --replace-fail "Exec=rift %U" "Exec=rift-terminal %U"
 
                 for size in 16x16 32x32 64x64 128x128 256x256 512x512; do
                   icon="app/channels/oss/icon/no-padding/$size.png"
                   if [ -f "$icon" ]; then
                     install -Dm644 "$icon" \
-                      "$out/share/icons/hicolor/$size/apps/dev.warp.WarpOss.png"
+                      "$out/share/icons/hicolor/$size/apps/dev.rift.Rift.png"
                   fi
                 done
 
-                wrapProgram "${installDir}/warp-oss" \
+                wrapProgram "${installDir}/rift-oss" \
                   --prefix LD_LIBRARY_PATH : "${libraryPath}" \
                   --prefix PATH : "${executablePath}"
 
                 mkdir -p "$out/bin"
-                ln -s "${installDir}/warp-oss" "$out/bin/warp-oss"
-                ln -s "${installDir}/warp-oss" "$out/bin/warp-terminal-experimental"
+                ln -s "${installDir}/rift-oss" "$out/bin/rift-oss"
+                ln -s "${installDir}/rift-oss" "$out/bin/rift-terminal"
               '';
 
             postFixup = lib.optionalString pkgs.stdenv.isLinux ''
-              wrapped="/opt/warpdotdev/warp-terminal-experimental/.warp-oss-wrapped"
+              wrapped="/opt/rift/rift-terminal/.rift-oss-wrapped"
               if [ -e "$out$wrapped" ] && ! patchelf --print-needed "$out$wrapped" | grep -q '^libfontconfig\.so\.1$'; then
                 patchelf --add-needed libfontconfig.so.1 "$out$wrapped"
               fi
             '';
 
             meta = {
-              description = "Warp is an agentic development environment, born out of the terminal (Experimental Nix Support, Linux-only).";
-              homepage = "https://www.warp.dev";
+              description = "Rift is a fast, fully offline terminal (Experimental Nix Support, Linux-only).";
+              homepage = "https://github.com/kessler-frost/rift";
               license = lib.licenses.agpl3Only;
-              mainProgram = "warp-terminal-experimental";
+              mainProgram = "rift-terminal";
               platforms = systems;
               sourceProvenance = with lib.sourceTypes; [ fromSource ];
             };
           };
         in
         {
-          inherit warp-terminal-experimental;
+          inherit rift-terminal;
         }
       );
 
@@ -303,7 +282,7 @@
         {
           default = pkgs.mkShell {
             inherit nativeBuildInputs buildInputs;
-            APPIMAGE_NAME = "WarpOss-${pkgs.stdenv.hostPlatform.parsed.cpu.name}.AppImage";
+            APPIMAGE_NAME = "Rift-${pkgs.stdenv.hostPlatform.parsed.cpu.name}.AppImage";
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
             PROTOC = "${pkgs.protobuf}/bin/protoc";
             PROTOC_INCLUDE = "${pkgs.protobuf}/include";

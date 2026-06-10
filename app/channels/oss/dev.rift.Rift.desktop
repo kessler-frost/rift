@@ -4,20 +4,20 @@ Version=1.0
 
 Type=Application
 
-Name=WarpLocal
+Name=Rift
 GenericName=TerminalEmulator
 
-Exec=warp-terminal-local %U
-StartupWMClass=dev.warp.WarpLocal
+Exec=rift %U
+StartupWMClass=dev.rift.Rift
 
 Keywords=shell;prompt;command;commandline;cmd;
 
-Icon=dev.warp.WarpLocal
+Icon=dev.rift.Rift
 
 Categories=System;TerminalEmulator;
 
 # Don't run this application within a terminal.
 Terminal=false
 
-# Register ourselves as the handler for warplocal:// URLs.
-MimeType=x-scheme-handler/warplocal;
+# Register ourselves as the handler for rift:// URLs.
+MimeType=x-scheme-handler/rift;

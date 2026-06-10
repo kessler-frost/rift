@@ -1,11 +1,9 @@
 use super::is_rift_bundle;
 
 #[test]
-fn is_rift_bundle_recognises_warp_channels() {
-    assert!(is_rift_bundle("dev.warp.Warp"));
-    assert!(is_rift_bundle("dev.warp.WarpDev"));
-    assert!(is_rift_bundle("dev.warp.WarpPreview"));
-    assert!(is_rift_bundle("dev.warp.WarpOss"));
+fn is_rift_bundle_recognises_rift_channels() {
+    assert!(is_rift_bundle("dev.rift.Rift"));
+    assert!(is_rift_bundle("dev.rift.RiftIntegration"));
 }
 
 #[test]

@@ -8,11 +8,11 @@ fn test_data_dir_path() {
     // ChannelState, by default, is configured for Channel::Oss.
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(data_dir(), home_dir.join(".warp-oss"));
+            assert_eq!(data_dir(), home_dir.join(".rift-oss"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(data_dir(), home_dir.join(".local/share/warp-oss"));
+            assert_eq!(data_dir(), home_dir.join(".local/share/rift-terminal"));
         } else if #[cfg(windows)] {
-            assert_eq!(data_dir(), home_dir.join("AppData\\Roaming\\warp\\Rift\\data"));
+            assert_eq!(data_dir(), home_dir.join("AppData\\Roaming\\rift\\Rift\\data"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -25,11 +25,11 @@ fn test_config_local_dir_path() {
     // ChannelState, by default, is configured for Channel::Oss.
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(config_local_dir(), home_dir.join(".warp-oss"));
+            assert_eq!(config_local_dir(), home_dir.join(".rift-oss"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(config_local_dir(), home_dir.join(".config/warp-oss"));
+            assert_eq!(config_local_dir(), home_dir.join(".config/rift-terminal"));
         } else if #[cfg(windows)] {
-            assert_eq!(config_local_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\config"));
+            assert_eq!(config_local_dir(), home_dir.join("AppData\\Local\\rift\\Rift\\config"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -40,8 +40,8 @@ fn test_config_local_dir_path() {
 fn test_rift_home_config_dir_path() {
     let home_dir = home_dir().expect("Should be able to compute home directory");
     let expected_dir_name = match ChannelState::data_profile() {
-        Some(data_profile) => format!(".warp-oss-{data_profile}"),
-        None => ".warp-oss".to_string(),
+        Some(data_profile) => format!(".rift-oss-{data_profile}"),
+        None => ".rift-oss".to_string(),
     };
 
     assert_eq!(
@@ -53,12 +53,12 @@ fn test_rift_home_config_dir_path() {
 #[test]
 fn test_rift_home_skills_and_mcp_paths() {
     let Some(config_dir) = rift_home_config_dir() else {
-        panic!("Should be able to compute Warp home config directory");
+        panic!("Should be able to compute Rift home config directory");
     };
 
     assert_eq!(rift_home_skills_dir(), Some(config_dir.join("skills")));
     assert_eq!(
-        warp_home_mcp_config_file_path(),
+        rift_home_mcp_config_file_path(),
         Some(config_dir.join(".mcp.json"))
     );
 }
@@ -70,9 +70,9 @@ fn test_cache_dir_path() {
         if #[cfg(target_os = "macos")] {
             assert_eq!(cache_dir(), home_dir.join("Library/Application Support/dev.rift.Rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(cache_dir(), home_dir.join(".cache/warp-oss"));
+            assert_eq!(cache_dir(), home_dir.join(".cache/rift-terminal"));
         } else if #[cfg(windows)] {
-            assert_eq!(cache_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\cache"));
+            assert_eq!(cache_dir(), home_dir.join("AppData\\Local\\rift\\Rift\\cache"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -87,9 +87,9 @@ fn test_state_dir_path() {
         if #[cfg(target_os = "macos")] {
             assert_eq!(state_dir(), home_dir.join("Library/Application Support/dev.rift.Rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(state_dir(), home_dir.join(".local/state/warp-oss"));
+            assert_eq!(state_dir(), home_dir.join(".local/state/rift-terminal"));
         } else if #[cfg(windows)] {
-            assert_eq!(state_dir(), home_dir.join("AppData\\Local\\warp\\Rift\\data"));
+            assert_eq!(state_dir(), home_dir.join("AppData\\Local\\rift\\Rift\\data"));
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
@@ -97,52 +97,37 @@ fn test_state_dir_path() {
 }
 
 #[test]
-fn test_project_path_for_warp_app_id() {
-    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "warp", "Warp"), None)
-        .expect("should be able to compute project dirs");
-    cfg_if::cfg_if! {
-        if #[cfg(target_os = "macos")] {
-            assert_eq!(project_dirs.project_path(), "dev.warp.Warp");
-        } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(project_dirs.project_path(), "warp-terminal");
-        } else if #[cfg(windows)] {
-            assert_eq!(project_dirs.project_path(), "warp\\Warp");
-        } else {
-            unimplemented!("Need to update tests for current platform!");
-        }
-    }
-}
-
-#[test]
-fn test_project_path_for_warp_dev_app_id() {
-    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "warp", "WarpDev"), None)
-        .expect("should be able to compute project dirs");
-    cfg_if::cfg_if! {
-        if #[cfg(target_os = "macos")] {
-            assert_eq!(project_dirs.project_path(), "dev.warp.WarpDev");
-        } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(project_dirs.project_path(), "warp-terminal-dev");
-        } else if #[cfg(windows)] {
-            assert_eq!(project_dirs.project_path(), "warp\\WarpDev");
-        } else {
-            unimplemented!("Need to update tests for current platform!");
-        }
-    }
-}
-
-#[test]
-fn test_project_path_for_oss_app_id() {
-    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "warp", "Rift"), None)
+fn test_project_path_for_rift_app_id() {
+    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "rift", "Rift"), None)
         .expect("should be able to compute project dirs");
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
             assert_eq!(project_dirs.project_path(), "dev.rift.Rift");
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
-            assert_eq!(project_dirs.project_path(), "warp-oss");
+            assert_eq!(project_dirs.project_path(), "rift-terminal");
         } else if #[cfg(windows)] {
-            assert_eq!(project_dirs.project_path(), "warp\\Rift");
+            assert_eq!(project_dirs.project_path(), "rift\\Rift");
         } else {
             unimplemented!("Need to update tests for current platform!");
         }
     }
 }
+
+#[test]
+fn test_project_path_for_rift_dev_app_id() {
+    let project_dirs = project_dirs_for_app_id(AppId::new("dev", "rift", "RiftDev"), None)
+        .expect("should be able to compute project dirs");
+    cfg_if::cfg_if! {
+        if #[cfg(target_os = "macos")] {
+            assert_eq!(project_dirs.project_path(), "dev.rift.RiftDev");
+        } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
+            assert_eq!(project_dirs.project_path(), "riftdev");
+        } else if #[cfg(windows)] {
+            assert_eq!(project_dirs.project_path(), "rift\\RiftDev");
+        } else {
+            unimplemented!("Need to update tests for current platform!");
+        }
+    }
+}
+
+

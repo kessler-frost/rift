@@ -65,7 +65,7 @@ pub fn rift_home_skills_dir() -> Option<PathBuf> {
     rift_home_config_dir().map(|rift_config_dir| rift_config_dir.join("skills"))
 }
 
-pub fn warp_home_mcp_config_file_path() -> Option<PathBuf> {
+pub fn rift_home_mcp_config_file_path() -> Option<PathBuf> {
     rift_home_config_dir().map(|rift_config_dir| rift_config_dir.join(".mcp.json"))
 }
 
@@ -228,12 +228,10 @@ fn project_dirs_for_app_id(
     cfg_if::cfg_if! {
         if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             // Adjust the base application name so that we end up with
-            // directories like "rift-terminal" and "rift-terminal-dev", to
-            // match our Linux package name.
+            // directories like "rift-terminal", to match our Linux package
+            // name.
             let base_app_name = match app_id.application_name() {
-                "Warp" => "Warp-Terminal".to_owned(),
-                "Rift" => "Warp-Oss".to_owned(),
-                other if other.starts_with("Warp") => other.replace("Warp", "Warp-Terminal-"),
+                "Rift" => "Rift-Terminal".to_owned(),
                 _ => app_id.application_name().to_owned(),
             };
         } else {
@@ -298,7 +296,7 @@ pub fn app_group_container_path() -> Option<PathBuf> {
 ///
 /// ## Windows
 /// The resources directory is `$INSTALL_DIR/resources`, where `$INSTALL_DIR` is the directory
-/// containing the Rift executable (e.g. `C:\Program Files\WarpDev\resources`).
+/// containing the Rift executable (e.g. `C:\Program Files\Rift\resources`).
 pub fn bundled_resources_dir() -> Option<PathBuf> {
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
