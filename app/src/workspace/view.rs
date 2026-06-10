@@ -3,7 +3,6 @@ pub(crate) mod codex_modal;
 mod crash_recovery;
 pub mod global_search;
 pub(crate) mod launch_modal;
-pub(crate) mod openwarp_launch_modal;
 pub(crate) mod orchestration_launch_modal;
 mod startup_directory;
 #[cfg(test)]
@@ -75,7 +74,7 @@ use riftui::platform::{
     Cursor, FilePickerConfiguration, FullscreenState, SystemTheme, TerminationMode,
 };
 use riftui::text_layout::ClipConfig;
-use riftui::ui_components::button::{Button, ButtonVariant};
+use riftui::ui_components::button::Button;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::windowing::state::ApplicationStage;
 use riftui::windowing::{StateEvent, WindowManager};
@@ -286,9 +285,6 @@ use crate::workspace::toast_stack::{
 };
 use crate::workspace::view::codex_modal::CodexModal;
 use crate::workspace::view::launch_modal::{LaunchModal, LaunchModalEvent, OzLaunchSlide};
-use crate::workspace::view::openwarp_launch_modal::{
-    OpenWarpLaunchModal, OpenWarpLaunchModalEvent,
-};
 use crate::workspace::view::orchestration_launch_modal::{
     OrchestrationLaunchModal, OrchestrationLaunchModalEvent,
 };
@@ -666,7 +662,6 @@ pub struct Workspace {
     theme_creator_modal: ViewHandle<ThemeCreatorModal>,
     theme_deletion_modal: ViewHandle<ThemeDeletionModal>,
     oz_launch_modal: ModalWithTab<LaunchModal<OzLaunchSlide>>,
-    openwarp_launch_modal: ViewHandle<OpenWarpLaunchModal>,
     orchestration_launch_modal: ViewHandle<OrchestrationLaunchModal>,
     codex_modal: ViewHandle<CodexModal>,
     toast_stack: ViewHandle<DismissibleToastStack<WorkspaceAction>>,
@@ -2027,11 +2022,6 @@ impl Workspace {
             me.handle_oz_launch_modal_event(event, ctx);
         });
 
-        let openwarp_launch_view = ctx.add_typed_action_view(OpenWarpLaunchModal::new);
-        ctx.subscribe_to_view(&openwarp_launch_view, |me, _, event, ctx| {
-            me.handle_openwarp_launch_modal_event(event, ctx);
-        });
-
         let orchestration_launch_view = ctx.add_typed_action_view(OrchestrationLaunchModal::new);
         ctx.subscribe_to_view(&orchestration_launch_view, |me, _, event, ctx| {
             me.handle_orchestration_launch_modal_event(event, ctx);
@@ -2189,8 +2179,6 @@ impl Workspace {
                 if model_ref.target_window_id() == Some(ctx.window_id()) {
                     if model_ref.is_oz_launch_modal_open() {
                         me.open_tab_and_focus_oz_launch_modal(ctx);
-                    } else if model_ref.is_openwarp_launch_modal_open() {
-                        me.focus_openwarp_launch_modal(ctx);
                     } else if model_ref.is_orchestration_launch_modal_open() {
                         me.focus_orchestration_launch_modal(ctx);
                     } else if model_ref.is_hoa_onboarding_open() {
@@ -2284,7 +2272,6 @@ impl Workspace {
                 view: oz_launch_view,
                 tab_pane_group_id: None,
             },
-            openwarp_launch_modal: openwarp_launch_view,
             orchestration_launch_modal: orchestration_launch_view,
             codex_modal,
             lightbox_view: None,
@@ -9096,22 +9083,6 @@ impl Workspace {
     }
 
 
-    fn handle_openwarp_launch_modal_event(
-        &mut self,
-        event: &OpenWarpLaunchModalEvent,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        match event {
-            OpenWarpLaunchModalEvent::Close => {
-                OneTimeModalModel::handle(ctx).update(ctx, |model, ctx| {
-                    model.mark_openwarp_launch_modal_dismissed(ctx);
-                });
-                self.focus_active_tab(ctx);
-                ctx.notify();
-            }
-        }
-    }
-
     fn handle_orchestration_launch_modal_event(
         &mut self,
         event: &OrchestrationLaunchModalEvent,
@@ -9656,10 +9627,6 @@ impl Workspace {
         ctx: &AppContext,
     ) -> Box<dyn Element> {
         let mut tab_bar = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
-        let is_web_anonymous_user = self
-            .auth_state
-            .is_user_web_anonymous_user()
-            .unwrap_or_default();
 
         // Simplified mode for viewing Rift Drive objects, shared sessions, or conversation transcripts on WASM
         #[cfg(target_family = "wasm")]
@@ -9781,7 +9748,6 @@ impl Workspace {
             self.add_configurable_right_side_tab_bar_controls(
                 &mut right_controls,
                 &config,
-                is_web_anonymous_user,
                 appearance,
                 ctx,
             );
@@ -9921,7 +9887,6 @@ impl Workspace {
         self.add_configurable_right_side_tab_bar_controls(
             &mut tab_bar,
             &config,
-            is_web_anonymous_user,
             appearance,
             ctx,
         );
@@ -10059,7 +10024,6 @@ impl Workspace {
         &self,
         target: &mut Flex,
         config: &crate::workspace::tab_settings::HeaderToolbarChipSelection,
-        is_web_anonymous_user: bool,
         appearance: &Appearance,
         ctx: &AppContext,
     ) {
@@ -10111,23 +10075,6 @@ impl Workspace {
             );
         }
 
-        if self.auth_state.is_anonymous_or_logged_out()
-            && !FeatureFlag::OpenWarpNewSettingsModes.is_enabled()
-        {
-            if is_web_anonymous_user {
-                target.add_child(
-                    Container::new(self.render_web_anonymous_user_sign_in_button(appearance))
-                        .with_margin_left(8.)
-                        .finish(),
-                );
-            } else {
-                target.add_child(
-                    Container::new(self.render_anonymous_sign_up_user_button(appearance))
-                        .with_margin_left(8.)
-                        .finish(),
-                );
-            }
-        }
 
         let zoom_factor = WindowSettings::as_ref(ctx).zoom_level.as_zoom_factor();
         let traffic_light_data = traffic_light_data(ctx, self.window_id);
@@ -10531,88 +10478,6 @@ impl Workspace {
                 false,
             )
             .finish(),
-        )
-        .finish()
-    }
-
-    fn render_web_anonymous_user_sign_in_button(
-        &self,
-        appearance: &Appearance,
-    ) -> Box<dyn Element> {
-        let default_styles = UiComponentStyles {
-            font_color: Some(appearance.theme().active_ui_text_color().into()),
-            font_size: Some(12.),
-            font_weight: Some(Weight::Light),
-            font_family_id: Some(appearance.ui_font_family()),
-            border_color: None,
-            border_radius: Some(CornerRadius::with_all(Radius::Pixels(5.))),
-            border_width: Some(1.),
-            width: Some(80.),
-            height: Some(24.),
-            ..Default::default()
-        };
-        let hovered_styles = UiComponentStyles {
-            font_color: Some(appearance.theme().accent().into()),
-            border_color: Some(appearance.theme().accent().into()),
-            ..default_styles
-        };
-        let button = appearance
-            .ui_builder()
-            .button_with_custom_styles(
-                ButtonVariant::Text,
-                self.mouse_states.sign_in_button.clone(),
-                default_styles,
-                Some(hovered_styles),
-                Some(hovered_styles),
-                None,
-            )
-            .with_centered_text_label(String::from("Sign up"));
-
-        Align::new(
-            button
-                .build()
-                .on_click(|_ctx, _, _| {})
-                .finish(),
-        )
-        .finish()
-    }
-
-    fn render_anonymous_sign_up_user_button(&self, appearance: &Appearance) -> Box<dyn Element> {
-        let default_styles = UiComponentStyles {
-            font_color: Some(appearance.theme().active_ui_text_color().into()),
-            font_size: Some(12.),
-            font_weight: Some(Weight::Semibold),
-            font_family_id: Some(appearance.ui_font_family()),
-            border_color: Some(appearance.theme().active_ui_text_color().into()),
-            border_radius: Some(CornerRadius::with_all(Radius::Pixels(5.))),
-            border_width: Some(1.),
-            width: Some(80.),
-            height: Some(24.),
-            ..Default::default()
-        };
-        let hovered_styles = UiComponentStyles {
-            font_color: Some(appearance.theme().accent().into()),
-            border_color: Some(appearance.theme().accent().into()),
-            ..default_styles
-        };
-
-        let button = appearance
-            .ui_builder()
-            .button_with_custom_styles(
-                ButtonVariant::Text,
-                self.mouse_states.sign_up_button.clone(),
-                default_styles,
-                Some(hovered_styles),
-                Some(hovered_styles),
-                None,
-            )
-            .with_centered_text_label(String::from("Sign up"));
-
-        Align::new(
-            button
-                .build()
-                .on_click(|_ctx, _, _| {})
-                .finish(),
         )
         .finish()
     }
@@ -12085,10 +11950,6 @@ impl Workspace {
         // Logging out should mimic the same behaviour as closing a window.
         // This gives views a chance to clean up any state through on_view_detached before being dropped.
         self.on_window_closed(ctx);
-    }
-
-    fn focus_openwarp_launch_modal(&mut self, ctx: &mut ViewContext<Self>) {
-        ctx.focus(&self.openwarp_launch_modal);
     }
 
     fn focus_orchestration_launch_modal(&mut self, ctx: &mut ViewContext<Self>) {
@@ -13665,10 +13526,6 @@ impl View for Workspace {
 
         if should_show_modal && one_time_modal_model.is_oz_launch_modal_open() {
             stack.add_child(ChildView::new(&self.oz_launch_modal.view).finish());
-        }
-
-        if should_show_modal && one_time_modal_model.is_openwarp_launch_modal_open() {
-            stack.add_child(ChildView::new(&self.openwarp_launch_modal).finish());
         }
 
         if should_show_modal && one_time_modal_model.is_orchestration_launch_modal_open() {

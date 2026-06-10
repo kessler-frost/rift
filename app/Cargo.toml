@@ -560,7 +560,6 @@ default = [
     "inline_history_menu",
     "inline_model_selector",
     "oz_launch_modal",
-    "open_warp_launch_modal",
     "orchestration_launch_modal",
     "new_tab_styling",
     "richtext_multiselect",
@@ -601,7 +600,6 @@ default = [
     "hoa_remote_control",
     "codex_notifications",
     "trim_trailing_blank_lines",
-    "open_warp_new_settings_modes",
     "skip_firebase_anonymous_user",
     "settings_file",
     "directory_tab_colors",
@@ -886,7 +884,6 @@ restore_prompt_on_inline_model_selector_search = []
 oz_platform_skills = []
 oz_identity_federation = []
 oz_launch_modal = []
-open_warp_launch_modal = []
 orchestration_launch_modal = []
 new_tab_styling = []
 skill_arguments = []
@@ -900,7 +897,6 @@ queue_slash_command = []
 queued_prompts_v2 = ["queue_slash_command"]
 inline_menu_headers = []
 directory_tab_colors = []
-open_warp_new_settings_modes = []
 hoa_code_review = []
 vertical_tabs = []
 vertical_tabs_summary_mode = []

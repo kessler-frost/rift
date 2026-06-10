@@ -75,7 +75,6 @@ pub fn init(app: &mut AppContext) {
     hoa_onboarding::init(app);
     tab_configs::session_config_modal::init(app);
     view::launch_modal::oz_launch::init(app);
-    view::openwarp_launch_modal::init(app);
     view::orchestration_launch_modal::init(app);
     view::codex_modal::init(app);
     view::global_search::view::GlobalSearchView::init(app);

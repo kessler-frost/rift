@@ -640,10 +640,6 @@ pub enum FeatureFlag {
     /// Enables the Oz launch modal for introducing cloud agent features.
     OzLaunchModal,
 
-    /// Enables the OpenWarp launch modal announcing Rift going open-source.
-    /// When enabled, the HOA onboarding flow is suppressed.
-    OpenWarpLaunchModal,
-
     /// Enables the orchestration launch modal announcing multi-agent orchestration features.
     OrchestrationLaunchModal,
 
@@ -724,10 +720,6 @@ pub enum FeatureFlag {
     /// Enables associating a tab color with a directory so tabs automatically
     /// adopt the configured color when their working directory matches.
     DirectoryTabColors,
-
-    /// Enables the new settings to control visibility of Rift Drive, Code Review Panel,
-    /// and Project Explorer & Global Search features.
-    OpenWarpNewSettingsModes,
 
     /// Enables vertical tab layout as an alternative to the horizontal tab bar.
     VerticalTabs,
