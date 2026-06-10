@@ -24,13 +24,13 @@ const OSS_DISABLED_FLAGS: &[FeatureFlag] = &[
     FeatureFlag::SharedWithMe,
 ];
 
-// Simple wrapper around rift::run() for Warp OSS builds.
+// Simple wrapper around rift::run() for Rift builds.
 fn main() -> Result<()> {
     let mut state = ChannelState::new(
         Channel::Oss,
         ChannelConfig {
-            app_id: AppId::new("dev", "warp", "WarpOss"),
-            logfile_name: "warp-oss.log".into(),
+            app_id: AppId::new("dev", "rift", "Rift"),
+            logfile_name: "rift-oss.log".into(),
         },
     )
     .with_disabled_features(OSS_DISABLED_FLAGS);
@@ -52,15 +52,15 @@ embed_plist::embed_info_plist_bytes!(r#"
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleDisplayName</key>
-    <string>WarpOss</string>
+    <string>Rift</string>
     <key>CFBundleExecutable</key>
-    <string>warp-oss</string>
+    <string>rift-oss</string>
     <key>CFBundleIdentifier</key>
-    <string>dev.warp.WarpOss</string>
+    <string>dev.rift.Rift</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>WarpOss</string>
+    <string>Rift</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -72,9 +72,9 @@ embed_plist::embed_info_plist_bytes!(r#"
     <key>UIDesignRequiresCompatibility</key>
     <true/>
     <key>CFBundleURLTypes</key>
-    <array><dict><key>CFBundleURLName</key><string>Custom App</string><key>CFBundleURLSchemes</key><array><string>warposs</string></array></dict></array>
+    <array><dict><key>CFBundleURLName</key><string>Custom App</string><key>CFBundleURLSchemes</key><array><string>rift</string></array></dict></array>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2026, Denver Technologies, Inc</string>
+    <string>Rift</string>
     </dict>
     </plist>
 "#.as_bytes());

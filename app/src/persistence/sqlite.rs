@@ -66,7 +66,7 @@ use crate::{report_error, safe_info, send_telemetry_from_app_ctx};
 const CHANNEL_SIZE: usize = 1024;
 const COMMANDS_COUNT_LIMIT: i64 = 10000;
 
-const RIFT_SQLITE_FILE_NAME: &str = "warp.sqlite";
+const RIFT_SQLITE_FILE_NAME: &str = "rift.sqlite";
 
 /// Runs any migrations and creates the Sqlite database if it doesn't exist.
 /// Reads from the sqlite database to get the app state for session restoration.

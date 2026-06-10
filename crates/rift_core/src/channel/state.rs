@@ -36,7 +36,7 @@ pub struct ChannelState {
 impl ChannelState {
     pub fn init() -> Self {
         let channel = Channel::Oss;
-        let app_id = AppId::new("dev", "warp", "WarpOss");
+        let app_id = AppId::new("dev", "rift", "Rift");
         Self {
             channel,
             additional_features: Default::default(),
@@ -177,7 +177,7 @@ impl ChannelState {
             // Dummy value--integration tests shouldn't support URL schemes.
             Channel::Integration => "warpintegration",
             Channel::Local => "warplocal",
-            Channel::Oss => "warposs",
+            Channel::Oss => "rift",
         }
     }
 }
