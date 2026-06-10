@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_channel::Receiver;
 use instant::Instant;
-use riftui::{Entity, ModelContext, ModelHandle, SingletonEntity};
+use riftui::{Entity, ModelContext, ModelHandle};
 
 use super::event::{BootstrappedEvent, SshLoginStatus};
 use super::model::ansi;
@@ -15,7 +15,6 @@ use super::model::terminal_model::{
 };
 use super::model::tmux::commands::TmuxCommand;
 use crate::features::FeatureFlag;
-use crate::remote_server::manager::RemoteServerManager;
 use crate::server::telemetry::ImageProtocol;
 use crate::terminal::event::{
     AfterBlockCompletedEvent, BlockCompletedEvent, BlockMetadataReceivedEvent,
@@ -109,17 +108,6 @@ impl ModelEventDispatcher {
                     session_id,
                     is_subshell,
                 })
-            }
-            Event::RemoteServerReady { session_id } => {
-                log::info!("Remote server ready for session {session_id:?}");
-                return;
-            }
-            Event::RemoteServerFailed { session_id, error } => {
-                log::warn!(
-                    "Remote server setup failed for session {session_id:?}, falling back to \
-                     ControlMaster: {error}"
-                );
-                return;
             }
             Event::Handler(HandlerEvent::PromptStart) => {
                 self.last_start_prompt_marker = Some(PromptKind::Left);
@@ -326,7 +314,7 @@ impl ModelEventDispatcher {
             rcfiles_duration_seconds,
         } = event;
 
-        let (is_legacy_ssh, session_id, shell_type_name, shell_path) = (
+        let (_is_legacy_ssh, _session_id, _shell_type_name, _shell_path) = (
             matches!(
                 session_info.is_legacy_ssh_session,
                 IsLegacySSHSession::Yes { .. }
@@ -335,21 +323,6 @@ impl ModelEventDispatcher {
             session_info.shell.shell_type().name().to_owned(),
             session_info.shell.shell_path().clone(),
         );
-
-        // Send the SessionBootstrapped notification to the daemon BEFORE
-        // initializing the session. `initialize_bootstrapped_session` emits
-        // `SessionsEvent::SessionBootstrapped`, which causes subscribers to
-        // immediately queue `RunCommand` requests (e.g. `load_external_commands`).
-        // The daemon must have the executor ready before those requests arrive.
-        if FeatureFlag::SshRemoteServer.is_enabled() && is_legacy_ssh {
-            RemoteServerManager::handle(ctx).update(ctx, |mgr, _ctx| {
-                mgr.notify_session_bootstrapped(
-                    session_id,
-                    &shell_type_name,
-                    shell_path.as_deref(),
-                );
-            });
-        }
 
         self.sessions.update(ctx, |sessions, ctx| {
             sessions.initialize_bootstrapped_session(

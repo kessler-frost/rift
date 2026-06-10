@@ -13,7 +13,6 @@ async-fs.workspace = true
 futures.workspace = true
 thiserror.workspace = true
 riftui_core.workspace = true
-remote_server.workspace = true
 rift_core.workspace = true
 rift_util.workspace = true
 watcher.workspace = true

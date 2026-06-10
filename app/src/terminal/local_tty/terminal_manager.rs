@@ -47,8 +47,7 @@ use crate::terminal::view::Event as TerminalViewEvent;
 use crate::terminal::warpify::settings::WarpifySettings;
 use crate::terminal::writeable_pty::pty_controller::{EventLoopSendError, EventLoopSender};
 use crate::terminal::writeable_pty::terminal_manager_util::{
-    init_pty_controller_model, init_remote_server_controller, wire_up_pty_controller_with_view,
-    wire_up_remote_server_controller_with_view,
+    init_pty_controller_model, wire_up_pty_controller_with_view,
 };
 use crate::terminal::writeable_pty::{self, Message};
 use crate::terminal::{
@@ -58,8 +57,6 @@ use crate::terminal::{
 use crate::send_telemetry_on_executor;
 
 type PtyController = writeable_pty::PtyController<mio_channel::Sender<Message>>;
-type RemoteServerController =
-    writeable_pty::remote_server_controller::RemoteServerController<mio_channel::Sender<Message>>;
 
 /// The TerminalManager is responsible for
 /// - creating the terminal model
@@ -87,10 +84,6 @@ pub struct TerminalManager {
     /// of the PTY controller.
     #[allow(dead_code)]
     pty_controller: ModelHandle<PtyController>,
-
-    /// The manager is responsible for managing the lifetime of the remote server controller.
-    #[expect(dead_code)]
-    remote_server_controller: ModelHandle<RemoteServerController>,
 
     /// The process ID of the PTY. Purely used for integration tests. None if the PTY has not yet
     /// been started.
@@ -217,10 +210,6 @@ impl TerminalManager {
             ctx,
         );
 
-        // Initialize the RemoteServerController.
-        let remote_server_controller =
-            init_remote_server_controller(&pty_controller, &model_events, ctx);
-
         let current_prompt = ctx.add_model(|ctx| {
             CurrentPrompt::new_with_model_events(sessions.clone(), Some(&model_events), ctx)
         });
@@ -254,7 +243,6 @@ impl TerminalManager {
             ctx,
         );
 
-        wire_up_remote_server_controller_with_view(&remote_server_controller, &view, ctx);
 
 
         #[cfg(windows)]
@@ -269,7 +257,6 @@ impl TerminalManager {
             #[cfg(unix)]
             terminal_attributes_poller: None,
             pty_controller,
-            remote_server_controller,
 
             #[cfg(feature = "integration_tests")]
             pid: None,

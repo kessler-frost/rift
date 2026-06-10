@@ -75,7 +75,6 @@ fn initialize_app(app: &mut App) {
     app.add_singleton_model(|_| GlobalResourceHandlesProvider::new(global_resource_handles));
     app.add_singleton_model(DefaultTerminal::new);
     app.add_singleton_model(|_| IgnoredSuggestionsModel::new(vec![]));
-    app.add_singleton_model(remote_server::manager::RemoteServerManager::new);
 
     #[cfg(feature = "local_fs")]
     app.add_singleton_model(RepoMetadataModel::new);

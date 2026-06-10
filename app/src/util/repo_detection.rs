@@ -9,7 +9,6 @@ use std::future::Future;
 
 use futures::future::ready;
 #[cfg(not(target_family = "wasm"))]
-use futures::future::Either;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::repositories::RepoDetectionSource;
@@ -20,7 +19,6 @@ use riftui::SingletonEntity;
 use riftui::{View, ViewContext};
 
 #[cfg(not(target_family = "wasm"))]
-use crate::remote_server::manager::RemoteServerManager;
 
 /// Describes whether the active session is local or remote.
 pub enum RepoDetectionSessionType {
@@ -54,18 +52,7 @@ pub fn detect_possible_git_repo<V: View>(
     // the same absolute path happens to exist locally.
     let remote_detect = match session_type {
         RepoDetectionSessionType::Local => None,
-        RepoDetectionSessionType::Remote { session_id } => {
-            if RemoteServerManager::as_ref(ctx).is_session_potentially_active(session_id) {
-                Some(Either::Left(RemoteServerManager::handle(ctx).update(
-                    ctx,
-                    |mgr, ctx| {
-                        mgr.navigate_to_directory(session_id, active_directory.to_string(), ctx)
-                    },
-                )))
-            } else {
-                Some(Either::Right(ready(None)))
-            }
-        }
+        RepoDetectionSessionType::Remote { .. } => Some(ready(None)),
     };
 
     DetectedRepositories::handle(ctx).update(ctx, |repos, ctx| {

@@ -70,7 +70,6 @@ fn initialize_app(app: &mut App) {
     crate::terminal::available_shells::register(app);
     app.update(experiments::init);
     AltScreenReporting::register(app);
-    app.add_singleton_model(remote_server::manager::RemoteServerManager::new);
 }
 
 struct MockOptions {

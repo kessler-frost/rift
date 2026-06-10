@@ -8,8 +8,6 @@ use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::ssh::error::SshErrorBlock;
 use crate::terminal::ssh::install_tmux::SshInstallTmuxBlock;
 use crate::terminal::ssh::warpify::SshWarpifyBlock;
-use crate::terminal::view::ssh_remote_server_choice_view::SshRemoteServerChoiceView;
-use crate::terminal::view::ssh_remote_server_failed_banner::SshRemoteServerFailedBanner;
 use crate::terminal::warpify::success_block::WarpifySuccessBlock;
 use crate::terminal::TerminalView;
 
@@ -110,12 +108,6 @@ pub enum RichContentMetadata {
     },
     SshErrorBlock {
         ssh_error_block_handle: ViewHandle<SshErrorBlock>,
-    },
-    SshRemoteServerChoiceBlock {
-        handle: ViewHandle<SshRemoteServerChoiceView>,
-    },
-    SshRemoteServerFailedBanner {
-        handle: ViewHandle<SshRemoteServerFailedBanner>,
     },
     WarpifySuccessBlock {
         bootstrap_success_block_handle: ViewHandle<WarpifySuccessBlock>,

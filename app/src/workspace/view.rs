@@ -159,7 +159,6 @@ use crate::prompt::editor_modal::{
     EditorModal as PromptEditorModal, EditorModalEvent as PromptEditorModalEvent,
 };
 use crate::quit_warning::UnsavedStateSummary;
-use crate::remote_server::manager::RemoteServerManager;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, skip_tips_and_write_to_user_defaults,
     ResourceCenterEvent, ResourceCenterPage, ResourceCenterView, Tip, TipAction, TipsCompleted,
@@ -8667,7 +8666,7 @@ impl Workspace {
                 _path_if_local,
                 is_local,
                 is_wsl_session,
-                session_id,
+                _session_id,
                 has_pending_ssh,
             ) = terminal_handle.read(ctx, |terminal, ctx| {
                 let active_session_id = terminal.active_block_session_id();
@@ -8703,15 +8702,7 @@ impl Workspace {
             let is_remote = matches!(is_local, Some(false));
             let is_unsupported_session = is_wsl_session;
 
-            // Check whether this remote session has an active remote server
-            // connection (or is in the process of connecting). This is only
-            // true for Auto SSH Warpification (mode 1) sessions where
-            // `connect_session` was called at `InitShell` time.
-            let has_remote_server = is_remote
-                && FeatureFlag::SshRemoteServer.is_enabled()
-                && session_id.is_some_and(|sid| {
-                    RemoteServerManager::as_ref(ctx).is_session_potentially_active(sid)
-                });
+            let has_remote_server = false;
 
             let enablement = CodingPanelEnablementState::from_session_env(
                 file_tree_and_global_search_are_enabled,

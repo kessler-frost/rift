@@ -54,7 +54,6 @@ mod projects;
 mod prompt;
 mod quit_warning;
 #[allow(dead_code)]
-mod remote_server;
 mod resource_limits;
 mod safe_triangle;
 mod search_bar;
@@ -251,27 +250,15 @@ pub enum LaunchMode {
         is_integration_test: bool,
     },
 
-    /// Remote server proxy — bridges SSH stdio to the daemon's Unix socket.
-    /// This is a short-lived process that runs for the lifetime of an SSH session.
-    RemoteServerProxy,
-
-    /// Remote server daemon — long-lived headless process serving remote
-    /// connections via a Unix domain socket.
-    RemoteServerDaemon {
-        /// Stable identity key used to partition the daemon's socket/PID
-        /// directory on the remote host.
-        identity_key: String,
-    },
 }
 
 impl LaunchMode {
     fn args(&self) -> Cow<'_, rift_cli::AppArgs> {
         match self {
             LaunchMode::App { args, .. } => Cow::Borrowed(args),
-            LaunchMode::CommandLine { .. }
-            | LaunchMode::Test { .. }
-            | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => Cow::Owned(rift_cli::AppArgs::default()),
+            LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
+                Cow::Owned(rift_cli::AppArgs::default())
+            }
         }
     }
 
@@ -282,20 +269,14 @@ impl LaunchMode {
                 is_integration_test,
                 ..
             } => *is_integration_test,
-            LaunchMode::App { .. }
-            | LaunchMode::CommandLine { .. }
-            | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => false,
+            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } => false,
         }
     }
 
     fn take_test_driver(&mut self) -> Option<TestDriver> {
         match self {
             LaunchMode::Test { driver, .. } => driver.take(),
-            LaunchMode::App { .. }
-            | LaunchMode::CommandLine { .. }
-            | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => None,
+            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } => None,
         }
     }
 
@@ -312,20 +293,13 @@ impl LaunchMode {
             LaunchMode::App { .. } => ExecutionMode::App,
             LaunchMode::CommandLine { .. } => ExecutionMode::Sdk,
             LaunchMode::Test { .. } => ExecutionMode::App,
-            // RemoteServerProxy is a thin byte bridge; Sdk is the closest match.
-            LaunchMode::RemoteServerProxy => ExecutionMode::Sdk,
-            // RemoteServerDaemon gets its own mode for distinct Sentry tagging.
-            LaunchMode::RemoteServerDaemon { .. } => ExecutionMode::RemoteServerDaemon,
         }
     }
 
     fn is_sandboxed(&self) -> bool {
         match self {
             LaunchMode::CommandLine { is_sandboxed, .. } => *is_sandboxed,
-            LaunchMode::App { .. }
-            | LaunchMode::Test { .. }
-            | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => false,
+            LaunchMode::App { .. } | LaunchMode::Test { .. } => false,
         }
     }
 
@@ -336,7 +310,6 @@ impl LaunchMode {
                 CliCommand::Agent(AgentCommand::Run(args)) => !args.gui,
                 _ => true,
             },
-            LaunchMode::RemoteServerProxy | LaunchMode::RemoteServerDaemon { .. } => true,
             LaunchMode::App { .. } | LaunchMode::Test { .. } => false,
         }
     }
@@ -347,10 +320,7 @@ impl LaunchMode {
     pub(crate) fn crash_recovery_enabled(&self) -> bool {
         match self {
             LaunchMode::App { .. } => true,
-            LaunchMode::CommandLine { .. }
-            | LaunchMode::Test { .. }
-            | LaunchMode::RemoteServerProxy
-            | LaunchMode::RemoteServerDaemon { .. } => false,
+            LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => false,
         }
     }
 
@@ -358,22 +328,18 @@ impl LaunchMode {
     #[cfg_attr(not(feature = "crash_reporting"), allow(dead_code))]
     pub(crate) fn needs_crash_reporting(&self) -> bool {
         match self {
-            LaunchMode::App { .. }
-            | LaunchMode::CommandLine { .. }
-            | LaunchMode::Test { .. }
-            | LaunchMode::RemoteServerDaemon { .. }
-            | LaunchMode::RemoteServerProxy => true,
+            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
+                true
+            }
         }
     }
 
     /// Whether profiling and tracing should be initialized.
     pub(crate) fn needs_profiling(&self) -> bool {
         match self {
-            LaunchMode::App { .. }
-            | LaunchMode::CommandLine { .. }
-            | LaunchMode::Test { .. }
-            | LaunchMode::RemoteServerDaemon { .. }
-            | LaunchMode::RemoteServerProxy => true,
+            LaunchMode::App { .. } | LaunchMode::CommandLine { .. } | LaunchMode::Test { .. } => {
+                true
+            }
         }
     }
 
@@ -387,9 +353,6 @@ impl LaunchMode {
                     Some(LogDestination::File)
                 }
             }
-            // Proxy must log to stderr because stdout is the protocol channel.
-            LaunchMode::RemoteServerProxy => Some(LogDestination::Stderr),
-            LaunchMode::RemoteServerDaemon { .. } => Some(LogDestination::File),
             LaunchMode::App { .. } | LaunchMode::Test { .. } => None,
         }
     }
@@ -497,24 +460,6 @@ pub fn run() -> Result<()> {
                 }
             }
             #[cfg(not(target_family = "wasm"))]
-            rift_cli::Command::Worker(rift_cli::WorkerCommand::RemoteServerProxy(args)) => {
-                // Proxy is a thin byte bridge (stdin/stdout ↔ Unix socket).
-                // It only needs logging to stderr since stdout is the protocol
-                // channel. No crash reporting, no initialize_app.
-                let launch_mode = LaunchMode::RemoteServerProxy;
-                rift_logging::init(rift_logging::LogConfig {
-                    is_cli: true,
-                    log_destination: launch_mode.log_destination(),
-                    ..Default::default()
-                })?;
-                return crate::remote_server::run_proxy(args.identity_key.clone());
-            }
-            #[cfg(not(target_family = "wasm"))]
-            rift_cli::Command::Worker(rift_cli::WorkerCommand::RemoteServerDaemon(args)) => {
-                // Daemon handles its own full initialization (including
-                // initialize_app and crash reporting) inside run_daemon_app.
-                return crate::remote_server::run_daemon(args.identity_key.clone());
-            }
             #[cfg(not(target_family = "wasm"))]
             rift_cli::Command::Worker(rift_cli::WorkerCommand::RipgrepSearch {
                 parent,
@@ -987,18 +932,8 @@ pub(crate) fn initialize_app(
 
     // If any part of sqlite initialization fails, we just don't do session restoration (i.e.
     // feature degradation).
-    let persistence_scope = match launch_mode {
-        LaunchMode::RemoteServerDaemon { identity_key } => {
-            persistence::PersistenceScope::RemoteServerDaemon {
-                identity_key: identity_key.clone(),
-            }
-        }
-        LaunchMode::App { .. }
-        | LaunchMode::CommandLine { .. }
-        | LaunchMode::RemoteServerProxy
-        | LaunchMode::Test { .. } => persistence::PersistenceScope::App,
-    };
-    let (sqlite_data, writer_handles) = persistence::initialize(ctx, persistence_scope);
+    let (sqlite_data, writer_handles) =
+        persistence::initialize(ctx, persistence::PersistenceScope::App);
     timer.mark_interval_end("SQLITE_INITIALIZED");
 
     let persistence_writer = PersistenceWriter::new(writer_handles);
@@ -1031,15 +966,15 @@ pub(crate) fn initialize_app(
     });
 
     let (
-        mut cached_workspaces,
-        mut current_workspace_uid,
-        mut app_state,
-        mut command_history,
-        mut restored_user_profiles,
-        mut experiments,
-        mut workspace_language_servers,
-        mut persisted_projects,
-        mut persisted_ignored_suggestions,
+        cached_workspaces,
+        current_workspace_uid,
+        app_state,
+        command_history,
+        restored_user_profiles,
+        experiments,
+        workspace_language_servers,
+        persisted_projects,
+        persisted_ignored_suggestions,
     ) = sqlite_data
         .map(|sqlite_data| {
             (
@@ -1067,18 +1002,6 @@ pub(crate) fn initialize_app(
                 Default::default(),
             )
         });
-
-    if matches!(launch_mode, LaunchMode::RemoteServerDaemon { .. }) {
-        cached_workspaces = Default::default();
-        current_workspace_uid = None;
-        app_state = None;
-        command_history = Default::default();
-        restored_user_profiles = Default::default();
-        experiments = Default::default();
-        workspace_language_servers = Default::default();
-        persisted_projects = Default::default();
-        persisted_ignored_suggestions = Default::default();
-    }
 
     let _ = experiments;
 
@@ -1136,9 +1059,7 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(|_ctx| SyncedInputState::new());
 
-    ctx.add_singleton_model(remote_server::manager::RemoteServerManager::new);
     #[cfg(not(target_family = "wasm"))]
-    remote_server::wire_auth_token_rotation(ctx);
 
     log::info!(
         "Starting warp with channel state {} and version {:?}",
@@ -1255,34 +1176,8 @@ pub(crate) fn initialize_app(
             });
         }
 
-        let emit_incremental_updates = matches!(launch_mode, LaunchMode::RemoteServerDaemon { .. });
         ctx.add_singleton_model(|ctx| {
-            let model = if emit_incremental_updates {
-                RepoMetadataModel::new_with_incremental_updates(ctx)
-            } else {
-                RepoMetadataModel::new(ctx)
-            };
-
-            // Subscribe to RemoteServerManager push events so that remote repo
-            // metadata snapshots and incremental updates populate the remote
-            // sub-model and trigger RepoMetadataEvent emissions.
-            {
-                use remote_server::manager::{RemoteServerManager, RemoteServerManagerEvent};
-                let mgr = RemoteServerManager::handle(ctx);
-                ctx.subscribe_to_model(&mgr, |me, event, ctx| match event {
-                    RemoteServerManagerEvent::RepoMetadataSnapshot { host_id, update } => {
-                        me.insert_remote_snapshot(host_id.clone(), update, ctx);
-                    }
-                    RemoteServerManagerEvent::RepoMetadataUpdated { host_id, update }
-                    | RemoteServerManagerEvent::RepoMetadataDirectoryLoaded { host_id, update } => {
-                        me.apply_remote_incremental_update(host_id, update, ctx);
-                    }
-                    RemoteServerManagerEvent::HostDisconnected { host_id } => {
-                        me.remove_remote_repositories_for_host(host_id, ctx);
-                    }
-                    _ => {}
-                });
-            }
+            let model = RepoMetadataModel::new(ctx);
 
             model
         });
@@ -1326,7 +1221,6 @@ pub(crate) fn initialize_app(
     undo_close::init(ctx);
     tab_configs::new_worktree_modal::init(ctx);
     tab_configs::params_modal::init(ctx);
-    crate::ui_components::keyboard_navigable_buttons::init(ctx);
     terminal::ssh::install_tmux::init(ctx);
     terminal::ssh::warpify::init(ctx);
     terminal::ssh::error::init(ctx);
@@ -1907,22 +1801,6 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
             std::process::exit(1);
         }
         // Proxy should never reach launch() — it's a thin byte bridge.
-        LaunchMode::RemoteServerProxy => {
-            log::error!("Proxy mode should not use the launch() path");
-            std::process::exit(1);
-        }
-        // Daemon: bind the Unix socket and register the ServerModel.
-        // initialize_app already set up everything else including crash
-        // reporting.
-        #[cfg(unix)]
-        LaunchMode::RemoteServerDaemon { identity_key } => {
-            remote_server::unix::launch_daemon(&identity_key, ctx);
-        }
-        #[cfg(not(unix))]
-        LaunchMode::RemoteServerDaemon { .. } => {
-            log::error!("RemoteServerDaemon is not supported on this platform");
-            std::process::exit(1);
-        }
     }
 }
 

@@ -61,10 +61,6 @@ pub fn main() -> Result<()> {
                 rift::terminal::local_tty::server::run_terminal_server(args);
                 return Ok(());
             }
-            #[cfg(not(target_family = "wasm"))]
-            WorkerCommand::RemoteServerProxy(_) | WorkerCommand::RemoteServerDaemon(_) => {
-                return rift::run();
-            }
             // This is a catch-all to handle the plugin host, which the integration test crate doesn't have a feature flag for.
             #[allow(unreachable_patterns)]
             other => panic!("Worker not supported in integration tests: {other:?}"),
