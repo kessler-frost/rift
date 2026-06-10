@@ -325,21 +325,6 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
     );
     toggle_binding_pairs.push(
         ToggleSettingActionPair::new(
-            "agent task completion notifications",
-            builder(SettingsAction::FeaturesPageToggle(
-                FeaturesPageAction::ToggleAgentTaskCompletedNotifications,
-            )),
-            &(context.to_owned() & id!(flags::NOTIFICATIONS_CONTEXT_FLAG)),
-            flags::AGENT_TASK_COMPLETED_NOTIFICATIONS_FLAG,
-        )
-        .is_supported_on_current_platform(
-            SessionSettings::as_ref(app)
-                .notifications
-                .is_supported_on_current_platform(),
-        ),
-    );
-    toggle_binding_pairs.push(
-        ToggleSettingActionPair::new(
             "needs-attention notifications",
             builder(SettingsAction::FeaturesPageToggle(
                 FeaturesPageAction::ToggleNeedsAttentionNotifications,
@@ -719,7 +704,6 @@ pub enum FeaturesPageAction {
     SetLongRunningNotificationThreshold,
     /// Legacy. To be combined with `ToggleNeedsAttentionNotifications` when desktop notifs are unflagged.
     TogglePasswordPromptNotifications,
-    ToggleAgentTaskCompletedNotifications,
     ToggleNeedsAttentionNotifications,
     ToggleNotificationSound,
     SetNotificationToastDuration,
@@ -823,7 +807,6 @@ struct MouseStateHandles {
     quake_mode_width_height_reset: MouseStateHandle,
     quake_mode_pin_window_check: MouseStateHandle,
     long_running_notifications_checkbox: MouseStateHandle,
-    agent_task_completed_notifications_checkbox: MouseStateHandle,
     agent_needs_attention_notifications_checkbox: MouseStateHandle,
     #[cfg(target_os = "macos")]
     notification_sound_checkbox: MouseStateHandle,
@@ -1208,22 +1191,6 @@ impl TypedActionView for FeaturesPageView {
                 SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
                     let new_settings = NotificationsSettings {
                         is_password_prompt_enabled,
-                        ..current_settings
-                    };
-                    if let Err(e) = settings.notifications.set_value(new_settings, ctx) {
-                        log::error!("Error persisting notifications setting: {e}");
-                    }
-                });
-                ctx.notify();
-            }
-            ToggleAgentTaskCompletedNotifications => {
-                let current_settings = SessionSettings::as_ref(ctx).notifications.value().clone();
-                let is_agent_task_completed_enabled =
-                    !current_settings.is_agent_task_completed_enabled;
-
-                SessionSettings::handle(ctx).update(ctx, |settings, ctx| {
-                    let new_settings = NotificationsSettings {
-                        is_agent_task_completed_enabled,
                         ..current_settings
                     };
                     if let Err(e) = settings.notifications.set_value(new_settings, ctx) {
@@ -4461,17 +4428,6 @@ impl SettingsWidget for DesktopNotificationsWidget {
             NotificationsMode::Enabled
         ) {
             let toggles = vec![
-                view.render_notification_toggle(
-                    session_settings
-                        .notifications
-                        .is_agent_task_completed_enabled,
-                    "Notify when an agent completes a task",
-                    FeaturesPageAction::ToggleAgentTaskCompletedNotifications,
-                    view.button_mouse_states
-                        .agent_task_completed_notifications_checkbox
-                        .clone(),
-                    appearance,
-                ),
                 view.render_long_running_notifications_setting(
                     &session_settings.notifications,
                     appearance,

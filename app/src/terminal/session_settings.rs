@@ -83,8 +83,6 @@ pub struct NotificationsSettings {
     #[schemars(description = "Whether to notify when a password prompt is detected.")]
     pub is_password_prompt_enabled: bool,
 
-    #[schemars(description = "Whether to notify when an agent task completes.")]
-    pub is_agent_task_completed_enabled: bool,
     #[schemars(description = "Whether to notify when a session needs attention.")]
     pub is_needs_attention_enabled: bool,
 
@@ -99,7 +97,6 @@ impl Default for NotificationsSettings {
             is_long_running_enabled: true,
             long_running_threshold: *DEFAULT_THRESHOLD_FOR_LONG_RUNNING_NOTIFICATION,
             is_password_prompt_enabled: true,
-            is_agent_task_completed_enabled: true,
             is_needs_attention_enabled: true,
             play_notification_sound: true,
         }
@@ -163,13 +160,6 @@ define_settings_group!(SessionSettings, settings: [
     saved_prompt: SavedPrompt {
         type: PromptSelection,
         default: PromptSelection::default(),
-        supported_platforms: SupportedPlatforms::ALL,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: true,
-    },
-    should_add_agent_mode_chip: ShouldAddAgentModeChip {
-        type: bool,
-        default: true,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: true,

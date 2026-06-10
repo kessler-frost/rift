@@ -239,10 +239,8 @@ pub mod flags {
     pub const SSH_TMUX_WRAPPER_CONTEXT_FLAG: &str = "SSH_Tmux_Wrapper";
     pub const NOTIFICATIONS_CONTEXT_FLAG: &str = "Notifications_Enabled";
     pub const LONG_RUNNING_NOTIFICATIONS_FLAG: &str = "Long_Running_Notifications";
-    pub const AGENT_TASK_COMPLETED_NOTIFICATIONS_FLAG: &str = "Agent_Task_Completed_Notifications";
     pub const NEEDS_ATTENTION_NOTIFICATIONS_FLAG: &str = "Needs_Attention_Notifications";
     pub const NOTIFICATION_SOUND_FLAG: &str = "Notification_Sound";
-    pub const AGENT_IN_APP_NOTIFICATIONS_FLAG: &str = "Agent_In_App_Notifications";
     pub const LINK_TOOLTIP_CONTEXT_FLAG: &str = "Link_Tooltip";
     pub const COMPACT_MODE_CONTEXT_FLAG: &str = "Compact_Mode_Enabled";
     pub const CURSOR_BLINK_CONTEXT_FLAG: &str = "Cursor_Blink_Enabled";
@@ -298,9 +296,7 @@ pub mod flags {
     pub const SYNC_ALL_PANES_IN_CURRENT_TAB: &str = "Sync_All_Panes_In_Current_Tab";
     pub const USE_AUDIBLE_BELL_CONTEXT_FLAG: &str = "Use_Audible_Terminal_Bell";
     pub const SHOW_INPUT_HINT_TEXT_CONTEXT_FLAG: &str = "Show_Input_Hint_text";
-    pub const SHOW_AGENT_TIPS_FLAG: &str = "Show_Agent_Tips";
     pub const SHOW_OZ_UPDATES_IN_ZERO_STATE_FLAG: &str = "Show_Oz_Updates_In_Zero_State";
-    pub const USE_AGENT_FOOTER_FLAG: &str = "Use_Agent_Footer";
     pub const THINKING_DISPLAY_SHOW_AND_COLLAPSE: &str = "Thinking_Display_ShowAndCollapse";
     pub const THINKING_DISPLAY_ALWAYS_SHOW: &str = "Thinking_Display_AlwaysShow";
     pub const THINKING_DISPLAY_NEVER_SHOW: &str = "Thinking_Display_NeverShow";
@@ -338,7 +334,6 @@ pub mod flags {
     pub const NATURAL_LANGUAGE_AUTOSUGGESTIONS_FLAG: &str = "Natural_Language_Autosuggestions";
     pub const SHARED_BLOCK_TITLE_GENERATION_FLAG: &str = "Shared_Block_Title_Generation";
     pub const GIT_OPERATIONS_AUTOGEN_FLAG: &str = "Git_Operations_Autogen";
-    pub const INCLUDE_AGENT_COMMANDS_IN_HISTORY_FLAG: &str = "Include_Agent_Commands_In_History";
     pub const AI_RULES_FLAG: &str = "AI_Rules";
     pub const SUGGESTED_RULES_FLAG: &str = "Suggested_Rules";
     pub const RIFT_DRIVE_CONTEXT_FLAG: &str = "Rift_Drive_Context";
@@ -356,7 +351,6 @@ pub mod flags {
     pub const HAS_SETTINGS_TO_IMPORT_FLAG: &str = "HasSettingsToImport";
     /// The user's setting enabled UDI, but we may show a classic input (e.g. ssh/subshell riftification)
     pub const UNIVERSAL_DEVELOPER_INPUT_ENABLED: &str = "UniversalDeveloperInputEnabled";
-    pub const AGENT_MODE_INPUT: &str = "InputAgentMode";
     pub const TERMINAL_MODE_INPUT: &str = "InputTerminalMode";
     pub const RIFT_IS_DEFAULT_TERMINAL: &str = "RiftIsDefaultTerminal";
     pub const PASSIVE_CODE_DIFF_KEYBINDINGS_ENABLED: &str = "PassiveCodeDiffKeybindingsEnabled";
@@ -368,22 +362,10 @@ pub mod flags {
     pub const TERMINAL_INPUT_PAGE_KEYS_HANDLED_BY_INPUT: &str =
         "TerminalInputPageKeysHandledByInput";
     pub const HAS_PENDING_PROMPT_SUGGESTION: &str = "HasPendingPromptSuggestion";
-    pub const ACTIVE_AGENT_VIEW: &str = "ActiveAgentView";
-    pub const ACTIVE_INLINE_AGENT_VIEW: &str = "ActiveInlineAgentView";
-    /// When set, ctrl-enter should be the active binding to enter agent view.
-    ///
-    /// This is true on linux and windows.
-    pub const CTRL_ENTER_ENTERS_AGENT_VIEW: &str = "CtrlEnterEntersAgentView";
-    pub const AGENT_VIEW_ENABLED: &str = "FeatureFlag.AgentView";
     pub const LOCKED_INPUT: &str = "LockedInput";
     pub const OPEN_INLINE_CONVERSATION_MENU: &str = "OpenInlineConversationMenu";
     pub const EMPTY_INPUT_BUFFER: &str = "EmptyInputBuffer";
-    pub const CLI_AGENT_RICH_INPUT_OPEN: &str = "CLIAgentRichInputOpen";
-    pub const CLI_AGENT_FOOTER_ENABLED: &str = "CLIAgentFooterEnabled";
-    pub const CLI_AGENT_RICH_INPUT_CHIP_ENABLED: &str = "CLIAgentRichInputChipEnabled";
     pub const AUTO_TOGGLE_RICH_INPUT_FLAG: &str = "AutoToggleRichInput";
-    pub const AUTO_OPEN_RICH_INPUT_ON_CLI_AGENT_START_FLAG: &str =
-        "AutoOpenRichInputOnCLIAgentStart";
     pub const AUTO_DISMISS_RICH_INPUT_AFTER_SUBMIT_FLAG: &str = "AutoDismissRichInputAfterSubmit";
     pub const ENABLE_DRIVE: &str = "EnableDrive";
     // Tools panel settings

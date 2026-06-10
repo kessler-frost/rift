@@ -441,7 +441,6 @@ fn test_notifications_from_file_value_rejects_serde_format_duration() {
         "is_long_running_enabled": true,
         "long_running_threshold": {"secs": 60, "nanos": 0},
         "is_password_prompt_enabled": true,
-        "is_agent_task_completed_enabled": true,
         "is_needs_attention_enabled": true,
         "play_notification_sound": true,
     });

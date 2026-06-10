@@ -145,15 +145,6 @@ define_settings_group!(InputSettings,
             sync_to_cloud: SyncToCloud::Never,
             private: true,
         },
-        show_agent_tips: ShowAgentTips {
-            type: bool,
-            default: true,
-            supported_platforms: SupportedPlatforms::ALL,
-            sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-            private: false,
-            toml_path: "agents.rift_agent.input.show_agent_tips",
-            description: "Whether agent tips are displayed in the input.",
-        },
         // Whether to show the terminal input message bar (contextual hints at the bottom of terminal input).
         show_terminal_input_message_bar: ShowTerminalInputMessageBar {
             type: bool,

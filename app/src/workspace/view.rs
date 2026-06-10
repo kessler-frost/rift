@@ -11142,14 +11142,6 @@ impl Workspace {
         if session_settings.notifications.is_long_running_enabled {
             context.set.insert(flags::LONG_RUNNING_NOTIFICATIONS_FLAG);
         }
-        if session_settings
-            .notifications
-            .is_agent_task_completed_enabled
-        {
-            context
-                .set
-                .insert(flags::AGENT_TASK_COMPLETED_NOTIFICATIONS_FLAG);
-        }
         if session_settings.notifications.is_needs_attention_enabled {
             context
                 .set
@@ -11355,9 +11347,6 @@ impl Workspace {
             context.set.insert(flags::SHOW_INPUT_HINT_TEXT_CONTEXT_FLAG);
         }
 
-        if *input_settings.show_agent_tips.value() {
-            context.set.insert(flags::SHOW_AGENT_TIPS_FLAG);
-        }
         if *editor_settings.enable_autosuggestions {
             context.set.insert(flags::AUTOSUGGESTIONS_ENABLED_FLAG);
         }
