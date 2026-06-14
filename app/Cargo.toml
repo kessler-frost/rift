@@ -1,7 +1,7 @@
 [package]
 authors = ["Rift"]
 default-run = "rift-oss"
-description = "Rift: a fast, fully offline terminal"
+description = "Rift: a personal take on a nice terminal"
 edition = "2021"
 autobins = false
 name = "rift"
@@ -832,7 +832,7 @@ identifier = "dev.rift.Rift"
 name = "Rift"
 resources = ["assets/onboarding"]
 icon = ["channels/oss/icon/no-padding/512x512.png", "channels/oss/icon/no-padding/icon.ico"]
-short_description = "Rift: a fully-offline terminal."
+short_description = "Rift: a personal take on a nice terminal."
 
 
 

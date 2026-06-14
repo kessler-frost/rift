@@ -32,13 +32,11 @@ pub fn make_router() -> Router {
             .on_failure(()),
     );
 
-    // We allow requests from localhost, the upstream site and any subdomain of the upstream site.
+    // We only allow requests from localhost. Rift is fully offline and has no
+    // hosted site to talk to.
     let allow_origin_predicate =
         AllowOrigin::predicate(|origin: &HeaderValue, _request_parts: &Parts| {
-            origin == "http://localhost:8080"
-                || origin == "http://localhost:8082"
-                || origin == "https://rift.dev"
-                || origin.as_bytes().ends_with(b".rift.dev")
+            origin == "http://localhost:8080" || origin == "http://localhost:8082"
         });
 
     let cors = CorsLayer::new()

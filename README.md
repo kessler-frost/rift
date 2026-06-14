@@ -3,12 +3,22 @@
 </p>
 
 <p align="center">
+  <em>A personal take on a nice terminal.</em>
+</p>
+
+<p align="center">
   <img src="branding/rift-demo.gif" alt="Rift demo: commands, history menu, command search, tabs" width="820">
 </p>
 
 **Rift** is my personal fork of [Warp](https://www.warp.dev) with all the cloud and AI taken out. It's fully offline, and you compile it yourself.
 
 What's left is the part of Warp I actually wanted: the blocks UI, GPU rendering, and the editor-style command input. No account, no network calls, no agent. It isn't a product, it's a terminal I can read and change.
+
+## Why I forked it
+
+Warp won me over with the **blocks UI**. Treating each command and its output as one thing you can scroll, select, and rerun made every other terminal feel like a wall of text. The editor-style input and GPU-smooth rendering sealed it. What I didn't want was everything bolted around it: the account wall, the telemetry, and the AI agent steadily taking over the core.
+
+So when Warp **open-sourced its code**, I was genuinely excited. It finally meant I could keep the parts I loved and cut the rest. Rift is that: the Warp I wanted, owned outright.
 
 ## Download
 

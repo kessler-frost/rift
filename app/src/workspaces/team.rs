@@ -48,29 +48,6 @@ impl Ord for TeamMember {
 #[derive(Clone, Debug)]
 pub struct DiscoverableTeam {}
 
-#[derive(PartialEq, Eq, Clone)]
-pub enum TeamDeleteDisabledReason {
-    ActivePaidSubscription,
-    RemainingBonusCredits,
-    OtherMembers,
-}
-
-impl TeamDeleteDisabledReason {
-    pub fn user_facing_message(&self) -> &str {
-        match self {
-            TeamDeleteDisabledReason::ActivePaidSubscription => {
-                "Your team cannot be deleted with an active subscription."
-            }
-            TeamDeleteDisabledReason::RemainingBonusCredits => {
-                "Your team cannot be deleted with unused add-on credits."
-            }
-            TeamDeleteDisabledReason::OtherMembers => {
-                "Your team cannot be deleted with other team members."
-            }
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Team {
     pub uid: ServerId,
@@ -133,25 +110,4 @@ impl Team {
         })
     }
 
-    pub fn get_delete_disabled_reason(
-        &self,
-        current_user_email: &str,
-        remaining_workspace_credits: i32,
-    ) -> Option<TeamDeleteDisabledReason> {
-        if self.members.len() > 1
-            || self
-                .members
-                .first()
-                .is_none_or(|m| m.email != current_user_email)
-        {
-            return Some(TeamDeleteDisabledReason::OtherMembers);
-        }
-        if self.billing_metadata.is_user_on_paid_plan() {
-            return Some(TeamDeleteDisabledReason::ActivePaidSubscription);
-        }
-        if remaining_workspace_credits > 0 {
-            return Some(TeamDeleteDisabledReason::RemainingBonusCredits);
-        }
-        None // No reason found, team can be deleted
-    }
 }

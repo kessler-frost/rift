@@ -1,10 +1,7 @@
 use riftui::{Entity, ModelContext, SingletonEntity, Tracked};
 
 use super::team::{DiscoverableTeam, Team};
-use super::workspace::{
-    EnterpriseSecretRegex, UgcCollectionEnablementSetting, Workspace,
-    WorkspaceUid,
-};
+use super::workspace::{EnterpriseSecretRegex, Workspace, WorkspaceUid};
 use crate::server::ids::ServerId;
 
 #[derive(Debug)]
@@ -93,18 +90,6 @@ impl UserWorkspaces {
             })
             .unwrap_or_default()
     }
-
-    pub fn get_ugc_collection_enablement_setting(&self) -> UgcCollectionEnablementSetting {
-        self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .ugc_collection_settings
-                    .setting
-                    .clone()
-            })
-            .unwrap_or_default()
-    }
-
 }
 
 impl Entity for UserWorkspaces {
