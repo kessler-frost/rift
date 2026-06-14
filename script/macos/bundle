@@ -317,14 +317,10 @@ if [[ "$ARTIFACT" == cli ]]; then
   OPEN_AFTER_BUNDLE=false
   FEATURES="$FEATURES,standalone"
 elif [[ "$ARTIFACT" == app ]]; then
+  # Rift stripped Warp's natural-language-detection subsystem along with all AI,
+  # so the nld_classifier_*/nld_heuristic_* features no longer exist. The GUI app
+  # only needs the base bundle features.
   FEATURES="$FEATURES,gui"
-  if [[ "$RELEASE_CHANNEL" == "local" || "$RELEASE_CHANNEL" == "dev" ]]; then
-    FEATURES="$FEATURES,nld_classifier_v3,nld_heuristic_v2"
-  elif [[ "$RELEASE_CHANNEL" == "preview" ]]; then
-    FEATURES="$FEATURES,nld_classifier_v2,nld_heuristic_v2"
-  else
-    FEATURES="$FEATURES,nld_classifier_v1,nld_heuristic_v1"
-  fi
 fi
 
 # If we're building a universal bundle for the app artifact, make sure the additional target is available.
@@ -679,7 +675,11 @@ if [[ "$ARTIFACT" = app ]]; then
       --no-internet-enable
       --background app/assets/resources/mac/rift_install_image.png
       --icon-size 128
-      --window-size 700 500
+      # Height includes the Finder title bar (~28px): create-dmg sets the window's
+      # OUTER bounds, so the usable content area is window-height minus the title
+      # bar. A 500px-tall background needs a ~528px window or it overflows and the
+      # installer window shows a scrollbar.
+      --window-size 700 528
       --format UDZO
       --app-drop-link 550 250
       --icon "$RIFT_APP_NAME.app" 150 250
@@ -721,13 +721,20 @@ if [[ "$ARTIFACT" = app ]]; then
     NOTARIZATION_ARTIFACT="$DMG_DIR/$DMG_NAME"
     STAPLE_TICKET=true
   else
-    echo "Creating $DMG_DIR"
-    mkdir -p "$DMG_DIR"
-
     echo "Cleaning up any existing DMG files before creating new ones..."
     cleanup_dmg_files "$DMG_DIR"
 
-    create_rift_dmg "$BUNDLE_DIR"
+    # Stage just the .app into a clean directory so the DMG contains only Rift.app
+    # (+ the Applications drop-link create-dmg adds) — not the build/staging clutter
+    # that lives alongside it in BUNDLE_DIR.
+    if test -d "$DMG_DIR"; then
+      rm -r "$DMG_DIR"
+    fi
+    echo "Creating $DMG_DIR"
+    mkdir -p "$DMG_DIR"
+    cp -R "$BUNDLE_DIR/$RIFT_APP_NAME.app" "$DMG_DIR"
+
+    create_rift_dmg "$DMG_DIR"
   fi
 fi
 

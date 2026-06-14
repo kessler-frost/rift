@@ -10,6 +10,20 @@
 
 It is the Warp terminal you compile yourself: blocks, GPU rendering, and editor-style command input, with no account, no network calls, and no agent. Not a product — a terminal I own and can modify.
 
+## Download
+
+Grab the latest `.dmg` from the [**Releases**](../../releases/latest) page, open it, and drag **Rift** to Applications.
+
+**Apple Silicon only** (M1 or newer) — Intel Macs are not supported.
+
+The build isn't notarized yet, so clear the quarantine flag once after installing:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Rift.app
+```
+
+(or right-click the app → **Open** the first time). Or [build it yourself](#building).
+
 ## How Rift differs from Warp
 
 | | Warp | Rift |

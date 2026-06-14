@@ -1,0 +1,33 @@
+<svg width="700" height="500" viewBox="0 0 700 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#04060a"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="250" y1="0" x2="452" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.5" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="350" cy="250" r="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="700" height="500" fill="url(#bg)"/>
+  <rect width="700" height="500" fill="url(#glow)"/>
+
+  <!-- Title -->
+  <text x="350" y="86" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="36" font-weight="700" fill="#e8e6e1" letter-spacing="2">Rift</text>
+  <text x="350" y="114" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#7d828c" letter-spacing="3">A FAST, FULLY OFFLINE TERMINAL</text>
+
+  <!-- Amber arrow from the app icon (left) toward Applications (right), centered at y=250 -->
+  <g stroke="url(#amber)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="252" y1="250" x2="446" y2="250"/>
+    <polyline points="426,233 450,250 426,267"/>
+  </g>
+
+  <!-- Instruction (center column is clear; icons sit at x=150 and x=550) -->
+  <text x="350" y="300" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" fill="#b3b1ad">Drag Rift into Applications</text>
+</svg>

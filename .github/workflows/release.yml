@@ -1,0 +1,91 @@
+name: Release
+
+# Builds an Apple Silicon (arm64) Rift.app, packages it as a DMG, and attaches
+# it to a GitHub Release. Triggered by pushing a version tag (e.g. v0.1.0), or
+# manually via the Actions tab.
+#
+# Rift is Apple-Silicon-only by design — no Intel / universal builds.
+#
+# Signing: the DMG is ad-hoc signed (unsigned for distribution purposes), so on
+# first launch macOS Gatekeeper needs a one-time bypass (see the release notes
+# template below). To enable real Developer ID signing + notarization later,
+# add the APPLE_* secrets and switch the bundle step to
+# `--read-passwords-from-env` (see script/macos/bundle).
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Apple Silicon DMG
+    runs-on: macos-14 # Apple Silicon hosted runner
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install Rust toolchain
+        run: |
+          rustup show
+          rustup target add aarch64-apple-darwin
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: release-lto-aarch64
+
+      - name: Install build prerequisites
+        run: |
+          brew install protobuf create-dmg
+          # Native (arm64) cargo-bundle — do NOT use script/install_cargo_bundle,
+          # which downloads an Intel binary that would run under Rosetta.
+          cargo install cargo-bundle --locked
+
+      - name: Build and bundle (Apple Silicon, ad-hoc signed)
+        run: ./script/macos/bundle --selfsign --arch aarch64
+
+      - name: Stage DMG artifact
+        id: stage
+        run: |
+          OUT="target/release-lto/bundle/osx"
+          VERSION="${{ github.event.inputs.tag || github.ref_name }}"
+          DEST="Rift-${VERSION}-arm64.dmg"
+          cp "$OUT/Rift.dmg" "$DEST"
+          echo "dmg=$DEST" >> "$GITHUB_OUTPUT"
+          shasum -a 256 "$DEST" | tee "$DEST.sha256"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: Rift ${{ github.event.inputs.tag || github.ref_name }}
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.stage.outputs.dmg }}
+            ${{ steps.stage.outputs.dmg }}.sha256
+          body: |
+            ## Rift ${{ github.event.inputs.tag || github.ref_name }}
+
+            A fast, fully-offline terminal — Apple Silicon only.
+
+            ### Install
+            1. Download `${{ steps.stage.outputs.dmg }}`, open it, and drag **Rift** to Applications.
+            2. The build is not notarized yet, so clear the quarantine flag once:
+               ```sh
+               xattr -dr com.apple.quarantine /Applications/Rift.app
+               ```
+               (or right-click the app → **Open** the first time).
+
+            **Requirements:** macOS on Apple Silicon (M1 or newer). Intel Macs are not supported.

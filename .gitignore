@@ -72,3 +72,7 @@ __pycache__/
 
 # Python venv for local tooling/test scripts (managed by uv)
 .venv/
+
+# cargo-bundle binary dropped by script/install_cargo_bundle (Intel; we use `cargo install cargo-bundle`)
+/cargo-bundle
+/cargo-bundle.zip
