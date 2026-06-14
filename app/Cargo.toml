@@ -5,7 +5,7 @@ description = "Rift: a fast, fully offline terminal"
 edition = "2021"
 autobins = false
 name = "rift"
-version = "0.1.0"
+version = "0.1.1"
 publish.workspace = true
 license.workspace = true
 
