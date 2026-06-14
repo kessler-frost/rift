@@ -113,27 +113,6 @@ const DRACULA_BRIGHT_COLORS: AnsiColors = AnsiColors::new(
     AnsiColor::from_u32(0xFFFFFFFF),
 );
 
-const AYU_DARK_NORMAL_COLORS: AnsiColors = AnsiColors::new(
-    AnsiColor::from_u32(0x01060EFF),
-    AnsiColor::from_u32(0xEA6C73FF),
-    AnsiColor::from_u32(0x91B362FF),
-    AnsiColor::from_u32(0xF9AF4FFF),
-    AnsiColor::from_u32(0x53BDFAFF),
-    AnsiColor::from_u32(0xFAE994FF),
-    AnsiColor::from_u32(0x90E1C6FF),
-    AnsiColor::from_u32(0xC7C7C7FF),
-);
-const AYU_DARK_BRIGHT_COLORS: AnsiColors = AnsiColors::new(
-    AnsiColor::from_u32(0x686868FF),
-    AnsiColor::from_u32(0xF07178FF),
-    AnsiColor::from_u32(0xC2D94CFF),
-    AnsiColor::from_u32(0xFFB454FF),
-    AnsiColor::from_u32(0x59C2FFFF),
-    AnsiColor::from_u32(0xFFEE99FF),
-    AnsiColor::from_u32(0x95E6CBFF),
-    AnsiColor::from_u32(0xFFFFFFFF),
-);
-
 const PHENOMENON_NORMAL_COLORS: AnsiColors = AnsiColors::new(
     AnsiColor::from_u32(0x121212FF),
     AnsiColor::from_u32(0xD22D1EFF),
@@ -259,10 +238,6 @@ pub(super) fn dracula_colors() -> TerminalColors {
     TerminalColors::new(DRACULA_NORMAL_COLORS, DRACULA_BRIGHT_COLORS)
 }
 
-pub(super) fn ayu_dark_colors() -> TerminalColors {
-    TerminalColors::new(AYU_DARK_NORMAL_COLORS, AYU_DARK_BRIGHT_COLORS)
-}
-
 pub(super) fn phenomenon_colors() -> TerminalColors {
     TerminalColors::new(PHENOMENON_NORMAL_COLORS, PHENOMENON_BRIGHT_COLORS)
 }
@@ -320,19 +295,6 @@ pub(super) fn dracula() -> RiftTheme {
         dracula_colors(),
         None,
         Some("Dracula".to_string()),
-    )
-}
-
-pub(super) fn ayu_dark() -> RiftTheme {
-    RiftTheme::new(
-        Fill::Solid(ColorU::from_u32(0x0A0E14FF)),
-        ColorU::from_u32(0xB3B1ADFF),
-        Fill::Solid(ColorU::from_u32(0x53BDFAFF)),
-        None,
-        Some(Details::Darker),
-        ayu_dark_colors(),
-        None,
-        Some("Ayu Dark".to_string()),
     )
 }
 
