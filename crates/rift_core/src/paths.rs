@@ -34,7 +34,7 @@ pub const RIFT_LOGS_DIR: &str = "logs";
 
 fn base_rift_config_dir_name() -> String {
     match ChannelState::channel() {
-        Channel::Oss => format!("{RIFT_CONFIG_DIR}-oss"),
+        Channel::Oss => RIFT_CONFIG_DIR.to_string(),
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
     }
 }
@@ -71,15 +71,15 @@ pub fn rift_home_mcp_config_file_path() -> Option<PathBuf> {
 
 /// Returns the macOS config directory name for the current channel.
 ///
-/// Stable uses `.rift`, while other channels include a channel suffix
-/// (e.g., `.rift-dev`, `.rift-local`).
+/// The default OSS build uses `.rift`, while other channels include a channel
+/// suffix (e.g., `.rift-integration`).
 ///
 /// These suffixes are persisted on disk as directory names and must not be
 /// changed once established, or existing user data will be orphaned.
 #[cfg(target_os = "macos")]
 fn macos_config_dir_name() -> String {
     match ChannelState::channel() {
-        Channel::Oss => format!("{RIFT_CONFIG_DIR}-oss"),
+        Channel::Oss => RIFT_CONFIG_DIR.to_string(),
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
     }
 }

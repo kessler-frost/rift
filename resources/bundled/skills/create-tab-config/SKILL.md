@@ -21,7 +21,7 @@ Create a new Rift tab config based on what the user wants.
 2. If important details are missing, use the `ask_user_question` tool to clarify them before writing anything. Do not guess about layout, commands, directories, parameters, or close-time behavior.
 3. Generate valid TOML that matches the `tab-configs` schema.
 4. Determine the correct tab config directory for the user's Rift build.
-   Tab configs live under `~/.rift-oss/tab_configs/` for standard builds. Non-stable builds use a channel-specific variant (e.g. `~/.rift-<channel>/tab_configs/`).
+   Tab configs live under `~/.rift/tab_configs/` for standard builds. Non-stable builds use a channel-specific variant (e.g. `~/.rift-<channel>/tab_configs/`).
    To find the correct directory, run `ls -d ~/.rift*/` to list the available Rift data directories and pick the one that corresponds to the running build. When in doubt, ask the user which build they are using.
    Create the `tab_configs/` subdirectory if it does not exist.
    Write the file using a descriptive snake_case filename ending in `.toml`.

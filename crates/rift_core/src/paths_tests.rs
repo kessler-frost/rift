@@ -8,7 +8,7 @@ fn test_data_dir_path() {
     // ChannelState, by default, is configured for Channel::Oss.
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(data_dir(), home_dir.join(".rift-oss"));
+            assert_eq!(data_dir(), home_dir.join(".rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(data_dir(), home_dir.join(".local/share/rift-terminal"));
         } else if #[cfg(windows)] {
@@ -25,7 +25,7 @@ fn test_config_local_dir_path() {
     // ChannelState, by default, is configured for Channel::Oss.
     cfg_if::cfg_if! {
         if #[cfg(target_os = "macos")] {
-            assert_eq!(config_local_dir(), home_dir.join(".rift-oss"));
+            assert_eq!(config_local_dir(), home_dir.join(".rift"));
         } else if #[cfg(any(target_os = "linux", target_os = "freebsd"))] {
             assert_eq!(config_local_dir(), home_dir.join(".config/rift-terminal"));
         } else if #[cfg(windows)] {
@@ -40,8 +40,8 @@ fn test_config_local_dir_path() {
 fn test_rift_home_config_dir_path() {
     let home_dir = home_dir().expect("Should be able to compute home directory");
     let expected_dir_name = match ChannelState::data_profile() {
-        Some(data_profile) => format!(".rift-oss-{data_profile}"),
-        None => ".rift-oss".to_string(),
+        Some(data_profile) => format!(".rift-{data_profile}"),
+        None => ".rift".to_string(),
     };
 
     assert_eq!(

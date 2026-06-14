@@ -7,7 +7,7 @@ description: Reference the Rift tab config schema, validation rules, and example
 
 This skill is the canonical reference for Rift tab config TOML files.
 
-Tab configs live under `~/.rift-oss/tab_configs/` for standard Rift builds. Non-stable builds (e.g. Preview or pre-release channels) use a channel-specific variant such as `~/.rift-<channel>/tab_configs/`. Do NOT use `~/Library/Application Support/` — that is the wrong location.
+Tab configs live under `~/.rift/tab_configs/` for standard Rift builds. Non-stable builds (e.g. Preview or pre-release channels) use a channel-specific variant such as `~/.rift-<channel>/tab_configs/`. Do NOT use `~/Library/Application Support/` — that is the wrong location.
 
 To find the active data directory, inspect which `~/.rift*` directories exist on the user's machine. Each `.toml` file defines a single tab layout that appears in the `+` menu. When the user selects one, Rift opens a new tab with the configured pane layout and runs any specified commands.
 
@@ -222,7 +222,7 @@ commands = []
 ```
 
 ### With parameters
-Rift-generated worktree configs default to `~/.rift-oss/worktrees/<repo-name>/<worktree-name>`. When writing a reusable config by hand, derive the repo-name segment at shell runtime with `$(basename {{repo}})`.
+Rift-generated worktree configs default to `~/.rift/worktrees/<repo-name>/<worktree-name>`. When writing a reusable config by hand, derive the repo-name segment at shell runtime with `$(basename {{repo}})`.
 
 ```toml
 name = "New Worktree"
