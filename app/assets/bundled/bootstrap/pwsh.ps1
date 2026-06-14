@@ -201,6 +201,7 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
             hook = 'Bootstrapped'
             value = @{
                 histfile = $(Get-PSReadLineOption).HistorySavePath
+                session_id = $global:_riftSessionId
                 shell = 'pwsh'
                 home_dir = "$HOME"
                 path = $env:PATH
@@ -231,6 +232,7 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
             hook = 'Preexec'
             value = @{
                 command = $command
+                session_id = $global:_riftSessionId
             }
         }
         Rift-Send-JsonMessage $preexecMsg
@@ -255,6 +257,7 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
             hook = 'FinishUpdate'
             value = @{
                 update_id = $updateId
+                session_id = $global:_riftSessionId
             }
         }
         Rift-Send-JsonMessage $updateMsg
@@ -345,6 +348,7 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
                 hook = 'InputBuffer'
                 value = @{
                     buffer = $inputBuffer
+                    session_id = $global:_riftSessionId
                 }
             }
             Rift-Send-JsonMessage $inputBufferMsg
@@ -439,6 +443,7 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
             value = @{
                 exit_code = $exitCode
                 next_block_id = "precmd-${global:_riftSessionId}-$blockId"
+                session_id = $global:_riftSessionId
             }
         }
         Rift-Send-JsonMessage $commandFinishedMsg
@@ -896,7 +901,9 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
     function Clear-Host() {
         $inputBufferMsg = @{
             hook = 'Clear'
-            value = @{}
+            value = @{
+                session_id = $global:_riftSessionId
+            }
         }
         Rift-Send-JsonMessage $inputBufferMsg
     }
@@ -904,7 +911,9 @@ $null = New-Module -Name Rift-Module -ScriptBlock {
     function clear() {
         $inputBufferMsg = @{
             hook = 'Clear'
-            value = @{}
+            value = @{
+                session_id = $global:_riftSessionId
+            }
         }
         Rift-Send-JsonMessage $inputBufferMsg
     }

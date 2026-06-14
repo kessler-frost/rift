@@ -118,6 +118,10 @@ impl DockerSandboxShellStarter {
         self.direct.shell_type()
     }
 
+    pub fn session_id(&self) -> rift_core::session_id::SessionId {
+        self.direct.session_id()
+    }
+
     pub fn logical_shell_path(&self) -> &Path {
         self.direct.logical_shell_path()
     }

@@ -3,7 +3,7 @@
 command -p stty raw
 HISTCONTROL=ignorespace
 HISTIGNORE=" *"
-RIFT_SESSION_ID="$(command -p date +%s)$RANDOM"
+RIFT_SESSION_ID=@@RIFT_SESSION_ID@@
 _hostname=$(command -pv hostname >/dev/null 2>&1 && command -p hostname 2>/dev/null || command -p uname -n)
 _user=$(command -pv whoami >/dev/null 2>&1 && command -p whoami 2>/dev/null || echo $USER)
 if [[ "$OS" == Windows_NT ]]; then RIFT_IN_MSYS2=true; else RIFT_IN_MSYS2=false; fi

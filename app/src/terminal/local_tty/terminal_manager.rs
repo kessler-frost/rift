@@ -12,6 +12,7 @@ use anyhow::Context as _;
 use async_broadcast::InactiveReceiver;
 use parking_lot::{FairMutex, Mutex};
 use pathfinder_geometry::vector::Vector2F;
+use rift_core::session_id::SessionId;
 use riftui::r#async::executor::Background;
 use riftui::{AppContext, ModelContext, ModelHandle, SingletonEntity, ViewHandle, WindowId};
 use settings::Setting as _;
@@ -395,11 +396,20 @@ impl TerminalManager {
             .lock()
             .set_pending_shell_launch_data(shell_launch_data.clone());
 
+        // Register the session ID generated during shell-starter construction so the
+        // DCS hooks the shell emits (which carry this ID) pass the integrity check.
+        // It is already baked into bash/fish/pwsh args; enqueue_init_script injects it
+        // for zsh/msys2.
+        let generated_session_id = shell_starter.session_id();
+        self.model()
+            .lock()
+            .register_session_id(generated_session_id);
+
         // Enqueue the init shell script (for shells that need it), then create
         // the PTY and start its corresponding event loop.
         let model = self.model();
         let pty = match self
-            .enqueue_init_script(&shell_starter)
+            .enqueue_init_script(&shell_starter, generated_session_id)
             .context("Failed to write shell init script to the pty")
             .and_then(|_| {
                 Self::create_pty(
@@ -498,14 +508,21 @@ impl TerminalManager {
         }
     }
 
-    fn enqueue_init_script(&self, shell_starter: &ShellStarter) -> Result<(), SendError<Message>> {
+    fn enqueue_init_script(
+        &self,
+        shell_starter: &ShellStarter,
+        session_id: SessionId,
+    ) -> Result<(), SendError<Message>> {
         let shell_type = shell_starter.shell_type();
         if shell_type == crate::terminal::shell::ShellType::Zsh
             // For more on why this is necessary on Git Bash, see upstream issue CORE-3202.
             || shell_starter.is_msys2()
         {
-            let init_shell_script =
-                crate::terminal::bootstrap::init_shell_script_for_shell(shell_type, &crate::ASSETS);
+            let init_shell_script = crate::terminal::bootstrap::init_shell_script_for_shell(
+                shell_type,
+                &crate::ASSETS,
+                session_id,
+            );
             let tx = self.event_loop_tx.lock();
             tx.send(Message::Input(init_shell_script.into_bytes().into()))?;
             tx.send(Message::Input(shell_type.execute_command_bytes().into()))

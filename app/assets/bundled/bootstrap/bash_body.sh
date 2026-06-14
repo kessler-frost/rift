@@ -280,10 +280,11 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
         if [ "$RIFT_IN_MSYS2" = true ]; then
           rift_send_hook_via_kv_pairs_start "Preexec"
           rift_send_hook_kv_pair "command" "$BASH_COMMAND"
+          rift_send_hook_kv_pair "session_id" "$RIFT_SESSION_ID"
           rift_send_hook_via_kv_pairs_end
         else
           local truncated_command=$(rift_escape_json "$BASH_COMMAND")
-          rift_send_json_message "{\"hook\": \"Preexec\", \"value\": {\"command\": \"$truncated_command\"}}"
+          rift_send_json_message "{\"hook\": \"Preexec\", \"value\": {\"command\": \"$truncated_command\", \"session_id\": $RIFT_SESSION_ID}}"
         fi
         rift_maybe_send_reset_grid_osc
 
@@ -438,9 +439,10 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
           rift_send_hook_via_kv_pairs_start "CommandFinished"
           rift_send_hook_kv_pair "exit_code" "$exit_code"
           rift_send_hook_kv_pair "next_block_id" "precmd-$RIFT_SESSION_ID-$((block_id++))"
+          rift_send_hook_kv_pair "session_id" "$RIFT_SESSION_ID"
           rift_send_hook_via_kv_pairs_end
         else
-          rift_send_json_message "{\"hook\": \"CommandFinished\", \"value\": {\"exit_code\": $exit_code, \"next_block_id\": \"precmd-$RIFT_SESSION_ID-$((block_id++))\"}}"
+          rift_send_json_message "{\"hook\": \"CommandFinished\", \"value\": {\"exit_code\": $exit_code, \"next_block_id\": \"precmd-$RIFT_SESSION_ID-$((block_id++))\", \"session_id\": $RIFT_SESSION_ID}}"
         fi
 
         rift_maybe_send_reset_grid_osc
@@ -761,10 +763,11 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
         if [ "$RIFT_IN_MSYS2" = true ]; then
             rift_send_hook_via_kv_pairs_start "InputBuffer"
             rift_send_hook_kv_pair "buffer" "$READLINE_LINE"
+            rift_send_hook_kv_pair "session_id" "$RIFT_SESSION_ID"
             rift_send_hook_via_kv_pairs_end
         else
             local escaped_input="$(rift_escape_json "$READLINE_LINE")"
-            rift_send_json_message "{ \"hook\": \"InputBuffer\", \"value\": { \"buffer\": \"$escaped_input\" } }"
+            rift_send_json_message "{ \"hook\": \"InputBuffer\", \"value\": { \"buffer\": \"$escaped_input\", \"session_id\": $RIFT_SESSION_ID } }"
         fi
         # This prevents bash from re-printing typeahead after we've removed it.
         READLINE_LINE=""
@@ -888,9 +891,10 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
     function clear() {
         if [ "$RIFT_IN_MSYS2" = true ]; then
             rift_send_hook_via_kv_pairs_start "Clear"
+            rift_send_hook_kv_pair "session_id" "$RIFT_SESSION_ID"
             rift_send_hook_via_kv_pairs_end
         else
-            rift_send_json_message "{\"hook\": \"Clear\", \"value\": {}}"
+            rift_send_json_message "{\"hook\": \"Clear\", \"value\": {\"session_id\": $RIFT_SESSION_ID}}"
         fi
     }
 
@@ -899,9 +903,10 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
       if [ "$RIFT_IN_MSYS2" = true ]; then
         rift_send_hook_via_kv_pairs_start "FinishUpdate"
         rift_send_hook_kv_pair "update_id" "$update_id"
+        rift_send_hook_kv_pair "session_id" "$RIFT_SESSION_ID"
         rift_send_hook_via_kv_pairs_end
       else
-        rift_send_json_message "{ \"hook\": \"FinishUpdate\", \"value\": { \"update_id\": \"$update_id\"} }"
+        rift_send_json_message "{ \"hook\": \"FinishUpdate\", \"value\": { \"update_id\": \"$update_id\", \"session_id\": $RIFT_SESSION_ID} }"
       fi
     }
 
@@ -949,11 +954,17 @@ if [ -z "$RIFT_BOOTSTRAPPED" ]; then
         function rift_ssh_helper() {
             init_shell_bash=$(init_shell_hook "bash")
             init_shell_zsh=$(init_shell_hook "zsh")
+            local remote_session_id=$(command -p od -An -N8 -tu8 /dev/urandom 2>/dev/null | command -p tr -d ' \n')
+            if [[ -z "$remote_session_id" || "$remote_session_id" == "0" ]]; then
+                # If we cannot generate a non-zero random token, run plain SSH instead.
+                command ssh "${@:1}"
+                return
+            fi
 
             # Hex-encode the ZSH environment script we use to bootstrap remote zsh b/c it contains control characters
             # We decode on the SSH server using xxd if its available, otherwise fall back to a for-loop over each byte
             # and use printf to convert back to plaintext
-            local zsh_env_script=$(printf '%s' 'unsetopt ZLE; unset RCS; unset GLOBAL_RCS; RIFT_SESSION_ID="$(command -p date +%s)$RANDOM"; RIFT_USING_WINDOWS_CON_PTY=@@USING_CON_PTY_BOOLEAN@@; RIFT_HONOR_PS1='$RIFT_HONOR_PS1'; _hostname=$(command -pv hostname >/dev/null 2>&1 && command -p hostname 2>/dev/null || command -p uname -n); _user=$(command -pv whoami >/dev/null 2>&1 && command -p whoami 2>/dev/null || echo $USER); _msg=$(printf "{\"hook\": \"InitShell\", \"value\": {\"session_id\": $RIFT_SESSION_ID, \"shell\": \"zsh\", \"user\": \"%s\", \"hostname\": \"%s\"}}" "$_user" "$_hostname" | command -p od -An -v -tx1 | command -p tr -d '"'"' \n'"'"'); printf '"'"'\e]9278;d;%s\x07'"'"' $_msg; unset _hostname _user _msg' | command -p od -An -v -tx1 | command -p tr -d ' \n')
+            local zsh_env_script=$(printf '%s' 'unsetopt ZLE; unset RCS; unset GLOBAL_RCS; RIFT_SESSION_ID='$remote_session_id'; RIFT_USING_WINDOWS_CON_PTY=@@USING_CON_PTY_BOOLEAN@@; RIFT_HONOR_PS1='$RIFT_HONOR_PS1'; _hostname=$(command -pv hostname >/dev/null 2>&1 && command -p hostname 2>/dev/null || command -p uname -n); _user=$(command -pv whoami >/dev/null 2>&1 && command -p whoami 2>/dev/null || echo $USER); _msg=$(printf "{\"hook\": \"InitShell\", \"value\": {\"session_id\": $RIFT_SESSION_ID, \"shell\": \"zsh\", \"user\": \"%s\", \"hostname\": \"%s\"}}" "$_user" "$_hostname" | command -p od -An -v -tx1 | command -p tr -d '"'"' \n'"'"'); printf '"'"'\e]9278;d;%s\x07'"'"' $_msg; unset _hostname _user _msg' | command -p od -An -v -tx1 | command -p tr -d ' \n')
 
             # Keep remote commands up-to-date with shell.rs & bash.sh.
             # Note that in this command, we're passing a string to the remote shell. Any variable expansions need to be
@@ -974,7 +985,7 @@ test -n '$RIFT_CLIENT_VERSION' && export RIFT_CLIENT_VERSION='$RIFT_CLIENT_VERSI
 # Only forward the protocol version if it was set locally (i.e. the HOANotifications feature flag is on).
 test -n '$RIFT_CLI_AGENT_PROTOCOL_VERSION' && export RIFT_CLI_AGENT_PROTOCOL_VERSION='$RIFT_CLI_AGENT_PROTOCOL_VERSION'
 
-hook="'$(printf "{\"hook\": \"SSH\", \"value\": {\"socket_path\": \"'$SSH_SOCKET_DIR/$RIFT_SESSION_ID'\", \"remote_shell\": \"%s\"}}" "${SHELL##*/}" | command -p od -An -v -tx1 | command -p tr -d " \n")'"
+hook="'$(printf "{\"hook\": \"SSH\", \"value\": {\"socket_path\": \"'$SSH_SOCKET_DIR/$RIFT_SESSION_ID'\", \"remote_shell\": \"%s\", \"session_id\": '"$RIFT_SESSION_ID"', \"remote_session_id\": '"$remote_session_id"'}}" "${SHELL##*/}" | command -p od -An -v -tx1 | command -p tr -d " \n")'"
 printf '$OSC_START$DCS_JSON_MARKER$OSC_PARAM_SEPARATOR%s$OSC_END' "'$hook'"
 
 if test "'"${SHELL##*/}" != "bash" -a "${SHELL##*/}" != "zsh"'"; then
@@ -1009,7 +1020,7 @@ case "'${SHELL##*/}'" in
       command -p stty raw
       HISTCONTROL=ignorespace
       HISTIGNORE=" *"
-      RIFT_SESSION_ID="$(command -p date +%s)$RANDOM"
+      RIFT_SESSION_ID='$remote_session_id'
       RIFT_HONOR_PS1="'$RIFT_HONOR_PS1'"
       _hostname=$(command -pv hostname >/dev/null 2>&1 && command -p hostname 2>/dev/null || command -p uname -n)
       _user=$(command -v whoami >/dev/null 2>&1 && command whoami 2>/dev/null || echo $USER)
@@ -1040,7 +1051,7 @@ esac
 
         function ssh() {
             if is_interactive_ssh_session "$@"; then
-                rift_send_json_message "{\"hook\": \"PreInteractiveSSHSession\", \"value\": {}}"
+                rift_send_json_message "{\"hook\": \"PreInteractiveSSHSession\", \"value\": {\"session_id\": $RIFT_SESSION_ID}}"
 
                 # If the SSH wrapper is not enabled for this session, don't use it.
                 if [ "$RIFT_USE_SSH_WRAPPER" = "1" ]; then

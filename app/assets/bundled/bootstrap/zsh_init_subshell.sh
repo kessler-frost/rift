@@ -7,7 +7,7 @@
 setopt hist_ignore_space
  unsetopt ZLE
  RIFT_IS_SUBSHELL=1
- RIFT_SESSION_ID="$(command -p date +%s)$RANDOM"
+ RIFT_SESSION_ID=@@RIFT_SESSION_ID@@
  _hostname=$(command -pv hostname >/dev/null 2>&1 && command -p hostname 2>/dev/null || command -p uname -n)
  _user=$(command -pv whoami >/dev/null 2>&1 && command -p whoami 2>/dev/null || echo $USER)
  _msg=$(printf "{\"hook\": \"InitShell\", \"value\": {\"session_id\": $RIFT_SESSION_ID, \"shell\": \"zsh\", \"user\": \"%s\", \"hostname\": \"%s\", \"is_subshell\": true, \"wsl_name\": \"$WSL_DISTRO_NAME\"}}" "$_user" "$_hostname" | command -p od -An -v -tx1 | command -p tr -d " \n")
