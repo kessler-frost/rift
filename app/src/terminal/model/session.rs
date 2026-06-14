@@ -1290,9 +1290,15 @@ impl Session {
             .as_deref()
             .map(|path| HashMap::from_iter([("PATH".to_string(), path.to_string())]));
 
+        // Escape the path so a remote history-file path containing shell
+        // metacharacters (e.g. embedded single quotes) can't inject commands.
+        let escaped_history_file = command_executor::shell_escape_single_quotes(
+            history_file,
+            self.info.shell.shell_type(),
+        );
         let output_in_bytes = self
             .execute_command(
-                format!("cat {history_file}").as_str(),
+                format!("cat '{escaped_history_file}'").as_str(),
                 None,
                 env_vars,
                 ExecuteCommandOptions::default(),
