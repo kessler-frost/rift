@@ -1,4 +1,4 @@
-# RIFT.md
+# CLAUDE.md
 
 Guidance for working with code in this repository.
 

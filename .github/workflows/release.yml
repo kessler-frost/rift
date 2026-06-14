@@ -52,6 +52,9 @@ jobs:
           # Native (arm64) cargo-bundle — do NOT use script/install_cargo_bundle,
           # which downloads an Intel binary that would run under Rosetta.
           cargo install cargo-bundle --locked
+          # cargo-about generates the bundled THIRD_PARTY_LICENSES.txt
+          # (prepare_bundled_resources calls `cargo about generate`).
+          cargo install cargo-about --features cli --locked
 
       - name: Build and bundle (Apple Silicon, ad-hoc signed)
         run: ./script/macos/bundle --selfsign --arch aarch64

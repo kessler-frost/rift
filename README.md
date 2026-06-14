@@ -3,53 +3,53 @@
 </p>
 
 <p align="center">
-  <img src="branding/rift-demo.gif" alt="Rift demo — commands, history menu, command search, tabs" width="820">
+  <img src="branding/rift-demo.gif" alt="Rift demo: commands, history menu, command search, tabs" width="820">
 </p>
 
-**Rift** is a personal, frozen, fully-offline fork of [Warp](https://www.warp.dev) — the terminal kept, everything cloud and AI stripped out.
+**Rift** is my personal fork of [Warp](https://www.warp.dev) with all the cloud and AI taken out. It's fully offline, and you compile it yourself.
 
-It is the Warp terminal you compile yourself: blocks, GPU rendering, and editor-style command input, with no account, no network calls, and no agent. Not a product — a terminal I own and can modify.
+What's left is the part of Warp I actually wanted: the blocks UI, GPU rendering, and the editor-style command input. No account, no network calls, no agent. It isn't a product, it's a terminal I can read and change.
 
 ## Download
 
-Grab the latest `.dmg` from the [**Releases**](../../releases/latest) page, open it, and drag **Rift** to Applications.
+Grab the latest `.dmg` from the [Releases](../../releases/latest) page, open it, and drag Rift into Applications.
 
-**Apple Silicon only** (M1 or newer) — Intel Macs are not supported.
+Apple Silicon only (M1 or newer). Intel Macs aren't supported.
 
-The build isn't notarized yet, so clear the quarantine flag once after installing:
+It isn't notarized yet, so the first time you run it, clear the quarantine flag:
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/Rift.app
 ```
 
-(or right-click the app → **Open** the first time). Or [build it yourself](#building).
+You can also right-click the app and choose Open, or [build it yourself](#building).
 
 ## How Rift differs from Warp
 
 | | Warp | Rift |
 |---|---|---|
-| Account / login | Required for most features | **None** — no auth, can't be login-walled or rate-limited |
-| Telemetry | Live Rudderstack key, UGC events | **Removed** — zero phone-home, defense by absence not a flag |
-| AI agents | Core of the product | **Removed entirely** — no agent, no MCP, no inline AI |
-| Cloud / Drive / teams | Load-bearing, woven throughout | **Removed** — fully offline, single local user |
-| Billing / credits | Compiled in (`buy credits` banner) | **Removed** — frozen, runs forever, no business model attached |
-| Auto-update | On | **Removed** — pinned to the version you build |
+| Account / login | Required for most features | None. Nothing can be login-walled or rate-limited. |
+| Telemetry | Live Rudderstack key, UGC events | Gone. No phone-home, because the code isn't there. |
+| AI agents | The core of the product | Gone. No agent, no MCP, no inline AI. |
+| Cloud / Drive / teams | Woven throughout | Gone. Fully offline, one local user. |
+| Billing / credits | Compiled in, "buy credits" banner | Gone. |
+| Auto-update | On | Removed. You stay on the version you build. |
 
-**Kept:** the blocks UI, wgpu GPU rendering, the editor-style command prompt, themes, vertical tabs, and non-AI autosuggestion (fish-style history + rule-based corrections).
+What stays: the blocks UI, wgpu GPU rendering, the editor-style command prompt, themes, vertical tabs, and the non-AI autosuggestion (fish-style history plus rule-based corrections).
 
-## What was stripped
+## What got stripped
 
-Measured against `warpdotdev/warp` (the `upstream` remote):
+Compared against `warpdotdev/warp` (the `upstream` remote):
 
-- **~703,000 lines of Rust removed** — roughly **half** the Rust codebase (1.39M → 691K lines)
-- **~1,500 source files** deleted
-- **20 crates** removed (71 → 51) — the entire `ai`, cloud-object, server, auth, GraphQL, and firebase layers
+- About 703,000 lines of Rust gone, roughly half the codebase (1.39M down to 691K).
+- About 1,500 source files deleted.
+- 20 crates removed (71 to 51): the whole `ai`, cloud-object, server, auth, GraphQL, and firebase layers.
 
-The point isn't a smaller binary. It's that the telemetry, cloud, and billing code *doesn't exist* in the tree — it can't be switched back on.
+This was never about shipping a smaller binary. The point is that the telemetry, cloud, and billing code isn't in the tree anymore, so there's nothing to switch back on.
 
 ## Building
 
-Default binary is `rift-oss`. The toolchain pins via `rust-toolchain.toml`; `protoc` is required (`brew install protobuf`).
+The default binary is `rift-oss`. The toolchain is pinned in `rust-toolchain.toml`, and you'll need `protoc` (`brew install protobuf`).
 
 ```bash
 ./script/bootstrap   # platform-specific setup
@@ -57,19 +57,19 @@ Default binary is `rift-oss`. The toolchain pins via `rust-toolchain.toml`; `pro
 ./script/presubmit   # fmt, clippy, and tests
 ```
 
-See [RIFT.md](RIFT.md) for the full engineering guide — coding style, testing, and platform notes.
+[CLAUDE.md](CLAUDE.md) has the full engineering guide: coding style, testing, and platform notes.
 
 ## Relationship to upstream
 
-Rift tracks `warpdotdev/warp` as the `upstream` remote and pulls changes manually via cherry-pick — no dependency on anyone porting them first. The whole codebase is renamed `warp` → `rift`, so it diverges from upstream by design; that's the trade for owning the fork outright.
+Rift tracks `warpdotdev/warp` as the `upstream` remote, and I pull changes by hand with cherry-picks, so nothing depends on someone else porting them first. The whole codebase is renamed from `warp` to `rift`, so it drifts from upstream on purpose. That's the trade for owning the fork outright.
 
 ## Licensing
 
-Inherited from Warp. The UI framework crates (`riftui_core` and `riftui`) are under the [MIT license](LICENSE-MIT); the rest of the repository is under the [AGPL v3](LICENSE-AGPL).
+Inherited from Warp. The UI framework crates (`riftui_core` and `riftui`) are MIT ([LICENSE-MIT](LICENSE-MIT)); everything else is AGPL v3 ([LICENSE-AGPL](LICENSE-AGPL)).
 
-## Open Source Dependencies
+## Open source dependencies
 
-A few of the open-source projects Rift (and Warp before it) is built on:
+A few of the projects Rift (and Warp before it) is built on:
 
 - [Tokio](https://github.com/tokio-rs/tokio)
 - [NuShell](https://github.com/nushell/nushell)
