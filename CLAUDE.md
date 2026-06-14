@@ -34,6 +34,19 @@ macOS platform, perf, security/crash fixes). Skip anything touching the stripped
 editor/LSP/file-tree, workflows, notebooks, voice, onboarding). After porting, bump the date
 above.
 
+**Verify every port** before committing — porting renamed/diverged code is exactly where things
+silently break, so don't stop at "it compiles". Run the full bar (0 errors AND 0 warnings each):
+
+```bash
+cargo check --bin rift-oss
+cargo check --tests -p rift          # tests must still compile
+cargo test -p <touched_crate>        # run tests for crates you changed; port the upstream tests too
+```
+
+If a port touched a crate with tests (e.g. `rift_terminal`), run that crate's tests and make sure
+the upstream regression test you ported actually passes. Don't commit a port on a red or
+warning-emitting build.
+
 ## Development Commands
 
 ### Build / run / iterate
