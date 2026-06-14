@@ -12,6 +12,28 @@ rendering, editor-style command input) and nothing that phones home.
 **Do not reintroduce or extend** cloud, accounts, AI, or telemetry. When in doubt, the local
 option wins.
 
+## Upstream sync
+
+Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
+rename means cherry-picks don't apply cleanly).
+
+**Last reviewed/synced against upstream: 2026-06-14.**
+
+To sync again, start from that date, not earlier:
+
+```bash
+git fetch upstream
+git log upstream/master --since=2026-06-14 --date=short --pretty='%h %ad %s'
+```
+
+Only port changes to subsystems Rift keeps (terminal core, blocks, wgpu rendering, command
+input/editor, themes, tabs/vertical tabs, command search, completions, history autosuggestion,
+vim input, syntax highlighting, shell integration/bootstrap, SSH/riftify, secret redaction,
+macOS platform, perf, security/crash fixes). Skip anything touching the stripped subsystems
+(AI/agents/MCP, cloud/Drive/teams/sharing, auth, telemetry, billing, auto-update, the code
+editor/LSP/file-tree, workflows, notebooks, voice, onboarding). After porting, bump the date
+above.
+
 ## Development Commands
 
 ### Build / run / iterate
