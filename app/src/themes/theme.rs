@@ -54,6 +54,8 @@ pub enum ThemeKind {
     Dark,
     #[schemars(description = "Dracula")]
     Dracula,
+    #[schemars(description = "Ayu Dark")]
+    AyuDark,
     #[schemars(description = "Fancy Dracula")]
     FancyDracula,
     #[schemars(description = "Cyber Wave")]
@@ -113,6 +115,7 @@ impl std::fmt::Display for ThemeKind {
             ThemeKind::Light => "Light",
             ThemeKind::Dark => "Dark",
             ThemeKind::Dracula => "Dracula",
+            ThemeKind::AyuDark => "Ayu Dark",
             ThemeKind::SolarizedDark => "Solarized Dark",
             ThemeKind::SolarizedLight => "Solarized Light",
             ThemeKind::GruvboxDark => "Gruvbox Dark",
@@ -475,6 +478,7 @@ impl RiftThemeConfig {
             (ThemeKind::SolarizedDark, solarized_dark()),
             (ThemeKind::SolarizedLight, solarized_light()),
             (ThemeKind::Dracula, dracula()),
+            (ThemeKind::AyuDark, ayu_dark()),
             (ThemeKind::GruvboxDark, gruvbox_dark()),
             (ThemeKind::GruvboxLight, gruvbox_light()),
             (ThemeKind::JellyFish, jellyfish()),
