@@ -91,7 +91,7 @@ fn regex_right() {
     ");
 
     // Check regex across wrapped and unwrapped lines.
-    let dfas = RegexDFAs::new("Wa.*123").unwrap();
+    let dfas = RegexDFAs::new("Ri.*123").unwrap();
     let start = Point::new(1, 0);
     let end = Point::new(4, 2);
     let match_start = Point::new(1, 0);
@@ -116,7 +116,7 @@ fn regex_left() {
     ");
 
     // Check regex across wrapped and unwrapped lines.
-    let dfas = RegexDFAs::new("Wa.*123").unwrap();
+    let dfas = RegexDFAs::new("Ri.*123").unwrap();
     let start = Point::new(4, 2);
     let end = Point::new(1, 0);
     let match_start = Point::new(1, 0);
@@ -133,7 +133,7 @@ fn regex_left() {
 fn nested_regex() {
     #[rustfmt::skip]
     let blockgrid = mock_blockgrid("\
-        Wa -> Rift -> rp\r\n\
+        Wa -> harp -> rp\r\n\
         rp\
     ");
 
@@ -732,14 +732,14 @@ fn test_find_url_omits_trailing_periods() {
             .grid_handler
             .url_at_point(Point { row: 0, col: 10 }),
         Some(Link {
-            range: Point { row: 0, col: 6 }..=Point { row: 0, col: 46 },
+            range: Point { row: 0, col: 6 }..=Point { row: 0, col: 49 },
             is_empty: false
         })
     );
     assert_eq!(
         blockgrid
             .grid_handler
-            .url_at_point(Point { row: 0, col: 47 }),
+            .url_at_point(Point { row: 0, col: 50 }),
         None
     );
 
@@ -750,14 +750,14 @@ fn test_find_url_omits_trailing_periods() {
             .grid_handler
             .url_at_point(Point { row: 0, col: 10 }),
         Some(Link {
-            range: Point { row: 0, col: 6 }..=Point { row: 0, col: 46 },
+            range: Point { row: 0, col: 6 }..=Point { row: 0, col: 49 },
             is_empty: false
         })
     );
     assert_eq!(
         blockgrid
             .grid_handler
-            .url_at_point(Point { row: 0, col: 48 }),
+            .url_at_point(Point { row: 0, col: 50 }),
         None
     );
 

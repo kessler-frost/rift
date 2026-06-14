@@ -97,7 +97,7 @@ use crate::editor::{
 };
 use crate::features::FeatureFlag;
 use crate::input_suggestions::{
-    HistoryInputSuggestion, InputSuggestions,
+    Event as InputSuggestionsEvent, HistoryInputSuggestion, InputSuggestions,
     TabCompletionsPreselectOption,
 };
 use crate::pane_group::focus_state::PaneFocusHandle;
@@ -1097,6 +1097,9 @@ impl Input {
         });
 
         let input_suggestions = ctx.add_typed_action_view(InputSuggestions::new);
+        ctx.subscribe_to_view(&input_suggestions, move |me, _, event, ctx| {
+            me.handle_suggestions_event(event, ctx);
+        });
 
         let safe_mode_settings = SafeModeSettings::handle(ctx);
         ctx.subscribe_to_model(&safe_mode_settings, |me, _, event, ctx| {
@@ -1485,6 +1488,86 @@ impl Input {
         }
     }
 
+
+    fn handle_suggestions_event(
+        &mut self,
+        event: &InputSuggestionsEvent,
+        ctx: &mut ViewContext<Self>,
+    ) {
+        match event {
+            InputSuggestionsEvent::Select(selected_item) => {
+                // When the history-up menu selection changes, preview the selected
+                // command in the input buffer. Completion-suggestion selection is
+                // applied through the Tab key path, not here.
+                if matches!(
+                    self.suggestions_mode_model.as_ref(ctx).mode(),
+                    InputSuggestionsMode::HistoryUp { .. }
+                ) {
+                    let text = selected_item.text().to_owned();
+                    self.editor.update(ctx, |editor, ctx| {
+                        editor.set_buffer_text_ignoring_undo(&text, ctx);
+                    });
+                }
+            }
+            InputSuggestionsEvent::CloseSuggestion {
+                should_restore_buffer_before_history_up,
+            } => {
+                self.close_input_suggestions_and_restore_buffer(
+                    true,
+                    *should_restore_buffer_before_history_up,
+                    ctx,
+                );
+            }
+            InputSuggestionsEvent::ConfirmSuggestion { suggestion, .. } => {
+                self.confirm_suggestion(suggestion, ctx);
+            }
+            InputSuggestionsEvent::ConfirmAndExecuteSuggestion { suggestion, .. } => {
+                self.confirm_and_execute_suggestion(suggestion, ctx);
+            }
+            InputSuggestionsEvent::IgnoreItem { .. } => {
+                // Per-item ignore is handled via the ignored-suggestions model.
+            }
+        }
+    }
+
+    fn confirm_suggestion(&mut self, suggestion: &str, ctx: &mut ViewContext<Self>) -> bool {
+        self.confirm_suggestion_internal(suggestion, Executing::No, ctx)
+    }
+
+    fn confirm_and_execute_suggestion(
+        &mut self,
+        suggestion: &str,
+        ctx: &mut ViewContext<Self>,
+    ) -> bool {
+        self.confirm_suggestion_internal(suggestion, Executing::Yes, ctx)
+    }
+
+    /// Applies the confirmed suggestion to the editor. Returns whether a
+    /// suggestion was actually applied. History selections are already mirrored
+    /// into the buffer, so there is nothing further to insert for them.
+    fn confirm_suggestion_internal(
+        &mut self,
+        suggestion: &str,
+        executing: Executing,
+        ctx: &mut ViewContext<Self>,
+    ) -> bool {
+        match self.suggestions_mode_model.as_ref(ctx).mode() {
+            InputSuggestionsMode::Closed => false,
+            InputSuggestionsMode::HistoryUp { .. } => true,
+            InputSuggestionsMode::CompletionSuggestions {
+                replacement_start, ..
+            } => {
+                let replacement_start = *replacement_start;
+                self.insert_completion_result_into_editor(
+                    suggestion,
+                    replacement_start,
+                    executing,
+                    ctx,
+                );
+                true
+            }
+        }
+    }
 
     fn handle_ignored_suggestions_event(
         &mut self,
@@ -4103,6 +4186,11 @@ impl Input {
         if matches!(edit_origin, EditOrigin::UserTyped) {
             self.model.lock().set_is_input_dirty(true);
         }
+
+        // Rift has no AI/agent input mode, so always clear any active blocklist
+        // text selection when inserting new text into the input box (upstream
+        // gates this on `!ai_input_enabled`).
+        self.model.lock().block_list_mut().clear_selection();
 
         ctx.focus(&self.editor);
         self.editor.update(ctx, |editor, ctx| match edit_origin {

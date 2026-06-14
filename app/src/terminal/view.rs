@@ -3031,6 +3031,11 @@ impl TerminalView {
             // event. When it is triggered on TypedCharacters, we should pass
             // the received string down to input view.
 
+            // Rift has no AI/agent input mode, so always clear selected blocks and
+            // text when the user starts typing (upstream gates this on `!ai_input`).
+            self.clear_selected_blocks(ctx);
+            self.clear_selected_text(ctx);
+
             self.update_scroll_position_locking(ScrollPositionUpdate::AfterTypedCharacters, ctx);
             self.input
                 .update(ctx, |input, ctx| input.system_insert(characters, ctx));
@@ -8545,6 +8550,10 @@ impl TerminalView {
     }
 
     fn clear_selections_when_shell_mode(&mut self, ctx: &mut ViewContext<Self>) {
+        // Rift has no AI/agent input mode, so block/text selections are always
+        // cleared on shell-mode input (upstream gates this on `!ai_input_enabled`).
+        self.clear_selected_blocks(ctx);
+        self.clear_selected_text(ctx);
         self.focus_input_box(ctx);
         ctx.notify();
     }
@@ -8560,10 +8569,15 @@ impl TerminalView {
         &mut self,
         ctx: &mut ViewContext<Self>,
     ) {
+        self.clear_selected_blocks(ctx);
+        self.clear_selected_text(ctx);
         ctx.notify();
     }
 
     fn focus_input_box(&mut self, ctx: &mut ViewContext<Self>) {
+        // Rift has no AI/agent input mode, so focusing the input box always clears
+        // the block selection (upstream gates this on `!ai_input_enabled`).
+        self.clear_selected_blocks(ctx);
         self.update_find_selection(ctx);
         ctx.focus(&self.input);
         ctx.notify();

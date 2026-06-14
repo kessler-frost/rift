@@ -21,7 +21,6 @@ use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::{AliasExpansionSettings, AppEditorSettings};
 use crate::terminal::block_list_viewport::ScrollPosition;
 use crate::terminal::event::{BlockMetadataReceivedEvent, BootstrappedEvent};
-use crate::terminal::general_settings::UserDefaultShellUnsupportedBannerState;
 use crate::terminal::local_shell::LocalShellState;
 use crate::terminal::local_tty::shell::ShellStarter;
 use crate::terminal::model::ansi::{Handler, PrecmdValue};
@@ -35,7 +34,6 @@ use crate::terminal::shell::ShellType;
 use crate::terminal::writeable_pty::command_history::update_command_history;
 use crate::terminal::TerminalView;
 use crate::workspace::ToastStack;
-use crate::{GlobalResourceHandles, GlobalResourceHandlesProvider};
 
 pub fn initialize_app(app: &mut App) {
     // Make sure we set up all necessary custom action bindings.
@@ -49,18 +47,10 @@ pub fn initialize_app(app: &mut App) {
     app.add_singleton_model(ImportedConfigModel::new);
     app.add_singleton_model(|_| ToastStack);
 
-    // Add GlobalResourceHandlesProvider for persistence
-    let tips_handle = app.add_model(|_| TipsCompleted::default());
-    let user_default_shell_unsupported_banner_model_handle =
-        app.add_model(|_| UserDefaultShellUnsupportedBannerState::default_value());
-    app.add_singleton_model(move |_ctx| {
-        GlobalResourceHandlesProvider::new(GlobalResourceHandles {
-            model_event_sender: None, // No persistence in tests
-            tips_completed: tips_handle,
-            user_default_shell_unsupported_banner_model_handle,
-            settings_file_error: None,
-        })
-    });
+    // GlobalResourceHandlesProvider is already registered by
+    // initialize_app_for_terminal_view (via initialize_history_persistence_for_tests),
+    // whose GlobalResourceHandles::mock provides the same handles. Registering it
+    // again here trips the add_singleton_model double-registration debug assert.
 
     // `LocalShellState` captures the user's interactive login-shell PATH (used
     // for MCP/sbx executable resolution). Tests don't exercise that capture, so
@@ -3626,4 +3616,3 @@ fn test_custom_terminal_page_scroll_binding_applies_when_prompt_is_focused() {
         });
     });
 }
-

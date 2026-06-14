@@ -31,7 +31,7 @@ fn repository_info_from_gh_output_parses_name_and_owner() {
         )
         .unwrap(),
         RepositoryInfo {
-            name: "rift-internal".to_owned(),
+            name: "rift".to_owned(),
             owner: Some("kessler-frost".to_owned()),
         }
     );
@@ -112,7 +112,7 @@ async fn get_repository_info_reads_gh_repo_view() {
             .await
             .unwrap(),
         Some(RepositoryInfo {
-            name: "rift-internal".to_owned(),
+            name: "rift".to_owned(),
             owner: Some("kessler-frost".to_owned()),
         })
     );

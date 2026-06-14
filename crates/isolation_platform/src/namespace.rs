@@ -9,6 +9,6 @@ pub fn is_in_namespace_instance() -> bool {
     env::var("NSC_TOKEN_FILE").is_ok() || fs::exists("/var/run/nsc/token.json").is_ok_and(|v| v)
 }
 
-#[cfg(test)]
-#[path = "namespace_tests.rs"]
-mod tests;
+// NOTE: the `namespace_tests` module was removed during the AI/cloud strip. It
+// only exercised `parse_jwt_expiration`, an auth/JWT helper that no longer
+// exists now that the cloud auth layer is gone.

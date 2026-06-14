@@ -726,26 +726,7 @@ impl<'c> oauth2::AsyncHttpClient<'c> for Client {
     }
 }
 
-#[cfg(test)]
-mod origin_tests {
-    use super::*;
-
-    #[test]
-    fn server_and_rtc_origins_match() {
-        // Derive the expected origins from `ChannelState` so the assertion holds
-        // regardless of which channel config the test build resolves to.
-        let server = reqwest::Url::parse(ChannelState::server_root_url().as_ref()).unwrap();
-        assert!(is_rift_server_origin(&server.join("/graphql/v2").unwrap()));
-
-        let rtc = reqwest::Url::parse(ChannelState::rtc_http_url().as_ref()).unwrap();
-        assert!(is_rift_server_origin(
-            &rtc.join("/api/v1/agent/events/stream").unwrap()
-        ));
-    }
-
-    #[test]
-    fn third_party_origin_does_not_match() {
-        let url = reqwest::Url::parse("https://evil.example.com/graphql/v2").unwrap();
-        assert!(!is_rift_server_origin(&url));
-    }
-}
+// NOTE: the `origin_tests` module was removed during the AI/cloud strip. It
+// exercised `is_rift_server_origin` + `ChannelState::server_root_url`/`rtc_http_url`,
+// all of which were the cloud-server origin-detection helpers that no longer
+// exist now that the server/cloud layer is gone.

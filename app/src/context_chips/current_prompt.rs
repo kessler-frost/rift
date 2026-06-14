@@ -23,7 +23,7 @@ use super::prompt::Prompt;
 use super::{chips_to_string, ChipResult, ChipValue, ContextChipKind};
 use crate::editor::EditorView;
 use crate::menu::{MenuItem, MenuItemFields};
-use crate::settings::RiftPromptSeparator;
+use crate::settings::{InputSettings, RiftPromptSeparator};
 use crate::terminal::event::{BlockType, UserBlockCompleted};
 use crate::terminal::model::block::{Block, BlockMetadata};
 use crate::terminal::model::session::{ExecuteCommandOptions, Session, Sessions, SessionsEvent};
@@ -1008,11 +1008,25 @@ impl CurrentPrompt {
     /// Resets states (including terminating any in progress spawned operations), and updates the
     /// existing states map with new information.
     /// This is called when the context gets updated (ie. a new block metadata is received).
+    /// Whether context chips are active. When PS1 is honored (and universal
+    /// developer input isn't overriding it), the shell renders its own prompt,
+    /// so Rift's chip generators must not run. (Upstream also keeps chips active
+    /// for AgentView, which Rift has stripped.)
+    fn active(&self, ctx: &AppContext) -> bool {
+        !*SessionSettings::as_ref(ctx).honor_ps1
+            || InputSettings::as_ref(ctx).is_universal_developer_input_enabled(ctx)
+    }
+
     fn update_states_with_new_context(&mut self, ctx: &mut ModelContext<Self>) {
         // 1. Terminating existing spawned operations.
         self.clear_chips();
 
-        // 2. Running chips with new context
+        // 2. If chips are inactive (PS1 honored), don't run any generators.
+        if !self.active(ctx) {
+            return;
+        }
+
+        // 3. Running chips with new context
         self.run_chips(self.chips_to_run(ctx), ctx);
     }
 
@@ -1023,7 +1037,12 @@ impl CurrentPrompt {
         // 1. Terminating existing spawned operations.
         self.clear_chips_and_cache();
 
-        // 2. Running chips with new context
+        // 2. If chips are inactive (PS1 honored), don't run any generators.
+        if !self.active(ctx) {
+            return;
+        }
+
+        // 3. Running chips with new context
         self.run_chips(self.chips_to_run(ctx), ctx);
     }
 

@@ -9,12 +9,15 @@ use riftui::{AddSingletonModel, App, ViewHandle};
 use watcher::HomeDirectoryWatcher;
 
 use super::*;
+use crate::auth::AuthStateProvider;
 use crate::context_chips::prompt::Prompt;
 use crate::editor::Event;
 use crate::gpu_state::GPUState;
 use crate::network::NetworkStatus;
 use crate::pane_group::{Direction, PaneGroupAction};
 use crate::pricing::PricingInfoModel;
+use crate::projects::ProjectManagementModel;
+use crate::rift_managed_paths_watcher::RiftManagedPathsWatcher;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::PrivacySettings;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
@@ -28,7 +31,6 @@ use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseSettings;
 #[cfg(windows)]
 use crate::util::traffic_lights::windows::RendererState;
-use crate::rift_managed_paths_watcher::RiftManagedPathsWatcher;
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_profiles::UserProfiles;
@@ -54,6 +56,8 @@ fn initialize_app(app: &mut App) {
     app.add_singleton_model(|_| DisplayCount::mock());
     app.add_singleton_model(PrivacySettings::mock);
     app.add_singleton_model(|_| KeybindingChangedNotifier::new());
+    app.add_singleton_model(|_| AuthStateProvider::new_for_test());
+    app.add_singleton_model(|ctx| ProjectManagementModel::new(Vec::new(), None, ctx));
     app.add_singleton_model(|_ctx| SyncedInputState::mock());
     app.add_singleton_model(|_| ResizableData::default());
     app.add_singleton_model(UndoCloseStack::new);
@@ -88,7 +92,6 @@ fn initialize_app(app: &mut App) {
 
     #[cfg(enable_crash_recovery)]
     crate::crash_recovery::CrashRecovery::register_for_test(app);
-
 
     app.add_singleton_model(|_| PricingInfoModel::new());
     app.add_singleton_model(|_| History::new(vec![]));

@@ -25,7 +25,6 @@ use super::{
     heights_approx_lte, SizeInfo, HEIGHT_FUDGE_FACTOR_LINES,
 };
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
-use crate::terminal::model::blocks::RichContentItem;
 use crate::terminal::model::index::Point as IndexPoint;
 
 /// Wraps a scroll position for the purposes of centralizing update logic.
@@ -103,12 +102,7 @@ impl ScrollLines {
                 //
                 // Otherwise we want to use scroll bottom so that the block that is growing
                 // above you doesn't make you lose your position when you are scrolled down.
-                if is_long_running
-                    && scroll_top
-                        < active_block
-                            .height()
-                            .into_lines()
-                {
+                if is_long_running && scroll_top < active_block.height().into_lines() {
                     ScrollLines::ScrollTop(scroll_top)
                 } else {
                     ScrollLines::ScrollBottom(
@@ -684,11 +678,9 @@ impl<'a> ViewportState<'a> {
                 {
                     Some(height) => Some(height.into_lines()),
                     None => index.and_then(|last_index| {
-                        self.block_list.block_at(last_index).map(|block| {
-                            block
-                                .height()
-                                .into_lines()
-                        })
+                        self.block_list
+                            .block_at(last_index)
+                            .map(|block| block.height().into_lines())
                     }),
                 };
 
@@ -1540,9 +1532,7 @@ impl<'a> ViewportState<'a> {
         let block_height = self
             .block_list
             .block_at(block_index)
-            .map_or(Lines::zero(), |b| {
-                b.height()
-            });
+            .map_or(Lines::zero(), |b| b.height());
         top_of_block + block_height
     }
 
@@ -2004,19 +1994,10 @@ impl Iterator for ViewportIter<'_> {
                 }
             }
 
-            match item {
-                BlockHeightItem::RichContent(RichContentItem { .. }) => {
-                    // Rich content always belongs to the terminal mode now that
-                    // the agent view conversation concept has been removed.
-                    return next;
-                }
-                _ => {
-                    // Skip zero-height blocks.
-                    if block_height.as_f64() > 0. {
-                        return next;
-                    }
-                }
-            }
+            // Rift has no AgentView feature, so every block is yielded regardless
+            // of height (RichContent or otherwise). Upstream only skips zero-height
+            // blocks while AgentView is enabled.
+            return next;
         }
     }
 }
