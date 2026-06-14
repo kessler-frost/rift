@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use rift_completer::completer::{EngineDirEntry, EngineFileType, PathCompletionContext};
+use rift_completer::completer::{EngineDirEntry, EngineFileType};
 use rift_util::file_type::is_binary_file;
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::{AppContext, Entity, ModelContext};
@@ -91,8 +91,9 @@ impl DirectoryFetcher {
             TypedPathBuf::from(dir_path)
         };
 
-        // Use SessionContext to get directory entries (works for both local and remote sessions)
-        let entries = session_context.list_directory_entries(typed_path).await;
+        // Force re-read the directory from disk so the chip reflects its current contents rather
+        // than serving the possibly-stale entry from the shared `SessionContext` cache.
+        let entries = session_context.refresh_directory_entries(typed_path).await;
 
         // Convert EngineDirEntry to GenericMenuItem, filtering out hidden files
         let mut items: Vec<DirectoryItem> = entries
@@ -142,6 +143,14 @@ impl DirectoryFetcher {
             self.current_directory = new_directory;
             self.cached_files.clear();
             self.refetch_directory(ctx);
+        }
+    }
+}
+
+impl Drop for DirectoryFetcher {
+    fn drop(&mut self) {
+        if let Some(handle) = self.fetch_handle.take() {
+            handle.abort();
         }
     }
 }
