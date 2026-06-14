@@ -26,6 +26,21 @@ git fetch upstream
 git log upstream/master --since=2026-06-14 --date=short --pretty='%h %ad %s'
 ```
 
+### Notes from the 2026-06-14 review
+
+- **Ported:** DCS hook-integrity checks (warp #25395). The session-viewer
+  validation exception (warp #25607) was skipped — Rift has no shared-session
+  subsystem, so it always validates.
+- **Deliberately NOT ported — tab grouping / pinning refinements.** Rift carries
+  vertical tab grouping up to warp #12000 but with `grouped_tabs` off in the
+  default Cargo features. That matches Warp's own stable release, where
+  `GroupedTabs` is **PREVIEW-only** (not in `RELEASE_FLAGS`) and `PinnedTabs`
+  (#12453/#12534) is still on an unmerged Warp dev branch. The rule: if a feature
+  isn't in Warp's stable release, don't add it to Rift yet. The horizontal
+  tab-group view (warp #12089's `view/tab_grouping.rs`) never existed in Rift, so
+  the horizontal-tab commits (#12089/#12110/#12432) are N/A. Revisit only if/when
+  these graduate to Warp's `RELEASE_FLAGS`.
+
 Only port changes to subsystems Rift keeps (terminal core, blocks, wgpu rendering, command
 input/editor, themes, tabs/vertical tabs, command search, completions, history autosuggestion,
 vim input, syntax highlighting, shell integration/bootstrap, SSH/riftify, secret redaction,
