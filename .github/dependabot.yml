@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  # GitHub Actions used by Rift's own workflows (currently only release.yml).
+  # Dependabot scans .github/workflows/*, so this only ever touches actions
+  # that Rift actually keeps — not the stripped Warp CI workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Rust workspace dependencies. Grouped to avoid a flood of single-crate PRs;
+  # patch + minor bumps batch together, majors come through individually.
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      cargo-minor-patch:
+        update-types:
+          - minor
+          - patch
