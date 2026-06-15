@@ -3,7 +3,7 @@ use rift_core::features::FeatureFlag;
 use riftui::ViewContext;
 
 use super::{
-    ContentItem, ContentSectionData, FeatureItem, FeatureSection, FeatureSectionData,
+    FeatureItem, FeatureSection, FeatureSectionData,
     ResourceCenterMainView, Section, Tip, TipAction, TipHint,
 };
 
@@ -57,30 +57,6 @@ pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
     };
     sections.push(Section::Feature(maximize_rift));
 
-    let advanced_setup = ContentSectionData {
-        section_name: FeatureSection::AdvancedSetup,
-        items: vec![
-            ContentItem {
-                title: "Use your custom prompt",
-                description: "Set up Rift to honor your PS1 setting",
-                url: "https://docs.rift.dev/terminal/appearance/prompt",
-                button_label: "View documentation",
-            },
-            ContentItem {
-                title: "Integrate Rift with your IDE",
-                description: "Configure Rift to launch from your most used development tools",
-                url: "https://docs.rift.dev/terminal/integrations-and-plugins",
-                button_label: "View documentation",
-            },
-            ContentItem {
-                title: "How Rift uses Rift",
-                description: "Learn how Rift's engineering team uses their favorite features",
-                url: "https://www.rift.dev/blog/how-rift-uses-rift",
-                button_label: "Read article",
-            },
-        ],
-    };
-    sections.push(Section::Content(advanced_setup));
 
     sections
 }
