@@ -18,7 +18,6 @@ use crate::util::openable_file_type::OpenableFileType;
 #[derive(Clone, Copy, Debug)]
 pub enum OpenInRiftBannerAction {
     OpenFile,
-    LearnMore,
     Close,
 }
 
@@ -27,7 +26,6 @@ pub struct OpenInRiftBannerState {
     pub target: OpenablePath,
     pub session: Arc<Session>,
     open_button_mouse_state: MouseStateHandle,
-    learn_more_button_mouse_state: MouseStateHandle,
     close_button_mouse_state: MouseStateHandle,
 }
 
@@ -38,7 +36,6 @@ impl OpenInRiftBannerState {
             target: openable_path,
             session,
             open_button_mouse_state: Default::default(),
-            learn_more_button_mouse_state: Default::default(),
             close_button_mouse_state: Default::default(),
         }
     }
@@ -97,18 +94,6 @@ pub fn render_open_in_rift_banner(
         variant: InlineBannerTextButtonVariant::Primary,
     };
 
-    let learn_more_button = InlineBannerTextButton {
-        text: "Learn more".to_string(),
-        text_color: appearance.theme().active_ui_text_color().into_solid(),
-        button_state: InlineBannerButtonState {
-            on_click_event: TerminalAction::OpenInRiftBanner(OpenInRiftBannerAction::LearnMore),
-            mouse_state_handle: state.learn_more_button_mouse_state.clone(),
-        },
-        font: Default::default(),
-        position_id: None,
-        variant: InlineBannerTextButtonVariant::Secondary,
-    };
-
     let close_button = InlineBannerCloseButton(InlineBannerButtonState {
         on_click_event: TerminalAction::OpenInRiftBanner(OpenInRiftBannerAction::Close),
         mouse_state_handle: state.close_button_mouse_state.clone(),
@@ -121,7 +106,7 @@ pub fn render_open_in_rift_banner(
         appearance,
         InlineBannerContent {
             title,
-            buttons: vec![open_button, learn_more_button],
+            buttons: vec![open_button],
             close_button: Some(close_button),
             ..Default::default()
         },

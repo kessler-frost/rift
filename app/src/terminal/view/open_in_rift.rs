@@ -26,9 +26,6 @@ use crate::util::openable_file_type::{is_file_openable_in_rift, OpenableFileType
 #[path = "open_in_rift_tests.rs"]
 mod tests;
 
-const LEARN_MORE_MARKDOWN_URL: &str =
-    "https://docs.rift.dev/terminal/more-features/markdown-viewer";
-const LEARN_MORE_CODE_URL: &str = "https://docs.rift.dev/code/overview#built-in-code-editor";
 
 /// A path to a file that can be opened in Rift, along with its type.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -169,15 +166,6 @@ impl TerminalView {
                     ctx.notify();
                 }
             }
-            OpenInRiftBannerAction::LearnMore => {
-                if let Some(banner_state) = &self.inline_banners_state.open_in_rift_banner {
-                    let url = match banner_state.target.file_type {
-                        OpenableFileType::Markdown => LEARN_MORE_MARKDOWN_URL,
-                        OpenableFileType::Code | OpenableFileType::Text => LEARN_MORE_CODE_URL,
-                    };
-                    ctx.open_url(url);
-                }
-            }
             OpenInRiftBannerAction::Close => {
                 if let Some(banner_state) = self.inline_banners_state.open_in_rift_banner.take() {
                     self.close_open_in_rift_banner(banner_state.id);
@@ -222,13 +210,6 @@ impl TerminalView {
             OpenInRiftBannerAction::Close => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
                     "Close View in Rift banner",
-                    RiftA11yRole::UserAction,
-                ))
-            }
-            OpenInRiftBannerAction::LearnMore => {
-                ActionAccessibilityContent::Custom(AccessibilityContent::new(
-                    "Learn more",
-                    "Learn more about opening Markdown files in Rift",
                     RiftA11yRole::UserAction,
                 ))
             }
