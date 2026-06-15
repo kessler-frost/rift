@@ -729,8 +729,6 @@ lazy_static! {
 const NOTIFICATION_CHECKBOX_MARGIN_RIGHT: f32 = 5.;
 const NOTIFICATION_EDITOR_MARGIN: f32 = 5.;
 
-const NOTIFICATIONS_DOCS_URL: &str = "https://docs.rift.dev/terminal/more-features/notifications";
-
 /// WARNING: this constant was computed manually by determining the pixel width
 /// of the quake mode dropdowns based on the number of expanded items in the flex row.
 /// This should be adjusted if the flex row is changed in any way!
@@ -3777,7 +3775,6 @@ impl SettingsWidget for NativeRedirectWidget {
 #[derive(Default)]
 struct SessionRestorationWidget {
     switch_state: SwitchStateHandle,
-    additional_info_link: MouseStateHandle,
     docs_link: MouseStateHandle,
 }
 
@@ -3807,14 +3804,7 @@ impl SettingsWidget for SessionRestorationWidget {
 
         let labeled_switch = render_body_item::<FeaturesPageAction>(
             "Restore windows, tabs, and panes on startup".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/sessions/session-restoration".into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 RestoreSession::storage_key(),
                 RestoreSession::sync_to_cloud(),
@@ -3842,7 +3832,7 @@ impl SettingsWidget for SessionRestorationWidget {
             let link = ui_builder
                 .link(
                     "See docs.".to_owned(),
-                    Some("https://docs.rift.dev/terminal/sessions/session-restoration".to_owned()),
+                    None,
                     None,
                     self.docs_link.clone(),
                 )
@@ -3873,7 +3863,6 @@ impl SettingsWidget for SessionRestorationWidget {
 #[derive(Default)]
 struct SnackbarHeaderWidget {
     switch_state: SwitchStateHandle,
-    additional_info_link: MouseStateHandle,
 }
 
 impl SettingsWidget for SnackbarHeaderWidget {
@@ -3892,14 +3881,7 @@ impl SettingsWidget for SnackbarHeaderWidget {
         let ui_builder = appearance.ui_builder();
         render_body_item::<FeaturesPageAction>(
             "Show sticky command header".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/blocks/sticky-command-header".into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 SnackbarEnabled::storage_key(),
                 SnackbarEnabled::sync_to_cloud(),
@@ -4308,7 +4290,6 @@ impl SettingsWidget for BlockLimitWidget {
 
 #[derive(Default)]
 struct DesktopNotificationsWidget {
-    additional_info_link: MouseStateHandle,
     switch_state: SwitchStateHandle,
 }
 
@@ -4330,12 +4311,7 @@ impl SettingsWidget for DesktopNotificationsWidget {
         let mut column = Flex::column();
         column.add_child(render_body_item::<FeaturesPageAction>(
             "Receive desktop notifications from Rift".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(NOTIFICATIONS_DOCS_URL.into())),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 Notifications::storage_key(),
                 Notifications::sync_to_cloud(),
@@ -4605,10 +4581,7 @@ impl SettingsWidget for GlobalHotkeyWidget {
                         ui_builder
                             .link(
                                 "See docs.".to_owned(),
-                                Some(
-                                    "https://docs.rift.dev/terminal/windows/global-hotkey"
-                                        .to_owned(),
-                                ),
+                                None,
                                 None,
                                 view.button_mouse_states.global_hotkey_link.clone(),
                             )
@@ -5679,7 +5652,6 @@ impl SettingsWidget for CtrlTabBehaviorWidget {
 
 #[derive(Default)]
 struct MouseReportingWidget {
-    additional_info_link: MouseStateHandle,
     switch_state: SwitchStateHandle,
 }
 
@@ -5700,15 +5672,7 @@ impl SettingsWidget for MouseReportingWidget {
         let ui_builder = appearance.ui_builder();
         render_body_item::<FeaturesPageAction>(
             "Enable Mouse Reporting".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/more-features/full-screen-apps#mouse-and-scroll-reporting"
-                        .into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 MouseReportingEnabled::storage_key(),
                 MouseReportingEnabled::sync_to_cloud(),
@@ -5887,7 +5851,6 @@ impl SettingsWidget for AudibleBellWidget {
 
 #[derive(Default)]
 struct SmartSelectWidget {
-    additional_info_link: MouseStateHandle,
     switch_state: SwitchStateHandle,
     word_char_allowlist_reset_state: MouseStateHandle,
 }
@@ -5965,14 +5928,7 @@ impl SettingsWidget for SmartSelectWidget {
         let mut column = Flex::column();
         column.add_child(render_body_item::<FeaturesPageAction>(
             "Double-click smart selection".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_link.clone(),
-                on_click_action: Some(FeaturesPageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/more-features/text-selection".into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 SmartSelectEnabled::storage_key(),
                 SmartSelectEnabled::sync_to_cloud(),

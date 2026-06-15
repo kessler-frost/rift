@@ -2395,7 +2395,7 @@ impl SettingsWidget for CreateCustomThemeWidget {
                 .ui_builder()
                 .link(
                     "Create your own custom theme".to_string(),
-                    Some("https://docs.rift.dev/terminal/appearance/custom-themes".to_string()),
+                    None,
                     None,
                     self.mouse_state.clone(),
                 )
@@ -2925,7 +2925,6 @@ impl SettingsWidget for WindowOpacityWidget {
 #[derive(Default)]
 struct WindowBlurWidget {
     slider_state: SliderStateHandle,
-    info_button: MouseStateHandle,
 }
 
 impl SettingsWidget for WindowBlurWidget {
@@ -2943,19 +2942,10 @@ impl SettingsWidget for WindowBlurWidget {
     ) -> Box<dyn Element> {
         let window_settings = WindowSettings::as_ref(app);
         let blur_value = *window_settings.background_blur_radius;
-        let label_info = AdditionalInfo {
-            mouse_state: self.info_button.clone(),
-            on_click_action: Some(AppearancePageAction::OpenUrl(
-                "https://docs.rift.dev/terminal/appearance/size-opacity-blurring".into(),
-            )),
-            secondary_text: None,
-            tooltip_override_text: None,
-        };
-
         Flex::column()
             .with_child(render_body_item::<AppearancePageAction>(
                 format!("Window Blur Radius: {blur_value}"),
-                Some(label_info),
+                None,
                 LocalOnlyIconState::for_setting(
                     BackgroundBlurRadius::storage_key(),
                     BackgroundBlurRadius::sync_to_cloud(),
@@ -4519,7 +4509,6 @@ impl SettingsWidget for ZenModeWidget {
 #[derive(Default)]
 struct AltScreenPaddingWidget {
     switch_state: SwitchStateHandle,
-    additional_info_mouse_state: MouseStateHandle,
 }
 
 impl SettingsWidget for AltScreenPaddingWidget {
@@ -4539,14 +4528,7 @@ impl SettingsWidget for AltScreenPaddingWidget {
         let theme = appearance.theme();
         let mut column = Flex::column().with_child(render_body_item::<AppearancePageAction>(
             "Use custom padding in alt-screen".into(),
-            Some(AdditionalInfo {
-                mouse_state: self.additional_info_mouse_state.clone(),
-                on_click_action: Some(AppearancePageAction::OpenUrl(
-                    "https://docs.rift.dev/terminal/more-features/full-screen-apps#padding".into(),
-                )),
-                secondary_text: None,
-                tooltip_override_text: None,
-            }),
+            None,
             LocalOnlyIconState::for_setting(
                 AltScreenPadding::storage_key(),
                 AltScreenPadding::sync_to_cloud(),
