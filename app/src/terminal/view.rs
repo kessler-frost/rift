@@ -135,7 +135,6 @@ use super::ssh::util::{
 };
 use super::riftify::success_block::{RiftifySuccessBlock, RiftifySuccessBlockEvent};
 use super::riftify::trigger_state::{SshBlockState, RiftifyState};
-use super::riftify::RiftificationSource;
 use super::GridType;
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
@@ -230,7 +229,7 @@ use crate::terminal::model::mouse::MouseState;
 use crate::terminal::model::selection::{SelectAction, SelectionDirection};
 use crate::terminal::model::session::active_session::ActiveSession;
 use crate::terminal::model::session::{
-    BootstrapSessionType, Session, SessionId, SessionType, Sessions, SessionsEvent,
+    Session, SessionId, SessionType, Sessions, SessionsEvent,
 };
 use crate::terminal::model::terminal_model::{
     BlockIndex, BlockSelectionCardinality, SelectedBlocks, TerminalInputState, WithinModel,
@@ -3467,7 +3466,6 @@ impl TerminalView {
             spawning_command,
             subshell_info,
             shell,
-            session_type,
             ..
         }: SessionBootstrappedEvent,
         ctx: &mut ViewContext<Self>,
@@ -3481,14 +3479,9 @@ impl TerminalView {
             });
         }
 
-        let riftification_source = match session_type {
-            BootstrapSessionType::RiftifiedRemote => RiftificationSource::Ssh,
-            BootstrapSessionType::Local => RiftificationSource::Subshell,
-        };
         let disable_tmux = false;
         let ssh_success_block_handle = ctx.add_typed_action_view(|ctx| {
             RiftifySuccessBlock::new(
-                riftification_source,
                 spawning_command,
                 subshell_info,
                 shell,

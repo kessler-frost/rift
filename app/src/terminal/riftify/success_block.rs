@@ -7,14 +7,13 @@ use rift_core::semantic_selection::SemanticSelection;
 use rift_core::ui::theme::RiftTheme;
 use riftui::elements::{
     Border, Container, CrossAxisAlignment, Flex, Icon, MainAxisAlignment, MainAxisSize,
-    MouseStateHandle, ParentElement, SelectableArea, SelectionHandle, Text,
+    ParentElement, SelectableArea, SelectionHandle, Text,
 };
-use riftui::ui_components::components::{UiComponent, UiComponentStyles};
 use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
-use super::render::{HORIZONTAL_TEXT_MARGIN, SSH_DOCS_URL, SUBSHELL_DOCS_URL};
+use super::render::HORIZONTAL_TEXT_MARGIN;
 use super::settings::RiftifySettings;
-use super::{render, subshell_bootstrap_success_block_bytes, RiftificationSource};
+use super::{render, subshell_bootstrap_success_block_bytes};
 use crate::appearance::Appearance;
 use crate::terminal::model::terminal_model::SubshellInitializationInfo;
 use crate::terminal::shell::Shell;
@@ -32,7 +31,6 @@ pub enum RiftifySuccessBlockEvent {
 pub enum RiftifySuccessBlockAction {
     ClearAutoRiftifySnippet,
     OpenRiftifySettings,
-    OpenUrl(String),
 }
 
 struct AutoRiftifySnippet {
@@ -47,16 +45,13 @@ struct AutoRiftifySnippet {
 }
 
 pub struct RiftifySuccessBlock {
-    source: RiftificationSource,
     spawning_command: String,
-    learn_more_link_mouse_states: MouseStateHandle,
     auto_riftify_snippet: Option<AutoRiftifySnippet>,
 }
 
 impl RiftifySuccessBlock {
     #[allow(clippy::new_without_default)]
     pub fn new(
-        source: RiftificationSource,
         spawning_command: String,
         subshell_info: Option<SubshellInitializationInfo>,
         shell: Shell,
@@ -118,8 +113,6 @@ impl RiftifySuccessBlock {
         });
 
         Self {
-            source,
-            learn_more_link_mouse_states: Default::default(),
             spawning_command,
             auto_riftify_snippet,
         }
@@ -153,7 +146,7 @@ impl RiftifySuccessBlock {
         .finish();
         let header_contents = Container::new(
             Flex::row()
-                .with_children([header_contents, self.render_learn_more_link(appearance)])
+                .with_children([header_contents])
                 .finish(),
         )
         .finish();
@@ -169,38 +162,6 @@ impl RiftifySuccessBlock {
         .with_horizontal_margin(HORIZONTAL_TEXT_MARGIN)
         .with_margin_top(VERTICAL_TEXT_MARGIN)
         .finish()
-    }
-
-    fn render_learn_more_link(&self, appearance: &Appearance) -> Box<dyn Element> {
-        let url = match self.source {
-            RiftificationSource::Ssh => SSH_DOCS_URL,
-            RiftificationSource::Subshell => SUBSHELL_DOCS_URL,
-        };
-
-        let font_family_id = appearance.monospace_font_family();
-        let font_size = appearance.monospace_font_size();
-        appearance
-            .ui_builder()
-            .link(
-                "Learn more".into(),
-                None,
-                Some(Box::new({
-                    move |ctx| {
-                        ctx.dispatch_typed_action(RiftifySuccessBlockAction::OpenUrl(
-                            url.to_owned(),
-                        ));
-                    }
-                })),
-                self.learn_more_link_mouse_states.clone(),
-            )
-            .soft_wrap(false)
-            .with_style(UiComponentStyles {
-                font_size: Some(font_size),
-                font_family_id: Some(font_family_id),
-                ..Default::default()
-            })
-            .build()
-            .finish()
     }
 
     /// Fired when a block ends and we are not in a Riftified session.
@@ -323,9 +284,6 @@ impl TypedActionView for RiftifySuccessBlock {
         match action {
             RiftifySuccessBlockAction::OpenRiftifySettings => {
                 ctx.emit(RiftifySuccessBlockEvent::OpenRiftifySettings);
-            }
-            RiftifySuccessBlockAction::OpenUrl(url) => {
-                ctx.open_url(url);
             }
             RiftifySuccessBlockAction::ClearAutoRiftifySnippet => {
                 self.clear_auto_riftify_snippet(ctx);
