@@ -149,9 +149,6 @@ fn resolve_tab_config_shell(name: &str, ctx: &AppContext) -> Option<AvailableShe
 
     AvailableShell::try_from(name).ok()
 }
-const RIFT_SHELL_COMPATIBILITY_DOCS: &str =
-    "https://docs.rift.dev/getting-started/supported-shells";
-
 #[derive(Debug, Clone, Copy)]
 pub enum ActivationReason {
     Click,
@@ -1557,7 +1554,7 @@ impl PaneGroup {
                     FormattedTextFragment::plain_text(
                         "Rift doesn't currently support your default shell, falling back to zsh.  ",
                     ),
-                    FormattedTextFragment::hyperlink("Learn more", RIFT_SHELL_COMPATIBILITY_DOCS),
+                    FormattedTextFragment::plain_text("Learn more"),
                 ]),
             )
         });

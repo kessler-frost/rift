@@ -28,8 +28,6 @@ lazy_static! {
 # Open the launch configuration palette to access and open any launch configuration.
 #
 # This file defines your launch configuration.
-# More on how to do so here:
-# https://docs.rift.dev/terminal/sessions/launch-configurations
 #
 # All launch configurations are stored under {}.
 # Edit them anytime!
