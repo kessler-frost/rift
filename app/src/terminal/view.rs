@@ -380,17 +380,6 @@ const BRACKETED_PASTE_SUFFIX: &str = "\x1b[201~";
 
 /// Duration before we consider a session to have failed bootstrapping.
 const BOOTSTRAP_FAILED_DURATION: Duration = Duration::from_secs(7);
-const KNOWN_ISSUES_URL: &str =
-    "https://docs.rift.dev/support-and-community/troubleshooting-and-support/known-issues";
-
-/// Link to supported custom prompts.
-const PROMPT_COMPATIBILITY_URL: &str =
-    "https://docs.rift.dev/terminal/appearance/prompt#custom-prompt-compatibility-table";
-
-/// Link to troubleshooting steps for ControlMaster errors.
-const CONTROLMASTER_ISSUES_URL: &str =
-    "https://docs.rift.dev/terminal/riftify/ssh-legacy#troubleshooting";
-
 /// Link to instructions on how to update p10k.
 const P10K_UPDATE_INSTRUCTIONS_URL: &str =
     "https://github.com/romkatv/powerlevel10k#how-do-i-update-powerlevel10k";
@@ -2076,7 +2065,7 @@ impl TerminalView {
                     FormattedTextFragment::plain_text(
                         "Seems like your shell is taking a while to start...  ",
                     ),
-                    FormattedTextFragment::hyperlink("More info", KNOWN_ISSUES_URL),
+                    FormattedTextFragment::plain_text("More info"),
                 ]),
                 vec![BannerTextButton::new(
                     "Show initialization block".to_string(),
@@ -2100,7 +2089,7 @@ impl TerminalView {
         let control_master_error_banner = ctx.add_typed_action_view(|_| {
             Banner::new(BannerTextContent::formatted_text(vec![
                 FormattedTextFragment::plain_text("Seems like your completions are not working ("),
-                FormattedTextFragment::hyperlink("more info", CONTROLMASTER_ISSUES_URL),
+                FormattedTextFragment::plain_text("more info"),
                 FormattedTextFragment::plain_text("). Enabling the SSH extension in "),
                 FormattedTextFragment::hyperlink_action(
                     "settings",
@@ -2119,7 +2108,7 @@ impl TerminalView {
                 FormattedTextFragment::plain_text(
                     "Your shell configuration is incompatible with Rift...  ",
                 ),
-                FormattedTextFragment::hyperlink("More info", KNOWN_ISSUES_URL),
+                FormattedTextFragment::plain_text("More info"),
             ]))
         });
 
@@ -9417,7 +9406,7 @@ impl TerminalView {
                         "Pure is not yet supported in Rift. You might consider one of the \
                         supported prompts as an alternative.  ",
                     ),
-                    FormattedTextFragment::hyperlink("Learn more", PROMPT_COMPATIBILITY_URL),
+                    FormattedTextFragment::plain_text("Learn more"),
                 ]))
             } else {
                 None
