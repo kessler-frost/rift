@@ -11323,9 +11323,6 @@ impl TerminalView {
         use SSHBannerAction::*;
 
         match action {
-            LearnMore => {
-                ctx.open_url("https://docs.rift.dev/terminal/riftify/ssh-legacy#implementation");
-            }
             Settings => {
                 ctx.emit(Event::OpenSettings(SettingsSection::Features));
             }

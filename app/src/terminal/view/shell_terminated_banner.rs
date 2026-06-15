@@ -16,7 +16,6 @@ use crate::terminal::model::terminal_model::ExitReason;
 use crate::ui_components;
 
 const FILE_ISSUE_TEXT: &str = "File issue";
-const MORE_INFO_TEXT: &str = "More info";
 
 /// A banner to display when the shell process terminates.
 ///
@@ -208,34 +207,22 @@ impl TerminationType {
             TerminationType::Premature { .. } => {
                 let ui_builder = inverted_color_ui_builder(appearance);
 
-                handles.resize_with(2, MouseStateHandle::default);
-                vec![
-                    ui_builder
-                        .button(ButtonVariant::Text, handles[0].clone())
-                        .with_text_label(FILE_ISSUE_TEXT.to_string())
-                        .build()
-                        .on_click(|ctx, _, _| {
-                            ctx.dispatch_typed_action(Action::OpenUrl(
-                                "https://github.com/kessler-frost/rift/issues/new/choose".to_string(),
-                            ));
-                        })
-                        .finish(),
-                    ui_builder
-                        .button(ButtonVariant::Outlined, handles[1].clone())
-                        .with_text_label(MORE_INFO_TEXT.to_string())
-                        .build()
-                        .on_click(|ctx, _, _| {
-                            ctx.dispatch_typed_action(Action::OpenUrl(
-                                "https://docs.rift.dev/support-and-community/troubleshooting-and-support/known-issues#debugging".to_string(),
-                            ));
-                        })
-                        .finish(),
-                ]
+                handles.resize_with(1, MouseStateHandle::default);
+                vec![ui_builder
+                    .button(ButtonVariant::Text, handles[0].clone())
+                    .with_text_label(FILE_ISSUE_TEXT.to_string())
+                    .build()
+                    .on_click(|ctx, _, _| {
+                        ctx.dispatch_typed_action(Action::OpenUrl(
+                            "https://github.com/kessler-frost/rift/issues/new/choose".to_string(),
+                        ));
+                    })
+                    .finish()]
             }
             TerminationType::PtySpawnFailure { pty_spawn_error } => {
                 let ui_builder = inverted_color_ui_builder(appearance);
 
-                handles.resize_with(3, MouseStateHandle::default);
+                handles.resize_with(2, MouseStateHandle::default);
                 let error_str = format!("{pty_spawn_error:#}");
                 vec![
                     ui_builder
@@ -255,16 +242,6 @@ impl TerminationType {
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(
                                 "https://github.com/kessler-frost/rift/issues/new/choose".to_string(),
-                            ));
-                        })
-                        .finish(),
-                    ui_builder
-                        .button(ButtonVariant::Outlined, handles[2].clone())
-                        .with_text_label(MORE_INFO_TEXT.to_string())
-                        .build()
-                        .on_click(|ctx, _, _| {
-                            ctx.dispatch_typed_action(Action::OpenUrl(
-                                "https://docs.rift.dev/support-and-community/troubleshooting-and-support/known-issues#debugging".to_string(),
                             ));
                         })
                         .finish(),
