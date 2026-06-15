@@ -200,10 +200,7 @@ use crate::terminal::session_settings::{
 };
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
 use crate::terminal::shell::ShellType;
-use crate::terminal::view::{
-    SyncEvent, SyncInputType,
-    NOTIFICATIONS_TROUBLESHOOT_URL,
-};
+use crate::terminal::view::{SyncEvent, SyncInputType};
 use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::{self, BlockListSettings, SizeInfo, TerminalModel, TerminalView};
 use crate::terminal::model::block::SerializedBlockListItem;
@@ -7353,12 +7350,10 @@ impl Workspace {
                     RequestPermissionsOutcome::Accepted => (),
                     RequestPermissionsOutcome::PermissionsDenied => {
                         // Show a helpful toast if the user denied permissions.
-                        let url = NOTIFICATIONS_TROUBLESHOOT_URL.to_string();
                         view.toast_stack.update(ctx, |toast_stack, ctx| {
                             let toast = DismissibleToast::error(
                                 "Rift doesn't have permission to send desktop notifications.".to_string(),
-                            )
-                            .with_link(ToastLink::new("Troubleshoot notifications".to_string()).with_href(url));
+                            );
                             toast_stack.add_persistent_toast(toast, ctx);
                         });
                     }
@@ -11531,7 +11526,6 @@ impl TypedActionView for Workspace {
             #[cfg(all(enable_crash_recovery, target_os = "linux"))]
             DismissWaylandCrashRecoveryBannerAndOpenLink => {
                 self.dismiss_workspace_banner(ctx, &WorkspaceBanner::WaylandCrashRecovery);
-                ctx.open_url("https://docs.rift.dev/terminal/more-features/linux#native-wayland");
             }
             TabHoverWidthStart { width } => {
                 // Store the fixed width value for the tab to maintain consistent size during hover

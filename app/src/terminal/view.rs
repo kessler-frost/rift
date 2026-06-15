@@ -390,12 +390,6 @@ const CONTEXT_MENU_WIDTH: f32 = 280.;
 /// Roughly determined by trial-and-error.
 const MIN_DELTA_FOR_TEXT_SELECTION: f32 = 0.5;
 
-/// Notifications-specific info
-/// TODO (suraj): add documentation for notifications in gitbook
-const NOTIFICATIONS_LEARN_MORE_URL: &str =
-    "https://docs.rift.dev/terminal/more-features/notifications";
-pub const NOTIFICATIONS_TROUBLESHOOT_URL: &str =
-    "https://docs.rift.dev/terminal/more-features/notifications#troubleshooting-notifications";
 
 const DEBOUNCE_PERIOD: Duration = Duration::from_millis(40);
 
@@ -11181,9 +11175,6 @@ impl TerminalView {
         use NotificationsErrorBannerAction::*;
 
         match action {
-            Troubleshoot => {
-                ctx.open_url(NOTIFICATIONS_TROUBLESHOOT_URL);
-            }
             Close => self.close_notification_error_banner(ctx),
             SetPermissions => {
                 ctx.request_desktop_notification_permissions(move |view, outcome, ctx| {
@@ -11224,12 +11215,6 @@ impl TerminalView {
         use NotificationsDiscoveryBannerAction::*;
 
         match action {
-            LearnMore => {
-                ctx.open_url(NOTIFICATIONS_LEARN_MORE_URL);
-            }
-            Troubleshoot => {
-                ctx.open_url(NOTIFICATIONS_TROUBLESHOOT_URL);
-            }
             TurnOn(_trigger) => {
                 let current_settings = SessionSettings::as_ref(ctx).notifications.value().clone();
                 let new_settings = NotificationsSettings {
