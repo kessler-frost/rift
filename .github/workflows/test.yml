@@ -1,0 +1,80 @@
+name: Test
+
+# Build/lint/test gate for pushes and PRs. Mirrors the local `./script/presubmit`
+# (fmt-check + clippy `-D warnings` + nextest) on the pinned toolchain.
+#
+# Runs on macos-14 (Apple Silicon) because Rift is Apple-Silicon-only and the
+# riftui crate's build script compiles Metal shaders with `xcrun metal`, which
+# only ships with full Xcode (present on the hosted macOS runners, not on bare
+# Command Line Tools).
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Surface backtraces if a test panics.
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: fmt + clippy + nextest
+    runs-on: macos-14 # Apple Silicon hosted runner (ships full Xcode w/ Metal).
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        # rust-toolchain.toml pins the channel + components (rustfmt, clippy).
+        run: rustup show
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: test-aarch64
+
+      - name: Install protoc
+        # Required for crates/remote_server protos.
+        run: brew install protobuf
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Format check
+        # Matches `./script/format --check` (custom import grouping needs
+        # RUSTC_BOOTSTRAP to use the unstable rustfmt options on stable).
+        run: RUSTC_BOOTSTRAP=1 cargo fmt -- --check --config imports_granularity=Module --config group_imports=StdExternalCrate
+
+      - name: No inline test modules
+        run: ./script/check_no_inline_test_modules
+
+      - name: Clippy
+        # `-D warnings` is the no-warnings gate. rift_completer is run separately
+        # below with default features only, matching ./script/presubmit (it has
+        # feature-gated WIP completions-on-js logic).
+        run: |
+          cargo clippy --workspace --exclude rift_completer --exclude command-signatures-v2 --all-targets --tests -- -D warnings
+          cargo clippy -p rift_completer --all-targets --tests -- -D warnings
+
+      - name: Nextest
+        run: |
+          cargo nextest run --no-fail-fast --workspace --exclude command-signatures-v2
+          # Exercise the v2 (completions-on-js) path so it doesn't rot while paused.
+          cargo nextest run -p rift_completer --features v2
+
+      - name: Doc tests
+        run: cargo test --doc --workspace --exclude command-signatures-v2
