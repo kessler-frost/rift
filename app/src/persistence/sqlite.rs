@@ -18,18 +18,17 @@ use itertools::Itertools;
 use libsqlite3_sys as sqlite3;
 use lsp::supported_servers::LSPServerType;
 use num_traits::FromPrimitive;
-use rift_core::telemetry::EnablementState;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
+use rift_core::telemetry::EnablementState;
 use riftui::platform::FullscreenState;
 use riftui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
 use riftui::AppContext;
 
 use super::block_list::{delete_blocks, save_block};
 use super::model::{
-    self, CurrentUserInformation, MCPEnvironmentVariables,
-    NewApp, NewCommand, NewServerExperiment, NewTab, NewTeam, NewWindow, NewWorkspace,
-    NewWorkspaceTeam, Project, Tab, Window,
+    self, CurrentUserInformation, MCPEnvironmentVariables, NewApp, NewCommand, NewServerExperiment,
+    NewTab, NewTeam, NewWindow, NewWorkspace, NewWorkspaceTeam, Project, Tab, Window,
     WorkspaceMetadata as WorkspaceMetadataModel, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
     WELCOME_PANE_KIND,
 };
@@ -45,9 +44,7 @@ use crate::app_state::{
 use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::UserUid;
 use crate::persistence::block_list::get_all_restored_blocks;
-use crate::persistence::model::{
-    NewTeamSettings, UserProfile, GET_STARTED_PANE_KIND,
-};
+use crate::persistence::model::{NewTeamSettings, UserProfile, GET_STARTED_PANE_KIND};
 use crate::server::experiments::ServerExperiment;
 use crate::server::ids::ServerId;
 use crate::settings_view::SettingsSection;

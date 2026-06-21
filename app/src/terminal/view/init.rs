@@ -1,6 +1,4 @@
-use riftui::keymap::{
-    EditableBinding, FixedBinding, PerPlatformKeystroke,
-};
+use riftui::keymap::{EditableBinding, FixedBinding, PerPlatformKeystroke};
 use riftui::platform::OperatingSystem;
 use riftui::units::IntoLines;
 use riftui::AppContext;

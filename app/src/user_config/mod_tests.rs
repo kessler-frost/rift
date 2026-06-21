@@ -18,9 +18,13 @@ fn test_default_tab_configs_dir_uses_underscores() {
 fn test_materialize_default_worktree_config_bakes_repo_and_pane_type_only() {
     let template = include_str!("../../resources/tab_configs/default_worktree.toml");
     let repo_path = "/tmp/example-repo";
-    let (toml_content, tab_config) =
-        materialize_default_worktree_config(template, "Worktree: example-repo", repo_path, "terminal")
-            .expect("expected template materialization to succeed");
+    let (toml_content, tab_config) = materialize_default_worktree_config(
+        template,
+        "Worktree: example-repo",
+        repo_path,
+        "terminal",
+    )
+    .expect("expected template materialization to succeed");
 
     assert!(toml_content.contains("name = \"Worktree: example-repo\""));
     assert!(toml_content.contains(repo_path));
@@ -52,9 +56,13 @@ fn test_materialize_default_worktree_config_bakes_repo_and_pane_type_only() {
 fn test_materialized_default_worktree_config_renders_full_worktree_path() {
     let template = include_str!("../../resources/tab_configs/default_worktree.toml");
     let repo_path = "/tmp/example-repo";
-    let (_, tab_config) =
-        materialize_default_worktree_config(template, "Worktree: example-repo", repo_path, "terminal")
-            .expect("expected template materialization to succeed");
+    let (_, tab_config) = materialize_default_worktree_config(
+        template,
+        "Worktree: example-repo",
+        repo_path,
+        "terminal",
+    )
+    .expect("expected template materialization to succeed");
 
     let (_, pane_template) = render_tab_config(&tab_config, &HashMap::new(), Some("my-feature"));
 

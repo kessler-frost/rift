@@ -6,19 +6,17 @@ use riftui::elements::PositionedElementOffsetBounds;
 use riftui::EntityId;
 
 use super::{
-    branch_label_display, coalesce_summary_branch_entries,
-    compact_branch_subtitle_display, detail_sidecar_width_and_bounds,
-    detail_target_for_hovered_row, non_terminal_search_text_fragments,
-    pane_ids_for_display_granularity, pane_search_text_fragments,
-    push_normalized_unique_summary_label, search_fragments_contain_query,
-    select_summary_pane_kind_icons, should_keep_detail_sidecar_visible_for_mouse_position,
-    summary_overflow_count,
-    summary_search_text_fragments, terminal_primary_line_data,
-    uses_outer_group_container, visible_pane_ids_for_detail_target,
-    vtab_diff_stats_text, SummaryPaneKind, SummaryPaneKindIcons,
-    TerminalPrimaryLineData, TerminalPrimaryLineFont, VerticalTabsDetailTarget,
-    VerticalTabsDetailTargetKind, VerticalTabsSummaryBranchEntry, VerticalTabsSummaryData,
-    VerticalTabsSummaryPrimaryLabel,
+    branch_label_display, coalesce_summary_branch_entries, compact_branch_subtitle_display,
+    detail_sidecar_width_and_bounds, detail_target_for_hovered_row,
+    non_terminal_search_text_fragments, pane_ids_for_display_granularity,
+    pane_search_text_fragments, push_normalized_unique_summary_label,
+    search_fragments_contain_query, select_summary_pane_kind_icons,
+    should_keep_detail_sidecar_visible_for_mouse_position, summary_overflow_count,
+    summary_search_text_fragments, terminal_primary_line_data, uses_outer_group_container,
+    visible_pane_ids_for_detail_target, vtab_diff_stats_text, SummaryPaneKind,
+    SummaryPaneKindIcons, TerminalPrimaryLineData, TerminalPrimaryLineFont,
+    VerticalTabsDetailTarget, VerticalTabsDetailTargetKind, VerticalTabsSummaryBranchEntry,
+    VerticalTabsSummaryData, VerticalTabsSummaryPrimaryLabel,
 };
 use crate::context_chips::display_chip::GitLineChanges;
 use crate::pane_group::{PaneId, TerminalPaneId};
@@ -325,7 +323,8 @@ fn terminal_primary_line_uses_terminal_title_when_distinct_from_working_director
 
 #[test]
 fn terminal_primary_line_uses_last_completed_command_when_shell_title_matches_working_directory() {
-    let line = terminal_primary_line_data("~/rift", "~/rift", Some("cargo nextest run".to_string()));
+    let line =
+        terminal_primary_line_data("~/rift", "~/rift", Some("cargo nextest run".to_string()));
 
     assert_eq!(line.text(), "cargo nextest run");
 }
@@ -346,7 +345,8 @@ fn terminal_primary_line_falls_back_to_new_session() {
 
 #[test]
 fn terminal_primary_line_uses_monospace_for_last_completed_command() {
-    let line = terminal_primary_line_data("~/rift", "~/rift", Some("cargo nextest run".to_string()));
+    let line =
+        terminal_primary_line_data("~/rift", "~/rift", Some("cargo nextest run".to_string()));
 
     assert!(matches!(
         line,

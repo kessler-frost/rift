@@ -245,7 +245,6 @@ impl Workspace {
             false
         }
     }
-
 }
 
 #[derive(Clone, Debug)]

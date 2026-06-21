@@ -9,13 +9,13 @@
 //! provide coverage for both flag states of "v2".
 use std::borrow::Cow;
 
-use itertools::Itertools;
-use rift_util::path::ShellFamily;
 use command_signatures::{
     Alias, AliasGeneratorName, Argument, ArgumentType, CommandBuilder, CommandSignatureGenerators,
     Generator, GeneratorName, GeneratorResults, Importance, IsArgumentOptional, Opt, Order,
     ParserDirectives, Priority, Signature, Suggestion as MetadataSuggestion, Template,
 };
+use itertools::Itertools;
+use rift_util::path::ShellFamily;
 
 use super::{TEST_ALIAS_COMMAND, TEST_GENERATOR_1_COMMAND, TEST_GENERATOR_2_COMMAND};
 

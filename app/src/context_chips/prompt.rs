@@ -4,10 +4,7 @@ use serde::{Deserialize, Serialize};
 use settings::Setting as _;
 
 pub use super::ContextChipKind;
-use crate::settings::{
-    InputSettings, InputSettingsChangedEvent,
-    RiftPromptSeparator,
-};
+use crate::settings::{InputSettings, InputSettingsChangedEvent, RiftPromptSeparator};
 use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 
 #[cfg(test)]
@@ -284,7 +281,6 @@ impl Prompt {
             ctx.emit(PromptEvent::Changed);
         }
     }
-
 
     /// Updates the in-memory prompt configuration to reflect an AI input model change.
     fn handle_ai_input_model_change(&mut self, ctx: &mut ModelContext<Self>) {

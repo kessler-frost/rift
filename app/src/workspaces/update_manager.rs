@@ -17,7 +17,6 @@ impl TeamUpdateManager {
     pub fn mock(ctx: &mut ModelContext<Self>) -> Self {
         Self::new(ctx)
     }
-
 }
 
 impl Entity for TeamUpdateManager {

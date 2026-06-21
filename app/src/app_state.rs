@@ -157,7 +157,6 @@ pub enum LeftPanelDisplayedTab {
     ConversationListView,
 }
 
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LeftPanelSnapshot {
     pub left_panel_displayed_tab: LeftPanelDisplayedTab,

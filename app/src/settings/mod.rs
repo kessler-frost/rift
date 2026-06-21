@@ -23,8 +23,8 @@ mod pane;
 mod privacy;
 mod same_line_prompt_block;
 mod scroll;
-pub mod session_mode;
 mod select;
+pub mod session_mode;
 mod ssh;
 mod theme;
 mod vim_banner;
@@ -54,8 +54,8 @@ pub use privacy::*;
 use rift_core::user_preferences::GetUserPreferences as _;
 pub use same_line_prompt_block::*;
 pub use scroll::*;
-pub use session_mode::*;
 pub use select::*;
+pub use session_mode::*;
 pub use ssh::*;
 pub use theme::*;
 pub use vim_banner::*;
@@ -126,7 +126,7 @@ use settings::Setting as _;
 
 use crate::root_view::QuakeModePinPosition;
 use crate::terminal::{BlockListSettings, BlockPadding};
-use crate::themes::theme::{ThemeKind, RiftTheme};
+use crate::themes::theme::{RiftTheme, ThemeKind};
 use crate::user_config::RiftConfig;
 
 // The following are user preferences keys.

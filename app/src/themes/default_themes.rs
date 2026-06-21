@@ -4,8 +4,8 @@ use rift_core::ui::color::blend::Blend;
 use rift_core::ui::color::{coloru_with_opacity, OPAQUE};
 use rift_core::ui::theme::color::CustomDetails;
 use rift_core::ui::theme::{
-    AnsiColor, AnsiColors, Details, Fill, HorizontalGradient, Image, TerminalColors,
-    VerticalGradient, RiftTheme,
+    AnsiColor, AnsiColors, Details, Fill, HorizontalGradient, Image, RiftTheme, TerminalColors,
+    VerticalGradient,
 };
 
 const DARK_MODE_NORMAL_COLORS: AnsiColors = AnsiColors::new(

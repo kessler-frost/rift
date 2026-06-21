@@ -153,7 +153,6 @@ pub enum QueryFilter {
     /// Filter results for launch configurations.
     LaunchConfigurations,
 
-
     /// Filter results for environment variables.
     EnvironmentVariables,
 

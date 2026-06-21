@@ -10,10 +10,10 @@ use pathfinder_geometry::vector::Vector2F;
 use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     resizable_state_handle, Align, AnchorPair, Border, ConstrainedBox, Container, CornerRadius,
-    CrossAxisAlignment, Dismiss, Fill, Flex, OffsetPositioning, OffsetType,
-    ParentElement, ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius,
-    Resizable, ResizableStateHandle, SavePosition, ScrollStateHandle, Scrollable,
-    ScrollableElement, Shrinkable, Stack, UniformList, UniformListState, XAxisAnchor, YAxisAnchor,
+    CrossAxisAlignment, Dismiss, Fill, Flex, OffsetPositioning, OffsetType, ParentElement,
+    ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius, Resizable,
+    ResizableStateHandle, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement,
+    Shrinkable, Stack, UniformList, UniformListState, XAxisAnchor, YAxisAnchor,
 };
 use riftui::presenter::ChildView;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
@@ -370,7 +370,6 @@ impl CommandSearchView {
                 a11y_help_content,
                 RiftA11yRole::UserAction,
             ));
-
         }
 
         let query = self.search_bar.as_ref(ctx).query(ctx);
@@ -419,11 +418,7 @@ impl CommandSearchView {
             .finish()
     }
 
-    fn render_error_header(
-        &self,
-        message: String,
-        appearance: &Appearance,
-    ) -> Box<dyn Element> {
+    fn render_error_header(&self, message: String, appearance: &Appearance) -> Box<dyn Element> {
         let text = appearance
             .ui_builder()
             .span(message)
@@ -532,9 +527,8 @@ impl CommandSearchView {
                     .first_data_source_error()
                     .map(|(.., e)| e)
                 {
-                    column.add_child(
-                        self.render_error_header(error.user_facing_error(), appearance),
-                    );
+                    column
+                        .add_child(self.render_error_header(error.user_facing_error(), appearance));
                 }
 
                 let scrollable_results = Scrollable::vertical(

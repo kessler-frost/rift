@@ -86,7 +86,6 @@ impl QuitScope<'_> {
             Self::App => SessionNavigationData::all_sessions(ctx).collect_vec(),
         }
     }
-
 }
 
 impl UnsavedStateSummary<'static> {

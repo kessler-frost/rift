@@ -71,4 +71,3 @@ define_settings_group!(FontSettings,
         },
     ]
 );
-

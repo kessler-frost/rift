@@ -23,12 +23,8 @@ use crate::terminal::model::session::active_session::ActiveSession;
 
 #[derive(Clone, Debug)]
 pub enum AcceptHistoryItem {
-    Command {
-        command: String,
-    },
-    AIPrompt {
-        query_text: String,
-    },
+    Command { command: String },
+    AIPrompt { query_text: String },
 }
 
 impl AcceptHistoryItem {
@@ -59,10 +55,7 @@ pub struct InlineHistoryMenuDataSource {
 }
 
 impl InlineHistoryMenuDataSource {
-    pub fn new(
-        terminal_view_id: EntityId,
-        active_session: ModelHandle<ActiveSession>,
-    ) -> Self {
+    pub fn new(terminal_view_id: EntityId, active_session: ModelHandle<ActiveSession>) -> Self {
         Self {
             terminal_view_id,
             active_session,

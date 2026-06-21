@@ -10,12 +10,12 @@ use std::hash::{Hash, Hasher};
 
 use alias::{expand_command_aliases, AliasExpansionResult};
 use async_recursion::async_recursion;
+use command_signatures::IconType;
 use imp::*;
 use itertools::Itertools;
 pub use priority::Priority;
 use rift_core::ui::theme::AnsiColorIdentifier;
 use smol_str::SmolStr;
-use command_signatures::IconType;
 
 use super::coalesce::coalesce_completion_results;
 use super::context::CompletionContext;

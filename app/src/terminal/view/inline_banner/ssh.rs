@@ -44,19 +44,17 @@ pub fn render_inline_ssh_wrapper_banner(
             "Rift SSH wrapper disabled".to_string(),
         )
     };
-    let buttons = vec![
-        InlineBannerTextButton {
-            text: "Settings".to_string(),
-            text_color: label_text_color,
-            button_state: InlineBannerButtonState {
-                on_click_event: TerminalAction::LegacySSHBanner(SSHBannerAction::Settings),
-                mouse_state_handle: state.mouse_states.settings.clone(),
-            },
-            font: Default::default(),
-            position_id: None,
-            variant: InlineBannerTextButtonVariant::Primary,
+    let buttons = vec![InlineBannerTextButton {
+        text: "Settings".to_string(),
+        text_color: label_text_color,
+        button_state: InlineBannerButtonState {
+            on_click_event: TerminalAction::LegacySSHBanner(SSHBannerAction::Settings),
+            mouse_state_handle: state.mouse_states.settings.clone(),
         },
-    ];
+        font: Default::default(),
+        position_id: None,
+        variant: InlineBannerTextButtonVariant::Primary,
+    }];
 
     render_inline_block_list_banner(
         style,

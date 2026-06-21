@@ -10,16 +10,14 @@ use std::path::PathBuf;
 use indexmap::IndexSet;
 #[cfg(feature = "local_fs")]
 use repo_metadata::repositories::DetectedRepositories;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 #[cfg(feature = "local_fs")]
 use rift_util::remote_path::RemotePath;
 #[cfg(feature = "local_fs")]
 use riftui::{AppContext, SingletonEntity as _};
 use riftui::{Entity, EntityId, ModelContext, ViewHandle};
 
-use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::workspace::view::global_search::view::GlobalSearchView;
-
-
 
 /// Bidirectional map of pane groups to the repository roots they reference.
 ///
@@ -299,12 +297,6 @@ impl WorkingDirectoriesModel {
             .and_then(|roots| roots.get(root_path).copied())
     }
 
-
-
-
-
-
-
     /// Get the repository path the user has manually selected for the code review
     /// panel in a given pane group, if any. Used to restore the selection when the
     /// user navigates back to the pane group's session.
@@ -336,8 +328,6 @@ impl WorkingDirectoriesModel {
     ) -> Option<ViewHandle<GlobalSearchView>> {
         self.global_search_views.get(&pane_group_id).cloned()
     }
-
-
 
     /// Permanently removes all state associated with a pane group.
     /// This should be called when a tab is closed (pane group is destroyed),
@@ -722,8 +712,6 @@ impl WorkingDirectoriesModel {
             focused_repo,
         });
     }
-
-
 }
 
 #[cfg(not(feature = "local_fs"))]

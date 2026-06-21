@@ -39,7 +39,6 @@ pub struct TerminalPane {
     view: ViewHandle<TerminalPaneView>,
 }
 
-
 impl TerminalPane {
     pub(in crate::pane_group) fn new(
         uuid: Vec<u8>,
@@ -179,7 +178,6 @@ impl PaneContent for TerminalPane {
                 group.send_sync_event_to_session(terminal_pane_id, &event, ctx);
             }
         }
-
     }
 
     fn detach(
@@ -237,16 +235,6 @@ impl PaneContent for TerminalPane {
         self.view.as_ref(ctx).is_being_dragged()
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 /// Attaches a terminal view to the pane group by subscribing to its events
 /// and setting the file tree code model.
@@ -496,9 +484,6 @@ fn handle_terminal_view_event(
         log::warn!("Session {terminal_pane_id:?} not found");
     }
 }
-
-
-
 
 #[cfg(all(test, not(target_family = "wasm")))]
 #[path = "terminal_pane_tests.rs"]

@@ -1253,7 +1253,6 @@ impl BlockList {
         }
     }
 
-
     pub fn refresh_heights_for_loaded_passive_code_diff(
         &mut self,
         passive_code_diff_block_id: EntityId,
@@ -1618,9 +1617,7 @@ impl BlockList {
                         let block_index = block_heights_cursor.start().block_count;
                         if let Some(block) = self.blocks.get_mut(block_index) {
                             block_update_fn(block);
-                            new_sum_tree.push(BlockHeightItem::Block(
-                                block.height().into(),
-                            ));
+                            new_sum_tree.push(BlockHeightItem::Block(block.height().into()));
                         } else {
                             log::error!("invalid block index in block heights");
                         }
@@ -2078,9 +2075,8 @@ impl BlockList {
             block.hide();
         }
 
-        self.block_heights.push(BlockHeightItem::Block(
-            block.height().into(),
-        ));
+        self.block_heights
+            .push(BlockHeightItem::Block(block.height().into()));
         self.block_id_to_block_index
             .insert(block.id().clone(), block.index());
         self.blocks.push(block);
@@ -2928,9 +2924,8 @@ impl ansi::Handler for BlockList {
                 self.reset_internal_block_index(BlockIndex::zero());
 
                 if let Some(block) = self.blocks.last() {
-                    self.block_heights = SumTree::from_item(BlockHeightItem::Block(
-                        block.height().into(),
-                    ));
+                    self.block_heights =
+                        SumTree::from_item(BlockHeightItem::Block(block.height().into()));
                 } else {
                     self.block_heights = SumTree::new();
                 }

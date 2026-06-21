@@ -40,7 +40,9 @@ fn repository_info_from_gh_output_parses_name_and_owner() {
 #[cfg(feature = "local_fs")]
 #[test]
 fn repository_info_from_gh_output_rejects_missing_name() {
-    assert!(super::repository_info_from_gh_output(r#"{"owner":{"login":"kessler-frost"}}"#).is_err());
+    assert!(
+        super::repository_info_from_gh_output(r#"{"owner":{"login":"kessler-frost"}}"#).is_err()
+    );
 }
 
 #[cfg(feature = "local_fs")]
@@ -54,10 +56,10 @@ fn repository_info_from_gh_output_rejects_missing_owner_login() {
 #[cfg(feature = "local_fs")]
 #[test]
 fn repository_info_from_gh_output_rejects_empty_fields() {
-    assert!(
-        super::repository_info_from_gh_output(r#"{"name":"","owner":{"login":"kessler-frost"}}"#)
-            .is_err()
-    );
+    assert!(super::repository_info_from_gh_output(
+        r#"{"name":"","owner":{"login":"kessler-frost"}}"#
+    )
+    .is_err());
     assert!(super::repository_info_from_gh_output(
         r#"{"name":"rift-internal","owner":{"login":""}}"#
     )

@@ -48,6 +48,7 @@ mod prompt;
 mod quit_warning;
 #[allow(dead_code)]
 mod resource_limits;
+mod rift_managed_paths_watcher;
 mod safe_triangle;
 mod search_bar;
 mod server;
@@ -68,7 +69,6 @@ mod user_config;
 pub mod util;
 mod view_components;
 mod vim_registers;
-mod rift_managed_paths_watcher;
 mod window_settings;
 mod workspaces;
 
@@ -141,10 +141,6 @@ pub use persistence::testing as sqlite_testing;
 pub use plugin::{run_plugin_host, PLUGIN_HOST_FLAG};
 pub use rift_core::errors::{report_error, report_if_error};
 use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
-use settings::{ExtraMetaKeys, PrivacySettings};
-use terminal::input;
-use terminal::session_settings::SessionSettings;
-use url::Url;
 // Re-export the debounce function to simplify imports.
 pub use rift_core::r#async::debounce;
 // Re-export the send_telemetry_from_ctx macro at the crate root level
@@ -160,6 +156,10 @@ use riftui::platform::app::ApproveTerminateResult;
 use riftui::platform::TerminationMode;
 use riftui::windowing::state::ApplicationStage;
 use riftui::{App, AppContext, Event, SingletonEntity, WindowId};
+use settings::{ExtraMetaKeys, PrivacySettings};
+use terminal::input;
+use terminal::session_settings::SessionSettings;
+use url::Url;
 use window_settings::WindowSettings;
 use workspace::sync_inputs::SyncedInputState;
 
@@ -175,12 +175,11 @@ use crate::notification::NotificationContext;
 use crate::palette::PaletteMode;
 use crate::persistence::PersistenceWriter;
 use crate::projects::ProjectManagementModel;
+use crate::rift_managed_paths_watcher::{ensure_rift_watch_roots_exist, RiftManagedPathsWatcher};
 use crate::root_view::{
     quake_mode_window_id, quake_mode_window_is_open, OpenFromRestoredArg, OpenPath,
 };
-pub use crate::server::telemetry::{
-    TelemetryEvent,
-};
+pub use crate::server::telemetry::TelemetryEvent;
 use crate::server::telemetry::{AppStartupInfo, PaletteSource, TelemetryCollector};
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::settings::manager::SettingsManager;
@@ -195,10 +194,7 @@ use crate::undo_close::UndoCloseStack;
 use crate::user_config::RiftConfig;
 use crate::util::bindings::is_binding_cross_platform;
 use crate::vim_registers::VimRegisters;
-use crate::rift_managed_paths_watcher::{ensure_rift_watch_roots_exist, RiftManagedPathsWatcher};
-use crate::workspace::{
-    ActiveSession, PaneViewLocator, ToastStack, Workspace, WorkspaceAction,
-};
+use crate::workspace::{ActiveSession, PaneViewLocator, ToastStack, Workspace, WorkspaceAction};
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_profiles::UserProfiles;
@@ -223,7 +219,6 @@ pub enum LaunchMode {
         driver: Box<Option<TestDriver>>,
         is_integration_test: bool,
     },
-
 }
 
 impl LaunchMode {
@@ -275,7 +270,6 @@ impl LaunchMode {
         false
     }
 
-
     /// Whether or not to start a crash recovery process (on platforms that support it).
     #[cfg(enable_crash_recovery)]
     pub(crate) fn crash_recovery_enabled(&self) -> bool {
@@ -300,7 +294,6 @@ impl LaunchMode {
     fn log_destination(&self) -> Option<LogDestination> {
         None
     }
-
 }
 
 /// If the given event is a key down event containing alt modifiers, and those
@@ -778,7 +771,6 @@ pub(crate) fn initialize_app(
     // symlinking contents from the shared ~/.rift location. Must run
     // before ensure_rift_watch_roots_exist() creates the new directory.
     #[cfg(target_os = "macos")]
-
     ensure_rift_watch_roots_exist();
     ctx.add_singleton_model(RiftManagedPathsWatcher::new);
 
@@ -914,7 +906,6 @@ pub(crate) fn initialize_app(
     ctx.set_fallback_font_source_provider(|url| ::asset_cache::url_source(url));
 
     ctx.set_default_binding_validator(is_binding_cross_platform);
-
 
     // Initialize timestamp for session id and last active event
     App::record_last_active_timestamp();
@@ -1112,7 +1103,6 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(|_| UserProfiles::new(restored_user_profiles));
 
-
     ctx.add_singleton_model(|_| AudibleBell::new());
 
     // This model has to be registered after the user workspaces model because it relies on it,
@@ -1121,19 +1111,8 @@ pub(crate) fn initialize_app(
 
     ctx.add_singleton_model(TeamUpdateManager::new);
 
-
-
     // LogManager must be registered before any subsystem (e.g. MCP, LSP) that creates file-based loggers.
     ctx.add_singleton_model(|_| simple_logger::manager::LogManager::new());
-
-
-
-
-
-
-
-
-
 
     ctx.add_singleton_model(|_| ActiveSession::default());
 
@@ -1152,7 +1131,6 @@ pub(crate) fn initialize_app(
     timer.mark_interval_end("SINGLETON_MODELS_REGISTERED");
 
     ctx.add_singleton_model(move |_| timer);
-
 
     ctx.add_singleton_model(DefaultTerminal::new);
 
@@ -1583,8 +1561,7 @@ fn launch(ctx: &mut riftui::AppContext, app_state: Option<AppState>, launch_mode
                 });
                 maybe_register_app_as_login_item(ctx);
             }
-        }
-        // Proxy should never reach launch() — it's a thin byte bridge.
+        } // Proxy should never reach launch() — it's a thin byte bridge.
     }
 }
 

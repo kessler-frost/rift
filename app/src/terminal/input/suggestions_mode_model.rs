@@ -69,9 +69,7 @@ impl InputSuggestionsModeModel {
 
         let buffer_to_restore = self.buffer_to_restore.take();
         self.mode = InputSuggestionsMode::Closed;
-        ctx.emit(InputSuggestionsModeEvent::ModeChanged {
-            buffer_to_restore,
-        });
+        ctx.emit(InputSuggestionsModeEvent::ModeChanged { buffer_to_restore });
     }
 
     pub fn is_visible(&self) -> bool {

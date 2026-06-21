@@ -6,7 +6,7 @@ use itertools::Itertools;
 use palette::Srgba;
 use pathfinder_color::ColorU;
 use plist::{Dictionary, Value};
-use rift_core::ui::theme::{AnsiColors, TerminalColors, RiftTheme};
+use rift_core::ui::theme::{AnsiColors, RiftTheme, TerminalColors};
 use riftui::fonts::FontInfo;
 use riftui::keymap::Keystroke;
 use riftui::platform::mac::utils::unicode_char_to_key;

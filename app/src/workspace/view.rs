@@ -44,6 +44,7 @@ use rift_core::ui::theme::phenomenon::PhenomenonStyle;
 use rift_core::ui::theme::Fill;
 use rift_core::ui::Icon;
 use rift_editor::editor::NavigationKey;
+use rift_util::local_or_remote_path::LocalOrRemotePath;
 use rift_util::path::{user_friendly_path, LineAndColumnArg};
 use riftui::accessibility::{
     AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, RiftA11yRole,
@@ -82,8 +83,7 @@ use self::vertical_tabs::{
     VERTICAL_TABS_SETTINGS_BUTTON_POSITION_ID,
 };
 use super::action::{
-    NewSessionMenuAnchor, TabContextMenuAnchor,
-    VerticalTabsPaneContextMenuTarget, WorkspaceAction,
+    NewSessionMenuAnchor, TabContextMenuAnchor, VerticalTabsPaneContextMenuTarget, WorkspaceAction,
 };
 use super::lightbox_view::{LightboxParams, LightboxView, LightboxViewEvent};
 use super::native_modal::{NativeModal, NativeModalEvent};
@@ -92,14 +92,12 @@ use super::tab_settings::{
     VerticalTabsDisplayGranularity, WorkspaceDecorationVisibility,
 };
 use super::util::{
-    PaneViewLocator, TabMovement, WelcomeTipsViewState,
-    WorkspaceMouseStates, WorkspaceState,
+    PaneViewLocator, TabMovement, WelcomeTipsViewState, WorkspaceMouseStates, WorkspaceState,
 };
 use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
 use crate::app_state::{
-    LeafContents, LeafSnapshot, LeftPanelSnapshot,
-    PaneNodeSnapshot, PaneUuid, RightPanelSnapshot, SettingsPaneSnapshot, TabSnapshot,
-    TerminalPaneSnapshot, WindowSnapshot,
+    LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneNodeSnapshot, PaneUuid, RightPanelSnapshot,
+    SettingsPaneSnapshot, TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::appearance::{Appearance, AppearanceManager};
 use crate::auth::auth_manager::AuthManager;
@@ -107,7 +105,6 @@ use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
 use crate::banner::BannerState;
 use crate::channel::ChannelState;
-use rift_util::local_or_remote_path::LocalOrRemotePath;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
 use crate::default_terminal::DefaultTerminal;
 use crate::editor::{
@@ -119,12 +116,11 @@ use crate::launch_configs::save_modal::{LaunchConfigModalEvent, LaunchConfigSave
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields, MenuSelectionSource};
 use crate::modal::{Modal, ModalEvent, ModalViewState};
 use crate::network::{NetworkStatus, NetworkStatusEvent};
+use crate::notification::NotificationContext;
 use crate::palette::PaletteMode;
 use crate::pane_group::{
-    self,
-    Direction as PaneGroupDirection, Direction,
-    NewTerminalOptions, PaneGroup, PaneId, PanesLayout,
-    TabBarHoverIndex,
+    self, Direction as PaneGroupDirection, Direction, NewTerminalOptions, PaneGroup, PaneId,
+    PanesLayout, TabBarHoverIndex,
 };
 use crate::persistence::ModelEvent;
 use crate::projects::ProjectManagementModel;
@@ -144,18 +140,15 @@ use crate::search::command_search::searcher::{AcceptedHistoryItem, CommandSearch
 use crate::search::command_search::view::{CommandSearchEvent, CommandSearchView};
 use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
-use crate::server::telemetry::{
-    AddTabWithShellSource, LaunchConfigUiLocation,
-    PaletteSource,
-};
+use crate::server::telemetry::{AddTabWithShellSource, LaunchConfigUiLocation, PaletteSource};
 use crate::session_management::{SessionNavigationData, SessionSource, TabNavigationData};
 use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::{
-    active_theme_kind, respect_system_theme, AccessibilitySettings, AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings,
-    CodeSettings, CodeSettingsChangedEvent, CtrlTabBehavior, CursorBlink,
-    DebugSettings, DefaultSessionMode, FontSettings, GPUSettings, InputModeSettings, InputSettings,
-    MonospaceFontSize, PaneSettings, PrivacySettings, SelectionSettings, SshSettings,
-    ThemeSettings,
+    active_theme_kind, respect_system_theme, AccessibilitySettings, AliasExpansionSettings,
+    AppEditorSettings, BlockVisibilitySettings, CodeSettings, CodeSettingsChangedEvent,
+    CtrlTabBehavior, CursorBlink, DebugSettings, DefaultSessionMode, FontSettings, GPUSettings,
+    InputModeSettings, InputSettings, MonospaceFontSize, PaneSettings, PrivacySettings,
+    SelectionSettings, SshSettings, ThemeSettings,
 };
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::settings_view::pane_manager::SettingsPaneManager;
@@ -164,8 +157,7 @@ use crate::settings_view::{flags, SettingsSection, SettingsView, SettingsViewEve
 use crate::shell_indicator::ShellIndicatorType;
 use crate::tab::{
     tab_position_id, uses_vertical_tabs, NewSessionMenuItem, PaneNameMenuTarget, SelectedTabColor,
-    TabBarState, TabComponent, TabData, MOVE_TO_GROUP_LABEL,
-    TAB_BAR_BORDER_HEIGHT,
+    TabBarState, TabComponent, TabData, MOVE_TO_GROUP_LABEL, TAB_BAR_BORDER_HEIGHT,
 };
 use crate::tab_configs::action_sidecar::SidecarItemKind;
 use crate::tab_configs::remove_confirmation_dialog::{
@@ -183,9 +175,10 @@ use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::available_shells::AvailableShells;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::general_settings::GeneralSettings;
-use crate::terminal::input::Input;
+use crate::terminal::input::{Input, MenuPositioning};
 use crate::terminal::keys_settings::KeysSettings;
 use crate::terminal::ligature_settings::should_use_ligature_rendering;
+use crate::terminal::model::block::SerializedBlockListItem;
 use crate::terminal::model::blockgrid::BlockGrid;
 #[cfg(feature = "local_fs")]
 use crate::terminal::model::session::Session;
@@ -193,6 +186,7 @@ use crate::terminal::model::session::SessionId;
 use crate::terminal::resizable_data::{
     ModalSizes, ResizableData, DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH,
 };
+use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::safe_mode_settings::SafeModeSettings;
 use crate::terminal::session_settings::{
     NewSessionSource, NotificationsMode, NotificationsSettings, SessionSettings,
@@ -201,9 +195,7 @@ use crate::terminal::session_settings::{
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
 use crate::terminal::shell::ShellType;
 use crate::terminal::view::{SyncEvent, SyncInputType};
-use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::{self, BlockListSettings, SizeInfo, TerminalModel, TerminalView};
-use crate::terminal::model::block::SerializedBlockListItem;
 use crate::themes::theme::{AnsiColorIdentifier, RespectSystemTheme, ThemeKind};
 use crate::themes::theme_chooser::{ThemeChooser, ThemeChooserEvent, ThemeChooserMode};
 use crate::themes::theme_creator_modal::{ThemeCreatorModal, ThemeCreatorModalEvent};
@@ -211,8 +203,8 @@ use crate::themes::theme_deletion_modal::{ThemeDeletionModal, ThemeDeletionModal
 use crate::tips::{TipsEvent, TipsView};
 use crate::ui_components::avatar::{Avatar, AvatarContent};
 use crate::ui_components::buttons::{combo_inner_button, icon_button_with_color};
-use crate::ui_components::window_focus_dimming::WindowFocusDimming;
 use crate::ui_components::icons;
+use crate::ui_components::window_focus_dimming::WindowFocusDimming;
 use crate::undo_close::UndoCloseStack;
 #[cfg(feature = "local_fs")]
 use crate::user_config::{
@@ -221,9 +213,7 @@ use crate::user_config::{
     tab_configs_dir,
 };
 use crate::user_config::{RiftConfig, RiftConfigUpdateEvent};
-use crate::util::bindings::{
-    keybinding_name_to_display_string, keybinding_name_to_keystroke,
-};
+use crate::util::bindings::{keybinding_name_to_display_string, keybinding_name_to_keystroke};
 #[cfg(feature = "local_fs")]
 use crate::util::file::external_editor::Editor;
 #[cfg(feature = "local_fs")]
@@ -237,14 +227,9 @@ use crate::util::truncation::truncate_from_end;
 use crate::view_components::callout_bubble::{
     render_callout_bubble, CalloutArrowDirection, CalloutArrowPosition, CalloutBubbleConfig,
 };
-use crate::view_components::{
-    DismissibleToast, DismissibleToastStack, ToastLink,
-};
+use crate::view_components::{DismissibleToast, DismissibleToastStack, ToastLink};
 use crate::window_settings::{WindowSettings, WindowSettingsChangedEvent, ZoomLevel};
-use crate::notification::NotificationContext;
-use crate::terminal::input::MenuPositioning;
-use crate::workspace::action::InitContent;
-use crate::workspace::action::CommandSearchOptions;
+use crate::workspace::action::{CommandSearchOptions, InitContent};
 #[cfg(target_os = "macos")]
 use crate::workspace::cli_install;
 use crate::workspace::cross_window_tab_drag::{
@@ -259,10 +244,7 @@ use crate::workspace::toast_stack::{
     ToastStack, ToastStack as WorkspaceToastStack, ToastStackEvent as WorkspaceToastStackEvent,
 };
 use crate::workspaces::user_workspaces::UserWorkspaces;
-use crate::{
-    report_if_error, send_telemetry_from_ctx,
-    GlobalResourceHandles,
-};
+use crate::{report_if_error, send_telemetry_from_ctx, GlobalResourceHandles};
 
 /// The padding that should be applied to the workspace as a whole.
 pub const WORKSPACE_PADDING: f32 = 1.0;
@@ -352,7 +334,6 @@ const KEYBINDINGS_TO_CACHE: [&str; 4] = [
     SHOW_SETTINGS_KEYBINDING_NAME,
     TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME,
 ];
-
 
 pub const NEW_TAB_BUTTON_POSITION_ID: &str = "new_tab_button";
 pub const NEW_SESSION_MENU_BUTTON_POSITION_ID: &str = "new_session_menu_button";
@@ -512,7 +493,6 @@ enum DefaultSessionModeBehavior {
     Ignore,
 }
 
-
 /// Context saved when the session config modal triggers `open_tab_config` and
 /// the tab config has params (worktree). The params modal opens asynchronously,
 /// so we store what we need to finish the tab replacement when it completes.
@@ -615,7 +595,6 @@ pub struct Workspace {
 
     // When user's open WEB for the first time, we ask them to select a preference of
     // always opening in web or opening in native app.
-
     left_panel_open: bool,
     vertical_tabs_panel_open: bool,
     vertical_tabs_panel: VerticalTabsPanelState,
@@ -1039,8 +1018,6 @@ impl Workspace {
         }
     }
 
-
-
     fn build_prompt_editor_modal(ctx: &mut ViewContext<Self>) -> ViewHandle<PromptEditorModal> {
         let modal = ctx.add_typed_action_view(PromptEditorModal::new);
         ctx.subscribe_to_view(&modal, |me, _, event, ctx| {
@@ -1048,7 +1025,6 @@ impl Workspace {
         });
         modal
     }
-
 
     fn build_welcome_tips(
         tips_completed: ModelHandle<TipsCompleted>,
@@ -1072,14 +1048,12 @@ impl Workspace {
         (welcome_tips_view, welcome_tips_view_state)
     }
 
-
     fn build_resource_center_view(
         ctx: &mut ViewContext<Self>,
         tips_completed: ModelHandle<TipsCompleted>,
     ) -> ViewHandle<ResourceCenterView> {
-        let resource_center_view = ctx.add_typed_action_view(|ctx| {
-            ResourceCenterView::new(ctx, tips_completed.clone())
-        });
+        let resource_center_view =
+            ctx.add_typed_action_view(|ctx| ResourceCenterView::new(ctx, tips_completed.clone()));
 
         ctx.subscribe_to_view(&resource_center_view, |me, _, event, ctx| {
             me.handle_resource_center_event(event, ctx);
@@ -1092,9 +1066,8 @@ impl Workspace {
         tips_completed: ModelHandle<TipsCompleted>,
         ctx: &mut ViewContext<Self>,
     ) -> (ViewHandle<SettingsView>, ViewHandle<ThemeChooser>) {
-        let theme_chooser_view = ctx.add_typed_action_view(|ctx| {
-            ThemeChooser::new(ctx, tips_completed)
-        });
+        let theme_chooser_view =
+            ctx.add_typed_action_view(|ctx| ThemeChooser::new(ctx, tips_completed));
 
         ctx.subscribe_to_view(&theme_chooser_view, |me, _, event, ctx| {
             me.handle_theme_chooser_event(event, ctx);
@@ -1130,12 +1103,6 @@ impl Workspace {
 
         theme_deletion_modal
     }
-
-
-
-
-
-
 
     fn build_native_modal_view(ctx: &mut ViewContext<Self>) -> ViewHandle<NativeModal> {
         let native_modal = ctx.add_typed_action_view(NativeModal::new);
@@ -1844,19 +1811,11 @@ impl Workspace {
         let (settings_pane, theme_chooser_view) =
             Self::build_settings_views(tips_completed.clone(), ctx);
 
-        let resource_center_view =
-            Self::build_resource_center_view(ctx, tips_completed.clone());
-
-
-
-
-
+        let resource_center_view = Self::build_resource_center_view(ctx, tips_completed.clone());
 
         let theme_creator_modal = Self::build_theme_creator_modal(ctx);
 
         let theme_deletion_modal = Self::build_theme_deletion_modal(ctx);
-
-
 
         let command_search_view = ctx.add_typed_action_view(CommandSearchView::new);
         ctx.subscribe_to_view(&command_search_view, |me, _, event, ctx| {
@@ -1884,7 +1843,6 @@ impl Workspace {
             me.handle_window_settings_changed_event(event, ctx);
         });
 
-
         let tab_settings_handle = TabSettings::handle(ctx);
         ctx.subscribe_to_model(&tab_settings_handle, |me, _, event, ctx| {
             me.handle_tab_settings_change(event, ctx)
@@ -1903,14 +1861,8 @@ impl Workspace {
         let toast_stack =
             ctx.add_typed_action_view(|_| DismissibleToastStack::new(Duration::from_secs(4)));
 
-
         let update_toast_stack =
             ctx.add_typed_action_view(|_| DismissibleToastStack::new(Duration::from_secs(4)));
-
-
-
-
-
 
         // Subscribe to task updates so the transcript details panel can refresh when task data arrives
 
@@ -1925,7 +1877,6 @@ impl Workspace {
             .collect();
 
         let prompt_editor_modal = Self::build_prompt_editor_modal(ctx);
-
 
         Self::subscribe_to_workspace_toast_stack(toast_stack.clone(), ctx);
         Self::subscribe_to_tab_config_errors(toast_stack.clone(), ctx);
@@ -1944,7 +1895,6 @@ impl Workspace {
         });
 
         let native_modal = Self::build_native_modal_view(ctx);
-
 
         let mut ws = Self {
             tabs: Vec::new(),
@@ -2050,10 +2000,6 @@ impl Workspace {
     pub fn command_palette_view(&self) -> ViewHandle<crate::search::command_palette::View> {
         self.palette.clone()
     }
-
-
-
-
 
     /// Handle session settings changes.
     fn handle_session_settings_event(
@@ -2450,16 +2396,6 @@ impl Workspace {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
     fn current_focus_region(&self, ctx: &mut ViewContext<Self>) -> FocusRegion {
         let app = ctx;
         if self.active_tab_pane_group().is_self_or_child_focused(app) {
@@ -2653,8 +2589,6 @@ impl Workspace {
         });
     }
 
-
-
     pub fn active_tab_index(&self) -> usize {
         self.active_tab_index
     }
@@ -2743,8 +2677,6 @@ impl Workspace {
         self.tabs.iter().map(|s| &s.pane_group)
     }
 
-
-
     /// Gets all sessions in the current workspace.
     pub fn workspace_sessions<'a>(
         &'a self,
@@ -2765,7 +2697,6 @@ impl Workspace {
         self.get_pane_group_view(self.active_tab_index)
             .expect("Active tab index entry should exist")
     }
-
 
     /// This is meant to be dispatched directly by actions.
     pub fn activate_tab(&mut self, index: usize, ctx: &mut ViewContext<Self>) {
@@ -2814,8 +2745,6 @@ impl Workspace {
         });
     }
 
-
-
     /// Change the active tab index. This must be used instead of setting `self.active_tab_index`
     /// directly, as it updates related state.
     pub(crate) fn set_active_tab_index(&mut self, index: usize, ctx: &mut ViewContext<Self>) {
@@ -2846,7 +2775,6 @@ impl Workspace {
         if self.left_panel_visibility_across_tabs_enabled(ctx) {
             self.reconcile_left_panel_open_for_active_tab(ctx);
         }
-
 
         self.update_active_session(ctx);
     }
@@ -3186,8 +3114,6 @@ impl Workspace {
         }
     }
 
-
-
     /// Shows the notification error in the specific pane.
     pub fn show_notification_error(
         &mut self,
@@ -3209,7 +3135,6 @@ impl Workspace {
         }
     }
 
-
     fn handle_prompt_editor_modal_event(
         &mut self,
         event: &PromptEditorModalEvent,
@@ -3223,7 +3148,6 @@ impl Workspace {
             }
         }
     }
-
 
     fn build_header_toolbar_editor_modal(
         ctx: &mut ViewContext<Self>,
@@ -3333,8 +3257,6 @@ impl Workspace {
         self.current_workspace_state.is_header_toolbar_editor_open = true;
         ctx.focus(&self.header_toolbar_editor_modal);
     }
-
-
 
     #[cfg(feature = "local_fs")]
     fn get_active_session(&self, ctx: &mut ViewContext<Self>) -> Option<Arc<Session>> {
@@ -3512,7 +3434,6 @@ impl Workspace {
         ctx.clipboard()
             .write(ClipboardContent::plain_text(version.to_string()));
     }
-
 
     /// Builds the unified new-session menu items
     /// tab bar chevron and the vertical tab bar `+` button.
@@ -3878,12 +3799,7 @@ impl Workspace {
             None,
         );
         send_telemetry_from_ctx!(TabConfigsTelemetryEvent::MenuCreateNewTabConfigClicked, ctx);
-        self.open_file_with_target(
-            path.clone(),
-            target,
-            None,
-            ctx,
-        );
+        self.open_file_with_target(path.clone(), target, None, ctx);
     }
 
     /// Snapshots the given tab's pane layout and writes it as a new tab config
@@ -4553,7 +4469,6 @@ impl Workspace {
             })
     }
 
-
     /// Retrieves the entity id of the active current active input. This is needed
     /// by the Welcome Tip View in order to know where to dispatch the actions
     /// directly from the tip menu.
@@ -4575,7 +4490,6 @@ impl Workspace {
                 })
             })
     }
-
 
     fn should_trigger_get_started_onboarding(&self, ctx: &mut ViewContext<Self>) -> bool {
         // Onboarding requires a real user to interact with it; suppress when
@@ -4627,13 +4541,6 @@ impl Workspace {
 
         false
     }
-
-
-
-
-
-
-
 
     fn open_settings_pane(
         &mut self,
@@ -4801,7 +4708,6 @@ impl Workspace {
         );
     }
 
-
     fn toggle_recording_mode(&self, ctx: &mut ViewContext<Self>) {
         DebugSettings::handle(ctx).update(ctx, |debug_settings, settings_ctx| {
             report_if_error!(debug_settings
@@ -4836,8 +4742,6 @@ impl Workspace {
             report_if_error!(debug_settings.show_memory_stats.toggle_and_save_value(ctx));
         })
     }
-
-
 
     fn open_resource_center_main_page(&mut self, ctx: &mut ViewContext<Self>) {
         // Set current page to Main
@@ -4880,8 +4784,6 @@ impl Workspace {
     fn close_vertical_tabs_settings_popup(&mut self) {
         self.vertical_tabs_panel.show_settings_popup = false;
     }
-
-
 
     fn user_menu_items(&self, _app: &AppContext) -> Vec<MenuItem<WorkspaceAction>> {
         let mut items = Vec::new();
@@ -5794,9 +5696,12 @@ impl Workspace {
                 // PersistedWorkspace (which is the data source for the repo picker
                 // and also triggers codebase indexing / project rules scanning).
                 let path_buf: PathBuf = path.clone().into();
-                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
-                    projects.upsert_project(path_buf.clone(), ctx);
-                });
+                crate::projects::ProjectManagementModel::handle(ctx).update(
+                    ctx,
+                    |projects, ctx| {
+                        projects.upsert_project(path_buf.clone(), ctx);
+                    },
+                );
                 // Refresh the repo picker and pre-select the new path.
                 modal_view.update(ctx, |modal, ctx| {
                     modal.body().update(ctx, |body, ctx| {
@@ -5995,9 +5900,12 @@ impl Workspace {
                     return;
                 };
                 let path_buf: PathBuf = path.clone().into();
-                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
-                    projects.upsert_project(path_buf.clone(), ctx);
-                });
+                crate::projects::ProjectManagementModel::handle(ctx).update(
+                    ctx,
+                    |projects, ctx| {
+                        projects.upsert_project(path_buf.clone(), ctx);
+                    },
+                );
                 modal_view.update(ctx, |modal, ctx| {
                     modal.body().update(ctx, |body, ctx| {
                         body.on_new_repo_selected(path_buf, ctx);
@@ -6094,9 +6002,12 @@ impl Workspace {
                     return;
                 };
                 let path_buf: PathBuf = path.into();
-                crate::projects::ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
-                    projects.upsert_project(path_buf, ctx);
-                });
+                crate::projects::ProjectManagementModel::handle(ctx).update(
+                    ctx,
+                    |projects, ctx| {
+                        projects.upsert_project(path_buf, ctx);
+                    },
+                );
             },
             riftui::platform::FilePickerConfiguration::new().folders_only(),
         );
@@ -6119,7 +6030,6 @@ impl Workspace {
         }
     }
 
-
     fn is_input_box_visible(&self, app: &AppContext) -> bool {
         if let (Some(terminal_model), Some(terminal_view)) = (
             self.get_active_session_terminal_model(app),
@@ -6134,7 +6044,6 @@ impl Workspace {
             false
         }
     }
-
 
     fn handle_theme_creator_modal_event(
         &mut self,
@@ -6567,7 +6476,6 @@ impl Workspace {
         }
     }
 
-
     fn remove_tab(
         &mut self,
         index: usize,
@@ -6826,8 +6734,6 @@ impl Workspace {
         }
     }
 
-
-
     /// Update this workspace when it is reopened after being closed.
     pub fn handle_reopen(&mut self, ctx: &mut ViewContext<Self>) {
         self.sync_window_button_visibility(ctx);
@@ -6903,8 +6809,6 @@ impl Workspace {
         );
         ctx.notify();
     }
-
-
 
     // Adds a tab with a specific shell, only meant to be dispatched directly by actions.
     fn add_tab_with_shell(
@@ -6992,7 +6896,6 @@ impl Workspace {
         let _ = is_docker_sandbox;
     }
 
-
     pub fn add_tab_with_pane_layout(
         &mut self,
         panes_layout: PanesLayout,
@@ -7040,7 +6943,6 @@ impl Workspace {
         ctx.subscribe_to_view(&new_pane_group, move |me, pane_group, event, ctx| {
             me.handle_pane_group_event(pane_group, event, ctx)
         });
-
 
         let new_tab_placement_setting = TabSettings::as_ref(ctx).new_tab_placement;
 
@@ -7119,9 +7021,6 @@ impl Workspace {
         }
     }
 
-
-
-
     fn open_repository(&mut self, path: Option<&str>, ctx: &mut ViewContext<Self>) {
         match path {
             Some(path) => self.handle_open_repository(path, ctx),
@@ -7171,17 +7070,6 @@ impl Workspace {
         );
         let _ = path_buf;
     }
-
-
-
-
-
-
-
-
-
-
-
 
     /// Moves the tab at `index` one slot left/right, where a "slot" is either a
     /// single tab or an entire adjacent group. If the neighbor in the move
@@ -7745,12 +7633,6 @@ impl Workspace {
         }
     }
 
-
-
-
-
-
-
     pub fn is_theme_creator_modal_open(&self) -> bool {
         self.current_workspace_state.is_theme_creator_modal_open
     }
@@ -7831,20 +7713,6 @@ impl Workspace {
         });
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     fn handle_theme_chooser_event(
         &mut self,
         event: &ThemeChooserEvent,
@@ -7889,7 +7757,6 @@ impl Workspace {
             }
         };
     }
-
 
     fn get_active_input_view_handle(&self, app: &AppContext) -> Option<ViewHandle<Input>> {
         app.view(self.active_tab_pane_group())
@@ -8055,13 +7922,8 @@ impl Workspace {
         }
     }
 
-
-
-
-
     /// Opens the LSP log file in a new terminal pane using `tail -f`.
     fn open_lsp_logs(&mut self, log_path: &PathBuf, ctx: &mut ViewContext<Self>) {
-
         let active_pane_group = self.active_tab_pane_group();
 
         // Add a terminal pane to the right
@@ -8081,14 +7943,15 @@ impl Workspace {
             let tail_command = match shell_family {
                 rift_util::path::ShellFamily::Posix => format!("tail -f {log_path:?}"),
                 rift_util::path::ShellFamily::PowerShell => {
-                    format!("Get-Content -Wait -Tail 10 -Path \"{}\"", log_path.display())
+                    format!(
+                        "Get-Content -Wait -Tail 10 -Path \"{}\"",
+                        log_path.display()
+                    )
                 }
             };
             terminal.set_pending_command(&tail_command, ctx);
         });
     }
-
-
 
     /// Inserts given command into active Input Editor, optionally replacing the current buffer. No-ops if
     /// there is no active terminal pane open, with an input box active.
@@ -8117,8 +7980,6 @@ impl Workspace {
         }
     }
 
-
-
     fn handle_window_settings_changed_event(
         &mut self,
         event: &WindowSettingsChangedEvent,
@@ -8141,7 +8002,6 @@ impl Workspace {
             _ => {}
         }
     }
-
 
     fn restore_previous_workspace_state(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(previous_state) = self.previous_workspace_state.take() {
@@ -8293,13 +8153,10 @@ impl Workspace {
         self.open_settings_pane(section, Some(search_query), ctx);
     }
 
-
-
     /// Shows the theme chooser so the user can change the active theme.
     pub fn show_theme_chooser_for_active_theme(&mut self, ctx: &mut ViewContext<Self>) {
         self.show_theme_chooser(Some(ThemeChooserMode::for_active_theme(ctx)), ctx)
     }
-
 
     /// Shows the theme chooser so the user can change a specific theme.
     pub fn show_theme_chooser(
@@ -8424,7 +8281,6 @@ impl Workspace {
         });
     }
 
-
     fn toggle_mouse_reporting(&mut self, ctx: &mut ViewContext<Self>) {
         let prev_mouse_reporting_enabled =
             AltScreenReporting::handle(ctx).update(ctx, |reporting, ctx| {
@@ -8515,7 +8371,6 @@ impl Workspace {
         };
     }
 
-
     pub(crate) fn focus_active_tab(&mut self, ctx: &mut ViewContext<Self>) {
         self.active_tab_pane_group().update(ctx, |tab, ctx| {
             tab.focus(ctx);
@@ -8526,8 +8381,6 @@ impl Workspace {
         ctx.focus(&self.theme_chooser_view);
         ctx.notify();
     }
-
-
 
     fn open_theme_creator_modal(&mut self, ctx: &mut ViewContext<Self>) {
         self.current_workspace_state.is_theme_creator_modal_open = true;
@@ -8544,11 +8397,6 @@ impl Workspace {
         ctx.focus(&self.theme_deletion_modal);
         ctx.notify();
     }
-
-
-
-
-
 
     fn render_tab_in_tab_bar(
         &self,
@@ -9158,12 +9006,7 @@ impl Workspace {
         // Placeholder to make sure the flex row expands across the entire width of the app.
         tab_bar.add_child(Shrinkable::new(0.5, Empty::new().finish()).finish());
 
-        self.add_configurable_right_side_tab_bar_controls(
-            &mut tab_bar,
-            &config,
-            appearance,
-            ctx,
-        );
+        self.add_configurable_right_side_tab_bar_controls(&mut tab_bar, &config, appearance, ctx);
 
         let left_padding = self.compute_tab_bar_left_padding(ctx);
 
@@ -9259,7 +9102,6 @@ impl Workspace {
             }
         }
 
-
         if FeatureFlag::AvatarInTabBar.is_enabled() {
             target.add_child(
                 Container::new(self.render_avatar_button(appearance, ctx))
@@ -9282,7 +9124,6 @@ impl Workspace {
                     .finish(),
             );
         }
-
 
         let zoom_factor = WindowSettings::as_ref(ctx).zoom_level.as_zoom_factor();
         let traffic_light_data = traffic_light_data(ctx, self.window_id);
@@ -9726,7 +9567,6 @@ impl Workspace {
 
         Align::new(hoverable.finish()).finish()
     }
-
 
     fn render_tab_bar_icon_button_tooltip(
         &self,
@@ -10401,7 +10241,6 @@ impl Workspace {
             }
         }
 
-
         // Resource center and AI assistant are workspace-level panels, not configurable.
         if self.current_workspace_state.is_right_panel_open() {
             let right_panel_content = if self.current_workspace_state.is_resource_center_open {
@@ -10417,7 +10256,6 @@ impl Workspace {
 
         panels_view.finish()
     }
-
 
     fn tabs_panel_side(config: &HeaderToolbarChipSelection) -> PanelPosition {
         if config
@@ -10711,7 +10549,6 @@ impl Workspace {
                 .insert(flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG);
         }
 
-
         if *pane_settings.focus_panes_on_hover {
             context.set.insert(flags::FOCUS_PANES_ON_HOVER_CONTEXT_FLAG);
         }
@@ -10851,7 +10688,6 @@ impl Workspace {
         }
     }
 
-
     /// Sends SyncEvent to all synced terminal views.
     /// The purpose of the event could be match the active terminal input,
     /// expand the terminal input box, or collapse the terminal input box.
@@ -10919,7 +10755,6 @@ impl Workspace {
         // This gives views a chance to clean up any state through on_view_detached before being dropped.
         self.on_window_closed(ctx);
     }
-
 }
 
 impl Entity for Workspace {
@@ -11026,7 +10861,8 @@ impl TypedActionView for Workspace {
                 match effective_mode {
                     DefaultSessionMode::TabConfig => {
                         let session_mode_settings = SessionModeSettings::as_ref(ctx);
-                        if let Some(config) = session_mode_settings.resolved_default_tab_config(ctx) {
+                        if let Some(config) = session_mode_settings.resolved_default_tab_config(ctx)
+                        {
                             self.open_tab_config(config, ctx);
                         } else {
                             // Config missing or deleted — clear and fall through to Terminal.
@@ -11819,9 +11655,7 @@ impl View for Workspace {
             if terminal_view.is_long_running() {
                 context.set.insert("LongRunningCommand");
             }
-
         }
-
 
         context
     }
@@ -12290,7 +12124,6 @@ impl View for Workspace {
             }
         }
 
-
         if self.current_workspace_state.is_command_search_open {
             if let Some(active_input_handle) = self.get_active_input_view_handle(app) {
                 let input_position = app.view(&active_input_handle).save_position_id();
@@ -12523,7 +12356,6 @@ impl View for Workspace {
             }
         }
 
-
         // Add workspace-wide UI event handling.
         let stack = if FeatureFlag::VerticalTabs.is_enabled()
             && *TabSettings::as_ref(app).use_vertical_tabs
@@ -12652,7 +12484,6 @@ impl Workspace {
             vertical_tabs_panel_open,
         })
     }
-
 
     pub fn get_tab_transfer_info_for_attach(
         &self,
@@ -12900,7 +12731,13 @@ impl Workspace {
 
             self.current_workspace_state.is_command_search_open = true;
             self.command_search_view.update(ctx, |view, ctx| {
-                view.reset_state(session_id, initial_query, query_filter, menu_positioning, ctx);
+                view.reset_state(
+                    session_id,
+                    initial_query,
+                    query_filter,
+                    menu_positioning,
+                    ctx,
+                );
             });
 
             let tip = match query_filter {
@@ -13137,7 +12974,6 @@ impl Workspace {
 
                 // Re-evaluate which region is focused and update pane dimming accordingly.
                 self.update_pane_dimming_for_current_focus_region(ctx);
-
             }
             pane_group::Event::RepoChanged => {
                 self.refresh_working_directories_for_pane_group(&pane_group, ctx);

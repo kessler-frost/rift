@@ -8,11 +8,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use command_signatures::IconType;
 use rift_core::command::ExitCode;
 use rift_util::path::{EscapeChar, ShellFamily, TEST_SESSION_HOME_DIR};
 use smol_str::SmolStr;
 use typed_path::{TypedPath, TypedPathBuf};
-use command_signatures::IconType;
 
 use super::{CommandExitStatus, MatchedSuggestion, PathSeparators};
 use crate::completer::{

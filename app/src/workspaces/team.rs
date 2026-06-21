@@ -109,5 +109,4 @@ impl Team {
                 || (member.role == MembershipRole::Admin && self.is_multi_admin_enabled())
         })
     }
-
 }

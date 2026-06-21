@@ -47,7 +47,6 @@ pub mod user_uid {
 
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-
     /// `UserUid` is the unique identifier for the (single, local) user.
     #[derive(Clone, PartialEq, Eq, Hash, Default)]
     pub struct UserUid(String);
@@ -132,7 +131,6 @@ pub mod credentials {
 /// hence the module-wide `allow(dead_code)`.
 #[allow(dead_code)]
 pub mod user {
-    
 
     /// Firebase auth tokens placeholder.
     #[derive(Clone, Debug)]

@@ -9,9 +9,7 @@ use super::model::ansi::{FinishUpdateValue, RiftificationUnavailableReason};
 use super::model::block::BlockId;
 use super::model::completions::ShellCompletion;
 use super::model::session::{IsLegacySSHSession, SessionId, SessionInfo};
-use super::model::terminal_model::{
-    CommandType, ExitReason, HandlerEvent, TmuxInstallationState,
-};
+use super::model::terminal_model::{CommandType, ExitReason, HandlerEvent, TmuxInstallationState};
 use super::model::tmux::commands::TmuxCommand;
 use crate::server::telemetry::ImageProtocol;
 use crate::terminal::event::{

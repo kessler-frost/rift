@@ -1289,7 +1289,6 @@ fn pane_hidden_for_undo(hidden_panes: &[HiddenPane], id: &PaneId) -> bool {
         .any(|pane| pane.reason == HiddenPaneReason::Closed && pane.pane_id == *id)
 }
 
-
 impl FindPaneByDirection for PaneBranch {
     fn panes_by_direction(
         &self,

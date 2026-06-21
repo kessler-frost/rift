@@ -14,10 +14,7 @@ use url::Url;
 use self::docker::open_docker_container;
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::LaunchConfig;
-use crate::root_view::{
-    open_new_window_get_handles,
-    OpenLaunchConfigArg,
-};
+use crate::root_view::{open_new_window_get_handles, OpenLaunchConfigArg};
 use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings_view::SettingsSection;
 use crate::tab_configs::TabConfig;
@@ -843,7 +840,6 @@ fn execute_file(window_id: WindowId, path_str: &str, ctx: &mut AppContext) {
 
     send_telemetry_from_app_ctx!(TelemetryEvent::CommandFileRun, ctx);
 }
-
 
 /// Helper function to dispatch an action to an existing window
 /// or create new window if none exist.

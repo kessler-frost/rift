@@ -7,7 +7,6 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use rift_core::channel::ChannelState;
 use url::Url;
 
-
 #[cfg(windows)]
 mod process_handle;
 
@@ -43,7 +42,6 @@ pub struct ParentOpts {
 )]
 #[clap(args_conflicts_with_subcommands = true)]
 pub struct Args {
-
     /// Enable debug mode.
     #[arg(long = "debug", global = true, help = "Enable debug logging")]
     debug: bool,
@@ -110,7 +108,6 @@ impl Args {
     pub fn clap_command() -> clap::Command {
         let mut command = <Args as CommandFactory>::command();
 
-
         // Wire up `--version` / `-V` using the same version metadata used elsewhere in the
         // app, so the CLI reports the build's release tag.
         command = command.version(version_string());
@@ -137,7 +134,6 @@ impl Args {
     pub fn debug(&self) -> bool {
         self.debug
     }
-
 }
 
 /// Rift may spawn several worker processes - mostly servers that support the main application.
@@ -341,4 +337,3 @@ pub fn binary_name() -> Option<String> {
 pub fn version_string() -> &'static str {
     ChannelState::app_version().unwrap_or("<unknown>")
 }
-

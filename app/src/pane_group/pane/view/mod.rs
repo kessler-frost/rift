@@ -26,7 +26,6 @@ use crate::pane_group::pane::ActionOrigin;
 use crate::pane_group::{Direction, SplitPaneState, TabBarHoverIndex};
 use crate::settings::{PaneSettings, PaneSettingsChangedEvent};
 
-
 pub enum PaneViewEvent {
     MovePaneWithinPaneGroup {
         target_id: PaneId,

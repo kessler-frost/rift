@@ -35,9 +35,7 @@ use crate::context_chips::display_chip::GitLineChanges;
 use crate::context_chips::github_pr_display_text_from_url;
 use crate::editor::EditorView;
 use crate::pane_group::pane::IPaneType;
-use crate::pane_group::{
-    PaneGroup, PaneId, TabBarHoverIndex, TerminalPane, 
-};
+use crate::pane_group::{PaneGroup, PaneId, TabBarHoverIndex, TerminalPane};
 use crate::safe_triangle::SafeTriangle;
 use crate::tab::{tab_position_id, SelectedTabColor, TabData};
 use crate::terminal::session_settings::SessionSettings;
@@ -839,7 +837,6 @@ fn normalize_summary_text(text: &str) -> Option<String> {
     let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
     (!normalized.is_empty()).then_some(normalized)
 }
-
 
 fn coalesce_summary_branch_entries(
     entries: Vec<VerticalTabsSummaryBranchEntry>,
@@ -2874,9 +2871,7 @@ impl TypedPane<'_> {
 
     fn badge(&self, _app: &AppContext) -> Option<String> {
         match self {
-            TypedPane::Terminal(_)
-            | TypedPane::Settings
-            | TypedPane::Other => None,
+            TypedPane::Terminal(_) | TypedPane::Settings | TypedPane::Other => None,
         }
     }
 
@@ -3004,7 +2999,6 @@ fn build_vertical_tabs_summary_data(
         }
     }
 
-
     VerticalTabsSummaryData {
         primary_labels,
         working_directories,
@@ -3108,8 +3102,7 @@ impl<'a> PaneProps<'a> {
                 self.display_title_override.as_deref(),
                 app,
             ),
-            TypedPane::Settings
-            | TypedPane::Other => {
+            TypedPane::Settings | TypedPane::Other => {
                 non_terminal_search_text_fragments(self.generated_or_tab_title(), &self.subtitle)
             }
         };
@@ -3275,9 +3268,9 @@ impl PaneGroup {
                     .expect("IPaneType::Terminal must correspond to a TerminalPane"),
             ),
             IPaneType::Settings => TypedPane::Settings,
-            IPaneType::GetStarted
-            | IPaneType::Welcome
-            | IPaneType::DeferredPlaceholder => TypedPane::Other,
+            IPaneType::GetStarted | IPaneType::Welcome | IPaneType::DeferredPlaceholder => {
+                TypedPane::Other
+            }
             #[cfg(test)]
             IPaneType::Dummy => TypedPane::Other,
         }
@@ -5327,7 +5320,6 @@ fn render_detail_badge(
     badge.finish()
 }
 
-
 fn render_detail_wrapping_text(
     text: impl Into<String>,
     font_size: f32,
@@ -5506,8 +5498,7 @@ fn render_detail_section(
             appearance,
             app,
         ),
-        TypedPane::Settings
-        | TypedPane::Other => Empty::new().finish(),
+        TypedPane::Settings | TypedPane::Other => Empty::new().finish(),
     }
 }
 pub(super) struct DetailSidecarOverlay {

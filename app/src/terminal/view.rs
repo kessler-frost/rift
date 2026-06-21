@@ -85,13 +85,12 @@ use riftui::elements::new_scrollable::{
     ScrollableAppearance, SingleAxisConfig,
 };
 use riftui::elements::{
-    get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped,
-    ClippedScrollStateHandle, ConstrainedBox, Container, CornerRadius,
-    DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Fill, Flex,
-    Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
-    ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
-    Radius, Rect, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth,
-    Shrinkable, Stack, Text,
+    get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle,
+    ConstrainedBox, Container, CornerRadius, DispatchEventResult, DropTarget, DropTargetData,
+    Empty, EventHandler, Fill, Flex, Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable,
+    OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, PositionedElementAnchor,
+    PositionedElementOffsetBounds, Radius, Rect, SavePosition, ScrollStateHandle, Scrollable,
+    ScrollableElement, ScrollbarWidth, Shrinkable, Stack, Text,
 };
 use riftui::event::ModifiersState;
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties};
@@ -108,8 +107,8 @@ use riftui::windowing::WindowManager;
 use riftui::{
     end_trace_after_next, record_trace_event, windowing, AccessibilityData, AppContext,
     BlurContext, CursorInfo, Element, Entity, EntityId, EventContext, FocusContext, ModelAsRef,
-    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewContext,
-    ViewHandle, WeakModelHandle, WeakViewHandle, WindowId,
+    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewContext, ViewHandle,
+    WeakModelHandle, WeakViewHandle, WindowId,
 };
 use serde::Serialize;
 use settings::{Setting, ToggleableSetting};
@@ -128,13 +127,10 @@ use super::model::rich_content::RichContentType;
 use super::model::secrets::RichContentSecretTooltipInfo;
 use super::model::selection::ExpandedSelectionRange;
 use super::model::session::SessionBootstrappedEvent;
-use super::settings::AltScreenPaddingMode;
-use super::ssh::util::{
-    parse_interactive_ssh_command, InteractiveSshCommand,
-    SshRiftifyCommand,
-};
 use super::riftify::success_block::{RiftifySuccessBlock, RiftifySuccessBlockEvent};
-use super::riftify::trigger_state::{SshBlockState, RiftifyState};
+use super::riftify::trigger_state::{RiftifyState, SshBlockState};
+use super::settings::AltScreenPaddingMode;
+use super::ssh::util::{parse_interactive_ssh_command, InteractiveSshCommand, SshRiftifyCommand};
 use super::GridType;
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
@@ -152,28 +148,26 @@ use crate::features::FeatureFlag;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::{
-    PaneConfiguration, PaneEvent, PaneGroupAction,
-    SplitPaneState, TerminalViewResources,
+    PaneConfiguration, PaneEvent, PaneGroupAction, SplitPaneState, TerminalViewResources,
 };
 use crate::persistence::{self, FinishedCommandMetadata};
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
 use crate::server::telemetry::{
-    BlockLatencyInfo, LinkOpenMethod,
-    TelemetryEvent, ToggleBlockFilterSource, 
+    BlockLatencyInfo, LinkOpenMethod, TelemetryEvent, ToggleBlockFilterSource,
 };
 use crate::session_management::{CommandContext, SessionNavigationPromptElements};
 #[cfg(feature = "local_fs")]
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::import::view::{SettingsImportEvent, SettingsImportView};
 use crate::settings::{
-    AliasExpansionSettings, AppEditorSettings,
-    BlockVisibilitySettings, BlockVisibilitySettingsChangedEvent, DebugSettings,
-    DebugSettingsChangedEvent, EmacsBindingsSettings, FontSettings, FontSettingsChangedEvent,
-    InputModeSettings, InputModeSettingsChangedEvent, InputSettings, PaneSettings,
-    PaneSettingsChangedEvent, PrivacySettings, PrivacySettingsChangedEvent,
-    PrivacySettingsSnapshot, SelectionSettings, VimBannerSettings,
+    AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings,
+    BlockVisibilitySettingsChangedEvent, DebugSettings, DebugSettingsChangedEvent,
+    EmacsBindingsSettings, FontSettings, FontSettingsChangedEvent, InputModeSettings,
+    InputModeSettingsChangedEvent, InputSettings, PaneSettings, PaneSettingsChangedEvent,
+    PrivacySettings, PrivacySettingsChangedEvent, PrivacySettingsSnapshot, SelectionSettings,
+    VimBannerSettings,
 };
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::{flags, SettingsSection};
@@ -196,8 +190,7 @@ use crate::terminal::block_list_viewport::{
 use crate::terminal::bootstrap::init_subshell_command;
 use crate::terminal::color::List;
 use crate::terminal::event::{
-    AfterBlockCompletedEvent, BlockLatencyData, BlockType, TerminalMode,
-    UserBlockCompleted,
+    AfterBlockCompletedEvent, BlockLatencyData, BlockType, TerminalMode, UserBlockCompleted,
 };
 use crate::terminal::find::{BlockGridMatch, BlockListMatch, TerminalFindModel};
 use crate::terminal::general_settings::GeneralSettings;
@@ -205,8 +198,7 @@ use crate::terminal::grid_size_util::grid_cell_dimensions;
 use crate::terminal::input::decorations::InputBackgroundJobOptions;
 use crate::terminal::input::inline_menu::InlineMenuPositioner;
 use crate::terminal::input::{
-    CommandExecutionSource, InputAction, InputState, MenuPositioning,
-    MenuPositioningProvider,
+    CommandExecutionSource, InputAction, InputState, MenuPositioning, MenuPositioningProvider,
 };
 use crate::terminal::ligature_settings::{should_use_ligature_rendering, LigatureSettings};
 use crate::terminal::links::should_directly_open_link;
@@ -228,15 +220,16 @@ use crate::terminal::model::index::{Point, Side};
 use crate::terminal::model::mouse::MouseState;
 use crate::terminal::model::selection::{SelectAction, SelectionDirection};
 use crate::terminal::model::session::active_session::ActiveSession;
-use crate::terminal::model::session::{
-    Session, SessionId, SessionType, Sessions, SessionsEvent,
-};
+use crate::terminal::model::session::{Session, SessionId, SessionType, Sessions, SessionsEvent};
 use crate::terminal::model::terminal_model::{
     BlockIndex, BlockSelectionCardinality, SelectedBlocks, TerminalInputState, WithinModel,
 };
 use crate::terminal::model::{ObfuscateSecrets, RespectObfuscatedSecrets, SecretHandle};
 use crate::terminal::model_events::{AnsiHandlerEvent, ModelEvent, ModelEventDispatcher};
 use crate::terminal::recorder::PtyRecorder;
+use crate::terminal::riftify::render::render_subshell_separator;
+use crate::terminal::riftify::settings::RiftifySettings;
+use crate::terminal::riftify::SubshellSource;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 use crate::terminal::session_settings::{
     NotificationsMode, NotificationsSettings, SessionSettings, SessionSettingsChangedEvent,
@@ -252,9 +245,6 @@ pub use crate::terminal::view::rich_content::{
     RichContent, RichContentInsertionPosition, RichContentMetadata,
 };
 use crate::terminal::view::ssh_file_upload::FileUploadId;
-use crate::terminal::riftify::render::render_subshell_separator;
-use crate::terminal::riftify::settings::RiftifySettings;
-use crate::terminal::riftify::SubshellSource;
 use crate::terminal::waterfall_gap_element::WaterfallGapElement;
 use crate::terminal::{
     block_list_element::BlockHoverAction,
@@ -286,13 +276,10 @@ use crate::util::repo_detection::{detect_possible_git_repo, RepoDetectionSession
 use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
 use crate::view_components::ToastFlavor;
 use crate::workspace::sync_inputs::SyncedInputState;
-use crate::workspace::{
-    CommandSearchOptions,
-};
+use crate::workspace::CommandSearchOptions;
 use crate::{
     report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
-    send_telemetry_sync_from_ctx,
-    ActiveSession as WindowActiveSession,
+    send_telemetry_sync_from_ctx, ActiveSession as WindowActiveSession,
 };
 
 lazy_static! {
@@ -390,7 +377,6 @@ const CONTEXT_MENU_WIDTH: f32 = 280.;
 /// Roughly determined by trial-and-error.
 const MIN_DELTA_FOR_TEXT_SELECTION: f32 = 0.5;
 
-
 const DEBOUNCE_PERIOD: Duration = Duration::from_millis(40);
 
 /// Key used in user defaults to save whether the user has seen the banner.
@@ -409,8 +395,6 @@ const MOVE_LINE_START_BINDING_NAME: &str = "editor_view:move_to_line_start";
 const MOVE_LINE_END_BINDING_NAME: &str = "editor_view:move_to_line_end";
 
 pub const DEFAULT_ASK_AI_AUTOSUGGESTION_TEXT: &str = "What happened here?";
-
-
 
 lazy_static! {
     static ref CTRL_SHIFT_A_KEYSTROKE: Keystroke = Keystroke {
@@ -635,7 +619,6 @@ struct ShellProcessTerminatedBanner {
     was_premature_termination: bool,
 }
 
-
 /// A unique identifier for an inline banner.
 pub type InlineBannerId = usize;
 
@@ -652,8 +635,7 @@ pub enum InlineBannerType {
     CodebaseIndexSpeedbump,
 }
 
-impl InlineBannerType {
-}
+impl InlineBannerType {}
 
 /// An inline banner with its unique ID and type metadata.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -703,7 +685,6 @@ impl InlineBannersState {
         self.next_banner_id += 1;
         next_id
     }
-
 }
 
 /// Helper struct for creating SizeUpdates.
@@ -1297,7 +1278,6 @@ impl BlocklistAIRenderContext {
         false
     }
 
-
     pub fn context_inclusion_state_for_block(
         &self,
         block: &Block,
@@ -1523,7 +1503,6 @@ pub struct TerminalView {
     /// but also the input.
     resize_tx: Sender<Vector2F>,
 
-
     find_link_tx: Sender<FindLinkArg>,
 
     /// Highlighted link (could be url or file path) on the screen.
@@ -1647,7 +1626,6 @@ pub struct TerminalView {
     show_snackbar: bool,
     hover_near_snackbar_area: bool,
 
-
     /// The ID of the containing window.
     window_id: WindowId,
 
@@ -1735,7 +1713,6 @@ pub struct TerminalView {
     /// `true` if this view explicitly requested a PTY shutdown.
     manual_pty_shutdown_requested: bool,
 
-
     /// Per-session PTY recorder for writing PTY bytes to a file.
     pty_recorder: ModelHandle<PtyRecorder>,
 }
@@ -1814,7 +1791,6 @@ impl TerminalView {
         }
     }
 
-
     /// Receives a SyncEvent and performs actions dictated by that event
     /// on this terminal view.
     pub fn receive_sync_input_event(&mut self, event: &SyncEvent, ctx: &mut ViewContext<Self>) {
@@ -1857,7 +1833,6 @@ impl TerminalView {
             SyncInputType::StopSyncing => {}
         }
     }
-
 
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -1980,7 +1955,6 @@ impl TerminalView {
         ctx.subscribe_to_model(&model_events_handle, |me, _, event, ctx| {
             me.handle_terminal_event(event, ctx);
         });
-
 
         let _ = ctx.spawn_stream_local(
             throttle(WAKEUP_THROTTLE_PERIOD, wakeups_rx),
@@ -2219,8 +2193,7 @@ impl TerminalView {
         });
         // Re-evaluate git status subscription when the prompt configuration
         // changes (e.g. chips added/removed, input type toggled).
-        ctx.subscribe_to_model(&Prompt::handle(ctx), |_me, _, _, _ctx| {
-        });
+        ctx.subscribe_to_model(&Prompt::handle(ctx), |_me, _, _, _ctx| {});
 
         ctx.subscribe_to_model(&AltScreenReporting::handle(ctx), move |me, _, evt, ctx| {
             me.handle_reporting_settings_event(evt, ctx);
@@ -2298,7 +2271,6 @@ impl TerminalView {
                 }
             }
         });
-
 
         let window_id = ctx.window_id();
         let mut terminal_view = Self {
@@ -2409,38 +2381,6 @@ impl TerminalView {
         terminal_view
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     pub fn attach_path_as_context(&mut self, path: &Path, ctx: &mut ViewContext<Self>) {
         self.input.update(ctx, |input, ctx| {
             let content = path.to_string_lossy();
@@ -2448,32 +2388,6 @@ impl TerminalView {
             ctx.notify();
         });
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     fn handle_windowing_state_update(
         &mut self,
@@ -2522,7 +2436,7 @@ impl TerminalView {
         self.sessions
             .as_ref(ctx)
             .get(session_id)
-                .is_some_and(|session| session.is_local())
+            .is_some_and(|session| session.is_local())
     }
 
     /// Returns whether or not the active session is a local session.  Returns
@@ -2530,7 +2444,6 @@ impl TerminalView {
     pub fn active_session_is_local<C: ModelAsRef>(&self, ctx: &C) -> Option<bool> {
         Some(self.session_is_local(self.active_block_session_id()?, ctx))
     }
-
 
     /// Returns the active session's WSL distribution information, if it exists.
     /// Returns None if there is no active session or if the current session is
@@ -2583,22 +2496,6 @@ impl TerminalView {
         &self.input
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     pub fn active_session(&self) -> &ModelHandle<ActiveSession> {
         &self.active_session
     }
@@ -2635,9 +2532,6 @@ impl TerminalView {
     pub fn set_is_ssh_uploader(&mut self, is_uploader: bool) {
         self.is_ssh_file_uploader = is_uploader;
     }
-
-
-
 
     pub fn ssh_file_upload(&self) -> &ViewHandle<FileUpload> {
         &self.ssh_file_upload
@@ -2710,16 +2604,12 @@ impl TerminalView {
         true
     }
 
-
-
-
     /// Shuts down the pty and event loop, terminating the shell process.
     /// Also marks this view as manually shut down for telemetry attribution.
     pub fn shutdown_pty(&mut self, ctx: &mut ViewContext<Self>) {
         self.manual_pty_shutdown_requested = true;
         ctx.emit(Event::ShutdownPty);
     }
-
 
     fn user_write_ctrl_c_to_pty(&mut self, ctx: &mut ViewContext<Self>) {
         self.write_user_bytes_to_pty(vec![escape_sequences::C0::ETX], ctx);
@@ -2792,7 +2682,6 @@ impl TerminalView {
         self.ctrl_c_to_active_block(is_long_running, ctx);
     }
 
-
     /// Returns `true` if focus is inside any AI block (e.g. the user is arrowing
     /// through a code diff's hunks).
     fn is_any_ai_block_focused(&self, _ctx: &mut ViewContext<Self>) -> bool {
@@ -2816,18 +2705,11 @@ impl TerminalView {
         self.ctrl_c_to_active_block(is_long_running, ctx);
     }
 
-    fn ctrl_c_to_active_block(
-        &mut self,
-        is_long_running: bool,
-        ctx: &mut ViewContext<Self>,
-    ) {
+    fn ctrl_c_to_active_block(&mut self, is_long_running: bool, ctx: &mut ViewContext<Self>) {
         if is_long_running {
             self.user_write_ctrl_c_to_pty(ctx);
         }
     }
-
-
-
 
     fn ctrl_d(&mut self, ctx: &mut ViewContext<Self>) {
         let arc = self.model.clone();
@@ -2958,7 +2840,6 @@ impl TerminalView {
         }
     }
 
-
     /// Receiving the riftui::Event::KeyDown event from a child element.
     /// Generally, this should be control characters rather than printable characters.
     fn keydown_on_terminal(&mut self, characters: &str, ctx: &mut ViewContext<Self>) {
@@ -3024,7 +2905,6 @@ impl TerminalView {
         }
     }
 
-
     fn set_marked_text_on_terminal(
         &mut self,
         marked_text: &str,
@@ -3055,8 +2935,6 @@ impl TerminalView {
     ) {
         ctx.emit(Event::WriteBytesToPty { bytes: data.into() });
     }
-
-
 
     /// Ends the current line before writing the given bytes to the PTY.
     fn clear_line_editor_and_write_to_pty<B: Into<Cow<'static, [u8]>>>(
@@ -3475,13 +3353,7 @@ impl TerminalView {
 
         let disable_tmux = false;
         let ssh_success_block_handle = ctx.add_typed_action_view(|ctx| {
-            RiftifySuccessBlock::new(
-                spawning_command,
-                subshell_info,
-                shell,
-                disable_tmux,
-                ctx,
-            )
+            RiftifySuccessBlock::new(spawning_command, subshell_info, shell, disable_tmux, ctx)
         });
         ctx.subscribe_to_view(&ssh_success_block_handle, move |me, _, event, ctx| {
             me.handle_ssh_success_block_events(event, ctx);
@@ -3529,7 +3401,6 @@ impl TerminalView {
             let mut model = self.model.lock();
             model.block_list_mut().set_active_block_banner(None);
         }
-
 
         match remember_command {
             RememberForRiftification::RememberSubshellCommand(command) => {
@@ -3758,9 +3629,6 @@ impl TerminalView {
         );
     }
 
-
-
-
     fn insert_alias_expansion_banner(
         &mut self,
         aliased_command: AliasedCommand,
@@ -3929,8 +3797,6 @@ impl TerminalView {
         ctx.notify();
     }
 
-
-
     /// Redetermine focus in the terminal view -- note that this will not steal focus
     /// from other parts of the app, the find bar, or the block filter editor.
     ///
@@ -4043,9 +3909,6 @@ impl TerminalView {
             })
             .unwrap_or_default()
     }
-
-
-
 
     /// Apply a block metadata update from either the precmd hook
     /// ([`Event::BlockMetadataReceived`]) or an OSC 7 sequence emitted
@@ -4178,12 +4041,9 @@ impl TerminalView {
                             match &repo_path_opt {
                                 Some(LocalOrRemotePath::Remote(remote_path)) => {
                                     #[cfg(not(target_family = "wasm"))]
-                                    DetectedRepositories::handle(ctx).update(
-                                        ctx,
-                                        |repos, _| {
-                                            repos.register_remote_repo_root(remote_path.clone());
-                                        },
-                                    );
+                                    DetectedRepositories::handle(ctx).update(ctx, |repos, _| {
+                                        repos.register_remote_repo_root(remote_path.clone());
+                                    });
 
                                     // Remote sessions can only materialize their working
                                     // directory after repo detection has resolved the host.
@@ -4221,10 +4081,7 @@ impl TerminalView {
                                         }
 
                                         me.input.update(ctx, |input, ctx| {
-                                            input.update_repo_path(
-                                                Some(repo_path.clone()),
-                                                ctx,
-                                            );
+                                            input.update_repo_path(Some(repo_path.clone()), ctx);
                                         });
                                     }
                                     #[cfg(not(feature = "local_fs"))]
@@ -4539,7 +4396,6 @@ impl TerminalView {
                             }
                         } else {
                             self.riftify_state.clear_pending_ssh_host();
-
                         }
                     }
 
@@ -4802,20 +4658,16 @@ impl TerminalView {
                     // via a BlockCompleted event but don't affect focus or input.
                     ctx.emit(Event::BlockCompleted {
                         block: serialized_block.clone(),
-                        is_local: !self.is_block_considered_remote(
-                            serialized_block.session_id,
-                            ctx,
-                        ),
+                        is_local: !self
+                            .is_block_considered_remote(serialized_block.session_id, ctx),
                     });
                 } else if let BlockType::BootstrapVisible(serialized_block) = block_type {
                     // Re-compute the focus after the visible bootstrap block has completed.
                     self.redetermine_terminal_focus(ctx);
                     ctx.emit(Event::BlockCompleted {
                         block: serialized_block.clone(),
-                        is_local: !self.is_block_considered_remote(
-                            serialized_block.session_id,
-                            ctx,
-                        ),
+                        is_local: !self
+                            .is_block_considered_remote(serialized_block.session_id, ctx),
                     });
                 }
 
@@ -5223,7 +5075,6 @@ impl TerminalView {
         ps1_grid_info
     }
 
-
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
     fn add_settings_import_block(&mut self, ctx: &mut ViewContext<Self>) {
         self.block_onboarding_active = true;
@@ -5279,9 +5130,7 @@ impl TerminalView {
             },
             ctx,
         );
-
     }
-
 
     pub fn interrupt_onboarding_blocks(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(onboarding_prompt_block_handle) = &self.onboarding_prompt_block {
@@ -5297,7 +5146,6 @@ impl TerminalView {
                 settings_import_view.interrupt_block(ctx);
             })
         }
-
 
         self.reset_onboarding_blocks(ctx);
     }
@@ -5318,25 +5166,12 @@ impl TerminalView {
         self.toggle_left_panel_file_tree(true, ctx);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
     fn reset_onboarding_blocks(&mut self, ctx: &mut ViewContext<Self>) {
         self.block_onboarding_active = false;
         self.onboarding_prompt_block = None;
         self.settings_import_onboarding_block = None;
         let _ = ctx;
     }
-
 
     /// Gets the selected text from the terminal, if any.
     pub fn selected_text(&self, ctx: &AppContext) -> Option<String> {
@@ -5368,9 +5203,6 @@ impl TerminalView {
 }
 
 impl TerminalView {
-
-
-
     // Redundantly issues resize changes to increase the chances that the alt-screen program
     // gets the latest winsize when it has a resize handler setup.
     //
@@ -5555,9 +5387,6 @@ impl TerminalView {
         }
     }
 
-
-
-
     /// Generates command corrections, if applicable.
     fn maybe_generate_command_suggestions(
         &mut self,
@@ -5716,7 +5545,6 @@ impl TerminalView {
         }
     }
 
-
     /// Executes a command that was submitted by the user and not yet sent to the shell.
     pub fn execute_pending_command(&mut self, _: (), ctx: &mut ViewContext<Self>) {
         let had_pending = self.input.read(ctx, |input, _| input.has_pending_command());
@@ -5729,7 +5557,6 @@ impl TerminalView {
             self.awaiting_pending_command_completion = true;
         }
     }
-
 
     fn hide_slow_bootstrap_banner(&mut self, ctx: &mut ViewContext<Self>) {
         if self.is_slow_bootstrap_banner_open {
@@ -5753,8 +5580,6 @@ impl TerminalView {
             || !self.pending_command_queue.is_empty()
             || self.input.as_ref(ctx).has_pending_command()
     }
-
-
 
     #[cfg(not(target_family = "wasm"))]
     pub(super) fn on_pty_spawn_failed(
@@ -6022,7 +5847,6 @@ impl TerminalView {
         });
     }
 
-
     /// Currently, we show the notification error in the form of a banner,
     /// similar to how we help the user discover notifications via a banner.
     pub fn show_notification_error(
@@ -6183,7 +6007,6 @@ impl TerminalView {
             self.copy_blocks(BlockEntity::FilteredOutput, ctx);
         }
     }
-
 
     fn context_menu_items(
         &self,
@@ -6686,7 +6509,6 @@ impl TerminalView {
         });
     }
 
-
     fn prompt_context_menu_items(&self, ctx: &AppContext) -> Vec<MenuItem<TerminalAction>> {
         let copy_prompt = MenuItemFields::new("Copy prompt")
             .with_on_select_action(TerminalAction::ContextMenu(ContextMenuAction::CopyPrompt {
@@ -6697,9 +6519,7 @@ impl TerminalView {
 
         let edit_menu_item = Some(
             MenuItemFields::new("Edit prompt")
-                .with_on_select_action(TerminalAction::ContextMenu(
-                    ContextMenuAction::EditPrompt,
-                ))
+                .with_on_select_action(TerminalAction::ContextMenu(ContextMenuAction::EditPrompt))
                 .with_disabled(false)
                 .into_item(),
         );
@@ -6866,7 +6686,6 @@ impl TerminalView {
         send_telemetry_from_ctx!(TelemetryEvent::OpenInputContextMenu, ctx);
     }
 
-
     fn open_block_filter_editor(
         &mut self,
         block_index: BlockIndex,
@@ -6907,9 +6726,6 @@ impl TerminalView {
         });
         ctx.notify();
     }
-
-
-
 
     /// Helper method to build alt screen context menu items.
     /// Used both when opening the menu and when rebuilding it (e.g., on pane state changes).
@@ -7013,7 +6829,6 @@ impl TerminalView {
         }
     }
 
-
     fn alt_mouse_action(&mut self, mouse_state: &MouseState, ctx: &mut ViewContext<Self>) {
         let escape_sequences = mouse_state
             .to_escape_sequence(self.model.lock().deref())
@@ -7095,7 +6910,6 @@ impl TerminalView {
                     .filter(|text| !text.is_empty())
             };
 
-
             // A text selection might be a byproduct of a block selection.
             // If there's no renderable text selection, we should clear the text selection.
             if selected_text.is_none() {
@@ -7126,7 +6940,6 @@ impl TerminalView {
         };
         let _ = selected_block_ids;
     }
-
 
     // Additionally handles side effects of changing block selections (i.e. CMD + F results).
     // The field `self.selected_blocks` should only be mutated as part of a
@@ -7643,7 +7456,6 @@ impl TerminalView {
         position: Vector2F,
         ctx: &mut ViewContext<Self>,
     ) {
-
         self.block_text_selection_start_position = Some(position);
 
         self.model
@@ -7719,12 +7531,10 @@ impl TerminalView {
         self.is_selecting
     }
 
-
     #[cfg(test)]
     pub fn clear_buffer_for_testing(&mut self, ctx: &mut ViewContext<Self>) {
         self.clear_buffer(ctx);
     }
-
 
     fn clear_buffer(&mut self, ctx: &mut ViewContext<Self>) {
         self.clear_selected_blocks(ctx);
@@ -7958,7 +7768,6 @@ impl TerminalView {
         ctx.emit(Event::ShowCommandSearch(Default::default()))
     }
 
-
     fn toggle_input_hint_text(&mut self, ctx: &mut ViewContext<Self>) {
         let _new_val = InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
             report_if_error!(input_settings.show_hint_text.toggle_and_save_value(ctx));
@@ -7975,7 +7784,6 @@ impl TerminalView {
             ctx
         );
     }
-
 
     fn copy_prompt(
         &mut self,
@@ -8051,9 +7859,6 @@ impl TerminalView {
     }
 
     fn edit_prompt(&mut self, _ctx: &mut ViewContext<Self>) {}
-
-
-
 
     fn show_find_bar(&mut self, ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
@@ -8442,7 +8247,6 @@ impl TerminalView {
         ctx.notify();
     }
 
-
     fn reset_selection_to_single_block(
         &mut self,
         block_index: BlockIndex,
@@ -8498,7 +8302,6 @@ impl TerminalView {
         if exempt_rich_content_view_id.is_none() {
             self.model.lock().block_list_mut().clear_selection();
         }
-
 
         // Clear all selected text within rich content block view sub-hierarchies,
         // except for the rich content block with a matching view ID.
@@ -8569,28 +8372,15 @@ impl TerminalView {
         ctx.notify();
     }
 
-
-
-
-
-
-
-
-
     /// /init projects were an AI feature and have been removed; none are ever active.
     fn has_active_init_project(&self, _ctx: &AppContext) -> bool {
         false
     }
 
-
     /// Returns whether the last block in the currently visible conversation is an `InitStepBlock`.
     fn is_last_block_init_step(&self, _ctx: &AppContext) -> bool {
         false
     }
-
-
-
-
 
     /// Examines the local state of the [`TerminalView`] and chooses where best to assign focus.
     ///
@@ -8894,7 +8684,6 @@ impl TerminalView {
         active_block.index() == block_index && active_block.is_active_and_long_running()
     }
 
-
     /// If password notification settings enabled, send a notification.
     /// Otherwise, set the banner trigger so that we show the banner the next
     /// time a block completes.
@@ -8943,8 +8732,6 @@ impl TerminalView {
         }
     }
 
-
-
     fn handle_input_event(&mut self, event: &InputEvent, ctx: &mut ViewContext<Self>) {
         match event {
             InputEvent::Enter => {}
@@ -8974,9 +8761,7 @@ impl TerminalView {
                 }
             }
             InputEvent::ClearSelectedBlock => self.clear_selected_blocks(ctx),
-            InputEvent::SelectRecentBlocks { count } => {
-                self.select_most_recent_blocks(*count, ctx)
-            }
+            InputEvent::SelectRecentBlocks { count } => self.select_most_recent_blocks(*count, ctx),
             InputEvent::Copy => self.copy(ctx),
             InputEvent::UnhandledModifierKeyOnEditor(_keystroke) => {
                 send_telemetry_from_ctx!(
@@ -9110,9 +8895,6 @@ impl TerminalView {
             }
         }
     }
-
-
-
 
     fn update_block_filter_for_block_with_active_editor(
         &mut self,
@@ -9536,7 +9318,6 @@ impl TerminalView {
         }
     }
 
-
     fn terminal_down(&mut self, ctx: &mut ViewContext<Self>) {
         if !self.selected_blocks.is_empty() {
             let input_mode = *InputModeSettings::as_ref(ctx).input_mode.value();
@@ -9716,7 +9497,6 @@ impl TerminalView {
         );
     }
 
-
     #[cfg(any(test, feature = "integration_tests"))]
     pub fn selected_blocks_tail_index(&self) -> Option<BlockIndex> {
         self.selected_blocks.tail()
@@ -9736,8 +9516,6 @@ impl TerminalView {
     ) -> Option<Box<dyn Element>> {
         None
     }
-
-
 
     fn handle_theme_change(&mut self, ctx: &mut ViewContext<Self>) {
         let appearance = Appearance::as_ref(ctx);
@@ -10410,7 +10188,6 @@ impl TerminalView {
             );
         }
 
-
         inline_banners
     }
 
@@ -10498,7 +10275,6 @@ impl TerminalView {
         )
         .finish()
     }
-
 
     fn render_block_list_element(
         &self,
@@ -10655,8 +10431,6 @@ impl TerminalView {
         if should_use_ligature_rendering(app) {
             element = element.with_ligature_rendering();
         }
-
-
 
         element = element.with_filtered_blocks(filtered_blocks);
 
@@ -11122,8 +10896,6 @@ impl TerminalView {
         }
     }
 
-
-
     fn handle_input_context_menu_action(
         &mut self,
         action: &InputContextMenuAction,
@@ -11432,10 +11204,6 @@ impl TerminalView {
         });
     }
 
-
-
-
-
     #[allow(unused_variables)]
     fn get_shell_starter_local(&self, ctx: &mut ViewContext<Self>) -> Option<(String, ShellType)> {
         #[cfg(feature = "local_tty")]
@@ -11464,15 +11232,10 @@ impl TerminalView {
         None
     }
 
-
-
-
-
     #[cfg(feature = "integration_tests")]
     pub fn active_filter_editor_block_index(&self) -> Option<BlockIndex> {
         self.active_filter_editor_block_index
     }
-
 
     fn cursor_position_id(&self) -> String {
         self.cursor_position_id.clone()
@@ -11645,10 +11408,6 @@ impl TerminalView {
             .block_list_mut()
             .set_show_bootstrap_block(true);
     }
-
-
-
-
 }
 
 impl Entity for TerminalView {
@@ -12603,7 +12362,6 @@ impl View for TerminalView {
             if !model_lock.is_alt_screen_active() {
                 context.set.insert("LongRunningCommand");
             }
-
         }
 
         // Add keyboard protocol context if enabled.

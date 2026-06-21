@@ -14,9 +14,13 @@ pub enum ProjectEvent {
         path: PathBuf,
     },
     #[expect(unused, reason = "TODO(jparker): #pod-code-mode wip")]
-    Removed { path: PathBuf },
+    Removed {
+        path: PathBuf,
+    },
     #[expect(unused, reason = "TODO(jparker): #pod-code-mode wip")]
-    Updated { path: PathBuf },
+    Updated {
+        path: PathBuf,
+    },
 }
 
 pub struct ProjectManagementModel {

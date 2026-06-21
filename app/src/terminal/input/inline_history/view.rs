@@ -175,9 +175,8 @@ impl InlineHistoryMenuView {
         tab_configs: Vec<InlineMenuTabConfig<HistoryTab>>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-        let data_source = ctx.add_model(|_| {
-            InlineHistoryMenuDataSource::new(terminal_view_id, active_session)
-        });
+        let data_source =
+            ctx.add_model(|_| InlineHistoryMenuDataSource::new(terminal_view_id, active_session));
 
         let initial_filters = tab_configs
             .first()

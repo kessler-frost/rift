@@ -61,8 +61,6 @@ const USER_SECRET_REGEX_DESCRIPTION: &str =
     when the next command runs. You can use the inline (?i) flag as a prefix to your regex \
     to make it case-insensitive.";
 
-
-
 pub struct PrivacyPageView {
     page: PageType<Self>,
     local_only_icon_tooltip_states: RefCell<HashMap<String, MouseStateHandle>>,
@@ -1263,7 +1261,6 @@ impl SettingsWidget for SecretRedactionWidget {
     }
 }
 
-
 pub fn init_actions_from_parent_view<T: Action + Clone>(
     app: &mut AppContext,
     context: &ContextPredicate,
@@ -1277,7 +1274,6 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         context,
         flags::SAFE_MODE_FLAG,
     )];
-
 
     ToggleSettingActionPair::add_toggle_setting_action_pairs_as_bindings(toggle_binding_pairs, app);
 }

@@ -5,8 +5,8 @@ use crate::terminal::block_list_viewport::ScrollPositionUpdate;
 use crate::terminal::model::blocks::{RemovableBlocklistItem, RichContentItem};
 use crate::terminal::model::rich_content::RichContentType;
 use crate::terminal::model::terminal_model::BlockIndex;
-use crate::terminal::ssh::error::SshErrorBlock;
 use crate::terminal::riftify::success_block::RiftifySuccessBlock;
+use crate::terminal::ssh::error::SshErrorBlock;
 use crate::terminal::TerminalView;
 
 /// Specifies where to insert rich content in the blocklist.

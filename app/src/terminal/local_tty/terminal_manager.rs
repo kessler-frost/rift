@@ -35,6 +35,7 @@ use crate::context_chips::prompt_type::PromptType;
 use crate::features::FeatureFlag;
 use crate::pane_group::TerminalViewResources;
 use crate::persistence::ModelEvent;
+use crate::send_telemetry_on_executor;
 use crate::settings::{DebugSettings, PrivacySettings};
 use crate::terminal::available_shells::{AvailableShell, AvailableShells};
 use crate::terminal::event_listener::ChannelEventListener;
@@ -54,7 +55,6 @@ use crate::terminal::{
     terminal_manager, ShellLaunchData, ShellLaunchState, TerminalManager as _, TerminalModel,
     TerminalView, PTY_READS_BROADCAST_CHANNEL_SIZE,
 };
-use crate::send_telemetry_on_executor;
 
 type PtyController = writeable_pty::PtyController<mio_channel::Sender<Message>>;
 
@@ -242,8 +242,6 @@ impl TerminalManager {
             model_event_sender,
             ctx,
         );
-
-
 
         #[cfg(windows)]
         let event_loop_tx_clone = event_loop_tx.clone();
@@ -723,7 +721,6 @@ impl TerminalManager {
             },
         );
     }
-
 
     #[cfg(feature = "integration_tests")]
     pub fn pid(&self) -> Option<u32> {

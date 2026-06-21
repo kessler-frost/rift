@@ -11,7 +11,7 @@ use walkdir::{DirEntry, WalkDir};
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::{ThemeKind, RiftTheme, RiftThemeConfig};
+use crate::themes::theme::{RiftTheme, RiftThemeConfig, ThemeKind};
 
 const CONFIG_FILE_SUFFIXES: &[&str] = &[".yaml", ".yml"];
 const TOML_CONFIG_FILE_SUFFIX: &str = ".toml";

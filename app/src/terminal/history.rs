@@ -228,11 +228,7 @@ impl HistoryEntry {
         entry
     }
 
-    pub fn for_session_command(
-        command: String,
-        active_block: &Block,
-        session: &Session,
-    ) -> Self {
+    pub fn for_session_command(command: String, active_block: &Block, session: &Session) -> Self {
         HistoryEntry {
             session_id: Some(session.id()),
             command,

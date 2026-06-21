@@ -1,8 +1,8 @@
 //! This module contains the implementation of `BackingView` for `TerminalView`, as well as
 //! business logic for integrating the terminal view with the pane infra (`crate::pane_group`).
 use riftui::elements::{
-    ConstrainedBox, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize,
-    ParentElement, Shrinkable,
+    ConstrainedBox, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize, ParentElement,
+    Shrinkable,
 };
 use riftui::prelude::Container;
 use riftui::text_layout::ClipConfig;
@@ -10,6 +10,7 @@ use riftui::{
     AppContext, Element, ModelHandle, SingletonEntity, TypedActionView, ViewContext,
     WeakModelHandle,
 };
+
 use super::{Event, PaneConfiguration, TerminalAction, TerminalViewState};
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
@@ -176,7 +177,10 @@ impl TerminalView {
         (right_row.finish(), min_width)
     }
 
-    fn render_parent_conversation_header_card(&self, _app: &AppContext) -> Option<Box<dyn Element>> {
+    fn render_parent_conversation_header_card(
+        &self,
+        _app: &AppContext,
+    ) -> Option<Box<dyn Element>> {
         None
     }
 
@@ -284,7 +288,11 @@ impl BackingView for TerminalView {
         self.redetermine_global_focus(ctx);
     }
 
-    fn on_pane_header_overflow_menu_toggled(&mut self, _is_open: bool, _ctx: &mut ViewContext<Self>) {
+    fn on_pane_header_overflow_menu_toggled(
+        &mut self,
+        _is_open: bool,
+        _ctx: &mut ViewContext<Self>,
+    ) {
     }
 
     fn pane_header_overflow_menu_items(
@@ -345,8 +353,6 @@ impl BackingView for TerminalView {
 }
 
 impl TerminalView {
-
-
     /// Render the indicator for terminal mode (no conversation selected).
     /// Shows error indicator if terminal is in error state, otherwise shell indicator on Windows.
     fn render_terminal_mode_indicator(&self, app: &AppContext) -> Option<Box<dyn Element>> {
@@ -386,5 +392,4 @@ impl TerminalView {
 
         None
     }
-
 }

@@ -46,7 +46,6 @@ fn open_in_rift_tooltip(
     use settings::Setting as _;
 
     use crate::settings::CodeSettings;
-    
     use crate::util::tooltips::should_show_open_in_rift_link;
 
     if !should_show_open_in_rift_link(&path, app) {

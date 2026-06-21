@@ -44,6 +44,7 @@ use parking_lot::Mutex;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use rift::appearance::Appearance;
+use rift::cmd_or_ctrl_shift;
 use rift::features::FeatureFlag;
 use rift::integration_testing::assertions::assert_binding_display_string;
 use rift::integration_testing::block::{
@@ -63,9 +64,7 @@ use rift::integration_testing::navigation_palette::{
     check_recency, navigate_to_other_session_step, open_navigation_palette_step, RecentSession,
 };
 use rift::integration_testing::pane_group::assert_focused_pane_index;
-use rift::integration_testing::settings::{
-    assert_theme_chooser_contains, toggle_setting,
-};
+use rift::integration_testing::settings::{assert_theme_chooser_contains, toggle_setting};
 use rift::integration_testing::step::{
     assert_no_pending_model_events, new_step_with_default_assertions,
     new_step_with_default_assertions_for_pane,
@@ -126,10 +125,7 @@ use rift::terminal::view::{
 };
 use rift::terminal::{shell, TerminalView};
 use rift::util::bindings::CustomAction;
-use rift::workspace::{
-    Workspace, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID,
-};
-use rift::cmd_or_ctrl_shift;
+use rift::workspace::{Workspace, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID};
 use riftui_core::event::KeyState;
 use riftui_core::integration::{AssertionOutcome, StepData, TestStep};
 use riftui_core::keymap::{Keystroke, PerPlatformKeystroke, Trigger};

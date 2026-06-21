@@ -135,7 +135,6 @@ fn toggle_debug_network_status(_: &(), ctx: &mut AppContext) {
     });
 }
 
-
 /// Reopens the last closed item (window or tab).
 fn undo_close(_: &(), ctx: &mut AppContext) {
     UndoCloseStack::handle(ctx).update(ctx, |stack, ctx| {
@@ -171,4 +170,3 @@ fn open_repository(path: &String, ctx: &mut AppContext) {
         ctx.dispatch_global_action("root_view:open_new_from_path", &OpenPath { path: path_buf });
     }
 }
-

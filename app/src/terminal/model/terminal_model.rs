@@ -22,11 +22,11 @@ use serde::Serialize;
 use super::super::{AltScreen, BlockList};
 use super::ansi::{
     BootstrappedValue, FinishUpdateValue, InputBufferValue, Mode, PendingHook,
-    TmuxInstallFailedInfo, RiftificationUnavailableReason,
+    RiftificationUnavailableReason, TmuxInstallFailedInfo,
 };
 use super::block::{
-    Block, BlockId, BlockMetadata, BlockSize, BlockState,
-    BlocklistEnvVarMetadata, SerializedBlockListItem,
+    Block, BlockId, BlockMetadata, BlockSize, BlockState, BlocklistEnvVarMetadata,
+    SerializedBlockListItem,
 };
 use super::blockgrid::BlockGrid;
 use super::grid::grid_handler::{
@@ -437,7 +437,6 @@ pub struct TerminalModel {
     /// control mode. Whenever we attempt to riftify an ssh session, we track the context of when rift initiated
     /// control mode, indicating that we expect the shell to enter control mode. We reset to None whenever
     /// the active block finishes. If we enter control mode and option is None, then we know it's user-initiated.
-
     tmux_control_mode_context: Option<TmuxControlModeContext>,
 
     /// The path of the shell binary used for the pending shell session, if any. This is
@@ -506,8 +505,6 @@ pub struct TerminalModel {
 
     /// Whether or not to respect secrets that are obfuscated, respecting the Safe Mode/Secret Redaction setting.
     obfuscate_secrets: ObfuscateSecrets,
-
-
 
     /// Whether this terminal model was created as a cloud mode dummy session
     /// (no local shell process).
@@ -1128,24 +1125,8 @@ impl TerminalModel {
         )
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     /// Whether the session sharing server is currently replaying
     /// conversation events (for conversation reconstruction).
-
-
-
 
     pub fn is_dummy_cloud_mode_session(&self) -> bool {
         self.is_dummy_cloud_mode_session
@@ -1155,7 +1136,6 @@ impl TerminalModel {
     pub fn set_is_dummy_cloud_mode_session(&mut self, value: bool) {
         self.is_dummy_cloud_mode_session = value;
     }
-
 
     pub fn obfuscate_secrets(&self) -> ObfuscateSecrets {
         self.obfuscate_secrets
@@ -1349,8 +1329,6 @@ impl TerminalModel {
             .active_block_mut()
             .set_env_var_metadata(env_var_metadata);
     }
-
-
 
     // Starts active block as a background block. Used in Alacritty integration tests to
     // work with the output grid directly.
@@ -1550,9 +1528,6 @@ impl TerminalModel {
             } => available_shell.clone(),
         }
     }
-
-
-
 
     /// Resize terminal to new dimensions.
     /// The block sort direction is needed to update the state of the find dialog.
@@ -1847,7 +1822,6 @@ impl TerminalModel {
     pub fn tmux_control_mode_active(&self) -> bool {
         self.tmux_control_mode_context.is_some()
     }
-
 }
 
 /// Used in the ansi::Handler implementation for TerminalModel below. Performs
@@ -2500,7 +2474,10 @@ impl ansi::Handler for TerminalModel {
                     uname: data.uname,
                 }));
         } else {
-            log::error!("Received invalid shell name in init_subshell: {}", data.shell);
+            log::error!(
+                "Received invalid shell name in init_subshell: {}",
+                data.shell
+            );
         }
     }
 

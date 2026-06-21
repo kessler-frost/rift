@@ -837,7 +837,6 @@ impl<'a> TabComponent<'a> {
         None
     }
 
-
     /// Generate the SavePosition ID for the tab text content
     fn tab_text_position_id(&self) -> String {
         format!("tab_text_{}", self.tab_index)

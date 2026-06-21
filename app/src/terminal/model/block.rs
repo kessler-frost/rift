@@ -127,7 +127,6 @@ pub struct BlocklistEnvVarMetadata {
     pub should_hide_block: bool,
 }
 
-
 pub struct Block {
     id: BlockId,
     size: SizeInfo,
@@ -851,7 +850,6 @@ impl Block {
     pub fn interaction_mode(&self) -> &InteractionMode {
         &self.interaction_mode
     }
-
 
     /// Returns whether NLD was overridden (input type was manually locked) when this block's
     /// command was submitted.

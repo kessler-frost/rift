@@ -810,8 +810,7 @@ impl View for ActionButton {
                 has_preceding_element = true;
             }
 
-            if let Some(callout) = self.maybe_render_callout(has_preceding_element, appearance)
-            {
+            if let Some(callout) = self.maybe_render_callout(has_preceding_element, appearance) {
                 row.add_child(callout);
                 has_preceding_element = true;
             }
@@ -1297,9 +1296,7 @@ impl ButtonSize {
             ButtonSize::InlineActionHeader => 8.,
             ButtonSize::InputPrompt => 4.,
             ButtonSize::UDIButton => 4.,
-            ButtonSize::UDIPromptChip => {
-                crate::context_chips::spacing::UDI_CHIP_HORIZONTAL_PADDING
-            }
+            ButtonSize::UDIPromptChip => crate::context_chips::spacing::UDI_CHIP_HORIZONTAL_PADDING,
         }
     }
 
@@ -1326,9 +1323,7 @@ impl ButtonSize {
             ButtonSize::InlineActionHeader => Padding::uniform(2.),
             ButtonSize::InputPrompt => Padding::default().with_vertical(1.).with_horizontal(2.),
             ButtonSize::UDIButton => Padding::default().with_vertical(1.).with_horizontal(2.),
-            ButtonSize::UDIPromptChip => {
-                Padding::default().with_vertical(1.).with_horizontal(2.)
-            }
+            ButtonSize::UDIPromptChip => Padding::default().with_vertical(1.).with_horizontal(2.),
         }
     }
 }

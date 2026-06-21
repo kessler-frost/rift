@@ -226,7 +226,6 @@ impl AuthStateProvider {
         }
     }
 
-
     pub fn get(&self) -> &Arc<AuthState> {
         &self.auth_state
     }

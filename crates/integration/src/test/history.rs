@@ -1,4 +1,3 @@
-
 use rift::integration_testing::command_search::{
     assert_command_search_has_results, assert_command_search_is_open,
     assert_history_filter_is_active,
@@ -292,4 +291,3 @@ pub fn test_histfile_left_joined_with_persisted_history() -> Builder {
                 ),
         )
 }
-

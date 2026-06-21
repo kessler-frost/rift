@@ -1,4 +1,3 @@
-
 use std::future::Future;
 use std::pin::Pin;
 use std::time::Duration;
@@ -20,7 +19,6 @@ use rift_core::operating_system_info::OperatingSystemInfo;
 use rift_core::{execution_mode, report_error};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
-
 
 pub mod headers {
     /// Custom Rift header indicating the version of the Rift app.
@@ -62,7 +60,6 @@ pub struct Client {
 
     /// A callback that is executed on after each response is received.
     after_response_received: Option<ResponseHookFn>,
-
 }
 
 /// Type for 'hook' functions to be executed prior to sending a request. A reference to the

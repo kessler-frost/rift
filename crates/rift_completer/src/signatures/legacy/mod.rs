@@ -4,9 +4,9 @@ use rift_core::channel::Channel;
 
 pub mod registry;
 
-pub use registry::CommandRegistry;
 #[cfg(feature = "test-util")]
 use command_signatures::Signature;
+pub use registry::CommandRegistry;
 
 static GLOBAL_REGISTRY: OnceLock<Arc<CommandRegistry>> = OnceLock::new();
 
@@ -80,10 +80,7 @@ impl CommandRegistry {
     #[cfg(feature = "test-util")]
     pub fn new_for_test(
         signatures: impl IntoIterator<Item = Signature>,
-        generators: std::collections::HashMap<
-            String,
-            command_signatures::DynamicCompletionData,
-        >,
+        generators: std::collections::HashMap<String, command_signatures::DynamicCompletionData>,
     ) -> Self {
         let registry = CommandRegistry::new(|_| None, generators);
         signatures

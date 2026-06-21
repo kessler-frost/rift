@@ -41,7 +41,8 @@ impl TelemetryCollector {
     }
 
     /// Offline no-op: there is no server to flush events to on shutdown.
-    pub fn flush_telemetry_events_for_shutdown(&self, _ctx: &mut ModelContext<TelemetryCollector>) {}
+    pub fn flush_telemetry_events_for_shutdown(&self, _ctx: &mut ModelContext<TelemetryCollector>) {
+    }
 
     /// Schedules a background task to record an active usage event if telemetry is enabled. The
     /// scheduled task once again schedules itself after `ACTIVE_USAGE_DURATION`.

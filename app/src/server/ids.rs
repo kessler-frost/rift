@@ -202,7 +202,11 @@ impl From<i64> for ServerId {
     fn from(id: i64) -> Self {
         let prefix = "test_uid";
         let id_str = id.abs().to_string();
-        let normalized = format!("{}{}", prefix, Self::normalize_id_str(&id_str, prefix.len()));
+        let normalized = format!(
+            "{}{}",
+            prefix,
+            Self::normalize_id_str(&id_str, prefix.len())
+        );
         Self::try_from(normalized).expect("normalized string should always be valid")
     }
 }

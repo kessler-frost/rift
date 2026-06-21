@@ -7,9 +7,7 @@ use riftui::{Entity, ModelContext, SingletonEntity};
 use crate::auth::auth_state::AuthState;
 use crate::report_if_error;
 use crate::settings::input::InputBoxType;
-use crate::settings::{
-    FontSettings, InputSettings, PrivacySettings, ThemeSettings,
-};
+use crate::settings::{FontSettings, InputSettings, PrivacySettings, ThemeSettings};
 use crate::terminal::session_settings::SessionSettings;
 use crate::themes::theme::ThemeKind;
 
@@ -85,7 +83,6 @@ impl SettingsInitializer {
                 });
             }
         }
-
     }
 }
 

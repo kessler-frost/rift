@@ -1,7 +1,6 @@
 use pathfinder_color::ColorU;
 use riftui::elements::{
-    Align, Container, CrossAxisAlignment, Flex,
-    MouseStateHandle, ParentElement, Shrinkable,
+    Align, Container, CrossAxisAlignment, Flex, MouseStateHandle, ParentElement, Shrinkable,
 };
 use riftui::fonts::Weight;
 use riftui::keymap::Keystroke;
@@ -20,9 +19,7 @@ const STANDARD_PADDING: f32 = 8.0;
 
 #[derive(Clone)]
 pub enum RiftificationMode {
-    Subshell {
-        command: String,
-    },
+    Subshell { command: String },
 }
 
 impl RiftificationMode {

@@ -15,9 +15,8 @@ use riftui::geometry::vector::Vector2F;
 use riftui::text::SelectionType;
 use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
 use riftui::{
-    end_trace, record_trace_event, start_trace, AfterLayoutContext, AppContext,
-    Element, EntityId, Event, EventContext, LayoutContext, ModelHandle, PaintContext,
-    SizeConstraint,
+    end_trace, record_trace_event, start_trace, AfterLayoutContext, AppContext, Element, EntityId,
+    Event, EventContext, LayoutContext, ModelHandle, PaintContext, SizeConstraint,
 };
 use vec1::Vec1;
 
@@ -44,7 +43,6 @@ use crate::terminal::view::{
     ActiveSessionState, TerminalAction, TerminalEditor, TerminalViewRenderContext,
 };
 use crate::terminal::{grid_renderer, heights_approx_eq, SizeInfo, TerminalModel};
-
 
 pub struct AltScreenElement {
     model: Arc<FairMutex<TerminalModel>>,
@@ -74,7 +72,6 @@ pub struct AltScreenElement {
     visible_lines: Option<Lines>,
 
     cursor_hint_text: Option<Box<dyn Element>>,
-
 }
 
 impl AltScreenElement {
@@ -509,7 +506,6 @@ impl AltScreenElement {
     fn line_height(&self) -> Pixels {
         self.grid_render_params.size_info.cell_height_px()
     }
-
 }
 
 impl Element for AltScreenElement {
@@ -524,7 +520,6 @@ impl Element for AltScreenElement {
         if let Some(cursor_hint_text) = &mut self.cursor_hint_text {
             cursor_hint_text.layout(constraint, ctx, app);
         }
-
 
         constraint.max
     }

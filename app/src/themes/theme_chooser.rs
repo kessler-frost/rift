@@ -31,7 +31,7 @@ use crate::resource_center::{
 };
 use crate::settings::{respect_system_theme, ThemeSettings};
 use crate::themes::theme::{
-    RespectSystemTheme, SelectedSystemThemes, ThemeKind, RiftTheme, RiftThemeConfig,
+    RespectSystemTheme, RiftTheme, RiftThemeConfig, SelectedSystemThemes, ThemeKind,
 };
 use crate::ui_components::buttons::{close_button, icon_button};
 use crate::ui_components::icons;
@@ -181,10 +181,7 @@ fn theme_chooser_items(theme_config: &RiftThemeConfig) -> Vec<ThemeChooserItem> 
 }
 
 impl ThemeChooser {
-    pub fn new(
-        ctx: &mut ViewContext<Self>,
-        tips_completed: ModelHandle<TipsCompleted>,
-    ) -> Self {
+    pub fn new(ctx: &mut ViewContext<Self>, tips_completed: ModelHandle<TipsCompleted>) -> Self {
         let search_editor = {
             ctx.add_typed_action_view(|ctx| {
                 let appearance = Appearance::as_ref(ctx);

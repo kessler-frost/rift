@@ -281,7 +281,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
 
     register_test!(test_can_auto_bootstrap);
 
-
     register_test!(test_tab_behavior_setting);
 
     register_test!(test_private_public_settings_routing_with_flag_enabled);
@@ -291,7 +290,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_up_arrow_history);
     register_test!(test_command_search_loads_history_from_nondefault_histfile_path);
     register_test!(test_histfile_left_joined_with_persisted_history);
-
 
     register_test!(test_secret_is_obfuscated_on_copy);
     register_test!(test_secret_tooltip_shows_on_click);
@@ -322,7 +320,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_closed_panes_cleared_on_rearrangement);
     register_test!(test_tab_closes_when_last_visible_pane_closed);
 
-
     // Block filtering tests
 
     register_test!(test_block_filtering_keybinding);
@@ -348,7 +345,6 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_settings_error_banner_on_reload_with_invalid_value);
 
     register_test!(test_middle_click_paste);
-
 
     register_test!(test_git_prompt_chips);
 
