@@ -417,15 +417,8 @@ fn test_reflow_wide_chars_across_widths() {
 
     // Helper: does any cell in the given row carry a leading-wide-char spacer?
     let has_leading_spacer = |storage: &FlatStorage, row_idx: usize| {
-        let row = storage
-            .rows_from(row_idx)
-            .next()
-            .expect("row should exist");
-        (0..row.occ).any(|c| {
-            row[c]
-                .flags()
-                .contains(Flags::LEADING_WIDE_CHAR_SPACER)
-        })
+        let row = storage.rows_from(row_idx).next().expect("row should exist");
+        (0..row.occ).any(|c| row[c].flags().contains(Flags::LEADING_WIDE_CHAR_SPACER))
     };
 
     // Width 6: all three emoji fit on a single row.

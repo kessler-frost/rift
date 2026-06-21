@@ -19,7 +19,13 @@ struct SgrCollector {
 }
 
 impl Perform for SgrCollector {
-    fn csi_dispatch(&mut self, params: &Params, _intermediates: &[u8], _ignore: bool, action: char) {
+    fn csi_dispatch(
+        &mut self,
+        params: &Params,
+        _intermediates: &[u8],
+        _ignore: bool,
+        action: char,
+    ) {
         if action == 'm' {
             self.attrs = attrs_from_sgr_parameters(&mut params.iter());
         }
