@@ -389,3 +389,106 @@ async fn connect_via_proxy_fails_on_407() {
         "Error should mention 407 status: {err_msg}"
     );
 }
+// -- parse_proxy_url robustness on malformed/edge inputs --
+// These exercise the env-var-driven parse surface with inputs a misconfigured
+// shell or hostile environment could supply, and assert we degrade to an error
+// (or a sensible value) rather than panicking.
+
+#[test]
+fn parse_proxy_url_rejects_empty_and_schemeless_garbage() {
+    // Empty string: normalized to "http://" which has no host.
+    assert!(parse_proxy_url("").is_err());
+    // Lone "://" is rejected by the URL parser.
+    assert!(parse_proxy_url("://").is_err());
+    // Scheme with no host.
+    assert!(parse_proxy_url("http://").is_err());
+}
+
+#[test]
+fn parse_proxy_url_rejects_non_http_schemes() {
+    assert!(parse_proxy_url("https://proxy:443").is_err());
+    assert!(parse_proxy_url("socks5://proxy:1080").is_err());
+    assert!(parse_proxy_url("ftp://proxy").is_err());
+}
+
+#[test]
+fn parse_proxy_url_rejects_out_of_range_and_non_numeric_ports() {
+    // 99999 overflows u16; the URL parser rejects it rather than wrapping.
+    assert!(parse_proxy_url("http://host:99999").is_err());
+    // Non-numeric port is rejected.
+    assert!(parse_proxy_url("http://host:abc").is_err());
+}
+
+#[test]
+fn parse_proxy_url_handles_ipv6_host() {
+    let info = parse_proxy_url("http://[::1]:8080").expect("ipv6 proxy host should parse");
+    assert_eq!(info.host, "[::1]");
+    assert_eq!(info.port, 8080);
+}
+
+#[test]
+fn parse_proxy_url_handles_multibyte_host() {
+    // A multibyte (IDNA) host must not cause a non-char-boundary slice panic;
+    // it should either parse (punycode) or error cleanly.
+    let res = parse_proxy_url("http://日本語.example:8080");
+    let info = res.expect("multibyte proxy host should parse via IDNA");
+    assert_eq!(info.port, 8080);
+    assert!(!info.host.is_empty());
+}
+
+#[test]
+fn parse_proxy_url_rejects_invalid_percent_encoded_credentials() {
+    // A lone "%" with no following hex digits is invalid percent-encoding.
+    // url::Url::parse tolerates it in userinfo, but decode_utf8 may still
+    // succeed (treating "%" literally), so just assert no panic and a result.
+    let res = std::panic::catch_unwind(|| parse_proxy_url("http://user%:pass@proxy.corp:3128"));
+    assert!(
+        res.is_ok(),
+        "percent-encoded credential parse must not panic"
+    );
+}
+
+// -- is_no_proxy robustness on edge inputs --
+
+#[test]
+fn no_proxy_handles_empty_and_whitespace_entries() {
+    let _lock = ENV_LOCK.lock();
+    clear_proxy_env();
+    env::set_var("HTTPS_PROXY", "http://proxy:3128");
+    // Empty entries between commas must be skipped, not matched.
+    env::set_var("NO_PROXY", ", ,  , example.com , ");
+
+    assert!(resolved_proxy_tls("example.com").is_none());
+    // An empty entry must not match an arbitrary host.
+    assert!(resolved_proxy_tls("other.com").is_some());
+    clear_proxy_env();
+}
+
+#[test]
+fn no_proxy_handles_multibyte_entries_and_targets() {
+    let _lock = ENV_LOCK.lock();
+    clear_proxy_env();
+    // Multibyte content must not panic the case-insensitive lowercasing or the
+    // suffix-match `format!`/`ends_with` paths.
+    assert!(!is_no_proxy("日本語.example.com"));
+
+    env::set_var("NO_PROXY", "日本語.example");
+    assert!(is_no_proxy("日本語.example"));
+    assert!(is_no_proxy("foo.日本語.example"));
+    assert!(!is_no_proxy("example.com"));
+    clear_proxy_env();
+}
+
+#[test]
+fn no_proxy_handles_bare_dot_and_double_dot_entries() {
+    let _lock = ENV_LOCK.lock();
+    clear_proxy_env();
+    // A bare "." or ".." entry must not panic the suffix-match logic.
+    env::set_var("NO_PROXY", "., ..");
+    assert!(!is_no_proxy(""));
+    assert!(!is_no_proxy("host"));
+    // "host." ends with "." so the leading-dot suffix rule applies; just assert
+    // it returns a bool without panicking.
+    let _ = is_no_proxy("host.");
+    clear_proxy_env();
+}
