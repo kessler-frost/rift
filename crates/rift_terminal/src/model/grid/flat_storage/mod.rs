@@ -77,6 +77,13 @@ impl FlatStorage {
     /// `initial_capacity` can be provided to minimize heap allocations
     /// performed while building backing data structures.
     pub fn new(columns: usize, max_rows: Option<usize>, initial_capacity: Option<usize>) -> Self {
+        // A grid with zero columns is degenerate: rows are built via
+        // `Row::new(self.columns)`, which is invalid for a width of 0 (it
+        // panics in debug and writes past a zero-capacity Vec in release).
+        // The app layer clamps live grids to MIN_COLUMNS, but that invariant is
+        // not enforced here, so clamp to a minimum of one column to keep the
+        // storage internally consistent for any caller.
+        let columns = columns.max(1);
         let index = Index::new(columns, initial_capacity);
         Self {
             content: Content::new(),
@@ -276,6 +283,9 @@ impl FlatStorage {
 
     /// Updates the width of the grid.
     pub fn set_columns(&mut self, new_columns: usize) {
+        // Clamp to a minimum of one column for the same reason as [`Self::new`]:
+        // a zero-width grid makes `Row::new(self.columns)` invalid.
+        let new_columns = new_columns.max(1);
         if self.columns == new_columns {
             return;
         }

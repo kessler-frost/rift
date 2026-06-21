@@ -253,6 +253,41 @@ fn test_clear_after_truncate_front() {
 }
 
 #[test]
+fn test_new_with_zero_columns_does_not_panic() {
+    // A grid can never legitimately have zero columns (the app layer clamps to
+    // MIN_COLUMNS), but FlatStorage is a public library type that previously
+    // panicked ("assertion failed: usizes >= 1" in Row::new, which in release
+    // builds would instead write past a zero-capacity Vec) when constructed
+    // with zero columns and then pushed into.  It must degrade gracefully.
+    let mut storage = FlatStorage::new(0, None, None);
+    storage.push_rows_from_string("hi\n");
+
+    // We should still be able to materialize the row back out without panicking.
+    let row = storage
+        .rows_from(0)
+        .next()
+        .expect("should materialize a row from zero-column storage");
+    assert_eq!(row[0].c, 'h');
+}
+
+#[test]
+fn test_set_columns_to_zero_does_not_panic() {
+    // Resizing storage down to zero columns must not panic when rows are later
+    // materialized (RowIterator::new builds a Row of `columns` width, and
+    // Row::new(0) is invalid).
+    let mut storage = FlatStorage::new(5, None, None);
+    storage.push_rows_from_string("hello\n");
+
+    storage.set_columns(0);
+
+    let row = storage
+        .rows_from(0)
+        .next()
+        .expect("should materialize a row after resizing to zero columns");
+    assert_eq!(row[0].c, 'h');
+}
+
+#[test]
 fn test_clear_after_truncate_front_then_resize_and_push_does_not_panic() {
     let old_cols = 20;
     let new_cols = 21;
