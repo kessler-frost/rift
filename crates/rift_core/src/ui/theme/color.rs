@@ -11,7 +11,7 @@ use self::internal_colors::{
     accent_overlay_2, fg_overlay_1, fg_overlay_2, fg_overlay_3, neutral_1, neutral_2, neutral_3,
     neutral_4,
 };
-use super::{AnsiColor, AnsiColorIdentifier, Fill, TerminalColors, RiftTheme};
+use super::{AnsiColor, AnsiColorIdentifier, Fill, RiftTheme, TerminalColors};
 use crate::ui::color::blend::Blend;
 use crate::ui::color::contrast::{pick_best_foreground_color, MinimumAllowedContrast};
 use crate::ui::color::Opacity;

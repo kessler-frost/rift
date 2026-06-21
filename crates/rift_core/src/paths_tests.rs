@@ -129,5 +129,3 @@ fn test_project_path_for_rift_dev_app_id() {
         }
     }
 }
-
-

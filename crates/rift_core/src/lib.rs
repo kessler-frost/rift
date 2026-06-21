@@ -28,7 +28,7 @@ pub mod user_preferences;
 
 pub use app_id::AppId;
 pub use rift_util::host_id::HostId;
-pub use session_id::SessionId;
 // Re-export riftui_core so that it can be referenced safely from the
 // telemetry macros.
 pub use riftui_core;
+pub use session_id::SessionId;

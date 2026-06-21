@@ -7,11 +7,8 @@ pub use overrides::{get_overrides, set_overrides};
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug, Sequence)]
 pub enum FeatureFlag {
     Changelog,
-    CocoaSentry,
-    CrashReporting,
     DebugMode,
     Autoupdate,
-    LogExpensiveFramesInSentry,
     WithSandboxTelemetry,
     RecordAppActiveEvents,
 
@@ -32,7 +29,6 @@ pub enum FeatureFlag {
     /// Does grid storage go forwards or backwards
     SequentialStorage,
 
-
     /// If set, generators are executed using cmd.exe on Windows.
     RunGeneratorsWithCmdExe,
 
@@ -42,7 +38,6 @@ pub enum FeatureFlag {
     /// If `true`, the "Show Initialization Block" menu item is added to the Blocks menu in the Mac
     /// menu bar.
     ToggleBootstrapBlock,
-
 
     /// Enabling context chips functionality for prompt
     ContextChips,
@@ -99,7 +94,6 @@ pub enum FeatureFlag {
 
     /// Enables AI rules for use with Agent Mode.
     AIRules,
-
 
     /// Enables the shell selector, allowing us to open a new tab in
     /// a shell other than the default shell.
@@ -652,7 +646,6 @@ pub enum FeatureFlag {
     /// space is not rendered while the agent is running.
     TrimTrailingBlankLines,
 
-
     /// Redux of the setup/initial user query UI for cloud mode.
     CloudModeSetupV2,
 
@@ -711,7 +704,6 @@ pub const DEBUG_FLAGS: &[FeatureFlag] = &[FeatureFlag::DebugMode, FeatureFlag::R
 /// Features enabled for the development team.  The expectation is that, over
 /// time, these will move on to PREVIEW_FLAGS before being launched.
 pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
-    FeatureFlag::LogExpensiveFramesInSentry,
     FeatureFlag::ToggleBootstrapBlock,
     FeatureFlag::RemoveAutosuggestionDuringTabCompletions,
     FeatureFlag::ResizeFix,
@@ -765,7 +757,6 @@ pub const PREVIEW_FLAGS: &[FeatureFlag] = &[
 pub const RELEASE_FLAGS: &[FeatureFlag] = &[
     FeatureFlag::Autoupdate,
     FeatureFlag::Changelog,
-    FeatureFlag::CrashReporting,
     // Marked text is currently only supported on MacOS.
     #[cfg(target_os = "macos")]
     FeatureFlag::ImeMarkedText,
