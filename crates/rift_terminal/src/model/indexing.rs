@@ -80,7 +80,14 @@ impl Point {
     #[must_use = "this returns the result of the operation, without modifying the original"]
     /// Increments the `Point` by `distance` cells, wrapping around if the column value exceeds
     /// `num_cols`.
+    ///
+    /// A `num_cols` of `0` describes a degenerate (zero-width) grid in which
+    /// there are no columns to advance through, so the `Point` is returned
+    /// unchanged rather than dividing by zero.
     pub fn wrapping_add(mut self, num_cols: usize, distance: usize) -> Point {
+        if num_cols == 0 {
+            return self;
+        }
         self.row += (distance + self.col) / num_cols;
         self.col = (self.col + distance) % num_cols;
         self
@@ -92,7 +99,14 @@ impl Point {
     /// below zero.
     ///
     /// Note: This will also saturate at (0, 0) as a minimum value.
+    ///
+    /// A `num_cols` of `0` describes a degenerate (zero-width) grid in which
+    /// there are no columns to step back through, so the `Point` is returned
+    /// unchanged rather than dividing by zero.
     pub fn wrapping_sub(mut self, num_cols: usize, distance: usize) -> Point {
+        if num_cols == 0 {
+            return self;
+        }
         let line_changes = (distance + num_cols - 1).saturating_sub(self.col) / num_cols;
         if self.row >= line_changes {
             self.row -= line_changes;
@@ -144,6 +158,13 @@ impl Point {
         let total_lines = dimensions.total_rows();
         let num_cols = dimensions.columns();
 
+        // A zero-width grid has no columns to step through, so there is nothing
+        // to subtract; return the `Point` unchanged rather than dividing by
+        // zero.
+        if num_cols == 0 {
+            return self;
+        }
+
         self.row += (rhs + num_cols - 1).saturating_sub(self.col) / num_cols;
         self.col = (num_cols + self.col - rhs % num_cols) % num_cols;
 
@@ -164,6 +185,12 @@ impl Point {
         D: Dimensions,
     {
         let num_cols = dimensions.columns();
+
+        // A zero-width grid has no columns to step through, so there is nothing
+        // to add; return the `Point` unchanged rather than dividing by zero.
+        if num_cols == 0 {
+            return self;
+        }
 
         let line_delta = (rhs + self.col) / num_cols;
 
