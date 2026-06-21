@@ -23,3 +23,9 @@ serde.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+# Migration tests run the embedded migrations against an in-memory SQLite database. The
+# `sqlite` backend and bundled `libsqlite3-sys` are dev-only so the production dependency
+# set (which gets its SQLite backend from the `app` crate) is unchanged.
+diesel = { workspace = true, features = ["chrono", "32-column-tables", "sqlite"] }
+diesel_migrations = { version = "2.2.0", features = ["sqlite"] }
+libsqlite3-sys = { version = "0.33.0", features = ["bundled"] }
