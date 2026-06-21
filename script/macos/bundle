@@ -367,7 +367,7 @@ if [[ "$ARTIFACT" == "app" ]]; then
   cargo bundle --profile "$CARGO_PROFILE" --bin "$RIFT_BIN" --target "$DEFAULT_TARGET" --features "$FEATURES"
   popd > /dev/null
 
-  echo "Adding rpath to support mac frameworks (e.g. Sentry)"
+  echo "Adding rpath to support bundled mac frameworks"
   install_name_tool -add_rpath "@executable_path/../Frameworks" "$BUNDLE_DIR/$RIFT_APP_NAME.app/Contents/MacOS/$RIFT_BIN"
 
   export RIFT_SCHEME_NAME
