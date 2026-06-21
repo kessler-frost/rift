@@ -19,13 +19,23 @@ where
     let offset = offset.into();
     let mut chars = buffer.chars_at(offset).ok()?.peekable();
     if chars.peek().is_some_and(|c| *c == '\n') {
-        let paragraph_end = offset - 1 + chars.take_while(|c| *c == '\n').count();
-        let paragraph_start = offset + 1
-            - buffer
-                .chars_rev_at(offset)
-                .ok()?
-                .take_while(|c| *c == '\n')
-                .count();
+        // The cursor sits on a contiguous run of newlines. `take_while` counts at least one
+        // (the newline under the cursor), so `offset + count - 1` is always >= offset and never
+        // underflows. (The original `offset - 1 + count` evaluated the subtraction first, which
+        // underflowed `CharOffset` when the run begins at offset 0.)
+        let trailing_newlines = chars.take_while(|c| *c == '\n').count();
+        let paragraph_end = offset + trailing_newlines - 1;
+        // `leading_newlines` only counts newlines strictly before `offset`, so it is always
+        // <= offset and `offset + 1 - leading_newlines` cannot underflow.
+        let leading_newlines = buffer
+            .chars_rev_at(offset)
+            .ok()?
+            .take_while(|c| *c == '\n')
+            .count();
+        let paragraph_start = offset + 1 - leading_newlines;
+        // A single-newline run (e.g. a lone blank line at the start of the buffer) trims to an
+        // empty range; clamp so the range is never inverted.
+        let paragraph_start = paragraph_start.min(paragraph_end);
         return Some(paragraph_start..paragraph_end);
     }
     let paragraph_start = find_previous_paragraph_start(buffer, offset)
