@@ -8,7 +8,6 @@ mod wsl_command_executor;
 use std::collections::HashMap;
 mod noop_command_executor;
 #[cfg(feature = "local_tty")]
-#[cfg(feature = "local_tty")]
 mod shared;
 
 use std::any::Any;

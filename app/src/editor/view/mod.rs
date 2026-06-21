@@ -7960,11 +7960,9 @@ impl View for EditorView {
             ctx,
         );
 
-        let hoverable = Hoverable::new(self.hover_handle.clone(), |_state| editor_element.finish())
+        (Hoverable::new(self.hover_handle.clone(), |_state| editor_element.finish())
             .with_cursor(Cursor::IBeam)
-            .finish();
-
-        hoverable
+            .finish()) as _
     }
 
     fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {

@@ -750,8 +750,6 @@ pub fn init(app: &mut AppContext) {
         .with_custom_action(CustomAction::ToggleResourceCenter)]);
     }
 
-    if cfg!(not(target_family = "wasm")) {}
-
     // CLI install/uninstall actions (macOS only)
     #[cfg(target_os = "macos")]
     {

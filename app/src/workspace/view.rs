@@ -433,9 +433,6 @@ impl ShowTabBar {
     }
 }
 
-/// The type of content being displayed when the simplified WASM tab bar is shown.
-/// Used to determine which elements to render (e.g., icon, info button).
-
 type WorkspaceMenuHandles = (
     ViewHandle<Menu<WorkspaceAction>>,
     ViewHandle<Menu<WorkspaceAction>>,
@@ -4592,7 +4589,6 @@ impl Workspace {
     }
 
     #[cfg(feature = "local_fs")]
-
     pub(super) fn active_session_view(
         &self,
         ctx: &mut ViewContext<Self>,
@@ -7115,16 +7111,7 @@ impl Workspace {
             TabMovement::Left | TabMovement::Right => return,
         };
 
-        // `hop_tab_to_index` keeps the same tab active across the move, so we
-        // only capture whether the moved tab was the active one for telemetry.
-        let moving_active_tab = index == self.active_tab_index;
         self.hop_tab_to_index(index, target, ctx);
-
-        if moving_active_tab {
-            send_telemetry_from_ctx!(TelemetryEvent::MoveActiveTab { direction }, ctx);
-        } else {
-            send_telemetry_from_ctx!(TelemetryEvent::MoveTab { direction }, ctx);
-        }
     }
 
     /// How to render the tab bar.

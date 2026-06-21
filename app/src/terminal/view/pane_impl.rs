@@ -245,13 +245,12 @@ impl TerminalView {
             header_ctx.draggable_state.clone(),
             app,
         );
-        let header = self.maybe_add_parent_navigation_card(
+
+        (self.maybe_add_parent_navigation_card(
             draggable_header,
             parent_conversation_header_card,
             app,
-        );
-
-        header
+        )) as _
     }
 }
 

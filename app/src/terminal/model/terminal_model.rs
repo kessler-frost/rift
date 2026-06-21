@@ -1127,7 +1127,6 @@ impl TerminalModel {
 
     /// Whether the session sharing server is currently replaying
     /// conversation events (for conversation reconstruction).
-
     pub fn is_dummy_cloud_mode_session(&self) -> bool {
         self.is_dummy_cloud_mode_session
     }

@@ -819,7 +819,7 @@ impl Block {
             shell_host: None,
             is_for_in_band_command: false,
             env_var_metadata: None,
-            interaction_mode: InteractionMode::default(),
+            interaction_mode: InteractionMode,
             block_banner: None,
             ignore_next_rprompt: false,
             prompt_snapshot: None,

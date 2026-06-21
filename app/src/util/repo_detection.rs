@@ -19,7 +19,6 @@ use riftui::SingletonEntity;
 use riftui::{View, ViewContext};
 
 #[cfg(not(target_family = "wasm"))]
-
 /// Describes whether the active session is local or remote.
 pub enum RepoDetectionSessionType {
     /// A local terminal session — repo detection runs on the local filesystem.

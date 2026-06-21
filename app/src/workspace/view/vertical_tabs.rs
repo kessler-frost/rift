@@ -2889,30 +2889,14 @@ fn pane_display_title_and_subtitle(
     title: &str,
     secondary_title: &str,
 ) -> (String, String) {
-    if false && !title.is_empty() {
-        let path = Path::new(title);
-        let filename = path
-            .file_name()
-            .map(|file_name| file_name.to_string_lossy().to_string())
-            .unwrap_or_else(|| title.to_string());
-        let parent_raw = path
-            .parent()
-            .map(|parent| parent.to_string_lossy().to_string())
-            .unwrap_or_default();
-        let home_dir = dirs::home_dir();
-        let home_str = home_dir.as_ref().and_then(|path| path.to_str());
-        let parent = rift_util::path::user_friendly_path(&parent_raw, home_str).to_string();
-        (filename, parent)
-    } else {
-        (
-            if title.is_empty() {
-                typed.kind_label().to_string()
-            } else {
-                title.to_string()
-            },
-            secondary_title.to_string(),
-        )
-    }
+    (
+        if title.is_empty() {
+            typed.kind_label().to_string()
+        } else {
+            title.to_string()
+        },
+        secondary_title.to_string(),
+    )
 }
 
 fn build_vertical_tabs_summary_data(

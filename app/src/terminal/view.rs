@@ -4295,13 +4295,8 @@ impl TerminalView {
                 block_id: _,
                 ..
             } => {
-                let did_any_session_contains_remote_blocks =
-                    self.any_session_contains_remote_blocks;
                 self.any_session_contains_remote_blocks |=
                     self.active_block_is_considered_remote(ctx);
-                if self.any_session_contains_remote_blocks != did_any_session_contains_remote_blocks
-                {
-                }
 
                 if *is_for_in_band_command {
                     return;
@@ -6296,9 +6291,8 @@ impl TerminalView {
                 true,
             ) => {
                 // If selection is empty, only show non-block related options
-                let items = Vec::new();
 
-                items
+                Vec::new()
             }
             _ => vec![],
         };
@@ -7863,15 +7857,6 @@ impl TerminalView {
     fn show_find_bar(&mut self, ctx: &mut ViewContext<Self>) {
         let model = self.model.lock();
         let inverted_blocklist = self.is_inverted_blocklist(ctx);
-        // Emit a telemetry event depending on whether the find bar is opened in blocklist or alt screen.
-        if model.is_alt_screen_active() {
-            send_telemetry_from_ctx!(TelemetryEvent::OpenedAltScreenFind, ctx);
-        } else {
-            send_telemetry_from_ctx!(
-                TelemetryEvent::ContextMenuFindWithinBlocks(self.selected_blocks.cardinality()),
-                ctx
-            );
-        }
         self.find_bar.update(ctx, |view, ctx| {
             let semantic_selection = SemanticSelection::as_ref(ctx);
             if let Some(selected) =
@@ -8306,12 +8291,9 @@ impl TerminalView {
         // Clear all selected text within rich content block view sub-hierarchies,
         // except for the rich content block with a matching view ID.
         for rich_content in self.rich_content_views.iter() {
-            match rich_content.metadata() {
-                Some(RichContentMetadata::RiftifySuccessBlock { .. }) => {
-                    // TODO(Simon): We should be checking for RiftifySuccessBlocks here as well.
-                    // The `RiftifySuccessBlock` implements a `SelectableArea`.
-                }
-                _ => {}
+            if let Some(RichContentMetadata::RiftifySuccessBlock { .. }) = rich_content.metadata() {
+                // TODO(Simon): We should be checking for RiftifySuccessBlocks here as well.
+                // The `RiftifySuccessBlock` implements a `SelectableArea`.
             }
         }
 
@@ -12358,10 +12340,8 @@ impl View for TerminalView {
         }
 
         let active_block = model_lock.block_list().active_block();
-        if active_block.is_active_and_long_running() {
-            if !model_lock.is_alt_screen_active() {
-                context.set.insert("LongRunningCommand");
-            }
+        if active_block.is_active_and_long_running() && !model_lock.is_alt_screen_active() {
+            context.set.insert("LongRunningCommand");
         }
 
         // Add keyboard protocol context if enabled.

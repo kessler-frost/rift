@@ -1036,11 +1036,7 @@ pub(crate) fn initialize_app(
             });
         }
 
-        ctx.add_singleton_model(|ctx| {
-            let model = RepoMetadataModel::new(ctx);
-
-            model
-        });
+        ctx.add_singleton_model(RepoMetadataModel::new);
     }
 
     ctx.add_singleton_model(|ctx| {

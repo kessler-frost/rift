@@ -1004,7 +1004,7 @@ impl Input {
                             editor_decorator_elements
                         },
                     )),
-                    cursor_colors_fn: Box::new(move |app| default_cursor_colors(app)),
+                    cursor_colors_fn: Box::new(default_cursor_colors),
                     baseline_position_computation_method: BaselinePositionComputationMethod::Grid,
                     // We implement middle-click paste at the [`TerminalView`] level,
                     // and we don't want to double-paste.
@@ -1658,8 +1658,7 @@ impl Input {
             .active_block_mut()
             .set_home_dir(home_dir);
 
-        let did_execute: bool;
-        if self
+        let did_execute = if self
             .model
             .lock()
             .block_list()
@@ -1686,14 +1685,14 @@ impl Input {
             }
 
             self.start_block_and_write_command_to_pty(command, source, ctx);
-            did_execute = true;
+            true
         } else {
             // We don't want to submit the command if precmd has not
             // been received. Instead, we want the user to be aware
             // that the prompt might not be up to date.
             send_telemetry_from_ctx!(TelemetryEvent::TriedToExecuteBeforePrecmd, ctx);
-            did_execute = false;
-        }
+            false
+        };
 
         // Close the input suggestions menu if it was open.
         self.close_input_suggestions(/*should_focus_input=*/ false, ctx);
@@ -2020,13 +2019,11 @@ impl Input {
 
     /// Asks the currently active inline menu whether the buffer should be restored on dismiss
     /// (defaulting to true for any inline menus that don't have specific behavior requirements for this decision).
-    fn should_restore_buffer_on_inline_menu_dismiss(&self, ctx: &ViewContext<Self>) -> bool {
-        match self.suggestions_mode_model.as_ref(ctx).mode() {
-            // If the input is not being used as a search on the model menu
-            // we should not restore/revert the changes to the input on-dismiss,
-            // unless we parked a prompt to search (then we restore that prompt).
-            _ => true,
-        }
+    fn should_restore_buffer_on_inline_menu_dismiss(&self) -> bool {
+        // If the input is not being used as a search on the model menu
+        // we should not restore/revert the changes to the input on-dismiss,
+        // unless we parked a prompt to search (then we restore that prompt).
+        true
     }
 
     fn editor_escape(&mut self, ctx: &mut ViewContext<Self>) {
@@ -2047,7 +2044,7 @@ impl Input {
             .as_ref(ctx)
             .is_inline_menu_open()
         {
-            if self.should_restore_buffer_on_inline_menu_dismiss(ctx) {
+            if self.should_restore_buffer_on_inline_menu_dismiss() {
                 self.suggestions_mode_model.update(ctx, |model, ctx| {
                     model.close_and_restore_buffer(ctx);
                 });
@@ -3631,21 +3628,20 @@ impl Input {
     }
 
     fn input_shift_tab(&mut self, ctx: &mut ViewContext<Self>) {
-        match self.suggestions_mode_model.as_ref(ctx).mode() {
-            // If the model selector is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If the inline history menu is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If the conversation menu is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If we're in CompletionSuggestions mode, shift tab moves to the previous selection.
-            InputSuggestionsMode::CompletionSuggestions { .. } => {
-                self.input_suggestions.update(ctx, |suggestions, ctx| {
-                    suggestions.select_prev(ctx);
-                });
-                return;
-            }
-            _ => {}
+        // If the model selector is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If the inline history menu is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If the conversation menu is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If we're in CompletionSuggestions mode, shift tab moves to the previous selection.
+        if let InputSuggestionsMode::CompletionSuggestions { .. } =
+            self.suggestions_mode_model.as_ref(ctx).mode()
+        {
+            self.input_suggestions.update(ctx, |suggestions, ctx| {
+                suggestions.select_prev(ctx);
+            });
+            return;
         }
 
         self.editor.update(ctx, |input, ctx| input.unindent(ctx));

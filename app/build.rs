@@ -3,7 +3,7 @@
 // Windows).
 #![allow(clippy::disallowed_types)]
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 use std::{env, fs};
 

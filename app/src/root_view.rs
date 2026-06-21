@@ -1207,14 +1207,12 @@ impl RootView {
         let auth_onboarding_state =
             AuthOnboardingState::Terminal(workspace_args.create_workspace(ctx));
 
-        let root_view = Self {
+        Self {
             auth_onboarding_state,
             model_event_sender,
             mouse_states: Default::default(),
             window_id: ctx.window_id(),
-        };
-
-        root_view
+        }
     }
 
     /// Used for integration tests.

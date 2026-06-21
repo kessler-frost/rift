@@ -509,7 +509,7 @@ impl KeybindingsView {
 
         let search_bar = ctx.add_typed_action_view(|_| SearchBar::new(search_editor.clone()));
 
-        let page = PageType::new_monolith(KeybindingsWidget::default(), None, false);
+        let page = PageType::new_monolith(KeybindingsWidget, None, false);
         Self {
             page,
             clipped_scroll_state: Default::default(),
