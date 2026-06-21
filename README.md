@@ -10,15 +10,26 @@
   <img src="branding/rift-demo.gif" alt="Rift demo: commands, history menu, command search, tabs" width="820">
 </p>
 
-**Rift** is my personal fork of [Warp](https://www.warp.dev) with all the cloud and AI taken out. It's fully offline, and you compile it yourself.
+**Rift** is a fork of [Warp](https://www.warp.dev) that keeps the good terminal and leaves the rest behind, small enough that I can read and change it myself.
 
-What's left is the part of Warp I actually wanted: the blocks UI, GPU rendering, and the editor-style command input. No account, no network calls, no agent. It isn't a product, it's a terminal I can read and change.
+## Why?
 
-## Why I forked it
+Even though I use Claude Code as my daily driver, I don't want my terminal to be "AI native", or have any telemetry, autoupdates, or cloud features at all. I just want a nice looking terminal that lets me pin the prompt at the bottom, and no other terminal gave me that cleanly.
 
-Warp won me over with the **blocks UI**. Treating each command and its output as one thing you can scroll, select, and rerun made every other terminal feel like a wall of text. The editor-style input and GPU-smooth rendering sealed it. What I didn't want was everything bolted around it: the account wall, the telemetry, and the AI agent steadily taking over the core.
+Warp did, but it came wrapped in all the stuff I didn't want. So when it open-sourced, I forked it, kept the parts I liked, and cut the rest.
 
-So when Warp **open-sourced its code**, I was genuinely excited. It finally meant I could keep the parts I loved and cut the rest. Rift is that: the Warp I wanted, owned outright.
+## What you get
+
+- **Command blocks** you can scroll, select, copy, and rerun, instead of one endless wall of text
+- **A prompt you can pin to the bottom**, so your input stays put no matter how much scrolls by
+- **GPU rendering** (wgpu/Metal) that stays smooth with huge scrollback
+- **Editor-style input** with multiline editing, syntax awareness, and a vim mode
+- **Command search and a history menu** for fast recall
+- **Vertical tabs** down the side
+- **Themes**, including a built-in dark theme
+- **SSH integration** that carries blocks and input modes to remote sessions
+- **Fish-style autosuggestion** from your history plus rule-based fixes, with no AI or network
+- **Inline images** via the iTerm and Kitty graphics protocols
 
 ## Download
 
@@ -45,8 +56,6 @@ You can also right-click the app and choose Open, or [build it yourself](#buildi
 | Billing / credits | Compiled in, "buy credits" banner | Gone. |
 | Auto-update | On | Removed. You stay on the version you build. |
 
-What stays: the blocks UI, wgpu GPU rendering, the editor-style command prompt, themes, vertical tabs, and the non-AI autosuggestion (fish-style history plus rule-based corrections).
-
 ## What got stripped
 
 Compared against `warpdotdev/warp` (the `upstream` remote):
@@ -55,7 +64,7 @@ Compared against `warpdotdev/warp` (the `upstream` remote):
 - About 1,500 source files deleted.
 - 20 crates removed (71 to 51): the whole `ai`, cloud-object, server, auth, GraphQL, and firebase layers.
 
-This was never about shipping a smaller binary. The point is that the telemetry, cloud, and billing code isn't in the tree anymore, so there's nothing to switch back on.
+This was never about shipping a smaller binary. It's that the code is actually gone, not flagged off, so there's nothing left to quietly switch back on.
 
 ## Building
 
@@ -74,6 +83,12 @@ The default binary is `rift-oss`. The toolchain is pinned in `rust-toolchain.tom
 Rift tracks `warpdotdev/warp` as the `upstream` remote, and I pull changes by hand with cherry-picks, so nothing depends on someone else porting them first. The whole codebase is renamed from `warp` to `rift`, so it drifts from upstream on purpose. That's the trade for owning the fork outright.
 
 Last synced with upstream: **2026-06-14**.
+
+## A personal fork
+
+I built this for myself, and I'm sharing it in case others wanted it too. It's shaped for how I work, not really meant to be a product, so I'll keep it pointed at my own use. Issues and PRs are welcome.
+
+Not affiliated with or endorsed by Warp.
 
 ## Licensing
 
