@@ -37,6 +37,14 @@ pub fn coloru_from_hex_string(s: &str) -> Result<ColorU, HexColorError> {
     }
     let mut s: Cow<str> = s[1..].into();
 
+    // Valid hex colors are ASCII-only. Rejecting non-ASCII up front keeps the byte-indexed
+    // slicing below sound: a multibyte body can have a byte length of 3 or 6 (passing the gate)
+    // while its char boundaries don't align with the 2-byte windows, which previously panicked
+    // with "byte index N is not a char boundary".
+    if !s.is_ascii() {
+        return Err(HexColorError::InvalidValue);
+    }
+
     if s.len() != SHORT_COLOR_LEN && s.len() != FULL_COLOR_LEN {
         return Err(HexColorError::InvalidLength);
     }
