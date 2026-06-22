@@ -72,13 +72,17 @@ jobs:
 
       - name: Nextest
         # `--profile ci` enables retries for the flaky `integration` package
-        # (see .config/nextest.toml). The filter skips the SSH integration tests:
-        # they tunnel through Google Cloud IAP to reach real remote hosts, so they
-        # can't run in hermetic CI (no GCP auth) — and Rift is local-only anyway.
-        # They still run locally for anyone with gcloud configured.
+        # (see .config/nextest.toml). The filter skips integration tests that
+        # can't run in this hermetic, headless runner:
+        #   * `*ssh*` — tunnel through Google Cloud IAP to reach real remote hosts
+        #     (no GCP auth in CI; Rift is local-only anyway).
+        #   * `ui_tests::*` and `test_up_arrow_history` — drive the rendered UI
+        #     (windows, menus, snapshots), which needs a real display the hosted
+        #     runner lacks. These MUST be run locally before work is "done" — see
+        #     "Definition of done" in CLAUDE.md. They still run fine locally.
         run: |
           cargo nextest run --profile ci --workspace --exclude command-signatures-v2 \
-            -E 'not (package(integration) and test(~ssh))'
+            -E 'not (package(integration) and (test(~ssh) or test(/ui_tests::/) or test(test_up_arrow_history)))'
           # Exercise the v2 (completions-on-js) path so it doesn't rot while paused.
           cargo nextest run --profile ci -p rift_completer --features v2
 

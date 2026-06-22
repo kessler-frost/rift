@@ -81,6 +81,19 @@ warning-emitting build.
   mod tests;
   ```
 
+### UI integration tests are NOT in CI — run them before calling work "done"
+The `integration` crate's `ui_tests::*` (plus `test_up_arrow_history`, and the
+cloud `*ssh*` tests) drive the **rendered UI** — windows, menus, snapshots — which
+needs a real display the hosted CI runner lacks, so CI skips them (they fail there
+for environmental, not code, reasons). They run fine locally. **Definition of
+done:** before considering any UI / terminal / blocks / input / menu work
+complete, run the relevant UI integration tests locally and confirm they pass:
+```bash
+cargo nextest run -p integration -E 'test(/ui_tests::/)'   # whole module, or a specific test(name)
+```
+CI covers fmt + clippy + all unit/doc tests + the non-UI integration tests; the
+rendered-UI tests are on you to run locally.
+
 ### Linting / formatting (the "done" bar = 0 errors AND 0 warnings)
 - `./script/format` — format the code.
 - `cargo clippy --workspace --all-targets --tests -- -D warnings` — `-D warnings` is exactly the "no warnings" gate.
