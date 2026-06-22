@@ -71,10 +71,16 @@ jobs:
           cargo clippy -p rift_completer --all-targets --tests -- -D warnings
 
       - name: Nextest
+        # `--profile ci` enables retries for the flaky `integration` package
+        # (see .config/nextest.toml). The filter skips the SSH integration tests:
+        # they tunnel through Google Cloud IAP to reach real remote hosts, so they
+        # can't run in hermetic CI (no GCP auth) — and Rift is local-only anyway.
+        # They still run locally for anyone with gcloud configured.
         run: |
-          cargo nextest run --no-fail-fast --workspace --exclude command-signatures-v2
+          cargo nextest run --profile ci --workspace --exclude command-signatures-v2 \
+            -E 'not (package(integration) and test(~ssh))'
           # Exercise the v2 (completions-on-js) path so it doesn't rot while paused.
-          cargo nextest run -p rift_completer --features v2
+          cargo nextest run --profile ci -p rift_completer --features v2
 
       - name: Doc tests
         run: cargo test --doc --workspace --exclude command-signatures-v2
