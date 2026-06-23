@@ -116,4 +116,3 @@ pub(super) fn delete_blocks(conn: &mut SqliteConnection, pane_id: Vec<u8>) -> Re
         Ok(())
     })
 }
-

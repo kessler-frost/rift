@@ -6,7 +6,7 @@ use async_recursion::async_recursion;
 use async_trait::async_trait;
 use pathfinder_color::ColorU;
 use rift_core::ui::color::hex_color::coloru_from_hex_string;
-use rift_core::ui::theme::{AnsiColor, AnsiColors, TerminalColors, RiftTheme};
+use rift_core::ui::theme::{AnsiColor, AnsiColors, RiftTheme, TerminalColors};
 use riftui::fonts::FontInfo;
 use serde::Deserialize;
 

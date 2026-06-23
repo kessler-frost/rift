@@ -34,8 +34,8 @@ pub fn redact_secrets(input: &mut String) {
         .collect();
     ranges.sort_by_key(|r| r.start);
     for range in ranges.into_iter().rev() {
-        let replacement = SECRET_REDACTION_REPLACEMENT_CHARACTER
-            .repeat(range.end.saturating_sub(range.start));
+        let replacement =
+            SECRET_REDACTION_REPLACEMENT_CHARACTER.repeat(range.end.saturating_sub(range.start));
         input.replace_range(range, &replacement);
     }
 }

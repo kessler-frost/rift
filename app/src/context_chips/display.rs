@@ -6,15 +6,15 @@ use riftui::elements::{
     MainAxisSize, ParentElement, Wrap,
 };
 use riftui::{
-    AppContext, Entity, EntityId, FocusContext, ModelHandle, TypedActionView,
-    View, ViewContext, ViewHandle,
+    AppContext, Entity, EntityId, FocusContext, ModelHandle, TypedActionView, View, ViewContext,
+    ViewHandle,
 };
 
 use super::display_chip::{DisplayChip, DisplayChipConfig, PromptDisplayChipEvent};
 use super::prompt_type::PromptType;
-use super::{git_line_changes_from_chips, ChipResult};
 #[cfg(feature = "integration_tests")]
 use super::ContextChipKind;
+use super::{git_line_changes_from_chips, ChipResult};
 use crate::completer::SessionContext;
 use crate::context_chips::display_chip::{format_git_branch_command, DisplayChipAction};
 use crate::terminal::input::MenuPositioningProvider;
@@ -67,9 +67,7 @@ pub enum PromptDisplayAction {
 pub enum PromptDisplayEvent {
     OpenFile(String),
     OpenTextFileInCodeEditor(String),
-    ToggleMenu {
-        open: bool,
-    },
+    ToggleMenu { open: bool },
     OpenCommandPaletteFiles,
     TryExecuteCommand(String),
 }

@@ -60,7 +60,10 @@ impl CreateProjectView {
             },
         ];
 
-        Self { editor, suggestions }
+        Self {
+            editor,
+            suggestions,
+        }
     }
 
     fn handle_editor_event(&mut self, event: &GlowingEditorEvent, ctx: &mut ViewContext<Self>) {

@@ -14,13 +14,12 @@ use crate::terminal::block_list_settings::BlockListSettings;
 use crate::terminal::block_list_viewport::InputMode;
 use crate::terminal::input::common::{
     add_command_xray_overlay, add_input_suggestions_overlays,
-    should_show_terminal_input_message_bar,
-    wrap_input_with_terminal_padding_and_focus_handler,
+    should_show_terminal_input_message_bar, wrap_input_with_terminal_padding_and_focus_handler,
 };
 use crate::terminal::input::{get_input_box_top_border_width, InputDropTargetData};
+use crate::terminal::riftify::render::{render_subshell_flag, render_subshell_flag_pole};
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
 use crate::terminal::view::TerminalAction;
-use crate::terminal::riftify::render::{render_subshell_flag, render_subshell_flag_pole};
 
 impl Input {
     /// Renders the classic input. This is used when the user has 'Honor PS1' enabled in settings.
@@ -153,8 +152,6 @@ impl Input {
             column.finish(),
             false, // legacy uses full padding
         ));
-
-
 
         if self.is_pane_focused(app) {
             add_input_suggestions_overlays(self, &mut stack, appearance, menu_positioning, app);

@@ -19,8 +19,8 @@ use rift_util::path::convert_wsl_to_windows_host_path;
 use rift_util::path::LineAndColumnArg;
 use rift_util::remote_path::RemotePath;
 use riftui::elements::{
-    ChildView, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex,
-    MainAxisSize, ParentElement, Shrinkable, Stack,
+    ChildView, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex, MainAxisSize,
+    ParentElement, Shrinkable, Stack,
 };
 use riftui::keymap::{Context, EditableBinding, FixedBinding};
 use riftui::notification::NotificationSendError;
@@ -53,9 +53,7 @@ use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
 };
-use crate::server::telemetry::{
-    AnonymousUserSignupEntrypoint, PaletteSource,
-};
+use crate::server::telemetry::{AnonymousUserSignupEntrypoint, PaletteSource};
 use crate::session_management::SessionNavigationData;
 use crate::settings::PaneSettings;
 use crate::settings_view::SettingsSection;
@@ -70,17 +68,13 @@ use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{
     BlockNotification, ExecuteCommandEvent, LeftPanelTargetView, SyncEvent, TerminalViewState,
 };
-use crate::terminal::{
-    ShellLaunchData, TerminalManager, TerminalModel, TerminalView,
-};
+use crate::terminal::{ShellLaunchData, TerminalManager, TerminalModel, TerminalView};
 use crate::undo_close::{UndoCloseStack, UndoCloseStackEvent};
 use crate::util::bindings::{is_binding_pty_compliant, CustomAction};
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
 use crate::view_components::ToastFlavor;
-use crate::workspace::{
-    self, CommandSearchOptions, PaneViewLocator, TabBarLocation,
-};
+use crate::workspace::{self, CommandSearchOptions, PaneViewLocator, TabBarLocation};
 use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
 pub mod focus_state;
@@ -746,7 +740,6 @@ impl PaneGroup {
         }
     }
 
-
     pub fn terminal_pane_ids(&self) -> impl Iterator<Item = PaneId> + '_ {
         self.pane_contents.keys().filter_map(|pane_id| {
             if pane_id.is_terminal_pane() {
@@ -756,9 +749,6 @@ impl PaneGroup {
             }
         })
     }
-
-
-
 
     /// Total size of the pane group.
     pub fn size(&self, ctx: &mut ViewContext<Self>) -> Vector2F {
@@ -1242,7 +1232,6 @@ impl PaneGroup {
         result
     }
 
-
     pub fn snapshot_for_node(&self, app: &AppContext, node: &PaneNode) -> PaneNodeSnapshot {
         match node {
             PaneNode::Branch(branch) => {
@@ -1379,33 +1368,22 @@ impl PaneGroup {
             .map(|pane| pane.id())
     }
 
-
-
-
-
-
-
-
-
-
-
     /// Returns the selected text from the focused pane, or `None` if there is no selection or the selection is empty.
     pub fn selected_text_from_focused_pane(&self, ctx: &AppContext) -> Option<String> {
         let focused_pane_id = self.focused_pane_id(ctx);
 
-        let text = if let Some(terminal_view) =
-            self.terminal_view_from_pane_id(focused_pane_id, ctx)
-        {
-            // NOTE: We currently don't have a way to track recency of selection events.
-            // In lieu of this, we prefer selections to the input editor over the terminal view.
-            // TODO(vkodithala): Once we have a way to track recency of selection events, we should use that instead.
-            terminal_view
-                .as_ref(ctx)
-                .selected_text_from_input(ctx)
-                .or_else(|| terminal_view.as_ref(ctx).selected_text(ctx))
-        } else {
-            None
-        };
+        let text =
+            if let Some(terminal_view) = self.terminal_view_from_pane_id(focused_pane_id, ctx) {
+                // NOTE: We currently don't have a way to track recency of selection events.
+                // In lieu of this, we prefer selections to the input editor over the terminal view.
+                // TODO(vkodithala): Once we have a way to track recency of selection events, we should use that instead.
+                terminal_view
+                    .as_ref(ctx)
+                    .selected_text_from_input(ctx)
+                    .or_else(|| terminal_view.as_ref(ctx).selected_text(ctx))
+            } else {
+                None
+            };
 
         text.filter(|text: &String| !text.is_empty())
     }
@@ -1483,17 +1461,6 @@ impl PaneGroup {
 
         most_recent_state
     }
-
-
-
-
-
-
-
-
-
-
-
 
     fn new_internal(
         tips_completed: ModelHandle<TipsCompleted>,
@@ -1616,12 +1583,8 @@ impl PaneGroup {
         pane_group
     }
 
-
-
     /// Helper that creates the initial [`PaneData`] and [`InitialFocus`] given a terminal view.
     /// This is a common case in creating a new pane group with a single terminal session.
-
-
     /// Initial layout for a [`PaneGroup`] with a single terminal pane.
     #[allow(clippy::too_many_arguments)]
     fn initial_single_terminal_pane(
@@ -1770,11 +1733,6 @@ impl PaneGroup {
         )
     }
 
-
-
-
-
-
     fn handle_windowing_state_update(
         &mut self,
         _handle: ModelHandle<WindowManager>,
@@ -1817,7 +1775,6 @@ impl PaneGroup {
         new_pane_id
     }
 
-
     /// Used when splitting panes.
     fn insert_terminal_pane(
         &mut self,
@@ -1840,13 +1797,8 @@ impl PaneGroup {
         new_pane_id
     }
 
-
-
-
     /// Transitive share tracking was a cloud feature and has been removed.
     fn forget_transitively_shared_pane(&mut self, _pane_id: PaneId) {}
-
-
 
     /// Get the [`PaneView<TerminalView>`] for the pane at `pane_index`, if that pane is:
     /// 1. In bounds
@@ -1895,8 +1847,6 @@ impl PaneGroup {
     pub fn has_pane_id(&self, pane_id: PaneId) -> bool {
         self.pane_contents.contains_key(&pane_id)
     }
-
-
 
     /// Find the ID of the pane at an index (going left to right, top to bottom).
     /// Only considers visible panes (excludes panes hidden for close, move, job, etc.).
@@ -1970,13 +1920,6 @@ impl PaneGroup {
             .any(|(_, pane_content)| pane_content.as_pane().is_pane_being_dragged(app))
     }
 
-
-
-
-
-
-
-
     /// The generic pane at `index`, if it exists.
     pub fn pane_by_index(&self, index: usize) -> Option<&dyn PaneContent> {
         self.content_by_pane_index(index).map(|pane| pane.as_pane())
@@ -2042,7 +1985,6 @@ impl PaneGroup {
         self.cleanup_closed_pane(pane_id, ctx);
     }
 
-
     /// If this pane was the active session and or focused pane, focuses the previous session and pane.
     ///
     /// Called before removing a pane from a pane group (either because the pane is being closed or because it is being moved
@@ -2079,10 +2021,6 @@ impl PaneGroup {
 
         self.remove_from_pane_history(pane_id_to_remove);
     }
-
-
-
-
 
     pub fn close_pane(&mut self, pane_id: PaneId, ctx: &mut ViewContext<Self>) {
         // Don't close a pane that doesn't exist
@@ -2296,8 +2234,6 @@ impl PaneGroup {
         original_pane_id
     }
 
-
-
     /// Handle a common pane event, such as splitting off another pane.
     fn handle_pane_event(
         &mut self,
@@ -2400,7 +2336,6 @@ impl PaneGroup {
         self.close_pane_with_confirmation(self.focused_pane_id(ctx), ctx);
     }
 
-
     /// We return a pane_id if the pane successfully attached
     /// Otherwise, we return None
     pub fn add_pane_for_replacement<C: PaneContent>(
@@ -2478,9 +2413,6 @@ impl PaneGroup {
         success
     }
 
-
-
-
     /// Clear all panes that were hidden due to being closed (for undo functionality)
     /// This is typically called when starting pane rearrangement operations
     fn clear_hidden_closed_panes(&mut self, ctx: &mut ViewContext<Self>) {
@@ -2540,7 +2472,6 @@ impl PaneGroup {
         }
         false
     }
-
 
     pub fn move_pane(
         &mut self,
@@ -3031,9 +2962,6 @@ impl PaneGroup {
         (terminal_view, terminal_manager)
     }
 
-
-
-
     /// Whether to use the user-specified startup directory when starting
     /// a new session. On Windows, we ignore this custom directory setting in
     /// WSL sessions. On all other systems, we honor the custom directory.
@@ -3061,8 +2989,6 @@ impl PaneGroup {
     ) -> bool {
         false
     }
-
-
 
     #[allow(clippy::too_many_arguments)]
     pub fn add_session(
@@ -3169,12 +3095,8 @@ impl PaneGroup {
         startup_directory: Option<PathBuf>,
         ctx: &mut ViewContext<Self>,
     ) -> TerminalPaneId {
-        let (pane_data, _view) = self.create_terminal_pane_data(
-            startup_directory,
-            HashMap::new(),
-            chosen_shell,
-            ctx,
-        );
+        let (pane_data, _view) =
+            self.create_terminal_pane_data(startup_directory, HashMap::new(), chosen_shell, ctx);
         let new_pane_id = pane_data.terminal_pane_id();
 
         let _ = self.add_pane(direction, base_pane_id, Box::new(pane_data), true, ctx);
@@ -3192,7 +3114,6 @@ impl PaneGroup {
     ) {
         let _ = self.add_pane(direction, None, Box::new(pane), focus_new_pane, ctx);
     }
-
 
     fn init_pane(
         &mut self,
@@ -3472,7 +3393,6 @@ impl PaneGroup {
         self.terminal_view_from_pane_id(self.focused_pane_id(ctx), ctx)
     }
 
-
     /// Given a pane ID, retrieve its backing terminal pane contents, if the pane is a terminal pane.
     fn terminal_session_by_id(&self, pane_id: impl Into<PaneId>) -> Option<&TerminalPane> {
         self.pane_contents
@@ -3489,17 +3409,6 @@ impl PaneGroup {
         self.terminal_session_by_id(pane_id)
             .map(|session| session.terminal_view(ctx))
     }
-
-
-
-
-
-
-
-
-
-
-
 
     fn update_pane_history(&mut self, new_pane: PaneId) {
         self.pane_history.retain(|&x| x != new_pane);
@@ -3700,8 +3609,6 @@ impl PaneGroup {
         )
     }
 
-
-
     /// Filters out any hidden panes that aren't yet deleted (due to undo functionality).
     pub fn terminal_views(&self, ctx: &AppContext) -> Vec<ViewHandle<TerminalView>> {
         self.panes_of::<TerminalPane>()
@@ -3709,10 +3616,6 @@ impl PaneGroup {
             .map(|p| p.terminal_view(ctx))
             .collect()
     }
-
-
-
-
 
     /// Get all terminal CWDs for this pane group.
     /// This is used by the Workspace to refresh the active directories model.
@@ -3726,11 +3629,6 @@ impl PaneGroup {
             (terminal_id, cwd)
         })
     }
-
-
-
-
-
 
     /// Close overlays whose state is managed by this pane group or its terminal panes. Does not
     /// change what element is focused.

@@ -59,8 +59,7 @@ fn test_format_log_entry_preserves_stdout_and_stderr_sections() {
     assert!(entry.contains("status: success"));
     assert!(entry.contains("working_directory: /tmp/project"));
     assert!(entry.contains("command:\n<<<COMMAND\ngh pr view --json url --jq .url\n>>>COMMAND"));
-    assert!(entry.contains(
-        "stdout:\n<<<STDOUT\nhttps://github.com/kessler-frost/rift/pull/123\n>>>STDOUT"
-    ));
+    assert!(entry
+        .contains("stdout:\n<<<STDOUT\nhttps://github.com/kessler-frost/rift/pull/123\n>>>STDOUT"));
     assert!(entry.contains("stderr:\n<<<STDERR\nwarning output\n>>>STDERR"));
 }

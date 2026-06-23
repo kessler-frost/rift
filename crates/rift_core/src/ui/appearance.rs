@@ -192,7 +192,6 @@ impl Appearance {
         });
     }
 
-
     pub fn set_monospace_font_size(&mut self, new_font_size: f32, ctx: &mut ModelContext<Self>) {
         let previous_font_size = self.monospace_font_size;
         self.monospace_font_size = new_font_size;

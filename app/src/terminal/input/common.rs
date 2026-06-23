@@ -3,9 +3,9 @@ use std::sync::Arc;
 use rift_completer::completer::Description;
 use riftui::elements::{
     AnchorPair, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    DispatchEventResult, Element, EventHandler, Flex, OffsetPositioning, OffsetType,
-    ParentElement, ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius,
-    Shrinkable, Stack, XAxisAnchor,
+    DispatchEventResult, Element, EventHandler, Flex, OffsetPositioning, OffsetType, ParentElement,
+    ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius, Shrinkable, Stack,
+    XAxisAnchor,
 };
 use riftui::fonts::Weight;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
@@ -68,7 +68,6 @@ pub(super) fn wrap_input_with_terminal_padding_and_focus_handler(
             .finish()
     }
 }
-
 
 /// Renders the appropriate input suggestions overlay over the input, based on the current input
 /// suggestions mode (if any).

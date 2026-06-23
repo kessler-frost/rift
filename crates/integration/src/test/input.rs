@@ -3,8 +3,8 @@ use std::time::Duration;
 use rift::features::FeatureFlag;
 use rift::integration_testing::clipboard::write_to_clipboard;
 use rift::integration_testing::input::{
-    assert_autosuggestion_state, input_contains_string,
-    tab_completions_menu_is_open, AutosuggestionState,
+    assert_autosuggestion_state, input_contains_string, tab_completions_menu_is_open,
+    AutosuggestionState,
 };
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::terminal::util::{

@@ -1,9 +1,7 @@
 use riftui::{AppContext, ModelHandle, SingletonEntity, View, ViewContext, ViewHandle, WindowId};
 
 use super::view::PaneView;
-use super::{
-    DetachType, PaneConfiguration, PaneContent, PaneGroup, PaneId,
-};
+use super::{DetachType, PaneConfiguration, PaneContent, PaneGroup, PaneId};
 use crate::app_state::{LeafContents, SettingsPaneSnapshot};
 use crate::settings_view::pane_manager::SettingsPaneManager;
 use crate::settings_view::{SettingsSection, SettingsView, SettingsViewEvent};

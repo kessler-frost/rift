@@ -16,8 +16,8 @@ use riftui::keymap::Keystroke;
 use riftui::platform::Cursor;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
-    AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView,
-    View, ViewContext, ViewHandle,
+    AppContext, Element, Entity, EntityId, ModelHandle, SingletonEntity, TypedActionView, View,
+    ViewContext, ViewHandle,
 };
 
 use super::directory_fetcher::{
@@ -26,10 +26,7 @@ use super::directory_fetcher::{
 use super::display_menu::{
     ChipMenuType, DisplayChipMenu, FixedFooter, GenericMenuItem, PromptDisplayMenuEvent,
 };
-use super::{
-    github_pr_display_text_from_url, render_text_from_kind, ChipResult,
-    ContextChipKind,
-};
+use super::{github_pr_display_text_from_url, render_text_from_kind, ChipResult, ContextChipKind};
 use crate::appearance::Appearance;
 use crate::completer::SessionContext;
 use crate::context_chips::git_branch_on_click::{
@@ -37,6 +34,7 @@ use crate::context_chips::git_branch_on_click::{
 };
 use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersionPopupView};
 use crate::context_chips::spacing;
+use crate::send_telemetry_from_ctx;
 use crate::settings::InputSettings;
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
@@ -47,7 +45,6 @@ use crate::util::bindings::keybinding_name_to_display_string;
 use crate::util::truncation::truncate_from_beginning;
 use crate::view_components::action_button::{ActionButtonTheme, NakedTheme};
 use crate::workspace::view::TOGGLE_RIGHT_PANEL_BINDING_NAME;
-use crate::send_telemetry_from_ctx;
 
 /// Get the theme-appropriate add (green) color for git diff stats.
 fn add_color(appearance: &Appearance) -> ColorU {
@@ -264,7 +261,6 @@ impl UdiChipConfig {
         self.hovered = hovered;
         self
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -508,7 +504,6 @@ impl DisplayChip {
         config: DisplayChipConfig,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
-
         let display_chip_kind = match chip_result.kind {
             ContextChipKind::ShellGitBranch => {
                 // Convert git branch strings to GitBranch items
@@ -996,9 +991,8 @@ impl DisplayChip {
         let url = self.text.clone();
 
         let hover = Hoverable::new(self.mouse_state.clone(), move |state| {
-            let config =
-                UdiChipConfig::new_with_icon(Icon::Github, font_color, chip_text.clone())
-                    .with_hovered(state.is_hovered());
+            let config = UdiChipConfig::new_with_icon(Icon::Github, font_color, chip_text.clone())
+                .with_hovered(state.is_hovered());
             let chip_element = render_udi_chip(config, appearance);
 
             let mut stack = Stack::new().with_child(chip_element);
@@ -1086,7 +1080,7 @@ impl DisplayChip {
             let chip_text = self.text.clone();
             let font_color = theme.ansi_fg_cyan();
 
-                Hoverable::new(self.mouse_state.clone(), move |state| {
+            Hoverable::new(self.mouse_state.clone(), move |state| {
                 let hovered = !menu_open && state.is_hovered();
                 let config =
                     UdiChipConfig::new_with_icon(Icon::Folder, font_color, chip_text.clone())
@@ -1117,7 +1111,7 @@ impl DisplayChip {
             let font_color = theme.ansi_fg_cyan();
 
             let chip_text = self.text.clone();
-    
+
             Hoverable::new(self.mouse_state.clone(), move |state| {
                 let config =
                     UdiChipConfig::new_with_icon(Icon::Folder, font_color, chip_text.clone());
@@ -1308,9 +1302,7 @@ impl View for DisplayChip {
 pub enum PromptDisplayChipEvent {
     OpenFile(String),
     OpenTextFileInCodeEditor(String),
-    ToggleMenu {
-        open: bool,
-    },
+    ToggleMenu { open: bool },
     OpenCommandPaletteFiles,
     TryExecuteCommand(String),
 }

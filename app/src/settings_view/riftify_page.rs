@@ -14,17 +14,15 @@ use riftui::{
 };
 
 use super::settings_page::{
-    render_alternating_color_list,
-    render_page_title, Category, MatchData, PageType,
-    SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle, SettingsWidget,
-    HEADER_FONT_SIZE,
+    render_alternating_color_list, render_page_title, Category, MatchData, PageType,
+    SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, HEADER_FONT_SIZE,
 };
 use super::{SettingsAction, SettingsSection, ToggleSettingActionPair};
 use crate::appearance::Appearance;
+use crate::send_telemetry_from_ctx;
 use crate::terminal::riftify::settings::RiftifySettings;
 use crate::ui_components::blended_colors;
 use crate::view_components::{SubmittableTextInput, SubmittableTextInputEvent};
-use crate::send_telemetry_from_ctx;
 
 pub fn init_actions_from_parent_view<T: Action + Clone>(
     app: &mut AppContext,
@@ -55,7 +53,6 @@ pub struct RiftifyPageView {
     /// This needs to mirror the length of SubshellSettings::denylisted_remove_button_states.
     remove_denylisted_command_button_states: Vec<MouseStateHandle>,
     add_denylisted_commands_editor: ViewHandle<SubmittableTextInput>,
-
 }
 
 impl RiftifyPageView {
@@ -185,7 +182,6 @@ impl RiftifyPageView {
             riftify.remove_added_subshell_command(index, ctx)
         });
     }
-
 }
 
 impl Entity for RiftifyPageView {
@@ -421,4 +417,3 @@ impl SettingsWidget for SubshellsWidget {
             .finish()
     }
 }
-

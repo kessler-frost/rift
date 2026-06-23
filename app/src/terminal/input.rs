@@ -44,8 +44,9 @@ use rift_util::path::ShellFamily;
 use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType,
-    ResizableStateHandle, SavePosition, SelectionHandle, YAxisAnchor,
+    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult,
+    DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType, ResizableStateHandle,
+    SavePosition, SelectionHandle, YAxisAnchor,
 };
 pub use riftui::elements::{ParentElement as _, Stack};
 pub use riftui::geometry::vector::{vec2f, Vector2F};
@@ -73,6 +74,7 @@ use super::prompt_render_helper::{
     should_render_prompt_on_same_line, should_render_prompt_using_editor_decorator_elements,
     PromptRenderHelper, SameLinePromptElements,
 };
+use super::riftify::SubshellSource;
 use super::safe_mode_settings::{
     get_secret_obfuscation_mode, SafeModeSettings, SafeModeSettingsChangedEvent,
 };
@@ -81,7 +83,6 @@ use super::settings::{TerminalSettings, TerminalSettingsChangedEvent};
 use super::view::{
     ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
 };
-use super::riftify::SubshellSource;
 use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::completer::SessionContext;
@@ -89,11 +90,12 @@ use crate::context_chips::display::PromptDisplay;
 use crate::context_chips::prompt_type::PromptType;
 use crate::editor::{
     default_cursor_colors, position_id_for_cached_point, position_id_for_cursor,
-    position_id_for_first_cursor, AutosuggestionLocation,
-    AutosuggestionType, BaselinePositionComputationMethod, CommandXRayAnchor, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements, EditorOptions,
-    EditorSnapshot, EditorView, Event as EditorEvent, InteractionState,
-    PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint, PropagateAndNoOpEscapeKey,
-    PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextColors,
+    position_id_for_first_cursor, AutosuggestionLocation, AutosuggestionType,
+    BaselinePositionComputationMethod, CommandXRayAnchor, DisplayPoint, EditOrigin, EditorAction,
+    EditorDecoratorElements, EditorOptions, EditorSnapshot, EditorView, Event as EditorEvent,
+    InteractionState, PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint,
+    PropagateAndNoOpEscapeKey, PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys,
+    TextColors,
 };
 use crate::features::FeatureFlag;
 use crate::input_suggestions::{
@@ -109,14 +111,11 @@ use crate::resource_center::{
     mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
 };
 use crate::search::QueryFilter;
-use crate::server::telemetry::{
-    CommandXRayTrigger,
-    TelemetryEvent, 
-};
+use crate::server::telemetry::{CommandXRayTrigger, TelemetryEvent};
 use crate::session_management::SessionNavigationPromptElements;
 use crate::settings::{
-    AliasExpansionSettings, AppEditorSettings,
-    AppEditorSettingsChangedEvent, InputModeSettings, InputSettings, InputSettingsChangedEvent, MAX_TIMES_TO_SHOW_AUTOSUGGESTION_HINT,
+    AliasExpansionSettings, AppEditorSettings, AppEditorSettingsChangedEvent, InputModeSettings,
+    InputSettings, InputSettingsChangedEvent, MAX_TIMES_TO_SHOW_AUTOSUGGESTION_HINT,
 };
 use crate::settings_view::{flags, SettingsSection};
 use crate::suggestions::ignored_suggestions_model::{
@@ -133,16 +132,11 @@ use crate::util::bindings::{self, CustomAction};
 use crate::util::truncation::truncate_from_end;
 use crate::view_components::{DismissibleToast, ToastFlavor};
 use crate::workspace::sync_inputs::SyncedInputState;
-use crate::workspace::{
-    CommandSearchOptions, InitContent,
-    ToastStack, WorkspaceAction,
-};
+use crate::workspace::{CommandSearchOptions, InitContent, ToastStack, WorkspaceAction};
 #[allow(unused_imports)]
 use crate::ASSETS;
 #[allow(unused_imports)]
-use crate::{
-    cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx,
-};
+use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
 /// Drop target data for dropping content on the [`Input`].
 #[derive(Debug, Clone)]
@@ -324,12 +318,10 @@ impl InputSuggestionsMode {
         self.is_inline_menu()
     }
 
-
     /// Returns the placeholder text for this mode, if it has a custom one.
     pub fn placeholder_text(&self) -> Option<&'static str> {
         None
     }
-
 }
 
 /// Where a command execution request originates from.
@@ -441,10 +433,8 @@ pub enum InputAction {
     /// Persist the completions menu height when the user resizes it.
     UpdateCompletionsMenuHeight(f32),
 
-
     /// Opens the inline history menu for cycling through past commands and conversations.
     OpenInlineHistoryMenu,
-
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -478,7 +468,6 @@ impl MenuPositioning {
     fn command_xray_y_anchor(&self) -> AnchorPair<YAxisAnchor> {
         self.y_anchor()
     }
-
 
     fn y_anchor(&self) -> AnchorPair<YAxisAnchor> {
         match *self {
@@ -726,7 +715,6 @@ pub struct Input {
     #[cfg(feature = "local_fs")]
     conn: Option<Arc<Mutex<SqliteConnection>>>,
 
-
     is_processing_attached_images: bool,
 
     terminal_input_message_bar: ViewHandle<TerminalInputMessageBar>,
@@ -808,7 +796,6 @@ pub fn init(app: &mut AppContext) {
         .with_key_binding("pagedown"),
     ]);
 
-
     if FeatureFlag::ClassicCompletions.is_enabled()
         && !FeatureFlag::ForceClassicCompletions.is_enabled()
     {
@@ -855,10 +842,6 @@ pub fn init(app: &mut AppContext) {
         .with_context_predicate(id!("Input"))
         .with_key_binding("tab"),
     ]);
-
-
-
-
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -1021,7 +1004,7 @@ impl Input {
                             editor_decorator_elements
                         },
                     )),
-                    cursor_colors_fn: Box::new(move |app| default_cursor_colors(app)),
+                    cursor_colors_fn: Box::new(default_cursor_colors),
                     baseline_position_computation_method: BaselinePositionComputationMethod::Grid,
                     // We implement middle-click paste at the [`TerminalView`] level,
                     // and we don't want to double-paste.
@@ -1145,8 +1128,7 @@ impl Input {
 
         ctx.subscribe_to_model(&suggestions_mode_model, |me, _, event, ctx| {
             let InputSuggestionsModeEvent::ModeChanged {
-                buffer_to_restore,
-                ..
+                buffer_to_restore, ..
             } = event;
             if let Some(buffer_state) = buffer_to_restore {
                 me.restore_buffer_state(buffer_state, ctx);
@@ -1217,58 +1199,6 @@ impl Input {
         input
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     fn restore_buffer_state(&mut self, buffer_state: &BufferState, ctx: &mut ViewContext<Self>) {
         self.editor.update(ctx, |editor, ctx| {
             editor.set_buffer_text_ignoring_undo(&buffer_state.buffer, ctx);
@@ -1279,23 +1209,7 @@ impl Input {
         ctx.notify();
     }
 
-
-
-
-
-
-
-
-
-
-
     // Auto-attach the last block for this query.
-
-
-
-
-
-
 
     fn handle_theme_change(&mut self, ctx: &mut ViewContext<Self>) {
         if self.should_apply_decorations(ctx) {
@@ -1358,7 +1272,6 @@ impl Input {
         &self.editor
     }
 
-
     pub fn buffer_text(&self, ctx: &AppContext) -> String {
         self.editor.as_ref(ctx).buffer_text(ctx)
     }
@@ -1393,7 +1306,6 @@ impl Input {
             .as_ref(ctx)
             .start_byte_index_of_first_selection(ctx)
     }
-
 
     fn handle_input_settings_event(
         &mut self,
@@ -1449,18 +1361,6 @@ impl Input {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
     /// Finds the start byte of the token under the given hovered point
     fn start_byte_index_at_point(
         &self,
@@ -1487,7 +1387,6 @@ impl Input {
             }
         }
     }
-
 
     fn handle_suggestions_event(
         &mut self,
@@ -1759,8 +1658,7 @@ impl Input {
             .active_block_mut()
             .set_home_dir(home_dir);
 
-        let did_execute: bool;
-        if self
+        let did_execute = if self
             .model
             .lock()
             .block_list()
@@ -1787,22 +1685,19 @@ impl Input {
             }
 
             self.start_block_and_write_command_to_pty(command, source, ctx);
-            did_execute = true;
+            true
         } else {
             // We don't want to submit the command if precmd has not
             // been received. Instead, we want the user to be aware
             // that the prompt might not be up to date.
             send_telemetry_from_ctx!(TelemetryEvent::TriedToExecuteBeforePrecmd, ctx);
-            did_execute = false;
-        }
-
+            false
+        };
 
         // Close the input suggestions menu if it was open.
         self.close_input_suggestions(/*should_focus_input=*/ false, ctx);
         did_execute
     }
-
-
 
     pub fn reset_after_cloud_followup_submission(&mut self, ctx: &mut ViewContext<Self>) {
         self.editor.update(ctx, |editor, ctx| {
@@ -1813,10 +1708,6 @@ impl Input {
             editor.set_text_colors(TextColors::from_appearance(appearance), ctx);
         });
     }
-
-
-
-
 
     /// Returns the starting byte index position of the last selection.
     fn start_byte_index_of_last_selection(&self, ctx: &ViewContext<Self>) -> ByteOffset {
@@ -1896,21 +1787,6 @@ impl Input {
             );
         })
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     pub fn close_input_suggestions_and_restore_buffer(
         &mut self,
@@ -2018,7 +1894,6 @@ impl Input {
     pub fn focus_input_box(&self, ctx: &mut ViewContext<Self>) {
         ctx.focus_self();
     }
-
 
     pub fn handle_command_search_closed(
         &mut self,
@@ -2144,13 +2019,11 @@ impl Input {
 
     /// Asks the currently active inline menu whether the buffer should be restored on dismiss
     /// (defaulting to true for any inline menus that don't have specific behavior requirements for this decision).
-    fn should_restore_buffer_on_inline_menu_dismiss(&self, ctx: &ViewContext<Self>) -> bool {
-        match self.suggestions_mode_model.as_ref(ctx).mode() {
-            // If the input is not being used as a search on the model menu
-            // we should not restore/revert the changes to the input on-dismiss,
-            // unless we parked a prompt to search (then we restore that prompt).
-            _ => true,
-        }
+    fn should_restore_buffer_on_inline_menu_dismiss(&self) -> bool {
+        // If the input is not being used as a search on the model menu
+        // we should not restore/revert the changes to the input on-dismiss,
+        // unless we parked a prompt to search (then we restore that prompt).
+        true
     }
 
     fn editor_escape(&mut self, ctx: &mut ViewContext<Self>) {
@@ -2171,7 +2044,7 @@ impl Input {
             .as_ref(ctx)
             .is_inline_menu_open()
         {
-            if self.should_restore_buffer_on_inline_menu_dismiss(ctx) {
+            if self.should_restore_buffer_on_inline_menu_dismiss() {
                 self.suggestions_mode_model.update(ctx, |model, ctx| {
                     model.close_and_restore_buffer(ctx);
                 });
@@ -2194,9 +2067,6 @@ impl Input {
             ctx.emit(Event::Escape);
         }
     }
-
-
-
 
     fn editor_down(&mut self, ctx: &mut ViewContext<Self>) {
         // For some input suggestion modes, the menu handles its own actions.
@@ -2848,33 +2718,31 @@ impl Input {
             EditorEvent::HideXRay => {
                 self.hide_x_ray(ctx);
             }
-            EditorEvent::TryToShowXRay(token_at) => {
-                match token_at {
-                    CommandXRayAnchor::Cursor => {
-                        send_telemetry_from_ctx!(
-                            TelemetryEvent::CommandXRayTriggered {
-                                trigger: CommandXRayTrigger::Keystroke
-                            },
-                            ctx
-                        );
-                        let pos = self.start_byte_index_of_first_selection(ctx);
-                        self.start_xray_at_offset(pos, CommandXRayTrigger::Keystroke, ctx);
-                    }
-                    CommandXRayAnchor::Hover(mouse_position) => {
-                        if let Some(offset) = self.start_byte_index_at_point(mouse_position, ctx) {
-                            if !self.suggestions_mode_model.as_ref(ctx).is_visible() {
-                                send_telemetry_from_ctx!(
-                                    TelemetryEvent::CommandXRayTriggered {
-                                        trigger: CommandXRayTrigger::Hover
-                                    },
-                                    ctx
-                                );
-                                self.start_xray_at_offset(offset, CommandXRayTrigger::Hover, ctx);
-                            }
+            EditorEvent::TryToShowXRay(token_at) => match token_at {
+                CommandXRayAnchor::Cursor => {
+                    send_telemetry_from_ctx!(
+                        TelemetryEvent::CommandXRayTriggered {
+                            trigger: CommandXRayTrigger::Keystroke
+                        },
+                        ctx
+                    );
+                    let pos = self.start_byte_index_of_first_selection(ctx);
+                    self.start_xray_at_offset(pos, CommandXRayTrigger::Keystroke, ctx);
+                }
+                CommandXRayAnchor::Hover(mouse_position) => {
+                    if let Some(offset) = self.start_byte_index_at_point(mouse_position, ctx) {
+                        if !self.suggestions_mode_model.as_ref(ctx).is_visible() {
+                            send_telemetry_from_ctx!(
+                                TelemetryEvent::CommandXRayTriggered {
+                                    trigger: CommandXRayTrigger::Hover
+                                },
+                                ctx
+                            );
+                            self.start_xray_at_offset(offset, CommandXRayTrigger::Hover, ctx);
                         }
                     }
                 }
-            }
+            },
             EditorEvent::InsertLastWordPrevCommand => self.insert_last_word_previous_command(ctx),
             // For this particular view, the terminal Input, we ignore search direction because in
             // this context, search means search through History which isn't actually sensitive to
@@ -2995,7 +2863,6 @@ impl Input {
             );
         });
     }
-
 
     /// Image auto-attachment was an AI feature and has been removed; callers fall
     /// back to inserting the dropped/pasted paths as plain text.
@@ -3153,8 +3020,6 @@ impl Input {
         ctx.notify();
     }
 
-
-
     /// Returns a collection of history entries that are user AI queries or shell commands in order
     /// from oldest to most recent.
     fn collate_ai_and_command_history<'a>(
@@ -3264,7 +3129,6 @@ impl Input {
             .completions_open_while_typing
             .value()
     }
-
 
     fn is_classic_completions_enabled(&self, ctx: &AppContext) -> bool {
         (FeatureFlag::ClassicCompletions.is_enabled()
@@ -3763,23 +3627,21 @@ impl Input {
             && !input.any_selections_span_entire_buffer(ctx)
     }
 
-
     fn input_shift_tab(&mut self, ctx: &mut ViewContext<Self>) {
-        match self.suggestions_mode_model.as_ref(ctx).mode() {
-            // If the model selector is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If the inline history menu is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If the conversation menu is open and has multiple tabs,
-            // shift + tab should cycle between them.
-            // If we're in CompletionSuggestions mode, shift tab moves to the previous selection.
-            InputSuggestionsMode::CompletionSuggestions { .. } => {
-                self.input_suggestions.update(ctx, |suggestions, ctx| {
-                    suggestions.select_prev(ctx);
-                });
-                return;
-            }
-            _ => {}
+        // If the model selector is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If the inline history menu is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If the conversation menu is open and has multiple tabs,
+        // shift + tab should cycle between them.
+        // If we're in CompletionSuggestions mode, shift tab moves to the previous selection.
+        if let InputSuggestionsMode::CompletionSuggestions { .. } =
+            self.suggestions_mode_model.as_ref(ctx).mode()
+        {
+            self.input_suggestions.update(ctx, |suggestions, ctx| {
+                suggestions.select_prev(ctx);
+            });
+            return;
         }
 
         self.editor.update(ctx, |input, ctx| input.unindent(ctx));
@@ -4115,8 +3977,6 @@ impl Input {
         })
     }
 
-
-
     /// Handles the user's 'Enter' keypress.
     ///
     /// Depending on input state, this method may either execute a command, accept an input
@@ -4159,15 +4019,6 @@ impl Input {
 
     fn input_cmd_enter(&mut self, _ctx: &mut ViewContext<Self>) {}
 
-
-
-
-
-
-
-
-
-
     fn get_command(&mut self, ctx: &mut ViewContext<Self>) -> String {
         // Expand valid abbreviations or aliases, if any
         if let Some(expanded_command) = self.get_expanded_command_on_execute(ctx) {
@@ -4206,8 +4057,6 @@ impl Input {
         ctx.notify();
         true
     }
-
-
 
     /// Resets state in the input box that depends on the block lifecycle.
     /// This is on a performance-sensitive path.
@@ -4554,7 +4403,6 @@ impl Input {
         .finish()
     }
 
-
     /// Returns the SavePosition ID for the input.
     ///
     /// This may be used by parent views to position UI elements relative to the input.
@@ -4578,12 +4426,9 @@ impl Input {
         format!("status_free_input_{}", self.view_id)
     }
 
-
     pub fn should_show_universal_developer_input(&self, app: &AppContext) -> bool {
         InputSettings::as_ref(app).is_universal_developer_input_enabled(app)
     }
-
-
 }
 
 impl Entity for Input {
@@ -4769,9 +4614,7 @@ impl Autosuggester for Input {
 impl Input {}
 
 #[cfg(test)]
-impl Input {
-
-}
+impl Input {}
 
 #[cfg(test)]
 #[path = "input_tests.rs"]

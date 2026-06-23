@@ -1,7 +1,7 @@
 use riftui::r#async::SpawnedFutureHandle;
 use riftui::{
-    AppContext, ClosedWindowData, Entity, ModelContext, SingletonEntity,
-    ViewHandle, WeakViewHandle, WindowId,
+    AppContext, ClosedWindowData, Entity, ModelContext, SingletonEntity, ViewHandle,
+    WeakViewHandle, WindowId,
 };
 use uuid::Uuid;
 

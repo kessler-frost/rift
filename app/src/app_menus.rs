@@ -18,11 +18,10 @@ use settings::Setting as _;
 
 use crate::default_terminal::DefaultTerminal;
 use crate::features::{runtime_flags_menu_items, FeatureFlag};
+use crate::report_if_error;
 use crate::root_view::OpenLaunchConfigArg;
 use crate::server::telemetry::LaunchConfigUiLocation;
-use crate::settings::{
-    BlockVisibilitySettings, DebugSettings, SelectionSettings,
-};
+use crate::settings::{BlockVisibilitySettings, DebugSettings, SelectionSettings};
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
@@ -31,7 +30,6 @@ use crate::user_config::RiftConfig;
 use crate::util::bindings::{self, trigger_to_keystroke, CustomAction};
 use crate::util::links;
 use crate::workspace::sync_inputs::SyncedInputState;
-use crate::report_if_error;
 
 type CheckmarkStatusGetter = dyn 'static + Fn(&mut AppContext) -> bool;
 
@@ -99,7 +97,6 @@ fn default_name(action: CustomAction, ctx: &AppContext) -> String {
             "<NO DESCRIPTION>".into()
         })
 }
-
 
 /// Return a Custom Menu Item whose CustomAction can be updated and
 /// whose checkmark status is determined by
@@ -752,7 +749,6 @@ fn debug_menu_items() -> Vec<MenuItem> {
             no_updates,
             None,
         )));
-
     }
 
     if FeatureFlag::RuntimeFeatureFlags.is_enabled() {

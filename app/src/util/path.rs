@@ -13,7 +13,6 @@ use itertools::Itertools as _;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
 use riftui::AppContext;
 
-
 /// Fallback label used when a `RemotePath`'s host is not currently tracked.
 /// Matches the fallback in `terminal::writeable_pty::remote_server_controller::connection_label_from_user_and_host`.
 const UNKNOWN_HOST_LABEL: &str = "Remote host";

@@ -1,7 +1,7 @@
 //! Contains the legacy implementation of flag suggestion generation that depends on the legacy
 //! command signature struct (`command_signatures::Signature`).
-use itertools::Itertools;
 use command_signatures::{FlagStyle, Signature as SpecSignature};
+use itertools::Itertools;
 
 use crate::completer::describe::OptionCaseSensitivity;
 use crate::completer::engine::LocationType;

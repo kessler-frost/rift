@@ -26,7 +26,6 @@ use crate::util::openable_file_type::{is_file_openable_in_rift, OpenableFileType
 #[path = "open_in_rift_tests.rs"]
 mod tests;
 
-
 /// A path to a file that can be opened in Rift, along with its type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenablePath {

@@ -721,4 +721,3 @@ fn test_original_pane_for_replacement() {
     );
     assert_eq!(tree.original_pane_for_replacement(replacement), None);
 }
-

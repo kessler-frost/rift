@@ -45,15 +45,14 @@ use crate::context_chips::prompt::{Prompt, PromptEvent};
 use crate::context_chips::renderer::{ChipDragState, Renderer as ContextChipRenderer};
 use crate::context_chips::ChipAvailability;
 use crate::editor::{
-    EditOrigin, EditorView, Event as EditorEvent, SingleLineEditorOptions,
-    TextOptions,
+    EditOrigin, EditorView, Event as EditorEvent, SingleLineEditorOptions, TextOptions,
 };
 use crate::features::FeatureFlag;
 use crate::gpu_state::{GPUState, GPUStateEvent};
 use crate::settings::app_icon::{AppIcon, AppIconSettings};
 use crate::settings::{
-    active_theme_kind, respect_system_theme, AppEditorSettings, CursorBlink,
-    CursorBlinkEnabled, CursorDisplayType, EnforceMinimumContrast, FocusPaneOnHover, FontSettings,
+    active_theme_kind, respect_system_theme, AppEditorSettings, CursorBlink, CursorBlinkEnabled,
+    CursorDisplayType, EnforceMinimumContrast, FocusPaneOnHover, FontSettings,
     FontSettingsChangedEvent, GPUSettings, InputBoxType, InputModeSettings, InputModeState,
     InputSettings, InputSettingsChangedEvent, MonospaceFontName, PaneSettings,
     ShouldDimInactivePanes, ThemeSettings, UseSystemTheme, UseThinStrokes,
@@ -71,7 +70,7 @@ use crate::terminal::settings::{
 use crate::terminal::{
     BlockListSettings, ShowBlockDividers, ShowJumpToBottomOfBlockButton, SizeInfo,
 };
-use crate::themes::theme::{self, RespectSystemTheme, SelectedSystemThemes, ThemeKind, RiftTheme};
+use crate::themes::theme::{self, RespectSystemTheme, RiftTheme, SelectedSystemThemes, ThemeKind};
 use crate::themes::theme_chooser::ThemeChooserMode;
 use crate::ui_components::color_dot::{render_color_dot, TAB_COLOR_OPTIONS};
 use crate::ui_components::icons::Icon;
@@ -87,8 +86,7 @@ use crate::workspace::header_toolbar_editor::HeaderToolbarInlineEditor;
 use crate::workspace::tab_settings::{
     DirectoryTabColor, PreserveActiveTabColor, ShowIndicatorsButton,
     ShowVerticalTabPanelInRestoredWindows, TabCloseButtonPosition, TabSettings,
-    TabSettingsChangedEvent, UseVerticalTabs,
-    WorkspaceDecorationVisibility,
+    TabSettingsChangedEvent, UseVerticalTabs, WorkspaceDecorationVisibility,
 };
 use crate::workspace::WorkspaceAction;
 use crate::{report_error, report_if_error, send_telemetry_from_ctx, themes};
@@ -1258,9 +1256,8 @@ impl AppearanceSettingsPageView {
         categories.push(Category::new("Blocks", block_settings_widgets));
 
         let font_settings = FontSettings::as_ref(ctx);
-        let mut text_settings_widgets: Vec<Box<dyn SettingsWidget<View = Self>>> = vec![
-            Box::new(TerminalFontWidget::default()),
-        ];
+        let mut text_settings_widgets: Vec<Box<dyn SettingsWidget<View = Self>>> =
+            vec![Box::new(TerminalFontWidget::default())];
         if font_settings
             .use_thin_strokes
             .is_supported_on_current_platform()
@@ -2643,8 +2640,7 @@ impl SettingsWidget for CustomAppIconWidget {
 
             let app_icon_at_startup = AppearanceManager::as_ref(_app).app_icon_at_startup();
             let current_icon = *AppIconSettings::as_ref(_app).app_icon;
-            if current_icon == AppIcon::Default && app_icon_at_startup != AppIcon::Default
-            {
+            if current_icon == AppIcon::Default && app_icon_at_startup != AppIcon::Default {
                 let theme = appearance.theme();
                 return Flex::column()
                     .with_child(dropdown)

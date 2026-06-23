@@ -127,7 +127,6 @@ pub struct BlocklistEnvVarMetadata {
     pub should_hide_block: bool,
 }
 
-
 pub struct Block {
     id: BlockId,
     size: SizeInfo,
@@ -820,7 +819,7 @@ impl Block {
             shell_host: None,
             is_for_in_band_command: false,
             env_var_metadata: None,
-            interaction_mode: InteractionMode::default(),
+            interaction_mode: InteractionMode,
             block_banner: None,
             ignore_next_rprompt: false,
             prompt_snapshot: None,
@@ -851,7 +850,6 @@ impl Block {
     pub fn interaction_mode(&self) -> &InteractionMode {
         &self.interaction_mode
     }
-
 
     /// Returns whether NLD was overridden (input type was manually locked) when this block's
     /// command was submitted.

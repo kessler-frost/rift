@@ -10,8 +10,8 @@ use strum_macros::{EnumDiscriminants, EnumIter};
 use super::config::HotkeyError;
 use super::config::{SettingType, ThemeType};
 use crate::interval_timer::IntervalTimer;
-use crate::settings::import::config::{Config, ConfigError};
 use crate::send_telemetry_from_ctx;
+use crate::settings::import::config::{Config, ConfigError};
 
 #[derive(Clone, Copy, Debug, EnumDiscriminants, Eq, Hash, PartialEq)]
 #[strum_discriminants(derive(EnumIter, Hash, Serialize))]

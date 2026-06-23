@@ -67,9 +67,7 @@ impl From<command_signatures::Priority> for Priority {
             command_signatures::Priority::Global(importance)
             | command_signatures::Priority::Local(importance) => match importance {
                 command_signatures::Importance::More(order) => Self::new(order.0 as i32),
-                command_signatures::Importance::Less(order) => {
-                    Self::new(-(101 - order.0 as i32))
-                }
+                command_signatures::Importance::Less(order) => Self::new(-(101 - order.0 as i32)),
             },
             command_signatures::Priority::Default => Priority::default(),
         }
@@ -79,17 +77,17 @@ impl From<command_signatures::Priority> for Priority {
 impl From<Priority> for command_signatures::Priority {
     fn from(value: Priority) -> Self {
         match value.cmp(&Priority::default()) {
-            Ordering::Less => command_signatures::Priority::Global(
-                command_signatures::Importance::Less(command_signatures::Order(
-                    101 - value.value().unsigned_abs(),
-                )),
-            ),
+            Ordering::Less => {
+                command_signatures::Priority::Global(command_signatures::Importance::Less(
+                    command_signatures::Order(101 - value.value().unsigned_abs()),
+                ))
+            }
             Ordering::Equal => command_signatures::Priority::default(),
-            Ordering::Greater => command_signatures::Priority::Global(
-                command_signatures::Importance::More(command_signatures::Order(
-                    value.value().unsigned_abs(),
-                )),
-            ),
+            Ordering::Greater => {
+                command_signatures::Priority::Global(command_signatures::Importance::More(
+                    command_signatures::Order(value.value().unsigned_abs()),
+                ))
+            }
         }
     }
 }

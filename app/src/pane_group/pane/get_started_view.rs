@@ -21,10 +21,10 @@ use crate::coding_entrypoints::project_buttons::{ProjectButtons, ProjectButtonsE
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
 use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent};
+use crate::send_telemetry_from_ctx;
 use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
 use crate::view_components::DismissibleToast;
 use crate::workspace::{ToastStack, WorkspaceAction};
-use crate::send_telemetry_from_ctx;
 
 pub fn init(app: &mut AppContext) {
     use riftui::keymap::macros::*;
@@ -363,4 +363,3 @@ impl BackingView for GetStartedView {
         self.focus_handle = Some(focus_handle);
     }
 }
-

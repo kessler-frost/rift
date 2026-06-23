@@ -15,7 +15,7 @@ use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 
 use crate::appearance::Appearance;
 use crate::settings::{active_theme_kind, ThemeSettings};
-use crate::themes::theme::{ThemeKind, RiftTheme};
+use crate::themes::theme::{RiftTheme, ThemeKind};
 use crate::user_config::util::from_yaml;
 use crate::{send_telemetry_from_ctx, user_config};
 

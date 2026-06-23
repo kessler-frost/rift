@@ -67,16 +67,15 @@ pub mod session_settings;
 pub mod settings;
 mod shell_launch_state;
 
+pub mod riftify;
 pub mod ssh;
 pub mod terminal_manager;
 mod terminal_size_element;
 pub mod view;
-pub mod riftify;
 mod waterfall_gap_element;
 mod writeable_pty;
 #[cfg(windows)]
 pub mod wsl;
-
 
 pub use block_list_settings::*;
 pub use mock_terminal_manager::MockTerminalManager;

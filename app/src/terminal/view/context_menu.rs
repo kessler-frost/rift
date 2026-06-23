@@ -2,7 +2,8 @@ use rift_core::send_telemetry_from_ctx;
 use riftui::UpdateView;
 
 use super::{
-    mark_feature_used_and_write_to_user_defaults, ContextMenuState, MenuItem, TerminalAction, TerminalView, Tip, TipHint, ViewContext, CONTEXT_MENU_WIDTH,
+    mark_feature_used_and_write_to_user_defaults, ContextMenuState, MenuItem, TerminalAction,
+    TerminalView, Tip, TipHint, ViewContext, CONTEXT_MENU_WIDTH,
 };
 
 impl TerminalView {

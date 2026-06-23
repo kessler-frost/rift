@@ -29,20 +29,19 @@ pub fn initialize_settings_for_tests_with_mode(
     use crate::settings::app_icon::AppIconSettings;
     use crate::settings::manager::SettingsManager;
     use crate::settings::{
-        init_and_register_user_preferences, AccessibilitySettings, SessionModeSettings,
-        AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings, ChangelogSettings,
-        CodeSettings, DebugSettings, EmacsBindingsSettings, FontSettings,
-        GPUSettings, InputModeSettings, InputSettings, NativePreferenceSettings, PaneSettings,
-        SameLinePromptBlockSettings, ScrollSettings, SelectionSettings, SshSettings, ThemeSettings,
-        VimBannerSettings,
+        init_and_register_user_preferences, AccessibilitySettings, AliasExpansionSettings,
+        AppEditorSettings, BlockVisibilitySettings, ChangelogSettings, CodeSettings, DebugSettings,
+        EmacsBindingsSettings, FontSettings, GPUSettings, InputModeSettings, InputSettings,
+        NativePreferenceSettings, PaneSettings, SameLinePromptBlockSettings, ScrollSettings,
+        SelectionSettings, SessionModeSettings, SshSettings, ThemeSettings, VimBannerSettings,
     };
     use crate::terminal::general_settings::GeneralSettings;
     use crate::terminal::keys_settings::KeysSettings;
     use crate::terminal::ligature_settings::LigatureSettings;
+    use crate::terminal::riftify::settings::RiftifySettings;
     use crate::terminal::safe_mode_settings::SafeModeSettings;
     use crate::terminal::session_settings::SessionSettings;
     use crate::terminal::settings::TerminalSettings;
-    use crate::terminal::riftify::settings::RiftifySettings;
     use crate::terminal::BlockListSettings;
     use crate::undo_close::UndoCloseSettings;
     use crate::user_config::RiftConfig;

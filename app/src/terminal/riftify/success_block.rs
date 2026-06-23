@@ -144,12 +144,8 @@ impl RiftifySuccessBlock {
         )
         .with_margin_right(8.)
         .finish();
-        let header_contents = Container::new(
-            Flex::row()
-                .with_children([header_contents])
-                .finish(),
-        )
-        .finish();
+        let header_contents =
+            Container::new(Flex::row().with_children([header_contents]).finish()).finish();
 
         Container::new(
             Flex::row()

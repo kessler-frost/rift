@@ -3,8 +3,8 @@ use rift_core::features::FeatureFlag;
 use riftui::ViewContext;
 
 use super::{
-    FeatureItem, FeatureSection, FeatureSectionData,
-    ResourceCenterMainView, Section, Tip, TipAction, TipHint,
+    FeatureItem, FeatureSection, FeatureSectionData, ResourceCenterMainView, Section, Tip,
+    TipAction, TipHint,
 };
 
 pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
@@ -56,7 +56,6 @@ pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
         items: maximize_rift_items(ctx),
     };
     sections.push(Section::Feature(maximize_rift));
-
 
     sections
 }

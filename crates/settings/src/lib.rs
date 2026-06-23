@@ -12,13 +12,13 @@ use std::ops::Deref;
 pub use inventory as _inventory;
 pub use macros::SettingSection;
 pub use manager::SettingsManager;
+// Re-export riftui_core for use by macros.
+pub use riftui_core;
 #[doc(hidden)]
 pub use schemars as _schemars;
 #[doc(hidden)]
 pub use settings_value as _settings_value;
 pub use settings_value::SettingsValue;
-// Re-export riftui_core for use by macros.
-pub use riftui_core;
 
 /// Extracts the storage key (last segment after the final `.`) from a toml_path.
 ///

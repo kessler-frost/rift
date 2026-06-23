@@ -34,8 +34,8 @@ use super::ansi::{BootstrappedValue, InitShellValue, SSHValue};
 use super::terminal_model::{HistoryEntry, SubshellInitializationInfo};
 #[cfg(feature = "local_tty")]
 use crate::terminal::event::ExecutedExecutorCommandEvent;
-use crate::terminal::shell::{Shell, ShellType};
 use crate::terminal::riftify::SubshellSource;
+use crate::terminal::shell::{Shell, ShellType};
 use crate::terminal::{History, ShellHost, ShellLaunchData};
 
 #[derive(thiserror::Error, Debug)]
@@ -91,7 +91,6 @@ pub struct Sessions {
 
     /// Select environment variables and their values.
     env_vars: HashMap<SessionId, HashMap<String, String>>,
-
 }
 
 #[derive(Clone, Debug)]

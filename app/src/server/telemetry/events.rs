@@ -105,7 +105,6 @@ pub struct BlockLatencyInfo {
     pub execution_ms: u64,
 }
 
-
 #[derive(Clone, Serialize, Deserialize)]
 pub enum TabRenameEvent {
     OpenedEditor,
@@ -174,7 +173,6 @@ pub enum CodePanelsFileOpenEntrypoint {
     ProjectExplorer,
     GlobalSearch,
 }
-
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum CommandCorrectionAcceptedType {
@@ -388,7 +386,6 @@ pub enum AddTabWithShellSource {
     ShellSelectorMenu,
 }
 
-
 #[derive(Clone, Copy, Debug, Serialize)]
 pub enum ImageProtocol {
     Kitty,
@@ -403,14 +400,12 @@ pub enum InputUXChangeOrigin {
     ADELaunchModal,
 }
 
-
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum LoginEventSource {
     OnboardingSlide,
     AuthModal,
 }
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AutoReloadModalAction {
@@ -927,7 +922,6 @@ pub enum TelemetryEvent {
     /// User created a new file from the file tree
     FileTreeItemCreated,
 
-
     /// Keeps track of number of times the user is presented with a Prompt Suggestions banner.
     PromptSuggestionShown {
         id: String,
@@ -939,7 +933,6 @@ pub enum TelemetryEvent {
         /// telemetry with server-side logs. `None` on the legacy code path.
         server_request_token: Option<String>,
     },
-
 
     /// Keeps track of number of times the user falls back to a prompt suggestion from a suggested code diff banner.
     SuggestedCodeDiffFailed {
@@ -972,7 +965,6 @@ pub enum TelemetryEvent {
         view: PromptSuggestionViewType,
         interaction_source: InteractionSource,
     },
-
 
     /// Emitted when the user toggles the "Intelligent autosuggestions" setting in the AI settings page.
     ToggleIntelligentAutosuggestionsSetting {
@@ -1028,7 +1020,6 @@ pub enum TelemetryEvent {
     ToggleVoiceInputSetting {
         is_voice_input_enabled: bool,
     },
-
 
     TierLimitHit(TierLimitHitEvent),
     ResourceUsageStats {
@@ -1504,9 +1495,7 @@ impl TelemetryEvent {
             TelemetryEvent::QuitModalShown {
                 running_processes,
                 modal_for,
-            } => Some(
-                json!({ "running_processes": running_processes, "modal_for": modal_for }),
-            ),
+            } => Some(json!({ "running_processes": running_processes, "modal_for": modal_for })),
             TelemetryEvent::QuitModalCancel {
                 nav_palette,
                 modal_for,
@@ -1672,9 +1661,7 @@ impl TelemetryEvent {
             // Using legacy name to avoid breaking telemetry.
             TelemetryEvent::TogglePromptSuggestionsSetting {
                 is_prompt_suggestions_enabled,
-            } => Some(
-                json!({"is_prompt_suggestions_enabled": is_prompt_suggestions_enabled}),
-            ),
+            } => Some(json!({"is_prompt_suggestions_enabled": is_prompt_suggestions_enabled})),
             TelemetryEvent::ToggleCodeSuggestionsSetting {
                 source,
                 is_code_suggestions_enabled,
@@ -1923,7 +1910,6 @@ impl TelemetryEvent {
             | TelemetryEvent::EditedInputBeforePrecmd
             | TelemetryEvent::TriedToExecuteBeforePrecmd
             | TelemetryEvent::JumpToBookmark
-            
             | TelemetryEvent::JumpToBottomofBlockButtonClicked
             | TelemetryEvent::ShowInFileExplorer
             | TelemetryEvent::OpenLaunchConfigSaveModal
@@ -2350,8 +2336,9 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::SshInteractiveSessionDetected => EnablementState::Always,
             Self::SshTmuxRiftifyBlockAccepted => EnablementState::Always,
             Self::SshTmuxRiftifyBlockDismissed => EnablementState::Always,
-            Self::RiftifyFooterShown
-            | Self::RiftifyFooterAcceptedRiftify => EnablementState::Always,
+            Self::RiftifyFooterShown | Self::RiftifyFooterAcceptedRiftify => {
+                EnablementState::Always
+            }
             Self::SshTmuxRiftificationSuccess => EnablementState::Always,
             Self::SshTmuxRiftificationErrorBlock => EnablementState::Always,
             Self::SshInstallTmuxBlockDisplayed => EnablementState::Always,
@@ -2396,15 +2383,15 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleActiveAI => EnablementState::Always,
             Self::MemoryUsageStats => EnablementState::ChannelSpecific { channels: vec![] },
             Self::MemoryUsageHigh => EnablementState::Always,
-            Self::BlockCompletedOnDogfoodOnly => EnablementState::ChannelSpecific { channels: vec![] },
+            Self::BlockCompletedOnDogfoodOnly => {
+                EnablementState::ChannelSpecific { channels: vec![] }
+            }
             Self::CompletedSettingsImport
             | Self::SettingsImportConfigFocused
             | Self::SettingsImportConfigParsed
             | Self::SettingsImportResetButtonClicked
             | Self::ITermMultipleHotkeys => EnablementState::Always,
-            Self::ToggleIntelligentAutosuggestionsSetting => {
-                EnablementState::Always
-            }
+            Self::ToggleIntelligentAutosuggestionsSetting => EnablementState::Always,
             Self::PromptSuggestionShown
             | Self::SuggestedCodeDiffFailed
             | Self::PromptSuggestionAccepted

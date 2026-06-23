@@ -1,11 +1,10 @@
 use pathfinder_geometry::vector::vec2f;
 use riftui::elements::{
-    ChildAnchor, ConstrainedBox, Container, Empty, OffsetPositioning,
-    ParentAnchor, ParentElement as _, ParentOffsetBounds, Stack,
+    ChildAnchor, ConstrainedBox, Container, Empty, OffsetPositioning, ParentAnchor,
+    ParentElement as _, ParentOffsetBounds, Stack,
 };
 use riftui::ui_components::components::UiComponentStyles;
 use riftui::Element;
-
 
 pub struct RedNotificationDot {}
 

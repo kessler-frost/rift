@@ -8,7 +8,6 @@
 
 use riftui::{Entity, ModelContext, SingletonEntity};
 
-
 pub type LoginGatedFeature = &'static str;
 
 /// Offline auth manager. Holds no server clients and performs no network access.

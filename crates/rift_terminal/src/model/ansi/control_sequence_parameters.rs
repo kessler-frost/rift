@@ -708,6 +708,10 @@ impl TryFrom<&[u8]> for PromptKind {
     }
 }
 
+#[cfg(test)]
+#[path = "control_sequence_parameters_tests.rs"]
+mod tests;
+
 pub mod color_index {
     pub const BLACK: usize = 0;
     pub const RED: usize = 1;

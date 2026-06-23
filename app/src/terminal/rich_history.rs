@@ -22,7 +22,6 @@ pub fn render_rich_history(entry: &HistoryEntry, ctx: &AppContext) -> Box<dyn El
 
     let mut flex_column = Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
 
-
     if let Some(exit_code) = entry.exit_code {
         let icon = if exit_code.was_successful() {
             UiIcon::CheckSkinny
@@ -98,7 +97,6 @@ pub fn render_rich_history(entry: &HistoryEntry, ctx: &AppContext) -> Box<dyn El
 
     flex_column.finish()
 }
-
 
 pub(crate) fn render_row_with_icon_and_paragraph(
     icon_path: &'static str,

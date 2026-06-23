@@ -8,7 +8,6 @@ mod macos_app_icon {
     pub use objc2::{AnyThread, MainThreadMarker};
     pub use objc2_app_kit::{NSApplication, NSImage, NSWorkspace, NSWorkspaceIconCreationOptions};
     pub use objc2_foundation::{ns_string, NSBundle, NSString};
-    
 
     pub use crate::settings::app_icon::{AppIcon, AppIconSettings, AppIconSettingsChangedEvent};
 }
@@ -21,7 +20,7 @@ use crate::settings::{
     active_theme_kind, FontSettings, FontSettingsChangedEvent, MonospaceFontSize, Settings,
     ThemeSettings,
 };
-use crate::themes::theme::{ThemeKind, RiftTheme};
+use crate::themes::theme::{RiftTheme, ThemeKind};
 use crate::ASSETS;
 
 /// Manages the state of the app-wide Appearance settings, it is responsible
@@ -59,7 +58,10 @@ impl AppearanceManager {
             &FontSettings::handle(ctx),
             move |_, event, ctx| match event {
                 FontSettingsChangedEvent::MonospaceFontName { .. } => {
-                    let font_name = FontSettings::as_ref(ctx).monospace_font_name.value().clone();
+                    let font_name = FontSettings::as_ref(ctx)
+                        .monospace_font_name
+                        .value()
+                        .clone();
                     if let Some(new_family) = get_or_load_font_family(&font_name, ctx) {
                         Appearance::handle(ctx).update(ctx, |appearance, ctx| {
                             appearance.set_monospace_font_family(new_family, ctx);
@@ -169,8 +171,7 @@ impl AppearanceManager {
             // revert to the icon we started up with. We therefore need to use an in-memory
             // override to display the default icon. This has the drawback of _not_ inheriting the
             // preferred icon style, but that icon style _will_ apply on next app restart.
-            if icon == AppIcon::Default && self.app_icon_at_startup == AppIcon::Default
-            {
+            if icon == AppIcon::Default && self.app_icon_at_startup == AppIcon::Default {
                 log::debug!("User has default icon selected, resetting to bundle default");
                 // Reset to nil to use the bundle's default icon.
                 // SAFETY: `setApplicationIconImage:` accepts `nil` to restore the bundled icon.

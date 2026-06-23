@@ -8,8 +8,7 @@ use riftui::{AppContext, SingletonEntity};
 
 use super::common::{
     add_command_xray_overlay, add_input_suggestions_overlays,
-    should_show_terminal_input_message_bar,
-    wrap_input_with_terminal_padding_and_focus_handler,
+    should_show_terminal_input_message_bar, wrap_input_with_terminal_padding_and_focus_handler,
 };
 use super::{Input, InputDropTargetData};
 use crate::appearance::Appearance;

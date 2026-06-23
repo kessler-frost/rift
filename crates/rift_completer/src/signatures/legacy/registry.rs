@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use command_signatures::{Argument, DynamicCompletionData, IsArgumentOptional, Signature};
 use itertools::Itertools;
 use memo_map::MemoMap;
-use command_signatures::{Argument, DynamicCompletionData, IsArgumentOptional, Signature};
 
 use crate::completer::{CommandExitStatus, CompletionContext, TopLevelCommandCaseSensitivity};
 use crate::parsers::SignatureAtTokenIndex;

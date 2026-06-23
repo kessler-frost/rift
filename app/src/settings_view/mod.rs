@@ -16,6 +16,7 @@ use rift_core::features::FeatureFlag;
 use rift_core::settings::ToggleableSetting as _;
 use rift_core::ui::theme::color::internal_colors;
 use rift_editor::editor::NavigationKey;
+use riftify_page::{RiftifyPageAction, RiftifyPageView};
 use riftui::elements::{
     Align, Border, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ClippedScrollable,
     ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DispatchEventResult, Empty,
@@ -34,7 +35,6 @@ use settings_page::{
     MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle,
     HEADER_PADDING,
 };
-use riftify_page::{RiftifyPageAction, RiftifyPageView};
 
 use crate::appearance::Appearance;
 use crate::editor::{
@@ -64,9 +64,9 @@ mod nav;
 pub mod pane_manager;
 mod privacy;
 mod privacy_page;
+mod riftify_page;
 mod settings_file_footer;
 pub(crate) mod settings_page;
-mod riftify_page;
 
 pub use features_page::FeaturesPageAction;
 pub use privacy_page::PrivacyPageAction;
@@ -1516,11 +1516,8 @@ impl SettingsView {
 
     fn input_tab(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(current_page) = self.current_settings_page() {
-            match &current_page.view_handle {
-                SettingsPageViewHandle::Keybindings(view_handle) => {
-                    view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
-                }
-                _ => (),
+            if let SettingsPageViewHandle::Keybindings(view_handle) = &current_page.view_handle {
+                view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
             };
         }
     }

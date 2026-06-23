@@ -24,7 +24,6 @@ pub fn load_theme_configs(_theme_path: &Path) -> RiftThemeConfig {
     Default::default()
 }
 
-
 /// Loads all launch configs relative to the `launch_config_path`.
 pub fn load_launch_configs(_launch_config_path: &Path) -> Vec<LaunchConfig> {
     // There's no local filesystem for wasm, so we'll never be able to retrieve

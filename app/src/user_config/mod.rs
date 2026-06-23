@@ -17,7 +17,7 @@ use riftui::{Entity, ModelContext, SingletonEntity};
 
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::tab_configs::{TabConfig, TabConfigError};
-use crate::themes::theme::{ThemeKind, RiftThemeConfig};
+use crate::themes::theme::{RiftThemeConfig, ThemeKind};
 
 lazy_static! {
     pub static ref LAUNCH_CONFIG_COMMENT: String = format!(
@@ -105,7 +105,6 @@ impl RiftConfig {
     pub fn theme_config(&self) -> &RiftThemeConfig {
         &self.theme_config
     }
-
 
     /// Saving the newly created launch configuration to the RiftConfig that we currently
     /// have.

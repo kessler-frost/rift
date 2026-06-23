@@ -20,10 +20,6 @@ mod namespace;
 #[cfg(not(target_family = "wasm"))]
 const RIFT_ISOLATION_PLATFORM_ENV: &str = "RIFT_ISOLATION_PLATFORM";
 
-/// Environment variable containing the generic Rift-managed workload token that we use
-/// for isolation platforms that don't issue their own tokens.
-#[cfg(not(target_family = "wasm"))]
-
 /// A kind of isolation platform. For our usage, isolation platforms are different ways where Rift
 /// can be sandboxed, such as VMs, containers, or cloud hosts. This may also include weaker forms
 /// of sandboxing such as Git worktrees.

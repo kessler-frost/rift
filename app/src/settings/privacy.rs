@@ -380,7 +380,6 @@ impl PrivacySettings {
         }
     }
 
-
     pub fn remove_user_secret_regex(&mut self, idx: &usize, ctx: &mut ModelContext<Self>) {
         let mut new_user_secret_regex_list = self.user_secret_regex_list.to_vec();
         new_user_secret_regex_list.remove(*idx);

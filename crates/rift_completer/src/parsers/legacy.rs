@@ -1,7 +1,7 @@
 //! The "legacy" implementation of internal command parsing logic that depends on the legacy:
 //! command signature struct (`command_signatures::Signature`).
-use itertools::Itertools;
 use command_signatures::{DynamicCompletionData, IsArgumentOptional, Opt, Signature};
+use itertools::Itertools;
 
 use super::hir::{Command, Expression, ShellCommand};
 use super::{parse_unclassified_command, LiteCommand, ParseError};

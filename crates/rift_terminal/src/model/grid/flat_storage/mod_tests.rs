@@ -253,6 +253,41 @@ fn test_clear_after_truncate_front() {
 }
 
 #[test]
+fn test_new_with_zero_columns_does_not_panic() {
+    // A grid can never legitimately have zero columns (the app layer clamps to
+    // MIN_COLUMNS), but FlatStorage is a public library type that previously
+    // panicked ("assertion failed: usizes >= 1" in Row::new, which in release
+    // builds would instead write past a zero-capacity Vec) when constructed
+    // with zero columns and then pushed into.  It must degrade gracefully.
+    let mut storage = FlatStorage::new(0, None, None);
+    storage.push_rows_from_string("hi\n");
+
+    // We should still be able to materialize the row back out without panicking.
+    let row = storage
+        .rows_from(0)
+        .next()
+        .expect("should materialize a row from zero-column storage");
+    assert_eq!(row[0].c, 'h');
+}
+
+#[test]
+fn test_set_columns_to_zero_does_not_panic() {
+    // Resizing storage down to zero columns must not panic when rows are later
+    // materialized (RowIterator::new builds a Row of `columns` width, and
+    // Row::new(0) is invalid).
+    let mut storage = FlatStorage::new(5, None, None);
+    storage.push_rows_from_string("hello\n");
+
+    storage.set_columns(0);
+
+    let row = storage
+        .rows_from(0)
+        .next()
+        .expect("should materialize a row after resizing to zero columns");
+    assert_eq!(row[0].c, 'h');
+}
+
+#[test]
 fn test_clear_after_truncate_front_then_resize_and_push_does_not_panic() {
     let old_cols = 20;
     let new_cols = 21;
@@ -274,4 +309,148 @@ fn test_clear_after_truncate_front_then_resize_and_push_does_not_panic() {
         .next()
         .expect("should materialize a row after clearing and resizing storage");
     assert_eq!(row[0].c, 'n');
+}
+
+/// Collects the occupied content of every row in storage as `(text, wraps)`
+/// pairs, where `wraps` is true if the row soft-wraps into the next one.
+fn rows_as_text(storage: &FlatStorage) -> Vec<(String, bool)> {
+    storage
+        .rows_from(0)
+        .enumerate()
+        .map(|(i, row)| {
+            let text: String = (0..row.occ).map(|c| row[c].c).collect();
+            (text, storage.row_wraps(i))
+        })
+        .collect()
+}
+
+#[test]
+fn test_reflow_widening_unwraps_soft_wrapped_content() {
+    // "abcdefgh" soft-wrapped at width 3 occupies three rows.
+    let mut storage = FlatStorage::new(3, None, None);
+    storage.push_rows_from_string("abcdefgh\n");
+    assert_eq!(
+        rows_as_text(&storage),
+        vec![
+            ("abc".to_string(), true),
+            ("def".to_string(), true),
+            ("gh".to_string(), false),
+        ]
+    );
+
+    // Widening to 5 columns reflows the same content into two rows.
+    storage.set_columns(5);
+    assert_eq!(storage.total_rows(), 2);
+    assert_eq!(
+        rows_as_text(&storage),
+        vec![("abcde".to_string(), true), ("fgh".to_string(), false)]
+    );
+}
+
+#[test]
+fn test_reflow_narrowing_rewraps_content() {
+    let mut storage = FlatStorage::new(5, None, None);
+    storage.push_rows_from_string("abcdefgh\n");
+    assert_eq!(storage.total_rows(), 2);
+
+    // Narrowing to 2 columns re-wraps the content into four rows, with only the
+    // last row hard-wrapping (it ends in the trailing newline).
+    storage.set_columns(2);
+    assert_eq!(storage.total_rows(), 4);
+    assert_eq!(
+        rows_as_text(&storage),
+        vec![
+            ("ab".to_string(), true),
+            ("cd".to_string(), true),
+            ("ef".to_string(), true),
+            ("gh".to_string(), false),
+        ]
+    );
+}
+
+#[test]
+fn test_reflow_to_huge_width_keeps_content_on_one_row() {
+    let mut storage = FlatStorage::new(4, None, None);
+    storage.push_rows_from_string("abcdefgh\n");
+    assert_eq!(storage.total_rows(), 2);
+
+    // Resizing to a width far larger than the content collapses the soft-wrapped
+    // rows back onto a single row without panicking or losing content.
+    storage.set_columns(100_000);
+    assert_eq!(storage.total_rows(), 1);
+    assert_eq!(
+        rows_as_text(&storage),
+        vec![("abcdefgh".to_string(), false)]
+    );
+}
+
+#[test]
+fn test_reflow_round_trips_through_many_widths() {
+    // Repeatedly reflowing the same content across a range of widths (including
+    // narrowing to a single column and back out) must never panic and must
+    // always preserve the content when returned to the original width.
+    let mut storage = FlatStorage::new(7, None, None);
+    storage.push_rows_from_string("the quick brown fox\n");
+    let original = rows_as_text(&storage);
+
+    for width in [1usize, 2, 3, 5, 8, 13, 21, 40, 7] {
+        storage.set_columns(width);
+        // The flattened content (ignoring wrap boundaries) must be stable.
+        let flattened: String = rows_as_text(&storage)
+            .into_iter()
+            .map(|(text, _)| text)
+            .collect();
+        assert_eq!(flattened, "the quick brown fox");
+    }
+
+    // Back at width 7, we should have exactly the rows we started with.
+    assert_eq!(rows_as_text(&storage), original);
+}
+
+#[test]
+fn test_reflow_wide_chars_across_widths() {
+    // Three double-width emoji.  Reflowing them across widths exercises the
+    // leading-wide-char-spacer path (a wide char that won't fit in the single
+    // remaining cell of a row wraps to the next row).
+    let mut storage = FlatStorage::new(6, None, None);
+    storage.push_rows_from_string("😀😀😀\n");
+
+    // Helper: does any cell in the given row carry a leading-wide-char spacer?
+    let has_leading_spacer = |storage: &FlatStorage, row_idx: usize| {
+        let row = storage.rows_from(row_idx).next().expect("row should exist");
+        (0..row.occ).any(|c| row[c].flags().contains(Flags::LEADING_WIDE_CHAR_SPACER))
+    };
+
+    // Width 6: all three emoji fit on a single row.
+    assert_eq!(storage.total_rows(), 1);
+    assert!(!has_leading_spacer(&storage, 0));
+
+    // Width 5: two emoji occupy 4 cells; the third wide char can't fit in the
+    // single remaining cell, so the row ends with a leading-wide-char spacer
+    // and the third emoji moves to its own row.
+    storage.set_columns(5);
+    assert_eq!(storage.total_rows(), 2);
+    assert!(has_leading_spacer(&storage, 0));
+    assert!(!has_leading_spacer(&storage, 1));
+
+    // Width 3: each emoji gets its own row (only one wide char fits per row).
+    // The two non-final rows each end with a single empty cell that the next
+    // row's wide char could not fit into, so they carry a leading-wide-char
+    // spacer; the final row hard-wraps and does not.
+    storage.set_columns(3);
+    assert_eq!(storage.total_rows(), 3);
+    for row_idx in 0..3 {
+        let row = storage.rows_from(row_idx).next().expect("row should exist");
+        assert_eq!(row[0].c, '😀');
+    }
+    assert!(has_leading_spacer(&storage, 0));
+    assert!(has_leading_spacer(&storage, 1));
+    assert!(!has_leading_spacer(&storage, 2));
+
+    // Width 4: two emoji per row (4 cells each), so two rows with no leading
+    // spacer.
+    storage.set_columns(4);
+    assert_eq!(storage.total_rows(), 2);
+    assert!(!has_leading_spacer(&storage, 0));
+    assert!(!has_leading_spacer(&storage, 1));
 }

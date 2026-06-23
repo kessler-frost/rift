@@ -37,9 +37,8 @@ use super::settings_page::render_sub_sub_header;
 use super::settings_page::{
     add_setting, build_reset_button, build_toggle_element, render_body_item,
     render_body_item_label, render_dropdown_item, render_dropdown_item_label, AdditionalInfo,
-    Category, LocalOnlyIconState, MatchData, PageType,
-    SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, ToggleState, CONTENT_FONT_SIZE,
-    HEADER_PADDING, TOGGLE_BUTTON_RIGHT_PADDING,
+    Category, LocalOnlyIconState, MatchData, PageType, SettingsPageMeta, SettingsPageViewHandle,
+    SettingsWidget, ToggleState, CONTENT_FONT_SIZE, HEADER_PADDING, TOGGLE_BUTTON_RIGHT_PADDING,
 };
 use super::{
     features, flags, render_beta_chip, DisplayCount, SettingsAction, SettingsSection,
@@ -54,21 +53,21 @@ use crate::editor::{
 use crate::features::FeatureFlag;
 use crate::gpu_state::{GPUState, GPUStateEvent};
 use crate::root_view::QuakeModePinPosition;
-use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::native_preference::{NativePreferenceSettings, UserNativePreference};
+use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::{
-    AliasExpansionEnabled, AliasExpansionSettings, AppEditorSettings,
-    AtContextMenuInTerminalMode, AutocompleteSymbols, AutosuggestionKeybindingHint,
-    CodeEditorLineNumberMode,
+    AliasExpansionEnabled, AliasExpansionSettings, AppEditorSettings, AtContextMenuInTerminalMode,
+    AutocompleteSymbols, AutosuggestionKeybindingHint, CodeEditorLineNumberMode,
     CodeEditorLineNumberModeSetting, CodeSettings, CommandCorrections, CompletionsOpenWhileTyping,
-    CopyOnSelect, CtrlTabBehavior, DefaultSessionMode, ErrorUnderliningEnabled, ExtraMetaKeys, GPUSettings, GlobalHotkeyMode,
-    InputSettings, InputSettingsChangedEvent, LinuxSelectionClipboard, MiddleClickPasteEnabled,
-    MouseScrollMultiplier, OutlineCodebaseSymbolsForAtContextMenu, PreferLowPowerGPU,
-    PreferredGraphicsBackend, QuakeModeSettings, ScrollSettings, ScrollSettingsChangedEvent,
-    SelectionSettings, ShowAutosuggestionIgnoreButton,
-    ShowTerminalInputMessageBar, SshSettings, SyntaxHighlighting, TabBehavior,
-    UserNativeRedirectPreference, VimModeEnabled, VimStatusBar, VimUnnamedSystemClipboard,
-    DEFAULT_QUAKE_MODE_SIZE_PERCENTAGES, QUAKE_WINDOW_AUTOHIDE_SUPPORTED,
+    CopyOnSelect, CtrlTabBehavior, DefaultSessionMode, ErrorUnderliningEnabled, ExtraMetaKeys,
+    GPUSettings, GlobalHotkeyMode, InputSettings, InputSettingsChangedEvent,
+    LinuxSelectionClipboard, MiddleClickPasteEnabled, MouseScrollMultiplier,
+    OutlineCodebaseSymbolsForAtContextMenu, PreferLowPowerGPU, PreferredGraphicsBackend,
+    QuakeModeSettings, ScrollSettings, ScrollSettingsChangedEvent, SelectionSettings,
+    ShowAutosuggestionIgnoreButton, ShowTerminalInputMessageBar, SshSettings, SyntaxHighlighting,
+    TabBehavior, UserNativeRedirectPreference, VimModeEnabled, VimStatusBar,
+    VimUnnamedSystemClipboard, DEFAULT_QUAKE_MODE_SIZE_PERCENTAGES,
+    QUAKE_WINDOW_AUTOHIDE_SUPPORTED,
 };
 use crate::terminal::alt_screen_reporting::{
     AltScreenReporting, FocusReportingEnabled, MouseReportingEnabled, ScrollReportingEnabled,
@@ -519,16 +518,14 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         flags::SMART_SELECT_FLAG,
     ));
 
-    toggle_binding_pairs.push(
-        ToggleSettingActionPair::new(
-            "terminal input message line",
-            builder(SettingsAction::FeaturesPageToggle(
-                FeaturesPageAction::ToggleShowTerminalInputMessageLine,
-            )),
-            context,
-            flags::SHOW_TERMINAL_INPUT_MESSAGE_LINE_FLAG,
-        ),
-    );
+    toggle_binding_pairs.push(ToggleSettingActionPair::new(
+        "terminal input message line",
+        builder(SettingsAction::FeaturesPageToggle(
+            FeaturesPageAction::ToggleShowTerminalInputMessageLine,
+        )),
+        context,
+        flags::SHOW_TERMINAL_INPUT_MESSAGE_LINE_FLAG,
+    ));
     toggle_binding_pairs.push(
         ToggleSettingActionPair::new(
             "'@' context menu in terminal mode",
@@ -1632,7 +1629,6 @@ impl FeaturesPageView {
         ctx.subscribe_to_model(&DefaultTerminal::handle(ctx), |_, _, _, ctx| {
             ctx.notify();
         });
-
 
         let pin_position_dropdown = ctx.add_typed_action_view(|ctx| {
             let mut dropdown = Dropdown::new(ctx);
@@ -3830,12 +3826,7 @@ impl SettingsWidget for SessionRestorationWidget {
             .finish();
 
             let link = ui_builder
-                .link(
-                    "See docs.".to_owned(),
-                    None,
-                    None,
-                    self.docs_link.clone(),
-                )
+                .link("See docs.".to_owned(), None, None, self.docs_link.clone())
                 .soft_wrap(false)
                 .build()
                 .finish();
@@ -4370,7 +4361,6 @@ impl SettingsWidget for DesktopNotificationsWidget {
 
             column.add_child(render_group(toggles, appearance));
         }
-
 
         column.finish()
     }
@@ -6148,7 +6138,6 @@ impl SettingsWidget for DefaultSessionModeWidget {
             .finish()
     }
 }
-
 
 #[derive(Default)]
 struct LinuxSelectionClipboardWidget {

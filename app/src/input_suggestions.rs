@@ -5,6 +5,7 @@ use std::{cmp, vec};
 
 use async_channel::Sender;
 use chrono::{DateTime, Local};
+use command_signatures::IconType;
 use fuzzy_match::match_indices;
 use itertools::Itertools;
 use pathfinder_geometry::vector::vec2f;
@@ -27,7 +28,6 @@ use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
     AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext, WeakViewHandle,
 };
-use command_signatures::IconType;
 
 use crate::appearance::Appearance;
 use crate::terminal::model::session::SessionId;

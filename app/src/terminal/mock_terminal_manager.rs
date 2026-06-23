@@ -145,9 +145,7 @@ mod testing {
     }
 
     impl MockTerminalManager {
-        pub fn create_new_terminal_view_window_for_test(
-            app: &mut App,
-        ) -> ViewHandle<TerminalView> {
+        pub fn create_new_terminal_view_window_for_test(app: &mut App) -> ViewHandle<TerminalView> {
             let tips_model = app.add_model(|_| Default::default());
 
             let (window_id, _) = app.add_window(WindowStyle::NotStealFocus, |ctx| {

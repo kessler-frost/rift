@@ -38,8 +38,7 @@ use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, Ri
 use riftui::actions::StandardAction;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    CornerRadius, Hoverable,
-    MouseStateHandle, Radius, DEFAULT_UI_LINE_HEIGHT_RATIO,
+    CornerRadius, Hoverable, MouseStateHandle, Radius, DEFAULT_UI_LINE_HEIGHT_RATIO,
 };
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties, Weight};
 use riftui::keymap::{EditableBinding, FixedBinding, Keystroke, PerPlatformKeystroke};
@@ -51,9 +50,9 @@ use riftui::text_layout::TextStyle;
 use riftui::ui_components::components::UiComponentStyles;
 use riftui::windowing::WindowManager;
 use riftui::{
-    windowing, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId,
-    FocusContext, ModelAsRef, ModelContext, ModelHandle, SingletonEntity, TypedActionView, View,
-    ViewContext, ViewHandle, WindowId,
+    windowing, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId, FocusContext,
+    ModelAsRef, ModelContext, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
+    ViewHandle, WindowId,
 };
 use settings::Setting as _;
 use snapshot::{EditorHeightShrinkDelay, ViewSnapshot};
@@ -128,7 +127,6 @@ pub enum AutosuggestionType {
         was_intelligent_autosuggestion: bool,
     },
 }
-
 
 impl fmt::Display for AutosuggestionLocation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -345,9 +343,7 @@ pub fn init(ctx: &mut AppContext) {
         FixedBinding::new(
             "ctrl-enter",
             EditorAction::CtrlEnter,
-            id!("EditorView")
-                & !id!("IMEOpen")
-                & !id!(flags::CTRL_ENTER_ACCEPTS_PROMPT_SUGGESTION),
+            id!("EditorView") & !id!("IMEOpen") & !id!(flags::CTRL_ENTER_ACCEPTS_PROMPT_SUGGESTION),
         ),
         FixedBinding::new(
             "alt-enter",
@@ -1537,7 +1533,6 @@ pub fn default_cursor_colors(ctx: &AppContext) -> CursorColors {
         selection: theme.text_selection_color(),
     }
 }
-
 
 #[derive(Debug)]
 pub enum ImageContextOptions {
@@ -3186,7 +3181,6 @@ impl EditorView {
         }
     }
 
-
     /// Set placeholder text that appears when buffer matches the given prefix.
     /// Use empty string prefix "" for the default placeholder (shown when buffer is empty).
     pub fn set_placeholder_text_with_prefix(
@@ -4546,7 +4540,6 @@ impl EditorView {
             }),
         );
     }
-
 
     pub fn attach_files(&mut self, ctx: &mut ViewContext<Self>) {
         let window_id = ctx.window_id();
@@ -7571,7 +7564,6 @@ impl EditorView {
             editor_model.clear_marked_text(ctx);
         });
     }
-
 }
 
 /// Try to convert display point to an anchor. If it is not possible, clamp to anchoring at end of buffer.
@@ -7968,11 +7960,9 @@ impl View for EditorView {
             ctx,
         );
 
-        let hoverable = Hoverable::new(self.hover_handle.clone(), |_state| editor_element.finish())
+        (Hoverable::new(self.hover_handle.clone(), |_state| editor_element.finish())
             .with_cursor(Cursor::IBeam)
-            .finish();
-
-        hoverable
+            .finish()) as _
     }
 
     fn keymap_context(&self, ctx: &AppContext) -> riftui::keymap::Context {

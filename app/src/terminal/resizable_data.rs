@@ -45,9 +45,7 @@ impl ModalSizes {
         let universal_search_width = window_snapshot
             .universal_search_width
             .unwrap_or(DEFAULT_UNIVERSAL_SEARCH_WIDTH);
-        let ai_width = window_snapshot
-            .ai_width
-            .unwrap_or(DEFAULT_AI_WIDTH);
+        let ai_width = window_snapshot.ai_width.unwrap_or(DEFAULT_AI_WIDTH);
         let voltron_width = window_snapshot
             .voltron_width
             .unwrap_or(DEFAULT_VOLTRON_WIDTH);

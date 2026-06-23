@@ -10,12 +10,12 @@ pub use errors::{ArgumentError, ParseError, ParseErrorReason};
 pub mod hir;
 pub mod simple;
 
+use command_signatures::Argument;
 use derive_new::new;
 use hir::{ArgType, Command, Expression, ExternalCommand};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use command_signatures::Argument;
 
 use crate::completer::TopLevelCommandCaseSensitivity;
 use crate::meta::{HasSpan, Span, Spanned, SpannedItem};

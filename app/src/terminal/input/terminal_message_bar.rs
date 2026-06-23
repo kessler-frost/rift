@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::FairMutex;
-use riftui::elements::{Container, Empty, Element};
+use riftui::elements::{Container, Element, Empty};
 use riftui::keymap::Keystroke;
 use riftui::{AppContext, Entity, ModelHandle, View, ViewContext};
 
@@ -83,7 +83,6 @@ impl View for TerminalInputMessageBar {
         Container::new(Empty::new().finish()).finish()
     }
 }
-
 
 struct InlineHistoryMessageProducer;
 impl MessageProvider<Option<&AcceptHistoryItem>> for InlineHistoryMessageProducer {

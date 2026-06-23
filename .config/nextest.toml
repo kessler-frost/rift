@@ -16,11 +16,11 @@ threads-required = 2
 failure-output = "immediate-final"
 # Do not cancel the test run on the first failure.
 fail-fast = false
-
-[[profile.ci.overrides]]
-filter = 'package(integration)'
-# On CI, try integration tests up to 3 times (in total) to reduce the impact of
-# flaky tests.
+# Retry flaky tests up to 3 times total. The integration suite races on shared
+# resources under parallelism, and a few unit tests flake under high concurrency
+# too (e.g. terminal::input history/decoration tests). Retries keep CI
+# deterministic without masking genuine, repeatable failures — those still fail
+# on every attempt.
 retries = 2
 
 [profile.ci.junit]

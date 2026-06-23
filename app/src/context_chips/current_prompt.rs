@@ -28,9 +28,7 @@ use crate::terminal::event::{BlockType, UserBlockCompleted};
 use crate::terminal::model::block::{Block, BlockMetadata};
 use crate::terminal::model::session::{ExecuteCommandOptions, Session, Sessions, SessionsEvent};
 use crate::terminal::model_events::{ModelEvent, ModelEventDispatcher};
-use crate::terminal::session_settings::{
-    SessionSettings, SessionSettingsChangedEvent,
-};
+use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use crate::terminal::view::{ContextMenuAction, PromptPart, PromptPosition, TerminalAction};
 
 #[cfg(test)]
@@ -1315,7 +1313,6 @@ impl CurrentPrompt {
         let _ = self.update_tx.try_send(());
     }
 
-
     /// Returns `true` when the given chip's value is updated externally
     /// (e.g. by a filesystem watcher) and the periodic timer should be skipped.
     fn is_updated_externally(&self, chip_kind: &ContextChipKind) -> bool {
@@ -1333,7 +1330,6 @@ impl CurrentPrompt {
         let _ = chip_kind;
         false
     }
-
 }
 
 impl Entity for CurrentPrompt {

@@ -8,7 +8,6 @@ mod wsl_command_executor;
 use std::collections::HashMap;
 mod noop_command_executor;
 #[cfg(feature = "local_tty")]
-#[cfg(feature = "local_tty")]
 mod shared;
 
 use std::any::Any;
@@ -150,7 +149,6 @@ fn new_command_executor_for_local_tty_session(
     use wsl_command_executor::WslCommandExecutor;
 
     use super::IsLegacySSHSession;
-    
     use crate::settings::DebugSettings;
     use crate::terminal::available_shells::AvailableShells;
     use crate::terminal::model::session::{BootstrapSessionType, ShellLaunchData};

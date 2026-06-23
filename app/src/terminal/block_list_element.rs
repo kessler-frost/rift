@@ -45,18 +45,16 @@ use super::model::mouse::{MouseAction, MouseButton, MouseState};
 use super::model::session::SessionId;
 use super::model::terminal_model::{SelectedBlocks, WithinBlock, WithinModel};
 use super::model::SecretHandle;
+use super::riftify::render::{draw_flag_pole, render_subshell_flag};
 use super::view::{
     BlocklistAIRenderContext, InlineBannerId, RichContentMetadata, SeparatorId, TerminalEditor,
     TerminalViewRenderContext, BLOCK_BANNER_HEIGHT,
 };
-use super::riftify::render::{draw_flag_pole, render_subshell_flag};
 use super::{heights_approx_eq, TerminalModel, HEIGHT_FUDGE_FACTOR_LINES};
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
 use crate::pane_group::SplitPaneState;
-use crate::settings::{
-    DebugSettings, EnforceMinimumContrast, TerminalSpacing,
-};
+use crate::settings::{DebugSettings, EnforceMinimumContrast, TerminalSpacing};
 use crate::terminal::alt_screen::{should_intercept_mouse, should_intercept_scroll};
 use crate::terminal::block_list_viewport::AutoscrollBehavior;
 use crate::terminal::blockgrid_renderer::BlockGridParams;
@@ -71,9 +69,9 @@ use crate::terminal::model::escape_sequences::{
 use crate::terminal::model::index::Point as IndexPoint;
 use crate::terminal::model::selection::{SelectAction, SelectionPoint};
 use crate::terminal::model::terminal_model::BlockIndex;
+use crate::terminal::riftify::SubshellSource;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 use crate::terminal::view::TerminalAction;
-use crate::terminal::riftify::SubshellSource;
 use crate::terminal::{grid_renderer, SizeInfo};
 use crate::themes::theme::RiftTheme;
 use crate::ui_components::icons as UIIcon;
@@ -156,7 +154,6 @@ const OVERFLOW_BUTTON_ICON_PATH: &str = "bundled/svg/overflow.svg";
 const SNACKBAR_TOGGLE_BUTTON_HOVER_LINES: f32 = 4.;
 const SNACKBAR_TOGGLE_BUTTON_WIDTH: f32 = 30.;
 const SNACKBAR_TOGGLE_BUTTON_HEIGHT: f32 = 16.;
-
 
 pub type LabelBuilderFn = dyn Fn(
     Vec<BlockIndex>,
@@ -1425,7 +1422,9 @@ impl BlockListElement {
                         }
                         // While rich content blocks can't be selected like command blocks,
                         // text selections can still originate in them (i.e. with AI blocks)
-                        Some(BlockHeightItem::RichContent(RichContentItem { view_id: _, .. })) => {
+                        Some(BlockHeightItem::RichContent(RichContentItem {
+                            view_id: _, ..
+                        })) => {
                             let bounds = self
                                 .bounds
                                 .expect("Bounds should be set before event dispatching");
@@ -1867,7 +1866,6 @@ impl BlockListElement {
             ctx.scene.stop_layer();
         }
     }
-
 
     #[allow(clippy::too_many_arguments)]
     fn draw_block_background(
@@ -2533,7 +2531,6 @@ impl BlockListElement {
 
         result
     }
-
 }
 
 /// With a `WithinBlock<IndexPoint>`, the point will count rows with 0 starting with the beginning
@@ -2789,7 +2786,6 @@ impl Element for BlockListElement {
                                     prev_block_subshell_session_id = None;
                                 }
                             }
-
                         }
 
                         visible_items.push(VisibleItem::Block {
@@ -3224,8 +3220,7 @@ impl Element for BlockListElement {
                     }
 
                     // TODO(vorporeal): should probably use `Pixels` here
-                    let block_pixel_height =
-                        block.height().as_f64() as f32 * cell_size.y();
+                    let block_pixel_height = block.height().as_f64() as f32 * cell_size.y();
 
                     let block_bottom_y = grid_origin.y() + block_pixel_height;
                     let selection_bottom_y = snackbar_header

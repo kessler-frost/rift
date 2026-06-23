@@ -5,8 +5,7 @@ use super::workspace::{EnterpriseSecretRegex, Workspace, WorkspaceUid};
 use crate::server::ids::ServerId;
 
 #[derive(Debug)]
-pub enum UserWorkspacesEvent {
-}
+pub enum UserWorkspacesEvent {}
 
 /// UserWorkspaces is a singleton model that holds workspace metadata (name, members, etc).
 ///
@@ -72,11 +71,7 @@ impl UserWorkspaces {
 
     pub fn is_enterprise_secret_redaction_enabled(&self) -> bool {
         self.current_team()
-            .map(|team| {
-                team.organization_settings
-                    .secret_redaction_settings
-                    .enabled
-            })
+            .map(|team| team.organization_settings.secret_redaction_settings.enabled)
             .unwrap_or(false)
     }
 
@@ -98,4 +93,3 @@ impl Entity for UserWorkspaces {
 
 /// Mark UserWorkspaces as global application state.
 impl SingletonEntity for UserWorkspaces {}
-

@@ -309,6 +309,27 @@ fn from_hex_negative_test() {
 }
 
 #[test]
+fn from_hex_multibyte_does_not_panic() {
+    // Multibyte input whose *byte* length is 3 or 6 (passing the length gate) but whose char
+    // boundaries don't align with the 2-byte slicing previously used `&s[i..i + 2]`. These must
+    // return InvalidValue rather than panic with "byte index N is not a char boundary".
+    // "€" is 3 bytes: "#€" has a 3-byte body (short path), "#€€" has a 6-byte body (full path).
+    assert_eq!(
+        hex_color::coloru_from_hex_string("#€").unwrap_err(),
+        hex_color::HexColorError::InvalidValue
+    );
+    assert_eq!(
+        hex_color::coloru_from_hex_string("#€€").unwrap_err(),
+        hex_color::HexColorError::InvalidValue
+    );
+    // A 2-byte char ("é") doubled in the short path also lands mid-boundary in some positions.
+    assert_eq!(
+        hex_color::coloru_from_hex_string("#aé").unwrap_err(),
+        hex_color::HexColorError::InvalidValue
+    );
+}
+
+#[test]
 fn from_hex_positive_test() {
     assert_eq!(
         hex_color::coloru_from_hex_string("#000").unwrap(),

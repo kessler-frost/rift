@@ -336,9 +336,7 @@ pub fn test_script_execution_block() {
     assert_eq!(block_list.blocks.len(), 2);
     assert!(block_list.active_block().started());
     // Ensure that script execution block has a height of 0 if nothing was added to it.
-    assert!(block_list
-        .active_block()
-        .is_empty());
+    assert!(block_list.active_block().is_empty());
 
     advance_to_bootstrapped(&mut block_list, Default::default());
 
@@ -352,18 +350,14 @@ pub fn test_script_execution_block() {
 
     assert_eq!(block_list.blocks.len(), 2);
     assert!(block_list.active_block().started());
-    assert!(block_list
-        .active_block()
-        .is_empty());
+    assert!(block_list.active_block().is_empty());
 
     // Add characters to script execution block.
     block_list.input('c');
     block_list.update_active_block_height();
 
     assert_eq!(block_list.blocks.len(), 2);
-    assert!(!block_list
-        .active_block()
-        .is_empty());
+    assert!(!block_list.active_block().is_empty());
 
     advance_to_bootstrapped(&mut block_list, Default::default());
 
@@ -407,9 +401,7 @@ pub fn visible_bootstrap_block_event_fires_when_script_execution_becomes_visible
     advance_to_script_execution(&mut block_list);
 
     assert!(block_list.active_block().started());
-    assert!(block_list
-        .active_block()
-        .is_empty());
+    assert!(block_list.active_block().is_empty());
 
     let events = drain_terminal_events(&events_rx);
     assert!(!events
@@ -458,14 +450,8 @@ pub fn test_restore_completed_blocks() {
     // block.
     assert_eq!(block_list.blocks.len(), 3);
     let restored_block_height = 5.5;
-    assert_lines_approx_eq!(
-        block_list.blocks[0].height(),
-        restored_block_height
-    );
-    assert_lines_approx_eq!(
-        block_list.blocks[1].height(),
-        restored_block_height
-    );
+    assert_lines_approx_eq!(block_list.blocks[0].height(), restored_block_height);
+    assert_lines_approx_eq!(block_list.blocks[1].height(), restored_block_height);
     // The session-restoration separator was removed, so the total height is
     // just the two restored blocks.
     assert_lines_approx_eq!(
@@ -564,10 +550,7 @@ pub fn test_restore_block_that_wasnt_started() {
         block_list.blocks[0].bootstrap_stage(),
         BootstrapStage::RiftInput
     );
-    assert_eq!(
-        block_list.blocks[0].height(),
-        Lines::zero()
-    );
+    assert_eq!(block_list.blocks[0].height(), Lines::zero());
 
     let mut block_completed_events = Vec::new();
     while let Ok(event) = events_rx.try_recv() {
@@ -704,14 +687,8 @@ pub fn test_insert_non_block_item() {
     assert_eq!(block_list.blocks.len(), 5);
     assert_lines_approx_eq!(block_list.blocks[0].height(), 0.);
     assert_lines_approx_eq!(block_list.blocks[1].height(), 0.);
-    assert_lines_approx_eq!(
-        block_list.blocks[2].height(),
-        block_height
-    );
-    assert_lines_approx_eq!(
-        block_list.blocks[3].height(),
-        block_height
-    );
+    assert_lines_approx_eq!(block_list.blocks[2].height(), block_height);
+    assert_lines_approx_eq!(block_list.blocks[3].height(), block_height);
     assert_lines_approx_eq!(block_list.blocks[4].height(), 0.);
 
     fn assert_block_height_summary_eq(a: BlockHeightSummary, b: BlockHeightSummary) {
@@ -924,12 +901,8 @@ fn test_banner_insertion_and_removal() {
         total_count_after_insertion
     );
 
-    let expected_total_height = (block_list.blocks[2]
-        .height()
-        .as_f64()
-        * 3.
-        + 3. * INLINE_BANNER_HEIGHT)
-        .into_lines();
+    let expected_total_height =
+        (block_list.blocks[2].height().as_f64() * 3. + 3. * INLINE_BANNER_HEIGHT).into_lines();
     assert_lines_approx_eq!(
         block_list.block_heights.summary().height,
         expected_total_height

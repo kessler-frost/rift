@@ -157,6 +157,44 @@ fn vim_a_paragraph_three_paragraphs() {
 }
 
 #[test]
+fn vim_inner_paragraph_cursor_on_leading_newline_does_not_panic() {
+    // Cursor on a newline at offset 0 (buffer begins with a blank line). Previously this
+    // computed `offset - 1` before adding the newline count, underflowing `CharOffset` and
+    // panicking (debug) / wrapping (release). The result must be a valid, non-inverted range.
+    let range = vim_inner_paragraph("\n", 0).unwrap();
+    assert!(
+        range.start <= range.end,
+        "range must not be inverted: {range:?}"
+    );
+    assert_eq!(range, 0.into()..0.into());
+
+    // A multi-newline run that begins at offset 0 must also be handled without underflow.
+    // Consistent with the interior blank-line case (one boundary newline trimmed from each
+    // side of the run): the run spans offsets 0..=2, trimmed inner is 1..2.
+    let range = vim_inner_paragraph("\n\n\n", 0).unwrap();
+    assert!(
+        range.start <= range.end,
+        "range must not be inverted: {range:?}"
+    );
+    assert_eq!(range, 1.into()..2.into());
+}
+
+#[test]
+fn vim_a_paragraph_cursor_on_leading_newline_does_not_panic() {
+    let range = vim_a_paragraph("\n", 0).unwrap();
+    assert!(
+        range.start <= range.end,
+        "range must not be inverted: {range:?}"
+    );
+
+    let range = vim_a_paragraph("\n\n\n", 0).unwrap();
+    assert!(
+        range.start <= range.end,
+        "range must not be inverted: {range:?}"
+    );
+}
+
+#[test]
 fn vim_inner_paragraph_blank_lines() {
     let text = "first\n\n\nsecond\n";
 

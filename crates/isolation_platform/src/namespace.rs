@@ -1,7 +1,5 @@
 use std::{env, fs};
 
-
-
 /// Detect whether or not we are running in a Namespace instance.
 pub fn is_in_namespace_instance() -> bool {
     // For Namespace, match their CLI's logic for detecting a token:

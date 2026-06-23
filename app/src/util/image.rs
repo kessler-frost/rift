@@ -93,7 +93,6 @@ pub fn resize_image(image: &[u8]) -> Result<Vec<u8>, ImageError> {
     Ok(output_bytes)
 }
 
-
 #[cfg(test)]
 #[path = "image_tests.rs"]
 mod tests;

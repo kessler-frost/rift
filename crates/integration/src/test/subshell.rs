@@ -11,8 +11,8 @@ use rift::integration_testing::terminal::util::current_shell_starter_and_version
 use rift::integration_testing::terminal::wait_until_bootstrapped_single_pane_for_tab;
 use rift::integration_testing::view_getters::single_input_view_for_tab;
 use rift::root_view::SubshellCommandArg;
-use rift::terminal::shell::ShellType;
 use rift::terminal::riftify::settings::AddedSubshellCommands;
+use rift::terminal::shell::ShellType;
 use riftui_core::integration::{AssertionOutcome, TestStep};
 use riftui_core::windowing::state::ApplicationStage;
 use riftui_core::windowing::WindowManager;

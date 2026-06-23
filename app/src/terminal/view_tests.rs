@@ -2098,8 +2098,7 @@ fn test_create_notification_char_boundaries_respected() {
 fn test_banner_for_incompatible_plugins() {
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
-        let terminal =
-            MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
+        let terminal = MockTerminalManager::create_new_terminal_view_window_for_test(&mut app);
 
         SessionSettings::handle(&app).update(&mut app, |session_settings, ctx| {
             let _ = session_settings.honor_ps1.set_value(true, ctx);

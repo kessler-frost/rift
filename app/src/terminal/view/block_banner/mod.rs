@@ -8,12 +8,12 @@
 
 mod riftify;
 
+pub use riftify::*;
 use riftui::elements::{
     ConstrainedBox, Container, CornerRadius, Hoverable, MouseState, MouseStateHandle,
     ParentElement, Radius, Stack,
 };
 use riftui::Element;
-pub use riftify::*;
 
 use crate::themes::theme::RiftTheme;
 

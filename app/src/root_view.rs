@@ -41,9 +41,9 @@ use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings::QuakeModeSettings;
 use crate::settings_view::{flags, SettingsSection};
 use crate::terminal::available_shells::AvailableShell;
-use crate::terminal::model::block::SerializedBlockListItem;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
+use crate::terminal::model::block::SerializedBlockListItem;
 use crate::terminal::shell::ShellType;
 use crate::terminal::view::cell_size_and_padding;
 use crate::themes::theme::AnsiColorIdentifier;
@@ -53,8 +53,8 @@ use crate::window_settings::WindowSettings;
 use crate::workspace::{PaneViewLocator, Workspace, WorkspaceAction, WorkspaceRegistry};
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::{
-    send_telemetry_from_app_ctx, send_telemetry_from_ctx, ChannelState,
-    GlobalResourceHandles, GlobalResourceHandlesProvider, UpdateQuakeModeEventArg,
+    send_telemetry_from_app_ctx, send_telemetry_from_ctx, ChannelState, GlobalResourceHandles,
+    GlobalResourceHandlesProvider, UpdateQuakeModeEventArg,
 };
 
 const WINDOW_TITLE: &str = "Rift";
@@ -163,8 +163,7 @@ pub struct CreateEnvironmentArg {
     pub repos: Vec<String>,
 }
 
-impl CreateEnvironmentArg {
-}
+impl CreateEnvironmentArg {}
 
 pub fn init(app: &mut AppContext) {
     app.register_binding_validator::<RootView>(is_binding_pty_compliant);
@@ -676,8 +675,6 @@ pub(crate) fn open_new_from_path(
     )
 }
 
-
-
 /// Opens a new window and starts the guided `/create-environment` setup flow.
 fn create_environment(arg: &CreateEnvironmentArg, ctx: &mut AppContext) {
     let repos = arg.repos.clone();
@@ -745,10 +742,6 @@ fn open_settings_page_in_new_window(section: &SettingsSection, ctx: &mut AppCont
         }
     });
 }
-
-
-
-
 
 /// Creates a new window and returns its [`WindowId`] and root view's [`ViewHandle`].
 pub(crate) fn open_new_window_get_handles(
@@ -1214,14 +1207,12 @@ impl RootView {
         let auth_onboarding_state =
             AuthOnboardingState::Terminal(workspace_args.create_workspace(ctx));
 
-        let root_view = Self {
+        Self {
             auth_onboarding_state,
             model_event_sender,
             mouse_states: Default::default(),
             window_id: ctx.window_id(),
-        };
-
-        root_view
+        }
     }
 
     /// Used for integration tests.
@@ -1337,8 +1328,6 @@ impl RootView {
         }
         true
     }
-
-
 
     /// Adds a tab and starts the guided `/create-environment` setup flow.
     fn create_environment_in_existing_window(
@@ -1469,9 +1458,6 @@ impl RootView {
         true
     }
 
-
-
-
     /// Dead in the offline build: there is no server to sync the onboarding flag to, and the
     /// `AuthManagerEvent::AuthComplete` that drove this no longer exists.
     #[allow(dead_code)]
@@ -1594,11 +1580,7 @@ impl TypedActionView for RootView {
 impl WorkspaceArgs {
     fn create_workspace(self, ctx: &mut ViewContext<RootView>) -> ViewHandle<Workspace> {
         ctx.add_typed_action_view(|ctx| {
-            Workspace::new(
-                self.global_resource_handles,
-                self.workspace_setting,
-                ctx,
-            )
+            Workspace::new(self.global_resource_handles, self.workspace_setting, ctx)
         })
     }
 }

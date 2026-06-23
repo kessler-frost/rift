@@ -132,4 +132,3 @@ pub fn init_pty_controller_model<Sender: EventLoopSender>(
         )
     })
 }
-

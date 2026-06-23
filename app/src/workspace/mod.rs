@@ -53,8 +53,7 @@ pub use registry::WorkspaceRegistry;
 pub use toast_stack::ToastStack;
 
 use crate::workspace::view::{
-    NEW_TAB_BINDING_NAME,
-    NEW_TERMINAL_TAB_BINDING_NAME, TOGGLE_RIGHT_PANEL_BINDING_NAME,
+    NEW_TAB_BINDING_NAME, NEW_TERMINAL_TAB_BINDING_NAME, TOGGLE_RIGHT_PANEL_BINDING_NAME,
     TOGGLE_TAB_CONFIGS_MENU_BINDING_NAME, TOGGLE_VERTICAL_TABS_PANEL_BINDING_NAME,
 };
 
@@ -127,14 +126,12 @@ pub fn init(app: &mut AppContext) {
         #[cfg(debug_assertions)]
         {
             // Debug actions for build plan migration modal (command palette only)
-            app.register_editable_bindings([
-                EditableBinding::new(
-                    "workspace:open_session_config_modal",
-                    "[Debug] Open Session Config Modal",
-                    WorkspaceAction::ShowSessionConfigModal,
-                )
-                .with_context_predicate(id!("Workspace")),
-            ]);
+            app.register_editable_bindings([EditableBinding::new(
+                "workspace:open_session_config_modal",
+                "[Debug] Open Session Config Modal",
+                WorkspaceAction::ShowSessionConfigModal,
+            )
+            .with_context_predicate(id!("Workspace"))]);
         }
     }
 
@@ -753,9 +750,6 @@ pub fn init(app: &mut AppContext) {
         .with_custom_action(CustomAction::ToggleResourceCenter)]);
     }
 
-    if cfg!(not(target_family = "wasm")) {
-    }
-
     // CLI install/uninstall actions (macOS only)
     #[cfg(target_os = "macos")]
     {
@@ -794,8 +788,7 @@ pub fn init(app: &mut AppContext) {
         .with_key_binding("cmdorctrl-shift-)"),
     ]);
 
-    app.register_editable_bindings([
-    ]);
+    app.register_editable_bindings([]);
 
     // Register a debug-only action for writing the user's access token to the system clipboard
     // to aid debugging and development.
@@ -809,23 +802,18 @@ pub fn init(app: &mut AppContext) {
         .with_context_predicate(id!("Workspace"))]);
     }
 
-    app.register_editable_bindings([
-        EditableBinding::new(
-            "workspace:open_repository",
-            BindingDescription::new("Open repository")
-                .with_custom_description(bindings::MAC_MENUS_CONTEXT, "Open Repository"),
-            WorkspaceAction::OpenRepository { path: None },
-        )
-        .with_context_predicate(id!("Workspace"))
-        .with_custom_action(CustomAction::OpenRepository)
-        .with_group(bindings::BindingGroup::Folders.as_str()),
-    ]);
-
-
+    app.register_editable_bindings([EditableBinding::new(
+        "workspace:open_repository",
+        BindingDescription::new("Open repository")
+            .with_custom_description(bindings::MAC_MENUS_CONTEXT, "Open Repository"),
+        WorkspaceAction::OpenRepository { path: None },
+    )
+    .with_context_predicate(id!("Workspace"))
+    .with_custom_action(CustomAction::OpenRepository)
+    .with_group(bindings::BindingGroup::Folders.as_str())]);
 
     add_open_setting_pages_as_editable_binding(app);
     add_overflow_menu_items_as_editable_binding(app);
-
 }
 
 fn add_open_setting_pages_as_editable_binding(app: &mut AppContext) {

@@ -65,7 +65,6 @@ impl UserProfiles {
             );
         }
     }
-
 }
 
 impl Entity for UserProfiles {

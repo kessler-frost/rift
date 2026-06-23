@@ -241,7 +241,8 @@ impl TerminationType {
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(
-                                "https://github.com/kessler-frost/rift/issues/new/choose".to_string(),
+                                "https://github.com/kessler-frost/rift/issues/new/choose"
+                                    .to_string(),
                             ));
                         })
                         .finish(),
