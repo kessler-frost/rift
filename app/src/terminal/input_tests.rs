@@ -131,10 +131,17 @@ pub async fn add_window_with_bootstrapped_terminal_and_window_id(
         .expect("Could not create a shell starter source");
     let shell_type = shell_starter_source.shell_type();
 
-    let session_info = session_info
-        .unwrap_or_else(SessionInfo::new_for_test)
-        .with_session_type(BootstrapSessionType::Local)
-        .with_shell_type(shell_type);
+    // Only fall back to the host's detected shell when the caller didn't supply
+    // a SessionInfo. Tests that pass one (e.g. the zsh-specific history and
+    // decoration tests) depend on its shell type; the detected shell is zsh on
+    // dev machines but bash on CI, which silently changed the behavior under
+    // test and made those tests pass locally but fail in CI.
+    let session_info = match session_info {
+        Some(session_info) => session_info.with_session_type(BootstrapSessionType::Local),
+        None => SessionInfo::new_for_test()
+            .with_session_type(BootstrapSessionType::Local)
+            .with_shell_type(shell_type),
+    };
     let history_file_commands = history_file_commands.unwrap_or_default();
 
     let (window_id, terminal) = app.add_window(WindowStyle::NotStealFocus, move |ctx| {
