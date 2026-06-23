@@ -17,14 +17,55 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-06-14.**
+**Last reviewed/synced against upstream: 2026-06-23.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-06-14 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-06-23 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-06-23 review
+
+Reviewed 128 upstream commits (2026-06-15 … 2026-06-23). Ported 7 fixes; the
+rest were AI/agents/Oz-cloud/remote/MAA/LRC/telemetry/auth/billing/onboarding/
+file-tree/code-editor/pinning/tab-grouping changes (out of scope), already
+present, or incomplete upstream features.
+
+- **Ported:**
+  - OSC 1337 inline-image crash fix (warp #12889) — bare `OSC 1337` with no
+    second param indexed `params[1]` and panicked; added the `params.len() < 2`
+    guard + regression test.
+  - markdown_parser delimiter-run `u8`→`usize` overflow fix (warp #12644) — a
+    run of 256+ `*`/`_`/`~` panicked (debug) / corrupted (release).
+  - rift_files reversed line-range fix (warp #12642) — truncation on the first
+    in-range line produced a reversed `start..0` range.
+  - CRLF command-paste normalization per shell family (warp #12446) — POSIX
+    shells now keep `\n` (CRLF→`\n` only on Windows); PowerShell still →`\r`.
+  - block_list `mouse_down` now guarded by `if !handled` (warp #12079) — it was
+    the only mouse arm missing the already-handled guard its siblings have.
+  - search mixer: late async results placed at the low-priority edge instead of
+    appended after established results (warp #12600).
+  - Bumped `warp-command-signatures` to rev `a937ae35` for eza completions
+    (warp #12798) — pure rev bump, source-compatible.
+- **Deliberately NOT ported (notable):**
+  - Vertical-tabs traffic-light padding (warp #12660) — its fix and test hang
+    off the removed AI "tools panel" (`HeaderToolbarItemKind::AgentManagement/
+    ToolsPanel/CodeReview`); doesn't apply to Rift.
+  - PTY-spawn E2BIG fail-fast (warp #12663) — entangled with the AI agent driver,
+    Oz-secret error text, and telemetry call sites.
+  - Precmd `exit_code`/`next_block_id` metadata (warp #12853) — bootstrap scripts
+    emit the fields but the parser only no-ops them; preparatory groundwork for
+    the in-progress block-lifecycle-hardening series, no realized benefit yet.
+  - tree-sitter `MAX_PARSE_BYTES` guard (warp #12696) — primarily for the removed
+    code editor; marginal for Rift's command-input syntax highlighting.
+  - Headless integration-test render loop (warp #12703) — functional no-op
+    without the removed `agent_mode_evals` feature.
+  - emitter_handle subscription refactor (warp #12914/#12767/#12763) — risky
+    UI-framework change whose churn is almost entirely AI call sites.
+  - pane_leaves sqlite delete (warp #12672) — already present in Rift.
+  - openssl 0.10.80 bump (warp #11479) — Rift doesn't depend on openssl.
 
 ### Notes from the 2026-06-14 review
 
