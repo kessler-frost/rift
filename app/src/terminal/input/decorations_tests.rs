@@ -8,6 +8,7 @@ use crate::terminal::input::tests::{
     add_window_with_bootstrapped_terminal, initialize_app, simulate_directory_for_completion,
 };
 use crate::terminal::model::session::SessionInfo;
+use crate::terminal::shell::ShellType;
 use crate::themes::theme::AnsiColorIdentifier;
 
 #[test]
@@ -25,7 +26,7 @@ fn test_decorations_with_multibyte_chars() {
             .to_ansi_color(&terminal_colors_normal)
             .into();
 
-        let session_info = SessionInfo::new_for_test();
+        let session_info = SessionInfo::new_for_test().with_shell_type(ShellType::Zsh);
         let session_id = session_info.session_id;
 
         let terminal =
@@ -38,10 +39,12 @@ fn test_decorations_with_multibyte_chars() {
                 .sessions_model()
                 .update(ctx, |sessions, _ctx| {
                     // Inject a deterministic external-command set instead of
-                    // probing the host's PATH/shell (which made this test depend
-                    // on the environment). "echo" must be a known command (so it
-                    // is syntax-highlighted) and "echoo" must be unknown (so it is
-                    // error-underlined).
+                    // querying the real shell. `load_external_commands` runs a
+                    // shell command whose output depends on the host shell — zsh
+                    // lists `/bin/echo`, but bash's `compgen` filters out the
+                    // `echo` builtin — which made this test pass locally (zsh)
+                    // but fail on CI (bash). Pinning the set keeps the
+                    // command/error decoration deterministic across platforms.
                     let session = sessions.get(session_id).expect("session should exist");
                     session.set_external_commands(["echo"]);
                 });

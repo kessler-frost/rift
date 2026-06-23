@@ -131,10 +131,17 @@ pub async fn add_window_with_bootstrapped_terminal_and_window_id(
         .expect("Could not create a shell starter source");
     let shell_type = shell_starter_source.shell_type();
 
-    let session_info = session_info
-        .unwrap_or_else(SessionInfo::new_for_test)
-        .with_session_type(BootstrapSessionType::Local)
-        .with_shell_type(shell_type);
+    // Only fall back to the host's detected shell when the caller didn't supply
+    // a SessionInfo. Tests that pass one (e.g. the zsh-specific history and
+    // decoration tests) depend on its shell type; the detected shell is zsh on
+    // dev machines but bash on CI, which silently changed the behavior under
+    // test and made those tests pass locally but fail in CI.
+    let session_info = match session_info {
+        Some(session_info) => session_info.with_session_type(BootstrapSessionType::Local),
+        None => SessionInfo::new_for_test()
+            .with_session_type(BootstrapSessionType::Local)
+            .with_shell_type(shell_type),
+    };
     let history_file_commands = history_file_commands.unwrap_or_default();
 
     let (window_id, terminal) = app.add_window(WindowStyle::NotStealFocus, move |ctx| {
@@ -735,20 +742,9 @@ fn test_histignorespace_support_in_zsh() {
         let terminal = add_window_with_bootstrapped_terminal(
             &mut app,
             None, /* history_file_commands */
-            Some(session_info.clone()),
+            Some(session_info),
         )
         .await;
-
-        // `add_window_with_bootstrapped_terminal` overrides the session's shell
-        // type with the host's detected shell, which drops the explicit Zsh the
-        // histignorespace check below depends on. Re-register the session with the
-        // intended Zsh + histignorespace shell so the test is deterministic in CI
-        // regardless of the runner's $SHELL.
-        terminal.update(&mut app, |terminal, ctx| {
-            terminal.sessions_model().update(ctx, |sessions, _| {
-                sessions.register_session_for_test(session_info);
-            });
-        });
 
         // Ensure history is in a known (empty) state.
         History::handle(&app).read(&app, |history, _ctx| {
