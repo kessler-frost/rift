@@ -735,9 +735,20 @@ fn test_histignorespace_support_in_zsh() {
         let terminal = add_window_with_bootstrapped_terminal(
             &mut app,
             None, /* history_file_commands */
-            Some(session_info),
+            Some(session_info.clone()),
         )
         .await;
+
+        // `add_window_with_bootstrapped_terminal` overrides the session's shell
+        // type with the host's detected shell, which drops the explicit Zsh the
+        // histignorespace check below depends on. Re-register the session with the
+        // intended Zsh + histignorespace shell so the test is deterministic in CI
+        // regardless of the runner's $SHELL.
+        terminal.update(&mut app, |terminal, ctx| {
+            terminal.sessions_model().update(ctx, |sessions, _| {
+                sessions.register_session_for_test(session_info);
+            });
+        });
 
         // Ensure history is in a known (empty) state.
         History::handle(&app).read(&app, |history, _ctx| {

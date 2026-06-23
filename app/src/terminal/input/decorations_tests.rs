@@ -37,9 +37,13 @@ fn test_decorations_with_multibyte_chars() {
             terminal_view
                 .sessions_model()
                 .update(ctx, |sessions, _ctx| {
-                    // Wait until external commands have been loaded.
+                    // Inject a deterministic external-command set instead of
+                    // probing the host's PATH/shell (which made this test depend
+                    // on the environment). "echo" must be a known command (so it
+                    // is syntax-highlighted) and "echoo" must be unknown (so it is
+                    // error-underlined).
                     let session = sessions.get(session_id).expect("session should exist");
-                    riftui::r#async::block_on(session.load_external_commands());
+                    session.set_external_commands(["echo"]);
                 });
             session_id
         });
