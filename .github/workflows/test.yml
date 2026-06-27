@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Rust toolchain
         # rust-toolchain.toml pins the channel + components (rustfmt, clippy).
