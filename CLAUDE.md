@@ -17,14 +17,67 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-06-23.**
+**Last reviewed/synced against upstream: 2026-07-09.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-06-23 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-09 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-09 review
+
+Reviewed 231 upstream commits (2026-06-23 … 2026-07-09). Ported 20 PRs across 17
+commits; the rest were AI/agents/MCP, the new ratatui **TUI** surface,
+tab-groups/pinning (PREVIEW-only), onboarding, cloud/Drive/auth/billing/
+telemetry, file-viewer/notebook/voice, or Windows/Linux-only.
+
+- **Ported:**
+  - **Crash/panic fixes:** RowIterator crash when clear-resize truncates a
+    wide-char spacer (warp #12726); `get_pw_entry`/fallback-shell panic when the
+    current uid has no passwd entry (warp #13382, #13367); cross-window tab-drag
+    RefCell-borrow panic on fullscreen preview creation + stale-index bounds
+    guards (warp #13409).
+  - **Terminal/blocks:** detect file paths across soft-wrapped lines (warp
+    #12968/#9193); exclude trailing sentence period from file links (warp
+    #12965); dedupe multiline command-block prefix (warp #12619); include PS1 in
+    block copy (warp #13076); make the completions "not working" banner
+    permanently dismissible (warp #12969).
+  - **Editor/input:** visual-line Home/End + macOS document nav (warp #13195);
+    preserve vim visual selection across history recall (warp #13152); stop
+    semantic drag selection over-running non-word ranges (warp #12985).
+  - **Workspace/themes:** activate tab below after closing active vertical tab +
+    escape exe path in dump-debug-info (warp #13142, #13188); keep header-toolbar
+    chip labels readable on light themes (warp #13209); "Copy current path"
+    command-palette action, minus the removed file-viewer branch (warp #13148).
+  - **macOS/build/shell:** don't block system-initiated termination (warp
+    #12480); resolve rich-text glyph identity via CGFont (warp #12923/#13317);
+    stop auto-claiming file types via LSHandlerRank (warp #13121); standalone-CLI
+    `bundled_resources_dir` (warp #13312); `CARGO_FULL_PROFILE`→`PROFILE` build
+    fallback (warp #13342); fall back to plain SSH when ssh_config sets
+    RemoteCommand (warp #13219/#13315).
+  - Port caveats: #12726's exact flat-storage crash-repro test needs the
+    `enable_full_grid_clear_behavior` scaffolding Rift lacks, so the reset is
+    verified at the GridStorage level + upstream's reflow test instead. #12985
+    was completed here — a prior WIP had landed only the inert `word_boundaries`
+    refactor (1 of 7 files), so the fix wasn't actually delivered.
+- **Deliberately NOT ported (notable):**
+  - Horizontal cross-window tab-drag "fuzzy shake" (warp #13007) — depends on the
+    un-ported prerequisite #12746 (`reordering_in_source`); Rift is at the
+    pre-#12746 cross-window-drag state, so the bug isn't reachable. Revisit only
+    if #12746 lands.
+  - Faster `FxHashMap`/`FxHashSet` for EntityId maps (warp #13058) — 31-file
+    churn, most of it in the removed `tui/` surface; perf-only, deferred.
+  - Mass `log::error!`→`report_error!` migration (warp #13483) — 300+ files,
+    almost entirely in removed subsystems (drive/code/auth/ai/voice); impractical
+    as a unit.
+  - Run tab-level commands from launch-config URIs (warp #13103), vertical-tabs
+    Summary PR-chip clickable (warp #12945, emits telemetry), heap-profile CLI
+    action (warp #13107), PowerShell linter fixes (warp #13242) — low value or
+    Windows-only; deferred.
+  - Precmd-metadata / terminal-lifecycle series (warp #12853–#12859) — still
+    deferred as premature groundwork (per the 2026-06-23 note).
 
 ### Notes from the 2026-06-23 review
 
