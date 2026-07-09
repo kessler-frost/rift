@@ -382,6 +382,10 @@ const DEBOUNCE_PERIOD: Duration = Duration::from_millis(40);
 /// Key used in user defaults to save whether the user has seen the banner.
 pub const ALIAS_EXPANSION_BANNER_SEEN_KEY: &str = "AliasExpansionBannerSeen";
 
+/// Key used in user preferences to persist the "don't show again" choice for the SSH
+/// ControlMaster / "completions are not working" banner.
+const CONTROL_MASTER_BANNER_SUPPRESSED_KEY: &str = "ControlMasterBannerSuppressed";
+
 /// Delay between receiving preexec hook for a command we want to auto-riftify
 /// and triggering the riftification (subshell bootstrapping).
 /// Reached this number after experimenting with different values to find a reliable delay.
@@ -1534,6 +1538,8 @@ pub struct TerminalView {
 
     control_master_error_banner: ViewHandle<Banner<TerminalAction>>,
     control_master_error_banner_state: ControlMasterErrorBannerState,
+    /// Whether the user has permanently dismissed the control master error banner.
+    control_master_error_banner_suppressed: bool,
 
     /// Banner to show if we detect a configuration in the user's rc files that
     /// is incompatible with Rift.
@@ -2054,7 +2060,7 @@ impl TerminalView {
         });
 
         let control_master_error_banner = ctx.add_typed_action_view(|_| {
-            Banner::new(BannerTextContent::formatted_text(vec![
+            Banner::new_permanently_dismissible(BannerTextContent::formatted_text(vec![
                 FormattedTextFragment::plain_text("Seems like your completions are not working ("),
                 FormattedTextFragment::plain_text("more info"),
                 FormattedTextFragment::plain_text("). Enabling the SSH extension in "),
@@ -2069,6 +2075,13 @@ impl TerminalView {
         ctx.subscribe_to_view(&control_master_error_banner, |me, _, event, ctx| {
             me.handle_controlmaster_error_banner_event(event, ctx);
         });
+
+        let control_master_error_banner_suppressed = ctx
+            .private_user_preferences()
+            .read_value(CONTROL_MASTER_BANNER_SUPPRESSED_KEY)
+            .ok()
+            .flatten()
+            .is_some_and(|v| v == "true");
 
         let incompatible_configuration_banner = ctx.add_typed_action_view(|_| {
             Banner::new(BannerTextContent::formatted_text(vec![
@@ -2318,6 +2331,7 @@ impl TerminalView {
             is_emacs_bindings_banner_open: false,
             control_master_error_banner,
             control_master_error_banner_state: Default::default(),
+            control_master_error_banner_suppressed,
             pane_configuration,
             focus_handle: None,
             sessions,
@@ -3233,7 +3247,7 @@ impl TerminalView {
         // up eventually.
         if self.control_master_error_banner_state.associated_session_id != active_session_id {
             self.control_master_error_banner_state = ControlMasterErrorBannerState {
-                is_open: true,
+                is_open: self.should_open_control_master_banner(),
                 associated_session_id: active_session_id,
             };
 
@@ -3246,6 +3260,12 @@ impl TerminalView {
                 ctx
             );
         }
+    }
+
+    /// The control master / completions banner should open only when the user has
+    /// not permanently dismissed it via "Don't show me again".
+    fn should_open_control_master_banner(&self) -> bool {
+        !self.control_master_error_banner_suppressed
     }
 
     fn read_from_clipboard(
@@ -8597,11 +8617,7 @@ impl TerminalView {
                 let block_str = match entity {
                     BlockEntity::Command => block.command_to_string(),
                     BlockEntity::Output => block.output_to_string_force_full_grid_contents(),
-                    BlockEntity::CommandAndOutput => format!(
-                        "{}\n{}",
-                        block.command_to_string(),
-                        block.output_to_string(),
-                    ),
+                    BlockEntity::CommandAndOutput => block.command_and_output_to_string(),
                     BlockEntity::FilteredOutput => block.output_to_string(),
                 };
 
@@ -9188,8 +9204,16 @@ impl TerminalView {
         ctx: &mut ViewContext<Self>,
     ) {
         match event {
-            BannerEvent::Dismiss { .. } => {
+            BannerEvent::Dismiss(DismissalType::Temporary) => {
                 self.control_master_error_banner_state.is_open = false;
+                ctx.notify();
+            }
+            BannerEvent::Dismiss(DismissalType::Permanent) => {
+                self.control_master_error_banner_state.is_open = false;
+                self.control_master_error_banner_suppressed = true;
+                let _ = ctx
+                    .private_user_preferences()
+                    .write_value(CONTROL_MASTER_BANNER_SUPPRESSED_KEY, "true".to_owned());
                 ctx.notify();
             }
             BannerEvent::Action(_) => {
