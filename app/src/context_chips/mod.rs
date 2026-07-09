@@ -19,6 +19,9 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use context_chip::PromptGenerator;
+use rift_core::ui::color::blend::Blend;
+use rift_core::ui::color::contrast::{high_enough_contrast, MinimumAllowedContrast};
+use rift_core::ui::theme::{Fill, RiftTheme};
 use riftui::color::ColorU;
 use riftui::elements::Text;
 use riftui::fonts::{Properties, Weight};
@@ -650,3 +653,29 @@ pub fn render_text_from_kind(
         _ => (),
     }
 }
+
+/// The label/icon color for a chip drawn on `background`.
+///
+/// Chips normally use the muted `sub_text_color` (which is `font_color` at 60%
+/// opacity). Because the contrast machinery is alpha-blind, that muted color can
+/// composite to a faint mid-grey that drops below WCAG AA on light themes,
+/// making chip labels hard to read. So we keep the muted look wherever it is
+/// still legible (e.g. dark themes) and only fall back to the fully-opaque,
+/// contrast-enforced `font_color` where the muted color would be sub-AA.
+pub(crate) fn readable_chip_label_color(theme: &RiftTheme, background: Fill) -> ColorU {
+    let muted = theme.sub_text_color(background).into_solid();
+    let solid_background = background.into_solid();
+    if high_enough_contrast(
+        solid_background.blend(&muted),
+        solid_background,
+        MinimumAllowedContrast::Text,
+    ) {
+        muted
+    } else {
+        theme.font_color(background).into_solid()
+    }
+}
+
+#[cfg(test)]
+#[path = "mod_tests.rs"]
+mod tests;
