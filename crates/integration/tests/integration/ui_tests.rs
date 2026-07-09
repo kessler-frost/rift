@@ -182,6 +182,9 @@ integration_tests! {
     test_vertical_tab_context_menu_copies_metadata,
     test_vertical_pane_context_menu_copies_metadata,
 
+    // Copy current path command-palette action
+    test_copy_current_path_copies_terminal_pwd,
+
     test_focus_panes_on_hover,
 
     test_close_tab_with_long_running_process,

@@ -4,6 +4,7 @@
 
 mod block_filtering;
 mod bootstrapping;
+mod copy_current_path;
 mod ctrl_d;
 mod history;
 mod input;
@@ -33,6 +34,7 @@ use std::time::Duration;
 use anyhow::{anyhow, Result};
 pub use block_filtering::*;
 pub use bootstrapping::*;
+pub use copy_current_path::*;
 pub use ctrl_d::*;
 use float_cmp::assert_approx_eq;
 pub use history::*;

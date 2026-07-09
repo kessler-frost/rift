@@ -306,6 +306,9 @@ fn register_tests() -> HashMap<&'static str, BoxedBuilderFn> {
     register_test!(test_vertical_tab_context_menu_copies_metadata);
     register_test!(test_vertical_pane_context_menu_copies_metadata);
 
+    // Copy current path command-palette action
+    register_test!(test_copy_current_path_copies_terminal_pwd);
+
     register_test!(test_focus_panes_on_hover);
 
     register_test!(test_close_tab_with_long_running_process);

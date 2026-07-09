@@ -281,6 +281,10 @@ pub enum WorkspaceAction {
     /// Closes the focused panel. This happens as an explicit action from the user.
     ClosePanel,
     CopyTextToClipboard(String),
+    /// Copies the focused terminal session's working directory (raw pwd, falling back to the
+    /// user-friendly display form) to the clipboard. No-op if the focused pane isn't a terminal
+    /// or yields no path.
+    CopyCurrentPath,
     /// An action only registered in dev and local builds, which writes the user's current access
     /// token to the system clipboard to aid debugging and development.
     CopyAccessTokenToClipboard,

@@ -1388,6 +1388,17 @@ impl PaneGroup {
         text.filter(|text: &String| !text.is_empty())
     }
 
+    /// Returns the path to copy for the currently focused pane: the focused terminal session's
+    /// working directory (raw pwd, falling back to the user-friendly display form). `None` if the
+    /// focused pane isn't a terminal or yields no path.
+    pub fn path_from_focused_pane(&self, ctx: &AppContext) -> Option<String> {
+        let terminal_view = self.focused_session_view(ctx)?;
+        let terminal_view = terminal_view.as_ref(ctx);
+        terminal_view
+            .pwd()
+            .or_else(|| terminal_view.display_working_directory(ctx))
+    }
+
     /// Iterate over the terminal sessions in this pane group.
     pub fn pane_sessions<'a>(
         &'a self,
