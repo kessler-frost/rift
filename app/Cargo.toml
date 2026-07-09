@@ -670,7 +670,7 @@ settings_file = []
 sequential_storage = []
 skip_login = []
 # This feature should only be enabled when building a self-contained binary with the bundle script.
-standalone = ["rift_assets/standalone"]
+standalone = ["rift_assets/standalone", "rift_core/standalone"]
 prompt_suggestions_via_maa = []
 system_theme = []
 tab_close_button_on_left = []
