@@ -14,7 +14,9 @@ use riftui_core::assets::AssetProvider;
 use riftui_core::integration::TestDriver;
 use riftui_core::keymap::{Keystroke, Trigger};
 use riftui_core::modals::{AlertDialog, ModalId};
-use riftui_core::platform::app::{AppCallbackDispatcher, ApproveTerminateResult};
+use riftui_core::platform::app::{
+    AppCallbackDispatcher, ApproveTerminateResult, TerminationRequestSource,
+};
 use riftui_core::platform::menu::{Menu, MenuBar};
 use riftui_core::platform::{self, FilePickerCallback, SaveFilePickerCallback};
 use riftui_core::{AppContext, Event};
@@ -299,10 +301,18 @@ pub(crate) extern "C-unwind" fn rift_app_internet_reachability_changed(
 
 /// Returns whether or not we can proceed with termination.
 #[no_mangle]
-pub(crate) extern "C-unwind" fn rift_app_should_terminate_app(this: &mut Object) -> BOOL {
+pub(crate) extern "C-unwind" fn rift_app_should_terminate_app(
+    this: &mut Object,
+    system_initiated: BOOL,
+) -> BOOL {
     let app = unsafe { get_app(this) };
 
-    match app.callbacks.should_terminate_app() {
+    let source = if system_initiated != NO {
+        TerminationRequestSource::System
+    } else {
+        TerminationRequestSource::User
+    };
+    match app.callbacks.should_terminate_app(source) {
         ApproveTerminateResult::Terminate => YES,
         ApproveTerminateResult::Cancel => NO,
     }

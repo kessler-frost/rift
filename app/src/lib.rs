@@ -152,7 +152,7 @@ pub use rift_core::{safe_debug, safe_error, safe_info, safe_warn};
 use rift_files::FileModel;
 use rift_logging::LogDestination;
 use riftui::integration::TestDriver;
-use riftui::platform::app::ApproveTerminateResult;
+use riftui::platform::app::{ApproveTerminateResult, TerminationRequestSource};
 use riftui::platform::TerminationMode;
 use riftui::windowing::state::ApplicationStage;
 use riftui::{App, AppContext, Event, SingletonEntity, WindowId};
@@ -1296,7 +1296,14 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
                 ApproveTerminateResult::Terminate
             }
         })),
-        on_should_terminate_app: Some(Box::new(move |ctx| {
+        on_should_terminate_app: Some(Box::new(move |source, ctx| {
+            // Never interrupt a system-initiated termination (logout / restart /
+            // scheduled OS update): returning Cancel makes macOS treat Rift as
+            // refusing to quit, which can abort a scheduled OS update.
+            if source == TerminationRequestSource::System {
+                return ApproveTerminateResult::Terminate;
+            }
+
             send_telemetry_from_app_ctx!(
                 TelemetryEvent::UserInitiatedClose {
                     initiated_on: CloseTarget::App,
