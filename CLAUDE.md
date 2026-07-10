@@ -17,14 +17,64 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-09.**
+**Last reviewed/synced against upstream: 2026-07-10.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-09 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-10 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-10 review
+
+Reviewed 24 upstream commits (2026-07-09, after the prior review's 10:10 EDT
+cutoff … 2026-07-10). **Nothing ported — no commit touched a Rift-kept
+subsystem in a reachable way.** The window was almost entirely the ratatui
+**TUI** surface and AI/agents/computer-use/VA/MCP, plus cloud/Oz/auth/billing
+and onboarding. Verified each candidate that *looked* like it might apply and
+confirmed it doesn't:
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **Hidden-section bar: double-click to fully expand (warp #11621) and its
+    follow-up "scope unmodified-lines hover to the label text" (warp #13556).**
+    These modify the collapsed-unmodified-lines UI of the removed code
+    editor / diff viewer. `crates/editor` still carries the `hidden_ranges` /
+    `RenderableHiddenSection` machinery, but nothing in Rift calls
+    `set_hidden_lines`, so the bar is never rendered, and #11621's interactive
+    double-click/hover wiring lived in the removed `app/src/code/editor/view/`.
+    Rift's `hidden_section.rs` is at the pre-#11621 state (static bar, no
+    `Hoverable`/`on_click`). Revisit only if a hidden-lines consumer is ever
+    added to Rift.
+  - **Orchestration pill bar infinite-width panic on pane drag (warp #13528).**
+    The fix (`ConstrainedBox::with_max_width(400.)` around the drag-preview
+    header) lands in the kept `pane_group/pane/view/mod.rs`, but the panic is
+    specifically the orchestration pill bar's *horizontal scrollable* reporting
+    an infinite/NaN viewport to `Scene::validate_rect`. That pill bar is a
+    removed AI feature; Rift's header uses only `MainAxisSize::Max` + `Clipped`
+    + `Shrinkable` (no horizontal `Scrollable`), and is daily-driven without
+    pane-drag crashes, so the panic isn't reachable. Mechanically portable
+    (`ConstrainedBox::with_max_width` exists in `riftui_core`) — revisit only if
+    a horizontal scrollable is ever added to the pane header.
+  - **macOS computer-use keycode-cache main-thread crash (warp #13547)** —
+    `crates/computer_use` doesn't exist in Rift.
+  - **Terminal theming probe (warp #13542)** — TUI-only (detects the ambient
+    host terminal's background when Warp runs *inside* another terminal); Rift is
+    a standalone GUI terminal, so there is no ambient terminal to probe.
+  - **Separate persistence scope for TUI and GUI (warp #13500)** — gives the TUI
+    its own `warp.sqlite`; Rift has no TUI, so there is only one (GUI) scope and
+    the separation is a no-op. The `terminal/input.rs` touch is pure scope
+    plumbing, no standalone GUI fix.
+  - **`import warp_errors directly` (warp #13523)** — mechanical import-path
+    churn across ~hundreds of files, ~95% in removed AI subsystems; no
+    functional change. Same call as the skipped #13483 log→report migration.
+  - **macOS protoc install CI resilience (warp #13516)** — patches
+    `.github/actions/prepare_environment/action.yml`, which Rift doesn't have
+    (Rift's CI is `.github/workflows/{test,release}.yml`, no composite actions).
+  - The remaining 18 were AI/agents/MCP/computer-use/VA, TUI (zero-state,
+    warping indicator, inline diff, slash mixer, credits footer, editor
+    extraction), cloud/Oz/auth/billing/subscribe, feature-intro/onboarding
+    popovers, or the Slack-community label rename.
 
 ### Notes from the 2026-07-09 review
 
