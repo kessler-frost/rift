@@ -20,7 +20,7 @@
 
   <!-- Title -->
   <text x="350" y="86" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="36" font-weight="700" fill="#e8e6e1" letter-spacing="2">Rift</text>
-  <text x="350" y="114" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#7d828c" letter-spacing="3">A FAST, FULLY OFFLINE TERMINAL</text>
+  <text x="350" y="114" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#7d828c" letter-spacing="3">A PERSONAL TAKE ON A NICE TERMINAL</text>
 
   <!-- Amber arrow from the app icon (left) toward Applications (right), centered at y=250 -->
   <g stroke="url(#amber)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">

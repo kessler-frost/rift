@@ -82,7 +82,7 @@ The default binary is `rift-oss`. The toolchain is pinned in `rust-toolchain.tom
 
 Rift tracks `warpdotdev/warp` as the `upstream` remote, and I pull changes by hand with cherry-picks, so nothing depends on someone else porting them first. The whole codebase is renamed from `warp` to `rift`, so it drifts from upstream on purpose. That's the trade for owning the fork outright.
 
-Last synced with upstream: **2026-06-14**.
+Last synced with upstream: **2026-07-10**.
 
 ## A personal fork
 

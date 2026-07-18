@@ -67,5 +67,5 @@
 
   <!-- wordmark + tagline -->
   <text x="312" y="178" font-family="Helvetica, Arial, sans-serif" font-size="104" font-weight="700" fill="#eef1f6" letter-spacing="1">Rift</text>
-  <text x="318" y="224" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#9aa4b6">A fast, fully-offline terminal. Warp with the cloud and AI stripped out.</text>
+  <text x="318" y="224" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#9aa4b6">A fast, personal terminal. Warp with the cloud and AI stripped out.</text>
 </svg>

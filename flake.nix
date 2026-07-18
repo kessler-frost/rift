@@ -1,5 +1,5 @@
 {
-  description = "Rift is a fast, fully offline terminal (Experimental Nix Support, Linux-only).";
+  description = "Rift is a fast, personal terminal (Experimental Nix Support, Linux-only).";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -213,7 +213,7 @@
             '';
 
             meta = {
-              description = "Rift is a fast, fully offline terminal (Experimental Nix Support, Linux-only).";
+              description = "Rift is a fast, personal terminal (Experimental Nix Support, Linux-only).";
               homepage = "https://github.com/kessler-frost/rift";
               license = lib.licenses.agpl3Only;
               mainProgram = "rift-terminal";
