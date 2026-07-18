@@ -578,13 +578,20 @@ if [[ $READ_PASSWORDS_FROM_ENV != true ]]; then
 fi
 
 if [[ $CODESIGN = true ]]; then
-  # TODO - does this need to change per user?  Seems like it's tied to the RIFT_NOTARIZATION_PASSWORD password.
-  APPLE_TEAM_ID="2BBY89MBSN"
+  # The Apple Developer Team ID that owns the Developer ID Application cert.
+  # It selects the signing identity (codesign -s matches it against the cert
+  # name) and scopes the notarytool submission.
+  APPLE_TEAM_ID="$RIFT_APPLE_TEAM_ID"
   CODESIGN_KEYCHAIN_NAME="rift-codesign-keychain"
 
   echo "Starting codesigning..."
 
   if [[ $READ_PASSWORDS_FROM_ENV = true ]]; then
+    if [ -z "$RIFT_APPLE_TEAM_ID" ] ; then
+      echo "RIFT_APPLE_TEAM_ID must be set for code signing"
+      exit 1
+    fi
+
     if [ -z "$RIFT_NOTARIZATION_PASSWORD" ] ; then
       echo "RIFT_NOTARIZATION_PASSWORD must be set for code signing"
       exit 1

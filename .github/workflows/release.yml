@@ -6,11 +6,18 @@ name: Release
 #
 # Rift is Apple-Silicon-only by design — no Intel / universal builds.
 #
-# Signing: the DMG is ad-hoc signed (unsigned for distribution purposes), so on
-# first launch macOS Gatekeeper needs a one-time bypass (see the release notes
-# template below). To enable real Developer ID signing + notarization later,
-# add the APPLE_* secrets and switch the bundle step to
-# `--read-passwords-from-env` (see script/macos/bundle).
+# Signing: when the RIFT_* signing secrets are configured, the DMG is signed
+# with a Developer ID certificate and notarized by Apple, so it opens with no
+# Gatekeeper friction. Without the secrets the build falls back to an ad-hoc
+# signed DMG that needs a one-time quarantine bypass on first launch; the
+# release notes adapt to whichever build was produced.
+#
+# Required secrets for a notarized release (consumed by script/macos/bundle):
+#   RIFT_DEVELOPER_ID_CERT           base64 of the "Developer ID Application" .p12
+#   RIFT_DEVELOPER_ID_CERT_PASSWORD  passphrase for that .p12
+#   RIFT_APPLE_TEAM_ID               10-character Apple Developer Team ID
+#   RIFT_NOTARIZATION_APPLE_ID       Apple ID email used for notarization
+#   RIFT_NOTARIZATION_PASSWORD       app-specific password for that Apple ID
 
 on:
   push:
@@ -56,8 +63,28 @@ jobs:
           # (prepare_bundled_resources calls `cargo about generate`).
           cargo install cargo-about --features cli --locked
 
-      - name: Build and bundle (Apple Silicon, ad-hoc signed)
-        run: ./script/macos/bundle --selfsign --arch aarch64
+      - name: Build and bundle (Apple Silicon)
+        id: bundle
+        env:
+          RIFT_DEVELOPER_ID_CERT: ${{ secrets.RIFT_DEVELOPER_ID_CERT }}
+          RIFT_DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.RIFT_DEVELOPER_ID_CERT_PASSWORD }}
+          RIFT_APPLE_TEAM_ID: ${{ secrets.RIFT_APPLE_TEAM_ID }}
+          RIFT_NOTARIZATION_APPLE_ID: ${{ secrets.RIFT_NOTARIZATION_APPLE_ID }}
+          RIFT_NOTARIZATION_PASSWORD: ${{ secrets.RIFT_NOTARIZATION_PASSWORD }}
+        run: |
+          if [ -n "$RIFT_DEVELOPER_ID_CERT" ]; then
+            echo "Signing secrets present: building a Developer ID signed, notarized DMG."
+            # Ephemeral password for the throwaway signing keychain the bundle
+            # script creates on this runner; it never outlives the job.
+            RIFT_CODESIGN_KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+            export RIFT_CODESIGN_KEYCHAIN_PASSWORD
+            ./script/macos/bundle --read-passwords-from-env --arch aarch64
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No signing secrets: building an ad-hoc signed DMG."
+            ./script/macos/bundle --selfsign --arch aarch64
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Stage DMG artifact
         id: stage
@@ -69,26 +96,39 @@ jobs:
           echo "dmg=$DEST" >> "$GITHUB_OUTPUT"
           shasum -a 256 "$DEST" | tee "$DEST.sha256"
 
+      - name: Write release notes
+        run: |
+          VERSION="${{ github.event.inputs.tag || github.ref_name }}"
+          DMG="${{ steps.stage.outputs.dmg }}"
+          {
+            echo "## Rift ${VERSION}"
+            echo ""
+            echo "A fast, personal terminal — Apple Silicon only."
+            echo ""
+            echo "### Install"
+            if [ "${{ steps.bundle.outputs.signed }}" = "true" ]; then
+              echo "Download \`${DMG}\`, open it, and drag **Rift** to Applications."
+              echo ""
+              echo "The app is Developer ID signed and notarized by Apple, so it opens right away."
+            else
+              echo "1. Download \`${DMG}\`, open it, and drag **Rift** to Applications."
+              echo "2. This build is not notarized, so clear the quarantine flag once:"
+              echo '   ```sh'
+              echo "   xattr -dr com.apple.quarantine /Applications/Rift.app"
+              echo '   ```'
+              echo "   (or right-click the app → **Open** the first time)."
+            fi
+            echo ""
+            echo "**Requirements:** macOS on Apple Silicon (M1 or newer). Intel Macs are not supported."
+          } > release_notes.md
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           name: Rift ${{ github.event.inputs.tag || github.ref_name }}
           fail_on_unmatched_files: true
+          body_path: release_notes.md
           files: |
             ${{ steps.stage.outputs.dmg }}
             ${{ steps.stage.outputs.dmg }}.sha256
-          body: |
-            ## Rift ${{ github.event.inputs.tag || github.ref_name }}
-
-            A fast, fully-offline terminal — Apple Silicon only.
-
-            ### Install
-            1. Download `${{ steps.stage.outputs.dmg }}`, open it, and drag **Rift** to Applications.
-            2. The build is not notarized yet, so clear the quarantine flag once:
-               ```sh
-               xattr -dr com.apple.quarantine /Applications/Rift.app
-               ```
-               (or right-click the app → **Open** the first time).
-
-            **Requirements:** macOS on Apple Silicon (M1 or newer). Intel Macs are not supported.
