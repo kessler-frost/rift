@@ -79,8 +79,8 @@ use crate::util::bindings;
 use crate::view_components::action_button::{ActionButton, ButtonSize, NakedTheme};
 use crate::view_components::{Dropdown, DropdownItem, FilterableDropdown};
 use crate::window_settings::{
-    BackgroundBlurRadius, BackgroundBlurTexture, BackgroundOpacity, LeftPanelVisibilityAcrossTabs,
-    OpenWindowsAtCustomSize, WindowSettings, WindowSettingsChangedEvent, ZoomLevel,
+    BackgroundBlurRadius, BackgroundBlurTexture, BackgroundOpacity, OpenWindowsAtCustomSize,
+    WindowSettings, WindowSettingsChangedEvent, ZoomLevel,
 };
 use crate::workspace::header_toolbar_editor::HeaderToolbarInlineEditor;
 use crate::workspace::tab_settings::{
@@ -253,15 +253,6 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         )),
         context,
         flags::WINDOW_BLUR_TEXTURE_FLAG,
-    ));
-
-    toggle_binding_pairs.push(ToggleSettingActionPair::new(
-        "tools panel visibility across tabs",
-        builder(SettingsAction::AppearancePageToggle(
-            AppearancePageAction::ToggleLeftPanelVisibility,
-        )),
-        context,
-        flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG,
     ));
 
     toggle_binding_pairs.push(
@@ -448,13 +439,11 @@ pub enum AppearancePageAction {
     ToggleDimInactivePanes,
     ToggleAllAvailableFonts,
     ToggleTabIndicators,
-    ToggleShowCodeReviewButton,
     TogglePreserveActiveTabColor,
     ToggleVerticalTabs,
     ToggleShowVerticalTabPanelInRestoredWindows,
     ToggleLigatureRendering,
     ToggleBlurTexture,
-    ToggleLeftPanelVisibility,
     SetEnforceMinimumContrast(EnforceMinimumContrast),
     OpenUrl(String),
     ToggleFocusPaneOnHover,
@@ -554,7 +543,6 @@ impl TypedActionView for AppearanceSettingsPageView {
             ToggleAllAvailableFonts => self.toggle_all_available_fonts(ctx),
             ToggleDimInactivePanes => self.toggle_dim_inactive_panes(ctx),
             ToggleBlurTexture => self.toggle_blur_texture(ctx),
-            ToggleLeftPanelVisibility => self.toggle_left_panel_visibility(ctx),
             SetInputMode {
                 new_mode,
                 from_binding,
@@ -568,7 +556,6 @@ impl TypedActionView for AppearanceSettingsPageView {
                 ctx.open_url(url);
             }
             ToggleTabIndicators => self.toggle_tab_indicators(ctx),
-            ToggleShowCodeReviewButton => self.toggle_show_code_review_button(ctx),
             TogglePreserveActiveTabColor => self.toggle_preserve_active_tab_color(ctx),
             ToggleVerticalTabs => self.toggle_vertical_tabs(ctx),
             ToggleShowVerticalTabPanelInRestoredWindows => {
@@ -1214,13 +1201,6 @@ impl AppearanceSettingsPageView {
 
         if FeatureFlag::UIZoom.is_enabled() {
             window_settings_widgets.push(Box::new(ZoomLevelWidget));
-        }
-
-        if window_settings
-            .left_panel_visibility_across_tabs
-            .is_supported_on_current_platform()
-        {
-            window_settings_widgets.push(Box::new(ToolsPanelStateScopeWidget::default()));
         }
 
         if !window_settings_widgets.is_empty() {
@@ -1973,15 +1953,6 @@ impl AppearanceSettingsPageView {
         ctx.notify();
     }
 
-    pub fn toggle_left_panel_visibility(&mut self, ctx: &mut ViewContext<Self>) {
-        WindowSettings::handle(ctx).update(ctx, |window_settings, ctx| {
-            report_if_error!(window_settings
-                .left_panel_visibility_across_tabs
-                .toggle_and_save_value(ctx));
-        });
-        ctx.notify();
-    }
-
     pub fn set_input_mode(
         &mut self,
         new_mode: InputMode,
@@ -2081,17 +2052,6 @@ impl AppearanceSettingsPageView {
             TelemetryEvent::ToggleTabIndicators { enabled: new_value },
             ctx
         );
-    }
-
-    fn toggle_show_code_review_button(&mut self, ctx: &mut ViewContext<Self>) {
-        let tab_settings = TabSettings::handle(ctx);
-        let new_value = !*tab_settings.as_ref(ctx).show_code_review_button.value();
-
-        ctx.update_model(&tab_settings, move |tab_settings, ctx| {
-            report_if_error!(tab_settings
-                .show_code_review_button
-                .set_value(new_value, ctx));
-        });
     }
 
     fn toggle_preserve_active_tab_color(&mut self, ctx: &mut ViewContext<Self>) {
@@ -3036,52 +2996,6 @@ impl SettingsWidget for WindowBlurTextureWidget {
             }
         }
         col.finish()
-    }
-}
-
-#[derive(Default)]
-struct ToolsPanelStateScopeWidget {
-    switch_state: SwitchStateHandle,
-}
-
-impl SettingsWidget for ToolsPanelStateScopeWidget {
-    type View = AppearanceSettingsPageView;
-
-    fn search_terms(&self) -> &str {
-        "left tools panel open closed across tabs file tree project explorer global search rift drive conversation list"
-    }
-
-    fn render(
-        &self,
-        view: &Self::View,
-        appearance: &Appearance,
-        app: &AppContext,
-    ) -> Box<dyn Element> {
-        let window_settings = WindowSettings::as_ref(app);
-        let is_enabled = *window_settings.left_panel_visibility_across_tabs;
-
-        render_body_item::<AppearancePageAction>(
-            "Tools panel visibility is consistent across tabs".to_string(),
-            None,
-            LocalOnlyIconState::for_setting(
-                LeftPanelVisibilityAcrossTabs::storage_key(),
-                LeftPanelVisibilityAcrossTabs::sync_to_cloud(),
-                &mut view.local_only_icon_tooltip_states.borrow_mut(),
-                app,
-            ),
-            ToggleState::Enabled,
-            appearance,
-            appearance
-                .ui_builder()
-                .switch(self.switch_state.clone())
-                .check(is_enabled)
-                .build()
-                .on_click(|evt_ctx, _app, _v2f| {
-                    evt_ctx.dispatch_typed_action(AppearancePageAction::ToggleLeftPanelVisibility);
-                })
-                .finish(),
-            None,
-        )
     }
 }
 

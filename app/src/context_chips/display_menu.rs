@@ -80,7 +80,6 @@ impl FixedFooter {
 pub enum ChipMenuType {
     Directories,
     Branches,
-    CodeReview,
     Environments,
 }
 
@@ -239,36 +238,28 @@ impl DisplayChipMenu {
     fn menu_width(&self) -> f32 {
         match self.chip_menu_type {
             ChipMenuType::Environments => ENV_MENU_WIDTH,
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
-                MENU_WIDTH
-            }
+            ChipMenuType::Directories | ChipMenuType::Branches => MENU_WIDTH,
         }
     }
 
     fn menu_item_horizontal_padding(&self) -> f32 {
         match self.chip_menu_type {
             ChipMenuType::Environments => ENV_MENU_ITEM_HORIZONTAL_PADDING,
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
-                LABEL_HORIZONTAL_PADDING
-            }
+            ChipMenuType::Directories | ChipMenuType::Branches => LABEL_HORIZONTAL_PADDING,
         }
     }
 
     fn menu_item_vertical_padding(&self) -> f32 {
         match self.chip_menu_type {
             ChipMenuType::Environments => ENV_MENU_ITEM_VERTICAL_PADDING,
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
-                LABEL_VERTICAL_PADDING
-            }
+            ChipMenuType::Directories | ChipMenuType::Branches => LABEL_VERTICAL_PADDING,
         }
     }
 
     fn menu_vertical_padding(&self) -> f32 {
         match self.chip_menu_type {
             ChipMenuType::Environments => ENV_MENU_VERTICAL_PADDING,
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
-                MENU_VERTICAL_PADDING
-            }
+            ChipMenuType::Directories | ChipMenuType::Branches => MENU_VERTICAL_PADDING,
         }
     }
 
@@ -291,9 +282,7 @@ impl DisplayChipMenu {
                         ChipMenuType::Environments => {
                             TextOptions::ui_text(Some(ENV_MENU_ITEM_FONT_SIZE), appearance)
                         }
-                        ChipMenuType::Directories
-                        | ChipMenuType::Branches
-                        | ChipMenuType::CodeReview => {
+                        ChipMenuType::Directories | ChipMenuType::Branches => {
                             let ui_font_family = appearance.ui_font_family();
                             let mut options = TextOptions::ui_font_size(appearance);
                             options.font_family_override = Some(ui_font_family);
@@ -315,15 +304,11 @@ impl DisplayChipMenu {
                         ChipMenuType::Directories => "Search directories...",
                         ChipMenuType::Branches => "Search branches...",
                         ChipMenuType::Environments => "Search environments...",
-                        ChipMenuType::CodeReview => {
-                            unreachable!("search input should not be constructed")
-                        }
                     };
                     editor.set_placeholder_text(placeholder_text, ctx);
                     editor
                 }))
             }
-            ChipMenuType::CodeReview => None,
         };
 
         // Subscribe to editor changes to update search query (only if search input exists)
@@ -911,7 +896,7 @@ impl DisplayChipMenu {
         let chip_menu_type = self.chip_menu_type;
         let (font_size, icon_size) = match chip_menu_type {
             ChipMenuType::Environments => (ENV_MENU_ITEM_FONT_SIZE, ENV_MENU_ICON_SIZE),
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
+            ChipMenuType::Directories | ChipMenuType::Branches => {
                 let font_size = appearance.ui_font_size();
                 (font_size, font_size * 0.8)
             }
@@ -928,9 +913,7 @@ impl DisplayChipMenu {
                 let background_color = if is_active {
                     match chip_menu_type {
                         ChipMenuType::Environments => Some(internal_colors::fg_overlay_4(theme)),
-                        ChipMenuType::Directories
-                        | ChipMenuType::Branches
-                        | ChipMenuType::CodeReview => Some(theme.accent()),
+                        ChipMenuType::Directories | ChipMenuType::Branches => Some(theme.accent()),
                     }
                 } else {
                     None
@@ -941,9 +924,7 @@ impl DisplayChipMenu {
                         ChipMenuType::Environments => {
                             theme.main_text_color(theme.surface_2()).into_solid()
                         }
-                        ChipMenuType::Directories
-                        | ChipMenuType::Branches
-                        | ChipMenuType::CodeReview => {
+                        ChipMenuType::Directories | ChipMenuType::Branches => {
                             theme.main_text_color(theme.accent()).into_solid()
                         }
                     }
@@ -1045,9 +1026,7 @@ impl DisplayChipMenu {
                             ENV_MENU_ITEM_VERTICAL_PADDING,
                             internal_colors::text_sub(theme, theme.surface_2()),
                         ),
-                        ChipMenuType::Directories
-                        | ChipMenuType::Branches
-                        | ChipMenuType::CodeReview => (
+                        ChipMenuType::Directories | ChipMenuType::Branches => (
                             "No results found",
                             appearance.ui_font_size(),
                             LABEL_HORIZONTAL_PADDING,
@@ -1103,9 +1082,7 @@ impl DisplayChipMenu {
                                 theme.main_text_color(theme.surface_2()).into_solid(),
                                 is_selected.then_some(internal_colors::fg_overlay_4(theme)),
                             ),
-                            ChipMenuType::Directories
-                            | ChipMenuType::Branches
-                            | ChipMenuType::CodeReview => {
+                            ChipMenuType::Directories | ChipMenuType::Branches => {
                                 if is_selected {
                                     let bg = theme.accent();
                                     (theme.main_text_color(bg).into_solid(), Some(bg))
@@ -1264,7 +1241,7 @@ impl DisplayChipMenu {
                 ENV_MENU_MAX_HEIGHT - (ENV_MENU_VERTICAL_PADDING * 2.0),
                 true,
             ),
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
+            ChipMenuType::Directories | ChipMenuType::Branches => {
                 (ScrollbarWidth::None, 200., false)
             }
         };
@@ -1332,7 +1309,7 @@ impl View for DisplayChipMenu {
                         .add_child(self.render_env_search_footer(search_input_handle, app));
                 }
             }
-            ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
+            ChipMenuType::Directories | ChipMenuType::Branches => {
                 if let Some(ref search_input_handle) = self.search_input {
                     let search_input = appearance
                         .ui_builder()
@@ -1384,7 +1361,7 @@ impl View for DisplayChipMenu {
                             .with_border_fill(Fill::Solid(internal_colors::neutral_4(theme))),
                     )
                     .with_drop_shadow(Self::figma_menu_drop_shadow()),
-                ChipMenuType::Directories | ChipMenuType::Branches | ChipMenuType::CodeReview => {
+                ChipMenuType::Directories | ChipMenuType::Branches => {
                     menu_container.with_drop_shadow(DropShadow::default())
                 }
             };

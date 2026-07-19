@@ -38,8 +38,6 @@ use crate::terminal::view::{
     PromptPart,
 };
 use crate::tips::WelcomeTipFeature;
-#[cfg(feature = "local_fs")]
-use crate::util::openable_file_type::FileTarget;
 use crate::workspace::tab_settings::{TabCloseButtonPosition, WorkspaceDecorationVisibility};
 use crate::workspace::TabMovement;
 
@@ -163,15 +161,6 @@ pub enum FileTreeSource {
     Keybinding,
     LeftPanelToolbelt,
     ForceOpened,
-}
-
-#[cfg(feature = "local_fs")]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CodePanelsFileOpenEntrypoint {
-    CodeReview,
-    ProjectExplorer,
-    GlobalSearch,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -1011,11 +1000,6 @@ pub enum TelemetryEvent {
         is_natural_language_autosuggestions_enabled: bool,
     },
 
-    /// Emitted when the user toggles the "Git Operations Autogen" setting in the AI settings page.
-    ToggleGitOperationsAutogenSetting {
-        is_git_operations_autogen_enabled: bool,
-    },
-
     /// Emitted when the user toggles the "Voice Input" setting in the AI settings page.
     ToggleVoiceInputSetting {
         is_voice_input_enabled: bool,
@@ -1089,11 +1073,6 @@ pub enum TelemetryEvent {
     },
     KnowledgePaneOpened {
         entrypoint: KnowledgePaneEntrypoint,
-    },
-    #[cfg(feature = "local_fs")]
-    CodePanelsFileOpened {
-        entrypoint: CodePanelsFileOpenEntrypoint,
-        target: FileTarget,
     },
     #[cfg(feature = "local_fs")]
     PreviewPanePromoted,
@@ -1521,26 +1500,6 @@ impl TelemetryEvent {
                 Some(json!({ "entrypoint": entrypoint }))
             }
             #[cfg(feature = "local_fs")]
-            TelemetryEvent::CodePanelsFileOpened { entrypoint, target } => {
-                let (target, layout, editor) = match target {
-                    FileTarget::MarkdownViewer(layout) => {
-                        ("rift_markdown_viewer", Some(*layout), None)
-                    }
-                    FileTarget::CodeEditor(layout) => ("rift_code_editor", Some(*layout), None),
-                    FileTarget::EnvEditor => ("env_editor", None, None),
-                    FileTarget::SystemDefault => ("system_default", None, None),
-                    FileTarget::SystemGeneric => ("system_generic", None, None),
-                    FileTarget::ExternalEditor(editor) => ("external_editor", None, Some(*editor)),
-                };
-
-                Some(json!({
-                    "entrypoint": entrypoint,
-                    "target": target,
-                    "layout": layout,
-                    "editor": editor,
-                }))
-            }
-            #[cfg(feature = "local_fs")]
             TelemetryEvent::PreviewPanePromoted => None,
             TelemetryEvent::ExperimentTriggered {
                 experiment,
@@ -1672,11 +1631,6 @@ impl TelemetryEvent {
                 is_natural_language_autosuggestions_enabled,
             } => Some(
                 json!({"is_natural_language_autosuggestions_enabled": is_natural_language_autosuggestions_enabled}),
-            ),
-            TelemetryEvent::ToggleGitOperationsAutogenSetting {
-                is_git_operations_autogen_enabled,
-            } => Some(
-                json!({"is_git_operations_autogen_enabled": is_git_operations_autogen_enabled}),
             ),
             TelemetryEvent::ToggleVoiceInputSetting {
                 is_voice_input_enabled,
@@ -2171,8 +2125,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::PtyThroughput => EnablementState::Flag(FeatureFlag::RecordPtyThroughput),
             Self::KnowledgePaneOpened { .. } => EnablementState::Flag(FeatureFlag::AIRules),
             #[cfg(feature = "local_fs")]
-            Self::CodePanelsFileOpened { .. } => EnablementState::Always,
-            #[cfg(feature = "local_fs")]
             Self::PreviewPanePromoted => EnablementState::Always,
             Self::ToggleFocusPaneOnHover { .. } => EnablementState::Always,
             Self::InitiateAnonymousUserSignup { .. }
@@ -2402,9 +2354,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleNaturalLanguageAutosuggestionsSetting => {
                 EnablementState::ChannelSpecific { channels: vec![] }
             }
-            Self::ToggleGitOperationsAutogenSetting => {
-                EnablementState::Flag(FeatureFlag::GitOperationsInCodeReview)
-            }
             Self::ToggleVoiceInputSetting => EnablementState::Always,
 
             Self::ToggleWorkspaceDecorationVisibility => {
@@ -2501,8 +2450,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
                 "Anonymous User Attempted Login-Gated Feature"
             }
             Self::KnowledgePaneOpened { .. } => "Knowledge Pane Opened",
-            #[cfg(feature = "local_fs")]
-            Self::CodePanelsFileOpened { .. } => "CodePanels.FileOpened",
             #[cfg(feature = "local_fs")]
             Self::PreviewPanePromoted => "Preview Pane Promoted",
             Self::AnonymousUserHitCloudObjectLimit => "Anonymous User Hit Cloud Object Limit",
@@ -2708,7 +2655,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleNaturalLanguageAutosuggestionsSetting => {
                 "Toggle Natural Language Autosuggestions Setting"
             }
-            Self::ToggleGitOperationsAutogenSetting => "Toggle Git Operations Autogen Setting",
             Self::ToggleIntelligentAutosuggestionsSetting => {
                 "Toggle Intelligent Autosuggestions Setting"
             }
@@ -2829,10 +2775,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::BaselineCommandLatency => "Command execution time",
             Self::SessionCreation => "Created a tab",
             Self::KnowledgePaneOpened { .. } => "Knowledge Pane Opened",
-            #[cfg(feature = "local_fs")]
-            Self::CodePanelsFileOpened { .. } => {
-                "Opened a file from code review, project explorer, or global search"
-            }
             #[cfg(feature = "local_fs")]
             Self::PreviewPanePromoted => "Promoted a preview code tab to a normal tab",
             Self::ToggleSettingsSync => "Toggle Settings Sync",
@@ -3201,9 +3143,6 @@ impl TelemetryEventDesc for TelemetryEventDiscriminants {
             Self::ToggleCodeSuggestionsSetting => "Toggled on/off the code suggestions setting",
             Self::ToggleNaturalLanguageAutosuggestionsSetting => {
                 "Toggled on/off the natural language autosuggestions setting"
-            }
-            Self::ToggleGitOperationsAutogenSetting => {
-                "Toggled on/off the git operations autogen setting"
             }
             Self::ToggleVoiceInputSetting => "Toggled on/off the voice input setting",
             Self::PromptSuggestionShown => "Prompt Suggestions banner shown",

@@ -467,17 +467,6 @@ fn handle_terminal_view_event(
             Event::OpenThemeChooser => {
                 ctx.emit(pane_group::Event::OpenThemeChooser);
             }
-            #[cfg(feature = "local_fs")]
-            #[cfg(feature = "local_fs")]
-            Event::ToggleLeftPanel {
-                target_view,
-                force_open,
-            } => {
-                ctx.emit(pane_group::Event::ToggleLeftPanel {
-                    target_view: *target_view,
-                    force_open: *force_open,
-                });
-            }
             _ => {}
         }
     } else {

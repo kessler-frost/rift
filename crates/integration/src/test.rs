@@ -97,7 +97,6 @@ use rift::integration_testing::terminal::{
 use rift::integration_testing::view_getters::{
     single_input_suggestions_view_for_tab, single_input_view_for_tab,
     single_terminal_pane_view_for_tab, single_terminal_view, single_terminal_view_for_tab,
-    workspace_view,
 };
 use rift::integration_testing::window::{
     add_and_save_window, add_window, add_window_and_check_bounds, close_window,
@@ -459,12 +458,11 @@ pub fn test_suggestions_menu_positioning() -> Builder {
             new_step_with_default_assertions("Open suggestions")
                 .with_typed_characters(&["ls", " "])
                 .with_keystrokes(&["tab"])
-                .add_named_assertion_with_data_from_prior_step(
-                    "Assert buffer text and save suggestion position",
-                    |app, window_id, step_data| {
+                .add_named_assertion(
+                    "Assert buffer text and suggestions menu position",
+                    |app, window_id| {
                         let input_view = single_input_view_for_tab(app, window_id, 0);
                         let outcome = input_view.read(app, |view, ctx| {
-                            view.buffer_text(ctx);
                             async_assert!(
                                 view.buffer_text(ctx) == *"ls ",
                                 "Input box should contain 'ls '"
@@ -473,49 +471,13 @@ pub fn test_suggestions_menu_positioning() -> Builder {
 
                         app.update(|ctx| {
                             let presenter = ctx.presenter(window_id).expect("window should exist");
-                            let suggestions_menu_x = presenter
+                            presenter
                                 .borrow()
                                 .position_cache()
                                 .get_position("input_suggestions:index_0")
-                                .unwrap()
-                                .origin_x();
-                            step_data.insert("suggestions_menu_x", suggestions_menu_x);
+                                .expect("suggestions menu should be positioned");
                         });
                         outcome
-                    },
-                ),
-        )
-        .with_step(
-            new_step_with_default_assertions("Open the left panel")
-                .with_click_on_saved_position("workspace:toggle_left_panel")
-                .add_named_assertion("Left panel should be open", |app, window_id| {
-                    let workspace = workspace_view(app, window_id);
-                    let open = workspace.read(app, |workspace, _| workspace.is_drive_open());
-                    async_assert!(open, "Left panel should be open")
-                }),
-        )
-        .with_step(
-            new_step_with_default_assertions("Assert that suggestions menu updated")
-                .add_named_assertion_with_data_from_prior_step(
-                    "Assert suggestions menu shifted to the right",
-                    |app, window_id, step_data| {
-                        app.update(|ctx| {
-                            let presenter = ctx.presenter(window_id).expect("window should exist");
-                            let suggestions_menu_x = presenter
-                                .borrow()
-                                .position_cache()
-                                .get_position("input_suggestions:index_0")
-                                .unwrap()
-                                .origin_x();
-                            assert!(
-                                suggestions_menu_x
-                                    > *step_data
-                                        .get("suggestions_menu_x")
-                                        .expect("data should have been set in earlier step"),
-                                "Suggestions menu should have adjusted rightward"
-                            );
-                        });
-                        AssertionOutcome::Success
                     },
                 ),
         )

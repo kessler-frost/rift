@@ -1073,11 +1073,6 @@ pub enum Event {
     },
 
     OpenThemeChooser,
-    /// Toggle the left panel to a specific view
-    ToggleLeftPanel {
-        target_view: LeftPanelTargetView,
-        force_open: bool,
-    },
     SlowBootstrap,
     ShowToast {
         message: String,
@@ -1089,11 +1084,6 @@ pub enum Event {
         title: Option<String>,
         body: String,
     },
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum LeftPanelTargetView {
-    FileTree,
 }
 
 #[derive(Clone)]
@@ -5177,8 +5167,6 @@ impl TerminalView {
         self.input.update(ctx, |input, ctx| {
             input.try_execute_command(format!("cd \"{path}\"").as_str(), ctx);
         });
-
-        self.toggle_left_panel_file_tree(true, ctx);
     }
 
     fn reset_onboarding_blocks(&mut self, ctx: &mut ViewContext<Self>) {
@@ -5853,13 +5841,6 @@ impl TerminalView {
         ctx: &mut ViewContext<Self>,
     ) {
         self.on_pane_state_change(ctx);
-    }
-
-    fn toggle_left_panel_file_tree(&self, force_open: bool, ctx: &mut ViewContext<Self>) {
-        ctx.emit(Event::ToggleLeftPanel {
-            target_view: LeftPanelTargetView::FileTree,
-            force_open,
-        });
     }
 
     /// Currently, we show the notification error in the form of a banner,

@@ -128,10 +128,6 @@ pub fn test_video_recording() -> Builder {
                 }),
         )
         .with_step(
-            new_step_with_default_assertions("Close left panel")
-                .with_click_on_saved_position("workspace:toggle_left_panel"),
-        )
-        .with_step(
             new_step_with_default_assertions("Start drag-select")
                 .with_event_fn(|app, window_id| {
                     let presenter = app.presenter(window_id).expect("presenter");

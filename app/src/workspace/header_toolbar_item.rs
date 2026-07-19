@@ -1,6 +1,5 @@
 use riftui::{AppContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use settings::Setting as _;
 
 use crate::features::FeatureFlag;
 use crate::ui_components::icons::Icon;
@@ -25,84 +24,42 @@ use crate::workspace::tab_settings::TabSettings;
 #[schemars(rename_all = "snake_case")]
 pub enum HeaderToolbarItemKind {
     TabsPanel,
-    ToolsPanel,
-    AgentManagement,
-    CodeReview,
-    NotificationsMailbox,
 }
 
 impl HeaderToolbarItemKind {
     pub fn display_label(&self) -> &'static str {
         match self {
             Self::TabsPanel => "Tabs Panel",
-            Self::ToolsPanel => "Tools Panel",
-            Self::AgentManagement => "Agent Management",
-            Self::CodeReview => "Code Review",
-            Self::NotificationsMailbox => "Notifications",
         }
     }
 
     pub fn icon(&self) -> Icon {
         match self {
             Self::TabsPanel => Icon::Menu,
-            Self::ToolsPanel => Icon::Tool2,
-            Self::AgentManagement => Icon::Grid,
-            Self::CodeReview => Icon::Diff,
-            Self::NotificationsMailbox => Icon::Inbox,
         }
     }
 
     /// Whether this item is supported on the current platform/configuration
-    /// (feature flags, compile-time features, AI enabled, auth state).
-    /// Does not check user show/hide preferences — use `is_available` for that.
+    /// (feature flags, compile-time features).
     pub fn is_supported(&self, app: &AppContext) -> bool {
         match self {
             Self::TabsPanel => {
                 FeatureFlag::VerticalTabs.is_enabled()
                     && *TabSettings::as_ref(app).use_vertical_tabs
             }
-            Self::ToolsPanel => true,
-            Self::AgentManagement => false,
-            Self::CodeReview => cfg!(feature = "local_fs"),
-            Self::NotificationsMailbox => false,
         }
-    }
-
-    /// Whether this item should be shown in the toolbar.
-    /// Checks both `is_supported` and user show/hide preferences.
-    pub fn is_available(&self, app: &AppContext) -> bool {
-        if !self.is_supported(app) {
-            return false;
-        }
-        match self {
-            Self::CodeReview => *TabSettings::as_ref(app).show_code_review_button.value(),
-            Self::NotificationsMailbox => false,
-            _ => true,
-        }
-    }
-
-    /// Whether this item opens a side panel (as opposed to replacing the content
-    /// area or opening a popover).
-    pub fn is_panel(&self) -> bool {
-        matches!(self, Self::TabsPanel | Self::ToolsPanel | Self::CodeReview)
     }
 
     pub fn default_left() -> Vec<Self> {
-        vec![Self::TabsPanel, Self::ToolsPanel, Self::AgentManagement]
+        vec![Self::TabsPanel]
     }
 
     pub fn default_right() -> Vec<Self> {
-        vec![Self::CodeReview]
+        vec![]
     }
 
     /// All toolbar item variants (availability filtering is done at the call site).
     pub fn all_items() -> Vec<Self> {
-        vec![
-            Self::TabsPanel,
-            Self::ToolsPanel,
-            Self::AgentManagement,
-            Self::CodeReview,
-            Self::NotificationsMailbox,
-        ]
+        vec![Self::TabsPanel]
     }
 }

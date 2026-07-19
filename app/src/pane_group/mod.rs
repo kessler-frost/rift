@@ -65,9 +65,7 @@ use crate::terminal::general_settings::{GeneralSettings, GeneralSettingsChangedE
 use crate::terminal::local_tty;
 use crate::terminal::session_settings::{NewSessionSource, SessionSettings};
 use crate::terminal::view::ssh_file_upload::FileUploadId;
-use crate::terminal::view::{
-    BlockNotification, ExecuteCommandEvent, LeftPanelTargetView, SyncEvent, TerminalViewState,
-};
+use crate::terminal::view::{BlockNotification, ExecuteCommandEvent, SyncEvent, TerminalViewState};
 use crate::terminal::{ShellLaunchData, TerminalManager, TerminalModel, TerminalView};
 use crate::undo_close::{UndoCloseStack, UndoCloseStackEvent};
 use crate::util::bindings::{is_binding_pty_compliant, CustomAction};
@@ -467,10 +465,6 @@ pub enum Event {
     OpenFilesPalette {
         source: PaletteSource,
     },
-    ToggleLeftPanel {
-        target_view: LeftPanelTargetView,
-        force_open: bool,
-    },
     #[cfg(feature = "local_fs")]
     OpenFileWithTarget {
         path: PathBuf,
@@ -605,10 +599,6 @@ pub struct PaneGroup {
 
     /// If the left panel is open for this pane group
     pub left_panel_open: bool,
-    /// If the right panel is open for this pane group
-    pub right_panel_open: bool,
-    /// If the right panel is maximized
-    pub is_right_panel_maximized: bool,
 
     /// Tab-level custom title set via the rename-tab flow.
     custom_title: Option<String>,
@@ -1578,9 +1568,7 @@ impl PaneGroup {
             user_default_shell_changed_banner,
             pane_with_open_environment_setup_mode_selector: None,
             pane_with_open_auth_secret_delete_confirmation_dialog: None,
-            right_panel_open: false,
             left_panel_open: false,
-            is_right_panel_maximized: false,
             custom_title: None,
         };
 

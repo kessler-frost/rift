@@ -36,15 +36,12 @@ use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersio
 use crate::context_chips::spacing;
 use crate::send_telemetry_from_ctx;
 use crate::settings::InputSettings;
-use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::model_events::ModelEventDispatcher;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
-use crate::util::bindings::keybinding_name_to_display_string;
 use crate::util::truncation::truncate_from_beginning;
 use crate::view_components::action_button::{ActionButtonTheme, NakedTheme};
-use crate::workspace::view::TOGGLE_RIGHT_PANEL_BINDING_NAME;
 
 /// Get the theme-appropriate add (green) color for git diff stats.
 fn add_color(appearance: &Appearance) -> ColorU {
@@ -273,7 +270,6 @@ pub enum DisplayChipAction {
 
 pub struct DisplayChip {
     mouse_state: MouseStateHandle,
-    diff_stats_mouse_state: MouseStateHandle,
     text: String,
     chip_kind: ContextChipKind,
     display_chip_kind: DisplayChipKind,
@@ -281,8 +277,6 @@ pub struct DisplayChip {
     first_on_click_value: Option<String>,
     session_context: Option<SessionContext>,
     menu_positioning_provider: Arc<dyn MenuPositioningProvider>,
-    /// Cached display string for the code review keybinding.
-    code_review_keybinding: Option<String>,
     terminal_view_id: EntityId,
 }
 
@@ -723,26 +717,8 @@ impl DisplayChip {
             _ => DisplayChipKind::Text,
         };
 
-        // Cache the code review keybinding and subscribe to changes.
-        let code_review_keybinding =
-            keybinding_name_to_display_string(TOGGLE_RIGHT_PANEL_BINDING_NAME, ctx);
-        ctx.subscribe_to_model(
-            &KeybindingChangedNotifier::handle(ctx),
-            |me, _, event, ctx| {
-                let KeybindingChangedEvent::BindingChanged {
-                    binding_name,
-                    new_trigger,
-                } = event;
-                if binding_name == TOGGLE_RIGHT_PANEL_BINDING_NAME {
-                    me.code_review_keybinding = new_trigger.as_ref().map(|k| k.displayed());
-                    ctx.notify();
-                }
-            },
-        );
-
         Self {
             mouse_state: Default::default(),
-            diff_stats_mouse_state: Default::default(),
             text: chip_result.value.map(|v| v.to_string()).unwrap_or_default(),
             chip_kind: chip_result.kind,
             display_chip_kind,
@@ -750,7 +726,6 @@ impl DisplayChip {
             first_on_click_value: chip_result.on_click_values.first().cloned(),
             session_context: config.session_context,
             menu_positioning_provider: config.menu_positioning_provider,
-            code_review_keybinding,
             terminal_view_id: config.terminal_view_id,
         }
     }

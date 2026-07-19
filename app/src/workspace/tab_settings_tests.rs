@@ -33,34 +33,18 @@ fn show_vertical_tab_panel_in_restored_windows_uses_vertical_tabs_path() {
 }
 
 #[test]
-fn header_toolbar_chip_selection_default_contains_code_review() {
+fn header_toolbar_chip_selection_default_contains_tabs_panel() {
     let config = HeaderToolbarChipSelection::Default;
-    assert!(config.contains_item(&HeaderToolbarItemKind::CodeReview));
-}
-
-#[test]
-fn header_toolbar_chip_selection_custom_without_code_review_reports_absent() {
-    let config = HeaderToolbarChipSelection::Custom {
-        left: vec![
-            HeaderToolbarItemKind::TabsPanel,
-            HeaderToolbarItemKind::ToolsPanel,
-        ],
-        right: vec![HeaderToolbarItemKind::NotificationsMailbox],
-    };
-    assert!(!config.contains_item(&HeaderToolbarItemKind::CodeReview));
     assert!(config.contains_item(&HeaderToolbarItemKind::TabsPanel));
-    assert!(config.contains_item(&HeaderToolbarItemKind::ToolsPanel));
-    assert!(config.contains_item(&HeaderToolbarItemKind::NotificationsMailbox));
-    assert!(!config.contains_item(&HeaderToolbarItemKind::AgentManagement));
 }
 
 #[test]
-fn header_toolbar_chip_selection_custom_with_code_review_on_left_reports_present() {
+fn header_toolbar_chip_selection_custom_with_tabs_panel_reports_present() {
     let config = HeaderToolbarChipSelection::Custom {
-        left: vec![HeaderToolbarItemKind::CodeReview],
+        left: vec![HeaderToolbarItemKind::TabsPanel],
         right: vec![],
     };
-    assert!(config.contains_item(&HeaderToolbarItemKind::CodeReview));
+    assert!(config.contains_item(&HeaderToolbarItemKind::TabsPanel));
 }
 
 #[test]

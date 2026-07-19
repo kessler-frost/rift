@@ -261,12 +261,6 @@ pub enum WorkspaceAction {
         position: RectF,
     },
     DropGroup,
-    /// Toggles the left panel. In Code Mode V1 this toggles Rift Drive.
-    /// In Code Mode V2 this toggles the left panel which contains both the project explorer and
-    /// Rift Drive. This happens as explicit action from the user.
-    ToggleLeftPanel,
-    /// Toggles the right panel. This happens as an explicit action from the user.
-    ToggleRightPanel,
     /// Toggles the vertical tabs panel. This happens as an explicit action from the user.
     ToggleVerticalTabsPanel,
     ToggleVerticalTabsSettingsPopup,

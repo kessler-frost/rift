@@ -67,7 +67,6 @@ use riftui::platform::{
     Cursor, FilePickerConfiguration, FullscreenState, SystemTheme, TerminationMode,
 };
 use riftui::text_layout::ClipConfig;
-use riftui::ui_components::button::Button;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::windowing::{StateEvent, WindowManager};
 use riftui::{
@@ -96,7 +95,7 @@ use super::util::{
 };
 use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
 use crate::app_state::{
-    LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneNodeSnapshot, PaneUuid, RightPanelSnapshot,
+    LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneNodeSnapshot, PaneUuid,
     SettingsPaneSnapshot, TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::appearance::{Appearance, AppearanceManager};
@@ -321,7 +320,6 @@ pub const TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME: &str = "workspace:toggle_comma
 
 const USER_AVATAR_BUTTON_POSITION_ID: &str = "workspace:user_avatar_button";
 
-pub(crate) const TOGGLE_RIGHT_PANEL_BINDING_NAME: &str = "workspace:toggle_right_panel";
 pub(crate) const TOGGLE_VERTICAL_TABS_PANEL_BINDING_NAME: &str =
     "workspace:toggle_vertical_tabs_panel";
 pub(crate) const NEW_TAB_BINDING_NAME: &str = "workspace:new_tab";
@@ -508,8 +506,6 @@ pub struct TransferredTab {
     pub custom_title: Option<String>,
     pub left_panel_open: bool,
     pub vertical_tabs_panel_open: bool,
-    pub right_panel_open: bool,
-    pub is_right_panel_maximized: bool,
     pub draggable_state: DraggableState,
 }
 
@@ -1977,7 +1973,6 @@ impl Workspace {
         };
 
         ws.configure_new_workspace(workspace_setting, ctx);
-        ws.sync_panel_positions_from_config(ctx);
         ws.sync_window_button_visibility(ctx);
         ws.update_titlebar_height(ctx);
         // Seed the settings pane with the initial settings-file error (if
@@ -2057,7 +2052,6 @@ impl Workspace {
                 if !vertical_tabs_enabled {
                     self.close_vertical_tabs_settings_popup();
                 }
-                self.sync_panel_positions_from_config(ctx);
                 self.sync_window_button_visibility(ctx);
                 ctx.notify();
             }
@@ -2068,12 +2062,6 @@ impl Workspace {
                 {
                     self.vertical_tabs_panel_open = true;
                 }
-                ctx.notify();
-            }
-            TabSettingsChangedEvent::ShowCodeReviewButton { .. } => {
-                ctx.notify();
-            }
-            TabSettingsChangedEvent::ShowCodeReviewDiffStats { .. } => {
                 ctx.notify();
             }
             TabSettingsChangedEvent::DirectoryTabColors { .. } => {
@@ -2107,7 +2095,6 @@ impl Workspace {
                 ctx.notify();
             }
             TabSettingsChangedEvent::HeaderToolbarChipSelection { .. } => {
-                self.sync_panel_positions_from_config(ctx);
                 ctx.notify();
             }
         }
@@ -2192,14 +2179,6 @@ impl Workspace {
                         if let Some(left_panel_snapshot) = &saved_tab.left_panel {
                             self.restore_left_panel_for_tab(&pane_group, left_panel_snapshot, ctx);
                         }
-
-                        if let Some(right_panel_snapshot) = &saved_tab.right_panel {
-                            self.restore_right_panel_for_tab(
-                                &pane_group,
-                                right_panel_snapshot,
-                                ctx,
-                            );
-                        }
                     });
 
                 if self.tab_count() == 0 {
@@ -2236,33 +2215,6 @@ impl Workspace {
                 );
                 self.check_and_trigger_onboarding(ctx);
             }
-            #[cfg(feature = "local_fs")]
-            NewWorkspaceSource::TransferredTab {
-                tab_color,
-                custom_title,
-                left_panel_open,
-                right_panel_open,
-                is_right_panel_maximized,
-                is_tab_drag_preview,
-                ..
-            } => {
-                self.set_is_tab_drag_preview(is_tab_drag_preview);
-                self.add_tab_with_pane_layout(
-                    Default::default(),
-                    Arc::new(HashMap::new()),
-                    custom_title,
-                    ctx,
-                );
-                if let (Some(color), Some(tab)) = (tab_color, self.tabs.last_mut()) {
-                    tab.selected_color = SelectedTabColor::Color(color);
-                }
-                if self.left_panel_visibility_across_tabs_enabled(ctx) {
-                    self.left_panel_open = left_panel_open;
-                }
-                let _ = (right_panel_open, is_right_panel_maximized);
-                self.pending_pane_group_transfer = true;
-            }
-            #[cfg(not(feature = "local_fs"))]
             NewWorkspaceSource::TransferredTab {
                 tab_color,
                 custom_title,
@@ -2347,28 +2299,6 @@ impl Workspace {
         ctx.notify();
     }
 
-    fn restore_right_panel_for_tab(
-        &mut self,
-        pane_group: &ViewHandle<PaneGroup>,
-        right_panel_snapshot: &RightPanelSnapshot,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        pane_group.update(ctx, |pg, _| {
-            pg.right_panel_open = true;
-            pg.is_right_panel_maximized = right_panel_snapshot.is_maximized;
-        });
-
-        let resizable = ResizableData::handle(ctx);
-        if let Some(modal_sizes) = resizable.as_ref(ctx).get_all_handles(self.window_id) {
-            if let Ok(mut handle) = modal_sizes.right_panel_width.lock() {
-                handle.set_size(right_panel_snapshot.width as f32);
-            }
-        }
-
-        let _ = pane_group;
-        ctx.notify();
-    }
-
     // Configure an empty workspace. The behavior here is platform-specific.
     fn configure_empty_workspace(
         &mut self,
@@ -2410,9 +2340,8 @@ impl Workspace {
         self.active_tab_pane_group().as_ref(app).left_panel_open
     }
 
-    fn has_right_region(&self, app: &AppContext) -> bool {
-        let group = self.active_tab_pane_group().as_ref(app);
-        group.right_panel_open || self.current_workspace_state.is_right_panel_open()
+    fn has_right_region(&self) -> bool {
+        self.current_workspace_state.is_right_panel_open()
     }
 
     fn focus_next_pane_in_group(&mut self, ctx: &mut ViewContext<Self>) -> bool {
@@ -2450,7 +2379,7 @@ impl Workspace {
     ) {
         let current_region = self.current_focus_region(ctx);
         let has_left_panel = self.has_left_region(ctx);
-        let has_right_panel = self.has_right_region(ctx);
+        let has_right_panel = self.has_right_region();
 
         let target_region = self.compute_target_focus_region(
             current_region,
@@ -3193,24 +3122,6 @@ impl Workspace {
                 .header_toolbar_chip_selection
                 .set_value(selection, ctx));
         });
-    }
-
-    fn sync_panel_positions_from_config(&mut self, ctx: &mut ViewContext<Self>) {
-        let config = TabSettings::as_ref(ctx)
-            .header_toolbar_chip_selection
-            .clone();
-        let left_items = config.left_items();
-        let tools_position = if left_items.contains(&HeaderToolbarItemKind::ToolsPanel) {
-            PanelPosition::Left
-        } else {
-            PanelPosition::Right
-        };
-        let code_review_position = if left_items.contains(&HeaderToolbarItemKind::CodeReview) {
-            PanelPosition::Left
-        } else {
-            PanelPosition::Right
-        };
-        let _ = (tools_position, code_review_position);
     }
 
     fn build_header_toolbar_context_menu(
@@ -6202,19 +6113,12 @@ impl Workspace {
                         .size()
                 });
 
-                let right_panel_width = modal_sizes.map(|ms| {
-                    ms.right_panel_width
-                        .lock()
-                        .expect("should be able to lock right panel handle")
-                        .size()
-                });
-
                 let pane_group = pane_group_view.as_ref(app);
                 let root = pane_group.snapshot(app);
                 let left_panel =
                     self.compute_left_panel_snapshot(pane_group_view, left_panel_width, app);
-                let right_panel =
-                    self.compute_right_panel_snapshot(pane_group_view, right_panel_width, app);
+                // The right (code review) panel was removed; nothing to snapshot.
+                let right_panel = None;
                 TabSnapshot {
                     root,
                     custom_title: pane_group.custom_title(app),
@@ -6317,27 +6221,6 @@ impl Workspace {
     ) -> Option<LeftPanelSnapshot> {
         // The left panel was removed; nothing to snapshot.
         None
-    }
-
-    fn compute_right_panel_snapshot(
-        &self,
-        pane_group: &ViewHandle<PaneGroup>,
-        right_panel_width: Option<f32>,
-        app: &AppContext,
-    ) -> Option<RightPanelSnapshot> {
-        let pane_group_ref = pane_group.as_ref(app);
-        if !pane_group_ref.right_panel_open {
-            return None;
-        }
-
-        let pane_group_id = pane_group.id();
-        let is_maximized = pane_group_ref.is_right_panel_maximized;
-
-        Some(RightPanelSnapshot {
-            pane_group_id: pane_group_id.to_string(),
-            width: right_panel_width.unwrap_or(DEFAULT_RIGHT_PANEL_WIDTH) as usize,
-            is_maximized,
-        })
     }
 
     pub fn open_launch_config_save_modal(&mut self, ctx: &mut ViewContext<Self>) {
@@ -8477,29 +8360,6 @@ impl Workspace {
         appearance: &Appearance,
         ctx: &AppContext,
     ) -> Box<dyn Element> {
-        let vertical_tabs_active =
-            FeatureFlag::VerticalTabs.is_enabled() && *TabSettings::as_ref(ctx).use_vertical_tabs;
-
-        let (is_active, tooltip_text, action, keybinding_name, save_position_id) =
-            if vertical_tabs_active {
-                (
-                    self.vertical_tabs_panel_open,
-                    "Tabs panel",
-                    WorkspaceAction::ToggleVerticalTabsPanel,
-                    "workspace:toggle_vertical_tabs_panel",
-                    "workspace:toggle_vertical_tabs_panel",
-                )
-            } else {
-                let tooltip = "Tools panel";
-                (
-                    self.active_tab_pane_group().as_ref(ctx).left_panel_open,
-                    tooltip,
-                    WorkspaceAction::ToggleLeftPanel,
-                    "workspace:toggle_left_panel",
-                    "workspace:toggle_left_panel",
-                )
-            };
-
         SavePosition::new(
             Container::new(
                 Align::new(
@@ -8507,10 +8367,13 @@ impl Workspace {
                         appearance,
                         icons::Icon::Menu,
                         &self.mouse_states.left_panel_icon,
-                        action,
-                        tooltip_text.to_string(),
-                        keybinding_name_to_display_string(keybinding_name, ctx),
-                        is_active,
+                        WorkspaceAction::ToggleVerticalTabsPanel,
+                        "Tabs panel".to_string(),
+                        keybinding_name_to_display_string(
+                            "workspace:toggle_vertical_tabs_panel",
+                            ctx,
+                        ),
+                        self.vertical_tabs_panel_open,
                         false,
                     )
                     .finish(),
@@ -8518,39 +8381,7 @@ impl Workspace {
                 .finish(),
             )
             .finish(),
-            save_position_id,
-        )
-        .finish()
-    }
-
-    fn render_tools_panel_button(
-        &self,
-        appearance: &Appearance,
-        ctx: &AppContext,
-    ) -> Box<dyn Element> {
-        let is_active = self.active_tab_pane_group().as_ref(ctx).left_panel_open;
-
-        let tooltip_text = "Tools panel";
-
-        SavePosition::new(
-            Container::new(
-                Align::new(
-                    self.render_tab_bar_icon_button(
-                        appearance,
-                        icons::Icon::Tool2,
-                        &self.mouse_states.tools_panel_icon,
-                        WorkspaceAction::ToggleLeftPanel,
-                        tooltip_text.to_string(),
-                        keybinding_name_to_display_string("workspace:toggle_left_panel", ctx),
-                        is_active,
-                        false,
-                    )
-                    .finish(),
-                )
-                .finish(),
-            )
-            .finish(),
-            "workspace:toggle_left_panel",
+            "workspace:toggle_vertical_tabs_panel",
         )
         .finish()
     }
@@ -8560,147 +8391,6 @@ impl Workspace {
             .pane_ids()
             .filter(|id| !pane_group.is_pane_hidden_for_close(*id))
             .any(|id| id.is_terminal_pane())
-    }
-
-    fn render_right_panel_button(
-        &self,
-        appearance: &Appearance,
-        ctx: &AppContext,
-    ) -> Box<dyn Element> {
-        let is_active = self.active_tab_pane_group().as_ref(ctx).right_panel_open;
-        let is_enabled = Self::should_enable_file_tree_and_global_search_for_pane_group(
-            self.active_tab_pane_group().as_ref(ctx),
-        );
-        let disable = !is_enabled;
-
-        let theme = appearance.theme();
-        let font_color = if disable {
-            theme.disabled_text_color(theme.background())
-        } else if is_active {
-            theme.main_text_color(theme.background())
-        } else {
-            theme.sub_text_color(theme.background())
-        };
-
-        // Build the button content: Diff icon + optional diff stats
-        let icon = ConstrainedBox::new(icons::Icon::Diff.to_riftui_icon(font_color).finish())
-            .with_width(16.)
-            .with_height(16.)
-            .finish();
-
-        let show_diff_stats = *TabSettings::as_ref(ctx).show_code_review_diff_stats;
-
-        let line_changes = if show_diff_stats {
-            self.active_tab_pane_group()
-                .as_ref(ctx)
-                .active_session_view(ctx)
-                .and_then(|tv| tv.as_ref(ctx).current_diff_line_changes(ctx))
-                .filter(|lc| {
-                    // Only show the stat badge when there are actual line-level changes
-                    // (files_changed alone, e.g. mode-only changes, is not surfaced here).
-                    lc.lines_added > 0 || lc.lines_removed > 0
-                })
-        } else {
-            None
-        };
-
-        let has_stats = line_changes.is_some();
-
-        let mut row = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
-        row.add_child(icon);
-
-        if let Some(lc) = line_changes {
-            let stat = |value: u32, prefix: &str, color: ColorU| -> Box<dyn Element> {
-                Container::new(
-                    Text::new_inline(format!("{prefix}{value}"), appearance.ui_font_family(), 12.)
-                        .with_color(color)
-                        .with_style(Properties::default().weight(Weight::Semibold))
-                        .finish(),
-                )
-                .with_margin_left(4.)
-                .finish()
-            };
-            let add_color = AnsiColorIdentifier::Green
-                .to_ansi_color(&appearance.theme().terminal_colors().normal)
-                .into();
-            let remove_color = AnsiColorIdentifier::Red
-                .to_ansi_color(&appearance.theme().terminal_colors().normal)
-                .into();
-            row.add_child(stat(lc.lines_added, "+", add_color));
-            row.add_child(stat(lc.lines_removed, "-", remove_color));
-        }
-
-        let label = row.finish();
-
-        // The diff icon SVG has intrinsic horizontal whitespace in its 14px viewBox: its visible
-        // paths start around x=3 and end around x=11. When stats are shown, equal container padding
-        // makes the gap between the button edge and the visible icon look wider than the gap after
-        // the text. Locally compensate for that artwork padding without changing the shared icon.
-        let (header_padding_left, header_padding_right) =
-            if has_stats { (5., 8.) } else { (4., 4.) };
-        let default_styles = UiComponentStyles {
-            font_color: Some(font_color.into()),
-            font_size: Some(12.),
-            font_weight: Some(Weight::Medium),
-            font_family_id: Some(appearance.ui_font_family()),
-            height: Some(24.),
-            border_radius: Some(CornerRadius::with_all(Radius::Pixels(4.))),
-            border_width: Some(0.),
-            padding: Some(Coords {
-                top: 0.,
-                bottom: 0.,
-                left: header_padding_left,
-                right: header_padding_right,
-            }),
-            ..Default::default()
-        };
-
-        let hover_styles = UiComponentStyles {
-            background: Some(theme.surface_2().into()),
-            ..default_styles
-        };
-
-        let clicked_styles = UiComponentStyles {
-            background: Some(theme.background().into()),
-            ..default_styles
-        };
-
-        let mut button = Button::new(
-            self.mouse_states.right_panel_icon.clone(),
-            default_styles,
-            Some(hover_styles),
-            Some(clicked_styles),
-            None,
-        )
-        .with_custom_label(label);
-
-        if is_active {
-            button = button.active().with_active_styles(UiComponentStyles {
-                background: Some(internal_colors::fg_overlay_3(theme).into()),
-                ..UiComponentStyles::default()
-            });
-        }
-
-        let hoverable = if disable {
-            button.build().disable()
-        } else {
-            button
-                .with_tooltip(self.render_tab_bar_icon_button_tooltip(
-                    appearance,
-                    "Code review panel".to_string(),
-                    keybinding_name_to_display_string("workspace:toggle_right_panel", ctx),
-                ))
-                .build()
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(WorkspaceAction::ToggleRightPanel);
-                })
-        };
-
-        SavePosition::new(
-            Container::new(Align::new(hoverable.finish()).finish()).finish(),
-            "workspace:right_panel_button",
-        )
-        .finish()
     }
 
     /// Renders an invisible rect for detecting hovers over the tab bar.
@@ -9022,25 +8712,11 @@ impl Workspace {
         appearance: &Appearance,
         ctx: &AppContext,
     ) -> Option<Box<dyn Element>> {
-        if !item.is_available(ctx) {
+        if !item.is_supported(ctx) {
             return None;
         }
-        let vertical_tabs_active =
-            FeatureFlag::VerticalTabs.is_enabled() && *TabSettings::as_ref(ctx).use_vertical_tabs;
         let inner = match item {
             HeaderToolbarItemKind::TabsPanel => self.render_left_toggle_button(appearance, ctx),
-            HeaderToolbarItemKind::ToolsPanel => {
-                if vertical_tabs_active {
-                    self.render_tools_panel_button(appearance, ctx)
-                } else {
-                    self.render_left_toggle_button(appearance, ctx)
-                }
-            }
-            // Kept only for persisted-layout compatibility; never supported.
-            HeaderToolbarItemKind::AgentManagement => Empty::new().finish(),
-            HeaderToolbarItemKind::CodeReview => self.render_right_panel_button(appearance, ctx),
-            // Kept only for persisted-layout compatibility; never supported.
-            HeaderToolbarItemKind::NotificationsMailbox => Empty::new().finish(),
         };
         Some(
             Container::new(
@@ -9666,9 +9342,6 @@ impl Workspace {
 
         let vertical_tabs_active =
             FeatureFlag::VerticalTabs.is_enabled() && *TabSettings::as_ref(app).use_vertical_tabs;
-        let pane_group = self.active_tab_pane_group().as_ref(app);
-        let is_right_open = pane_group.right_panel_open;
-        let is_right_maximized = is_right_open && pane_group.is_right_panel_maximized;
 
         let mut main_content = Flex::row();
 
@@ -9684,50 +9357,26 @@ impl Workspace {
                 Self::add_panel_with_separator(
                     &mut main_content,
                     &mut prev_panel_added,
-                    self.render_config_panel(&item, pane_group, &config, app),
+                    self.render_config_panel(&item, &config, app),
                     app,
                 );
             }
 
-            if !is_right_maximized {
-                if prev_panel_added {
-                    main_content.add_child(Self::render_panel_separator(app));
-                }
-                main_content =
-                    main_content.with_child(Shrinkable::new(1.0, terminal_content).finish());
-                prev_panel_added = true;
+            if prev_panel_added {
+                main_content.add_child(Self::render_panel_separator(app));
             }
+            main_content = main_content.with_child(Shrinkable::new(1.0, terminal_content).finish());
+            prev_panel_added = true;
 
             for item in config.right_items() {
                 Self::add_panel_with_separator(
                     &mut main_content,
                     &mut prev_panel_added,
-                    self.render_config_panel(&item, pane_group, &config, app),
+                    self.render_config_panel(&item, &config, app),
                     app,
                 );
             }
-
-            if is_right_maximized {
-                Self::add_panel_with_separator(
-                    &mut main_content,
-                    &mut prev_panel_added,
-                    self.render_config_panel_maximized(pane_group, &config, app),
-                    app,
-                );
-            } else if !config.contains_item(&HeaderToolbarItemKind::CodeReview) {
-                Self::add_panel_with_separator(
-                    &mut main_content,
-                    &mut prev_panel_added,
-                    self.render_config_panel(
-                        &HeaderToolbarItemKind::CodeReview,
-                        pane_group,
-                        &config,
-                        app,
-                    ),
-                    app,
-                );
-            }
-        } else if !is_right_maximized {
+        } else {
             main_content = main_content.with_child(Shrinkable::new(1.0, terminal_content).finish());
         }
 
@@ -10157,13 +9806,12 @@ impl Workspace {
             let config = TabSettings::as_ref(app)
                 .header_toolbar_chip_selection
                 .clone();
-            let pane_group = self.active_tab_pane_group().as_ref(app);
 
             for item in config.left_items() {
                 Self::add_panel_with_separator(
                     &mut panels_view,
                     &mut prev_panel_added,
-                    self.render_config_panel(&item, pane_group, &config, app),
+                    self.render_config_panel(&item, &config, app),
                     app,
                 );
             }
@@ -10197,34 +9845,12 @@ impl Workspace {
             let config = TabSettings::as_ref(app)
                 .header_toolbar_chip_selection
                 .clone();
-            let pane_group = self.active_tab_pane_group().as_ref(app);
 
             for item in config.right_items() {
                 Self::add_panel_with_separator(
                     &mut panels_view,
                     &mut prev_panel_added,
-                    self.render_config_panel(&item, pane_group, &config, app),
-                    app,
-                );
-            }
-
-            if pane_group.right_panel_open && pane_group.is_right_panel_maximized {
-                Self::add_panel_with_separator(
-                    &mut panels_view,
-                    &mut prev_panel_added,
-                    self.render_config_panel_maximized(pane_group, &config, app),
-                    app,
-                );
-            } else if !config.contains_item(&HeaderToolbarItemKind::CodeReview) {
-                Self::add_panel_with_separator(
-                    &mut panels_view,
-                    &mut prev_panel_added,
-                    self.render_config_panel(
-                        &HeaderToolbarItemKind::CodeReview,
-                        pane_group,
-                        &config,
-                        app,
-                    ),
+                    self.render_config_panel(&item, &config, app),
                     app,
                 );
             }
@@ -10258,16 +9884,15 @@ impl Workspace {
     }
 
     /// Renders a configurable panel for the given toolbar item, if it is open.
-    /// Returns `None` if the panel should not be rendered (item not supported,
-    /// panel not open, or item is not a panel type).
+    /// Returns `None` if the panel should not be rendered (item not supported
+    /// or panel not open).
     fn render_config_panel(
         &self,
         item: &HeaderToolbarItemKind,
-        _pane_group: &PaneGroup,
         config: &HeaderToolbarChipSelection,
         app: &AppContext,
     ) -> Option<Box<dyn Element>> {
-        if !item.is_supported(app) || !item.is_panel() {
+        if !item.is_supported(app) {
             return None;
         }
         match item {
@@ -10283,22 +9908,7 @@ impl Workspace {
                     .finish(),
                 )
             }
-            HeaderToolbarItemKind::ToolsPanel
-            | HeaderToolbarItemKind::CodeReview
-            | HeaderToolbarItemKind::AgentManagement
-            | HeaderToolbarItemKind::NotificationsMailbox => None,
         }
-    }
-
-    /// Renders the maximized code review panel if it is configured and maximized.
-    fn render_config_panel_maximized(
-        &self,
-        pane_group: &PaneGroup,
-        _config: &HeaderToolbarChipSelection,
-        app: &AppContext,
-    ) -> Option<Box<dyn Element>> {
-        let _ = (pane_group, app);
-        None
     }
 
     /// Offset positioning for global toasts.
@@ -10532,12 +10142,6 @@ impl Workspace {
             context.set.insert(flags::WINDOW_BLUR_TEXTURE_FLAG);
         }
 
-        if *window_settings.left_panel_visibility_across_tabs {
-            context
-                .set
-                .insert(flags::LEFT_PANEL_VISIBILITY_ACROSS_TABS_FLAG);
-        }
-
         if *pane_settings.focus_panes_on_hover {
             context.set.insert(flags::FOCUS_PANES_ON_HOVER_CONTEXT_FLAG);
         }
@@ -10556,12 +10160,6 @@ impl Workspace {
 
         if *tab_settings.show_indicators.value() {
             context.set.insert(flags::TAB_INDICATORS_FLAG);
-        }
-        if *tab_settings.show_code_review_button.value() {
-            context.set.insert(flags::SHOW_CODE_REVIEW_BUTTON_FLAG);
-        }
-        if *tab_settings.show_code_review_diff_stats.value() {
-            context.set.insert(flags::SHOW_CODE_REVIEW_DIFF_STATS_FLAG);
         }
         if *tab_settings.use_vertical_tabs.value() {
             context.set.insert(flags::USE_VERTICAL_TABS_FLAG);
@@ -11084,8 +10682,6 @@ impl TypedActionView for Workspace {
                 send_telemetry_from_ctx!(TelemetryEvent::DragAndDropTabGroup, ctx);
                 ctx.notify();
             }
-            ToggleLeftPanel => {}
-            ToggleRightPanel => {}
             ToggleVerticalTabsPanel => {
                 self.toggle_vertical_tabs_panel(ctx);
             }
@@ -12467,8 +12063,6 @@ impl Workspace {
         let draggable_state = tab.draggable_state.clone();
         let custom_title = pane_group.read(ctx, |pg, ctx| pg.custom_title(ctx));
         let left_panel_open = pane_group.read(ctx, |pg, _| pg.left_panel_open);
-        let right_panel_open = pane_group.read(ctx, |pg, _| pg.right_panel_open);
-        let is_right_panel_maximized = pane_group.read(ctx, |pg, _| pg.is_right_panel_maximized);
         let vertical_tabs_panel_open = self.vertical_tabs_panel_open;
 
         Some(TransferredTab {
@@ -12476,8 +12070,6 @@ impl Workspace {
             color,
             custom_title,
             left_panel_open,
-            right_panel_open,
-            is_right_panel_maximized,
             draggable_state,
             vertical_tabs_panel_open,
         })
@@ -13037,7 +12629,6 @@ impl Workspace {
                 self.show_theme_chooser(None, ctx);
             }
             pane_group::Event::OpenFilesPalette { .. } => {}
-            pane_group::Event::ToggleLeftPanel { .. } => {}
             #[cfg(feature = "local_fs")]
             pane_group::Event::OpenFileWithTarget { .. } => {}
             #[cfg(feature = "local_fs")]

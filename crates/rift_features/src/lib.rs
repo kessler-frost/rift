@@ -330,9 +330,6 @@ pub enum FeatureFlag {
     /// Enables revert button for diff hunks in the gutter.
     RevertDiffHunk,
 
-    /// Enables saving code review pane changes
-    CodeReviewSaveChanges,
-
     /// Enables the file tree (with an entrypoint through code mode).
     FileTree,
 
@@ -363,18 +360,12 @@ pub enum FeatureFlag {
     /// Shows a confirmation dialog when cancelling an active summarization via Ctrl-C or stop.
     SummarizationCancellationConfirmation,
 
-    /// Enables find/search in code review pane
-    CodeReviewFind,
-
     /// Enables asynchronous find in terminal, running search on a background thread.
     AsyncFind,
 
     /// Feature flags for the Build Plan Auto Reload experiment.
     BuildPlanAutoReloadBannerToggle,
     BuildPlanAutoReloadPostPurchaseModal,
-
-    /// Enables inline code review functionality
-    InlineCodeReview,
 
     /// Enables cloud environments management via CLI.
     CloudEnvironments,
@@ -429,9 +420,6 @@ pub enum FeatureFlag {
 
     /// Enables global search
     GlobalSearch,
-
-    /// Enables embedded code review comments.
-    EmbeddedCodeReviewComments,
 
     /// Enables the revert to checkpoints feature.
     RevertToCheckpoints,
@@ -639,9 +627,6 @@ pub enum FeatureFlag {
     /// Enables conversation retrieval via the CLI (oz run conversation get, oz run get --conversation).
     ConversationApi,
 
-    /// Enables commit, push, and create-PR actions in the code review panel.
-    GitOperationsInCodeReview,
-
     /// Trims trailing blank rows from CLI agent block output so unused vertical
     /// space is not rendered while the agent is running.
     TrimTrailingBlankLines,
@@ -676,9 +661,6 @@ pub enum FeatureFlag {
 
     /// Replaces the raw harness CLI command with a styled header showing CLI name + status icon.
     HarnessSessionHeader,
-
-    /// Enables the code review view for remote sessions.
-    RemoteCodeReview,
 
     /// Gates the Grouped Tabs feature.
     GroupedTabs,
@@ -823,7 +805,6 @@ impl FeatureFlag {
         // very least, the feature flag should be removed from the Preview changelog by removing it from PREVIEW_FLAGS.
         // ** ONLY Preview-exclusive features should be added to this list! **
         match self {
-            CodeReviewFind => Some("Enables the find bar in the code review pane."),
             BlocklistMarkdownImages => {
                 Some("Enables rendering markdown images inline in AI block list responses.")
             }
@@ -835,7 +816,6 @@ impl FeatureFlag {
             }
             MarkdownTables => Some("Enables rendering and interaction support for markdown tables in notebooks."),
             SettingsFile => Some("Enables configuring Rift via a user-editable `settings.toml` file, with hot reload and error reporting for invalid values."),
-            GitOperationsInCodeReview => Some("Enables commit, push, and create-PR actions directly from the code review panel."),
             _ => None,
         }
     }

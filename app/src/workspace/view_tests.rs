@@ -147,8 +147,6 @@ fn transferred_tab_workspace(
                 custom_title: None,
                 left_panel_open: false,
                 vertical_tabs_panel_open,
-                right_panel_open: false,
-                is_right_panel_maximized: false,
                 is_tab_drag_preview: false,
             },
             ctx,

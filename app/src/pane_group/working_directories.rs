@@ -297,23 +297,6 @@ impl WorkingDirectoriesModel {
             .and_then(|roots| roots.get(root_path).copied())
     }
 
-    /// Get the repository path the user has manually selected for the code review
-    /// panel in a given pane group, if any. Used to restore the selection when the
-    /// user navigates back to the pane group's session.
-    // The code review panel was an AI feature and has been removed.
-    pub fn get_selected_review_repo(&self, _pane_group_id: EntityId) -> Option<&LocalOrRemotePath> {
-        None
-    }
-
-    pub fn set_selected_review_repo(
-        &mut self,
-        _pane_group_id: EntityId,
-        _repo_path: LocalOrRemotePath,
-    ) {
-    }
-
-    pub fn clear_selected_review_repo(&mut self, _pane_group_id: EntityId) {}
-
     pub fn store_global_search_view(
         &mut self,
         pane_group_id: EntityId,
@@ -755,52 +738,6 @@ impl WorkingDirectoriesModel {
     ) {
     }
 
-    pub fn get_or_create_diff_state_model(
-        &mut self,
-        _key: LocalOrRemotePath,
-        _preferred_session: Option<SessionId>,
-        _ctx: &mut ModelContext<Self>,
-    ) -> Option<ModelHandle<DiffStateModel>> {
-        None
-    }
-
-    pub fn get_or_create_code_review_comments(
-        &mut self,
-        _repo_path: &LocalOrRemotePath,
-        _ctx: &mut ModelContext<Self>,
-    ) -> Option<ModelHandle<ReviewCommentBatch>> {
-        None
-    }
-
-    pub fn store_code_review_view(
-        &mut self,
-        _pane_group_id: EntityId,
-        _repo_path: LocalOrRemotePath,
-        _view: ViewHandle<CodeReviewView>,
-    ) {
-    }
-
-    pub fn get_code_review_view(
-        &self,
-        _pane_group_id: EntityId,
-        _repo_path: &LocalOrRemotePath,
-    ) -> Option<ViewHandle<CodeReviewView>> {
-        None
-    }
-
-    pub fn get_selected_review_repo(&self, _pane_group_id: EntityId) -> Option<&LocalOrRemotePath> {
-        None
-    }
-
-    pub fn set_selected_review_repo(
-        &mut self,
-        _pane_group_id: EntityId,
-        _repo_path: LocalOrRemotePath,
-    ) {
-    }
-
-    pub fn clear_selected_review_repo(&mut self, _pane_group_id: EntityId) {}
-
     pub fn store_global_search_view(
         &mut self,
         _pane_group_id: EntityId,
@@ -830,24 +767,6 @@ impl WorkingDirectoriesModel {
     }
 
     pub fn remove_pane_group(&mut self, _pane_group_id: EntityId, _ctx: &mut ModelContext<Self>) {}
-
-    pub(crate) fn insert_code_review_comments(
-        &mut self,
-        _pane_group_id: EntityId,
-        _repo_path: &LocalOrRemotePath,
-        _comments: &Vec<PendingImportedReviewComment>,
-        _diff_mode: &DiffMode,
-        _ctx: &mut ModelContext<Self>,
-    ) {
-    }
-
-    pub(crate) fn upsert_flattened_code_review_comments(
-        &mut self,
-        _repo_path: &LocalOrRemotePath,
-        _comments: Vec<AttachedReviewComment>,
-        _ctx: &mut ModelContext<Self>,
-    ) {
-    }
 }
 
 impl Entity for WorkingDirectoriesModel {

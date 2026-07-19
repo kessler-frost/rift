@@ -468,7 +468,6 @@ default = [
     "selection_as_context",
     "undo_closed_panes",
     "revert_diff_hunk",
-    "code_review_save_changes",
     "create_project_flow",
     "get_started_tab",
     "file_tree",
@@ -484,14 +483,12 @@ default = [
     "discard_per_file_and_all_changes",
     "diff_set_as_context",
     "summarize_conversation_command",
-    "inline_code_review",
     "web_search_ui",
     "integration_command",
     "artifact_command",
     "conversation_api",
     "cloud_environments",
     "create_environment_slash_command",
-    "code_review_find",
     "fork_from_command",
     "context_window_usage_v2",
     "v4a_file_diffs",
@@ -563,8 +560,6 @@ default = [
     "solo_user_byok",
     "custom_inference_endpoints",
     "billing_and_usage_page_v2",
-    "remote_code_review",
-    "git_operations_in_code_review",
 ]
 # Enable this feature to automatically perform heap profiling.  NOTE: This will
 # substantially slow down program execution.
@@ -572,7 +567,6 @@ dhat_heap_profiling = ["dep:dhat"]
 editable_markdown_mermaid = []
 default_adeberry_theme = []
 drag_tabs_to_windows = []
-embedded_code_review_comments = []
 interactive_conversation_management_view = []
 default_waterfall_mode = []
 enforce_revisions_to_cloud_objects = []
@@ -742,8 +736,6 @@ vim_code_editor = []
 allow_opening_file_links_using_editor_env = []
 undo_closed_panes = []
 revert_diff_hunk = []
-code_review_save_changes = []
-remote_code_review = []
 file_tree = []
 code_launch_modal = []
 api_key_authentication = []
@@ -752,8 +744,6 @@ diff_set_as_context = []
 discard_per_file_and_all_changes = []
 ui_zoom = []
 summarization_cancellation_confirmation = []
-code_review_find = []
-inline_code_review = []
 integration_command = []
 artifact_command = []
 cloud_environments = []
