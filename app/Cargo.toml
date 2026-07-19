@@ -5,7 +5,7 @@ description = "Rift: a personal take on a nice terminal"
 edition = "2021"
 autobins = false
 name = "rift"
-version = "0.1.4"
+version = "0.1.5"
 publish.workspace = true
 license.workspace = true
 
