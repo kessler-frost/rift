@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use pathfinder_geometry::rect::RectF;
 use riftui::platform::FullscreenState;
 use riftui::{AppContext, SingletonEntity as _};
-use serde::{Deserialize, Serialize};
 
 use crate::root_view::quake_mode_window_id;
 use crate::server::ids::SyncId;
@@ -33,10 +32,7 @@ pub struct WindowSnapshot {
     pub ai_width: Option<f32>,
     pub voltron_width: Option<f32>,
     pub drive_index_width: Option<f32>,
-    pub left_panel_open: bool,
     pub vertical_tabs_panel_open: bool,
-    pub left_panel_width: Option<f32>,
-    pub right_panel_width: Option<f32>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -45,8 +41,6 @@ pub struct TabSnapshot {
     pub root: PaneNodeSnapshot,
     pub default_directory_color: Option<AnsiColorIdentifier>,
     pub selected_color: SelectedTabColor,
-    pub left_panel: Option<LeftPanelSnapshot>,
-    pub right_panel: Option<RightPanelSnapshot>,
 }
 
 impl TabSnapshot {
@@ -63,24 +57,6 @@ impl TabSnapshot {
 pub enum PaneNodeSnapshot {
     Branch(BranchSnapshot),
     Leaf(LeafSnapshot),
-}
-
-impl PaneNodeSnapshot {
-    pub fn has_horizontal_split(&self) -> bool {
-        match self {
-            PaneNodeSnapshot::Leaf(_) => false,
-            PaneNodeSnapshot::Branch(BranchSnapshot {
-                direction,
-                children,
-            }) => {
-                let self_has_split = *direction == SplitDirection::Horizontal && children.len() > 1;
-                self_has_split
-                    || children
-                        .iter()
-                        .any(|(_, child)| child.has_horizontal_split())
-            }
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -149,28 +125,6 @@ pub enum SettingsPaneSnapshot {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum LeftPanelDisplayedTab {
-    FileTree,
-    GlobalSearch,
-    Drive,
-    ConversationListView,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct LeftPanelSnapshot {
-    pub left_panel_displayed_tab: LeftPanelDisplayedTab,
-    pub pane_group_id: String,
-    pub width: usize,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct RightPanelSnapshot {
-    pub pane_group_id: String,
-    pub width: usize,
-    pub is_maximized: bool,
-}
-
 /// Copied from pane group model, which should be private to pane group.
 #[derive(Clone, Debug, PartialEq)]
 pub enum SplitDirection {
@@ -223,7 +177,3 @@ pub fn get_app_state(app: &AppContext) -> AppState {
         active_window_index,
     }
 }
-
-#[cfg(test)]
-#[path = "app_state_tests.rs"]
-mod tests;

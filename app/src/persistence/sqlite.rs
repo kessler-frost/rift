@@ -37,9 +37,8 @@ use super::{
     StartedCommandMetadata, WriterHandles,
 };
 use crate::app_state::{
-    AppState, BranchSnapshot, LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneFlex,
-    PaneNodeSnapshot, RightPanelSnapshot, SettingsPaneSnapshot, SplitDirection, TabSnapshot,
-    TerminalPaneSnapshot, WindowSnapshot,
+    AppState, BranchSnapshot, LeafContents, LeafSnapshot, PaneFlex, PaneNodeSnapshot,
+    SettingsPaneSnapshot, SplitDirection, TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::UserUid;
@@ -590,7 +589,6 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
         diesel::delete(schema::tabs::dsl::tabs).execute(conn)?;
         diesel::delete(schema::windows::dsl::windows).execute(conn)?;
         diesel::delete(schema::active_mcp_servers::dsl::active_mcp_servers).execute(conn)?;
-        diesel::delete(schema::panels::dsl::panels).execute(conn)?;
 
         let mut active_window_id = None;
 
@@ -630,7 +628,6 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
                 ai_width: window.ai_width,
                 voltron_width: window.voltron_width,
                 drive_index_width: window.drive_index_width,
-                left_panel_open: Some(window.left_panel_open),
                 vertical_tabs_panel_open: Some(window.vertical_tabs_panel_open),
                 fullscreen_state: window.fullscreen_state as i32,
                 agent_management_filters: None,
@@ -690,23 +687,6 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
                     flex: None,
                     parent_pane_node_id: None,
                 });
-
-                if tab.left_panel.is_some() || tab.right_panel.is_some() {
-                    let new_panel = model::NewPanel {
-                        tab_id: *tab_id,
-                        left_panel: tab
-                            .left_panel
-                            .as_ref()
-                            .and_then(|p| serde_json::to_string(p).ok()),
-                        right_panel: tab
-                            .right_panel
-                            .as_ref()
-                            .and_then(|p| serde_json::to_string(p).ok()),
-                    };
-                    diesel::insert_into(schema::panels::dsl::panels)
-                        .values(new_panel)
-                        .execute(conn)?;
-                }
 
                 while !pane_nodes.is_empty() {
                     let SaveAppStateNodeTraversal {
@@ -1422,12 +1402,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
         .load::<Tab>(conn)?
         .grouped_by(&db_windows);
 
-    let db_panels = schema::panels::dsl::panels
-        .load::<model::Panel>(conn)?
-        .into_iter()
-        .map(|p| (p.tab_id, p))
-        .collect::<HashMap<_, _>>();
-
     let saved_windows: Vec<_> = db_windows
         .into_iter()
         .enumerate()
@@ -1437,15 +1411,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
                 .into_iter()
                 .filter_map(|tab| {
                     let root = read_root_node(conn, tab.id).ok()?;
-                    let panel = db_panels.get(&tab.id);
-
-                    let left_panel = panel
-                        .and_then(|p| p.left_panel.as_ref())
-                        .and_then(|s| serde_json::from_str::<LeftPanelSnapshot>(s).ok());
-
-                    let right_panel = panel
-                        .and_then(|p| p.right_panel.as_ref())
-                        .and_then(|s| serde_json::from_str::<RightPanelSnapshot>(s).ok());
 
                     Some(TabSnapshot {
                         root,
@@ -1465,8 +1430,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
                                     })
                             })
                             .unwrap_or_default(),
-                        left_panel,
-                        right_panel,
                     })
                 })
                 .collect();
@@ -1517,29 +1480,6 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
                 _ => None,
             };
 
-            let left_panel_width: Option<f32> = saved_tabs.get(tab_index).and_then(|tab| match tab
-                .left_panel
-                .as_ref()
-            {
-                Some(LeftPanelSnapshot { width, .. }) => Some(*width as f32),
-                _ => None,
-            });
-
-            let right_panel_width: Option<f32> =
-                saved_tabs
-                    .get(tab_index)
-                    .and_then(|tab| match tab.right_panel.as_ref() {
-                        Some(RightPanelSnapshot { width, .. }) => Some(*width as f32),
-                        _ => None,
-                    });
-
-            let window_left_panel_open = window.left_panel_open.unwrap_or_else(|| {
-                saved_tabs
-                    .get(tab_index)
-                    .and_then(|tab| tab.left_panel.as_ref())
-                    .is_some()
-            });
-
             WindowSnapshot {
                 tabs: saved_tabs,
                 active_tab_index: tab_index,
@@ -1549,11 +1489,8 @@ fn read_sqlite_data(conn: &mut SqliteConnection) -> Result<PersistedData, Error>
                 ai_width: window.ai_width,
                 voltron_width: window.voltron_width,
                 drive_index_width: window.drive_index_width,
-                left_panel_open: window_left_panel_open,
                 vertical_tabs_panel_open: window.vertical_tabs_panel_open.unwrap_or(false),
                 fullscreen_state: fullscreen_state_val,
-                left_panel_width,
-                right_panel_width,
             }
         })
         .collect();

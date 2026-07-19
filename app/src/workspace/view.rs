@@ -95,8 +95,8 @@ use super::util::{
 };
 use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
 use crate::app_state::{
-    LeafContents, LeafSnapshot, LeftPanelSnapshot, PaneNodeSnapshot, PaneUuid,
-    SettingsPaneSnapshot, TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
+    LeafContents, LeafSnapshot, PaneNodeSnapshot, PaneUuid, SettingsPaneSnapshot, TabSnapshot,
+    TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::appearance::{Appearance, AppearanceManager};
 use crate::auth::auth_manager::AuthManager;
@@ -182,9 +182,7 @@ use crate::terminal::model::blockgrid::BlockGrid;
 #[cfg(feature = "local_fs")]
 use crate::terminal::model::session::Session;
 use crate::terminal::model::session::SessionId;
-use crate::terminal::resizable_data::{
-    ModalSizes, ResizableData, DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH,
-};
+use crate::terminal::resizable_data::{ModalSizes, ResizableData};
 use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::safe_mode_settings::SafeModeSettings;
 use crate::terminal::session_settings::{
@@ -397,7 +395,6 @@ enum PanePanelDirection {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FocusRegion {
-    LeftPanel,
     PaneGroup,
     RightPanel,
     Other,
@@ -504,7 +501,6 @@ pub struct TransferredTab {
     pub pane_group: ViewHandle<PaneGroup>,
     pub color: Option<AnsiColorIdentifier>,
     pub custom_title: Option<String>,
-    pub left_panel_open: bool,
     pub vertical_tabs_panel_open: bool,
     pub draggable_state: DraggableState,
 }
@@ -588,7 +584,6 @@ pub struct Workspace {
 
     // When user's open WEB for the first time, we ask them to select a preference of
     // always opening in web or opening in native app.
-    left_panel_open: bool,
     vertical_tabs_panel_open: bool,
     vertical_tabs_panel: VerticalTabsPanelState,
     working_directories_model: ModelHandle<pane_group::WorkingDirectoriesModel>,
@@ -1738,15 +1733,12 @@ impl Workspace {
         // reads the sizes from the window snapshot. A new window initializes with all default sizes.
         let resizable_data = ResizableData::handle(ctx);
         let window_id = ctx.window_id();
-        let has_horizontal_split = workspace_setting.has_horizontal_split();
 
-        let (left_panel_size, right_panel_size) =
-            compute_default_panel_widths(ctx, window_id, has_horizontal_split);
         let new_resizable_modal_sizes = match workspace_setting.clone() {
             NewWorkspaceSource::Restored {
                 window_snapshot, ..
-            } => ModalSizes::from_restored(&window_snapshot, left_panel_size, right_panel_size),
-            _ => ModalSizes::default_with_panel_defaults(left_panel_size, right_panel_size),
+            } => ModalSizes::from_restored(&window_snapshot),
+            _ => ModalSizes::default(),
         };
         resizable_data.update(ctx, |model, _| {
             model.insert(window_id, new_resizable_modal_sizes)
@@ -1947,7 +1939,6 @@ impl Workspace {
             tab_bar_pinned_by_popup: false,
             user_menu,
             native_modal,
-            left_panel_open: false,
             vertical_tabs_panel_open: false,
             vertical_tabs_panel: Default::default(),
             working_directories_model,
@@ -2156,7 +2147,6 @@ impl Workspace {
                 block_lists,
             } => {
                 let active_tab_index = window_snapshot.active_tab_index;
-                let restored_left_panel_open = window_snapshot.left_panel_open;
 
                 window_snapshot
                     .tabs
@@ -2173,12 +2163,6 @@ impl Workspace {
                         self.tabs[tab_index].default_directory_color =
                             saved_tab.default_directory_color;
                         self.tabs[tab_index].selected_color = saved_tab.selected_color;
-
-                        let pane_group = self.tabs[tab_index].pane_group.clone();
-
-                        if let Some(left_panel_snapshot) = &saved_tab.left_panel {
-                            self.restore_left_panel_for_tab(&pane_group, left_panel_snapshot, ctx);
-                        }
                     });
 
                 if self.tab_count() == 0 {
@@ -2195,8 +2179,6 @@ impl Workspace {
                         false, /* hide_homepage */
                         ctx,
                     );
-                } else if self.left_panel_visibility_across_tabs_enabled(ctx) {
-                    self.left_panel_open = restored_left_panel_open;
                 }
 
                 self.activate_tab_internal(active_tab_index, ctx);
@@ -2218,7 +2200,6 @@ impl Workspace {
             NewWorkspaceSource::TransferredTab {
                 tab_color,
                 custom_title,
-                left_panel_open,
                 is_tab_drag_preview,
                 ..
             } => {
@@ -2232,9 +2213,6 @@ impl Workspace {
                 if let (Some(color), Some(tab)) = (tab_color, self.tabs.last_mut()) {
                     tab.selected_color = SelectedTabColor::Color(color);
                 }
-                if self.left_panel_visibility_across_tabs_enabled(ctx) {
-                    self.left_panel_open = left_panel_open;
-                }
                 self.pending_pane_group_transfer = true;
             }
         };
@@ -2243,10 +2221,6 @@ impl Workspace {
             self.tab_count() > 0,
             "Workspace should have at least one tab upon configuration"
         );
-
-        if self.left_panel_visibility_across_tabs_enabled(ctx) {
-            self.reconcile_left_panel_open_for_active_tab(ctx);
-        }
     }
 
     fn initial_vertical_tabs_panel_open(
@@ -2277,26 +2251,6 @@ impl Workspace {
             | NewWorkspaceSource::FromTemplate { .. }
             | NewWorkspaceSource::Session { .. } => should_default_open,
         }
-    }
-
-    fn restore_left_panel_for_tab(
-        &mut self,
-        pane_group: &ViewHandle<PaneGroup>,
-        left_panel_snapshot: &LeftPanelSnapshot,
-        ctx: &mut ViewContext<Self>,
-    ) {
-        pane_group.update(ctx, |pg, ctx| {
-            pg.set_left_panel_open(true, ctx);
-        });
-
-        let resizable = ResizableData::handle(ctx);
-        if let Some(modal_sizes) = resizable.as_ref(ctx).get_all_handles(self.window_id) {
-            if let Ok(mut handle) = modal_sizes.left_panel_width.lock() {
-                handle.set_size(left_panel_snapshot.width as f32);
-            }
-        }
-
-        ctx.notify();
     }
 
     // Configure an empty workspace. The behavior here is platform-specific.
@@ -2336,10 +2290,6 @@ impl Workspace {
         FocusRegion::Other
     }
 
-    fn has_left_region(&self, app: &AppContext) -> bool {
-        self.active_tab_pane_group().as_ref(app).left_panel_open
-    }
-
     fn has_right_region(&self) -> bool {
         self.current_workspace_state.is_right_panel_open()
     }
@@ -2364,8 +2314,6 @@ impl Workspace {
         handle.update(ctx, |pane_group, ctx| pane_group.focus_last_pane(ctx))
     }
 
-    fn focus_left_region_entry(&mut self, _ctx: &mut ViewContext<Self>) {}
-
     fn focus_right_region_entry(&mut self, ctx: &mut ViewContext<Self>) {
         if self.current_workspace_state.is_resource_center_open {
             ctx.focus(&self.resource_center_view);
@@ -2378,16 +2326,10 @@ impl Workspace {
         ctx: &mut ViewContext<Self>,
     ) {
         let current_region = self.current_focus_region(ctx);
-        let has_left_panel = self.has_left_region(ctx);
         let has_right_panel = self.has_right_region();
 
-        let target_region = self.compute_target_focus_region(
-            current_region,
-            direction,
-            has_left_panel,
-            has_right_panel,
-            ctx,
-        );
+        let target_region =
+            self.compute_target_focus_region(current_region, direction, has_right_panel, ctx);
 
         self.set_pane_dimming_for_region(target_region, ctx);
 
@@ -2398,30 +2340,16 @@ impl Workspace {
         &mut self,
         region: FocusRegion,
         direction: PanePanelDirection,
-        has_left_panel: bool,
         has_right_panel: bool,
         ctx: &mut ViewContext<Self>,
     ) -> FocusRegion {
         match (region, direction) {
-            // NEXT: Left panel to first pane
-            (FocusRegion::LeftPanel, PanePanelDirection::Next) => {
-                // Always attempt to focus the first pane in the group and ensure the pane group
-                // regains application focus.
+            // NEXT: Right panel to first pane
+            (FocusRegion::RightPanel, PanePanelDirection::Next) => {
                 self.focus_first_visible_pane_in_group(ctx);
-                self.focus_active_tab(ctx);
                 FocusRegion::PaneGroup
             }
-            // NEXT: Right panel to left panel if open, else first pane
-            (FocusRegion::RightPanel, PanePanelDirection::Next) => {
-                if has_left_panel {
-                    self.focus_left_region_entry(ctx);
-                    FocusRegion::LeftPanel
-                } else {
-                    self.focus_first_visible_pane_in_group(ctx);
-                    FocusRegion::PaneGroup
-                }
-            }
-            // NEXT: Pane group to next pane, or at end to right panel, left panel, first pane
+            // NEXT: Pane group to next pane, or at end to right panel, first pane
             // Included Other here for cases like the command palette action "Activate next Pane"
             (FocusRegion::PaneGroup, PanePanelDirection::Next)
             | (FocusRegion::Other, PanePanelDirection::Next) => {
@@ -2431,9 +2359,6 @@ impl Workspace {
                 } else if has_right_panel {
                     self.focus_right_region_entry(ctx);
                     FocusRegion::RightPanel
-                } else if has_left_panel {
-                    self.focus_left_region_entry(ctx);
-                    FocusRegion::LeftPanel
                 } else {
                     // No panels, wrap within panes.
                     self.focus_first_visible_pane_in_group(ctx);
@@ -2449,26 +2374,13 @@ impl Workspace {
                 self.focus_active_tab(ctx);
                 FocusRegion::PaneGroup
             }
-            // PREV: Left panel to right panel if open, else last pane
-            (FocusRegion::LeftPanel, PanePanelDirection::Prev) => {
-                if has_right_panel {
-                    self.focus_right_region_entry(ctx);
-                    FocusRegion::RightPanel
-                } else {
-                    self.focus_last_visible_pane_in_group(ctx);
-                    FocusRegion::PaneGroup
-                }
-            }
-            // PREV: Pane group to prev pane, or at beginning to left panel to right panel to last pane
+            // PREV: Pane group to prev pane, or at beginning to right panel, last pane
             // Included Other here for cases like the command palette action "Activate next Pane"
             (FocusRegion::PaneGroup, PanePanelDirection::Prev)
             | (FocusRegion::Other, PanePanelDirection::Prev) => {
                 let did_move = self.focus_prev_pane_in_group(ctx);
                 if did_move {
                     FocusRegion::PaneGroup
-                } else if has_left_panel {
-                    self.focus_left_region_entry(ctx);
-                    FocusRegion::LeftPanel
                 } else if has_right_panel {
                     self.focus_right_region_entry(ctx);
                     FocusRegion::RightPanel
@@ -2507,8 +2419,7 @@ impl Workspace {
     }
 
     fn set_pane_dimming_for_region(&mut self, region: FocusRegion, ctx: &mut ViewContext<Self>) {
-        let dim_even_if_focused =
-            matches!(region, FocusRegion::LeftPanel | FocusRegion::RightPanel);
+        let dim_even_if_focused = matches!(region, FocusRegion::RightPanel);
         let handle = self.active_tab_pane_group().clone();
         handle.update(ctx, |pane_group, ctx| {
             pane_group.set_dim_even_if_focused_for_all_panes(dim_even_if_focused, ctx);
@@ -2647,30 +2558,6 @@ impl Workspace {
         }
     }
 
-    fn left_panel_visibility_across_tabs_enabled(&self, ctx: &AppContext) -> bool {
-        *WindowSettings::as_ref(ctx)
-            .left_panel_visibility_across_tabs
-            .value()
-    }
-
-    /// Reconciles the active tab's tools panel open/closed state to match the window-scoped desired state
-    /// (syncing left panel open/closed state across tabs).
-    fn reconcile_left_panel_open_for_active_tab(&mut self, ctx: &mut ViewContext<Self>) {
-        let pane_group = self.active_tab_pane_group().clone();
-        let pane_group_supports_tools_panel = pane_group.read(ctx, |pane_group, _| {
-            Self::should_enable_file_tree_and_global_search_for_pane_group(pane_group)
-        });
-
-        if !pane_group_supports_tools_panel {
-            return;
-        }
-
-        let desired_open = self.left_panel_open;
-        pane_group.update(ctx, |pane_group, ctx| {
-            pane_group.set_left_panel_open(desired_open, ctx);
-        });
-    }
-
     /// Change the active tab index. This must be used instead of setting `self.active_tab_index`
     /// directly, as it updates related state.
     pub(crate) fn set_active_tab_index(&mut self, index: usize, ctx: &mut ViewContext<Self>) {
@@ -2696,10 +2583,6 @@ impl Workspace {
             && *TabSettings::as_ref(ctx).use_vertical_tabs
         {
             self.vertical_tabs_panel.scroll_to_tab(index);
-        }
-
-        if self.left_panel_visibility_across_tabs_enabled(ctx) {
-            self.reconcile_left_panel_open_for_active_tab(ctx);
         }
 
         self.update_active_session(ctx);
@@ -6103,22 +5986,8 @@ impl Workspace {
             .enumerate()
             .filter(|(tab_index, _)| Some(*tab_index) != transferred_tab_index)
             .map(|(tab_index, pane_group_view)| {
-                let resizable_data = ResizableData::handle(app);
-                let modal_sizes = resizable_data.as_ref(app).get_all_handles(window_id);
-
-                let left_panel_width = modal_sizes.map(|ms| {
-                    ms.left_panel_width
-                        .lock()
-                        .expect("should be able to lock left panel handle")
-                        .size()
-                });
-
                 let pane_group = pane_group_view.as_ref(app);
                 let root = pane_group.snapshot(app);
-                let left_panel =
-                    self.compute_left_panel_snapshot(pane_group_view, left_panel_width, app);
-                // The right (code review) panel was removed; nothing to snapshot.
-                let right_panel = None;
                 TabSnapshot {
                     root,
                     custom_title: pane_group.custom_title(app),
@@ -6131,8 +6000,6 @@ impl Workspace {
                         .get(tab_index)
                         .map(|tab| tab.selected_color)
                         .unwrap_or_default(),
-                    left_panel,
-                    right_panel,
                 }
             })
             .filter(|tab| {
@@ -6182,20 +6049,6 @@ impl Workspace {
                 .size()
         });
 
-        let left_panel_width = modal_sizes.map(|ms| {
-            ms.left_panel_width
-                .lock()
-                .map(|guard| guard.size())
-                .unwrap_or(DEFAULT_LEFT_PANEL_WIDTH)
-        });
-
-        let right_panel_width = modal_sizes.map(|ms| {
-            ms.right_panel_width
-                .lock()
-                .map(|guard| guard.size())
-                .unwrap_or(DEFAULT_RIGHT_PANEL_WIDTH)
-        });
-
         WindowSnapshot {
             tabs,
             active_tab_index,
@@ -6206,21 +6059,8 @@ impl Workspace {
             ai_width,
             voltron_width,
             drive_index_width,
-            left_panel_open: self.left_panel_open,
             vertical_tabs_panel_open: self.vertical_tabs_panel_open,
-            left_panel_width,
-            right_panel_width,
         }
-    }
-
-    fn compute_left_panel_snapshot(
-        &self,
-        _pane_group: &ViewHandle<PaneGroup>,
-        _left_panel_width: Option<f32>,
-        _app: &AppContext,
-    ) -> Option<LeftPanelSnapshot> {
-        // The left panel was removed; nothing to snapshot.
-        None
     }
 
     pub fn open_launch_config_save_modal(&mut self, ctx: &mut ViewContext<Self>) {
@@ -6784,14 +6624,6 @@ impl Workspace {
         custom_tab_title: Option<String>,
         ctx: &mut ViewContext<Self>,
     ) {
-        // Remember whether the left panel was open on the current active pane group
-        // before creating a new active pane group.
-        let left_panel_was_open = if self.tabs.is_empty() {
-            false
-        } else {
-            self.active_tab_pane_group().as_ref(ctx).left_panel_open
-        };
-
         // Capture the active tab's colors before creating the new tab.
         let active_tab = self.tabs.get(self.active_tab_index);
         let active_tab_selected_color = active_tab.map(|tab| tab.selected_color);
@@ -6891,14 +6723,6 @@ impl Workspace {
                     }
                 }
             }
-        }
-
-        // If the previous tab's left panel was open, maintain that state with the new tab
-        // (unless we're restoring the tab from a persisted snapshot).
-        if !is_restoration && left_panel_was_open {
-            self.active_tab_pane_group().update(ctx, |pg, ctx| {
-                pg.set_left_panel_open(true, ctx);
-            });
         }
     }
 
@@ -7518,14 +7342,6 @@ impl Workspace {
             || self.current_workspace_state.is_ctrl_tab_palette_open
     }
 
-    pub fn is_drive_open(&self) -> bool {
-        self.current_workspace_state.is_drive_open
-    }
-
-    pub fn is_left_panel_open(&self, ctx: &AppContext) -> bool {
-        self.active_tab_pane_group().as_ref(ctx).left_panel_open
-    }
-
     fn handle_settings_pane_event(
         &mut self,
         event: &SettingsViewEvent,
@@ -7860,13 +7676,6 @@ impl Workspace {
         match event {
             WindowSettingsChangedEvent::BackgroundOpacity { .. } => {
                 ctx.notify();
-            }
-            WindowSettingsChangedEvent::LeftPanelVisibilityAcrossTabs { .. } => {
-                if self.left_panel_visibility_across_tabs_enabled(ctx) {
-                    self.left_panel_open = self
-                        .active_tab_pane_group()
-                        .read(ctx, |pane_group, _| pane_group.left_panel_open);
-                }
             }
             WindowSettingsChangedEvent::ZoomLevel { .. } => {
                 self.update_titlebar_height(ctx);
@@ -12062,14 +11871,12 @@ impl Workspace {
         let color = tab.color();
         let draggable_state = tab.draggable_state.clone();
         let custom_title = pane_group.read(ctx, |pg, ctx| pg.custom_title(ctx));
-        let left_panel_open = pane_group.read(ctx, |pg, _| pg.left_panel_open);
         let vertical_tabs_panel_open = self.vertical_tabs_panel_open;
 
         Some(TransferredTab {
             pane_group,
             color,
             custom_title,
-            left_panel_open,
             draggable_state,
             vertical_tabs_panel_open,
         })
@@ -12636,7 +12443,6 @@ impl Workspace {
             #[cfg(feature = "local_fs")]
             pane_group::Event::FileDeleted { .. } => {}
             pane_group::Event::OpenLspLogs { .. } => {}
-            pane_group::Event::LeftPanelToggled { .. } => {}
         }
     }
 
@@ -13359,22 +13165,5 @@ fn render_cross_window_ghost_chip(
             .finish()
     } else {
         ConstrainedBox::new(chip).with_max_width(200.).finish()
-    }
-}
-
-fn compute_default_panel_widths(
-    app: &AppContext,
-    window_id: WindowId,
-    has_horizontal_split: bool,
-) -> (f32, f32) {
-    if let Some(bounds) = app.window_bounds(&window_id) {
-        let window_width = bounds.width();
-        let left_ratio = 0.15;
-        let right_ratio = if has_horizontal_split { 0.3 } else { 0.5 };
-        let left = window_width * left_ratio;
-        let right = window_width * right_ratio;
-        (left, right)
-    } else {
-        (DEFAULT_LEFT_PANEL_WIDTH, DEFAULT_RIGHT_PANEL_WIDTH)
     }
 }

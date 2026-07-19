@@ -10,8 +10,6 @@ pub const DEFAULT_AI_WIDTH: f32 = 410.;
 pub const DEFAULT_VOLTRON_WIDTH: f32 = 700.;
 pub const DEFAULT_DRIVE_INDEX_WIDTH: f32 = 300.;
 pub const DEFAULT_SETTINGS_PANEL_WIDTH: f32 = 194.;
-pub const DEFAULT_LEFT_PANEL_WIDTH: f32 = 240.;
-pub const DEFAULT_RIGHT_PANEL_WIDTH: f32 = 480.;
 /// A naming system for the ResizableStateHandles
 pub enum ModalType {
     UniversalSearchWidth,
@@ -19,8 +17,6 @@ pub enum ModalType {
     VoltronWidth,
     DriveIndexWidth,
     SettingsPanelWidth,
-    LeftPanelWidth,
-    RightPanelWidth,
 }
 
 /// A grouping of state handles for the resizables that should be stored and loaded as a part
@@ -31,17 +27,11 @@ pub struct ModalSizes {
     pub voltron_width: ResizableStateHandle,
     pub drive_index_width: ResizableStateHandle,
     pub settings_panel_width: ResizableStateHandle,
-    pub left_panel_width: ResizableStateHandle,
-    pub right_panel_width: ResizableStateHandle,
 }
 
 impl ModalSizes {
     /// Constructs a ModalSizes struct using a loaded-in WindowSnapshot
-    pub fn from_restored(
-        window_snapshot: &WindowSnapshot,
-        left_panel_size: f32,
-        right_panel_size: f32,
-    ) -> Self {
+    pub fn from_restored(window_snapshot: &WindowSnapshot) -> Self {
         let universal_search_width = window_snapshot
             .universal_search_width
             .unwrap_or(DEFAULT_UNIVERSAL_SEARCH_WIDTH);
@@ -53,10 +43,6 @@ impl ModalSizes {
             .drive_index_width
             .unwrap_or(DEFAULT_DRIVE_INDEX_WIDTH);
         let settings_panel_width = DEFAULT_SETTINGS_PANEL_WIDTH;
-        let left_panel_width = window_snapshot.left_panel_width.unwrap_or(left_panel_size);
-        let right_panel_width = window_snapshot
-            .right_panel_width
-            .unwrap_or(right_panel_size);
 
         Self {
             universal_search_width: resizable_state_handle(universal_search_width),
@@ -64,20 +50,6 @@ impl ModalSizes {
             voltron_width: resizable_state_handle(voltron_width),
             drive_index_width: resizable_state_handle(drive_index_width),
             settings_panel_width: resizable_state_handle(settings_panel_width),
-            left_panel_width: resizable_state_handle(left_panel_width),
-            right_panel_width: resizable_state_handle(right_panel_width),
-        }
-    }
-
-    pub fn default_with_panel_defaults(left_default: f32, right_default: f32) -> Self {
-        ModalSizes {
-            universal_search_width: resizable_state_handle(DEFAULT_UNIVERSAL_SEARCH_WIDTH),
-            ai_width: resizable_state_handle(DEFAULT_AI_WIDTH),
-            voltron_width: resizable_state_handle(DEFAULT_VOLTRON_WIDTH),
-            drive_index_width: resizable_state_handle(DEFAULT_DRIVE_INDEX_WIDTH),
-            settings_panel_width: resizable_state_handle(DEFAULT_SETTINGS_PANEL_WIDTH),
-            left_panel_width: resizable_state_handle(left_default),
-            right_panel_width: resizable_state_handle(right_default),
         }
     }
 
@@ -89,8 +61,6 @@ impl ModalSizes {
             ModalType::VoltronWidth => self.voltron_width.clone(),
             ModalType::DriveIndexWidth => self.drive_index_width.clone(),
             ModalType::SettingsPanelWidth => self.settings_panel_width.clone(),
-            ModalType::LeftPanelWidth => self.left_panel_width.clone(),
-            ModalType::RightPanelWidth => self.right_panel_width.clone(),
         }
     }
 }
@@ -104,8 +74,6 @@ impl Default for ModalSizes {
             voltron_width: resizable_state_handle(DEFAULT_VOLTRON_WIDTH),
             drive_index_width: resizable_state_handle(DEFAULT_DRIVE_INDEX_WIDTH),
             settings_panel_width: resizable_state_handle(DEFAULT_SETTINGS_PANEL_WIDTH),
-            left_panel_width: resizable_state_handle(DEFAULT_LEFT_PANEL_WIDTH),
-            right_panel_width: resizable_state_handle(DEFAULT_RIGHT_PANEL_WIDTH),
         }
     }
 }

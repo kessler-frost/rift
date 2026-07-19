@@ -435,7 +435,6 @@ pub fn create_transferred_window(
                 NewWorkspaceSource::TransferredTab {
                     tab_color: transferred_tab.color,
                     custom_title: transferred_tab.custom_title.clone(),
-                    left_panel_open: transferred_tab.left_panel_open,
                     vertical_tabs_panel_open: transferred_tab.vertical_tabs_panel_open,
                     is_tab_drag_preview,
                 },
@@ -1117,35 +1116,11 @@ pub enum NewWorkspaceSource {
         tab_color: Option<AnsiColorIdentifier>,
         /// Custom title from the source tab
         custom_title: Option<String>,
-        /// Whether the left panel was open in the source tab
-        left_panel_open: bool,
         /// Captured from the source window so detached tabs inherit the panel state.
         vertical_tabs_panel_open: bool,
         /// Whether this transferred tab window is currently being used as a drag preview.
         is_tab_drag_preview: bool,
     },
-}
-
-impl NewWorkspaceSource {
-    pub fn has_horizontal_split(&self) -> bool {
-        match self {
-            NewWorkspaceSource::Restored {
-                window_snapshot, ..
-            } => {
-                if window_snapshot.tabs.is_empty() {
-                    false
-                } else {
-                    let active_index = window_snapshot.active_tab_index;
-                    let active_tab = window_snapshot
-                        .tabs
-                        .get(active_index)
-                        .unwrap_or(&window_snapshot.tabs[0]);
-                    active_tab.root.has_horizontal_split()
-                }
-            }
-            _ => false,
-        }
-    }
 }
 
 /// Args needed to construct a `Workspace`.

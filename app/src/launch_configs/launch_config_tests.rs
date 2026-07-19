@@ -15,8 +15,6 @@ fn single_tab_snapshot(root: PaneNodeSnapshot) -> AppState {
                 default_directory_color: None,
                 selected_color: SelectedTabColor::default(),
                 root,
-                left_panel: None,
-                right_panel: None,
             }],
             active_tab_index: 0,
             bounds: None,
@@ -25,11 +23,8 @@ fn single_tab_snapshot(root: PaneNodeSnapshot) -> AppState {
             ai_width: None,
             voltron_width: None,
             drive_index_width: None,
-            left_panel_open: false,
             vertical_tabs_panel_open: false,
             fullscreen_state: Default::default(),
-            left_panel_width: None,
-            right_panel_width: None,
         }],
         active_window_index: Some(0),
     }
@@ -46,11 +41,8 @@ fn multi_tab_snapshot(active_tab_index: usize, tabs: Vec<TabSnapshot>) -> AppSta
             ai_width: None,
             voltron_width: None,
             drive_index_width: None,
-            left_panel_open: false,
             vertical_tabs_panel_open: false,
             fullscreen_state: Default::default(),
-            left_panel_width: None,
-            right_panel_width: None,
         }],
         active_window_index: Some(0),
     }
@@ -204,8 +196,6 @@ fn test_config_with_active_tab_index() {
                         }),
                     )],
                 }),
-                left_panel: None,
-                right_panel: None
             };
             3
         ],
@@ -235,8 +225,6 @@ fn test_config_with_active_tab_index_and_filtered_tabs() {
                         }),
                     )],
                 }),
-                left_panel: None,
-                right_panel: None,
             },
             TabSnapshot {
                 custom_title: None,
@@ -253,8 +241,6 @@ fn test_config_with_active_tab_index_and_filtered_tabs() {
                         }),
                     )],
                 }),
-                left_panel: None,
-                right_panel: None,
             },
         ],
     );
@@ -283,8 +269,6 @@ fn test_config_with_active_tab_being_filtered() {
                         }),
                     )],
                 }),
-                left_panel: None,
-                right_panel: None,
             },
             TabSnapshot {
                 custom_title: None,
@@ -301,8 +285,6 @@ fn test_config_with_active_tab_being_filtered() {
                         }),
                     )],
                 }),
-                left_panel: None,
-                right_panel: None,
             },
         ],
     );
