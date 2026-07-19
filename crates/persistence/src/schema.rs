@@ -316,15 +316,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    panels (id) {
-        id -> Integer,
-        tab_id -> Integer,
-        left_panel -> Nullable<Text>,
-        right_panel -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
     project_rules (id) {
         id -> Integer,
         path -> Text,
@@ -445,7 +436,6 @@ diesel::table! {
         drive_index_width -> Nullable<Float>,
         fullscreen_state -> Integer,
         agent_management_filters -> Nullable<Text>,
-        left_panel_open -> Nullable<Bool>,
         vertical_tabs_panel_open -> Nullable<Bool>,
     }
 }
@@ -508,7 +498,6 @@ diesel::joinable!(object_permissions -> object_metadata (object_metadata_id));
 diesel::joinable!(pane_branches -> pane_nodes (pane_node_id));
 diesel::joinable!(pane_leaves -> pane_nodes (pane_node_id));
 diesel::joinable!(pane_nodes -> tabs (tab_id));
-diesel::joinable!(panels -> tabs (tab_id));
 diesel::joinable!(tabs -> windows (window_id));
 diesel::joinable!(team_members -> teams (team_id));
 diesel::joinable!(team_settings -> teams (team_id));
@@ -520,7 +509,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     pane_branches,
     pane_leaves,
     pane_nodes,
-    panels,
     tabs,
     windows,
 );

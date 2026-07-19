@@ -145,7 +145,6 @@ fn transferred_tab_workspace(
             NewWorkspaceSource::TransferredTab {
                 tab_color: None,
                 custom_title: None,
-                left_panel_open: false,
                 vertical_tabs_panel_open,
                 is_tab_drag_preview: false,
             },

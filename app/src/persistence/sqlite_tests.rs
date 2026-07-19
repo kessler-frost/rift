@@ -126,8 +126,6 @@ fn test_terminal_window_snapshot(vertical_tabs_panel_open: bool) -> WindowSnapsh
             }),
             default_directory_color: None,
             selected_color: SelectedTabColor::default(),
-            left_panel: None,
-            right_panel: None,
         }],
         active_tab_index: 0,
         bounds: None,
@@ -137,10 +135,7 @@ fn test_terminal_window_snapshot(vertical_tabs_panel_open: bool) -> WindowSnapsh
         ai_width: None,
         voltron_width: None,
         drive_index_width: None,
-        left_panel_open: false,
         vertical_tabs_panel_open,
-        left_panel_width: None,
-        right_panel_width: None,
     }
 }
 
@@ -202,8 +197,6 @@ fn test_sqlite_round_trips_custom_vertical_tabs_title() {
                 }),
                 default_directory_color: None,
                 selected_color: SelectedTabColor::default(),
-                left_panel: None,
-                right_panel: None,
             }],
             active_tab_index: 0,
             bounds: None,
@@ -213,10 +206,7 @@ fn test_sqlite_round_trips_custom_vertical_tabs_title() {
             ai_width: None,
             voltron_width: None,
             drive_index_width: None,
-            left_panel_open: false,
             vertical_tabs_panel_open: false,
-            left_panel_width: None,
-            right_panel_width: None,
         }],
         active_window_index: Some(0),
     };

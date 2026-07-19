@@ -60,15 +60,6 @@ define_settings_group!(WindowSettings, settings: [
         toml_path: "appearance.window.new_windows_num_rows",
         description: "The number of rows for new windows when using a custom size.",
     },
-    left_panel_visibility_across_tabs: LeftPanelVisibilityAcrossTabs {
-        type: bool,
-        default: true,
-        supported_platforms: SupportedPlatforms::DESKTOP,
-        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
-        private: false,
-        toml_path: "appearance.window.left_panel_visibility_across_tabs",
-        description: "Whether the left panel visibility is shared across all tabs.",
-    },
     zoom_level: ZoomLevel {
         type: u16,
         default: 100,

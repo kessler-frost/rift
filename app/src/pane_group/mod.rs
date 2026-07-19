@@ -361,9 +361,6 @@ pub enum Event {
     Exited {
         add_to_undo_stack: bool,
     },
-    LeftPanelToggled {
-        is_open: bool,
-    },
     ExecuteCommand(ExecuteCommandEvent),
     PaneTitleUpdated,
     SendNotification {
@@ -596,9 +593,6 @@ pub struct PaneGroup {
     pane_with_open_environment_setup_mode_selector: Option<PaneId>,
     /// Pane with an open auth-secret delete confirmation dialog (rendered at tab level).
     pane_with_open_auth_secret_delete_confirmation_dialog: Option<PaneId>,
-
-    /// If the left panel is open for this pane group
-    pub left_panel_open: bool,
 
     /// Tab-level custom title set via the rename-tab flow.
     custom_title: Option<String>,
@@ -1568,7 +1562,6 @@ impl PaneGroup {
             user_default_shell_changed_banner,
             pane_with_open_environment_setup_mode_selector: None,
             pane_with_open_auth_secret_delete_confirmation_dialog: None,
-            left_panel_open: false,
             custom_title: None,
         };
 
@@ -1865,14 +1858,6 @@ impl PaneGroup {
                 config.set_dim_even_if_focused(dim_even_if_focused, ctx);
             });
         }
-    }
-
-    pub fn set_left_panel_open(&mut self, is_open: bool, ctx: &mut ViewContext<Self>) {
-        if self.left_panel_open != is_open {
-            self.left_panel_open = is_open;
-            ctx.emit(Event::LeftPanelToggled { is_open });
-        }
-        ctx.notify();
     }
 
     pub fn focus_first_pane(&mut self, ctx: &mut ViewContext<Self>) -> bool {
@@ -3215,10 +3200,6 @@ impl PaneGroup {
 
     pub fn pane_count(&self) -> usize {
         self.panes.len()
-    }
-
-    pub fn has_horizontal_split(&self) -> bool {
-        self.panes.has_horizontal_split()
     }
 
     pub fn try_navigate_next(&mut self, ctx: &mut ViewContext<Self>) -> bool {
