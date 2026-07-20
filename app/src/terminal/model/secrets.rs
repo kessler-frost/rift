@@ -10,6 +10,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use rangemap::{RangeInclusiveMap, StepLite};
+use rift_core::safe_warn;
 use riftui::elements::SecretRange;
 use riftui::EntityId;
 
@@ -490,7 +491,10 @@ pub fn set_user_and_enterprise_secret_regexes<'a>(
     let dfas = match RegexDFAs::new_many(&all_secrets, false, true) {
         Ok(dfas) => dfas,
         Err(err) => {
-            log::error!("Failed to construct new RegexDFA with combined secrets: {err:?}");
+            safe_warn!(
+                safe: ("Failed to construct new RegexDFA with combined secrets"),
+                full: ("Failed to construct new RegexDFA with combined secrets: {err:#}")
+            );
             return;
         }
     };
@@ -504,7 +508,10 @@ pub fn set_user_and_enterprise_secret_regexes<'a>(
             },
         },
         Err(err) => {
-            log::error!("Failed to construct new Regex with combined secrets: {err:?}");
+            safe_warn!(
+                safe: ("Failed to construct new Regex with combined secrets"),
+                full: ("Failed to construct new Regex with combined secrets: {err:#}")
+            );
             return;
         }
     };

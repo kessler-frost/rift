@@ -375,8 +375,8 @@ impl Sessions {
         if let Some(in_band_command_output_tx) = self.in_band_command_output_tx_map.get(&session_id)
         {
             if let Err(e) = in_band_command_output_tx.try_send(event) {
-                log::error!(
-                    "Failed to send ExecutedExecutorCommandEvent to InBandCommandExecutor: {e:?}"
+                log::warn!(
+                    "Failed to send ExecutedExecutorCommandEvent to InBandCommandExecutor: {e:#}"
                 );
             }
         }
@@ -572,7 +572,7 @@ impl SessionInfo {
                 }
             }
             Err(e) => {
-                crate::report_error!(e);
+                log::warn!("Failed to get local hostname when determining session type: {e:#}");
                 BootstrapSessionType::Local
             }
         }
@@ -1316,7 +1316,7 @@ impl Session {
                 )
             }
             CommandExitStatus::Failure => {
-                log::error!("Failed to parse history file from file");
+                log::warn!("Failed to read history file from remote session");
                 None
             }
         }

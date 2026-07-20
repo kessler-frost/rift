@@ -686,7 +686,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
         match params.get(2) {
             Some(&RIFT_KV_START_BYTE) => {
                 let Some(hook) = params.get(3).map(|data| String::from_utf8_lossy(data)) else {
-                    log::error!("Start pending hook OSC did not contain shell hook");
+                    log::warn!("Start pending hook OSC did not contain shell hook");
                     return;
                 };
                 self.handler.start_receiving_hook(hook.into());
@@ -704,7 +704,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
             }
             Some(&RIFT_KV_ENTRY_BYTE) => {
                 let Some(key) = params.get(3) else {
-                    log::error!("Pending hook update OSC did not contain key");
+                    log::warn!("Pending hook update OSC did not contain key");
                     return;
                 };
                 let key = String::from_utf8_lossy(key);
@@ -718,9 +718,7 @@ impl<'a, H: Handler + 'a, W: io::Write> Performer<'a, H, W> {
                 self.handler.update_hook(key.to_string(), value);
             }
             invalid_marker => {
-                log::error!(
-                    "Invalid marker {invalid_marker:?} received for pending shell hook OSC"
-                );
+                log::warn!("Invalid marker {invalid_marker:?} received for pending shell hook OSC");
             }
         }
     }
@@ -1099,7 +1097,7 @@ where
                     .map(|json_marker_bytes| String::from_utf8_lossy(json_marker_bytes))
                     .and_then(|json_marker_str| json_marker_str.chars().next())
                 else {
-                    log::error!("Could not retrieve OSC JSON marker");
+                    log::warn!("Could not retrieve OSC JSON marker");
                     return;
                 };
 
@@ -1110,7 +1108,7 @@ where
                             .get(2)
                             .map(|osc_data| String::from_utf8_lossy(osc_data))
                         else {
-                            log::error!("Rift OSC marker did not contain payload");
+                            log::warn!("Rift OSC marker did not contain payload");
                             return;
                         };
                         safe_debug!(
@@ -1126,7 +1124,7 @@ where
                             .get(2)
                             .map(|osc_data| String::from_utf8_lossy(osc_data))
                         else {
-                            log::error!("Rift OSC marker did not contain payload");
+                            log::warn!("Rift OSC marker did not contain payload");
                             return;
                         };
                         safe_debug!(
@@ -1138,7 +1136,7 @@ where
                     }
                     UNENCODED_KV_MARKER => self.handle_kv_marker(params),
                     _ => {
-                        log::error!("Invalid OSC JSON marker found: {json_marker_char}");
+                        log::warn!("Invalid OSC JSON marker found: {json_marker_char}");
                     }
                 }
             }
