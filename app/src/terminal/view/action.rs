@@ -68,6 +68,7 @@ pub enum TerminalAction {
     },
     AltScroll {
         delta: i32,
+        point: Point,
     },
     ScrollToTopOfBlock {
         topmost_block: BlockIndex,
@@ -241,7 +242,7 @@ impl fmt::Debug for TerminalAction {
 
         match self {
             Scroll { delta } => write!(f, "Scroll {{ delta: {delta} }}"),
-            AltScroll { delta } => write!(f, "AltScroll {{ delta: {delta} }}"),
+            AltScroll { delta, .. } => write!(f, "AltScroll {{ delta: {delta} }}"),
             ScrollToTopOfBlock { topmost_block } => write!(
                 f,
                 "JumpToPreviousCommand {{ topmost_block: {topmost_block} }}"
