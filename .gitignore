@@ -11,6 +11,8 @@ app/frameworks/**/*.xcframework
 app/src/server/graphql/schema/generated
 crates/command-signatures-v2/js/build
 crates/command-signatures-v2/js/node_modules
+# Local bun install artifact; upstream's yarn.lock is the tracked lockfile.
+crates/command-signatures-v2/js/bun.lock
 
 # For testing changes to the channel versions file
 channel_versions_test.json
@@ -21,7 +23,7 @@ profile.pb
 chrome_profiler.json
 
 # Don't include any files that we write for testing purposes.
-crates/warp_files/test_data/test_write
+crates/rift_files/test_data/test_write
 
 # Don't include fonts downloaded by the script used to generate font fallback code.
 script/font_fallback/downloaded_fonts
