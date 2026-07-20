@@ -425,6 +425,7 @@ completions_v2 = [
 cross_repo_context = []
 codebase_index_persistence = ["full_source_code_embedding"]
 default = [
+    "async_find",
     "render_continuous_block_selections_with_single_border",
     "shell_selector",
     "minimalist_ui",

@@ -720,7 +720,6 @@ pub const DOGFOOD_FLAGS: &[FeatureFlag] = &[
     #[cfg(not(windows))]
     FeatureFlag::RemoteCodebaseIndexing,
     FeatureFlag::GroupedTabs,
-    FeatureFlag::AsyncFind,
     FeatureFlag::GPTConfigurableContextWindow,
     FeatureFlag::RestorePromptOnInlineModelSelectorSearch,
     FeatureFlag::OwnerOrchestrationAncestorStreamer,
