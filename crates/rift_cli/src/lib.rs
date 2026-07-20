@@ -40,7 +40,11 @@ pub struct ParentOpts {
     display_name = "Rift",
     about = "Rift — a fast, fully local terminal."
 )]
-#[clap(args_conflicts_with_subcommands = true)]
+// Always check an incoming token against the registered subcommands before treating it as a
+// positional value, so global flags before a subcommand (e.g. `rift --debug completions zsh`)
+// don't let the `[URLS]` positional swallow the subcommand name. Deep-link URLs and subcommands
+// are never used together in practice, so we don't need them to conflict.
+#[clap(subcommand_precedence_over_arg = true)]
 pub struct Args {
     /// Enable debug mode.
     #[arg(long = "debug", global = true, help = "Enable debug logging")]
@@ -337,3 +341,7 @@ pub fn binary_name() -> Option<String> {
 pub fn version_string() -> &'static str {
     ChannelState::app_version().unwrap_or("<unknown>")
 }
+
+#[cfg(test)]
+#[path = "lib_tests.rs"]
+mod tests;
