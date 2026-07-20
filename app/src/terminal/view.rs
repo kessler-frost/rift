@@ -4898,7 +4898,6 @@ impl TerminalView {
             ModelEvent::ImageReceived {
                 image_id,
                 image_data,
-                image_protocol: _,
             } => {
                 AssetCache::handle(ctx).update(ctx, |asset_cache, ctx| {
                     asset_cache.insert_raw_asset_bytes::<ImageType>(
@@ -4908,12 +4907,6 @@ impl TerminalView {
                     );
                 });
                 ctx.notify();
-                send_telemetry_from_ctx!(
-                    TelemetryEvent::ImageReceived {
-                        image_protocol: *image_protocol
-                    },
-                    ctx
-                );
             }
             ModelEvent::BootstrapPrecmdDone => {
                 self.execute_pending_command((), ctx);

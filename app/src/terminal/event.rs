@@ -13,7 +13,6 @@ use super::model::block::BlockId;
 use super::model::session::{SessionId, SessionInfo};
 use super::model::terminal_model::{BlockIndex, ExitReason, TmuxInstallationState};
 use crate::server::ids::SyncId;
-use crate::server::telemetry::ImageProtocol;
 use crate::terminal::model::block::{BlockMetadata, SerializedBlock};
 use crate::terminal::model::completions::ShellCompletion;
 use crate::terminal::model::terminal_model::HandlerEvent;
@@ -118,7 +117,6 @@ pub enum Event {
     ImageReceived {
         image_id: u32,
         image_data: Vec<u8>,
-        image_protocol: ImageProtocol,
     },
     BootstrapPrecmdDone,
     /// A pluggable notification triggered via OSC 9 or OSC 777 escape sequences.

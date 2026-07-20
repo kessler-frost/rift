@@ -11,7 +11,6 @@ use super::model::completions::ShellCompletion;
 use super::model::session::{IsLegacySSHSession, SessionId, SessionInfo};
 use super::model::terminal_model::{CommandType, ExitReason, HandlerEvent, TmuxInstallationState};
 use super::model::tmux::commands::TmuxCommand;
-use crate::server::telemetry::ImageProtocol;
 use crate::terminal::event::{
     AfterBlockCompletedEvent, BlockCompletedEvent, BlockMetadataReceivedEvent,
     BlockWorkingDirectoryUpdatedEvent, Event, ExecutedExecutorCommandEvent, InitSshEvent,
@@ -228,11 +227,9 @@ impl ModelEventDispatcher {
             Event::ImageReceived {
                 image_id,
                 image_data,
-                image_protocol,
             } => ModelEvent::ImageReceived {
                 image_id,
                 image_data,
-                image_protocol,
             },
             Event::BootstrapPrecmdDone => ModelEvent::BootstrapPrecmdDone,
             Event::PluggableNotification { title, body } => {
@@ -397,7 +394,6 @@ pub enum ModelEvent {
     ImageReceived {
         image_id: u32,
         image_data: Vec<u8>,
-        image_protocol: ImageProtocol,
     },
     BootstrapPrecmdDone,
     /// A pluggable notification triggered via OSC 9 or OSC 777 escape sequences.
