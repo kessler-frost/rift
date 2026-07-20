@@ -11,14 +11,14 @@ use riftui_core::event::{KeyEventDetails, KeyState};
 use riftui_core::integration::TestStep;
 use riftui_core::keymap::Keystroke;
 use riftui_core::platform::keyboard::KeyCode;
-use riftui_core::{async_assert, Event};
+use riftui_core::{Event, async_assert};
 
 use super::new_builder;
 use crate::Builder;
 
 /// Helper: creates a setup closure that writes a Python script asset to the test directory.
 macro_rules! setup_python_script {
-    ($filename:expr, $asset_path:expr) => {
+    ($filename:expr_2021, $asset_path:expr_2021) => {
         |utils| {
             let script_path = utils.test_dir().join($filename);
             let script_content = include_bytes!($asset_path);

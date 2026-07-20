@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use rift_js::{JsFunctionId, SerializedJsValue, TypedJsFunctionRef};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 #[derive(thiserror::Error, Debug)]
 pub enum JsExecutionError {

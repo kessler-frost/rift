@@ -14,13 +14,13 @@ use string_offset::CharOffset;
 use crate::color::ColorU;
 pub use crate::elements::shimmering_text::config::ShimmerConfig;
 use crate::elements::shimmering_text::glyph_index::GlyphIndex;
-use crate::elements::{Axis, Point, DEFAULT_UI_LINE_HEIGHT_RATIO};
+use crate::elements::{Axis, DEFAULT_UI_LINE_HEIGHT_RATIO, Point};
 use crate::fonts::{FamilyId, Properties};
 use crate::geometry::rect::RectF;
-use crate::geometry::vector::{vec2f, Vector2F};
+use crate::geometry::vector::{Vector2F, vec2f};
 use crate::platform::LineStyle;
 use crate::text_layout::{
-    ClipConfig, Line, PaintStyleOverride, StyleAndFont, TextStyle, DEFAULT_TOP_BOTTOM_RATIO,
+    ClipConfig, DEFAULT_TOP_BOTTOM_RATIO, Line, PaintStyleOverride, StyleAndFont, TextStyle,
 };
 use crate::{AppContext, Element, PaintContext, SizeConstraint};
 

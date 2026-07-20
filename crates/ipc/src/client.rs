@@ -7,11 +7,11 @@ use futures::io::BufReader;
 use futures::{AsyncRead, AsyncWrite};
 use riftui_core::r#async::executor::Background;
 
+use super::Service;
 use super::protocol::{
-    receive_message, send_message, ConnectionAddress, ProtocolError, RequestId, Response,
+    ConnectionAddress, ProtocolError, RequestId, Response, receive_message, send_message,
 };
 use super::service::service_id;
-use super::Service;
 use crate::platform::client::connect_client;
 use crate::protocol::Request;
 
@@ -210,16 +210,16 @@ impl Client {
                                 }
                             };
 
-                            if let Some(response_result_tx) = response_senders.remove(&request_id) {
+                            match response_senders.remove(&request_id) { Some(response_result_tx) => {
                                 // The channel might be closed if the task that called
                                 // `send_message` has been dropped, but that's ok.
                                 let _ = response_result_tx.send(response_result);
-                            } else {
+                            } _ => {
                                 // When there is no corresponding response_senders
                                 // entry for the message's request ID, we weren't
                                 // expecting it.
                                 log::warn!("Received unexpected message with id {request_id}.");
-                            }
+                            }}
                         }
                         Err(e) => {
                             match e {

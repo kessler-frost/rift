@@ -1,6 +1,6 @@
 use riftui::integration::TestStep;
 use riftui::windowing::WindowManager;
-use riftui::{async_assert, SingletonEntity};
+use riftui::{SingletonEntity, async_assert};
 use settings::Setting;
 
 use crate::integration_testing::step::new_step_with_default_assertions;

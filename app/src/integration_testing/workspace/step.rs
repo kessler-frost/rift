@@ -1,5 +1,5 @@
 use riftui::integration::TestStep;
-use riftui::{async_assert, SingletonEntity};
+use riftui::{SingletonEntity, async_assert};
 
 use crate::integration_testing::view_getters::workspace_view;
 use crate::undo_close::UndoCloseStack;

@@ -7,7 +7,7 @@ use rift::integration_testing::input::{
 use rift::integration_testing::step::new_step_with_default_assertions;
 use rift::integration_testing::tab::tab_title_step;
 use rift::integration_testing::terminal::util::{
-    current_shell_starter_and_version, ExpectedExitStatus,
+    ExpectedExitStatus, current_shell_starter_and_version,
 };
 use rift::integration_testing::terminal::{
     assert_active_block_command_for_single_terminal_in_tab,
@@ -22,12 +22,12 @@ use rift::terminal::shell::{self, ShellType};
 use rift::workspace::Workspace;
 use riftui_core::clipboard::ClipboardContent;
 use riftui_core::integration::TestStep;
-use riftui_core::{async_assert, async_assert_eq, ViewHandle};
+use riftui_core::{ViewHandle, async_assert, async_assert_eq};
 use settings::Setting as _;
 use version_compare::Cmp;
 
-use super::{new_builder, Builder};
-use crate::util::{write_all_rc_files_for_test, write_rc_files_for_test, ShellRcType};
+use super::{Builder, new_builder};
+use crate::util::{ShellRcType, write_all_rc_files_for_test, write_rc_files_for_test};
 
 /// Ensures that config files are only sourced once when bootstrapping a new session.
 pub fn test_rc_files_only_sourced_once_during_bootstrapping() -> Builder {

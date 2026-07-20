@@ -12,14 +12,14 @@ use rift::integration_testing::type_getters::get_launch_config_ui_location;
 use rift::integration_testing::window::assert_num_windows_open;
 use rift::integration_testing::workspace::{assert_focused_tab_index, assert_tab_count};
 use rift::integration_testing::{self};
+use rift::search::SyncDataSource;
 use rift::search::command_palette::launch_config;
 use rift::search::data_source::Query;
-use rift::search::SyncDataSource;
 use rift::workspace::NEW_TAB_BUTTON_POSITION_ID;
 use riftui_core::integration::{AssertionOutcome, TestStep};
-use riftui_core::{async_assert, ModelHandle};
+use riftui_core::{ModelHandle, async_assert};
 
-use super::{assert_approx_eq, new_builder, TEST_ONLY_ASSETS};
+use super::{TEST_ONLY_ASSETS, assert_approx_eq, new_builder};
 use crate::Builder;
 
 /// Adds a launch config to the mocked out rift config directory and verifies that

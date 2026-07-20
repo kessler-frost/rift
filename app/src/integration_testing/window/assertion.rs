@@ -1,6 +1,6 @@
 use riftui::integration::{AssertionCallback, AssertionOutcome, StepData};
 use riftui::windowing::WindowManager;
-use riftui::{async_assert_eq, SingletonEntity};
+use riftui::{SingletonEntity, async_assert_eq};
 
 /// Saves the active window id with the given step data key.
 pub fn save_active_window_id<K>(window_key: K) -> AssertionCallback

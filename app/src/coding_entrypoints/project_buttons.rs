@@ -3,10 +3,10 @@ use std::borrow::Cow;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
 use rift_core::features::FeatureFlag;
+use rift_core::ui::Icon;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::color::blend::Blend as _;
 use rift_core::ui::theme::color::internal_colors;
-use rift_core::ui::Icon;
 use riftui::elements::{
     ChildAnchor, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DropShadow, Expanded,
     Flex, Hoverable, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement as _,

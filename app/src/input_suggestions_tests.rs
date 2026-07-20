@@ -7,13 +7,13 @@ use rift_completer::completer::{
 };
 use rift_completer::meta::Span;
 use rift_core::ui::appearance::Appearance;
-use riftui::platform::WindowStyle;
 use riftui::App;
+use riftui::platform::WindowStyle;
 
 use super::{HistoryInputSuggestion, InputSuggestions, TabCompletionsPreselectOption};
-use crate::input_suggestions::{filter_tab_suggestions, HistoryOrder};
-use crate::terminal::model::session::SessionId;
+use crate::input_suggestions::{HistoryOrder, filter_tab_suggestions};
 use crate::terminal::HistoryEntry;
+use crate::terminal::model::session::SessionId;
 
 fn prefix_matched_suggestion(name: &str) -> MatchedSuggestion {
     let suggestion = Suggestion::with_same_display_and_replacement(

@@ -7,11 +7,11 @@ use itertools::Itertools;
 use riftui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
-use crate::search::command_search::projects::{os_probably_case_sensitive, ProjectSearchItem};
+use crate::search::command_search::projects::{ProjectSearchItem, os_probably_case_sensitive};
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::{DataSourceRunErrorWrapper, SyncDataSource};
-use crate::terminal::model::session::get_local_hostname;
 use crate::terminal::History;
+use crate::terminal::model::session::get_local_hostname;
 
 const SUGGESTION_TIME_WINDOW: Duration = Duration::days(30);
 const SUGGESTION_MAX_COUNT: usize = 20;
@@ -56,11 +56,10 @@ impl SuggestedProjectsDataSource {
             if os_probably_case_sensitive() {
                 !self.excluded_paths.contains(&candidate.path)
             } else {
-                let result = !(self
+                !(self
                     .excluded_paths
                     .iter()
-                    .any(|path| candidate.path.eq_ignore_ascii_case(path)));
-                result
+                    .any(|path| candidate.path.eq_ignore_ascii_case(path)))
             }
         };
 
@@ -89,17 +88,16 @@ impl SuggestedProjectsDataSource {
                 .start_ts
                 .map(|ts| ts.naive_local() >= since)
                 .unwrap_or(false)
+                && let Some(pwd_str) = &summary.pwd
             {
-                if let Some(pwd_str) = &summary.pwd {
-                    let candidate = candidates.entry(pwd_str.clone()).or_insert_with(|| {
-                        ProjectSearchItem::new(
-                            pwd_str.clone(),
-                            fuzzy_match::FuzzyMatchResult::no_match(),
-                            Default::default(),
-                        )
-                    });
-                    candidate.popularity_score += count as i32;
-                }
+                let candidate = candidates.entry(pwd_str.clone()).or_insert_with(|| {
+                    ProjectSearchItem::new(
+                        pwd_str.clone(),
+                        fuzzy_match::FuzzyMatchResult::no_match(),
+                        Default::default(),
+                    )
+                });
+                candidate.popularity_score += count as i32;
             }
         }
 

@@ -30,7 +30,7 @@ use shell::ShellStarter;
 
 #[cfg(windows)]
 pub use self::terminal_manager::shutdown_all_pty_event_loops;
-pub use self::terminal_manager::{get_shell_starter, TerminalManager};
+pub use self::terminal_manager::{TerminalManager, get_shell_starter};
 #[cfg(unix)]
 pub use self::unix::*;
 #[cfg(windows)]

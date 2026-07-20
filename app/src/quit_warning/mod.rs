@@ -65,7 +65,7 @@ impl QuitScope<'_> {
                 .map(|pane| pane.session_navigation_data(*pane_group_id, *window_id, ctx))
                 .into_iter()
                 .collect_vec(),
-            Self::Tabs(ref tabs) => {
+            Self::Tabs(tabs) => {
                 // We can't use SessionNavigationData::all_sessions here, as the caller is likely
                 // updating the tab's Workspace. This temporarily removes it from the app context,
                 // so it's not visible to all_sessions.
@@ -256,15 +256,15 @@ impl<'a> QuitWarningDialog<'a> {
             buttons.push(ModalButton::for_app("Don't Save".to_string(), callback));
         }
 
-        if let Some(callback) = on_show_processes {
-            if state.total_long_running_commands > 0 {
-                buttons.push(ModalButton::for_app(
-                    "Show running processes".to_string(),
-                    move |app| {
-                        callback(app);
-                    },
-                ))
-            }
+        if let Some(callback) = on_show_processes
+            && state.total_long_running_commands > 0
+        {
+            buttons.push(ModalButton::for_app(
+                "Show running processes".to_string(),
+                move |app| {
+                    callback(app);
+                },
+            ))
         }
 
         if let Some(callback) = on_cancel {
@@ -338,19 +338,17 @@ impl<'a> QuitWarningDialog<'a> {
 }
 
 fn pluralize<'a>(count: usize, singular: &'a str, plural: &'a str) -> &'a str {
-    if count > 1 {
-        plural
-    } else {
-        singular
-    }
+    if count > 1 { plural } else { singular }
 }
 
 /// Callback to disable the quit warning modal.
 fn on_disable_warning_modal(ctx: &mut AppContext) {
     GeneralSettings::handle(ctx).update(ctx, |general_settings, ctx| {
-        report_if_error!(general_settings
-            .show_warning_before_quitting
-            .toggle_and_save_value(ctx));
+        report_if_error!(
+            general_settings
+                .show_warning_before_quitting
+                .toggle_and_save_value(ctx)
+        );
     });
     send_telemetry_from_app_ctx!(TelemetryEvent::QuitModalDisabled, ctx);
 }

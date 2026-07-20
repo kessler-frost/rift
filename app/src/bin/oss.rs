@@ -3,9 +3,9 @@
 #![cfg_attr(feature = "release_bundle", windows_subsystem = "windows")]
 
 use anyhow::Result;
+use rift_core::AppId;
 use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::features::FeatureFlag;
-use rift_core::AppId;
 
 /// Cloud feature flags that are suppressed in the OSS (Rift) build.
 /// These flags gate server-dependent UI/behaviour that has no local equivalent.

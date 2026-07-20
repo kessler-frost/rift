@@ -668,10 +668,10 @@ impl TryFrom<&[&[u8]]> for PromptMarker {
                     let value = &param[eq_index + 1..];
                     // "k" represents the prompt kind; try to parse the value into our
                     // PromptKind enum.
-                    if let b"k" = key {
-                        if let Ok(k) = PromptKind::try_from(value) {
-                            kind = k;
-                        }
+                    if let b"k" = key
+                        && let Ok(k) = PromptKind::try_from(value)
+                    {
+                        kind = k;
                     }
                 }
                 Ok(PromptMarker::StartPrompt { kind })

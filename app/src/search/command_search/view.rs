@@ -9,11 +9,11 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
 use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
-    resizable_state_handle, Align, AnchorPair, Border, ConstrainedBox, Container, CornerRadius,
-    CrossAxisAlignment, Dismiss, Fill, Flex, OffsetPositioning, OffsetType, ParentElement,
-    ParentOffsetBounds, PositionedElementOffsetBounds, PositioningAxis, Radius, Resizable,
-    ResizableStateHandle, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement,
-    Shrinkable, Stack, UniformList, UniformListState, XAxisAnchor, YAxisAnchor,
+    Align, AnchorPair, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
+    Dismiss, Fill, Flex, OffsetPositioning, OffsetType, ParentElement, ParentOffsetBounds,
+    PositionedElementOffsetBounds, PositioningAxis, Radius, Resizable, ResizableStateHandle,
+    SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, Shrinkable, Stack, UniformList,
+    UniformListState, XAxisAnchor, YAxisAnchor, resizable_state_handle,
 };
 use riftui::presenter::ChildView;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
@@ -25,14 +25,14 @@ use riftui::{
 use super::history::history_data_source_for_session;
 use super::zero_state::{CommandSearchZeroStateEvent, CommandSearchZeroStateView};
 use crate::appearance::Appearance;
+use crate::search::QueryFilter;
 use crate::search::command_search::searcher::{CommandSearchItemAction, CommandSearchMixer};
 use crate::search::mixer::AddAsyncSourceOptions;
 use crate::search::result_renderer::{QueryResultRenderer, QueryResultRendererStyles};
 use crate::search::search_bar::{SearchBar, SearchBarEvent, SearchBarState, SearchResultOrdering};
-use crate::search::QueryFilter;
 use crate::terminal::input::MenuPositioning;
 use crate::terminal::model::session::SessionId;
-use crate::terminal::resizable_data::{ModalType, ResizableData, DEFAULT_UNIVERSAL_SEARCH_WIDTH};
+use crate::terminal::resizable_data::{DEFAULT_UNIVERSAL_SEARCH_WIDTH, ModalType, ResizableData};
 use crate::terminal::{History, HistoryEvent};
 
 const DEFAULT_PLACEHOLDER_TEXT: &str = "Search your command history";
@@ -264,10 +264,10 @@ impl CommandSearchView {
         visible_results_range: Range<usize>,
         ctx: &mut ViewContext<Self>,
     ) {
-        if let Some(current_visible_results_range) = &self.state.visible_results_range {
-            if current_visible_results_range == &visible_results_range {
-                return;
-            }
+        if let Some(current_visible_results_range) = &self.state.visible_results_range
+            && current_visible_results_range == &visible_results_range
+        {
+            return;
         }
         self.state.visible_results_range = Some(visible_results_range);
         ctx.notify();
@@ -753,21 +753,20 @@ impl View for CommandSearchView {
             ),
         );
 
-        if !should_show_zero_state {
-            if let (Some(selected_result_renderer), Some(details_panel_positioning)) = (
+        if !should_show_zero_state
+            && let (Some(selected_result_renderer), Some(details_panel_positioning)) = (
                 self.selected_result_renderer(app),
                 self.offset_positioning_for_details_panel(app),
-            ) {
-                if let Some(details) = selected_result_renderer.render_details(app) {
-                    stack.add_positioned_overlay_child(
-                        Container::new(details)
-                            .with_margin_bottom(DETAILS_PANEL_MARGIN)
-                            .with_margin_right(DETAILS_PANEL_MARGIN)
-                            .finish(),
-                        details_panel_positioning,
-                    );
-                }
-            }
+            )
+            && let Some(details) = selected_result_renderer.render_details(app)
+        {
+            stack.add_positioned_overlay_child(
+                Container::new(details)
+                    .with_margin_bottom(DETAILS_PANEL_MARGIN)
+                    .with_margin_right(DETAILS_PANEL_MARGIN)
+                    .finish(),
+                details_panel_positioning,
+            );
         }
 
         Dismiss::new(Container::new(stack.finish()).with_margin_top(36.).finish())

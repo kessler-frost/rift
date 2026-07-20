@@ -4,7 +4,7 @@ use riftui::{AppContext, Entity, SingletonEntity};
 use {
     crate::report_error,
     crate::terminal::local_tty::server::TerminalServer,
-    anyhow::{bail, Context},
+    anyhow::{Context, bail},
     std::process::Child,
 };
 

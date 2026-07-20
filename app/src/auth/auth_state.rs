@@ -17,10 +17,10 @@ use std::sync::Arc;
 
 use riftui::{AppContext, Entity, SingletonEntity};
 
-use super::credentials::Credentials;
-use super::user::persistence::PersistedUser;
-use super::user::User;
 use super::UserUid;
+use super::credentials::Credentials;
+use super::user::User;
+use super::user::persistence::PersistedUser;
 
 /// The fixed local user identifier used throughout the offline build.
 const LOCAL_USER_ID: &str = "local_user";

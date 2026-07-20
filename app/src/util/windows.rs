@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 use std::{env, path};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use riftui::{AppContext, SingletonEntity};
 
 use crate::system::SystemInfo;

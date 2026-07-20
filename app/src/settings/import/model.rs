@@ -85,17 +85,16 @@ impl ImportedConfigModel {
         configs: &Result<Vec<Config>, ConfigError>,
         _ctx: &mut ModelContext<Self>,
     ) {
-        if let TerminalType::ITerm = terminal_type {
-            if let Ok(configs) = configs {
-                if configs.iter().any(|config| {
-                    matches!(
-                        config.hotkey_mode.setting,
-                        Err(HotkeyError::MultipleHotkeys)
-                    )
-                }) {
-                    send_telemetry_from_ctx!(TelemetryEvent::ITermMultipleHotkeys, ctx);
-                }
-            }
+        if let TerminalType::ITerm = terminal_type
+            && let Ok(configs) = configs
+            && configs.iter().any(|config| {
+                matches!(
+                    config.hotkey_mode.setting,
+                    Err(HotkeyError::MultipleHotkeys)
+                )
+            })
+        {
+            send_telemetry_from_ctx!(TelemetryEvent::ITermMultipleHotkeys, ctx);
         }
     }
 

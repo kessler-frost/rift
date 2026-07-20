@@ -5,7 +5,7 @@
 
 use riftui::{AppContext, SingletonEntity};
 use settings::{
-    define_settings_group, RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud,
+    RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud, define_settings_group,
 };
 use strum_macros::EnumIter;
 

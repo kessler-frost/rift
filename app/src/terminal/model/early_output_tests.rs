@@ -198,8 +198,10 @@ fn test_queued_typeahead_shell_reported() {
     assert_eq!(block_list.early_output().typeahead(), "second");
     // Unlike regular blocks, if the output grid of a background block is cleared
     // then it becomes hidden.
-    assert!(block_list
-        .background_block_mut()
-        .expect("Block should exist")
-        .is_empty());
+    assert!(
+        block_list
+            .background_block_mut()
+            .expect("Block should exist")
+            .is_empty()
+    );
 }

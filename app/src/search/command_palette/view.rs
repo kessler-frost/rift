@@ -24,18 +24,18 @@ use super::CommandPaletteMixer;
 use crate::appearance::Appearance;
 use crate::palette::PaletteMode;
 use crate::root_view::OpenLaunchConfigArg;
+use crate::search::QueryFilter;
 use crate::search::action::search_item::MatchedBinding;
 use crate::search::binding_source::{BindingFilterFn, BindingSource};
+use crate::search::command_palette::SelectedItems;
 use crate::search::command_palette::data_sources::DataSourceStore;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::zero_state::{self, Event as ZeroStateEvent, ZeroState};
-use crate::search::command_palette::SelectedItems;
 use crate::search::data_source::QueryResult;
 use crate::search::result_renderer::QueryResultRenderer;
 use crate::search::search_bar::{
     SearchBar, SearchBarEvent, SearchBarState, SearchResultOrdering, SelectionUpdate,
 };
-use crate::search::QueryFilter;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{LaunchConfigUiLocation, TelemetryEvent};
 use crate::session_management::SessionSource;
@@ -697,50 +697,50 @@ impl View {
             });
         }
 
-        if let CommandPaletteItemAction::AcceptBinding { binding } = &result_action {
-            if let Some(action) = &binding.action {
-                match action.as_any().downcast_ref::<WorkspaceAction>() {
-                    Some(WorkspaceAction::TogglePalette {
-                        mode: PaletteMode::LaunchConfig,
-                        source: _,
-                    }) => {
-                        self.reset(ctx);
-                        self.set_active_query_filter(QueryFilter::LaunchConfigurations, ctx);
-                        return;
-                    }
-                    Some(WorkspaceAction::TogglePalette {
-                        mode: PaletteMode::Navigation,
-                        source: _,
-                    }) => {
-                        self.reset(ctx);
-                        self.set_active_query_filter(QueryFilter::Sessions, ctx);
-                        return;
-                    }
-                    Some(WorkspaceAction::TogglePalette {
-                        mode: PaletteMode::Files,
-                        source: _,
-                    }) => {
-                        self.reset(ctx);
-                        self.set_active_query_filter(QueryFilter::Files, ctx);
-                        return;
-                    }
-                    Some(WorkspaceAction::TogglePalette {
-                        mode: PaletteMode::Conversations,
-                        source: _,
-                    }) => {
-                        self.reset(ctx);
-                        self.set_active_query_filter(QueryFilter::Conversations, ctx);
-                        return;
-                    }
-                    Some(WorkspaceAction::TogglePalette {
-                        mode: PaletteMode::Command,
-                        source: _,
-                    }) => {
-                        self.close(ctx, Some(result_action.result_type()));
-                        return;
-                    }
-                    _ => {}
+        if let CommandPaletteItemAction::AcceptBinding { binding } = &result_action
+            && let Some(action) = &binding.action
+        {
+            match action.as_any().downcast_ref::<WorkspaceAction>() {
+                Some(WorkspaceAction::TogglePalette {
+                    mode: PaletteMode::LaunchConfig,
+                    source: _,
+                }) => {
+                    self.reset(ctx);
+                    self.set_active_query_filter(QueryFilter::LaunchConfigurations, ctx);
+                    return;
                 }
+                Some(WorkspaceAction::TogglePalette {
+                    mode: PaletteMode::Navigation,
+                    source: _,
+                }) => {
+                    self.reset(ctx);
+                    self.set_active_query_filter(QueryFilter::Sessions, ctx);
+                    return;
+                }
+                Some(WorkspaceAction::TogglePalette {
+                    mode: PaletteMode::Files,
+                    source: _,
+                }) => {
+                    self.reset(ctx);
+                    self.set_active_query_filter(QueryFilter::Files, ctx);
+                    return;
+                }
+                Some(WorkspaceAction::TogglePalette {
+                    mode: PaletteMode::Conversations,
+                    source: _,
+                }) => {
+                    self.reset(ctx);
+                    self.set_active_query_filter(QueryFilter::Conversations, ctx);
+                    return;
+                }
+                Some(WorkspaceAction::TogglePalette {
+                    mode: PaletteMode::Command,
+                    source: _,
+                }) => {
+                    self.close(ctx, Some(result_action.result_type()));
+                    return;
+                }
+                _ => {}
             }
         }
 
@@ -829,11 +829,11 @@ impl View {
             } => {
                 let file_path = std::path::Path::new(&current_directory).join(&file_name);
 
-                if let Err(e) = std::fs::File::create_new(&file_path) {
-                    if e.kind() != std::io::ErrorKind::AlreadyExists {
-                        log::warn!("Failed to create file {}: {e}", file_path.display());
-                        return;
-                    }
+                if let Err(e) = std::fs::File::create_new(&file_path)
+                    && e.kind() != std::io::ErrorKind::AlreadyExists
+                {
+                    log::warn!("Failed to create file {}: {e}", file_path.display());
+                    return;
                 }
 
                 ctx.emit(Event::OpenFile {

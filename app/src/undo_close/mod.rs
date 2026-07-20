@@ -1,8 +1,8 @@
 pub mod settings;
 mod stack;
 
-use riftui::keymap::EditableBinding;
 use riftui::AppContext;
+use riftui::keymap::EditableBinding;
 
 pub use self::settings::UndoCloseSettings;
 pub use self::stack::{UndoCloseStack, UndoCloseStackEvent};

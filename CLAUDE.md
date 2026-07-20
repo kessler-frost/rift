@@ -89,22 +89,35 @@ which it had actively broken Rift by half-porting.
   the local bun-install artifact from the clippy unblock step (upstream's
   `yarn.lock` stays the tracked lockfile).
 
+- **Ported (later the same day, as its own project): Rust 2024 edition
+  migration (warp #13990).** Initially deferred, then done once the sync itself
+  was green — the deferral had a real accruing cost (every upstream commit now
+  lands on 2024-edition context lines). **Regenerated, not hand-ported**, with
+  upstream's own recipe: `cargo fix --edition --workspace --all-targets` → flip
+  `edition = "2021"` → `"2024"` in the 33 remaining Cargo.tomls (18 crates were
+  already 2024) + `.rustfmt.toml` (was still on 2018) → `cargo clippy --fix`
+  (~90 `collapsible_if` let-chain collapses newly suggested on 2024, incl. a
+  separate pass for `rift_completer`) → `./script/format`. 809 files,
+  +8.3k/−7.6k. Convergence check: the regenerated `use<>` captures are
+  byte-identical to upstream's post-migration state in every shared
+  terminal-core file, and the `r#gen` sites match exactly.
+  - **The `if let` drop-order audit** (the reason this was scary): `cargo fix`'s
+    `if_let_rescope` migration rewrote exactly 4 sites to `match` to preserve
+    2021 semantics. One — `prev_frame.lock().remove_entry()` in the glyph cache —
+    genuinely holds a lock guard temporary and stays as `match`. The other three
+    (find model `block_list_find_run.take()`, active_session `Weak` zip,
+    global_search `render_results`) only tripped the lint via incidental
+    significant-`Drop` types; verified harmless and restored to `if let` (clippy
+    `single_match` demands it anyway). An independent sweep of every remaining
+    `if let ... .lock()` confirmed: pattern-bound guards are unaffected by 2024
+    rescoping, and no scrutinee-temporary site has an `else` that relies on the
+    guard (2024 releases *earlier*, which can drop-fix but never introduce a
+    deadlock).
+  - Verified: fmt + inline-test-modules + clippy `-D warnings` (workspace and
+    `rift_completer`) all 0; full nextest 3643 run / 3631 passed with the
+    failures exactly the 12-test environmental baseline; app relaunched and
+    smoke-tested via computer use.
 - **Deliberately NOT ported (verified N/A, not skipped blindly):**
-  - **Rust 2024 edition migration (warp #13990)** — 1893 files, +22.7k/−21.4k, and
-    **not a bug fix**. Upstream generated it with `cargo fix --edition` +
-    `cargo clippy --fix` + `./script/format`, so for Rift this is *regenerable
-    work*, not a hand-port — which is the only reason it's even tractable. Skipped
-    for now on the same grounds as #13523 and #13483 (mass mechanical churn is not
-    taken as a unit), plus two Rift-specific risks: edition 2024 changes
-    **`if let` scrutinee temporary drop order**, and Rift has an explicit
-    deadlock hazard around `TerminalModel::lock()` (see "Terminal Model Locking")
-    — exactly the kind of code where a silent drop-order change matters; and the
-    migration forces a full-workspace rebuild, which is expensive here. **This one
-    has a real cost to deferring**, unlike the other churn skips: every commit
-    upstream now lands on 2024-edition context lines, so hand-porting drifts
-    further each pass. Take it as one deliberate project — run the three fix-up
-    commands, then audit every `if let` holding a lock guard — not as part of a
-    routine sync.
   - **Runner config for orchestration (warp #13896)** — its only Rift-existing file
     is `pane_group/pane/terminal_pane.rs`, but all three touched items
     (`dispatch_start_agent_conversation`, `launch_remote_child`,

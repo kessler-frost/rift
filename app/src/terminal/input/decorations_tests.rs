@@ -1,6 +1,6 @@
 use rift_completer::completer::SuggestionTypeName;
-use riftui::text_layout::TextStyle;
 use riftui::App;
+use riftui::text_layout::TextStyle;
 
 use crate::appearance::Appearance;
 use crate::terminal::input::decorations::InputBackgroundJobOptions;

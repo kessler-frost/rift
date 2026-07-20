@@ -7,7 +7,7 @@ use instant::Instant;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use pathfinder_geometry::rect::RectF;
-use pathfinder_geometry::vector::{vec2f, Vector2F, Vector2I};
+use pathfinder_geometry::vector::{Vector2F, Vector2I, vec2f};
 
 use super::{CornerRadius, Element, Point};
 use crate::assets::asset_cache::{AssetCache, AssetSource, AssetState};

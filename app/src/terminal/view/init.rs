@@ -1,18 +1,18 @@
+use riftui::AppContext;
 use riftui::keymap::{EditableBinding, FixedBinding, PerPlatformKeystroke};
 use riftui::platform::OperatingSystem;
 use riftui::units::IntoLines;
-use riftui::AppContext;
 
 use super::TerminalAction;
 use crate::channel::{Channel, ChannelState};
 use crate::features::FeatureFlag;
 use crate::server::telemetry::ToggleBlockFilterSource;
 use crate::settings_view::flags;
+use crate::terminal::TerminalView;
 use crate::terminal::model::escape_sequences::{self, EscCodes};
 use crate::terminal::model::selection::SelectionDirection;
-use crate::terminal::ssh::error::{SshErrorBlockAction, SSH_ERROR_BLOCK_VISIBLE_KEY};
-use crate::terminal::TerminalView;
-use crate::util::bindings::{cmd_or_ctrl_shift, is_binding_pty_compliant, CustomAction};
+use crate::terminal::ssh::error::{SSH_ERROR_BLOCK_VISIBLE_KEY, SshErrorBlockAction};
+use crate::util::bindings::{CustomAction, cmd_or_ctrl_shift, is_binding_pty_compliant};
 
 pub const TOGGLE_BLOCK_FILTER_KEYBINDING: &str =
     "terminal:toggle_block_filter_on_selected_or_last_block";

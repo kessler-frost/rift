@@ -2,7 +2,7 @@ use std::io::Write;
 use std::path::Path;
 use std::{fs, io};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use itertools::Itertools;
 use repo_metadata::RepositoryUpdate;
 use riftui::{ModelContext, SingletonEntity};
@@ -12,13 +12,13 @@ use super::util::{
     parse_single_theme_dir_entry, parse_tab_config_dir_entry,
 };
 use super::{
-    launch_configs_dir, tab_configs_dir, themes_dir, RiftConfigUpdateEvent, LAUNCH_CONFIG_COMMENT,
+    LAUNCH_CONFIG_COMMENT, RiftConfigUpdateEvent, launch_configs_dir, tab_configs_dir, themes_dir,
 };
 use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::rift_managed_paths_watcher::{
-    repository_update_touches_path, repository_update_touches_prefix, RiftManagedPathsWatcher,
-    RiftManagedPathsWatcherEvent,
+    RiftManagedPathsWatcher, RiftManagedPathsWatcherEvent, repository_update_touches_path,
+    repository_update_touches_prefix,
 };
 use crate::tab_configs::{TabConfig, TabConfigError};
 use crate::themes::theme::RiftThemeConfig;

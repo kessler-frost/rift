@@ -20,8 +20,8 @@ use crate::tab_configs::TabConfig;
 use crate::terminal::available_shells::AvailableShell;
 use crate::themes::theme::AnsiColorIdentifier;
 use crate::themes::theme_chooser::ThemeChooserMode;
-use crate::workspace::tab_group::TabGroupId;
 use crate::workspace::PaneViewLocator;
+use crate::workspace::tab_group::TabGroupId;
 
 /// This enum determines how the search query is initialized when opening command search.
 #[derive(Clone, Default, Debug)]

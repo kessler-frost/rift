@@ -1,9 +1,9 @@
-use riftui::elements::MouseStateHandle;
 use riftui::Element;
+use riftui::elements::MouseStateHandle;
 
 use super::{
-    render_inline_block_list_banner, InlineBannerButtonState, InlineBannerContent,
-    InlineBannerStyle, InlineBannerTextButton, InlineBannerTextButtonVariant,
+    InlineBannerButtonState, InlineBannerContent, InlineBannerStyle, InlineBannerTextButton,
+    InlineBannerTextButtonVariant, render_inline_block_list_banner,
 };
 use crate::appearance::Appearance;
 use crate::terminal::view::TerminalAction;

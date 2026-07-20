@@ -23,7 +23,7 @@ use crate::pane_group::{
 use crate::projects::ProjectManagementModel;
 use crate::search::binding_source::BindingSource;
 use crate::search::welcome_palette::{Event as WelcomePaletteEvent, WelcomePalette};
-use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
+use crate::util::bindings::{BindingGroup, CustomAction, keybinding_name_to_display_string};
 use crate::view_components::DismissibleToast;
 use crate::workspace::{ToastStack, Workspace};
 
@@ -194,10 +194,10 @@ fn update_workspace<F>(window_id: WindowId, ctx: &mut AppContext, update_fn: F)
 where
     F: FnOnce(&mut Workspace, &mut ViewContext<Workspace>),
 {
-    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id) {
-        if let Ok(workspace) = workspaces.into_iter().exactly_one() {
-            workspace.update(ctx, update_fn);
-        }
+    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id)
+        && let Ok(workspace) = workspaces.into_iter().exactly_one()
+    {
+        workspace.update(ctx, update_fn);
     }
 }
 

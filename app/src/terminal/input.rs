@@ -15,15 +15,15 @@ use std::any::Any;
 use std::borrow::Cow;
 use std::ops::Range;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 use async_channel::Sender;
 #[cfg(feature = "local_fs")]
 use diesel::SqliteConnection;
-use futures::stream::AbortHandle;
 use futures::FutureExt as _;
+use futures::stream::AbortHandle;
 use itertools::Itertools;
 use ordered_float::Float;
 use parking_lot::FairMutex;
@@ -34,30 +34,30 @@ use rift_completer::completer::{
     MatchStrategy, MatchType, PathSeparators, SuggestionResults,
 };
 use rift_completer::meta::{HasSpan, Spanned};
-use rift_completer::parsers::simple::command_at_cursor_position;
 use rift_completer::parsers::LiteCommand;
+use rift_completer::parsers::simple::command_at_cursor_position;
 use rift_completer::signatures::CommandRegistry;
 use rift_core::r#async::debounce;
 use rift_core::user_preferences::GetUserPreferences as _;
 use rift_editor::editor::NavigationKey;
 use rift_util::path::ShellFamily;
+pub use riftui::WindowId;
 use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
+use riftui::r#async::SpawnedFutureHandle;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    resizable_state_handle, AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult,
-    DropTargetData, Element, EventHandler, MouseStateHandle, OffsetType, ResizableStateHandle,
-    SavePosition, SelectionHandle, YAxisAnchor,
+    AnchorPair, Clipped, ConstrainedBox, Container, DispatchEventResult, DropTargetData, Element,
+    EventHandler, MouseStateHandle, OffsetType, ResizableStateHandle, SavePosition,
+    SelectionHandle, YAxisAnchor, resizable_state_handle,
 };
 pub use riftui::elements::{ParentElement as _, Stack};
-pub use riftui::geometry::vector::{vec2f, Vector2F};
+pub use riftui::geometry::vector::{Vector2F, vec2f};
 use riftui::keymap::{EditableBinding, FixedBinding};
 use riftui::presenter::ChildView;
-use riftui::r#async::SpawnedFutureHandle;
 use riftui::units::IntoPixels;
-pub use riftui::WindowId;
 use riftui::{
-    end_trace, start_trace, AppContext, Entity, EntityId, FocusContext, ModelAsRef, ModelHandle,
-    SingletonEntity, TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle,
+    AppContext, Entity, EntityId, FocusContext, ModelAsRef, ModelHandle, SingletonEntity,
+    TypedActionView, View, ViewContext, ViewHandle, WeakViewHandle, end_trace, start_trace,
 };
 use serde::Serialize;
 use settings::{Setting as _, ToggleableSetting};
@@ -71,44 +71,46 @@ use super::ligature_settings::LigatureSettings;
 use super::model::block::{BlockMetadata, BlocklistEnvVarMetadata};
 use super::model::session::{Session, SessionId, Sessions};
 use super::prompt_render_helper::{
-    should_render_prompt_on_same_line, should_render_prompt_using_editor_decorator_elements,
-    PromptRenderHelper, SameLinePromptElements,
+    PromptRenderHelper, SameLinePromptElements, should_render_prompt_on_same_line,
+    should_render_prompt_using_editor_decorator_elements,
 };
 use super::riftify::SubshellSource;
 use super::safe_mode_settings::{
-    get_secret_obfuscation_mode, SafeModeSettings, SafeModeSettingsChangedEvent,
+    SafeModeSettings, SafeModeSettingsChangedEvent, get_secret_obfuscation_mode,
 };
 use super::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use super::settings::{TerminalSettings, TerminalSettingsChangedEvent};
 use super::view::{
-    ExecuteCommandEvent, SyncInputType, TerminalAction, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT,
+    ExecuteCommandEvent, PADDING_LEFT as TERMINAL_VIEW_PADDING_LEFT, SyncInputType, TerminalAction,
 };
-use super::{prompt, History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig};
+use super::{History, HistoryEntry, SizeInfo, TerminalModel, UpArrowHistoryConfig, prompt};
+#[allow(unused_imports)]
+use crate::ASSETS;
 use crate::appearance::{Appearance, AppearanceEvent};
 use crate::completer::SessionContext;
 use crate::context_chips::display::PromptDisplay;
 use crate::context_chips::prompt_type::PromptType;
 use crate::editor::{
+    AutosuggestionLocation, AutosuggestionType, BaselinePositionComputationMethod,
+    CommandXRayAnchor, DisplayPoint, EditOrigin, EditorAction, EditorDecoratorElements,
+    EditorOptions, EditorSnapshot, EditorView, Event as EditorEvent, InteractionState,
+    PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint, PropagateAndNoOpEscapeKey,
+    PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextColors,
     default_cursor_colors, position_id_for_cached_point, position_id_for_cursor,
-    position_id_for_first_cursor, AutosuggestionLocation, AutosuggestionType,
-    BaselinePositionComputationMethod, CommandXRayAnchor, DisplayPoint, EditOrigin, EditorAction,
-    EditorDecoratorElements, EditorOptions, EditorSnapshot, EditorView, Event as EditorEvent,
-    InteractionState, PathTransformerFn, PlainTextEditorViewAction, Point as BufferPoint,
-    PropagateAndNoOpEscapeKey, PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys,
-    TextColors,
+    position_id_for_first_cursor,
 };
 use crate::features::FeatureFlag;
 use crate::input_suggestions::{
     Event as InputSuggestionsEvent, HistoryInputSuggestion, InputSuggestions,
     TabCompletionsPreselectOption,
 };
-use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::PaneGroupAction;
+use crate::pane_group::focus_state::PaneFocusHandle;
 #[cfg(feature = "local_fs")]
-use crate::persistence::{database_file_path_for_scope, establish_ro_connection, PersistenceScope};
+use crate::persistence::{PersistenceScope, database_file_path_for_scope, establish_ro_connection};
 use crate::prefix::longest_common_prefix;
 use crate::resource_center::{
-    mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
+    Tip, TipHint, TipsCompleted, mark_feature_used_and_write_to_user_defaults,
 };
 use crate::search::QueryFilter;
 use crate::server::telemetry::{CommandXRayTrigger, TelemetryEvent};
@@ -117,7 +119,7 @@ use crate::settings::{
     AliasExpansionSettings, AppEditorSettings, AppEditorSettingsChangedEvent, InputModeSettings,
     InputSettings, InputSettingsChangedEvent, MAX_TIMES_TO_SHOW_AUTOSUGGESTION_HINT,
 };
-use crate::settings_view::{flags, SettingsSection};
+use crate::settings_view::{SettingsSection, flags};
 use crate::suggestions::ignored_suggestions_model::{
     IgnoredSuggestionsModel, IgnoredSuggestionsModelEvent, SuggestionType,
 };
@@ -133,8 +135,6 @@ use crate::util::truncation::truncate_from_end;
 use crate::view_components::{DismissibleToast, ToastFlavor};
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::{CommandSearchOptions, InitContent, ToastStack, WorkspaceAction};
-#[allow(unused_imports)]
-use crate::ASSETS;
 #[allow(unused_imports)]
 use crate::{cmd_or_ctrl_shift, report_if_error, send_telemetry_from_ctx};
 
@@ -1190,10 +1190,10 @@ impl Input {
         };
 
         #[cfg(feature = "local_fs")]
-        if let Some(db_url) = database_file_path_for_scope(&PersistenceScope::App).to_str() {
-            if let Ok(conn) = establish_ro_connection(db_url) {
-                input.conn = Some(Arc::new(Mutex::new(conn)));
-            }
+        if let Some(db_url) = database_file_path_for_scope(&PersistenceScope::App).to_str()
+            && let Ok(conn) = establish_ro_connection(db_url)
+        {
+            input.conn = Some(Arc::new(Mutex::new(conn)));
         }
 
         input
@@ -1765,10 +1765,10 @@ impl Input {
         }
 
         // The vim status bar should be shown and hidden immediately upon toggling.
-        if settings.as_ref(ctx).vim_mode_enabled() {
-            if let AppEditorSettingsChangedEvent::VimStatusBar { .. } = evt {
-                ctx.notify();
-            }
+        if settings.as_ref(ctx).vim_mode_enabled()
+            && let AppEditorSettingsChangedEvent::VimStatusBar { .. } = evt
+        {
+            ctx.notify();
         }
     }
 
@@ -1794,22 +1794,21 @@ impl Input {
         should_restore_buffer_before_history_up: bool,
         ctx: &mut ViewContext<Self>,
     ) {
-        if should_restore_buffer_before_history_up {
-            if let InputSuggestionsMode::HistoryUp {
+        if should_restore_buffer_before_history_up
+            && let InputSuggestionsMode::HistoryUp {
                 original_buffer,
                 original_cursor_point,
                 ..
             } = self.suggestions_mode_model.as_ref(ctx).mode()
-            {
-                let original_buffer = original_buffer.clone();
-                let original_cursor_point = *original_cursor_point;
-                self.editor.update(ctx, |editor, ctx| {
-                    editor.set_buffer_text_ignoring_undo(&original_buffer, ctx);
-                    if let Some(original_cursor_point) = original_cursor_point {
-                        editor.reset_selections_to_point(&original_cursor_point, ctx);
-                    }
-                });
-            }
+        {
+            let original_buffer = original_buffer.clone();
+            let original_cursor_point = *original_cursor_point;
+            self.editor.update(ctx, |editor, ctx| {
+                editor.set_buffer_text_ignoring_undo(&original_buffer, ctx);
+                if let Some(original_cursor_point) = original_cursor_point {
+                    editor.reset_selections_to_point(&original_cursor_point, ctx);
+                }
+            });
         }
         self.close_input_suggestions(/*should_focus_input=*/ should_focus_input, ctx);
     }
@@ -2248,13 +2247,12 @@ impl Input {
         // If there is an abbreviation, we expand it as long as we aren't executing.
         // In fish, an alias formatted like `ls=echo Hello && ls` would get expanded
         // twice if we also performed expansion on enter.
-        if matches!(executing, Executing::No) {
-            if let Some(abbr_value) = session_context
+        if matches!(executing, Executing::No)
+            && let Some(abbr_value) = session_context
                 .session
                 .abbreviation_value(&first_token.item)
-            {
-                return Some((first_token, abbr_value));
-            }
+        {
+            return Some((first_token, abbr_value));
         }
 
         // We only expand aliases if the user has turned the setting on.
@@ -2668,9 +2666,11 @@ impl Input {
                                         current_count + 1
                                     };
 
-                                    report_if_error!(input_settings
-                                        .autosuggestion_accepted_count
-                                        .set_value(new_count, ctx))
+                                    report_if_error!(
+                                        input_settings
+                                            .autosuggestion_accepted_count
+                                            .set_value(new_count, ctx)
+                                    )
                                 }
                             })
                         }
@@ -2724,10 +2724,10 @@ impl Input {
                     self.start_xray_at_offset(pos, CommandXRayTrigger::Keystroke, ctx);
                 }
                 CommandXRayAnchor::Hover(mouse_position) => {
-                    if let Some(offset) = self.start_byte_index_at_point(mouse_position, ctx) {
-                        if !self.suggestions_mode_model.as_ref(ctx).is_visible() {
-                            self.start_xray_at_offset(offset, CommandXRayTrigger::Hover, ctx);
-                        }
+                    if let Some(offset) = self.start_byte_index_at_point(mouse_position, ctx)
+                        && !self.suggestions_mode_model.as_ref(ctx).is_visible()
+                    {
+                        self.start_xray_at_offset(offset, CommandXRayTrigger::Hover, ctx);
                     }
                 }
             },
@@ -3206,10 +3206,10 @@ impl Input {
             _ => CompletionsFallbackStrategy::None,
         };
 
-        if self.is_completions_while_typing_turned_on(ctx) {
-            if let Some(last_abort_handle) = self.completions_abort_handle.take() {
-                last_abort_handle.abort();
-            }
+        if self.is_completions_while_typing_turned_on(ctx)
+            && let Some(last_abort_handle) = self.completions_abort_handle.take()
+        {
+            last_abort_handle.abort();
         }
 
         let Some(session_id) = self.completer_data().active_block_session_id() else {
@@ -3415,8 +3415,8 @@ impl Input {
                             [0..self.start_byte_index_of_last_selection(ctx).as_usize()]
                             .to_string();
 
-                        if completions_trigger == CompletionsTrigger::Keybinding {
-                            if let Some(common_prefix) = longest_common_prefix(
+                        if completions_trigger == CompletionsTrigger::Keybinding
+                            && let Some(common_prefix) = longest_common_prefix(
                                 results
                                     .suggestions
                                     .iter()
@@ -3434,29 +3434,29 @@ impl Input {
                                         )
                                     })
                                     .map(|suggestion| suggestion.replacement()),
-                            ) {
-                                // Insert the common prefix if it is longer than what the user has
-                                // already typed. This check is necessary because the suggestions
-                                // are case-insensitive, while the common prefix is necessarily
-                                // case-sensitive. That can lead to the common prefix being shorter
-                                // than the input, causing confusing behavior where the input is
-                                // truncated. Also, only fill in the common prefix if the
-                                // replacement itself is a prefix of the common prefix. If there
-                                // are only fuzzy completions, then it's possible this is not the
-                                // case, and we don't want to fill in the common prefix in that
-                                // case.
-                                let replacement_start = results.replacement_span.start();
-                                let current_word = &buffer_text_original[replacement_start
-                                    ..self.start_byte_index_of_last_selection(ctx).as_usize()];
-                                if common_prefix.len() > results.replacement_span.distance()
-                                    && common_prefix.starts_with(current_word)
-                                {
-                                    self.insert_completion_prefix_into_editor(
-                                        ctx,
-                                        common_prefix,
-                                        results.replacement_span.start(),
-                                    );
-                                }
+                            )
+                        {
+                            // Insert the common prefix if it is longer than what the user has
+                            // already typed. This check is necessary because the suggestions
+                            // are case-insensitive, while the common prefix is necessarily
+                            // case-sensitive. That can lead to the common prefix being shorter
+                            // than the input, causing confusing behavior where the input is
+                            // truncated. Also, only fill in the common prefix if the
+                            // replacement itself is a prefix of the common prefix. If there
+                            // are only fuzzy completions, then it's possible this is not the
+                            // case, and we don't want to fill in the common prefix in that
+                            // case.
+                            let replacement_start = results.replacement_span.start();
+                            let current_word = &buffer_text_original[replacement_start
+                                ..self.start_byte_index_of_last_selection(ctx).as_usize()];
+                            if common_prefix.len() > results.replacement_span.distance()
+                                && common_prefix.starts_with(current_word)
+                            {
+                                self.insert_completion_prefix_into_editor(
+                                    ctx,
+                                    common_prefix,
+                                    results.replacement_span.start(),
+                                );
                             }
                         }
 
@@ -3937,10 +3937,10 @@ impl Input {
                             // Kind of a quirk, but PowerShell only inserts a
                             // newline after a backtick if the character preceding
                             // the backtick is whitespace.
-                            if let Some(c) = preceding_chars.next() {
-                                if !c.is_ascii_whitespace() {
-                                    return false;
-                                }
+                            if let Some(c) = preceding_chars.next()
+                                && !c.is_ascii_whitespace()
+                            {
+                                return false;
                             }
                             return true;
                         }
@@ -3948,10 +3948,10 @@ impl Input {
                     Some(ShellFamily::Posix) | None => {
                         if c == '\\' {
                             // Continue if there are more \ characters
-                            if let Some(c) = preceding_chars.next() {
-                                if c == '\\' {
-                                    continue;
-                                }
+                            if let Some(c) = preceding_chars.next()
+                                && c == '\\'
+                            {
+                                continue;
                             }
                             // Odd number of \ characters
                             return true;
@@ -4215,12 +4215,14 @@ impl Input {
             prompt_chip_snapshot: None,
         };
 
-        if let Some(block) = block {
-            if !is_udi && block.honor_ps1() && model.block_list().is_bootstrapped() {
-                // PS1 mode: capture the raw prompt grid so the command palette
-                // can render it with full fidelity (CORE-1683).
-                prompt_elements.ps1_prompt_grid = Some(block.prompt_grid().clone());
-            }
+        if let Some(block) = block
+            && !is_udi
+            && block.honor_ps1()
+            && model.block_list().is_bootstrapped()
+        {
+            // PS1 mode: capture the raw prompt grid so the command palette
+            // can render it with full fidelity (CORE-1683).
+            prompt_elements.ps1_prompt_grid = Some(block.prompt_grid().clone());
         }
 
         // Always capture a chip snapshot as the fallback prompt representation.

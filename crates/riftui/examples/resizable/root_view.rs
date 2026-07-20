@@ -1,7 +1,8 @@
 use riftui::color::ColorU;
 use riftui::elements::{
-    resizable_state_handle, Container, CrossAxisAlignment, DragBarSide, Flex, MainAxisAlignment,
-    MainAxisSize, ParentElement, Rect, Resizable, ResizableStateHandle, Shrinkable, Stack, Text,
+    Container, CrossAxisAlignment, DragBarSide, Flex, MainAxisAlignment, MainAxisSize,
+    ParentElement, Rect, Resizable, ResizableStateHandle, Shrinkable, Stack, Text,
+    resizable_state_handle,
 };
 use riftui::fonts::FamilyId;
 use riftui::{

@@ -6,8 +6,8 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use rift_core::context_flag::ContextFlag;
 use rift_core::ui::builder::UiBuilder;
-use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::AnsiColors;
+use rift_core::ui::theme::color::internal_colors;
 use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
     CrossAxisAlignment, DragAxis, Draggable, DraggableState, DropTarget, Element, Empty, Fill,
@@ -36,9 +36,9 @@ use crate::shell_indicator::ShellIndicatorType;
 use crate::terminal::view::TerminalViewState;
 use crate::themes::theme::{AnsiColorIdentifier, Fill as ThemeFill, VerticalGradient};
 use crate::ui_components::buttons::icon_button;
-use crate::ui_components::color_dot::{render_color_dot, TAB_COLOR_OPTIONS};
-use crate::ui_components::icons::{Icon, ICON_DIMENSIONS};
-use crate::util::color::{coloru_with_opacity, Opacity};
+use crate::ui_components::color_dot::{TAB_COLOR_OPTIONS, render_color_dot};
+use crate::ui_components::icons::{ICON_DIMENSIONS, Icon};
+use crate::util::color::{Opacity, coloru_with_opacity};
 use crate::window_settings::WindowSettings;
 use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::tab_group::{TabGroup, TabGroupId};
@@ -332,9 +332,11 @@ impl TabData {
 
         // TODO add option to show the keybinding once we figure out a nice API to retrieve
         // the actual keybinding (based on the user's preferences etc.)
-        menu_items.append(&mut vec![MenuItemFields::new("Rename tab")
-            .with_on_select_action(WorkspaceAction::RenameTab(index))
-            .into_item()]);
+        menu_items.append(&mut vec![
+            MenuItemFields::new("Rename tab")
+                .with_on_select_action(WorkspaceAction::RenameTab(index))
+                .into_item(),
+        ]);
         // Group together with rename option (note, resetting doesn't make
         // sense unless you're able to rename a tab).
         let title = self.pane_group.as_ref(ctx).custom_title(ctx);
@@ -394,9 +396,11 @@ impl TabData {
             .custom_vertical_tabs_title()
             .is_some();
 
-        let mut menu_items = vec![MenuItemFields::new(target.rename_label)
-            .with_on_select_action(WorkspaceAction::RenamePane(target.locator))
-            .into_item()];
+        let mut menu_items = vec![
+            MenuItemFields::new(target.rename_label)
+                .with_on_select_action(WorkspaceAction::RenamePane(target.locator))
+                .into_item(),
+        ];
         if has_custom_name {
             menu_items.push(
                 MenuItemFields::new(target.reset_label)
@@ -449,9 +453,11 @@ impl TabData {
         if !FeatureFlag::TabConfigs.is_enabled() {
             return vec![];
         }
-        vec![MenuItemFields::new("Save as new config")
-            .with_on_select_action(WorkspaceAction::SaveCurrentTabAsNewConfig(index))
-            .into_item()]
+        vec![
+            MenuItemFields::new("Save as new config")
+                .with_on_select_action(WorkspaceAction::SaveCurrentTabAsNewConfig(index))
+                .into_item(),
+        ]
     }
 
     /// Returns the tab-group entries for the top-level right-click menu:
@@ -470,9 +476,11 @@ impl TabData {
         if !FeatureFlag::GroupedTabs.is_enabled() {
             return vec![];
         }
-        let mut menu_items = vec![MenuItemFields::new("New group with tab")
-            .with_on_select_action(WorkspaceAction::NewTabGroupFromTab(index))
-            .into_item()];
+        let mut menu_items = vec![
+            MenuItemFields::new("New group with tab")
+                .with_on_select_action(WorkspaceAction::NewTabGroupFromTab(index))
+                .into_item(),
+        ];
         let has_other_groups = tab_groups.keys().any(|gid| Some(*gid) != self.group_id);
         if has_other_groups {
             menu_items.push(MenuItemFields::new_submenu(MOVE_TO_GROUP_LABEL).into_item());
@@ -1132,19 +1140,20 @@ impl<'a> TabComponent<'a> {
         };
 
         let compact_icon = {
-            if let Some(indicator) = self.render_indicator() {
-                indicator
-            } else {
-                // Fallback to terminal icon if no indicator is present
-                Icon::Terminal
-                    .to_riftui_icon(
-                        self.styles
-                            .default
-                            .font_color
-                            .unwrap_or(ColorU::white())
-                            .into(),
-                    )
-                    .finish()
+            match self.render_indicator() {
+                Some(indicator) => indicator,
+                _ => {
+                    // Fallback to terminal icon if no indicator is present
+                    Icon::Terminal
+                        .to_riftui_icon(
+                            self.styles
+                                .default
+                                .font_color
+                                .unwrap_or(ColorU::white())
+                                .into(),
+                        )
+                        .finish()
+                }
             }
         };
         let compact_tab_content = Clipped::new(

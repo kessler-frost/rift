@@ -6,16 +6,16 @@ use rift_core::features::FeatureFlag;
 use riftui::keymap::BindingId;
 use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
+use crate::search::QueryFilter;
 use crate::search::action::CommandBindingDataSource;
 use crate::search::binding_source::BindingSource;
 use crate::search::command_palette::mixer::{CommandPaletteItemAction, ItemSummary};
 use crate::search::command_palette::new_session::NewSessionDataSource;
 use crate::search::command_palette::repos::RepoDataSource;
-use crate::search::command_palette::{files, launch_config, navigation, tabs, CommandPaletteMixer};
+use crate::search::command_palette::{CommandPaletteMixer, files, launch_config, navigation, tabs};
 use crate::search::data_source::QueryResult;
 use crate::search::files::model::FileSearchModel;
 use crate::search::mixer::AddAsyncSourceOptions;
-use crate::search::QueryFilter;
 use crate::session_management::SessionSource;
 
 /// Store of all of the [`crate::search::DataSource`]s for the command palette.

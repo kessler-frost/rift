@@ -1,8 +1,8 @@
-use riftui::elements::Text;
 use riftui::Element;
+use riftui::elements::Text;
 
 use super::{
-    render_inline_block_list_banner, InlineBannerContent, InlineBannerIcon, InlineBannerStyle,
+    InlineBannerContent, InlineBannerIcon, InlineBannerStyle, render_inline_block_list_banner,
 };
 use crate::appearance::Appearance;
 

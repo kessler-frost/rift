@@ -9,9 +9,9 @@ use repo_metadata::{DirectoryWatcher, Repository, RepositoryUpdate};
 use rift_util::standardized_path::StandardizedPath;
 use riftui_core::{ModelContext, SingletonEntity, WeakModelHandle};
 
+use crate::LspServerConfig;
 use crate::model::LspServerModel;
 use crate::types::WatchedFileChangeEvent;
-use crate::LspServerConfig;
 
 enum RepoWatchState {
     NotWatching,

@@ -7,7 +7,7 @@ use riftui::image_cache::ImageType;
 use riftui::keymap::{FixedBinding, Keystroke};
 use riftui::prelude::*;
 use riftui::{AppContext, BlurContext, Element, Entity, SingletonEntity, View, ViewContext};
-use ui_components::{lightbox, Component as _};
+use ui_components::{Component as _, lightbox};
 
 use crate::appearance::Appearance;
 
@@ -118,12 +118,11 @@ impl LightboxView {
         let asset_cache = AssetCache::as_ref(ctx);
         if let AssetState::Loading { handle } =
             asset_cache.load_asset::<ImageType>(asset_source.clone())
+            && let Some(future) = handle.when_loaded(asset_cache)
         {
-            if let Some(future) = handle.when_loaded(asset_cache) {
-                ctx.spawn(future, |_me, (), ctx| {
-                    ctx.notify();
-                });
-            }
+            ctx.spawn(future, |_me, (), ctx| {
+                ctx.notify();
+            });
         }
     }
 }

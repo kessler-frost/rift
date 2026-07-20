@@ -2,11 +2,11 @@
 //! when rendering Grids within Rift.
 use std::collections::HashMap;
 
+use riftui::PaintContext;
 use riftui::elements::DEFAULT_LINE_HEIGHT_RATIO;
 use riftui::fonts::{Cache as FontCache, FamilyId, FontId, GlyphId, Properties};
 use riftui::platform::LineStyle;
-use riftui::text_layout::{StyleAndFont, DEFAULT_TOP_BOTTOM_RATIO};
-use riftui::PaintContext;
+use riftui::text_layout::{DEFAULT_TOP_BOTTOM_RATIO, StyleAndFont};
 
 /// Stores cached glyph values for characters/strings. Note that we normally only need to look up
 /// characters - we only look up strings in the case of zerowidth characters (which act as modifiers

@@ -37,8 +37,8 @@ use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::get_started_view::GetStartedView;
 use crate::settings::PaneSettings;
 use crate::settings_view::SettingsView;
-use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::TerminalView;
+use crate::terminal::available_shells::AvailableShell;
 use crate::view_components::action_button::ActionButton;
 
 pub(super) fn init(app: &mut AppContext) {

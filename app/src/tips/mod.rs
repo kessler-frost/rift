@@ -1,5 +1,5 @@
-use riftui::keymap::Keystroke;
 use riftui::AppContext;
+use riftui::keymap::Keystroke;
 use serde::{Deserialize, Serialize};
 
 pub mod tip_view;

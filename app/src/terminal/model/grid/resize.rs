@@ -1,14 +1,14 @@
 // The code in this file is adapted from the alacritty_terminal crate under the
 // Apache license; see: crates/rift_terminal/src/model/LICENSE-ALACRITTY.
 
-use rift_terminal::model::grid::cell::{self, LineLength as _};
 use rift_terminal::model::grid::Dimensions as _;
+use rift_terminal::model::grid::cell::{self, LineLength as _};
 use rift_terminal::model::{Point, VisiblePoint, VisibleRow};
 use string_offset::ByteOffset;
 
 use super::{FullGridClearBehavior, GridHandler};
-use crate::terminal::model::grid::Cursor;
 use crate::terminal::SizeInfo;
+use crate::terminal::model::grid::Cursor;
 
 impl GridHandler {
     /// Resize terminal to new dimensions.

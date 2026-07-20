@@ -19,12 +19,13 @@ use crate::editor::{DisplayPoint, EditorAction, Point};
 use crate::input_suggestions::Item;
 use crate::settings::import::model::ImportedConfigModel;
 use crate::settings::{AliasExpansionSettings, AppEditorSettings};
+use crate::terminal::TerminalView;
 use crate::terminal::block_list_viewport::ScrollPosition;
 use crate::terminal::event::{BlockMetadataReceivedEvent, BootstrappedEvent};
 use crate::terminal::local_shell::LocalShellState;
 use crate::terminal::local_tty::shell::ShellStarter;
 use crate::terminal::model::ansi::{Handler, PrecmdValue};
-use crate::terminal::model::blocks::{insert_block, BlockListPoint};
+use crate::terminal::model::blocks::{BlockListPoint, insert_block};
 use crate::terminal::model::grid::Dimensions;
 use crate::terminal::model::index::Side;
 use crate::terminal::model::session::{BootstrapSessionType, SessionInfo};
@@ -32,7 +33,6 @@ use crate::terminal::model::terminal_model::BlockIndex;
 use crate::terminal::model_events::ModelEvent;
 use crate::terminal::shell::ShellType;
 use crate::terminal::writeable_pty::command_history::update_command_history;
-use crate::terminal::TerminalView;
 use crate::workspace::ToastStack;
 
 pub fn initialize_app(app: &mut App) {
@@ -904,11 +904,13 @@ fn test_tab_completion_with_cursor_movement() {
             input
                 .input_suggestions
                 .read(&app, |input_suggestions, _ctx| {
-                    assert!(input_suggestions
-                        .items()
-                        .iter()
-                        .map(|item| item.text())
-                        .eq(["add", "audit", "autoclean",]))
+                    assert!(
+                        input_suggestions
+                            .items()
+                            .iter()
+                            .map(|item| item.text())
+                            .eq(["add", "audit", "autoclean",])
+                    )
                 });
         });
 
@@ -921,11 +923,13 @@ fn test_tab_completion_with_cursor_movement() {
             input
                 .input_suggestions
                 .read(&app, |input_suggestions, _ctx| {
-                    assert!(input_suggestions
-                        .items()
-                        .iter()
-                        .map(|item| item.text())
-                        .eq(["audit", "autoclean",]))
+                    assert!(
+                        input_suggestions
+                            .items()
+                            .iter()
+                            .map(|item| item.text())
+                            .eq(["audit", "autoclean",])
+                    )
                 });
 
             assert!(matches!(
@@ -945,11 +949,13 @@ fn test_tab_completion_with_cursor_movement() {
             input
                 .input_suggestions
                 .read(&app, |input_suggestions, _ctx| {
-                    assert!(input_suggestions
-                        .items()
-                        .iter()
-                        .map(|item| item.text())
-                        .eq(["add", "audit", "autoclean",]))
+                    assert!(
+                        input_suggestions
+                            .items()
+                            .iter()
+                            .map(|item| item.text())
+                            .eq(["add", "audit", "autoclean",])
+                    )
                 });
 
             assert!(matches!(
@@ -1746,11 +1752,13 @@ fn test_tab_completion_hides_autosuggestion() {
             ));
 
             // Autosuggestion should be closed.
-            assert!(input
-                .editor
-                .as_ref(ctx)
-                .current_autosuggestion_text()
-                .is_none());
+            assert!(
+                input
+                    .editor
+                    .as_ref(ctx)
+                    .current_autosuggestion_text()
+                    .is_none()
+            );
         });
     });
 }
@@ -1788,11 +1796,13 @@ fn test_completions_while_typing_doesnt_hide_autosuggestion() {
 
         // Autosuggestion should be active.
         input.read(&app, |input, ctx| {
-            assert!(input
-                .editor
-                .as_ref(ctx)
-                .current_autosuggestion_text()
-                .is_some());
+            assert!(
+                input
+                    .editor
+                    .as_ref(ctx)
+                    .current_autosuggestion_text()
+                    .is_some()
+            );
         });
 
         input.update(&mut app, |input, ctx| {
@@ -1815,11 +1825,13 @@ fn test_completions_while_typing_doesnt_hide_autosuggestion() {
                 InputSuggestionsMode::CompletionSuggestions { .. }
             ));
 
-            assert!(input
-                .editor
-                .as_ref(ctx)
-                .current_autosuggestion_text()
-                .is_some());
+            assert!(
+                input
+                    .editor
+                    .as_ref(ctx)
+                    .current_autosuggestion_text()
+                    .is_some()
+            );
         });
     });
 }
@@ -3582,9 +3594,9 @@ fn test_custom_terminal_page_scroll_binding_applies_when_prompt_is_focused() {
         app.update(|ctx| {
             ctx.set_custom_trigger(
                 "terminal:scroll_up_one_page".to_owned(),
-                riftui::keymap::Trigger::Keystrokes(
-                    vec![Keystroke::parse("shift-pageup").unwrap()],
-                ),
+                riftui::keymap::Trigger::Keystrokes(vec![
+                    Keystroke::parse("shift-pageup").unwrap(),
+                ]),
             );
         });
 

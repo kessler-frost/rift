@@ -226,8 +226,8 @@ where
 pub fn should_show_open_in_rift_link(path: &Path, app: &AppContext) -> bool {
     use riftui::SingletonEntity;
 
-    use crate::util::file::external_editor::settings::EditorChoice;
     use crate::util::file::external_editor::EditorSettings;
+    use crate::util::file::external_editor::settings::EditorChoice;
     use crate::util::openable_file_type::{is_binary_file, is_markdown_file};
 
     let settings = EditorSettings::as_ref(app);

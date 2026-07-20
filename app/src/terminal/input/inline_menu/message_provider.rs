@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 use std::sync::LazyLock;
 
-use riftui::keymap::Keystroke;
 use riftui::AppContext;
+use riftui::keymap::Keystroke;
 
 use crate::editor::{SELECT_DOWN_ACTION_NAME, SELECT_UP_ACTION_NAME};
 use crate::terminal::input::inline_menu::{

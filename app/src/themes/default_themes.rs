@@ -1,7 +1,7 @@
 use asset_macro::bundled_or_fetched_asset;
 use pathfinder_color::ColorU;
 use rift_core::ui::color::blend::Blend;
-use rift_core::ui::color::{coloru_with_opacity, OPAQUE};
+use rift_core::ui::color::{OPAQUE, coloru_with_opacity};
 use rift_core::ui::theme::color::CustomDetails;
 use rift_core::ui::theme::{
     AnsiColor, AnsiColors, Details, Fill, HorizontalGradient, Image, RiftTheme, TerminalColors,

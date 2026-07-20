@@ -11,8 +11,8 @@ use riftui::{
 };
 
 use crate::appearance::Appearance;
-use crate::search::command_palette::FilterChipRenderer;
 use crate::search::QueryFilter;
+use crate::search::command_palette::FilterChipRenderer;
 
 /// A zero-state view for the command palette.
 pub struct ZeroState {
@@ -77,7 +77,7 @@ impl ZeroState {
     fn valid_query_filters(
         _app: &AppContext,
         _window_id: WindowId,
-    ) -> impl Iterator<Item = QueryFilter> {
+    ) -> impl Iterator<Item = QueryFilter> + use<> {
         let mut valid_filters = vec![];
 
         if FeatureFlag::CommandPaletteFileSearch.is_enabled() {

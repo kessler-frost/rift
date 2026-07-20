@@ -279,10 +279,10 @@ fn compute_candidate_paths(
 
         let key = canonical_key(&path);
 
-        if let Some(existing_color) = existing.0.get(&key) {
-            if !matches!(existing_color, DirectoryTabColor::Suppressed) {
-                continue;
-            }
+        if let Some(existing_color) = existing.0.get(&key)
+            && !matches!(existing_color, DirectoryTabColor::Suppressed)
+        {
+            continue;
         }
 
         if seen_keys.insert(key.clone()) {

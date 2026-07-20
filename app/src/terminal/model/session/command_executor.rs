@@ -18,8 +18,8 @@ use anyhow::Result;
 use async_channel::{Receiver, Sender};
 use async_trait::async_trait;
 pub use in_band_command_executor::{
-    is_in_band_command, InBandCommand, InBandCommandCancelledEvent, InBandCommandExecutor,
-    InBandCommandOutputReceiver,
+    InBandCommand, InBandCommandCancelledEvent, InBandCommandExecutor, InBandCommandOutputReceiver,
+    is_in_band_command,
 };
 #[cfg(feature = "local_tty")]
 pub use local_command_executor::LocalCommandExecutor;
@@ -27,7 +27,7 @@ pub use noop_command_executor::NoOpCommandExecutor;
 use rift_completer::completer::CommandOutput;
 use riftui::ModelContext;
 pub use shared::{
-    serialize_constant_vars_for_shell, shell_escape_single_quotes, ExecutorCommandEvent,
+    ExecutorCommandEvent, serialize_constant_vars_for_shell, shell_escape_single_quotes,
 };
 
 use super::SessionInfo;

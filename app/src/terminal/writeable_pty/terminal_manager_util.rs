@@ -1,5 +1,5 @@
-use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
+use std::sync::mpsc::SyncSender;
 
 use async_channel::Receiver;
 use parking_lot::FairMutex;
@@ -12,7 +12,7 @@ use crate::terminal::model::terminal_model::ExitReason;
 use crate::terminal::writeable_pty::command_history::update_command_history;
 use crate::terminal::writeable_pty::pty_controller::EventLoopSender;
 use crate::terminal::writeable_pty::{PtyController, PtyControllerEvent};
-use crate::terminal::{view, ModelEventDispatcher, TerminalModel, TerminalView};
+use crate::terminal::{ModelEventDispatcher, TerminalModel, TerminalView, view};
 
 /// Wires up bi-directional communication between the PtyController and the TerminalView.
 /// Note that this interaction can't live in the TerminalView because the view must be manager-agnostic.

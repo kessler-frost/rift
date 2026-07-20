@@ -36,10 +36,10 @@ pub fn evaluate_riftify_ssh_host(
         return SshInteractiveSessionDetected::FeatureDisabled;
     }
 
-    if let Some(ssh_host) = ssh_host {
-        if riftify_settings.is_ssh_host_denylisted(ssh_host) {
-            return SshInteractiveSessionDetected::HostDenylisted;
-        }
+    if let Some(ssh_host) = ssh_host
+        && riftify_settings.is_ssh_host_denylisted(ssh_host)
+    {
+        return SshInteractiveSessionDetected::HostDenylisted;
     }
 
     SshInteractiveSessionDetected::ShouldPromptRiftification {

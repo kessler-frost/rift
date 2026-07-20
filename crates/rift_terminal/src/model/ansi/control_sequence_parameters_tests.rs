@@ -9,7 +9,7 @@
 
 use vte::{Params, Parser, Perform};
 
-use super::{attrs_from_sgr_parameters, Attr, Color, NamedColor};
+use super::{Attr, Color, NamedColor, attrs_from_sgr_parameters};
 
 /// A minimal [`Perform`] that captures the attributes produced by every SGR
 /// (`m`) CSI sequence it sees.

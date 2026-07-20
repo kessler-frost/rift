@@ -7,7 +7,7 @@ use itertools::Itertools;
 
 use super::{Cache, FamilyId, FontFallbackCache, FontFamilyName, FontId, GlyphId};
 use crate::assets::asset_cache::Asset;
-use crate::{text_layout, Entity, ModelContext, SingletonEntity};
+use crate::{Entity, ModelContext, SingletonEntity, text_layout};
 
 /// Represents a font family that is lazy loaded from the web. i.e. Not a
 /// bundled or system font.
@@ -150,7 +150,7 @@ impl Cache {
 
     pub(crate) fn take_requested_fallback_families(
         &self,
-    ) -> impl Iterator<Item = (ExternalFontFamily, Vec<RequestedFallbackFontSource>)> {
+    ) -> impl Iterator<Item = (ExternalFontFamily, Vec<RequestedFallbackFontSource>)> + use<> {
         let result = self
             .font_fallback_cache
             .requested_fallback_families

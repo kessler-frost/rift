@@ -8,8 +8,8 @@
 //! (label blended over the chip surface) — what the user actually sees.
 
 use rift_core::ui::color::blend::Blend;
-use rift_core::ui::color::contrast::{high_enough_contrast, MinimumAllowedContrast};
-use rift_core::ui::theme::{mock_terminal_colors, Details, Fill, RiftTheme};
+use rift_core::ui::color::contrast::{MinimumAllowedContrast, high_enough_contrast};
+use rift_core::ui::theme::{Details, Fill, RiftTheme, mock_terminal_colors};
 use riftui::color::ColorU;
 
 use super::readable_chip_label_color;

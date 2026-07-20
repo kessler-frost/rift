@@ -1,4 +1,4 @@
-use async_channel::{unbounded, Receiver};
+use async_channel::{Receiver, unbounded};
 use riftui_core::r#async::block_on;
 use riftui_core::{App, ModelHandle};
 

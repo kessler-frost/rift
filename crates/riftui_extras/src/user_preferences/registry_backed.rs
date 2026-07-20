@@ -1,6 +1,6 @@
 use std::io;
 
-use windows_registry::{Key, CURRENT_USER};
+use windows_registry::{CURRENT_USER, Key};
 use windows_result::HRESULT;
 
 /// Store user preferences in the Windows Registry.

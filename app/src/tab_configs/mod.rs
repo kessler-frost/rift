@@ -16,7 +16,7 @@ use rift_core::ui::theme::Fill;
 #[cfg(feature = "local_fs")]
 pub(crate) use tab_config::build_worktree_config_toml;
 pub use tab_config::{
-    render_tab_config, TabConfig, TabConfigError, TabConfigParam, TabConfigParamType,
+    TabConfig, TabConfigError, TabConfigParam, TabConfigParamType, render_tab_config,
 };
 
 /// Optional visual overrides for BranchPicker / RepoPicker dropdowns.

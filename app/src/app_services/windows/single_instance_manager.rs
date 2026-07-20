@@ -4,9 +4,9 @@ use ipc::ServerBuilder;
 use parking_lot::Mutex;
 use rift_core::channel::ChannelState;
 use riftui::{Entity, ModelContext, SingletonEntity};
-use windows::core::Error;
-use windows::Win32::Foundation::{CloseHandle, GetLastError, ERROR_ALREADY_EXISTS, HANDLE};
+use windows::Win32::Foundation::{CloseHandle, ERROR_ALREADY_EXISTS, GetLastError, HANDLE};
 use windows::Win32::System::Threading::CreateMutexW;
+use windows::core::Error;
 
 use super::service_impl::UriServiceImpl;
 

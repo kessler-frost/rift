@@ -3,18 +3,18 @@ use std::pin::pin;
 use std::sync::Arc;
 
 use chrono::Local;
-use futures::future::join_all;
 use futures::Future;
+use futures::future::join_all;
 use futures_lite::StreamExt;
 use itertools::Itertools;
 use rift_core::command::ExitCode;
 use riftui::{App, ModelHandle};
 
 use super::{HistoryEntry, HistoryEvent, PersistedCommand, ShellHost};
+use crate::terminal::History;
 use crate::terminal::model::session::command_executor::testing::TestCommandExecutor;
 use crate::terminal::model::session::{BootstrapSessionType, Session, SessionId, SessionInfo};
 use crate::terminal::shell::ShellType;
-use crate::terminal::History;
 use crate::test_util::{Stub, VirtualFS};
 
 impl History {

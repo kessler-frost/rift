@@ -7,10 +7,10 @@ use rift::features::FeatureFlag;
 use rift::integration_testing::terminal::wait_until_bootstrapped_single_pane_for_tab;
 use rift::settings::{BlockVisibilitySettings, ScrollSettings};
 use riftui_core::integration::AssertionOutcome;
-use riftui_core::{async_assert, async_assert_eq, SingletonEntity};
+use riftui_core::{SingletonEntity, async_assert, async_assert_eq};
 use settings::Setting as _;
 
-use super::{new_builder, Builder};
+use super::{Builder, new_builder};
 
 /// Verifies that when the `SettingsFile` feature flag is enabled and no TOML
 /// file exists yet, public settings are migrated from the platform-native

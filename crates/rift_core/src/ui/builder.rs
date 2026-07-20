@@ -8,7 +8,7 @@ use riftui_core::elements::{
     Radius, Stack, Text,
 };
 use riftui_core::fonts::{FamilyId, Properties, Weight};
-use riftui_core::geometry::vector::{vec2f, Vector2F};
+use riftui_core::geometry::vector::{Vector2F, vec2f};
 use riftui_core::keymap::Keystroke;
 use riftui_core::platform::Cursor;
 use riftui_core::ui_components::button::{Button, ButtonVariant};
@@ -31,9 +31,9 @@ use riftui_core::ui_components::toggle_menu::{
 use riftui_core::ui_components::tool_tip::{Tooltip, TooltipWithSublabel};
 use riftui_core::{Element, View, ViewHandle};
 
+use super::color::ContrastingColor;
 use super::color::blend::Blend;
 use super::color::contrast::MinimumAllowedContrast;
-use super::color::ContrastingColor;
 use super::theme::color::internal_colors::{self, text_main};
 use super::theme::{Fill, RiftTheme};
 
@@ -205,7 +205,7 @@ impl UiBuilder {
                     self.rift_theme.outline(),
                     self.rift_theme
                         .main_text_color(self.rift_theme.background()),
-                )
+                );
             }
             ButtonVariant::Warn => (Fill::warn(), self.rift_theme.foreground().with_opacity(0)),
             ButtonVariant::Error => (Fill::error(), self.rift_theme.foreground().with_opacity(0)),

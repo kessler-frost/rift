@@ -1,9 +1,9 @@
+use riftui::Element;
 use riftui::elements::{
     Border, ConstrainedBox, Container, CornerRadius, Flex, ParentElement, Radius,
 };
 use riftui::fonts::Weight;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
-use riftui::Element;
 
 use crate::appearance::Appearance;
 use crate::terminal::model::block::Block;

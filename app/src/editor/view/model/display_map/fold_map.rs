@@ -2,7 +2,7 @@ use std::cmp::{self, Ordering};
 use std::iter::Take;
 use std::ops::Range;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use riftui::text_layout::TextStyle;
 use riftui::{AppContext, ModelHandle};
 use string_offset::CharOffset;
@@ -10,7 +10,7 @@ use sum_tree::{self, Cursor, Dimension, SeekBias, SumTree};
 
 use super::super::buffer::{AnchorRangeExt, TextSummary};
 use super::buffer::StylizedChar;
-use super::{buffer, Anchor, Buffer, DisplayPoint, Edit, Point, ToCharOffset};
+use super::{Anchor, Buffer, DisplayPoint, Edit, Point, ToCharOffset, buffer};
 use crate::util::extensions::SliceExt as _;
 
 pub struct FoldMap {

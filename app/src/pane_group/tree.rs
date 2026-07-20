@@ -15,7 +15,7 @@ use riftui::{AppContext, EntityId, ViewContext};
 
 use super::{ActivationReason, PaneGroup, PaneId};
 use crate::app_state;
-use crate::pane_group::{get_minimum_pane_size, DraggedBorder, PaneGroupAction};
+use crate::pane_group::{DraggedBorder, PaneGroupAction, get_minimum_pane_size};
 use crate::themes::theme::RiftTheme;
 
 #[cfg(test)]
@@ -1068,8 +1068,8 @@ impl PaneBranch {
             let pane_size_1 = self.nodes[idx].1.pane_size(ctx);
             let pane_size_2 = self.nodes[idx + 1].1.pane_size(ctx);
 
-            let flex_1 = self.nodes[idx].0 .0;
-            let flex_2 = self.nodes[idx + 1].0 .0;
+            let flex_1 = self.nodes[idx].0.0;
+            let flex_2 = self.nodes[idx + 1].0.0;
 
             let total_flex = flex_1 + flex_2;
 

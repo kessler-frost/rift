@@ -31,7 +31,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 pub use block_filtering::*;
 pub use bootstrapping::*;
 pub use copy_current_path::*;
@@ -50,12 +50,12 @@ use rift::cmd_or_ctrl_shift;
 use rift::features::FeatureFlag;
 use rift::integration_testing::assertions::assert_binding_display_string;
 use rift::integration_testing::block::{
-    assert_block_visible, assert_bottom_of_block_approx_at, assert_num_blocks_in_model,
-    BlockPosition, LinePosition,
+    BlockPosition, LinePosition, assert_block_visible, assert_bottom_of_block_approx_at,
+    assert_num_blocks_in_model,
 };
 use rift::integration_testing::clipboard::assert_clipboard_contains_string;
 use rift::integration_testing::command_palette::{
-    close_command_palette, open_command_palette, open_command_palette_and_run_action, TestStepsExt,
+    TestStepsExt, close_command_palette, open_command_palette, open_command_palette_and_run_action,
 };
 use rift::integration_testing::context_chips::assert_working_dir_is_present;
 use rift::integration_testing::find::{Find, FindWithinBlockState};
@@ -63,7 +63,7 @@ use rift::integration_testing::input::{
     input_contains_string, input_is_empty, open_input_context_menu,
 };
 use rift::integration_testing::navigation_palette::{
-    check_recency, navigate_to_other_session_step, open_navigation_palette_step, RecentSession,
+    RecentSession, check_recency, navigate_to_other_session_step, open_navigation_palette_step,
 };
 use rift::integration_testing::pane_group::assert_focused_pane_index;
 use rift::integration_testing::settings::{assert_theme_chooser_contains, toggle_setting};
@@ -73,7 +73,7 @@ use rift::integration_testing::step::{
 };
 use rift::integration_testing::tab::{assert_pane_title, assert_tab_title, tab_title_step};
 use rift::integration_testing::terminal::util::{
-    current_shell_starter_and_version, ExactLine, ExpectedExitStatus,
+    ExactLine, ExpectedExitStatus, current_shell_starter_and_version,
 };
 use rift::integration_testing::terminal::{
     assert_active_block_output, assert_active_block_output_for_single_terminal_in_tab,
@@ -105,7 +105,7 @@ use rift::integration_testing::window::{
 use rift::integration_testing::workspace::assert_tab_count;
 use rift::integration_testing::{self};
 use rift::settings::{
-    CompletionsOpenWhileTyping, CtrlTabBehavior, MonospaceFontSize, TabBehavior, INPUT_MODE,
+    CompletionsOpenWhileTyping, CtrlTabBehavior, INPUT_MODE, MonospaceFontSize, TabBehavior,
 };
 use rift::settings_view::keybindings::KeybindingsView;
 use rift::settings_view::{FeaturesPageAction, SettingsAction, SettingsSection, SettingsView};
@@ -117,16 +117,16 @@ use rift::terminal::input::{Input, InputSuggestionsMode};
 use rift::terminal::keys_settings::KeysSettings;
 use rift::terminal::model::ansi::{Handler, InitShellValue};
 use rift::terminal::model::blocks::{BlockHeightItem, BlockHeightSummary, TotalIndex};
-use rift::terminal::model::grid::grid_handler::TermMode;
 use rift::terminal::model::grid::Dimensions;
+use rift::terminal::model::grid::grid_handler::TermMode;
 use rift::terminal::model::terminal_model::BlockIndex;
 use rift::terminal::session_settings::{HonorPS1, SessionSettings, StartupShellOverride};
 use rift::terminal::view::{
-    BlockVisibilityMode, TerminalAction, TerminalViewState, ALIAS_EXPANSION_BANNER_SEEN_KEY,
+    ALIAS_EXPANSION_BANNER_SEEN_KEY, BlockVisibilityMode, TerminalAction, TerminalViewState,
 };
-use rift::terminal::{shell, TerminalView};
+use rift::terminal::{TerminalView, shell};
 use rift::util::bindings::CustomAction;
-use rift::workspace::{Workspace, NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID};
+use rift::workspace::{NEW_SESSION_MENU_BUTTON_POSITION_ID, NEW_TAB_BUTTON_POSITION_ID, Workspace};
 use riftui_core::event::KeyState;
 use riftui_core::integration::{AssertionOutcome, StepData, TestStep};
 use riftui_core::keymap::{Keystroke, PerPlatformKeystroke, Trigger};
@@ -135,7 +135,7 @@ use riftui_core::platform::{OperatingSystem, TerminationMode};
 use riftui_core::units::Lines;
 use riftui_core::windowing::WindowManager;
 use riftui_core::{
-    async_assert, async_assert_eq, AssetProvider, Event, SingletonEntity, UpdateView, ViewHandle,
+    AssetProvider, Event, SingletonEntity, UpdateView, ViewHandle, async_assert, async_assert_eq,
 };
 use rust_embed::RustEmbed;
 pub use secrets::*;
@@ -157,8 +157,8 @@ pub use video_recording::*;
 pub use workspace::*;
 
 use crate::builder::cargo_target_tmpdir;
-use crate::util::{skip_if_powershell_core_2303, ShellRcType};
-use crate::{user_defaults, Builder};
+use crate::util::{ShellRcType, skip_if_powershell_core_2303};
+use crate::{Builder, user_defaults};
 
 const ADD_NEXT_OCCURRENCE_KEYBINDING: &str = "ctrl-g";
 
@@ -706,8 +706,10 @@ pub fn test_waterfall_input_alt_grid() -> Builder {
         TestStep::new("Close vim")
             .with_typed_characters(&[":q"])
             .with_keystrokes(&["enter"]),
-        vec![TestStep::new("waterfall background should not be rendered")
-            .add_assertion(assert_waterfall_gap_empty_background_rendered(false))],
+        vec![
+            TestStep::new("waterfall background should not be rendered")
+                .add_assertion(assert_waterfall_gap_empty_background_rendered(false)),
+        ],
     );
     builder = builder.with_steps(steps);
 

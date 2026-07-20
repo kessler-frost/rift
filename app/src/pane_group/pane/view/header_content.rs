@@ -3,10 +3,10 @@
 //! This module provides the infrastructure for backing views to declaratively
 //! specify their header content without worrying about draggable behavior.
 
+use riftui::Element;
 use riftui::elements::{DraggableState, MouseStateHandle};
 use riftui::fonts::Properties;
 use riftui::text_layout::ClipConfig;
-use riftui::Element;
 
 /// Context provided to backing views when rendering header content.
 ///

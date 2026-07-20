@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fmt;
 
 use riftui_core::color::ColorU;
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
 use super::OPAQUE;
 

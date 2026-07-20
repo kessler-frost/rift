@@ -15,7 +15,7 @@ lazy_static! {
 
 #[macro_export]
 macro_rules! record_telemetry_from_ctx {
-    ($user_id: expr, $anonymous_id: expr, $name:expr, $payload: expr, $contains_ugc: expr, $ctx: expr) => {{
+    ($user_id: expr_2021, $anonymous_id: expr_2021, $name:expr_2021, $payload: expr_2021, $contains_ugc: expr_2021, $ctx: expr_2021) => {{
         let timestamp = $crate::time::get_current_time();
         $ctx.background_executor()
             .spawn(async move {
@@ -34,7 +34,7 @@ macro_rules! record_telemetry_from_ctx {
 
 #[macro_export]
 macro_rules! record_telemetry_on_executor {
-    ($user_id: expr, $anonymous_id: expr, $name:expr, $payload: expr, $contains_ugc: expr, $executor: expr) => {{
+    ($user_id: expr_2021, $anonymous_id: expr_2021, $name:expr_2021, $payload: expr_2021, $contains_ugc: expr_2021, $executor: expr_2021) => {{
         let timestamp = $crate::time::get_current_time();
         let _ = $executor
             .spawn(async move {

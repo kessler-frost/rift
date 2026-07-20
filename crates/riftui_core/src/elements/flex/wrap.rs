@@ -1,15 +1,15 @@
 use ordered_float::OrderedFloat;
 use pathfinder_geometry::rect::RectF;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 
 use super::{
-    cross_axis_size, AppContext, Axis, CrossAxisAlignment, Element, EventContext, LayoutContext,
-    MainAxisSize, PaintContext, Point, SizeConstraint, Vector2FExt,
+    AppContext, Axis, CrossAxisAlignment, Element, EventContext, LayoutContext, MainAxisSize,
+    PaintContext, Point, SizeConstraint, Vector2FExt, cross_axis_size,
 };
-use crate::elements::flex::{main_axis_size, size_along_axis, LayoutState};
+use crate::ClipBounds;
+use crate::elements::flex::{LayoutState, main_axis_size, size_along_axis};
 use crate::elements::{AxisOrientation, MainAxisAlignment};
 use crate::event::DispatchedEvent;
-use crate::ClipBounds;
 
 /// An element that positions its children in horizontal or vertical runs, leaving space in between
 /// each run.

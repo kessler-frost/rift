@@ -6,7 +6,7 @@ pub use rift_util::file_type::{is_binary_file, is_file_content_binary, is_markdo
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "local_fs")]
-use crate::util::file::external_editor::{settings::EditorChoice, Editor, EditorSettings};
+use crate::util::file::external_editor::{Editor, EditorSettings, settings::EditorChoice};
 
 #[derive(
     Debug,

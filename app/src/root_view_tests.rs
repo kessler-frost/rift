@@ -1,9 +1,9 @@
 use rift_core::user_preferences::GetUserPreferences as _;
 use riftui::{App, SingletonEntity};
 
-use super::{RootView, HAS_COMPLETED_ONBOARDING_KEY};
-use crate::auth::auth_manager::AuthManager;
+use super::{HAS_COMPLETED_ONBOARDING_KEY, RootView};
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_manager::AuthManager;
 
 fn initialize_app(app: &mut App) {
     app.update(crate::settings::init_and_register_user_preferences);

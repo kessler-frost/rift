@@ -3,11 +3,11 @@ use std::env;
 
 use anyhow::Result;
 use clap::Parser;
-use integration::test::*;
 use integration::Builder;
+use integration::test::*;
 use rift_cli::WorkerCommand;
-use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::AppId;
+use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 
 /// The Rift integration test runner.
 #[derive(Debug, Default, Parser, Clone)]

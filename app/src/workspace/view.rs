@@ -19,7 +19,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 #[cfg(target_os = "macos")]
 use std::process;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -38,14 +38,14 @@ use rift_core::context_flag::ContextFlag;
 use rift_core::execution_mode::AppExecutionMode;
 use rift_core::features::FeatureFlag;
 use rift_core::semantic_selection::SemanticSelection;
+use rift_core::ui::Icon;
 use rift_core::ui::color::coloru_with_opacity;
+use rift_core::ui::theme::Fill;
 use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::phenomenon::PhenomenonStyle;
-use rift_core::ui::theme::Fill;
-use rift_core::ui::Icon;
 use rift_editor::editor::NavigationKey;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
-use rift_util::path::{user_friendly_path, LineAndColumnArg};
+use rift_util::path::{LineAndColumnArg, user_friendly_path};
 use riftui::accessibility::{
     AccessibilityContent, AccessibilityVerbosity, ActionAccessibilityContent, RiftA11yRole,
 };
@@ -59,7 +59,7 @@ use riftui::elements::{
     PositionedElementOffsetBounds, Radius, Rect, SavePosition, Shrinkable, Stack, Text,
 };
 use riftui::fonts::{Properties, Weight};
-use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::geometry::vector::{Vector2F, vec2f};
 use riftui::keymap::Context;
 use riftui::modals::{AlertDialogWithCallbacks, AppModalCallback};
 use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
@@ -78,8 +78,8 @@ use sentry::protocol::{Attachment, AttachmentType};
 use serde_json;
 
 use self::vertical_tabs::{
-    render_detail_sidecar, render_settings_popup, vtab_group_position_id, VerticalTabsPanelState,
-    VERTICAL_TABS_SETTINGS_BUTTON_POSITION_ID,
+    VERTICAL_TABS_SETTINGS_BUTTON_POSITION_ID, VerticalTabsPanelState, render_detail_sidecar,
+    render_settings_popup, vtab_group_position_id,
 };
 use super::action::{
     NewSessionMenuAnchor, TabContextMenuAnchor, VerticalTabsPaneContextMenuTarget, WorkspaceAction,
@@ -93,15 +93,15 @@ use super::tab_settings::{
 use super::util::{
     PaneViewLocator, TabMovement, WelcomeTipsViewState, WorkspaceMouseStates, WorkspaceState,
 };
-use super::{util, ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry};
+use super::{ActiveSession, TabBarDropTargetData, TabBarLocation, WorkspaceRegistry, util};
 use crate::app_state::{
     LeafContents, LeafSnapshot, PaneNodeSnapshot, PaneUuid, SettingsPaneSnapshot, TabSnapshot,
     TerminalPaneSnapshot, WindowSnapshot,
 };
 use crate::appearance::{Appearance, AppearanceManager};
+use crate::auth::AuthStateProvider;
 use crate::auth::auth_manager::AuthManager;
 use crate::auth::auth_state::AuthState;
-use crate::auth::AuthStateProvider;
 use crate::banner::BannerState;
 use crate::channel::ChannelState;
 use crate::coding_panel_enablement_state::CodingPanelEnablementState;
@@ -113,8 +113,8 @@ use crate::editor::{
 use crate::launch_configs::launch_config::WindowTemplate;
 use crate::launch_configs::save_modal::{LaunchConfigModalEvent, LaunchConfigSaveModal};
 use crate::menu::{
-    Event as MenuEvent, Menu, MenuItem, MenuItemFields, MenuSelectionSource, MenuVariant,
-    MENU_VERTICAL_PADDING,
+    Event as MenuEvent, MENU_VERTICAL_PADDING, Menu, MenuItem, MenuItemFields, MenuSelectionSource,
+    MenuVariant,
 };
 use crate::modal::{Modal, ModalEvent, ModalViewState};
 use crate::network::{NetworkStatus, NetworkStatusEvent};
@@ -131,35 +131,35 @@ use crate::prompt::editor_modal::{
 };
 use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
-    mark_feature_used_and_write_to_user_defaults, skip_tips_and_write_to_user_defaults,
     ResourceCenterEvent, ResourceCenterPage, ResourceCenterView, Tip, TipAction, TipsCompleted,
+    mark_feature_used_and_write_to_user_defaults, skip_tips_and_write_to_user_defaults,
 };
 use crate::root_view::{NewWorkspaceSource, OpenLaunchConfigArg};
+use crate::search::QueryFilter;
 use crate::search::command_palette::view::{
     Event as CommandPaletteEvent, NavigationMode, View as CommandPalette,
 };
 use crate::search::command_search::searcher::{AcceptedHistoryItem, CommandSearchItemAction};
 use crate::search::command_search::view::{CommandSearchEvent, CommandSearchView};
-use crate::search::QueryFilter;
 use crate::server::ids::ServerId;
 use crate::server::telemetry::{AddTabWithShellSource, LaunchConfigUiLocation, PaletteSource};
 use crate::session_management::{SessionNavigationData, SessionSource, TabNavigationData};
 use crate::settings::session_mode::SessionModeSettings;
 use crate::settings::{
-    active_theme_kind, respect_system_theme, AccessibilitySettings, AliasExpansionSettings,
-    AppEditorSettings, BlockVisibilitySettings, CodeSettings, CodeSettingsChangedEvent,
-    CtrlTabBehavior, CursorBlink, DebugSettings, DefaultSessionMode, FontSettings, GPUSettings,
-    InputModeSettings, InputSettings, MonospaceFontSize, PaneSettings, PrivacySettings,
-    SelectionSettings, SshSettings, ThemeSettings,
+    AccessibilitySettings, AliasExpansionSettings, AppEditorSettings, BlockVisibilitySettings,
+    CodeSettings, CodeSettingsChangedEvent, CtrlTabBehavior, CursorBlink, DebugSettings,
+    DefaultSessionMode, FontSettings, GPUSettings, InputModeSettings, InputSettings,
+    MonospaceFontSize, PaneSettings, PrivacySettings, SelectionSettings, SshSettings,
+    ThemeSettings, active_theme_kind, respect_system_theme,
 };
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::settings_view::pane_manager::SettingsPaneManager;
-use crate::settings_view::{flags, SettingsSection, SettingsView, SettingsViewEvent};
+use crate::settings_view::{SettingsSection, SettingsView, SettingsViewEvent, flags};
 #[cfg(all(target_os = "windows", feature = "local_tty"))]
 use crate::shell_indicator::ShellIndicatorType;
 use crate::tab::{
-    tab_position_id, uses_vertical_tabs, NewSessionMenuItem, PaneNameMenuTarget, SelectedTabColor,
-    TabBarState, TabComponent, TabData, MOVE_TO_GROUP_LABEL, TAB_BAR_BORDER_HEIGHT,
+    MOVE_TO_GROUP_LABEL, NewSessionMenuItem, PaneNameMenuTarget, SelectedTabColor,
+    TAB_BAR_BORDER_HEIGHT, TabBarState, TabComponent, TabData, tab_position_id, uses_vertical_tabs,
 };
 use crate::tab_configs::action_sidecar::SidecarItemKind;
 use crate::tab_configs::remove_confirmation_dialog::{
@@ -206,13 +206,13 @@ use crate::ui_components::buttons::{combo_inner_button, icon_button_with_color};
 use crate::ui_components::icons;
 use crate::ui_components::window_focus_dimming::WindowFocusDimming;
 use crate::undo_close::UndoCloseStack;
+use crate::user_config::{RiftConfig, RiftConfigUpdateEvent};
 #[cfg(feature = "local_fs")]
 use crate::user_config::{
     ensure_default_worktree_config, find_unused_tab_config_path, find_unused_toml_path,
     find_unused_worktree_config_path, materialize_default_worktree_config, sanitize_toml_base_name,
     tab_configs_dir,
 };
-use crate::user_config::{RiftConfig, RiftConfigUpdateEvent};
 use crate::util::bindings::{keybinding_name_to_display_string, keybinding_name_to_keystroke};
 #[cfg(feature = "local_fs")]
 use crate::util::file::external_editor::Editor;
@@ -221,11 +221,11 @@ use crate::util::file::external_editor::EditorSettings;
 use crate::util::links;
 use crate::util::openable_file_type::FileTarget;
 #[cfg(feature = "local_fs")]
-use crate::util::openable_file_type::{resolve_file_target_with_editor_choice, EditorLayout};
-use crate::util::traffic_lights::{traffic_light_data, TrafficLightMouseStates, TrafficLightSide};
+use crate::util::openable_file_type::{EditorLayout, resolve_file_target_with_editor_choice};
+use crate::util::traffic_lights::{TrafficLightMouseStates, TrafficLightSide, traffic_light_data};
 use crate::util::truncation::truncate_from_end;
 use crate::view_components::callout_bubble::{
-    render_callout_bubble, CalloutArrowDirection, CalloutArrowPosition, CalloutBubbleConfig,
+    CalloutArrowDirection, CalloutArrowPosition, CalloutBubbleConfig, render_callout_bubble,
 };
 use crate::view_components::{DismissibleToast, DismissibleToastStack, ToastLink};
 use crate::window_settings::{WindowSettings, WindowSettingsChangedEvent, ZoomLevel};
@@ -244,7 +244,7 @@ use crate::workspace::toast_stack::{
     ToastStack, ToastStack as WorkspaceToastStack, ToastStackEvent as WorkspaceToastStackEvent,
 };
 use crate::workspaces::user_workspaces::UserWorkspaces;
-use crate::{report_if_error, send_telemetry_from_ctx, GlobalResourceHandles};
+use crate::{GlobalResourceHandles, report_if_error, send_telemetry_from_ctx};
 
 /// The padding that should be applied to the workspace as a whole.
 pub const WORKSPACE_PADDING: f32 = 1.0;
@@ -999,10 +999,10 @@ impl Workspace {
         let title = self.tab_group_rename_editor.as_ref(ctx).buffer_text(ctx);
         let trimmed = title.trim();
         // If the user cleared the input, keep the existing name (mirror tab/pane rename behavior).
-        if !trimmed.is_empty() {
-            if let Some(group) = self.tab_groups.get_mut(&group_id) {
-                group.name = Some(trimmed.to_string());
-            }
+        if !trimmed.is_empty()
+            && let Some(group) = self.tab_groups.get_mut(&group_id)
+        {
+            group.name = Some(trimmed.to_string());
         }
         self.clear_tab_group_name_editor(ctx);
         self.focus_active_tab(ctx);
@@ -1336,12 +1336,16 @@ impl Workspace {
                     && session_mode_settings.default_tab_config_path() == path.to_string_lossy();
                 if is_removed_default {
                     SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
-                        report_if_error!(settings
-                            .default_session_mode_internal
-                            .set_value(DefaultSessionMode::Terminal, ctx));
-                        report_if_error!(settings
-                            .default_tab_config_path
-                            .set_value(String::new(), ctx));
+                        report_if_error!(
+                            settings
+                                .default_session_mode_internal
+                                .set_value(DefaultSessionMode::Terminal, ctx)
+                        );
+                        report_if_error!(
+                            settings
+                                .default_tab_config_path
+                                .set_value(String::new(), ctx)
+                        );
                     });
                 }
                 if let Err(e) = std::fs::remove_file(path) {
@@ -2504,10 +2508,10 @@ impl Workspace {
                     .as_ref(ctx)
                     .active_session_path(ctx)
                     .map(|p| {
-                        if let Some(home) = dirs::home_dir() {
-                            if let Ok(stripped) = p.strip_prefix(&home) {
-                                return format!("~/{}", stripped.display());
-                            }
+                        if let Some(home) = dirs::home_dir()
+                            && let Ok(stripped) = p.strip_prefix(&home)
+                        {
+                            return format!("~/{}", stripped.display());
                         }
                         p.display().to_string()
                     });
@@ -3013,9 +3017,11 @@ impl Workspace {
             right,
         };
         TabSettings::handle(ctx).update(ctx, |settings, ctx| {
-            report_if_error!(settings
-                .header_toolbar_chip_selection
-                .set_value(selection, ctx));
+            report_if_error!(
+                settings
+                    .header_toolbar_chip_selection
+                    .set_value(selection, ctx)
+            );
         });
     }
 
@@ -3040,9 +3046,11 @@ impl Workspace {
         if !FeatureFlag::ConfigurableToolbar.is_enabled() {
             return;
         }
-        let items = vec![MenuItemFields::new("Re-arrange toolbar items")
-            .with_on_select_action(WorkspaceAction::OpenHeaderToolbarEditor)
-            .into_item()];
+        let items = vec![
+            MenuItemFields::new("Re-arrange toolbar items")
+                .with_on_select_action(WorkspaceAction::OpenHeaderToolbarEditor)
+                .into_item(),
+        ];
         self.header_toolbar_context_menu
             .update(ctx, |menu, ctx| menu.set_items(items, ctx));
         self.show_header_toolbar_context_menu = Some(position);
@@ -3143,27 +3151,30 @@ impl Workspace {
                             )
                         });
 
-                    if let Some(terminal_view_handle) = self
+                    match self
                         .active_tab_pane_group()
                         .as_ref(ctx)
                         .terminal_view_from_pane_id(new_pane_id, ctx)
                     {
-                        let editor_ref = Some(editor_env.as_str());
-                        let path_clone = path.clone();
-                        terminal_view_handle.update(ctx, |terminal, ctx| {
-                            let editor_command =
-                                crate::util::file::external_editor::generate_editor_command(
-                                    &path_clone,
-                                    line_col,
-                                    editor_ref,
-                                );
-                            terminal.set_pending_command(&editor_command, ctx);
-                        });
-                        return;
-                    } else {
-                        log::error!(
-                            "Could not get terminal view handle for new pane when attempting to open file with $EDITOR."
-                        );
+                        Some(terminal_view_handle) => {
+                            let editor_ref = Some(editor_env.as_str());
+                            let path_clone = path.clone();
+                            terminal_view_handle.update(ctx, |terminal, ctx| {
+                                let editor_command =
+                                    crate::util::file::external_editor::generate_editor_command(
+                                        &path_clone,
+                                        line_col,
+                                        editor_ref,
+                                    );
+                                terminal.set_pending_command(&editor_command, ctx);
+                            });
+                            return;
+                        }
+                        _ => {
+                            log::error!(
+                                "Could not get terminal view handle for new pane when attempting to open file with $EDITOR."
+                            );
+                        }
                     }
                 }
 
@@ -4035,14 +4046,13 @@ impl Workspace {
         let drained: Vec<TabData> = self.tabs.drain(first..=last).collect();
         self.tabs.splice(insert_at..insert_at, drained);
 
-        if let Some(active_id) = active_pane_group_id {
-            if let Some(new_idx) = self
+        if let Some(active_id) = active_pane_group_id
+            && let Some(new_idx) = self
                 .tabs
                 .iter()
                 .position(|tab| tab.pane_group.id() == active_id)
-            {
-                self.active_tab_index = new_idx;
-            }
+        {
+            self.active_tab_index = new_idx;
         }
 
         ctx.notify();
@@ -4064,11 +4074,11 @@ impl Workspace {
             );
             return;
         }
-        if let Some(gid) = group_id {
-            if !self.tab_groups.contains_key(&gid) {
-                log::warn!("Tried to assign tab {tab_index} to unknown group {gid:?}");
-                return;
-            }
+        if let Some(gid) = group_id
+            && !self.tab_groups.contains_key(&gid)
+        {
+            log::warn!("Tried to assign tab {tab_index} to unknown group {gid:?}");
+            return;
         }
 
         if self.tabs[tab_index].group_id == group_id {
@@ -4119,14 +4129,13 @@ impl Workspace {
         let tab = self.tabs.remove(from);
         self.tabs.insert(adjusted_to, tab);
 
-        if let Some(pane_group_id) = active_pane_group_id {
-            if let Some(new_active) = self
+        if let Some(pane_group_id) = active_pane_group_id
+            && let Some(new_active) = self
                 .tabs
                 .iter()
                 .position(|t| t.pane_group.id() == pane_group_id)
-            {
-                self.active_tab_index = new_active;
-            }
+        {
+            self.active_tab_index = new_active;
         }
         ctx.notify();
     }
@@ -4559,17 +4568,21 @@ impl Workspace {
 
     fn toggle_recording_mode(&self, ctx: &mut ViewContext<Self>) {
         DebugSettings::handle(ctx).update(ctx, |debug_settings, settings_ctx| {
-            report_if_error!(debug_settings
-                .recording_mode
-                .toggle_and_save_value(settings_ctx));
+            report_if_error!(
+                debug_settings
+                    .recording_mode
+                    .toggle_and_save_value(settings_ctx)
+            );
         });
     }
 
     fn toggle_in_band_generators(&self, ctx: &mut ViewContext<Self>) {
         DebugSettings::handle(ctx).update(ctx, |debug_settings, settings_ctx| {
-            report_if_error!(debug_settings
-                .are_in_band_generators_for_all_sessions_enabled
-                .toggle_and_save_value(settings_ctx));
+            report_if_error!(
+                debug_settings
+                    .are_in_band_generators_for_all_sessions_enabled
+                    .toggle_and_save_value(settings_ctx)
+            );
         });
     }
 
@@ -4808,9 +4821,11 @@ impl Workspace {
         };
 
         let close_section = {
-            let mut items = vec![MenuItemFields::new("Close all tabs in group")
-                .with_on_select_action(WorkspaceAction::CloseTabGroup(group_id))
-                .into_item()];
+            let mut items = vec![
+                MenuItemFields::new("Close all tabs in group")
+                    .with_on_select_action(WorkspaceAction::CloseTabGroup(group_id))
+                    .into_item(),
+            ];
             if has_tabs_outside {
                 items.push(
                     MenuItemFields::new("Close other tabs")
@@ -4846,9 +4861,11 @@ impl Workspace {
                     .into_item(),
             ],
             move_section,
-            vec![MenuItemFields::new("Rename")
-                .with_on_select_action(WorkspaceAction::RenameTabGroup(group_id))
-                .into_item()],
+            vec![
+                MenuItemFields::new("Rename")
+                    .with_on_select_action(WorkspaceAction::RenameTabGroup(group_id))
+                    .into_item(),
+            ],
             close_section,
         ] {
             if section_items.is_empty() {
@@ -5880,17 +5897,16 @@ impl Workspace {
     }
 
     fn is_input_box_visible(&self, app: &AppContext) -> bool {
-        if let (Some(terminal_model), Some(terminal_view)) = (
+        match (
             self.get_active_session_terminal_model(app),
             self.active_tab_pane_group()
                 .as_ref(app)
                 .active_session_view(app),
         ) {
-            terminal_view.read(app, |view, ctx| {
+            (Some(terminal_model), Some(terminal_view)) => terminal_view.read(app, |view, ctx| {
                 view.is_input_box_visible(&terminal_model.lock(), ctx)
-            })
-        } else {
-            false
+            }),
+            _ => false,
         }
     }
 
@@ -5961,9 +5977,11 @@ impl Workspace {
 
     pub fn toggle_block_snackbar(&mut self, ctx: &mut ViewContext<Self>) {
         BlockListSettings::handle(ctx).update(ctx, |blocklist_settings, ctx| {
-            report_if_error!(blocklist_settings
-                .snackbar_enabled
-                .toggle_and_save_value(ctx));
+            report_if_error!(
+                blocklist_settings
+                    .snackbar_enabled
+                    .toggle_and_save_value(ctx)
+            );
         });
     }
 
@@ -5975,9 +5993,11 @@ impl Workspace {
 
     pub fn toggle_syntax_highlighting(&mut self, ctx: &mut ViewContext<Self>) {
         InputSettings::handle(ctx).update(ctx, |input_settings, ctx| {
-            report_if_error!(input_settings
-                .syntax_highlighting
-                .toggle_and_save_value(ctx));
+            report_if_error!(
+                input_settings
+                    .syntax_highlighting
+                    .toggle_and_save_value(ctx)
+            );
         });
     }
 
@@ -5992,9 +6012,11 @@ impl Workspace {
         ctx: &mut ViewContext<Self>,
     ) {
         AccessibilitySettings::handle(ctx).update(ctx, |accessibility_settings, ctx| {
-            report_if_error!(accessibility_settings
-                .a11y_verbosity
-                .set_value(verbosity, ctx));
+            report_if_error!(
+                accessibility_settings
+                    .a11y_verbosity
+                    .set_value(verbosity, ctx)
+            );
         });
     }
 
@@ -6757,11 +6779,10 @@ impl Workspace {
         }
 
         if !is_restoration {
-            if *TabSettings::as_ref(ctx).preserve_active_tab_color.value() {
-                if let Some(SelectedTabColor::Color(color)) = active_tab_selected_color {
-                    self.tabs[self.active_tab_index].selected_color =
-                        SelectedTabColor::Color(color);
-                }
+            if *TabSettings::as_ref(ctx).preserve_active_tab_color.value()
+                && let Some(SelectedTabColor::Color(color)) = active_tab_selected_color
+            {
+                self.tabs[self.active_tab_index].selected_color = SelectedTabColor::Color(color);
             }
 
             // preserve the current tab's default directory color when the new tab inherits the working directory
@@ -6772,10 +6793,8 @@ impl Workspace {
                     == WorkingDirectoryMode::PreviousDir
                     || wd_config.config_for_source(NewSessionSource::Window).mode
                         == WorkingDirectoryMode::PreviousDir;
-                if inherits_cwd {
-                    if let Some(color) = active_tab_default_color {
-                        self.tabs[self.active_tab_index].default_directory_color = Some(color);
-                    }
+                if inherits_cwd && let Some(color) = active_tab_default_color {
+                    self.tabs[self.active_tab_index].default_directory_color = Some(color);
                 }
             }
         }
@@ -7525,16 +7544,19 @@ impl Workspace {
     ) {
         let window_id = ctx.window_id();
 
-        if let Some(active_input_view_handle) = self.get_active_input_view_handle(ctx) {
-            active_input_view_handle.update(ctx, |input_view, input_ctx| {
-                input_view.replace_buffer_content(contents, input_ctx);
-            });
+        match self.get_active_input_view_handle(ctx) {
+            Some(active_input_view_handle) => {
+                active_input_view_handle.update(ctx, |input_view, input_ctx| {
+                    input_view.replace_buffer_content(contents, input_ctx);
+                });
 
-            ctx.windows().show_window_and_focus_app(window_id);
+                ctx.windows().show_window_and_focus_app(window_id);
 
-            ctx.notify();
-        } else {
-            log::error!("workspace::view::fill_input(): no active input view handle to fill");
+                ctx.notify();
+            }
+            _ => {
+                log::error!("workspace::view::fill_input(): no active input view handle to fill");
+            }
         }
     }
 
@@ -7587,81 +7609,85 @@ impl Workspace {
         let pane_group_handle = pane_group_handle.clone();
         self.refresh_working_directories_for_pane_group(&pane_group_handle, ctx);
 
-        if let Some(terminal_handle) = pane_group_handle.as_ref(ctx).active_session_view(ctx) {
-            #[cfg_attr(not(feature = "local_fs"), allow(unused_variables))]
-            let (
-                session,
-                pwd_location,
-                _path_if_local,
-                is_local,
-                is_wsl_session,
-                _session_id,
-                has_pending_ssh,
-            ) = terminal_handle.read(ctx, |terminal, ctx| {
-                let active_session_id = terminal.active_block_session_id();
-                let session =
-                    active_session_id.and_then(|id| terminal.sessions_model().as_ref(ctx).get(id));
-                let pwd_location = terminal.pwd_as_local_or_remote(ctx);
-                let path_if_local = terminal.active_session_path_if_local(ctx);
-                let is_local = terminal.active_session_is_local(ctx);
-                let is_wsl_session = session.as_ref().map(|s| s.is_wsl()).unwrap_or(false);
-                let has_pending_ssh = terminal.has_pending_ssh_command();
-                (
+        match pane_group_handle.as_ref(ctx).active_session_view(ctx) {
+            Some(terminal_handle) => {
+                #[cfg_attr(not(feature = "local_fs"), allow(unused_variables))]
+                let (
                     session,
                     pwd_location,
-                    path_if_local,
+                    _path_if_local,
                     is_local,
                     is_wsl_session,
-                    active_session_id,
+                    _session_id,
                     has_pending_ssh,
-                )
-            });
+                ) = terminal_handle.read(ctx, |terminal, ctx| {
+                    let active_session_id = terminal.active_block_session_id();
+                    let session = active_session_id
+                        .and_then(|id| terminal.sessions_model().as_ref(ctx).get(id));
+                    let pwd_location = terminal.pwd_as_local_or_remote(ctx);
+                    let path_if_local = terminal.active_session_path_if_local(ctx);
+                    let is_local = terminal.active_session_is_local(ctx);
+                    let is_wsl_session = session.as_ref().map(|s| s.is_wsl()).unwrap_or(false);
+                    let has_pending_ssh = terminal.has_pending_ssh_command();
+                    (
+                        session,
+                        pwd_location,
+                        path_if_local,
+                        is_local,
+                        is_wsl_session,
+                        active_session_id,
+                        has_pending_ssh,
+                    )
+                });
 
-            let window_id = ctx.window_id();
-            ActiveSession::handle(ctx).update(ctx, |active_session, ctx| {
-                active_session.set_session_state(
-                    window_id,
-                    session,
-                    pwd_location,
-                    Some(terminal_handle.id()),
-                    ctx,
+                let window_id = ctx.window_id();
+                ActiveSession::handle(ctx).update(ctx, |active_session, ctx| {
+                    active_session.set_session_state(
+                        window_id,
+                        session,
+                        pwd_location,
+                        Some(terminal_handle.id()),
+                        ctx,
+                    );
+                });
+
+                let is_remote = matches!(is_local, Some(false));
+                let is_unsupported_session = is_wsl_session;
+
+                let has_remote_server = false;
+
+                let enablement = CodingPanelEnablementState::from_session_env(
+                    file_tree_and_global_search_are_enabled,
+                    is_remote,
+                    is_unsupported_session,
+                    has_remote_server,
                 );
-            });
 
-            let is_remote = matches!(is_local, Some(false));
-            let is_unsupported_session = is_wsl_session;
-
-            let has_remote_server = false;
-
-            let enablement = CodingPanelEnablementState::from_session_env(
-                file_tree_and_global_search_are_enabled,
-                is_remote,
-                is_unsupported_session,
-                has_remote_server,
-            );
-
-            // When an SSH command is running (pending host set + block
-            // still long-running), the old local session is still active
-            // so the enablement computes as `Enabled`. Override to
-            // `PendingRemoteSession` so the file tree shows loading
-            // instead of the stale local tree.
-            let enablement =
-                if has_pending_ssh && matches!(enablement, CodingPanelEnablementState::Enabled) {
+                // When an SSH command is running (pending host set + block
+                // still long-running), the old local session is still active
+                // so the enablement computes as `Enabled`. Override to
+                // `PendingRemoteSession` so the file tree shows loading
+                // instead of the stale local tree.
+                let enablement = if has_pending_ssh
+                    && matches!(enablement, CodingPanelEnablementState::Enabled)
+                {
                     CodingPanelEnablementState::PendingRemoteSession
                 } else {
                     enablement
                 };
 
-            let _ = (enablement, is_remote, is_wsl_session);
-        } else {
-            let enablement = CodingPanelEnablementState::from_session_env(
-                file_tree_and_global_search_are_enabled,
-                false,
-                false,
-                false,
-            );
+                let _ = (enablement, is_remote, is_wsl_session);
+            }
+            _ => {
+                let enablement = CodingPanelEnablementState::from_session_env(
+                    file_tree_and_global_search_are_enabled,
+                    false,
+                    false,
+                    false,
+                );
 
-            let _ = enablement;
+                let _ = enablement;
+            }
         }
     }
 
@@ -7974,9 +8000,11 @@ impl Workspace {
 
     fn reset_zoom(&mut self, ctx: &mut ViewContext<Self>) {
         WindowSettings::handle(ctx).update(ctx, |window_settings, ctx| {
-            report_if_error!(window_settings
-                .zoom_level
-                .set_value(ZoomLevel::default_value(), ctx));
+            report_if_error!(
+                window_settings
+                    .zoom_level
+                    .set_value(ZoomLevel::default_value(), ctx)
+            );
         });
     }
 
@@ -7996,9 +8024,11 @@ impl Workspace {
         };
 
         WindowSettings::handle(ctx).update(ctx, |window_settings, ctx| {
-            report_if_error!(window_settings
-                .zoom_level
-                .set_value(crate::window_settings::ZoomLevel::VALUES[next_index], ctx));
+            report_if_error!(
+                window_settings
+                    .zoom_level
+                    .set_value(crate::window_settings::ZoomLevel::VALUES[next_index], ctx)
+            );
         });
     }
 
@@ -8011,9 +8041,11 @@ impl Workspace {
 
     fn set_terminal_font_size(&mut self, new_font_size: f32, ctx: &mut ViewContext<Self>) {
         FontSettings::handle(ctx).update(ctx, |font_settings, ctx| {
-            report_if_error!(font_settings
-                .monospace_font_size
-                .set_value(new_font_size, ctx));
+            report_if_error!(
+                font_settings
+                    .monospace_font_size
+                    .set_value(new_font_size, ctx)
+            );
         });
     }
 
@@ -8656,14 +8688,14 @@ impl Workspace {
 
         let zoom_factor = WindowSettings::as_ref(ctx).zoom_level.as_zoom_factor();
         let traffic_light_data = traffic_light_data(ctx, self.window_id);
-        if let Some(traffic_light_data) = traffic_light_data.as_ref() {
-            if should_reserve_traffic_light_space_in_tab_bar(traffic_light_data.side) {
-                target.add_child(
-                    ConstrainedBox::new(Empty::new().finish())
-                        .with_width(traffic_light_data.width(zoom_factor))
-                        .finish(),
-                );
-            }
+        if let Some(traffic_light_data) = traffic_light_data.as_ref()
+            && should_reserve_traffic_light_space_in_tab_bar(traffic_light_data.side)
+        {
+            target.add_child(
+                ConstrainedBox::new(Empty::new().finish())
+                    .with_width(traffic_light_data.width(zoom_factor))
+                    .finish(),
+            );
         }
     }
 
@@ -10318,12 +10350,16 @@ impl TypedActionView for Workspace {
                         } else {
                             // Config missing or deleted — clear and fall through to Terminal.
                             SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
-                                report_if_error!(settings
-                                    .default_session_mode_internal
-                                    .set_value(DefaultSessionMode::Terminal, ctx));
-                                report_if_error!(settings
-                                    .default_tab_config_path
-                                    .set_value(String::new(), ctx));
+                                report_if_error!(
+                                    settings
+                                        .default_session_mode_internal
+                                        .set_value(DefaultSessionMode::Terminal, ctx)
+                                );
+                                report_if_error!(
+                                    settings
+                                        .default_tab_config_path
+                                        .set_value(String::new(), ctx)
+                                );
                             });
                             self.add_terminal_tab(false, ctx);
                         }
@@ -10413,9 +10449,11 @@ impl TypedActionView for Workspace {
                 SessionModeSettings::handle(ctx).update(ctx, |settings, ctx| {
                     report_if_error!(settings.default_session_mode_internal.set_value(*mode, ctx));
                     if let Some(path) = tab_config_path {
-                        report_if_error!(settings
-                            .default_tab_config_path
-                            .set_value(path.to_string_lossy().into_owned(), ctx));
+                        report_if_error!(
+                            settings
+                                .default_tab_config_path
+                                .set_value(path.to_string_lossy().into_owned(), ctx)
+                        );
                     }
                 });
                 #[cfg(feature = "local_tty")]
@@ -11186,8 +11224,7 @@ impl View for Workspace {
         if FeatureFlag::VerticalTabs.is_enabled()
             && *TabSettings::as_ref(app).use_vertical_tabs
             && self.vertical_tabs_panel_open
-        {
-            if let Some(vertical_tabs::DetailSidecarOverlay {
+            && let Some(vertical_tabs::DetailSidecarOverlay {
                 anchor_position_id,
                 offset,
                 bounds,
@@ -11199,18 +11236,18 @@ impl View for Workspace {
                 self,
                 Self::tabs_panel_side(&TabSettings::as_ref(app).header_toolbar_chip_selection),
                 app,
-            ) {
-                stack.add_positioned_overlay_child(
-                    sidecar,
-                    OffsetPositioning::offset_from_save_position_element(
-                        &anchor_position_id,
-                        offset,
-                        bounds,
-                        parent_anchor,
-                        child_anchor,
-                    ),
-                );
-            }
+            )
+        {
+            stack.add_positioned_overlay_child(
+                sidecar,
+                OffsetPositioning::offset_from_save_position_element(
+                    &anchor_position_id,
+                    offset,
+                    bounds,
+                    parent_anchor,
+                    child_anchor,
+                ),
+            );
         }
 
         // Transcript details panel overlay (right side, mobile only)
@@ -11582,40 +11619,40 @@ impl View for Workspace {
             }
         }
 
-        if self.current_workspace_state.is_command_search_open {
-            if let Some(active_input_handle) = self.get_active_input_view_handle(app) {
-                let input_position = app.view(&active_input_handle).save_position_id();
-                let menu_positioning = app.view(&self.command_search_view).menu_positioning();
-                // Position the CommandSearchView over the active pane's input.
-                let search_panel_margin = 4.;
-                let positioning = match menu_positioning {
-                    MenuPositioning::AboveInputBox => {
-                        OffsetPositioning::offset_from_save_position_element(
-                            input_position,
-                            vec2f(search_panel_margin, -search_panel_margin),
-                            PositionedElementOffsetBounds::WindowBySize,
-                            PositionedElementAnchor::BottomLeft,
-                            ChildAnchor::BottomLeft,
-                        )
-                    }
-                    MenuPositioning::BelowInputBox => {
-                        OffsetPositioning::offset_from_save_position_element(
-                            input_position,
-                            vec2f(search_panel_margin, 0.),
-                            PositionedElementOffsetBounds::WindowBySize,
-                            PositionedElementAnchor::TopLeft,
-                            ChildAnchor::TopLeft,
-                        )
-                    }
-                };
+        if self.current_workspace_state.is_command_search_open
+            && let Some(active_input_handle) = self.get_active_input_view_handle(app)
+        {
+            let input_position = app.view(&active_input_handle).save_position_id();
+            let menu_positioning = app.view(&self.command_search_view).menu_positioning();
+            // Position the CommandSearchView over the active pane's input.
+            let search_panel_margin = 4.;
+            let positioning = match menu_positioning {
+                MenuPositioning::AboveInputBox => {
+                    OffsetPositioning::offset_from_save_position_element(
+                        input_position,
+                        vec2f(search_panel_margin, -search_panel_margin),
+                        PositionedElementOffsetBounds::WindowBySize,
+                        PositionedElementAnchor::BottomLeft,
+                        ChildAnchor::BottomLeft,
+                    )
+                }
+                MenuPositioning::BelowInputBox => {
+                    OffsetPositioning::offset_from_save_position_element(
+                        input_position,
+                        vec2f(search_panel_margin, 0.),
+                        PositionedElementOffsetBounds::WindowBySize,
+                        PositionedElementAnchor::TopLeft,
+                        ChildAnchor::TopLeft,
+                    )
+                }
+            };
 
-                stack.add_positioned_child(
-                    Container::new(ChildView::new(&self.command_search_view).finish())
-                        .with_margin_right(search_panel_margin)
-                        .finish(),
-                    positioning,
-                );
-            }
+            stack.add_positioned_child(
+                Container::new(ChildView::new(&self.command_search_view).finish())
+                    .with_margin_right(search_panel_margin)
+                    .finish(),
+                positioning,
+            );
         }
 
         if self.welcome_tips_view_state.is_popup_open() {
@@ -11744,24 +11781,23 @@ impl View for Workspace {
 
         // Cross-window ghost drag: floating chip that follows the cursor in the target window.
         // Added last so it renders on top of all other content.
-        if FeatureFlag::DragTabsToWindows.is_enabled() {
-            if let Some(ghost) =
+        if FeatureFlag::DragTabsToWindows.is_enabled()
+            && let Some(ghost) =
                 CrossWindowTabDrag::as_ref(app).ghost_state_for_window(self.window_id)
-            {
-                // Place the chip so its top-left is at cursor - cursor_offset_in_element.
-                // This makes the cursor appear at the same position inside the chip as
-                // it did in the original tab when the drag was initiated.
-                let chip_origin = ghost.cursor_in_window - ghost.cursor_offset_in_element;
-                stack.add_positioned_overlay_child(
-                    render_cross_window_ghost_chip(&ghost, appearance, app),
-                    OffsetPositioning::offset_from_parent(
-                        chip_origin,
-                        ParentOffsetBounds::Unbounded,
-                        ParentAnchor::TopLeft,
-                        ChildAnchor::TopLeft,
-                    ),
-                );
-            }
+        {
+            // Place the chip so its top-left is at cursor - cursor_offset_in_element.
+            // This makes the cursor appear at the same position inside the chip as
+            // it did in the original tab when the drag was initiated.
+            let chip_origin = ghost.cursor_in_window - ghost.cursor_offset_in_element;
+            stack.add_positioned_overlay_child(
+                render_cross_window_ghost_chip(&ghost, appearance, app),
+                OffsetPositioning::offset_from_parent(
+                    chip_origin,
+                    ParentOffsetBounds::Unbounded,
+                    ParentAnchor::TopLeft,
+                    ChildAnchor::TopLeft,
+                ),
+            );
         }
 
         let window_corner_radius = app.windows().window_corner_radius();
@@ -11774,26 +11810,29 @@ impl View for Workspace {
             .background_opacity
             .effective_opacity(self.window_id, app);
 
-        if let Some(img) = theme.background_image() {
-            let opacity_ratio = background_opacity as f32 / 100.;
-            stack.add_child(
-                Shrinkable::new(
-                    1.,
-                    Image::new(img.source(), CacheOption::Original)
-                        .cover()
-                        .with_opacity(opacity_ratio)
-                        .with_corner_radius(window_corner_radius)
-                        .finish(),
-                )
-                .finish(),
-            );
-            stack.add_child(workspace.finish());
-        } else {
-            stack.add_child(
-                workspace
-                    .with_background(theme.surface_2().with_opacity(background_opacity))
+        match theme.background_image() {
+            Some(img) => {
+                let opacity_ratio = background_opacity as f32 / 100.;
+                stack.add_child(
+                    Shrinkable::new(
+                        1.,
+                        Image::new(img.source(), CacheOption::Original)
+                            .cover()
+                            .with_opacity(opacity_ratio)
+                            .with_corner_radius(window_corner_radius)
+                            .finish(),
+                    )
                     .finish(),
-            );
+                );
+                stack.add_child(workspace.finish());
+            }
+            _ => {
+                stack.add_child(
+                    workspace
+                        .with_background(theme.surface_2().with_opacity(background_opacity))
+                        .finish(),
+                );
+            }
         }
 
         let input_position_id = self
@@ -11805,13 +11844,14 @@ impl View for Workspace {
             self.global_toast_positioning(),
         );
 
-        if let Some(input_position_id) = input_position_id {
-            if FeatureFlag::AvatarInTabBar.is_enabled() && self.is_input_box_visible(app) {
-                stack.add_positioned_overlay_child(
-                    ChildView::new(&self.update_toast_stack).finish(),
-                    self.update_toast_positioning(input_position_id, app),
-                );
-            }
+        if let Some(input_position_id) = input_position_id
+            && FeatureFlag::AvatarInTabBar.is_enabled()
+            && self.is_input_box_visible(app)
+        {
+            stack.add_positioned_overlay_child(
+                ChildView::new(&self.update_toast_stack).finish(),
+                self.update_toast_positioning(input_position_id, app),
+            );
         }
 
         // Add workspace-wide UI event handling.
@@ -12272,14 +12312,13 @@ impl Workspace {
                 self.update_resource_center_action_target(ctx);
                 self.update_active_session(ctx);
 
-                if FeatureFlag::DirectoryTabColors.is_enabled() {
-                    if let Some(tab) = self
+                if FeatureFlag::DirectoryTabColors.is_enabled()
+                    && let Some(tab) = self
                         .tabs
                         .iter_mut()
                         .find(|t| t.pane_group.id() == pane_group.id())
-                    {
-                        Self::sync_codebase_tab_color(tab, ctx);
-                    }
+                {
+                    Self::sync_codebase_tab_color(tab, ctx);
                 }
             }
             pane_group::Event::ActiveSessionChanged => {
@@ -12435,14 +12474,13 @@ impl Workspace {
                 // setup_code_review_panel here would race with refresh and
                 // re-create models that were just dropped.
 
-                if FeatureFlag::DirectoryTabColors.is_enabled() {
-                    if let Some(tab) = self
+                if FeatureFlag::DirectoryTabColors.is_enabled()
+                    && let Some(tab) = self
                         .tabs
                         .iter_mut()
                         .find(|t| t.pane_group.id() == pane_group.id())
-                    {
-                        Self::sync_codebase_tab_color(tab, ctx);
-                    }
+                {
+                    Self::sync_codebase_tab_color(tab, ctx);
                 }
             }
             pane_group::Event::RemoteRepoNavigated { .. } => {}
@@ -12694,10 +12732,10 @@ impl Workspace {
             return;
         }
 
-        if let Some(tab_data) = self.tabs.get(current_index) {
-            if tab_data.detached {
-                return;
-            }
+        if let Some(tab_data) = self.tabs.get(current_index)
+            && tab_data.detached
+        {
+            return;
         }
 
         let source_is_single_tab = self.tabs.len() == 1;
@@ -12705,10 +12743,8 @@ impl Workspace {
             && FeatureFlag::DragTabsToWindows.is_enabled()
         {
             let source_was_single_tab = source_is_single_tab;
-            if !source_was_single_tab {
-                if let Some(tab_data) = self.tabs.get_mut(current_index) {
-                    tab_data.detached = true;
-                }
+            if !source_was_single_tab && let Some(tab_data) = self.tabs.get_mut(current_index) {
+                tab_data.detached = true;
             }
 
             let window_bounds = match ctx.window_bounds(&ctx.window_id()) {
@@ -12825,12 +12861,12 @@ impl Workspace {
                 // stays one rendered container. Vertical tab rendering only
                 // groups consecutive tabs, so leaving `current_index` outside
                 // the block would split the group across the panel.
-                if let Some(target_gid) = expanded_target {
-                    if let Some((first, last)) = group_member_index_range(&self.tabs, target_gid) {
-                        let insert_at = if current_index < first { first } else { last };
-                        if insert_at != current_index {
-                            self.hop_tab_to_index(current_index, insert_at, ctx);
-                        }
+                if let Some(target_gid) = expanded_target
+                    && let Some((first, last)) = group_member_index_range(&self.tabs, target_gid)
+                {
+                    let insert_at = if current_index < first { first } else { last };
+                    if insert_at != current_index {
+                        self.hop_tab_to_index(current_index, insert_at, ctx);
                     }
                 }
                 return;
@@ -12856,12 +12892,12 @@ impl Workspace {
                     Some(*gid) != dragged_group
                         && self.tab_groups.get(gid).is_some_and(|g| g.collapsed)
                 });
-            if let Some(group_id) = neighbor_collapsed_group {
-                if let Some((first, last)) = group_member_index_range(&self.tabs, group_id) {
-                    let insert_at = if current_index < first { last } else { first };
-                    self.hop_tab_to_index(current_index, insert_at, ctx);
-                    return;
-                }
+            if let Some(group_id) = neighbor_collapsed_group
+                && let Some((first, last)) = group_member_index_range(&self.tabs, group_id)
+            {
+                let insert_at = if current_index < first { last } else { first };
+                self.hop_tab_to_index(current_index, insert_at, ctx);
+                return;
             }
 
             self.tabs.swap(new_index, current_index);
@@ -12976,10 +13012,10 @@ impl Workspace {
         } else {
             None
         };
-        if let Some(tab_position) = maybe_left_tab {
-            if midpoint_drag_x < tab_position.max_x() {
-                return current_index - 1;
-            }
+        if let Some(tab_position) = maybe_left_tab
+            && midpoint_drag_x < tab_position.max_x()
+        {
+            return current_index - 1;
         }
 
         let maybe_right_tab = if current_index < self.tabs.len() - 1 {
@@ -12987,10 +13023,10 @@ impl Workspace {
         } else {
             None
         };
-        if let Some(tab_position) = maybe_right_tab {
-            if midpoint_drag_x > tab_position.min_x() {
-                return current_index + 1;
-            }
+        if let Some(tab_position) = maybe_right_tab
+            && midpoint_drag_x > tab_position.min_x()
+        {
+            return current_index + 1;
         }
 
         current_index

@@ -1,5 +1,5 @@
-use riftui::text_layout::TextStyle;
 use riftui::App;
+use riftui::text_layout::TextStyle;
 use string_offset::{ByteOffset, CharOffset};
 use vec1::vec1;
 

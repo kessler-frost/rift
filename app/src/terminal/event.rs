@@ -13,11 +13,11 @@ use super::model::block::BlockId;
 use super::model::session::{SessionId, SessionInfo};
 use super::model::terminal_model::{BlockIndex, ExitReason, TmuxInstallationState};
 use crate::server::ids::SyncId;
+use crate::terminal::ClipboardType;
 use crate::terminal::model::block::{BlockMetadata, SerializedBlock};
 use crate::terminal::model::completions::ShellCompletion;
 use crate::terminal::model::terminal_model::HandlerEvent;
 use crate::terminal::shell::ShellType;
-use crate::terminal::ClipboardType;
 use crate::util::AsciiDebug;
 
 #[derive(Clone)]

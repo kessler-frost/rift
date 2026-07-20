@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use futures::channel::oneshot;
 use futures::lock::Mutex as AsyncMutex;
 use riftui_core::r#async::executor::Background;
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue;
 use serde_json::Value;
+use serde_json::value::RawValue;
 
 use crate::transport::Transport;
 
@@ -285,13 +285,13 @@ impl JsonRpcService {
         notification_subscriptions: &AsyncMutex<HashMap<String, Subscription>>,
     ) {
         let subs = notification_subscriptions.lock().await;
-        if let Some(subscription) = subs.get(method) {
-            if let Err(e) = subscription.try_send(ServerNotificationEvent {
+        if let Some(subscription) = subs.get(method)
+            && let Err(e) = subscription.try_send(ServerNotificationEvent {
                 method: method.to_string(),
                 params,
-            }) {
-                log::error!("Failed to send notification: {e}");
-            }
+            })
+        {
+            log::error!("Failed to send notification: {e}");
         }
     }
 

@@ -3,8 +3,8 @@ use std::cell::RefCell;
 
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::builder::UiBuilder;
-use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::RiftTheme;
+use rift_core::ui::theme::color::internal_colors;
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::*;
 use riftui::text_layout::ClipConfig;
@@ -208,16 +208,19 @@ impl TerminationType {
                 let ui_builder = inverted_color_ui_builder(appearance);
 
                 handles.resize_with(1, MouseStateHandle::default);
-                vec![ui_builder
-                    .button(ButtonVariant::Text, handles[0].clone())
-                    .with_text_label(FILE_ISSUE_TEXT.to_string())
-                    .build()
-                    .on_click(|ctx, _, _| {
-                        ctx.dispatch_typed_action(Action::OpenUrl(
-                            "https://github.com/kessler-frost/rift/issues/new/choose".to_string(),
-                        ));
-                    })
-                    .finish()]
+                vec![
+                    ui_builder
+                        .button(ButtonVariant::Text, handles[0].clone())
+                        .with_text_label(FILE_ISSUE_TEXT.to_string())
+                        .build()
+                        .on_click(|ctx, _, _| {
+                            ctx.dispatch_typed_action(Action::OpenUrl(
+                                "https://github.com/kessler-frost/rift/issues/new/choose"
+                                    .to_string(),
+                            ));
+                        })
+                        .finish(),
+                ]
             }
             TerminationType::PtySpawnFailure { pty_spawn_error } => {
                 let ui_builder = inverted_color_ui_builder(appearance);

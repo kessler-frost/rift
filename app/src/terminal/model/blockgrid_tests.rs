@@ -1,11 +1,11 @@
+use crate::terminal::SizeInfo;
 use crate::terminal::event_listener::ChannelEventListener;
 use crate::terminal::model::ansi::{self, Handler};
 use crate::terminal::model::blockgrid::{BlockGrid, CursorDisplayPoint};
-use crate::terminal::model::grid::grid_handler::PerformResetGridChecks;
 use crate::terminal::model::grid::Dimensions;
+use crate::terminal::model::grid::grid_handler::PerformResetGridChecks;
 use crate::terminal::model::index::{Point, VisibleRow};
 use crate::terminal::model::secrets::ObfuscateSecrets;
-use crate::terminal::SizeInfo;
 use crate::test_util::mock_blockgrid;
 
 #[test]

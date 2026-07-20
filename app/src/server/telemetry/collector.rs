@@ -56,16 +56,14 @@ impl TelemetryCollector {
                 if is_telemetry_enabled
                     && last_active_timestamp + ACTIVE_USAGE_DURATION.as_secs() as i64
                         > Utc::now().timestamp()
-                {
-                    if let LocalResult::Single(timestamp) =
+                    && let LocalResult::Single(timestamp) =
                         Utc.timestamp_opt(last_active_timestamp, 0)
-                    {
-                        riftui::telemetry::record_app_active_event(
-                            auth_state.user_id().map(|uid| uid.as_string()),
-                            auth_state.anonymous_id(),
-                            timestamp,
-                        );
-                    }
+                {
+                    riftui::telemetry::record_app_active_event(
+                        auth_state.user_id().map(|uid| uid.as_string()),
+                        auth_state.anonymous_id(),
+                        timestamp,
+                    );
                 }
                 Timer::after(ACTIVE_USAGE_DURATION).await;
             },

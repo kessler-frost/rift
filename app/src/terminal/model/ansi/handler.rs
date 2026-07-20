@@ -5,8 +5,8 @@ use rift_terminal::model::ansi::control_sequence_parameters::*;
 use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
 use riftui::color::ColorU;
 
-use super::dcs_hooks::*;
 use super::ProcessorInput;
+use super::dcs_hooks::*;
 use crate::terminal::model::completions::{
     ShellCompletion, ShellCompletionUpdate, ShellData as CompletionsShellData,
 };

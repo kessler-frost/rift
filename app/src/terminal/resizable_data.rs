@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use riftui::elements::{resizable_state_handle, ResizableStateHandle};
+use riftui::elements::{ResizableStateHandle, resizable_state_handle};
 use riftui::{Entity, SingletonEntity, WindowId};
 
 use crate::app_state::WindowSnapshot;

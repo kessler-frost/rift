@@ -1,9 +1,9 @@
 use std::iter::Peekable;
 
 use anyhow::Result;
-use itertools::{peek_nth, Either, PeekNth};
-use riftui_core::text::words::is_default_word_boundary;
+use itertools::{Either, PeekNth, peek_nth};
 use riftui_core::text::TextBuffer;
+use riftui_core::text::words::is_default_word_boundary;
 use string_offset::CharOffset;
 
 use crate::vim::{Direction, WordBound, WordType};

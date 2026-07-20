@@ -15,8 +15,8 @@ use crate::app_state::{
 };
 use crate::persistence::{BlockCompleted, ModelEvent, PersistenceScope};
 use crate::tab::SelectedTabColor;
-use crate::terminal::model::block::SerializedBlock;
 use crate::terminal::ShellLaunchData;
+use crate::terminal::model::block::SerializedBlock;
 
 #[test]
 fn app_scope_database_path_matches_app_database_path() {

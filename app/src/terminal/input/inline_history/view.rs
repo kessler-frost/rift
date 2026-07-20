@@ -3,8 +3,8 @@ use std::collections::HashSet;
 
 use pathfinder_color::ColorU;
 use rift_core::ui::appearance::Appearance;
-use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::Fill;
+use rift_core::ui::theme::color::internal_colors;
 use riftui::elements::ChildView;
 use riftui::{AppContext, Element, Entity, EntityId, ModelHandle, View, ViewContext, ViewHandle};
 

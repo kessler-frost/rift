@@ -30,9 +30,9 @@ use riftui::{
 };
 
 use crate::appearance::Appearance;
+use crate::terminal::HistoryEntry;
 use crate::terminal::model::session::SessionId;
 use crate::terminal::rich_history::render_rich_history;
-use crate::terminal::HistoryEntry;
 use crate::util::time_format::format_approx_duration_from_now;
 
 /// This enum allows the parent view to indicate which type of details panel is shown.
@@ -313,10 +313,10 @@ impl InputSuggestions {
     }
 
     fn on_visible_items(&mut self, new_visible_items: Range<usize>, ctx: &mut ViewContext<Self>) {
-        if let Some(visible_items) = &self.visible_items {
-            if visible_items == &new_visible_items {
-                return;
-            }
+        if let Some(visible_items) = &self.visible_items
+            && visible_items == &new_visible_items
+        {
+            return;
         }
 
         self.visible_items = Some(new_visible_items);
@@ -899,42 +899,41 @@ impl InputSuggestions {
         );
 
         // Render the overflow detail panel if the there is a visible, selected item with details.
-        if let Some(selected_index) = self.selected_index {
-            if let Some(details_box) =
+        if let Some(selected_index) = self.selected_index
+            && let Some(details_box) =
                 self.render_visible_item_details(selected_index, appearance, ctx)
-            {
-                stack.add_positioned_child(
-                    SizeConstraintSwitch::new(
-                        Container::new(details_box)
-                            .with_uniform_padding(DETAILS_PANEL_PADDING)
-                            .with_background(theme.surface_2())
-                            .with_border(Border::all(1.0).with_border_fill(theme.outline()))
-                            .with_corner_radius(CornerRadius::with_all(Radius::Pixels(6.)))
-                            .with_margin_right(DETAILS_PANEL_MARGIN)
-                            .with_drop_shadow(DropShadow::default())
-                            .finish(),
-                        vec![(
-                            SizeConstraintCondition::WidthLessThan(DETAILS_MIN_WIDTH),
-                            Empty::new().finish(),
-                        )],
-                    )
-                    .finish(),
-                    OffsetPositioning::from_axes(
-                        PositioningAxis::relative_to_stack_child(
-                            SUGGESTIONS_LIST_POSITION_ID,
-                            PositionedElementOffsetBounds::WindowBySize,
-                            OffsetType::Pixel(DETAILS_PANEL_MARGIN),
-                            AnchorPair::new(XAxisAnchor::Right, XAxisAnchor::Left),
-                        ),
-                        PositioningAxis::relative_to_stack_child(
-                            InputSuggestions::position_id_at_index(selected_index),
-                            PositionedElementOffsetBounds::ParentByPosition,
-                            OffsetType::Pixel(0.),
-                            AnchorPair::new(YAxisAnchor::Top, YAxisAnchor::Top),
-                        ),
+        {
+            stack.add_positioned_child(
+                SizeConstraintSwitch::new(
+                    Container::new(details_box)
+                        .with_uniform_padding(DETAILS_PANEL_PADDING)
+                        .with_background(theme.surface_2())
+                        .with_border(Border::all(1.0).with_border_fill(theme.outline()))
+                        .with_corner_radius(CornerRadius::with_all(Radius::Pixels(6.)))
+                        .with_margin_right(DETAILS_PANEL_MARGIN)
+                        .with_drop_shadow(DropShadow::default())
+                        .finish(),
+                    vec![(
+                        SizeConstraintCondition::WidthLessThan(DETAILS_MIN_WIDTH),
+                        Empty::new().finish(),
+                    )],
+                )
+                .finish(),
+                OffsetPositioning::from_axes(
+                    PositioningAxis::relative_to_stack_child(
+                        SUGGESTIONS_LIST_POSITION_ID,
+                        PositionedElementOffsetBounds::WindowBySize,
+                        OffsetType::Pixel(DETAILS_PANEL_MARGIN),
+                        AnchorPair::new(XAxisAnchor::Right, XAxisAnchor::Left),
                     ),
-                );
-            }
+                    PositioningAxis::relative_to_stack_child(
+                        InputSuggestions::position_id_at_index(selected_index),
+                        PositionedElementOffsetBounds::ParentByPosition,
+                        OffsetType::Pixel(0.),
+                        AnchorPair::new(YAxisAnchor::Top, YAxisAnchor::Top),
+                    ),
+                ),
+            );
         }
 
         stack.finish()
@@ -1133,10 +1132,9 @@ impl HistoryInputSuggestion<'_> {
                 // Check if this entry belongs to the current session
                 if let (Some(entry_session_id), Some(current_session_id)) =
                     (entry.session_id, current_session_id)
+                    && entry_session_id == current_session_id
                 {
-                    if entry_session_id == current_session_id {
-                        return HistoryOrder::CurrentSession;
-                    }
+                    return HistoryOrder::CurrentSession;
                 }
                 // Other live session, or past session
                 HistoryOrder::DifferentSession

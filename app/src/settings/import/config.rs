@@ -5,9 +5,9 @@ use async_trait::async_trait;
 use pathfinder_color::ColorU;
 use rift_core::ui::color::hex_color::HexColorError as UiHexColorError;
 use rift_core::ui::theme::{AnsiColors, RiftTheme};
+use riftui::DisplayIdx;
 use riftui::fonts::FontInfo;
 use riftui::keymap::Keystroke;
-use riftui::DisplayIdx;
 use serde::Serialize;
 use strum_macros::EnumIter;
 use thiserror::Error;
@@ -208,10 +208,9 @@ impl Config {
                         |_| dark.clone(),
                     );
 
-                    if let (Some(light), Some(dark)) = (light_written, dark_written) {
-                        Some(ThemeType::LightAndDark { light, dark })
-                    } else {
-                        None
+                    match (light_written, dark_written) {
+                        (Some(light), Some(dark)) => Some(ThemeType::LightAndDark { light, dark }),
+                        _ => None,
                     }
                 }
                 ThemeType::Single(normal) => {

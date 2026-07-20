@@ -1,4 +1,4 @@
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use riftui::elements::{ScrollData, ScrollableElement, ZIndex};
 use riftui::event::ModifiersState;
 use riftui::units::{IntoLines, IntoPixels, Pixels};

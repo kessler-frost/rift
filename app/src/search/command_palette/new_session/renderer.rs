@@ -1,6 +1,6 @@
+use riftui::Element;
 use riftui::elements::{Container, Flex, Highlight, ParentElement, Text};
 use riftui::fonts::{Properties, Weight};
-use riftui::Element;
 
 use super::new_session_option::NewSessionOption;
 use crate::appearance::Appearance;

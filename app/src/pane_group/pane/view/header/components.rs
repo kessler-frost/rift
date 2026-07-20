@@ -1,5 +1,6 @@
 use rift_core::ui::icons::ICON_DIMENSIONS;
 use rift_core::ui::theme::Fill;
+use riftui::Element;
 use riftui::elements::{
     Align, Clipped, ConstrainedBox, Container, CrossAxisAlignment, Flex, Hoverable,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, SavePosition, Shrinkable,
@@ -7,7 +8,6 @@ use riftui::elements::{
 };
 use riftui::text_layout::ClipConfig;
 use riftui::ui_components::components::UiComponent;
-use riftui::Element;
 
 use super::super::header_content::HeaderRenderContext;
 use super::{ActionPayload, PaneHeaderAction};

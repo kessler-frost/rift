@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
+use fuzzy_match::{FuzzyMatchResult, match_indices_case_insensitive};
 use rift_core::features::FeatureFlag;
 use riftui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity};
 
@@ -307,7 +307,7 @@ mod full_text_searcher {
     use riftui::r#async::executor::Background;
 
     use crate::search::command_palette::new_session::data_source::{
-        NewSessionSearcher, SearcherAction, SEARCHER_BASE_STRINGS,
+        NewSessionSearcher, SEARCHER_BASE_STRINGS, SearcherAction,
     };
     use crate::search::command_palette::new_session::search_item::SearchItem;
     use crate::search::command_palette::new_session::{NewSessionOption, NewSessionOptionId};

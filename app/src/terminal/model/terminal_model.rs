@@ -13,10 +13,10 @@ use rift_core::features::FeatureFlag;
 use rift_core::semantic_selection::SemanticSelection;
 pub use rift_terminal::model::BlockIndex;
 use rift_terminal::model::{KeyboardModes, KeyboardModesApplyBehavior};
-use riftui::assets::asset_cache::Asset;
-use riftui::image_cache::ImageType;
-use riftui::r#async::executor::Background;
 use riftui::AppContext;
+use riftui::assets::asset_cache::Asset;
+use riftui::r#async::executor::Background;
+use riftui::image_cache::ImageType;
 use serde::Serialize;
 
 use super::super::{AltScreen, BlockList};
@@ -35,14 +35,14 @@ use super::grid::grid_handler::{
 use super::image_map::StoredImageMetadata;
 use super::index::Point;
 use super::kitty::{
-    create_kitty_error_reply, create_kitty_ok_reply, DeletionType, KittyAction, KittyChunk,
-    KittyMessage, KittyResponse, PendingKittyMessage,
+    DeletionType, KittyAction, KittyChunk, KittyMessage, KittyResponse, PendingKittyMessage,
+    create_kitty_error_reply, create_kitty_ok_reply,
 };
 use super::secrets::{RespectObfuscatedSecrets, SecretAndHandle};
 use super::selection::ScrollDelta;
 use super::session::{BootstrapSessionType, InBandCommandOutputReceiver, SessionId};
 use super::tmux::commands::TmuxCommand;
-use super::{tmux, Secret, SecretHandle};
+use super::{Secret, SecretHandle, tmux};
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::block_filter::BlockFilterQuery;
 use crate::terminal::block_list_element::GridType;
@@ -71,7 +71,7 @@ use crate::terminal::model::session::SessionInfo;
 use crate::terminal::shell::ShellType;
 use crate::terminal::ssh::util::{InteractiveSshCommand, SshLoginState};
 use crate::terminal::{
-    color, ssh, BlockPadding, ShellHost, ShellLaunchData, ShellLaunchState, SizeUpdate,
+    BlockPadding, ShellHost, ShellLaunchData, ShellLaunchState, SizeUpdate, color, ssh,
 };
 use crate::util::AsciiDebug;
 
@@ -588,7 +588,7 @@ impl SelectedBlockRange {
     pub fn range(
         &self,
         sort_direction: Option<BlockSortDirection>,
-    ) -> impl Iterator<Item = BlockIndex> {
+    ) -> impl Iterator<Item = BlockIndex> + use<> {
         let range = self.start().0..=self.end().0;
         // Note we need the heap allocation through the box because we
         // can't return .rev() and not .rev() iterators without it.
@@ -612,7 +612,7 @@ impl SelectedBlockRange {
     pub fn intersection(
         &self,
         other: &RangeInclusive<BlockIndex>,
-    ) -> impl Iterator<Item = BlockIndex> {
+    ) -> impl Iterator<Item = BlockIndex> + use<> {
         (max(self.start().0, other.start().0)..=min(self.end().0, other.end().0))
             .map(BlockIndex::from)
     }
@@ -1415,7 +1415,7 @@ impl TerminalModel {
     pub fn possible_file_paths_at_point(
         &self,
         point: WithinModel<Point>,
-    ) -> impl Iterator<Item = WithinModel<PossiblePath>> {
+    ) -> impl Iterator<Item = WithinModel<PossiblePath>> + use<> {
         match point {
             WithinModel::AltScreen(inner_point) => Either::Left(
                 self.alt_screen
@@ -1827,7 +1827,7 @@ impl TerminalModel {
 /// the provided method call on the active handler, either the block_list or the
 /// alt_screen if it is active.
 macro_rules! delegate {
-    ($self:ident.$method:ident( $( $arg:expr ),* )) => {
+    ($self:ident.$method:ident( $( $arg:expr_2021 ),* )) => {
         if $self.alt_screen_active {
             $self.alt_screen.$method($( $arg ),*)
         } else {
@@ -2590,7 +2590,9 @@ impl ansi::Handler for TerminalModel {
                 self.is_receiving_in_band_command_output = IsReceivingInBandCommandOutput::No;
             }
             IsReceivingInBandCommandOutput::No => {
-                log::warn!("Received 'end_in_band_command_output' while not expecting to read in-band command output.");
+                log::warn!(
+                    "Received 'end_in_band_command_output' while not expecting to read in-band command output."
+                );
             }
         }
 
@@ -2604,14 +2606,13 @@ impl ansi::Handler for TerminalModel {
         if let Some(SshLogin {
             notification_state, ..
         }) = &self.notify_on_end_of_ssh_login
-        {
-            if matches!(
+            && matches!(
                 notification_state,
                 SshLoginNotificationState::Monitoring
                     | SshLoginNotificationState::SentInitialNotification
-            ) {
-                self.check_for_end_of_ssh_login(false);
-            }
+            )
+        {
+            self.check_for_end_of_ssh_login(false);
         }
 
         let bytes = input.bytes();
@@ -2730,7 +2731,9 @@ impl ansi::Handler for TerminalModel {
                 if let Some(last_item) = output.last_mut() {
                     last_item.update(completion_update);
                 } else {
-                    log::warn!("Received update last completion result OSC before any completion results have been received");
+                    log::warn!(
+                        "Received update last completion result OSC before any completion results have been received"
+                    );
                 }
             }
             IsReceivingCompletionsOutput::Yes {
@@ -2792,7 +2795,9 @@ impl ansi::Handler for TerminalModel {
                 self.handle_completed_iterm_image(pending);
             }
             IsReceivingITermImageData::No => {
-                log::warn!("Received 'end_iterm_image_receiving' while not expecting to read iTerm image chunks.")
+                log::warn!(
+                    "Received 'end_iterm_image_receiving' while not expecting to read iTerm image chunks."
+                )
             }
         }
     }
@@ -2859,7 +2864,9 @@ impl ansi::Handler for TerminalModel {
         );
 
         let IsReceivingKittyActionData::Yes { mut pending } = is_receiving_kitty_image_data else {
-            log::warn!("Received 'end_kitty_action_receiving' while not expecting to read kitty image chunks.");
+            log::warn!(
+                "Received 'end_kitty_action_receiving' while not expecting to read kitty image chunks."
+            );
             return;
         };
 
@@ -2879,10 +2886,10 @@ impl ansi::Handler for TerminalModel {
             Ok(message) => message,
             Err(err) => {
                 log::warn!("{err:?}");
-                if let Some(message_id) = message_id {
-                    if verbosity.send_error() {
-                        let _ = writer.write_all(&create_kitty_error_reply(message_id, err.into()));
-                    }
+                if let Some(message_id) = message_id
+                    && verbosity.send_error()
+                {
+                    let _ = writer.write_all(&create_kitty_error_reply(message_id, err.into()));
                 }
                 return;
             }
@@ -2954,19 +2961,18 @@ impl ansi::Handler for TerminalModel {
 
                 match self.handle_completed_kitty_action(action.clone(), &mut HashMap::new()) {
                     Some(Ok(_)) => {
-                        if let Some(message_id) = message_id {
-                            if verbosity.send_ok() {
-                                let _ = writer.write_all(&create_kitty_ok_reply(message_id));
-                            }
+                        if let Some(message_id) = message_id
+                            && verbosity.send_ok()
+                        {
+                            let _ = writer.write_all(&create_kitty_ok_reply(message_id));
                         }
                     }
                     Some(Err(err)) => {
                         log::warn!("{err:?}");
-                        if let Some(message_id) = message_id {
-                            if verbosity.send_error() {
-                                let _ =
-                                    writer.write_all(&create_kitty_error_reply(message_id, err));
-                            }
+                        if let Some(message_id) = message_id
+                            && verbosity.send_error()
+                        {
+                            let _ = writer.write_all(&create_kitty_error_reply(message_id, err));
                         }
                     }
                     None => {}
@@ -2974,10 +2980,10 @@ impl ansi::Handler for TerminalModel {
             }
             Err(err) => {
                 log::warn!("{err:?}");
-                if let Some(message_id) = message_id {
-                    if verbosity.send_error() {
-                        let _ = writer.write_all(&create_kitty_error_reply(message_id, err));
-                    }
+                if let Some(message_id) = message_id
+                    && verbosity.send_error()
+                {
+                    let _ = writer.write_all(&create_kitty_error_reply(message_id, err));
                 }
             }
         };
@@ -3079,7 +3085,9 @@ enum InBandCommandOutputDecodingError {
     NoContentLengthHeader,
     #[error("DCS content length header is corrupted: {0:?}")]
     ContentLengthHeaderCorrupted(ParseIntError),
-    #[error("Content length header does not match length of received content. Actual: {actual_length}, expected: {expected_length}")]
+    #[error(
+        "Content length header does not match length of received content. Actual: {actual_length}, expected: {expected_length}"
+    )]
     ContentLengthMismatch {
         actual_length: usize,
         expected_length: usize,

@@ -5,8 +5,8 @@ use std::sync::mpsc::SyncSender;
 use chrono::Utc;
 use riftui::{Entity, ModelContext, SingletonEntity};
 
-use crate::persistence::model::Project;
 use crate::persistence::ModelEvent;
+use crate::persistence::model::Project;
 
 #[derive(Debug)]
 pub enum ProjectEvent {

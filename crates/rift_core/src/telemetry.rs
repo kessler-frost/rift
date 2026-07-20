@@ -148,7 +148,7 @@ pub fn all_events() -> impl Iterator<Item = Box<dyn TelemetryEventDesc>> {
 // call sites referencing removed cloud types still compile away.
 #[macro_export]
 macro_rules! send_telemetry_from_ctx {
-    ($event:expr, $ctx:expr) => {{}};
+    ($event:expr_2021, $ctx:expr_2021) => {{}};
 }
 
 /// Sends telemetry `track` event to Rudderstack API asynchronously. This is the same as the
@@ -159,7 +159,7 @@ macro_rules! send_telemetry_from_ctx {
 /// No-op (telemetry disabled in Rift). See [`send_telemetry_from_ctx`].
 #[macro_export]
 macro_rules! send_telemetry_from_app_ctx {
-    ($event:expr, $app_ctx:expr) => {{}};
+    ($event:expr_2021, $app_ctx:expr_2021) => {{}};
 }
 
 /// Gives information about when a telemetry event is enabled.

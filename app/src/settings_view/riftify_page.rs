@@ -14,8 +14,8 @@ use riftui::{
 };
 
 use super::settings_page::{
-    render_alternating_color_list, render_page_title, Category, MatchData, PageType,
-    SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle, SettingsWidget, HEADER_FONT_SIZE,
+    Category, HEADER_FONT_SIZE, MatchData, PageType, SettingsPageEvent, SettingsPageMeta,
+    SettingsPageViewHandle, SettingsWidget, render_alternating_color_list, render_page_title,
 };
 use super::{SettingsAction, SettingsSection, ToggleSettingActionPair};
 use crate::appearance::Appearance;

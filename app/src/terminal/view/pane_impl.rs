@@ -17,11 +17,11 @@ use crate::features::FeatureFlag;
 use crate::menu::{MenuItem, MenuItemFields};
 use crate::pane_group::focus_state::{PaneFocusHandle, PaneGroupFocusEvent, PaneGroupFocusState};
 use crate::pane_group::pane::view::header::components::{
-    header_edge_min_width, render_pane_header_buttons, render_pane_header_title_text,
-    render_three_column_header, CenteredHeaderEdgeWidth,
+    CenteredHeaderEdgeWidth, header_edge_min_width, render_pane_header_buttons,
+    render_pane_header_title_text, render_three_column_header,
 };
 use crate::pane_group::pane::view::header::render_pane_header_draggable;
-use crate::pane_group::pane::{view, PaneStack};
+use crate::pane_group::pane::{PaneStack, view};
 use crate::pane_group::{BackingView, SplitPaneState};
 use crate::terminal::{TerminalManager, TerminalView};
 use crate::ui_components::{blended_colors, icons};

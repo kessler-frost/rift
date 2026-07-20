@@ -2,8 +2,8 @@ use riftui::App;
 use tests::buffer::RangesWhenEditing;
 
 use super::*;
-use crate::editor::tests::{sample_text, RandomCharIter};
 use crate::editor::EditOrigin;
+use crate::editor::tests::{RandomCharIter, sample_text};
 
 #[test]
 fn test_basic_folds() -> Result<()> {

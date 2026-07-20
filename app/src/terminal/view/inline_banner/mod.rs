@@ -14,6 +14,7 @@ pub use notifications_discovery::*;
 pub use notifications_error::*;
 pub use open_in_rift::*;
 use pathfinder_color::ColorU;
+use riftui::Element;
 use riftui::elements::{
     Align, Clipped, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Flex, Icon,
     MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement, Radius, SavePosition,
@@ -22,7 +23,6 @@ use riftui::elements::{
 use riftui::fonts::{FamilyId, Properties, Weight};
 use riftui::ui_components::button::ButtonVariant;
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
-use riftui::Element;
 pub use shell_process_terminated::*;
 pub use ssh::*;
 pub use vim_mode::*;
@@ -32,7 +32,7 @@ use crate::terminal::view::TerminalAction;
 use crate::themes::theme::Blend;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon as UiIcon;
-use crate::util::color::{coloru_with_opacity, ContrastingColor, MinimumAllowedContrast, Opacity};
+use crate::util::color::{ContrastingColor, MinimumAllowedContrast, Opacity, coloru_with_opacity};
 
 pub const INLINE_BANNER_BUTTON_PADDING: f32 = 4.0;
 const INLINE_BANNER_MARGIN: f32 = 20.0;

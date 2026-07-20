@@ -35,13 +35,13 @@ pub(crate) fn ensure_rift_watch_roots_exist() {
     }
 
     let config_local_dir = rift_core::paths::config_local_dir();
-    if config_local_dir != data_dir {
-        if let Err(err) = fs::create_dir_all(&config_local_dir) {
-            log::warn!(
-                "Failed to create Rift config directory {}: {err}",
-                config_local_dir.display()
-            );
-        }
+    if config_local_dir != data_dir
+        && let Err(err) = fs::create_dir_all(&config_local_dir)
+    {
+        log::warn!(
+            "Failed to create Rift config directory {}: {err}",
+            config_local_dir.display()
+        );
     }
 }
 
@@ -178,21 +178,20 @@ impl RiftManagedPathsWatcher {
                     "Rift config directory",
                 );
             }
-            if let Some(rift_home_skills_dir) = rift_home_skills_dir() {
-                if rift_home_skills_dir.exists()
-                    && !rift_home_skills_dir.starts_with(&data_dir)
-                    && (!should_register_config_local_dir
-                        || !rift_home_skills_dir.starts_with(&config_local_dir))
-                {
-                    Self::register_path(
-                        ctx,
-                        &watcher,
-                        rift_home_skills_dir,
-                        WatchFilter::accept_all(),
-                        RecursiveMode::Recursive,
-                        "Rift home skills directory",
-                    );
-                }
+            if let Some(rift_home_skills_dir) = rift_home_skills_dir()
+                && rift_home_skills_dir.exists()
+                && !rift_home_skills_dir.starts_with(&data_dir)
+                && (!should_register_config_local_dir
+                    || !rift_home_skills_dir.starts_with(&config_local_dir))
+            {
+                Self::register_path(
+                    ctx,
+                    &watcher,
+                    rift_home_skills_dir,
+                    WatchFilter::accept_all(),
+                    RecursiveMode::Recursive,
+                    "Rift home skills directory",
+                );
             }
         }
 

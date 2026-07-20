@@ -2,7 +2,7 @@ use std::fs;
 
 use ignore::gitignore::Gitignore;
 
-use super::{matches_gitignores, Entry, IgnoredPathStrategy};
+use super::{Entry, IgnoredPathStrategy, matches_gitignores};
 #[cfg(unix)]
 use crate::StandingQueryContent;
 use crate::{StandingQueryDefinitions, StandingQueryResults};
@@ -407,9 +407,11 @@ fn standing_queries_report_skills_below_an_ignored_directory() {
             &repo.join(".agents/skills/test/SKILL.md"),
         )
         .unwrap();
-        assert!(results
-            .project_skills()
-            .any(|content| content.path == skill_path && !content.is_directory));
+        assert!(
+            results
+                .project_skills()
+                .any(|content| content.path == skill_path && !content.is_directory)
+        );
     });
 }
 
@@ -504,9 +506,11 @@ fn standing_queries_do_not_report_rules_below_an_unloaded_shallow_directory() {
             &repo.join("src/deep/RIFT.md"),
         )
         .unwrap();
-        assert!(!results
-            .project_rules()
-            .any(|content| content.path == rule_path));
+        assert!(
+            !results
+                .project_rules()
+                .any(|content| content.path == rule_path)
+        );
     });
 }
 
@@ -562,12 +566,16 @@ fn shallow_tree_expands_force_included_skill_branch_only() {
             rift_util::standardized_path::StandardizedPath::try_from_local(&skill_path).unwrap();
         let rule_path =
             rift_util::standardized_path::StandardizedPath::try_from_local(&rule_path).unwrap();
-        assert!(results
-            .project_skills()
-            .any(|content| content.path == skill_path && !content.is_directory));
-        assert!(!results
-            .project_rules()
-            .any(|content| content.path == rule_path));
+        assert!(
+            results
+                .project_skills()
+                .any(|content| content.path == skill_path && !content.is_directory)
+        );
+        assert!(
+            !results
+                .project_rules()
+                .any(|content| content.path == rule_path)
+        );
     });
 }
 

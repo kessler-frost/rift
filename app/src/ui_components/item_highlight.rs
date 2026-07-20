@@ -1,8 +1,8 @@
 use pathfinder_color::ColorU;
-use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::Fill;
-use riftui::elements::{CornerRadius, MouseState, Radius};
+use rift_core::ui::theme::color::internal_colors;
 use riftui::Element;
+use riftui::elements::{CornerRadius, MouseState, Radius};
 
 use crate::appearance::Appearance;
 use crate::ui_components::blended_colors;

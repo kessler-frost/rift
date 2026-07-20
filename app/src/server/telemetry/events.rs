@@ -10,7 +10,7 @@ use riftui::keymap::Keystroke;
 use riftui::notification::{NotificationSendError, RequestPermissionsOutcome};
 use riftui::rendering::ThinStrokes;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use strum_macros::{EnumDiscriminants, EnumIter};
 
 use crate::auth::auth_manager::LoginGatedFeature;
@@ -38,8 +38,8 @@ use crate::terminal::view::{
     PromptPart,
 };
 use crate::tips::WelcomeTipFeature;
-use crate::workspace::tab_settings::{TabCloseButtonPosition, WorkspaceDecorationVisibility};
 use crate::workspace::TabMovement;
+use crate::workspace::tab_settings::{TabCloseButtonPosition, WorkspaceDecorationVisibility};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BootstrappingInfo {

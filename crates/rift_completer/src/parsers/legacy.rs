@@ -4,13 +4,13 @@ use command_signatures::{DynamicCompletionData, IsArgumentOptional, Opt, Signatu
 use itertools::Itertools;
 
 use super::hir::{Command, Expression, ShellCommand};
-use super::{parse_unclassified_command, LiteCommand, ParseError};
+use super::{LiteCommand, ParseError, parse_unclassified_command};
 use crate::completer::TopLevelCommandCaseSensitivity;
 use crate::meta::{HasSpan, Span, Spanned, SpannedItem};
 use crate::parsers::hir::Flags;
 use crate::parsers::{
-    parse_arg, parse_dollar_expr, ArgumentError, FlagArgumentsCardinality, FlagSignature,
-    ParsedExpression, ParsedToken,
+    ArgumentError, FlagArgumentsCardinality, FlagSignature, ParsedExpression, ParsedToken,
+    parse_arg, parse_dollar_expr,
 };
 use crate::signatures::CommandRegistry;
 

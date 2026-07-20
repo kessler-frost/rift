@@ -27,15 +27,16 @@ use riftui::elements::{
 use riftui::fonts::{Properties, Weight};
 use riftui::keymap::{ContextPredicate, EnabledPredicate, FixedBinding};
 use riftui::{
-    id, Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView,
-    UpdateView as _, View, ViewContext, ViewHandle,
+    Action, AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView,
+    UpdateView as _, View, ViewContext, ViewHandle, id,
 };
-use settings_file_footer::{render_footer, SettingsFooterKind, SettingsFooterMouseStates};
+use settings_file_footer::{SettingsFooterKind, SettingsFooterMouseStates, render_footer};
 use settings_page::{
-    MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta, SettingsPageViewHandle,
-    HEADER_PADDING,
+    HEADER_PADDING, MatchData, SettingsPage, SettingsPageEvent, SettingsPageMeta,
+    SettingsPageViewHandle,
 };
 
+use crate::GlobalResourceHandlesProvider;
 use crate::appearance::Appearance;
 use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
@@ -46,13 +47,12 @@ use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
 use crate::pane_group::{BackingView, Direction, PaneConfiguration, PaneEvent, SplitPaneState};
 use crate::settings::{BlockVisibilitySettings, SettingsFileError};
-use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::SizeInfo;
+use crate::terminal::model::blockgrid::BlockGrid;
 use crate::ui_components::icons;
-use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
+use crate::util::bindings::{BindingGroup, CustomAction, keybinding_name_to_display_string};
 use crate::view_components::ToastFlavor;
 use crate::workspace::WorkspaceAction;
-use crate::GlobalResourceHandlesProvider;
 
 mod about_page;
 mod appearance_page;
@@ -71,8 +71,8 @@ pub(crate) mod settings_page;
 pub use features_page::FeaturesPageAction;
 pub use privacy_page::PrivacyPageAction;
 pub use settings_page::{
-    render_body_item_label, render_info_icon, render_input_list, render_separator, AdditionalInfo,
-    InputListItem, LocalOnlyIconState, ToggleState,
+    AdditionalInfo, InputListItem, LocalOnlyIconState, ToggleState, render_body_item_label,
+    render_info_icon, render_input_list, render_separator,
 };
 
 /// Original sidebar width used when the settings-file footer is not
@@ -807,7 +807,7 @@ fn next_stop_index(current: usize, len: usize, direction: CycleDirection) -> usi
 }
 
 macro_rules! update_page {
-    ($handle:expr, $update:expr, $ctx:expr) => {
+    ($handle:expr_2021, $update:expr_2021, $ctx:expr_2021) => {
         match $handle {
             SettingsPageViewHandle::Appearance(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::Features(handle) => $ctx.update_view(handle, $update),
@@ -941,10 +941,10 @@ impl SettingsView {
         // Auto-expand the umbrella if the initial page is one of its subpages.
         if initial_page.is_subpage() {
             for item in &mut nav_items {
-                if let SettingsNavItem::Umbrella(umbrella) = item {
-                    if umbrella.contains(initial_page) {
-                        umbrella.expanded = true;
-                    }
+                if let SettingsNavItem::Umbrella(umbrella) = item
+                    && umbrella.contains(initial_page)
+                {
+                    umbrella.expanded = true;
                 }
             }
         }
@@ -1026,10 +1026,10 @@ impl SettingsView {
                 if is_search_active {
                     // Save umbrella expanded state before search modifies it.
                     for item in &mut self.nav_items {
-                        if let SettingsNavItem::Umbrella(umbrella) = item {
-                            if umbrella.pre_search_expanded.is_none() {
-                                umbrella.pre_search_expanded = Some(umbrella.expanded);
-                            }
+                        if let SettingsNavItem::Umbrella(umbrella) = item
+                            && umbrella.pre_search_expanded.is_none()
+                        {
+                            umbrella.pre_search_expanded = Some(umbrella.expanded);
                         }
                     }
 
@@ -1039,10 +1039,10 @@ impl SettingsView {
                 } else {
                     // Search cleared: restore umbrella expanded state.
                     for item in &mut self.nav_items {
-                        if let SettingsNavItem::Umbrella(umbrella) = item {
-                            if let Some(saved) = umbrella.pre_search_expanded.take() {
-                                umbrella.expanded = saved;
-                            }
+                        if let SettingsNavItem::Umbrella(umbrella) = item
+                            && let Some(saved) = umbrella.pre_search_expanded.take()
+                        {
+                            umbrella.expanded = saved;
                         }
                     }
                     self.subpage_filter.clear();
@@ -1288,12 +1288,12 @@ impl SettingsView {
     pub fn search_for_keybinding(&mut self, keybinding_name: &str, ctx: &mut ViewContext<Self>) {
         self.set_and_refresh_current_page(SettingsSection::Keybindings, ctx);
 
-        if let Some(settings_page) = self.current_settings_page() {
-            if let SettingsPageViewHandle::Keybindings(view_handle) = &settings_page.view_handle {
-                view_handle.update(ctx, |view, ctx| {
-                    view.search_for_binding(keybinding_name, ctx);
-                })
-            }
+        if let Some(settings_page) = self.current_settings_page()
+            && let SettingsPageViewHandle::Keybindings(view_handle) = &settings_page.view_handle
+        {
+            view_handle.update(ctx, |view, ctx| {
+                view.search_for_binding(keybinding_name, ctx);
+            })
         }
     }
 
@@ -1357,10 +1357,10 @@ impl SettingsView {
 
             // Auto-expand the umbrella containing this subpage.
             for item in &mut self.nav_items {
-                if let SettingsNavItem::Umbrella(umbrella) = item {
-                    if umbrella.contains(section) {
-                        umbrella.expanded = true;
-                    }
+                if let SettingsNavItem::Umbrella(umbrella) = item
+                    && umbrella.contains(section)
+                {
+                    umbrella.expanded = true;
                 }
             }
         }
@@ -1413,12 +1413,12 @@ impl SettingsView {
         ps1_grid_info: Option<(BlockGrid, SizeInfo)>,
         ctx: &mut ViewContext<Self>,
     ) {
-        if let Some(appearance_page) = self.settings_page(SettingsSection::Appearance) {
-            if let SettingsPageViewHandle::Appearance(view) = &appearance_page.view_handle {
-                view.update(ctx, |view, ctx| {
-                    view.set_ps1_info(ps1_grid_info, ctx);
-                })
-            }
+        if let Some(appearance_page) = self.settings_page(SettingsSection::Appearance)
+            && let SettingsPageViewHandle::Appearance(view) = &appearance_page.view_handle
+        {
+            view.update(ctx, |view, ctx| {
+                view.set_ps1_info(ps1_grid_info, ctx);
+            })
         }
     }
 
@@ -1434,12 +1434,12 @@ impl SettingsView {
     }
 
     pub fn refresh_preferred_graphics_backend_dropdown(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(features_page) = self.settings_page(SettingsSection::Features) {
-            if let SettingsPageViewHandle::Features(view) = &features_page.view_handle {
-                view.update(ctx, |view, ctx| {
-                    view.refresh_preferred_graphics_backend_dropdown(ctx);
-                });
-            }
+        if let Some(features_page) = self.settings_page(SettingsSection::Features)
+            && let SettingsPageViewHandle::Features(view) = &features_page.view_handle
+        {
+            view.update(ctx, |view, ctx| {
+                view.refresh_preferred_graphics_backend_dropdown(ctx);
+            });
         }
     }
 
@@ -1512,11 +1512,11 @@ impl SettingsView {
     }
 
     fn input_tab(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(current_page) = self.current_settings_page() {
-            if let SettingsPageViewHandle::Keybindings(view_handle) = &current_page.view_handle {
-                view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
-            };
-        }
+        if let Some(current_page) = self.current_settings_page()
+            && let SettingsPageViewHandle::Keybindings(view_handle) = &current_page.view_handle
+        {
+            view_handle.update(ctx, |view, ctx| view.on_tab_pressed(ctx));
+        };
     }
 
     pub fn scroll_to_settings_widget(
@@ -1889,39 +1889,39 @@ impl TypedActionView for SettingsView {
                 }
             }
             SettingsAction::AppearancePageToggle(appearance_action) => {
-                if let Some(appearance_page) = self.settings_page(SettingsSection::Appearance) {
-                    if let SettingsPageViewHandle::Appearance(view) = &appearance_page.view_handle {
-                        view.update(ctx, |view, ctx| {
-                            view.handle_action(appearance_action, ctx);
-                        })
-                    }
+                if let Some(appearance_page) = self.settings_page(SettingsSection::Appearance)
+                    && let SettingsPageViewHandle::Appearance(view) = &appearance_page.view_handle
+                {
+                    view.update(ctx, |view, ctx| {
+                        view.handle_action(appearance_action, ctx);
+                    })
                 }
             }
             SettingsAction::FeaturesPageToggle(feature_action) => {
-                if let Some(features_page) = self.settings_page(SettingsSection::Features) {
-                    if let SettingsPageViewHandle::Features(view) = &features_page.view_handle {
-                        view.update(ctx, |view, ctx| {
-                            view.handle_action(feature_action, ctx);
-                        })
-                    }
+                if let Some(features_page) = self.settings_page(SettingsSection::Features)
+                    && let SettingsPageViewHandle::Features(view) = &features_page.view_handle
+                {
+                    view.update(ctx, |view, ctx| {
+                        view.handle_action(feature_action, ctx);
+                    })
                 }
             }
             SettingsAction::PrivacyPageToggle(privacy_action) => {
-                if let Some(privacy_page) = self.settings_page(SettingsSection::Privacy) {
-                    if let SettingsPageViewHandle::Privacy(view) = &privacy_page.view_handle {
-                        view.update(ctx, |view, ctx| {
-                            view.handle_action(privacy_action, ctx);
-                        })
-                    }
+                if let Some(privacy_page) = self.settings_page(SettingsSection::Privacy)
+                    && let SettingsPageViewHandle::Privacy(view) = &privacy_page.view_handle
+                {
+                    view.update(ctx, |view, ctx| {
+                        view.handle_action(privacy_action, ctx);
+                    })
                 }
             }
             SettingsAction::RiftifyPageToggle(riftify_action) => {
-                if let Some(riftify_page) = self.settings_page(SettingsSection::Riftify) {
-                    if let SettingsPageViewHandle::Riftify(view) = &riftify_page.view_handle {
-                        view.update(ctx, |view, ctx| {
-                            view.handle_action(riftify_action, ctx);
-                        })
-                    }
+                if let Some(riftify_page) = self.settings_page(SettingsSection::Riftify)
+                    && let SettingsPageViewHandle::Riftify(view) = &riftify_page.view_handle
+                {
+                    view.update(ctx, |view, ctx| {
+                        view.handle_action(riftify_action, ctx);
+                    })
                 }
             }
             SettingsAction::Tab => self.input_tab(ctx),

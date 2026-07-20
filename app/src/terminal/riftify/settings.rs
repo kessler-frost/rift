@@ -9,7 +9,7 @@ use settings::{
 };
 use strum_macros::EnumIter;
 
-use crate::terminal::ssh::util::{parse_interactive_ssh_command, SshRiftifyCommand};
+use crate::terminal::ssh::util::{SshRiftifyCommand, parse_interactive_ssh_command};
 
 // Cannot directly use Vec<Regex> here b/c Regex doesn't impl Eq, Serialize, and Deserialize.
 maybe_define_setting!(AddedSubshellCommands, group: RiftifySettings, {

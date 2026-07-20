@@ -1,7 +1,7 @@
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::Vector2F;
-use rift_core::ui::appearance::Appearance;
 use rift_core::ui::Icon;
+use rift_core::ui::appearance::Appearance;
 use riftui::elements::{
     Align, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, DropShadow, Flex,
     MainAxisAlignment, ParentElement as _, Radius, Shrinkable,

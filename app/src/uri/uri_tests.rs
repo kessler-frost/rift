@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::*;
-use crate::launch_configs::launch_config::make_mock_single_window_launch_config;
 use crate::ChannelState;
+use crate::launch_configs::launch_config::make_mock_single_window_launch_config;
 
 #[test]
 fn test_find_matching_config() {

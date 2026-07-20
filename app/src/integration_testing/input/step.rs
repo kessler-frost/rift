@@ -1,7 +1,7 @@
 use pathfinder_geometry::vector::Vector2F;
+use riftui::SingletonEntity;
 use riftui::integration::TestStep;
 use riftui::windowing::WindowManager;
-use riftui::SingletonEntity;
 
 use crate::integration_testing::step::new_step_with_default_assertions;
 use crate::integration_testing::terminal::assert_context_menu_is_open;

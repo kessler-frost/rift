@@ -11,8 +11,8 @@ use riftui::fonts::FontInfo;
 use serde::Deserialize;
 
 use super::config::{
-    calculate_accent_color, Config, ConfigError, ImportableSetting, ParseableConfig, SettingType,
-    ThemeType,
+    Config, ConfigError, ImportableSetting, ParseableConfig, SettingType, ThemeType,
+    calculate_accent_color,
 };
 use crate::settings::import::config::ThemeError;
 

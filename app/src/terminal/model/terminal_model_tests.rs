@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use rift_core::command::ExitCode;
 use rift_terminal::model::ansi::ClearMode;
-use riftui::text::{str_to_byte_vec, SelectionType};
+use riftui::text::{SelectionType, str_to_byte_vec};
 use vec1::vec1;
 
 use super::*;

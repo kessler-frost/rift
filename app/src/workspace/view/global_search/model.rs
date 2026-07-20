@@ -10,8 +10,8 @@ use riftui::r#async::SpawnedFutureHandle;
 use riftui::{Entity, ModelContext, ModelSpawner};
 use string_offset::ByteOffset;
 
-use crate::workspace::view::global_search::view::GlobalSearchEvent;
 use crate::workspace::view::global_search::SearchConfig;
+use crate::workspace::view::global_search::view::GlobalSearchEvent;
 
 const START_BATCH_AFTER_COUNT: usize = 50;
 const MAX_BATCH_SIZE: usize = 512;

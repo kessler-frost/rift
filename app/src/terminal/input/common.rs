@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use rift_completer::completer::Description;
+use riftui::AppContext;
 use riftui::elements::{
     AnchorPair, Border, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, Element, EventHandler, Flex, OffsetPositioning, OffsetType, ParentElement,
@@ -9,12 +10,11 @@ use riftui::elements::{
 };
 use riftui::fonts::Weight;
 use riftui::ui_components::components::{UiComponent, UiComponentStyles};
-use riftui::AppContext;
 
 use crate::appearance::Appearance;
 use crate::terminal::input::{Input, InputAction, InputSuggestionsMode, MenuPositioning};
 use crate::terminal::model::TerminalModel;
-use crate::terminal::view::{TerminalAction, PADDING_LEFT};
+use crate::terminal::view::{PADDING_LEFT, TerminalAction};
 
 /// Whether the terminal input message bar should be shown.
 ///

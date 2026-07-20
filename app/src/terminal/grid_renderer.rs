@@ -11,13 +11,13 @@ use num_traits::Float as _;
 use rift_core::features::FeatureFlag;
 use riftui::assets::asset_cache::{AssetCache, AssetSource, AssetState};
 use riftui::color::ColorU;
-use riftui::elements::{Border, CornerRadius, Fill, Radius, DEFAULT_UI_LINE_HEIGHT_RATIO};
+use riftui::elements::{Border, CornerRadius, DEFAULT_UI_LINE_HEIGHT_RATIO, Fill, Radius};
 use riftui::fonts::{FamilyId, FontId, Properties, Style, Weight};
 use riftui::geometry::rect::RectF;
-use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::geometry::vector::{Vector2F, vec2f};
 use riftui::image_cache::{AnimatedImageBehavior, CacheOption, FitType, Image, ImageCache};
 use riftui::platform::LineStyle;
-use riftui::text_layout::{Line, StyleAndFont, TextStyle, DEFAULT_TOP_BOTTOM_RATIO};
+use riftui::text_layout::{DEFAULT_TOP_BOTTOM_RATIO, Line, StyleAndFont, TextStyle};
 use riftui::units::{IntoLines as _, Lines, Pixels};
 use riftui::{AppContext, Element, EntityId, PaintContext, Scene, SingletonEntity};
 use unicode_width::UnicodeWidthChar;
@@ -27,8 +27,8 @@ use self::cell_type::{CellType, IsFocused, Secret};
 use super::block_filter::{BLOCK_FILTER_DOTTED_LINE_DASH, BLOCK_FILTER_DOTTED_LINE_WIDTH};
 use super::blockgrid_renderer::GridRenderParams;
 use super::model::char_or_str::CharOrStr;
-use super::model::grid::grid_handler::{ContainsPoint, GridHandler, Link};
 use super::model::grid::RespectDisplayedOutput;
+use super::model::grid::grid_handler::{ContainsPoint, GridHandler, Link};
 use super::model::image_map::{ImagePlacementData, StoredImageMetadata};
 use super::model::terminal_model::RangeInModel;
 use crate::settings::EnforceMinimumContrast;
@@ -39,7 +39,7 @@ use crate::terminal::model::grid::Dimensions;
 use crate::terminal::model::index::Point;
 use crate::terminal::model::selection::SelectionPoint;
 use crate::terminal::model::{ObfuscateSecrets, SecretHandle};
-use crate::terminal::{color, SizeInfo};
+use crate::terminal::{SizeInfo, color};
 use crate::themes::theme::RiftTheme;
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
 
@@ -90,7 +90,7 @@ impl ColorSampler {
     pub fn most_common(&self) -> Option<ColorU> {
         self.counts
             .iter()
-            .max_by_key(|(_, &count)| count)
+            .max_by_key(|&(_, &count)| count)
             .map(|(&color, _)| color)
     }
 
@@ -754,21 +754,20 @@ fn render_grid_without_ligatures<'a>(
                 has_seen_cell_in_link = true;
             }
 
-            if obfuscate_secrets.should_redact_secret() {
-                if let Some((handle, secret)) =
+            if obfuscate_secrets.should_redact_secret()
+                && let Some((handle, secret)) =
                     grid.secret_at_displayed_point(Point::new(offset_row, col))
-                {
-                    let range = secret.range();
-                    if row_idx == range.start().row && col == range.start().col {
-                        first_cell_in_secret = FirstCellInSecret::Yes { handle };
-                    }
-                    cell_type.secret = Some(Secret {
-                        hovered: hovered_secret_range
-                            .as_ref()
-                            .is_some_and(|r| r.contains(&Point::new(row_idx, col))),
-                        is_obfuscated: secret.is_obfuscated(),
-                    });
+            {
+                let range = secret.range();
+                if row_idx == range.start().row && col == range.start().col {
+                    first_cell_in_secret = FirstCellInSecret::Yes { handle };
                 }
+                cell_type.secret = Some(Secret {
+                    hovered: hovered_secret_range
+                        .as_ref()
+                        .is_some_and(|r| r.contains(&Point::new(row_idx, col))),
+                    is_obfuscated: secret.is_obfuscated(),
+                });
             }
 
             let cursor_color = (grid.cursor_point() == Point::new(offset_row, col)
@@ -1275,21 +1274,20 @@ fn render_grid_with_ligatures<'a>(
                 has_seen_cell_in_link = true;
             }
 
-            if obfuscate_secrets.should_redact_secret() {
-                if let Some((handle, secret)) =
+            if obfuscate_secrets.should_redact_secret()
+                && let Some((handle, secret)) =
                     grid.secret_at_displayed_point(Point::new(offset_row, col))
-                {
-                    let range = secret.range();
-                    if row_idx == range.start().row && col == range.start().col {
-                        first_cell_in_secret = FirstCellInSecret::Yes { handle };
-                    }
-                    cell_type.secret = Some(Secret {
-                        hovered: hovered_secret_range
-                            .as_ref()
-                            .is_some_and(|r| r.contains(&Point::new(row_idx, col))),
-                        is_obfuscated: secret.is_obfuscated(),
-                    });
+            {
+                let range = secret.range();
+                if row_idx == range.start().row && col == range.start().col {
+                    first_cell_in_secret = FirstCellInSecret::Yes { handle };
                 }
+                cell_type.secret = Some(Secret {
+                    hovered: hovered_secret_range
+                        .as_ref()
+                        .is_some_and(|r| r.contains(&Point::new(row_idx, col))),
+                    is_obfuscated: secret.is_obfuscated(),
+                });
             }
 
             let cursor_color = (grid.cursor_point() == Point::new(offset_row, col)

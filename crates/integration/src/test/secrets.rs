@@ -17,7 +17,7 @@ use rift::terminal::model::terminal_model::WithinModel;
 use riftui_core::async_assert;
 use riftui_core::integration::TestStep;
 
-use super::{new_builder, Builder};
+use super::{Builder, new_builder};
 use crate::util::skip_if_powershell_core_2303;
 
 pub fn test_secret_is_obfuscated_on_copy() -> Builder {

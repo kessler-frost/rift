@@ -62,7 +62,7 @@ impl FileTreeEntry {
     pub fn child_paths(
         &self,
         path: &StandardizedPath,
-    ) -> impl Iterator<Item = &Arc<StandardizedPath>> {
+    ) -> impl Iterator<Item = &Arc<StandardizedPath>> + use<'_> {
         self.state_map.children(path)
     }
 
@@ -235,7 +235,10 @@ impl FileTreeEntry {
                     if let Some(parent) = self.find_parent_directory(&dir.path) {
                         self.insert_child_state(&parent, state);
                     } else {
-                        log::warn!("Could not find parent directory for node during incremental update: {:?}", dir.path);
+                        log::warn!(
+                            "Could not find parent directory for node during incremental update: {:?}",
+                            dir.path
+                        );
                     }
                 }
                 RepoNodeMetadata::File(file) => {
@@ -253,7 +256,10 @@ impl FileTreeEntry {
                         if let Some(parent) = self.find_parent_directory(&file.path) {
                             self.insert_child_state(&parent, state);
                         } else {
-                            log::warn!("Could not find parent directory for node during incremental update: {:?}", file.path);
+                            log::warn!(
+                                "Could not find parent directory for node during incremental update: {:?}",
+                                file.path
+                            );
                         }
                     }
                 }

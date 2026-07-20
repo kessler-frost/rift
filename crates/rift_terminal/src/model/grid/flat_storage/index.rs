@@ -29,8 +29,8 @@ use string_offset::ByteOffset;
 use thiserror::Error;
 
 use super::grapheme::Grapheme;
-use crate::model::grid::CellType;
 use crate::model::Point;
+use crate::model::grid::CellType;
 
 #[derive(Debug, Clone, GetSize)]
 /// A structure to help index into a grid's content by (soft-wrapped) row.
@@ -453,7 +453,9 @@ pub enum ContentOffsetToPointError {
 #[derive(Debug, Error)]
 pub enum PointFromContentOffsetError {
     /// The provided offset is before the start of the first row.
-    #[error("Offset {offset} is before the start of the first row (first row starts at {first_row_offset})")]
+    #[error(
+        "Offset {offset} is before the start of the first row (first row starts at {first_row_offset})"
+    )]
     OffsetBeforeFirstRow {
         offset: ByteOffset,
         first_row_offset: ByteOffset,

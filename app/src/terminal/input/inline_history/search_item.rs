@@ -1,8 +1,8 @@
 use chrono::{DateTime, Local};
 use ordered_float::OrderedFloat;
+use rift_core::ui::Icon;
 use rift_core::ui::color::coloru_with_opacity;
 use rift_core::ui::theme::Fill;
-use rift_core::ui::Icon;
 use riftui::elements::{ConstrainedBox, Container, Highlight, ParentElement, Shrinkable, Text};
 use riftui::fonts::{Properties, Weight};
 use riftui::prelude::{Align, CrossAxisAlignment, Flex, MainAxisAlignment, MainAxisSize};

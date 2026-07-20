@@ -1,6 +1,6 @@
 use rift_core::ui::appearance::Appearance;
-use riftui::elements::Icon;
 use riftui::Element;
+use riftui::elements::Icon;
 
 use crate::search::result_renderer::ItemHighlightState;
 

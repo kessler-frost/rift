@@ -1,7 +1,7 @@
+use riftui_core::r#async::LocalBoxFuture;
 use riftui_core::integration::TestDriver;
 use riftui_core::keymap::{CustomTag, Keystroke};
 pub use riftui_core::platform::app::*;
-use riftui_core::r#async::LocalBoxFuture;
 use riftui_core::{AppContext, AssetProvider};
 
 use super::AsInnerMut;

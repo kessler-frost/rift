@@ -1,10 +1,10 @@
-use std::fs::{create_dir_all, write, OpenOptions};
+use std::fs::{OpenOptions, create_dir_all, write};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use itertools::Itertools as _;
 use rift::integration_testing::terminal::util::{
-    current_shell_starter_and_version, default_histfile_directory, ExpectedOutput,
+    ExpectedOutput, current_shell_starter_and_version, default_histfile_directory,
 };
 use rift::integration_testing::view_getters;
 use rift::terminal::shell;

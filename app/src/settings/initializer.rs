@@ -55,9 +55,11 @@ impl SettingsInitializer {
             if cfg!(windows) {
                 log::debug!("Setting default font size to 16px (12pt) for a new Windows user");
                 FontSettings::handle(ctx).update(ctx, |settings, ctx| {
-                    report_if_error!(settings
-                        .monospace_font_size
-                        .set_value(DEFAULT_WINDOWS_MONOSPACE_FONT_SIZE, ctx));
+                    report_if_error!(
+                        settings
+                            .monospace_font_size
+                            .set_value(DEFAULT_WINDOWS_MONOSPACE_FONT_SIZE, ctx)
+                    );
                 })
             }
 
@@ -66,9 +68,11 @@ impl SettingsInitializer {
                     && *settings.input_box_type.value() == InputBoxType::Classic
                 {
                     log::debug!("Setting default input type to Rift prompt for new user");
-                    report_if_error!(settings
-                        .input_box_type
-                        .set_value(InputBoxType::Universal, ctx));
+                    report_if_error!(
+                        settings
+                            .input_box_type
+                            .set_value(InputBoxType::Universal, ctx)
+                    );
                     ctx.notify();
                     return true;
                 }

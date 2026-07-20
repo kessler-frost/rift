@@ -36,28 +36,28 @@ use rift_util::path::ShellFamily;
 use rift_util::user_input::UserInput;
 use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::actions::StandardAction;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
 use riftui::clipboard::ClipboardContent;
 use riftui::elements::{
-    CornerRadius, Hoverable, MouseStateHandle, Radius, DEFAULT_UI_LINE_HEIGHT_RATIO,
+    CornerRadius, DEFAULT_UI_LINE_HEIGHT_RATIO, Hoverable, MouseStateHandle, Radius,
 };
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties, Weight};
 use riftui::keymap::{EditableBinding, FixedBinding, Keystroke, PerPlatformKeystroke};
 use riftui::platform::{Cursor, FilePickerConfiguration, OperatingSystem};
-use riftui::r#async::{SpawnedFutureHandle, Timer};
-use riftui::text::word_boundaries::WordBoundariesPolicy;
 use riftui::text::TextBuffer;
+use riftui::text::word_boundaries::WordBoundariesPolicy;
 use riftui::text_layout::TextStyle;
 use riftui::ui_components::components::UiComponentStyles;
 use riftui::windowing::WindowManager;
 use riftui::{
-    windowing, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId, FocusContext,
-    ModelAsRef, ModelContext, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
-    ViewHandle, WindowId,
+    AppContext, BlurContext, CursorInfo, Element, Entity, EntityId, FocusContext, ModelAsRef,
+    ModelContext, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
+    WindowId, windowing,
 };
 use settings::Setting as _;
 use snapshot::{EditorHeightShrinkDelay, ViewSnapshot};
 use string_offset::{ByteOffset, CharOffset};
-use vec1::{vec1, Vec1};
+use vec1::{Vec1, vec1};
 use vim::vim::{
     BracketChar, CharacterMotion, Direction, FindCharMotion, FirstNonWhitespaceMotion,
     InsertPosition, LineMotion, ModeTransition, MotionType, TextObjectInclusion, TextObjectType,
@@ -81,13 +81,13 @@ pub use {
 };
 
 use self::model::{LocalSelections, Selection, UpdateBufferOption};
-use super::soft_wrap::{ClampDirection, DisplayPointAndClampDirection};
 use super::Point;
+use super::soft_wrap::{ClampDirection, DisplayPointAndClampDirection};
 use crate::appearance::Appearance;
 use crate::channel::{Channel, ChannelState};
+use crate::editor::RangeExt;
 use crate::editor::accept_autosuggestion_keybinding_view::AcceptAutosuggestionKeybinding;
 use crate::editor::autosuggestion_ignore_view::{AutosuggestionIgnore, AutosuggestionIgnoreEvent};
-use crate::editor::RangeExt;
 use crate::features::FeatureFlag;
 use crate::settings::{
     AppEditorSettings, AppEditorSettingsChangedEvent, CursorBlink, CursorDisplayType,
@@ -97,10 +97,10 @@ use crate::settings_view::flags;
 use crate::terminal::grid_size_util::grid_cell_dimensions;
 use crate::themes::theme::Fill;
 use crate::ui_components::avatar::{Avatar, AvatarContent};
-use crate::util::bindings::{cmd_or_ctrl_shift, keybinding_name_to_keystroke, CustomAction};
+use crate::util::bindings::{CustomAction, cmd_or_ctrl_shift, keybinding_name_to_keystroke};
 use crate::util::clipboard::clipboard_content_with_escaped_paths;
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
-use crate::util::image::{resize_image, MAX_IMAGE_COUNT_FOR_QUERY, MAX_IMAGE_SIZE_BYTES};
+use crate::util::image::{MAX_IMAGE_COUNT_FOR_QUERY, MAX_IMAGE_SIZE_BYTES, resize_image};
 use crate::util::merge_ranges;
 use crate::view_components::DismissibleToast;
 use crate::vim_registers::{RegisterContent, VimRegisters};
@@ -7140,15 +7140,15 @@ impl EditorView {
     /// TODO: ideally, this wouldn't be treated as a separate 'edit' from the 'edit' that was
     /// produced by the initial user-action.
     fn vim_maybe_enforce_cursor_line_cap(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(VimMode::Normal) = self.vim_mode(ctx) {
-            if self.editor_model.as_ref(ctx).vim_needs_line_capping(ctx) {
-                self.edit(
-                    ctx,
-                    Edits::new().with_change_selections(|model, ctx| {
-                        model.vim_enforce_cursor_line_cap(ctx);
-                    }),
-                );
-            }
+        if let Some(VimMode::Normal) = self.vim_mode(ctx)
+            && self.editor_model.as_ref(ctx).vim_needs_line_capping(ctx)
+        {
+            self.edit(
+                ctx,
+                Edits::new().with_change_selections(|model, ctx| {
+                    model.vim_enforce_cursor_line_cap(ctx);
+                }),
+            );
         }
     }
 

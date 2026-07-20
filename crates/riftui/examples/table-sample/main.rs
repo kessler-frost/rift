@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use pathfinder_geometry::vector::vec2f;
 pub mod root_view;
 
 extern crate riftui;
 use riftui::platform::WindowBounds;
-use riftui::{platform, AssetProvider};
+use riftui::{AssetProvider, platform};
 use rust_embed::RustEmbed;
 
 #[derive(Clone, Copy, RustEmbed)]

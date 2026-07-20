@@ -2,21 +2,21 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
+use std::sync::mpsc::SyncSender;
 
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use markdown_parser::FormattedTextFragment;
 use parking_lot::FairMutex;
 use pathfinder_geometry::rect::RectF;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use rift_core::command::ExitCode;
 use rift_core::context_flag::ContextFlag;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
-use rift_util::path::convert_wsl_to_windows_host_path;
 #[cfg(feature = "local_fs")]
 use rift_util::path::LineAndColumnArg;
+use rift_util::path::convert_wsl_to_windows_host_path;
 use rift_util::remote_path::RemotePath;
 use riftui::elements::{
     ChildView, CrossAxisAlignment, DispatchEventResult, Element, EventHandler, Flex, MainAxisSize,
@@ -45,13 +45,13 @@ use crate::features::FeatureFlag;
 use crate::launch_configs::launch_config::{self, PaneTemplateType};
 use crate::palette::PaletteMode;
 use crate::pane_group::focus_state::PaneGroupFocusEvent;
+use crate::pane_group::pane::ActionOrigin;
 use crate::pane_group::pane::get_started_pane::GetStartedPane;
 use crate::pane_group::pane::welcome_pane::WelcomePane;
-use crate::pane_group::pane::ActionOrigin;
 use crate::persistence::ModelEvent;
 use crate::quit_warning::UnsavedStateSummary;
 use crate::resource_center::{
-    mark_feature_used_and_write_to_user_defaults, Tip, TipAction, TipsCompleted,
+    Tip, TipAction, TipsCompleted, mark_feature_used_and_write_to_user_defaults,
 };
 use crate::server::telemetry::{AnonymousUserSignupEntrypoint, PaletteSource};
 use crate::session_management::SessionNavigationData;
@@ -68,7 +68,7 @@ use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::view::{BlockNotification, ExecuteCommandEvent, SyncEvent, TerminalViewState};
 use crate::terminal::{ShellLaunchData, TerminalManager, TerminalModel, TerminalView};
 use crate::undo_close::{UndoCloseStack, UndoCloseStackEvent};
-use crate::util::bindings::{is_binding_pty_compliant, CustomAction};
+use crate::util::bindings::{CustomAction, is_binding_pty_compliant};
 #[cfg(feature = "local_fs")]
 use crate::util::openable_file_type::FileTarget;
 use crate::view_components::ToastFlavor;
@@ -1201,16 +1201,14 @@ impl PaneGroup {
         };
 
         if let (Ok((pane_data, _)), Some(title)) = (&result, custom_vertical_tabs_title.as_deref())
+            && let PaneNode::Leaf(pane_id) = &pane_data.root
+            && let Some(pane) = pane_contents.get(pane_id)
         {
-            if let PaneNode::Leaf(pane_id) = &pane_data.root {
-                if let Some(pane) = pane_contents.get(pane_id) {
-                    pane.as_pane()
-                        .pane_configuration()
-                        .update(ctx, |configuration, ctx| {
-                            configuration.set_custom_vertical_tabs_title(title, ctx);
-                        });
-                }
-            }
+            pane.as_pane()
+                .pane_configuration()
+                .update(ctx, |configuration, ctx| {
+                    configuration.set_custom_vertical_tabs_title(title, ctx);
+                });
         }
 
         result
@@ -1223,11 +1221,11 @@ impl PaneGroup {
                     .nodes
                     .iter()
                     .filter_map(|(flex, node)| {
-                        if let PaneNode::Leaf(pane_id) = node {
-                            if self.panes.is_hidden_closed_pane(pane_id) {
-                                // Don't snapshot hidden panes (undo, move, job).
-                                return None;
-                            }
+                        if let PaneNode::Leaf(pane_id) = node
+                            && self.panes.is_hidden_closed_pane(pane_id)
+                        {
+                            // Don't snapshot hidden panes (undo, move, job).
+                            return None;
                         }
                         Some((
                             app_state::PaneFlex(flex.0),
@@ -1274,10 +1272,11 @@ impl PaneGroup {
 
                 // After substitution, propagate the visible leaf's
                 // active-session bit so restore focuses the right pane.
-                if is_substituted && visible_leaf_is_active_session {
-                    if let LeafContents::Terminal(ref mut snapshot) = contents {
-                        snapshot.is_active = true;
-                    }
+                if is_substituted
+                    && visible_leaf_is_active_session
+                    && let LeafContents::Terminal(ref mut snapshot) = contents
+                {
+                    snapshot.is_active = true;
                 }
                 let custom_vertical_tabs_title =
                     self.pane_contents.get(&snapshot_pane_id).and_then(|pane| {
@@ -1305,10 +1304,10 @@ impl PaneGroup {
         ctx: &AppContext,
     ) -> Option<PaneId> {
         for pane_id in self.pane_contents.keys() {
-            if let Some(terminal_pane) = self.downcast_pane_by_id::<TerminalPane>(*pane_id) {
-                if terminal_pane.terminal_view(ctx).id() == terminal_view_id {
-                    return Some(*pane_id);
-                }
+            if let Some(terminal_pane) = self.downcast_pane_by_id::<TerminalPane>(*pane_id)
+                && terminal_pane.terminal_view(ctx).id() == terminal_view_id
+            {
+                return Some(*pane_id);
             }
         }
         None
@@ -1356,8 +1355,8 @@ impl PaneGroup {
     pub fn selected_text_from_focused_pane(&self, ctx: &AppContext) -> Option<String> {
         let focused_pane_id = self.focused_pane_id(ctx);
 
-        let text =
-            if let Some(terminal_view) = self.terminal_view_from_pane_id(focused_pane_id, ctx) {
+        let text = match self.terminal_view_from_pane_id(focused_pane_id, ctx) {
+            Some(terminal_view) => {
                 // NOTE: We currently don't have a way to track recency of selection events.
                 // In lieu of this, we prefer selections to the input editor over the terminal view.
                 // TODO(vkodithala): Once we have a way to track recency of selection events, we should use that instead.
@@ -1365,9 +1364,9 @@ impl PaneGroup {
                     .as_ref(ctx)
                     .selected_text_from_input(ctx)
                     .or_else(|| terminal_view.as_ref(ctx).selected_text(ctx))
-            } else {
-                None
-            };
+            }
+            _ => None,
+        };
 
         text.filter(|text: &String| !text.is_empty())
     }
@@ -2436,23 +2435,22 @@ impl PaneGroup {
     /// Restore a pane that was closed by showing it, attaching it, and focusing it.
     /// Returns true if the pane was successfully restored, false otherwise.
     pub fn restore_closed_pane(&mut self, pane_id: PaneId, ctx: &mut ViewContext<Self>) -> bool {
-        if self.unhide_closed_pane(pane_id, ctx) {
-            if let Some(pane_content) = self
+        if self.unhide_closed_pane(pane_id, ctx)
+            && let Some(pane_content) = self
                 .pane_contents
                 .get(&pane_id)
                 .map(|content| content.as_ref())
-            {
-                if !self.try_attach_pane(pane_content, ctx) {
-                    self.cleanup_closed_pane(pane_id, ctx);
-                    return false;
-                }
-
-                self.focus_pane_and_record_in_history(pane_id, ctx);
-
-                ctx.emit(Event::TerminalViewStateChanged);
-                ctx.emit(Event::AppStateChanged);
-                return true;
+        {
+            if !self.try_attach_pane(pane_content, ctx) {
+                self.cleanup_closed_pane(pane_id, ctx);
+                return false;
             }
+
+            self.focus_pane_and_record_in_history(pane_id, ctx);
+
+            ctx.emit(Event::TerminalViewStateChanged);
+            ctx.emit(Event::AppStateChanged);
+            return true;
         }
         false
     }
@@ -2501,10 +2499,11 @@ impl PaneGroup {
                 }
             });
 
-        if let Some(id) = candidate {
-            if self.has_pane_id(id) && !self.is_pane_hidden_for_close(id) {
-                return Some(id);
-            }
+        if let Some(id) = candidate
+            && self.has_pane_id(id)
+            && !self.is_pane_hidden_for_close(id)
+        {
+            return Some(id);
         }
 
         // Fall back to the most recently focused pane that still exists and is visible.
@@ -2597,18 +2596,18 @@ impl PaneGroup {
     }
 
     fn navigate_prev_pane(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(id) = self.prev_pane_id_navigation(self.focused_pane_id(ctx)) {
-            if self.focus_pane(id, true, ctx) {
-                ctx.emit(Event::AppStateChanged);
-            }
+        if let Some(id) = self.prev_pane_id_navigation(self.focused_pane_id(ctx))
+            && self.focus_pane(id, true, ctx)
+        {
+            ctx.emit(Event::AppStateChanged);
         }
     }
 
     fn navigate_next_pane(&mut self, ctx: &mut ViewContext<Self>) {
-        if let Some(id) = self.next_pane_id(self.focused_pane_id(ctx)) {
-            if self.focus_pane(id, true, ctx) {
-                ctx.emit(Event::AppStateChanged);
-            }
+        if let Some(id) = self.next_pane_id(self.focused_pane_id(ctx))
+            && self.focus_pane(id, true, ctx)
+        {
+            ctx.emit(Event::AppStateChanged);
         }
     }
 
@@ -2721,12 +2720,9 @@ impl PaneGroup {
         let pane_id = self
             .pane_contents
             .keys()
-            .find(|id| {
-                if let Some(terminal_view) = self.terminal_view_from_pane_id(**id, ctx) {
-                    terminal_view_id == terminal_view.id()
-                } else {
-                    false
-                }
+            .find(|id| match self.terminal_view_from_pane_id(**id, ctx) {
+                Some(terminal_view) => terminal_view_id == terminal_view.id(),
+                _ => false,
             })
             .cloned();
 
@@ -2861,9 +2857,11 @@ impl PaneGroup {
                     });
 
                 GeneralSettings::handle(ctx).update(ctx, |general_settings, ctx| {
-                    report_if_error!(general_settings
-                        .user_default_shell_unsupported_banner_state
-                        .set_value(BannerState::Dismissed, ctx));
+                    report_if_error!(
+                        general_settings
+                            .user_default_shell_unsupported_banner_state
+                            .set_value(BannerState::Dismissed, ctx)
+                    );
                 });
             }
             BannerEvent::Action(_) => {
@@ -3212,11 +3210,10 @@ impl PaneGroup {
         if let Some(idx) = pane_ids
             .iter()
             .position(|pane_id| *pane_id == self.focused_pane_id(ctx))
+            && idx < pane_ids.len() - 1
         {
-            if idx < pane_ids.len() - 1 {
-                self.navigate_next_pane(ctx);
-                return true;
-            }
+            self.navigate_next_pane(ctx);
+            return true;
         }
 
         false
@@ -3232,11 +3229,10 @@ impl PaneGroup {
         if let Some(idx) = pane_ids
             .iter()
             .position(|pane_id| *pane_id == self.focused_pane_id(ctx))
+            && idx > 0
         {
-            if idx > 0 {
-                self.navigate_prev_pane(ctx);
-                return true;
-            }
+            self.navigate_prev_pane(ctx);
+            return true;
         }
 
         false
@@ -3339,10 +3335,10 @@ impl PaneGroup {
     pub fn focus_active_session(&mut self, ctx: &mut ViewContext<Self>) {
         self.update_session_visibility(ctx);
 
-        if let Some(session_id) = self.active_session_id(ctx) {
-            if self.focus_pane(session_id.into(), true, ctx) {
-                ctx.emit(Event::AppStateChanged);
-            }
+        if let Some(session_id) = self.active_session_id(ctx)
+            && self.focus_pane(session_id.into(), true, ctx)
+        {
+            ctx.emit(Event::AppStateChanged);
         }
     }
 
@@ -3627,23 +3623,23 @@ impl PaneGroup {
     /// receiving focus.
     fn handle_focus_change(&mut self, ctx: &mut ViewContext<Self>) {
         for pane_index in 0..self.pane_count() {
-            if let Some(content) = self.pane_by_index(pane_index) {
-                if content.has_application_focus(ctx) {
-                    if let Some(pane_id) = self.pane_id_from_index(pane_index) {
-                        // Mark the pane as the focused pane _without_ moving
-                        // application focus to it.
-                        //
-                        // DO NOT CHANGE FALSE TO TRUE HERE!  It can create an
-                        // infinite loop of panes getting focused.  This
-                        // codepath should only be invoked when focus has
-                        // already changed, so we only want to update our own
-                        // state, and not manipulate application focus.
-                        self.focus_pane(pane_id, false, ctx);
-                        self.update_pane_history(pane_id);
-                        ctx.emit(Event::PaneFocused);
-                    };
-                    break;
-                }
+            if let Some(content) = self.pane_by_index(pane_index)
+                && content.has_application_focus(ctx)
+            {
+                if let Some(pane_id) = self.pane_id_from_index(pane_index) {
+                    // Mark the pane as the focused pane _without_ moving
+                    // application focus to it.
+                    //
+                    // DO NOT CHANGE FALSE TO TRUE HERE!  It can create an
+                    // infinite loop of panes getting focused.  This
+                    // codepath should only be invoked when focus has
+                    // already changed, so we only want to update our own
+                    // state, and not manipulate application focus.
+                    self.focus_pane(pane_id, false, ctx);
+                    self.update_pane_history(pane_id);
+                    ctx.emit(Event::PaneFocused);
+                };
+                break;
             }
         }
     }
@@ -3661,11 +3657,12 @@ impl TypedActionView for PaneGroup {
         match action {
             Add(direction) => {
                 let chosen_shell = {
-                    if let Some(model) = self.active_session_terminal_model(ctx) {
-                        let model = model.lock();
-                        model.shell_launch_state().available_shell()
-                    } else {
-                        None
+                    match self.active_session_terminal_model(ctx) {
+                        Some(model) => {
+                            let model = model.lock();
+                            model.shell_launch_state().available_shell()
+                        }
+                        _ => None,
                     }
                 };
                 self.add_terminal_pane(*direction, chosen_shell, ctx);
@@ -3764,16 +3761,15 @@ impl View for PaneGroup {
         let mut stack = Stack::new().with_child(column.finish());
 
         // Render auth-secret delete confirmation at tab level when open.
-        if let Some(pane_id) = self.pane_with_open_auth_secret_delete_confirmation_dialog {
-            if let Some(dialog) = self
+        if let Some(pane_id) = self.pane_with_open_auth_secret_delete_confirmation_dialog
+            && let Some(dialog) = self
                 .terminal_view_from_pane_id(pane_id, app)
                 .and_then(|tv| {
                     tv.as_ref(app)
                         .auth_secret_delete_confirmation_dialog_element(app)
                 })
-            {
-                stack.add_child(dialog);
-            }
+        {
+            stack.add_child(dialog);
         }
 
         stack.finish()

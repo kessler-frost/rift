@@ -5,8 +5,8 @@ use std::sync::{Arc, Weak};
 
 use parking_lot::Mutex;
 
-use super::context::ViewContext;
 use super::View;
+use super::context::ViewContext;
 use crate::core::RefCounts;
 use crate::{AppContext, EntityId, WindowId};
 
@@ -178,10 +178,10 @@ impl AnyViewHandle {
     }
 
     pub fn downcast<T: View>(self) -> Option<ViewHandle<T>> {
-        if self.is::<T>() {
-            if let Some(ref_counts) = self.ref_counts.upgrade() {
-                return Some(ViewHandle::new(self.window_id, self.view_id, &ref_counts));
-            }
+        if self.is::<T>()
+            && let Some(ref_counts) = self.ref_counts.upgrade()
+        {
+            return Some(ViewHandle::new(self.window_id, self.view_id, &ref_counts));
         }
         None
     }

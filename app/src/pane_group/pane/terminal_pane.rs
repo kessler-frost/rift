@@ -17,8 +17,8 @@ use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::view::Event;
 use crate::terminal::{TerminalManager, TerminalView};
 use crate::view_components::ToastFlavor;
-use crate::workspace::sync_inputs::SyncedInputState;
 use crate::workspace::PaneViewLocator;
+use crate::workspace::sync_inputs::SyncedInputState;
 
 pub type TerminalPaneView = PaneView<TerminalView>;
 
@@ -169,14 +169,13 @@ impl PaneContent for TerminalPane {
         });
 
         if SyncedInputState::as_ref(ctx).should_sync_this_pane_group(ctx.view_id(), ctx.window_id())
+            && let Some(active_pane_view) = group.active_session_view(ctx)
         {
-            if let Some(active_pane_view) = group.active_session_view(ctx) {
-                let event = active_pane_view
-                    .as_ref(ctx)
-                    .create_sync_event_based_on_terminal_state(ctx);
+            let event = active_pane_view
+                .as_ref(ctx)
+                .create_sync_event_based_on_terminal_state(ctx);
 
-                group.send_sync_event_to_session(terminal_pane_id, &event, ctx);
-            }
+            group.send_sync_event_to_session(terminal_pane_id, &event, ctx);
         }
     }
 
@@ -341,16 +340,16 @@ fn handle_terminal_view_event(
                     Some(pane) => {
                         if *GeneralSettings::as_ref(ctx).restore_session
                             && AppExecutionMode::as_ref(ctx).can_save_session()
+                            && let Some(sender) = &group.model_event_sender
                         {
-                            if let Some(sender) = &group.model_event_sender {
-                                let block_completed_event = ModelEvent::SaveBlock(BlockCompleted {
-                                    pane_id: pane.session_uuid(),
-                                    block: block.clone(),
-                                    is_local: *is_local,
-                                });
+                            let block_completed_event = ModelEvent::SaveBlock(BlockCompleted {
+                                pane_id: pane.session_uuid(),
+                                block: block.clone(),
+                                is_local: *is_local,
+                            });
 
-                                let sender_clone = sender.clone();
-                                let _ = ctx.spawn(async move {
+                            let sender_clone = sender.clone();
+                            let _ = ctx.spawn(async move {
                                 // Sending over a sync sender can block the current thread, so we do this async.
                                 sender_clone.send(block_completed_event)
                             }, move |_, res, _| {
@@ -358,7 +357,6 @@ fn handle_terminal_view_event(
                                     log::error!("Error sending block completed event for terminal id {terminal_pane_id:?} {err:?}");
                                 }
                             });
-                            }
                         }
                         ctx.emit(pane_group::Event::ActiveSessionChanged);
                     }

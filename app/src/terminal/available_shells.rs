@@ -12,9 +12,9 @@ use riftui::{Entity, SingletonEntity};
 #[cfg(feature = "local_tty")]
 use settings::Setting as _;
 
+use super::ShellLaunchData;
 use super::session_settings::{NewSessionShell, StartupShell};
 use super::shell::ShellType;
-use super::ShellLaunchData;
 #[cfg(feature = "local_tty")]
 use crate::util::path::file_exists_and_is_executable;
 
@@ -800,10 +800,10 @@ impl AvailableShells {
                 let Ok(path) = dunce::canonicalize(line) else {
                     continue;
                 };
-                if let Some(file_name) = path.file_name().and_then(|name| name.to_str()) {
-                    if let Some(set) = shells.get_mut(file_name) {
-                        set.insert(path);
-                    }
+                if let Some(file_name) = path.file_name().and_then(|name| name.to_str())
+                    && let Some(set) = shells.get_mut(file_name)
+                {
+                    set.insert(path);
                 }
             }
         }
@@ -845,12 +845,11 @@ impl AvailableShells {
                             executable_path,
                             ..
                         }) = shell.state.as_ref()
+                            && shell_command == command
                         {
-                            if shell_command == command {
-                                return Some(NewSessionShell::Executable(
-                                    executable_path.display().to_string(),
-                                ));
-                            }
+                            return Some(NewSessionShell::Executable(
+                                executable_path.display().to_string(),
+                            ));
                         }
                     }
                     None

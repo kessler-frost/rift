@@ -6,13 +6,13 @@ use std::time::Duration;
 
 use anyhow::Result;
 use async_broadcast::{InactiveReceiver, Sender as BroadcastSender};
+use futures::StreamExt;
 use futures::channel::mpsc::{self, Receiver as MpscReceiver, Sender as MpscSender};
 use futures::channel::oneshot::{self, Receiver, Sender};
 use futures::future::{AbortHandle, Abortable};
-use futures::StreamExt;
 use instant::Instant;
-use riftui_core::r#async::executor::Background;
 use riftui_core::r#async::Timer;
+use riftui_core::r#async::executor::Background;
 use riftui_core::{Entity, RetryOption, SingletonEntity};
 
 const DEFAULT_BUFFER_SIZE: usize = 1024;

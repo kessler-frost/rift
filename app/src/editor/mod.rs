@@ -6,8 +6,8 @@ mod view;
 use std::cmp;
 use std::ops::Range;
 
-pub use riftui::text::point::Point;
 use riftui::AppContext;
+pub use riftui::text::point::Point;
 /// Consumers of the editor should only interface with the view.
 /// They should _not_ be able to interface with the internal
 /// details of the editor (e.g. the [`Buffer`]).

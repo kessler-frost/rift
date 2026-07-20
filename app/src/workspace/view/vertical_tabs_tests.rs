@@ -2,11 +2,14 @@ use std::path::PathBuf;
 
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
-use riftui::elements::PositionedElementOffsetBounds;
 use riftui::EntityId;
+use riftui::elements::PositionedElementOffsetBounds;
 
 use super::{
-    branch_label_display, coalesce_summary_branch_entries, compact_branch_subtitle_display,
+    SummaryPaneKind, SummaryPaneKindIcons, TerminalPrimaryLineData, TerminalPrimaryLineFont,
+    VerticalTabsDetailTarget, VerticalTabsDetailTargetKind, VerticalTabsSummaryBranchEntry,
+    VerticalTabsSummaryData, VerticalTabsSummaryPrimaryLabel, branch_label_display,
+    coalesce_summary_branch_entries, compact_branch_subtitle_display,
     detail_sidecar_width_and_bounds, detail_target_for_hovered_row,
     non_terminal_search_text_fragments, pane_ids_for_display_granularity,
     pane_search_text_fragments, push_normalized_unique_summary_label,
@@ -14,9 +17,6 @@ use super::{
     should_keep_detail_sidecar_visible_for_mouse_position, should_show_tab_group_header,
     summary_overflow_count, summary_search_text_fragments, terminal_primary_line_data,
     uses_outer_group_container, visible_pane_ids_for_detail_target, vtab_diff_stats_text,
-    SummaryPaneKind, SummaryPaneKindIcons, TerminalPrimaryLineData, TerminalPrimaryLineFont,
-    VerticalTabsDetailTarget, VerticalTabsDetailTargetKind, VerticalTabsSummaryBranchEntry,
-    VerticalTabsSummaryData, VerticalTabsSummaryPrimaryLabel,
 };
 use crate::context_chips::display_chip::GitLineChanges;
 use crate::pane_group::{PaneId, TerminalPaneId};

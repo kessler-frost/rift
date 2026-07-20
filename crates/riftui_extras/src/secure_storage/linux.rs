@@ -4,11 +4,11 @@ use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use rand::RngCore;
 use ring::aead;
-use secret_service::blocking::{Item, SecretService};
 use secret_service::EncryptionType;
+use secret_service::blocking::{Item, SecretService};
 
 use super::Error;
 

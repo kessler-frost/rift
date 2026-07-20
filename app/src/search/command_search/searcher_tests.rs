@@ -3,14 +3,14 @@ use std::time::Duration;
 
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
-use riftui::elements::Empty;
 use riftui::r#async::Timer;
+use riftui::elements::Empty;
 use riftui::{App, AppContext, Element};
 
 use super::*;
 use crate::appearance::Appearance;
-use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_manager::AuthManager;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::item::SearchItem;
 use crate::search::mixer::{

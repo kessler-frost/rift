@@ -19,7 +19,7 @@ pub mod supported_servers;
 mod transport;
 pub mod types;
 
-pub use config::{default_init_params, LanguageId, LspServerConfig};
+pub use config::{LanguageId, LspServerConfig, default_init_params};
 pub use jsonrpc::{JsonRpcService, ServerNotificationEvent, Transport};
 pub use lsp_types::notification::{self};
 pub use lsp_types::{Position, Range};
@@ -53,8 +53,8 @@ impl std::fmt::Display for LspServerLogLevel {
 use std::sync::Arc;
 
 use anyhow::Result;
-use riftui_core::r#async::executor::Background;
 use riftui_core::AppContext;
+use riftui_core::r#async::executor::Background;
 #[cfg(not(target_arch = "wasm32"))]
 use simple_logger::SimpleLogger;
 

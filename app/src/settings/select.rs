@@ -1,7 +1,7 @@
 use std::ops::Not;
 
-use riftui::clipboard::ClipboardContent;
 use riftui::AppContext;
+use riftui::clipboard::ClipboardContent;
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
 

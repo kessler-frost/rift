@@ -7,7 +7,7 @@ use riftui::elements::{
 use riftui::{AppContext, SingletonEntity};
 use settings::Setting;
 
-use super::{should_render_prompt_using_editor_decorator_elements, Input, SubshellRenderState};
+use super::{Input, SubshellRenderState, should_render_prompt_using_editor_decorator_elements};
 use crate::appearance::Appearance;
 use crate::settings::{AppEditorSettings, InputModeSettings};
 use crate::terminal::block_list_settings::BlockListSettings;
@@ -16,7 +16,7 @@ use crate::terminal::input::common::{
     add_command_xray_overlay, add_input_suggestions_overlays,
     should_show_terminal_input_message_bar, wrap_input_with_terminal_padding_and_focus_handler,
 };
-use crate::terminal::input::{get_input_box_top_border_width, InputDropTargetData};
+use crate::terminal::input::{InputDropTargetData, get_input_box_top_border_width};
 use crate::terminal::riftify::render::{render_subshell_flag, render_subshell_flag_pole};
 use crate::terminal::settings::{SpacingMode, TerminalSettings};
 use crate::terminal::view::TerminalAction;

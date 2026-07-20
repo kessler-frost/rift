@@ -1,4 +1,5 @@
 use pathfinder_color::ColorU;
+pub use riftui::AppContext;
 pub use riftui::accessibility::{AccessibilityContent, RiftA11yRole};
 use riftui::elements::{
     Align, Border, ChildAnchor, Clipped, ConstrainedBox, Container, CornerRadius,
@@ -10,7 +11,6 @@ pub use riftui::geometry::vector::vec2f;
 use riftui::keymap::EditableBinding;
 use riftui::presenter::ChildView;
 use riftui::ui_components::components::UiComponent;
-pub use riftui::AppContext;
 use riftui::{
     Entity, FocusContext, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
     ViewHandle,

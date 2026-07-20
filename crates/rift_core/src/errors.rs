@@ -9,7 +9,7 @@ mod websocket;
 // Re-export for macro use.
 #[doc(hidden)]
 pub use inventory::submit;
-pub use registration::{register_error, ErrorRegistration, RegisteredError};
+pub use registration::{ErrorRegistration, RegisteredError, register_error};
 
 pub use self::anyhow::AnyhowErrorExt;
 
@@ -35,7 +35,7 @@ pub enum ReportErrorLogMode {
 /// upon.)
 #[macro_export]
 macro_rules! report_error {
-    (@log $err:expr) => {{
+    (@log $err:expr_2021) => {{
         #[allow(unused_imports)]
         use $crate::errors::{AnyhowErrorExt as _, ErrorExt as _, LOG_TARGET};
         let err = $err;
@@ -46,29 +46,29 @@ macro_rules! report_error {
         };
         log::log!(target: LOG_TARGET, log_level, "{:#}", err);
     }};
-    (@once_per_run $err:expr) => {{
+    (@once_per_run $err:expr_2021) => {{
         static HAS_LOGGED_REPORT_ERROR: ::std::sync::atomic::AtomicBool =
             ::std::sync::atomic::AtomicBool::new(false);
         if !HAS_LOGGED_REPORT_ERROR.swap(true, ::std::sync::atomic::Ordering::Relaxed) {
             $crate::report_error!(@log $err);
         }
     }};
-    ($err:expr) => {{
+    ($err:expr_2021) => {{
         $crate::report_error!(@log $err);
     }};
-    ($err:expr, $crate::errors::ReportErrorLogMode::EveryTime) => {{
+    ($err:expr_2021, $crate::errors::ReportErrorLogMode::EveryTime) => {{
         $crate::report_error!(@log $err);
     }};
-    ($err:expr, ReportErrorLogMode::EveryTime) => {{
+    ($err:expr_2021, ReportErrorLogMode::EveryTime) => {{
         $crate::report_error!(@log $err);
     }};
-    ($err:expr, $crate::errors::ReportErrorLogMode::OncePerRun) => {{
+    ($err:expr_2021, $crate::errors::ReportErrorLogMode::OncePerRun) => {{
         $crate::report_error!(@once_per_run $err);
     }};
-    ($err:expr, ReportErrorLogMode::OncePerRun) => {{
+    ($err:expr_2021, ReportErrorLogMode::OncePerRun) => {{
         $crate::report_error!(@once_per_run $err);
     }};
-    ($err:expr, $log_mode:expr) => {{
+    ($err:expr_2021, $log_mode:expr_2021) => {{
         match $log_mode {
             $crate::errors::ReportErrorLogMode::EveryTime => {
                 $crate::report_error!(@log $err);
@@ -89,12 +89,12 @@ pub use report_error;
 /// upon.)
 #[macro_export]
 macro_rules! report_if_error {
-    ($result:expr) => {{
+    ($result:expr_2021) => {{
         if let Err(error) = &$result {
             $crate::report_error!(error);
         }
     }};
-    ($result:expr, $log_mode:expr) => {{
+    ($result:expr_2021, $log_mode:expr_2021) => {{
         if let Err(error) = &$result {
             $crate::report_error!(error, $log_mode);
         }

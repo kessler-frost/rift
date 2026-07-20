@@ -1,6 +1,6 @@
 [package]
 authors = ["Rift"]
-edition = "2021"
+edition = "2024"
 name = "riftui_extras"
 version = "0.0.0"
 publish.workspace = true

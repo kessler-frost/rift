@@ -3,8 +3,8 @@ use std::collections::HashSet;
 use riftui::{Entity, ModelContext, SingletonEntity};
 use serde::{Deserialize, Serialize};
 
-use crate::persistence::ModelEvent;
 use crate::GlobalResourceHandlesProvider;
+use crate::persistence::ModelEvent;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum SuggestionType {

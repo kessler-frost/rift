@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 pub mod root_view;
 
 extern crate riftui;
-use riftui::{platform, AssetProvider};
+use riftui::{AssetProvider, platform};
 use rust_embed::RustEmbed;
 
 #[derive(Clone, Copy, RustEmbed)]

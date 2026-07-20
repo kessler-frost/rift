@@ -1,6 +1,6 @@
 use rift_core::ui::appearance::Appearance;
-use riftui::platform::WindowStyle;
 use riftui::App;
+use riftui::platform::WindowStyle;
 
 use super::{Find, FindDirection, FindEvent, FindModel};
 use crate::auth::AuthStateProvider;

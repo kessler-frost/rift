@@ -11,7 +11,7 @@ use rift::terminal::shell::{Shell, ShellType};
 use riftui_core::integration::{AssertionCallback, AssertionOutcome, TestStep};
 use riftui_core::{async_assert, async_assert_eq};
 
-use super::{new_builder, Builder};
+use super::{Builder, new_builder};
 use crate::util::skip_if_powershell_core_2303;
 
 pub fn test_typeahead() -> Builder {
@@ -52,7 +52,7 @@ pub fn test_typeahead() -> Builder {
 /// happens in integration tests because of how quickly the
 /// command is entered.
 macro_rules! check_command {
-    ($command:expr, $expected:expr) => {
+    ($command:expr_2021, $expected:expr_2021) => {
         let command = $command;
         if command.contains("^[i") {
             return AssertionOutcome::PreconditionFailed(format!(

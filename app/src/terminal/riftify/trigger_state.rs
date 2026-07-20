@@ -234,19 +234,19 @@ impl RiftifyState {
     }
 
     pub fn collapse_ssh_block(&mut self, ctx: &mut ViewContext<TerminalView>) -> bool {
-        if let Some(ref mut pending_state) = self.pending_state.as_mut() {
-            if let Some(ref mut ssh_block_state) = &mut pending_state.ssh_block_state {
-                return ssh_block_state.collapse_script(ctx);
-            }
+        if let Some(ref mut pending_state) = self.pending_state.as_mut()
+            && let Some(ssh_block_state) = &mut pending_state.ssh_block_state
+        {
+            return ssh_block_state.collapse_script(ctx);
         }
         false
     }
 
     pub fn focus(&mut self, ctx: &mut ViewContext<TerminalView>) {
-        if let Some(ref mut pending_state) = self.pending_state.as_mut() {
-            if let Some(ref mut ssh_block_state) = &mut pending_state.ssh_block_state {
-                ssh_block_state.focus(ctx);
-            }
+        if let Some(ref mut pending_state) = self.pending_state.as_mut()
+            && let Some(ssh_block_state) = &mut pending_state.ssh_block_state
+        {
+            ssh_block_state.focus(ctx);
         }
     }
 

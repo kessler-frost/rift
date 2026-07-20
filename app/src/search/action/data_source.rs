@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
+use fuzzy_match::{FuzzyMatchResult, match_indices_case_insensitive};
 use riftui::keymap::{BindingId, DescriptionContext};
 use riftui::{AppContext, Entity, ModelContext, ModelHandle};
 
@@ -187,11 +187,11 @@ mod full_text_searcher {
     use rift_search_core::define_search_schema;
     use riftui::keymap::{BindingId, DescriptionContext};
 
-    use crate::search::action::data_source::{is_excluded_binding, ActionSearcher, SearcherAction};
+    use crate::search::action::data_source::{ActionSearcher, SearcherAction, is_excluded_binding};
     use crate::search::action::search_item::MatchedBinding;
     use crate::search::data_source::QueryResult;
     use crate::search::searcher::{
-        SimpleFullTextSearcher, DEFAULT_MEMORY_BUDGET, SCORE_CONVERSION_FACTOR,
+        DEFAULT_MEMORY_BUDGET, SCORE_CONVERSION_FACTOR, SimpleFullTextSearcher,
     };
     use crate::util::bindings::CommandBinding;
 

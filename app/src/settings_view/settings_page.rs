@@ -25,13 +25,13 @@ use riftui::units::Pixels;
 use riftui::{Action, AppContext, SingletonEntity, ViewContext, ViewHandle};
 use settings::Setting;
 
+use super::SettingsSection;
 use super::about_page::AboutPageView;
 use super::appearance_page::AppearanceSettingsPageView;
 use super::features_page::FeaturesPageView;
 use super::keybindings::KeybindingsView;
 use super::privacy_page::PrivacyPageView;
 use super::riftify_page::RiftifyPageView;
-use super::SettingsSection;
 use crate::appearance::Appearance;
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
@@ -289,11 +289,7 @@ pub enum ToggleState {
 
 impl From<bool> for ToggleState {
     fn from(value: bool) -> Self {
-        if value {
-            Self::Enabled
-        } else {
-            Self::Disabled
-        }
+        if value { Self::Enabled } else { Self::Disabled }
     }
 }
 
@@ -1322,16 +1318,16 @@ impl<V: riftui::View> PageType<V> {
         let page = match self.get_filtered() {
             FilteredPageType::Monolith { widget, title, .. } => {
                 let mut page = Empty::new().finish();
-                if let Some(widget) = widget {
-                    if widget.should_render(app) {
-                        if let Some(title) = title {
-                            let col = Flex::column()
-                                .with_child(render_page_title(title, HEADER_FONT_SIZE, appearance))
-                                .with_child(widget.render_widget(view, false, appearance, app));
-                            page = col.finish();
-                        } else {
-                            page = widget.render_widget(view, false, appearance, app);
-                        }
+                if let Some(widget) = widget
+                    && widget.should_render(app)
+                {
+                    if let Some(title) = title {
+                        let col = Flex::column()
+                            .with_child(render_page_title(title, HEADER_FONT_SIZE, appearance))
+                            .with_child(widget.render_widget(view, false, appearance, app));
+                        page = col.finish();
+                    } else {
+                        page = widget.render_widget(view, false, appearance, app);
                     }
                 }
                 page
@@ -1479,12 +1475,11 @@ impl<V: riftui::View> PageType<V> {
     }
 
     pub fn render(&self, view: &V, app: &AppContext) -> Box<dyn Element> {
-        if let (Some(vertical_scroll_state), Some(horizontal_scroll_state)) =
-            self.get_scroll_states()
-        {
-            self.wrap_dual_scrollable(view, horizontal_scroll_state, vertical_scroll_state, app)
-        } else {
-            self.render_page(view, app)
+        match self.get_scroll_states() {
+            (Some(vertical_scroll_state), Some(horizontal_scroll_state)) => {
+                self.wrap_dual_scrollable(view, horizontal_scroll_state, vertical_scroll_state, app)
+            }
+            _ => self.render_page(view, app),
         }
     }
 }

@@ -8,7 +8,7 @@ use rift::integration_testing::subshell::{
     trigger_subshell_bootstrap, wait_for_password_prompt,
 };
 use rift::integration_testing::terminal::util::{
-    current_shell_starter_and_version, nonce, ExactLine, ExpectedExitStatus,
+    ExactLine, ExpectedExitStatus, current_shell_starter_and_version, nonce,
 };
 use rift::integration_testing::terminal::{
     assert_active_block_output_for_single_terminal_in_tab,

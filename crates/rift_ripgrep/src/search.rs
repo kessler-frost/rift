@@ -139,9 +139,9 @@ mod process_impl {
     use std::path::PathBuf;
     use std::process::Stdio;
 
+    use futures::StreamExt as _;
     use futures::io::{AsyncBufReadExt as _, BufReader};
     use futures::stream::Stream;
-    use futures::StreamExt as _;
 
     use super::{Match, Submatch};
     use crate::types::RipgrepMessage;
@@ -172,7 +172,7 @@ mod process_impl {
         paths: &[PathBuf],
         ignore_case: bool,
         multiline: bool,
-    ) -> anyhow::Result<impl Stream<Item = Match>> {
+    ) -> anyhow::Result<impl Stream<Item = Match> + use<>> {
         let child = spawn_search_process(patterns, paths, ignore_case, multiline)?;
         Ok(match_stream_from_child(child))
     }

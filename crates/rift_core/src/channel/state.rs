@@ -5,9 +5,9 @@ use lazy_static::lazy_static;
 use parking_lot::Mutex;
 
 use super::Channel;
+use crate::AppId;
 use crate::channel::config::ChannelConfig;
 use crate::features::FeatureFlag;
-use crate::AppId;
 
 lazy_static! {
     static ref CHANNEL_STATE: Mutex<ChannelState> = Mutex::new(ChannelState::init());

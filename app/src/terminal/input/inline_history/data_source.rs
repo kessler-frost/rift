@@ -11,9 +11,9 @@ use ordered_float::OrderedFloat;
 use riftui::{AppContext, Entity, EntityId, ModelHandle, SingletonEntity};
 
 use crate::input_suggestions::HistoryInputSuggestion;
+use crate::search::SyncDataSource;
 use crate::search::data_source::{Query, QueryFilter, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
-use crate::search::SyncDataSource;
 use crate::terminal::history::{History, UpArrowHistoryConfig};
 use crate::terminal::input::inline_history::search_item::InlineHistoryItem;
 use crate::terminal::input::inline_menu::{

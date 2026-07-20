@@ -13,8 +13,8 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
-use futures::future::BoxFuture;
 use futures::FutureExt as _;
+use futures::future::BoxFuture;
 use riftui::{AppContext, SingletonEntity as _};
 use serde::{Deserialize, Serialize};
 

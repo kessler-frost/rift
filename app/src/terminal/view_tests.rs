@@ -15,7 +15,7 @@ use crate::terminal::alt_screen::should_intercept_mouse;
 use crate::terminal::block_list_element::{SnackbarPoint, SnackbarTranslationMode};
 use crate::terminal::block_list_viewport::{ClampingMode, ScrollLines};
 use crate::terminal::model::ansi::{self, BootstrappedValue, InitShellValue, PreexecValue};
-use crate::terminal::model::blocks::{insert_block, TotalIndex};
+use crate::terminal::model::blocks::{TotalIndex, insert_block};
 use crate::terminal::model::grid::Dimensions as _;
 use crate::terminal::model::terminal_model::WithinBlock;
 use crate::terminal::{MockTerminalManager, TerminalModel};
@@ -164,8 +164,8 @@ fn command_first_word_and_suffix_handles_alias_without_args() {
 fn test_clear_session_flag_state() {
     use rift_terminal::shell::ShellType;
 
-    use crate::terminal::model::block::{SerializedBlock, SerializedBlockListItem};
     use crate::terminal::ShellHost;
+    use crate::terminal::model::block::{SerializedBlock, SerializedBlockListItem};
 
     App::test((), |mut app| async move {
         initialize_app_for_terminal_view(&mut app);
@@ -232,9 +232,11 @@ fn test_clear_session_flag_state() {
 }
 
 fn assert_block_has_find_match(find_model: &TerminalFindModel, block_index: BlockIndex) {
-    assert!(find_model
-        .block_list_find_run()
-        .is_some_and(|run| run.matches_for_block(block_index).next().is_some()));
+    assert!(
+        find_model
+            .block_list_find_run()
+            .is_some_and(|run| run.matches_for_block(block_index).next().is_some())
+    );
 }
 
 impl TerminalView {
@@ -545,7 +547,7 @@ fn test_alt_screen_select_with_sgr_mouse() {
         // We need to manually trigger re-renders to ensure the AltScreenElement is recreated, e.g.
         // so its `is_terminal_selecting` property will be up-to-date.
         macro_rules! rerender {
-            ($app:ident, $presenter:expr, $invalidation:expr, $size_info:expr) => {
+            ($app:ident, $presenter:expr_2021, $invalidation:expr_2021, $size_info:expr_2021) => {
                 app.update(enclose!((presenter, invalidation) move |ctx| {
                     presenter
                         .borrow_mut()
@@ -1051,10 +1053,12 @@ fn test_stable_scrolling_during_grid_truncation() {
                 // Create a dummy, finished block and a long-running block.
                 model.simulate_block("ls", "foo");
                 model.simulate_long_running_block("cat", "");
-                assert!(model
-                    .block_list()
-                    .active_block()
-                    .is_active_and_long_running());
+                assert!(
+                    model
+                        .block_list()
+                        .active_block()
+                        .is_active_and_long_running()
+                );
 
                 // Add enough newlines so that the long-running block spans at
                 // least the viewport and surely exceeds the grid size.

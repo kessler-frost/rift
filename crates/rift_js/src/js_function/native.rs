@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 use rquickjs::{Ctx, Function, Persistent};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::{FromRiftJs, IntoRiftJs, JsFunctionId, SerializedJsValue, TypedJsFunctionRef};
 

@@ -1,9 +1,9 @@
 use riftui::{AppContext, SingletonEntity};
 use settings::Setting as _;
 
+use super::TerminalModel;
 use super::alt_screen_reporting::AltScreenReporting;
 use super::model::grid::grid_handler::TermMode;
-use super::TerminalModel;
 
 pub mod alt_screen_element;
 

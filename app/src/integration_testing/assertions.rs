@@ -1,5 +1,5 @@
 use riftui::integration::TestStep;
-use riftui::{async_assert, async_assert_eq, SingletonEntity};
+use riftui::{SingletonEntity, async_assert, async_assert_eq};
 
 use crate::network::{NetworkStatus, NetworkStatusKind};
 use crate::util::bindings::keybinding_name_to_display_string;

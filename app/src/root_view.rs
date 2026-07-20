@@ -3,13 +3,13 @@
 #![allow(irrefutable_let_patterns)]
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
+use std::sync::mpsc::SyncSender;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use pathfinder_geometry::rect::RectF;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use rift_core::context_flag::ContextFlag;
 use rift_core::user_preferences::GetUserPreferences as _;
 use riftui::elements::{
@@ -21,9 +21,9 @@ use riftui::presenter::ChildView;
 use riftui::rendering::OnGPUDeviceSelected;
 use riftui::windowing::WindowManager;
 use riftui::{
-    id, AddWindowOptions, AppContext, DisplayId, Element, Entity, EntityId, FocusContext,
+    AddWindowOptions, AppContext, DisplayId, Element, Entity, EntityId, FocusContext,
     NextNewWindowsHasThisWindowsBoundsUponClose, SingletonEntity, TypedActionView, View,
-    ViewContext, ViewHandle, WindowId,
+    ViewContext, ViewHandle, WindowId, id,
 };
 use serde::{Deserialize, Serialize};
 use settings::Setting as _;
@@ -39,7 +39,7 @@ use crate::pane_group::{NewTerminalOptions, PanesLayout};
 use crate::persistence::ModelEvent;
 use crate::server::telemetry::LaunchConfigUiLocation;
 use crate::settings::QuakeModeSettings;
-use crate::settings_view::{flags, SettingsSection};
+use crate::settings_view::{SettingsSection, flags};
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
@@ -53,8 +53,8 @@ use crate::window_settings::WindowSettings;
 use crate::workspace::{PaneViewLocator, Workspace, WorkspaceAction, WorkspaceRegistry};
 use crate::workspaces::team_tester::TeamTesterStatus;
 use crate::{
-    send_telemetry_from_app_ctx, send_telemetry_from_ctx, ChannelState, GlobalResourceHandles,
-    GlobalResourceHandlesProvider, UpdateQuakeModeEventArg,
+    ChannelState, GlobalResourceHandles, GlobalResourceHandlesProvider, UpdateQuakeModeEventArg,
+    send_telemetry_from_app_ctx, send_telemetry_from_ctx,
 };
 
 const WINDOW_TITLE: &str = "Rift";
@@ -382,12 +382,15 @@ fn open_launch_config(arg: &OpenLaunchConfigArg, ctx: &mut AppContext) {
 }
 
 fn send_feedback(_: &(), ctx: &mut AppContext) {
-    if let Some(workspace) = active_workspace(ctx) {
-        workspace.update(ctx, |workspace, ctx| {
-            workspace.handle_action(&WorkspaceAction::SendFeedback, ctx);
-        });
-    } else {
-        ctx.open_url(&crate::util::links::feedback_form_url());
+    match active_workspace(ctx) {
+        Some(workspace) => {
+            workspace.update(ctx, |workspace, ctx| {
+                workspace.handle_action(&WorkspaceAction::SendFeedback, ctx);
+            });
+        }
+        _ => {
+            ctx.open_url(&crate::util::links::feedback_form_url());
+        }
     }
 }
 
@@ -450,12 +453,15 @@ pub fn create_transferred_window(
     let pane_group_id = transferred_tab.pane_group.id();
     ctx.transfer_view_tree_to_window(pane_group_id, source_window_id, new_window_id);
 
-    if let Some(new_workspace) = WorkspaceRegistry::as_ref(ctx).get(new_window_id, ctx) {
-        new_workspace.update(ctx, |workspace, ctx| {
-            workspace.adopt_transferred_pane_group(transferred_tab.pane_group.clone(), ctx);
-        });
-    } else {
-        log::warn!("Failed to find workspace in newly created window {new_window_id:?}");
+    match WorkspaceRegistry::as_ref(ctx).get(new_window_id, ctx) {
+        Some(new_workspace) => {
+            new_workspace.update(ctx, |workspace, ctx| {
+                workspace.adopt_transferred_pane_group(transferred_tab.pane_group.clone(), ctx);
+            });
+        }
+        _ => {
+            log::warn!("Failed to find workspace in newly created window {new_window_id:?}");
+        }
     }
     new_window_id
 }
@@ -1226,10 +1232,10 @@ impl RootView {
 
         let mut quake_mode_state = QUAKE_STATE.lock();
         // If the window we are focusing is the Quake Mode window, then update the QuakeModeState.
-        if let Some(mode) = quake_mode_state.as_mut() {
-            if mode.window_id == window_id {
-                mode.window_state = WindowState::Open;
-            }
+        if let Some(mode) = quake_mode_state.as_mut()
+            && mode.window_id == window_id
+        {
+            mode.window_state = WindowState::Open;
         }
 
         ctx.windows().show_window_and_focus_app(window_id);

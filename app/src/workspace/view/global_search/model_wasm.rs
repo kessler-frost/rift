@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use riftui::{Entity, ModelContext};
 
-use crate::workspace::view::global_search::view::GlobalSearchEvent;
 use crate::workspace::view::global_search::SearchConfig;
+use crate::workspace::view::global_search::view::GlobalSearchEvent;
 
 pub struct GlobalSearch {}
 

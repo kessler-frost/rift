@@ -25,21 +25,21 @@ use super::super::palette_styles as styles;
 use crate::appearance::Appearance;
 use crate::palette::PaletteMode;
 use crate::pane_group::pane::welcome_view::WelcomeViewAction;
+use crate::search::QueryFilter;
 use crate::search::action::search_item::MatchedBinding;
 use crate::search::action::{CommandBindingDataSource, Event as CommandBindingDataSourceEvent};
 use crate::search::binding_source::BindingSource;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::new_session::{AllowedSessionKinds, NewSessionDataSource};
-use crate::search::command_palette::{launch_config, CommandPaletteMixer};
+use crate::search::command_palette::{CommandPaletteMixer, launch_config};
 use crate::search::command_search::projects::project_data_source::ProjectDataSource;
 use crate::search::command_search::projects::{ProjectSearchItem, SuggestedProjectsDataSource};
 use crate::search::data_source::QueryResult;
-use crate::search::mixer::{dedupe_score, DedupeStrategy};
+use crate::search::mixer::{DedupeStrategy, dedupe_score};
 use crate::search::result_renderer::QueryResultRenderer;
 use crate::search::search_bar::{
     SearchBar, SearchBarEvent, SearchBarState, SearchResultOrdering, SelectionUpdate,
 };
-use crate::search::QueryFilter;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::History;

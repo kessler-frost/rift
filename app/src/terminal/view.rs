@@ -27,33 +27,33 @@ use std::hash::Hash;
 use std::ops::{Deref as _, Range};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
-use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
+use std::sync::mpsc::SyncSender;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
 use action::RememberForRiftification;
 pub use action::TerminalAction;
 use async_channel::{Receiver, Sender};
-use block_banner::{render_riftification_banner, RiftificationMode, RiftifyBannerState};
-pub use block_banner::{WithinBlockBanner, BLOCK_BANNER_HEIGHT};
+pub use block_banner::{BLOCK_BANNER_HEIGHT, WithinBlockBanner};
+use block_banner::{RiftificationMode, RiftifyBannerState, render_riftification_banner};
 use bookmarks::render_floating_block_snapshot;
 use chrono::{Local, NaiveDateTime};
 use command_corrections::rules::generic::history::History as CommandCorrectionsHistoryRule;
 use command_corrections::rules::{Rule, RuleId as CommandCorrectionsRuleId};
-use command_corrections::{correct_command, Command, Correction, HistoryItem, SessionMetadata};
+use command_corrections::{Command, Correction, HistoryItem, SessionMetadata, correct_command};
 use enclose::enclose;
 pub use init::{
-    init, CANCEL_COMMAND_KEYBINDING, TOGGLE_AUTOEXECUTE_MODE_KEYBINDING,
-    TOGGLE_HIDE_CLI_RESPONSES_KEYBINDING, TOGGLE_QUEUE_NEXT_PROMPT_KEYBINDING,
+    CANCEL_COMMAND_KEYBINDING, TOGGLE_AUTOEXECUTE_MODE_KEYBINDING,
+    TOGGLE_HIDE_CLI_RESPONSES_KEYBINDING, TOGGLE_QUEUE_NEXT_PROMPT_KEYBINDING, init,
 };
 use init::{INPUT_BOX_VISIBLE_KEY, TOGGLE_BLOCK_FILTER_KEYBINDING};
 use inline_banner::{
-    render_alias_expansion_banner, render_inline_notifications_discovery_banner,
-    render_inline_notifications_error_banner, render_inline_ssh_wrapper_banner,
-    render_open_in_rift_banner, render_shell_process_terminated_banner, render_vim_mode_banner,
     AliasExpansionBanner, AliasExpansionBannerAction, OpenInRiftBannerState, SSHBannerAction,
-    SSHBannerState, VimModeBannerAction,
+    SSHBannerState, VimModeBannerAction, render_alias_expansion_banner,
+    render_inline_notifications_discovery_banner, render_inline_notifications_error_banner,
+    render_inline_ssh_wrapper_banner, render_open_in_rift_banner,
+    render_shell_process_terminated_banner, render_vim_mode_banner,
 };
 pub use inline_banner::{NotificationsDiscoveryBannerAction, NotificationsErrorBannerAction};
 use instant::Instant;
@@ -66,10 +66,10 @@ use regex::Regex;
 #[cfg(not(target_family = "wasm"))]
 use repo_metadata::repositories::DetectedRepositories;
 use repo_metadata::repositories::RepoDetectionSource;
+use rift_core::r#async::debounce;
 use rift_core::channel::ChannelState;
 use rift_core::command::ExitCode;
 use rift_core::context_flag::ContextFlag;
-use rift_core::r#async::debounce;
 use rift_core::semantic_selection::SemanticSelection;
 use rift_core::user_preferences::GetUserPreferences as _;
 use rift_util::local_or_remote_path::LocalOrRemotePath;
@@ -78,6 +78,7 @@ use rift_util::path::LineAndColumnArg;
 use rift_util::path::ShellFamily;
 use riftui::accessibility::{AccessibilityContent, ActionAccessibilityContent, RiftA11yRole};
 use riftui::assets::asset_cache::{AssetCache, AssetCacheEvent};
+use riftui::r#async::Timer;
 use riftui::clipboard::ClipboardContent;
 use riftui::clipboard_utils::get_image_filepaths_from_paths;
 use riftui::elements::new_scrollable::{
@@ -85,30 +86,29 @@ use riftui::elements::new_scrollable::{
     ScrollableAppearance, SingleAxisConfig,
 };
 use riftui::elements::{
-    get_rich_content_position_id, Align, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle,
-    ConstrainedBox, Container, CornerRadius, DispatchEventResult, DropTarget, DropTargetData,
-    Empty, EventHandler, Fill, Flex, Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable,
-    OffsetPositioning, ParentAnchor, ParentElement, ParentOffsetBounds, PositionedElementAnchor,
-    PositionedElementOffsetBounds, Radius, Rect, SavePosition, ScrollStateHandle, Scrollable,
-    ScrollableElement, ScrollbarWidth, Shrinkable, Stack, Text,
+    Align, ChildAnchor, ChildView, Clipped, ClippedScrollStateHandle, ConstrainedBox, Container,
+    CornerRadius, DispatchEventResult, DropTarget, DropTargetData, Empty, EventHandler, Fill, Flex,
+    Hoverable, Icon, LiveElement, MouseStateHandle, NewScrollable, OffsetPositioning, ParentAnchor,
+    ParentElement, ParentOffsetBounds, PositionedElementAnchor, PositionedElementOffsetBounds,
+    Radius, Rect, SavePosition, ScrollStateHandle, Scrollable, ScrollableElement, ScrollbarWidth,
+    Shrinkable, Stack, Text, get_rich_content_position_id,
 };
 use riftui::event::ModifiersState;
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties};
-use riftui::geometry::vector::{vec2f, Vector2F};
+use riftui::geometry::vector::{Vector2F, vec2f};
 use riftui::image_cache::ImageType;
 use riftui::keymap::Keystroke;
 use riftui::notification::{NotificationSendError, RequestPermissionsOutcome, UserNotification};
 use riftui::platform::{Cursor, OperatingSystem};
-use riftui::r#async::Timer;
 use riftui::text::SelectionType;
 use riftui::ui_components::components::UiComponent;
 use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
 use riftui::windowing::WindowManager;
 use riftui::{
-    end_trace_after_next, record_trace_event, windowing, AccessibilityData, AppContext,
-    BlurContext, CursorInfo, Element, Entity, EntityId, EventContext, FocusContext, ModelAsRef,
-    ModelHandle, SingletonEntity, Tracked, TypedActionView, View, ViewContext, ViewHandle,
-    WeakModelHandle, WeakViewHandle, WindowId,
+    AccessibilityData, AppContext, BlurContext, CursorInfo, Element, Entity, EntityId,
+    EventContext, FocusContext, ModelAsRef, ModelHandle, SingletonEntity, Tracked, TypedActionView,
+    View, ViewContext, ViewHandle, WeakModelHandle, WeakViewHandle, WindowId, end_trace_after_next,
+    record_trace_event, windowing,
 };
 use serde::Serialize;
 use settings::{Setting, ToggleableSetting};
@@ -118,6 +118,7 @@ use vec1::vec1;
 
 use self::link_detection::HighlightedLinkOption;
 pub use self::link_detection::{GridHighlightedLink, RichContentLink, RichContentLinkTooltipInfo};
+use super::GridType;
 use super::available_shells::AvailableShell;
 use super::block_list_viewport::FindMatchScrollLocation;
 use super::find::FindOptions;
@@ -130,19 +131,18 @@ use super::model::session::SessionBootstrappedEvent;
 use super::riftify::success_block::{RiftifySuccessBlock, RiftifySuccessBlockEvent};
 use super::riftify::trigger_state::{RiftifyState, SshBlockState};
 use super::settings::AltScreenPaddingMode;
-use super::ssh::util::{parse_interactive_ssh_command, InteractiveSshCommand, SshRiftifyCommand};
-use super::GridType;
+use super::ssh::util::{InteractiveSshCommand, SshRiftifyCommand, parse_interactive_ssh_command};
 use crate::antivirus::AntivirusInfo;
 use crate::appearance::{Appearance, AppearanceEvent};
-use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_state::AuthState;
 use crate::banner::{
     Banner, BannerAction, BannerEvent, BannerState, BannerTextButton, BannerTextContent,
     DismissalType,
 };
+use crate::context_chips::ContextChipKind;
 use crate::context_chips::prompt::Prompt;
 use crate::context_chips::prompt_type::PromptType;
-use crate::context_chips::ContextChipKind;
 use crate::editor::{AutosuggestionType, EditorAction};
 use crate::features::FeatureFlag;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
@@ -152,7 +152,7 @@ use crate::pane_group::{
 };
 use crate::persistence::{self, FinishedCommandMetadata};
 use crate::resource_center::{
-    mark_feature_used_and_write_to_user_defaults, Tip, TipHint, TipsCompleted,
+    Tip, TipHint, TipsCompleted, mark_feature_used_and_write_to_user_defaults,
 };
 use crate::server::telemetry::{
     BlockLatencyInfo, LinkOpenMethod, TelemetryEvent, ToggleBlockFilterSource,
@@ -170,19 +170,20 @@ use crate::settings::{
     VimBannerSettings,
 };
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
-use crate::settings_view::{flags, SettingsSection};
+use crate::settings_view::{SettingsSection, flags};
 use crate::shell_indicator::ShellIndicatorType;
-use crate::terminal::alias::{check_for_alias_async, AliasedCommand};
+use crate::terminal::alias::{AliasedCommand, check_for_alias_async};
 use crate::terminal::alt_screen::alt_screen_element::AltScreenElement;
 use crate::terminal::alt_screen::should_intercept_scroll;
 use crate::terminal::alt_screen_reporting::{AltScreenReporting, AltScreenReportingChangedEvent};
 use crate::terminal::block_filter::{
-    filter_button_position_id, BlockFilterEditor, BlockFilterEditorEvent, BlockFilterQuery,
-    OpenedFromClick,
+    BlockFilterEditor, BlockFilterEditorEvent, BlockFilterQuery, OpenedFromClick,
+    filter_button_position_id,
 };
 use crate::terminal::block_list_element::{
-    render_hoverable_block_button, BlockListElement, BlockListMenuSource, BlockListMouseStates,
-    BlockSelectAction, BlockTextSelectAction, SnackbarHeaderState, ToolbeltButtonTooltip,
+    BlockListElement, BlockListMenuSource, BlockListMouseStates, BlockSelectAction,
+    BlockTextSelectAction, SnackbarHeaderState, ToolbeltButtonTooltip,
+    render_hoverable_block_button,
 };
 use crate::terminal::block_list_viewport::{
     AutoscrollBehavior, InputMode, OverhangingBlock, ScrollPosition, ScrollPositionUpdate,
@@ -201,7 +202,7 @@ use crate::terminal::input::inline_menu::InlineMenuPositioner;
 use crate::terminal::input::{
     CommandExecutionSource, InputAction, InputState, MenuPositioning, MenuPositioningProvider,
 };
-use crate::terminal::ligature_settings::{should_use_ligature_rendering, LigatureSettings};
+use crate::terminal::ligature_settings::{LigatureSettings, should_use_ligature_rendering};
 use crate::terminal::links::should_directly_open_link;
 #[cfg(feature = "local_tty")]
 use crate::terminal::local_tty::get_shell_starter;
@@ -216,7 +217,7 @@ use crate::terminal::model::blocks::{
     BlockHeight, BlockHeightSummary, BlockList, BlockListPoint, Gap,
 };
 use crate::terminal::model::escape_sequences::{
-    self, alt_screen_scroll_to_pty_bytes, EscCodes, ToEscapeSequence, C1,
+    self, C1, EscCodes, ToEscapeSequence, alt_screen_scroll_to_pty_bytes,
 };
 use crate::terminal::model::grid::grid_handler::{FragmentBoundary, TermMode};
 use crate::terminal::model::index::{Point, Side};
@@ -230,13 +231,13 @@ use crate::terminal::model::terminal_model::{
 use crate::terminal::model::{ObfuscateSecrets, RespectObfuscatedSecrets, SecretHandle};
 use crate::terminal::model_events::{AnsiHandlerEvent, ModelEvent, ModelEventDispatcher};
 use crate::terminal::recorder::PtyRecorder;
+use crate::terminal::riftify::SubshellSource;
 use crate::terminal::riftify::render::render_subshell_separator;
 use crate::terminal::riftify::settings::RiftifySettings;
-use crate::terminal::riftify::SubshellSource;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 use crate::terminal::session_settings::{
-    NotificationsMode, NotificationsSettings, SessionSettings, SessionSettingsChangedEvent,
-    DEFAULT_THRESHOLD_FOR_LONG_RUNNING_NOTIFICATION,
+    DEFAULT_THRESHOLD_FOR_LONG_RUNNING_NOTIFICATION, NotificationsMode, NotificationsSettings,
+    SessionSettings, SessionSettingsChangedEvent,
 };
 use crate::terminal::settings::{TerminalSettings, TerminalSettingsChangedEvent};
 use crate::terminal::view::block_onboarding::onboarding_prompt_block::OnboardingPromptBlock;
@@ -250,39 +251,39 @@ pub use crate::terminal::view::rich_content::{
 use crate::terminal::view::ssh_file_upload::FileUploadId;
 use crate::terminal::waterfall_gap_element::WaterfallGapElement;
 use crate::terminal::{
+    AudibleBell, BlockListSettings, BlockListSettingsChangedEvent, CellSizeAndWindowPadding,
+    History, HistoryEntry, ShellHost, ShellLaunchData, SizeInfo, SizeUpdate, SizeUpdateReason,
+    color, element_size_at_last_frame, height_in_range_approx, heights_approx_eq,
+    heights_approx_gt, prompt,
+};
+use crate::terminal::{
+    TerminalModel,
     block_list_element::BlockHoverAction,
     // find::{Event as FindEvent, Find, FindDirection},
-    input::{Event as InputEvent, Input, INPUT_A11Y_HELPER, INPUT_A11Y_LABEL},
+    input::{Event as InputEvent, INPUT_A11Y_HELPER, INPUT_A11Y_LABEL, Input},
     model::block::SerializedBlock,
     shell::ShellType,
     terminal_size_element::TerminalSizeElement,
-    TerminalModel,
-};
-use crate::terminal::{
-    color, element_size_at_last_frame, height_in_range_approx, heights_approx_eq,
-    heights_approx_gt, prompt, AudibleBell, BlockListSettings, BlockListSettingsChangedEvent,
-    CellSizeAndWindowPadding, History, HistoryEntry, ShellHost, ShellLaunchData, SizeInfo,
-    SizeUpdate, SizeUpdateReason,
 };
 use crate::themes::theme::RiftTheme;
 use crate::throttle::throttle;
 use crate::ui_components::icons::{self};
 use crate::util::bindings::{
-    custom_tag_to_keystroke, keybinding_name_to_display_string, keybinding_name_to_keystroke,
-    set_custom_keybinding, CustomAction,
+    CustomAction, custom_tag_to_keystroke, keybinding_name_to_display_string,
+    keybinding_name_to_keystroke, set_custom_keybinding,
 };
 use crate::util::clipboard::clipboard_content_with_escaped_paths;
 use crate::util::color::darken;
 #[cfg(feature = "local_fs")]
-use crate::util::openable_file_type::{is_markdown_file, FileTarget};
-use crate::util::repo_detection::{detect_possible_git_repo, RepoDetectionSessionType};
-use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
+use crate::util::openable_file_type::{FileTarget, is_markdown_file};
+use crate::util::repo_detection::{RepoDetectionSessionType, detect_possible_git_repo};
 use crate::view_components::ToastFlavor;
-use crate::workspace::sync_inputs::SyncedInputState;
+use crate::view_components::find::{Event as FindEvent, Find, FindDirection, FindWithinBlockState};
 use crate::workspace::CommandSearchOptions;
+use crate::workspace::sync_inputs::SyncedInputState;
 use crate::{
-    report_if_error, safe_warn, send_telemetry_from_ctx, send_telemetry_on_executor,
-    send_telemetry_sync_from_ctx, ActiveSession as WindowActiveSession,
+    ActiveSession as WindowActiveSession, report_if_error, safe_warn, send_telemetry_from_ctx,
+    send_telemetry_on_executor, send_telemetry_sync_from_ctx,
 };
 
 lazy_static! {
@@ -2405,16 +2406,18 @@ impl TerminalView {
         let is_active_window_current_window = Some(ctx.window_id()) == current.active_window;
 
         if window_changed {
-            if let Some(focus_out_window_id) = previous.active_window {
-                if focus_out_window_id == ctx.window_id() && ctx.is_self_or_child_focused() {
-                    self.maybe_report_focus_out(ctx);
-                }
+            if let Some(focus_out_window_id) = previous.active_window
+                && focus_out_window_id == ctx.window_id()
+                && ctx.is_self_or_child_focused()
+            {
+                self.maybe_report_focus_out(ctx);
             }
 
-            if let Some(focus_in_window_id) = current.active_window {
-                if focus_in_window_id == ctx.window_id() && ctx.is_self_or_child_focused() {
-                    self.maybe_report_focus_in(ctx);
-                }
+            if let Some(focus_in_window_id) = current.active_window
+                && focus_in_window_id == ctx.window_id()
+                && ctx.is_self_or_child_focused()
+            {
+                self.maybe_report_focus_in(ctx);
             }
         }
 
@@ -3310,16 +3313,15 @@ impl TerminalView {
 
     /// Util method to update the ssh block, with a lock
     fn update_long_running_ssh_block_with_lock(&self, f: impl FnOnce(&mut Block)) -> bool {
-        if let Some(block_id) = self.riftify_state.block_id() {
-            if let Some(block) = self
+        if let Some(block_id) = self.riftify_state.block_id()
+            && let Some(block) = self
                 .model
                 .lock()
                 .block_list_mut()
                 .mut_block_from_id(&block_id)
-            {
-                f(block);
-                return true;
-            }
+        {
+            f(block);
+            return true;
         }
         false
     }
@@ -3714,9 +3716,11 @@ impl TerminalView {
         }
         self.remove_vim_mode_banner(ctx);
         VimBannerSettings::handle(ctx).update(ctx, |banner_settings, model_ctx| {
-            report_if_error!(banner_settings
-                .vim_keybindings_banner_state
-                .set_value(BannerState::Dismissed, model_ctx));
+            report_if_error!(
+                banner_settings
+                    .vim_keybindings_banner_state
+                    .set_value(BannerState::Dismissed, model_ctx)
+            );
         });
     }
 
@@ -4167,10 +4171,10 @@ impl TerminalView {
             ModelEvent::CursorBlinkingChange(_) => {}
             ModelEvent::MouseCursorDirty => {}
             ModelEvent::Bell => {
-                if *TerminalSettings::as_ref(ctx).use_audible_bell {
-                    if let Err(e) = AudibleBell::as_ref(ctx).ring() {
-                        log::warn!("Unable to play bell: {e:#}");
-                    }
+                if *TerminalSettings::as_ref(ctx).use_audible_bell
+                    && let Err(e) = AudibleBell::as_ref(ctx).ring()
+                {
+                    log::warn!("Unable to play bell: {e:#}");
                 }
                 // TODO(vorporeal): Remove this once we have a visual bell
                 // indicator in terminal tabs.
@@ -4242,14 +4246,13 @@ impl TerminalView {
                     //
                     // Since our baseline commands are all very small, when the command finishes,
                     // the same terminal almost certainly still has the focus.
-                    if reset_focus {
-                        if let Some(block_latency_data) = &block_completed_event.block_latency_data
-                        {
-                            self.install_block_latency_telemetry_callback(
-                                block_latency_data.clone(),
-                                ctx,
-                            );
-                        }
+                    if reset_focus
+                        && let Some(block_latency_data) = &block_completed_event.block_latency_data
+                    {
+                        self.install_block_latency_telemetry_callback(
+                            block_latency_data.clone(),
+                            ctx,
+                        );
                     }
                 }
 
@@ -4421,12 +4424,12 @@ impl TerminalView {
                 let active_session = self
                     .active_block_session_id()
                     .and_then(|id| self.sessions.as_ref(ctx).get(id));
-                if let Some(active_session) = active_session {
-                    if !active_session.has_attempted_to_load_external_commands() {
-                        ctx.background_executor()
-                            .spawn(async move { active_session.load_external_commands().await })
-                            .detach();
-                    }
+                if let Some(active_session) = active_session
+                    && !active_session.has_attempted_to_load_external_commands()
+                {
+                    ctx.background_executor()
+                        .spawn(async move { active_session.load_external_commands().await })
+                        .detach();
                 }
 
                 if let Some(delay) = command_finished_to_precmd_delay {
@@ -4514,18 +4517,18 @@ impl TerminalView {
 
                 // Emit PendingCommandCompleted when a pending command's block
                 // finishes (e.g. tab config setup commands like `git worktree add`).
-                if self.awaiting_pending_command_completion {
-                    if let Some(command_succeeded) = pending_command_succeeded {
-                        self.awaiting_pending_command_completion = false;
-                        if command_succeeded && self.set_next_pending_command_from_queue(ctx) {
-                            // The delayed pending-command scheduler below will
-                            // submit the next queued command as a separate block.
-                        } else {
-                            if !command_succeeded {
-                                self.pending_command_queue.clear();
-                            }
-                            ctx.emit(Event::PendingCommandCompleted);
+                if self.awaiting_pending_command_completion
+                    && let Some(command_succeeded) = pending_command_succeeded
+                {
+                    self.awaiting_pending_command_completion = false;
+                    if command_succeeded && self.set_next_pending_command_from_queue(ctx) {
+                        // The delayed pending-command scheduler below will
+                        // submit the next queued command as a separate block.
+                    } else {
+                        if !command_succeeded {
+                            self.pending_command_queue.clear();
                         }
+                        ctx.emit(Event::PendingCommandCompleted);
                     }
                 }
 
@@ -4681,12 +4684,12 @@ impl TerminalView {
             }
             ModelEvent::PreInteractiveSSHSession => {}
             ModelEvent::SSH(remote_shell) => {
-                if let Some(shell) = ShellType::from_name(remote_shell) {
-                    if shell.is_fully_supported_remotely() {
-                        // Start a bootstrap timer for the SSH session, so we can log when the session
-                        // takes too long to initialize
-                        self.start_bootstrap_timer(BOOTSTRAP_FAILED_DURATION, ctx);
-                    }
+                if let Some(shell) = ShellType::from_name(remote_shell)
+                    && shell.is_fully_supported_remotely()
+                {
+                    // Start a bootstrap timer for the SSH session, so we can log when the session
+                    // takes too long to initialize
+                    self.start_bootstrap_timer(BOOTSTRAP_FAILED_DURATION, ctx);
                 }
                 send_telemetry_from_ctx!(
                     TelemetryEvent::SSHBootstrapAttempt(remote_shell.clone()),
@@ -5059,11 +5062,11 @@ impl TerminalView {
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
     fn get_ps1_grid_info(&mut self) -> Option<(BlockGrid, SizeInfo)> {
         let model = self.model.lock();
-        let ps1_grid_info = model
+
+        model
             .prompt_grid()
             .cloned()
-            .zip(Some(*model.block_list().size()));
-        ps1_grid_info
+            .zip(Some(*model.block_list().size()))
     }
 
     #[cfg_attr(not(feature = "local_fs"), allow(dead_code))]
@@ -5183,11 +5186,7 @@ impl TerminalView {
             .editor()
             .as_ref(ctx)
             .selected_text(ctx);
-        if text.is_empty() {
-            None
-        } else {
-            Some(text)
-        }
+        if text.is_empty() { None } else { Some(text) }
     }
 }
 
@@ -5692,8 +5691,7 @@ impl TerminalView {
     }
 
     pub fn override_colors(&self) -> color::OverrideList {
-        let override_colors = self.model.lock().override_colors();
-        override_colors
+        self.model.lock().override_colors()
     }
 
     fn appearance<'a>(&self, ctx: &'a ViewContext<Self>) -> &'a Appearance {
@@ -6014,11 +6012,13 @@ impl TerminalView {
                             Some(model.link_at_range(url, RespectObfuscatedSecrets::Yes));
                         url_content
                             .map(|url_content| {
-                                vec![MenuItemFields::new("Copy URL")
-                                    .with_on_select_action(TerminalAction::ContextMenu(
-                                        ContextMenuAction::CopyUrl { url_content },
-                                    ))
-                                    .into_item()]
+                                vec![
+                                    MenuItemFields::new("Copy URL")
+                                        .with_on_select_action(TerminalAction::ContextMenu(
+                                            ContextMenuAction::CopyUrl { url_content },
+                                        ))
+                                        .into_item(),
+                                ]
                             })
                             .unwrap_or_default()
                     }
@@ -6228,24 +6228,30 @@ impl TerminalView {
                         ))
                         .into_item(),
                 ]);
-                items.append(&mut vec![MenuItemFields::new("Toggle block filter")
-                    .with_on_select_action(TerminalAction::ToggleBlockFilterOnSelectedOrLastBlock(
-                        ToggleBlockFilterSource::ContextMenu,
-                    ))
-                    .with_key_shortcut_label(keybinding_name_to_display_string(
-                        TOGGLE_BLOCK_FILTER_KEYBINDING,
-                        ctx,
-                    ))
-                    .into_item()]);
-                items.append(&mut vec![MenuItemFields::new("Toggle bookmark")
-                    .with_on_select_action(TerminalAction::ContextMenu(
-                        ContextMenuAction::ToggleBookmark,
-                    ))
-                    .with_key_shortcut_label(keybinding_name_to_display_string(
-                        "terminal:bookmark_selected_block",
-                        ctx,
-                    ))
-                    .into_item()]);
+                items.append(&mut vec![
+                    MenuItemFields::new("Toggle block filter")
+                        .with_on_select_action(
+                            TerminalAction::ToggleBlockFilterOnSelectedOrLastBlock(
+                                ToggleBlockFilterSource::ContextMenu,
+                            ),
+                        )
+                        .with_key_shortcut_label(keybinding_name_to_display_string(
+                            TOGGLE_BLOCK_FILTER_KEYBINDING,
+                            ctx,
+                        ))
+                        .into_item(),
+                ]);
+                items.append(&mut vec![
+                    MenuItemFields::new("Toggle bookmark")
+                        .with_on_select_action(TerminalAction::ContextMenu(
+                            ContextMenuAction::ToggleBookmark,
+                        ))
+                        .with_key_shortcut_label(keybinding_name_to_display_string(
+                            "terminal:bookmark_selected_block",
+                            ctx,
+                        ))
+                        .into_item(),
+                ]);
 
                 items.append(&mut vec![
                     MenuItem::Separator,
@@ -6259,15 +6265,17 @@ impl TerminalView {
                         ))
                         .into_item(),
                 ]);
-                items.append(&mut vec![MenuItemFields::new(scroll_to_bottom_str)
-                    .with_on_select_action(TerminalAction::ContextMenu(
-                        ContextMenuAction::ScrollToBottomOfBlock,
-                    ))
-                    .with_key_shortcut_label(keybinding_name_to_display_string(
-                        "terminal:scroll_to_bottom_of_selected_block",
-                        ctx,
-                    ))
-                    .into_item()]);
+                items.append(&mut vec![
+                    MenuItemFields::new(scroll_to_bottom_str)
+                        .with_on_select_action(TerminalAction::ContextMenu(
+                            ContextMenuAction::ScrollToBottomOfBlock,
+                        ))
+                        .with_key_shortcut_label(keybinding_name_to_display_string(
+                            "terminal:scroll_to_bottom_of_selected_block",
+                            ctx,
+                        ))
+                        .into_item(),
+                ]);
 
                 items
             }
@@ -6356,12 +6364,14 @@ impl TerminalView {
         is_rprompt_shown: bool,
         position: PromptPosition,
     ) -> Vec<MenuItem<TerminalAction>> {
-        let mut items = vec![MenuItemFields::new("Copy prompt")
-            .with_on_select_action(TerminalAction::ContextMenu(ContextMenuAction::CopyPrompt {
-                position,
-                part: PromptPart::EntirePrompt,
-            }))
-            .into_item()];
+        let mut items = vec![
+            MenuItemFields::new("Copy prompt")
+                .with_on_select_action(TerminalAction::ContextMenu(ContextMenuAction::CopyPrompt {
+                    position,
+                    part: PromptPart::EntirePrompt,
+                }))
+                .into_item(),
+        ];
 
         if is_rprompt_shown {
             items.push(
@@ -7574,11 +7584,10 @@ impl TerminalView {
         if let Some(session) = self
             .active_block_session_id()
             .and_then(|id| self.sessions.as_ref(ctx).get(id))
+            && let Some(info) = session.subshell_info()
         {
-            if let Some(info) = session.subshell_info() {
-                self.riftify_state
-                    .add_subshell_separator(info, self.model.clone(), ctx);
-            }
+            self.riftify_state
+                .add_subshell_separator(info, self.model.clone(), ctx);
         }
 
         // No more restored blocks, since we just cleared the buffer
@@ -7848,10 +7857,9 @@ impl TerminalView {
             let semantic_selection = SemanticSelection::as_ref(ctx);
             if let Some(selected) =
                 model.selection_to_string(semantic_selection, inverted_blocklist, ctx)
+                && !selected.is_empty()
             {
-                if !selected.is_empty() {
-                    view.set_query_text(selected.as_str(), ctx);
-                }
+                view.set_query_text(selected.as_str(), ctx);
             }
 
             // If the alt screen is not active and there are selected blocks, enable the find_within_block.
@@ -8199,16 +8207,16 @@ impl TerminalView {
             .block_list()
             .last_non_hidden_block_by_index();
 
-        if let Some(start_index) = first_block_index {
-            if let Some(end_index) = last_block_index {
-                self.change_block_selections(
-                    |selected_blocks| {
-                        selected_blocks.reset_to_single(start_index);
-                        selected_blocks.range_select(end_index);
-                    },
-                    ctx,
-                );
-            }
+        if let Some(start_index) = first_block_index
+            && let Some(end_index) = last_block_index
+        {
+            self.change_block_selections(
+                |selected_blocks| {
+                    selected_blocks.reset_to_single(start_index);
+                    selected_blocks.range_select(end_index);
+                },
+                ctx,
+            );
         }
         ctx.focus_self();
         ctx.notify();
@@ -9082,9 +9090,11 @@ impl TerminalView {
             set_custom_keybinding(MOVE_LINE_END_BINDING_NAME, &CTRL_E_KEYSTROKE, ctx);
         }
         EmacsBindingsSettings::handle(ctx).update(ctx, |settings_model, settings_ctx| {
-            report_if_error!(settings_model
-                .emacs_bindings_banner_state
-                .set_value(BannerState::Dismissed, settings_ctx));
+            report_if_error!(
+                settings_model
+                    .emacs_bindings_banner_state
+                    .set_value(BannerState::Dismissed, settings_ctx)
+            );
         });
         self.is_emacs_bindings_banner_open = false;
         ctx.notify();
@@ -10771,20 +10781,18 @@ impl TerminalView {
                 .expect("Handle should be available")
                 .is_hovered();
 
-            if hovered {
-                if let Some(block) = model.block_list().block_at(*index) {
-                    let snapshot = render_floating_block_snapshot(block, appearance);
+            if hovered && let Some(block) = model.block_list().block_at(*index) {
+                let snapshot = render_floating_block_snapshot(block, appearance);
 
-                    stack.add_positioned_child(
-                        snapshot,
-                        OffsetPositioning::offset_from_parent(
-                            vec2f(-BOOKMARK_PREVIEW_OFFSET, offset.y()),
-                            ParentOffsetBounds::ParentByPosition,
-                            ParentAnchor::TopRight,
-                            ChildAnchor::TopRight,
-                        ),
-                    );
-                }
+                stack.add_positioned_child(
+                    snapshot,
+                    OffsetPositioning::offset_from_parent(
+                        vec2f(-BOOKMARK_PREVIEW_OFFSET, offset.y()),
+                        ParentOffsetBounds::ParentByPosition,
+                        ParentAnchor::TopRight,
+                        ChildAnchor::TopRight,
+                    ),
+                );
             }
         }
 
@@ -12161,47 +12169,47 @@ impl View for TerminalView {
             .as_ref(app)
             .show_jump_to_bottom_of_block_button
             .value();
-        if is_jump_to_bottom_enabled {
-            if let Some(overhanging_block) = viewport.overhanging_bottom_block(app) {
-                let button_hovered = self.is_jump_to_bottom_of_block_element_hovered();
-                let block_hovered = self
-                    .hovered_block_index
-                    .is_some_and(|hovered_index| hovered_index == overhanging_block.block_index());
-                if (button_hovered || block_hovered)
-                    && overhanging_block.visible_block_height_px()
-                        > *JUMP_TO_BOTTOM_OVERHANG_THRESHOLD_PX
-                {
-                    let positioning = match (input_mode, self.is_input_box_visible(&model, app)) {
-                        (InputMode::PinnedToBottom | InputMode::Waterfall, true) => {
-                            // In waterfall or pinned to bottom mode, the button is positioned relative to the top right
-                            // of the input area
-                            OffsetPositioning::offset_from_save_position_element(
-                                self.input.as_ref(app).save_position_id(),
-                                vec2f(-10. - SCROLLBAR_WIDTH.as_f32(), -10.),
-                                PositionedElementOffsetBounds::WindowByPosition,
-                                PositionedElementAnchor::TopRight,
-                                ChildAnchor::BottomRight,
-                            )
-                        }
-                        // In pinned to top mode or the input is not visible, the button is positioned relative to the bottom right
-                        // of the parent element
-                        (_, _) => OffsetPositioning::offset_from_parent(
+        if is_jump_to_bottom_enabled
+            && let Some(overhanging_block) = viewport.overhanging_bottom_block(app)
+        {
+            let button_hovered = self.is_jump_to_bottom_of_block_element_hovered();
+            let block_hovered = self
+                .hovered_block_index
+                .is_some_and(|hovered_index| hovered_index == overhanging_block.block_index());
+            if (button_hovered || block_hovered)
+                && overhanging_block.visible_block_height_px()
+                    > *JUMP_TO_BOTTOM_OVERHANG_THRESHOLD_PX
+            {
+                let positioning = match (input_mode, self.is_input_box_visible(&model, app)) {
+                    (InputMode::PinnedToBottom | InputMode::Waterfall, true) => {
+                        // In waterfall or pinned to bottom mode, the button is positioned relative to the top right
+                        // of the input area
+                        OffsetPositioning::offset_from_save_position_element(
+                            self.input.as_ref(app).save_position_id(),
                             vec2f(-10. - SCROLLBAR_WIDTH.as_f32(), -10.),
-                            ParentOffsetBounds::ParentByPosition,
-                            ParentAnchor::BottomRight,
+                            PositionedElementOffsetBounds::WindowByPosition,
+                            PositionedElementAnchor::TopRight,
                             ChildAnchor::BottomRight,
-                        ),
-                    };
-                    stack.add_positioned_child(
-                        self.render_jump_to_bottom_of_block_element(
-                            overhanging_block,
-                            is_long_running_command,
-                            appearance,
-                            app,
-                        ),
-                        positioning,
-                    );
-                }
+                        )
+                    }
+                    // In pinned to top mode or the input is not visible, the button is positioned relative to the bottom right
+                    // of the parent element
+                    (_, _) => OffsetPositioning::offset_from_parent(
+                        vec2f(-10. - SCROLLBAR_WIDTH.as_f32(), -10.),
+                        ParentOffsetBounds::ParentByPosition,
+                        ParentAnchor::BottomRight,
+                        ChildAnchor::BottomRight,
+                    ),
+                };
+                stack.add_positioned_child(
+                    self.render_jump_to_bottom_of_block_element(
+                        overhanging_block,
+                        is_long_running_command,
+                        appearance,
+                        app,
+                    ),
+                    positioning,
+                );
             }
         }
 
@@ -12263,18 +12271,13 @@ impl View for TerminalView {
             SavePosition::new(stack.finish(), &self.terminal_position_id()).finish()
         };
 
-        let final_element = if self.is_file_drop_target && FeatureFlag::SshDragAndDrop.is_enabled()
-        {
+        (if self.is_file_drop_target && FeatureFlag::SshDragAndDrop.is_enabled() {
             Container::new(element)
                 .with_foreground_overlay(appearance.theme().accent_overlay())
                 .finish()
         } else {
             element
-        };
-
-        {
-            final_element
-        }
+        }) as _
     }
 
     fn on_focus(&mut self, focus_ctx: &FocusContext, ctx: &mut ViewContext<Self>) {
@@ -12515,46 +12518,44 @@ impl Drop for TerminalView {
                     model.has_pending_ssh_session(),
                 )
             })
+            && (has_pending_ssh_session || !is_bootstrapped)
         {
-            if has_pending_ssh_session || !is_bootstrapped {
-                // Only treat session abandonment as an error if the session was
-                // visible to the user at some point.  This filters out
-                // bootstrap "failures" such as oh-my-zsh prompting the user
-                // about an update while we're sourcing their rcfiles - we'll
-                // never technically finish bootstrapping the shell.  If that
-                // occurs in some non-visible tab, we don't want to conflate it
-                // (an unanswered prompt) with an actual failure to bootstrap
-                // the shell.
-                let log_level = if self.was_ever_visible {
-                    log::Level::Error
-                } else {
-                    log::Level::Warn
-                };
-                log::log!(
-                    log_level,
-                    "Session abandoned before bootstrap for shell {pending_shell:?} on ssh {has_pending_ssh_session}"
-                );
+            // Only treat session abandonment as an error if the session was
+            // visible to the user at some point.  This filters out
+            // bootstrap "failures" such as oh-my-zsh prompting the user
+            // about an update while we're sourcing their rcfiles - we'll
+            // never technically finish bootstrapping the shell.  If that
+            // occurs in some non-visible tab, we don't want to conflate it
+            // (an unanswered prompt) with an actual failure to bootstrap
+            // the shell.
+            let log_level = if self.was_ever_visible {
+                log::Level::Error
+            } else {
+                log::Level::Warn
+            };
+            log::log!(
+                log_level,
+                "Session abandoned before bootstrap for shell {pending_shell:?} on ssh {has_pending_ssh_session}"
+            );
 
-                let was_ever_visible = self.was_ever_visible;
-                let duration_since_start =
-                    self.bootstrap_start.unwrap_or_else(Instant::now).elapsed();
-                // Offline build: record the telemetry event into the local in-memory queue rather
-                // than sending it over the network.
-                let event = TelemetryEvent::SessionAbandonedBeforeBootstrap {
-                    pending_shell,
-                    has_pending_ssh_session,
-                    was_ever_visible,
-                    duration_since_start,
-                };
-                riftui::telemetry::record_event(
-                    self.auth_state.user_id().map(|uid| uid.as_string()),
-                    self.auth_state.anonymous_id(),
-                    event.name().into(),
-                    event.payload(),
-                    event.contains_ugc(),
-                    riftui::time::get_current_time(),
-                );
-            }
+            let was_ever_visible = self.was_ever_visible;
+            let duration_since_start = self.bootstrap_start.unwrap_or_else(Instant::now).elapsed();
+            // Offline build: record the telemetry event into the local in-memory queue rather
+            // than sending it over the network.
+            let event = TelemetryEvent::SessionAbandonedBeforeBootstrap {
+                pending_shell,
+                has_pending_ssh_session,
+                was_ever_visible,
+                duration_since_start,
+            };
+            riftui::telemetry::record_event(
+                self.auth_state.user_id().map(|uid| uid.as_string()),
+                self.auth_state.anonymous_id(),
+                event.name().into(),
+                event.payload(),
+                event.contains_ugc(),
+                riftui::time::get_current_time(),
+            );
         };
     }
 }

@@ -3,7 +3,7 @@ use std::path::Path;
 use rift_completer::completer::TopLevelCommandCaseSensitivity;
 use rift_util::path::EscapeChar;
 
-use super::{check_openable_in_rift, OpenablePath};
+use super::{OpenablePath, check_openable_in_rift};
 use crate::util::openable_file_type::OpenableFileType;
 
 const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");

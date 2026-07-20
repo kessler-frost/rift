@@ -6,10 +6,10 @@ use std::sync::Arc;
 
 use pathfinder_color::ColorU;
 use rift_core::ui::Icon;
+use riftui::EventContext;
 use riftui::assets::asset_cache::AssetSource;
 use riftui::elements::MouseStateHandle;
 use riftui::keymap::Keystroke;
-use riftui::EventContext;
 /// A trait for types that can produce a message based on some contextual arguments.
 ///
 /// The generic `Args` parameter allows each call site to define its own

@@ -123,9 +123,11 @@ fn test_overflow_menu_items() {
         let overflow_menu = header.read(&app, |header, _ctx| header.overflow_menu.to_owned());
 
         let menu_item_label = "Increment counter";
-        let menu_items = vec![MenuItemFields::new(menu_item_label)
-            .with_on_select_action(TestViewAction::IncrementCounter)
-            .into_item()];
+        let menu_items = vec![
+            MenuItemFields::new(menu_item_label)
+                .with_on_select_action(TestViewAction::IncrementCounter)
+                .into_item(),
+        ];
 
         // Set the menu items and open the menu.
         header.update(&mut app, |header, ctx| {

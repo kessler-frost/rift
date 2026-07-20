@@ -1,4 +1,4 @@
-use fuzzy_match::{match_indices_case_insensitive, FuzzyMatchResult};
+use fuzzy_match::{FuzzyMatchResult, match_indices_case_insensitive};
 use itertools::Itertools;
 use riftui::{AppContext, Entity};
 
@@ -22,7 +22,11 @@ impl RepoDataSource {
         Self {}
     }
 
-    pub fn top_n(&self, _limit: usize, _app: &AppContext) -> impl Iterator<Item = RepoSearchItem> {
+    pub fn top_n(
+        &self,
+        _limit: usize,
+        _app: &AppContext,
+    ) -> impl Iterator<Item = RepoSearchItem> + use<> {
         // The recent-workspaces list was backed by a cloud-synced model that has been
         // removed; there is no local source of recent repos yet.
         std::iter::empty()

@@ -23,8 +23,7 @@ use crate::ui_components::icons::Icon as UiIcon;
 
 const TMUX_NOT_INSTALLED_ERROR: &str =
     "tmux is not installed on the remote machine. Please install tmux and try again.";
-const UNSUPPORTED_TMUX_VERSION_ERROR: &str =
-    "The tmux version available on the remote machine is below 3.0. Please install tmux 3.0 or greater using a different method and try again.";
+const UNSUPPORTED_TMUX_VERSION_ERROR: &str = "The tmux version available on the remote machine is below 3.0. Please install tmux 3.0 or greater using a different method and try again.";
 const TMUX_FAILED_ERROR: &str =
     "tmux failed to execute on the remote machine. Please re-install tmux and try again.";
 const RIFTIFY_TIMEOUT_ERROR: &str = "Riftifying the session hit a timeout.";

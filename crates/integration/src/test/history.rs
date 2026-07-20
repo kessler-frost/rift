@@ -11,11 +11,11 @@ use rift::sqlite_testing::set_user_and_hostname_for_commands;
 use rift::terminal::input::Input;
 use rift::terminal::model::session::get_local_hostname;
 use rift::terminal::shell::ShellType;
-use riftui_core::{async_assert, ViewHandle};
+use riftui_core::{ViewHandle, async_assert};
 
-use super::{new_builder, TEST_ONLY_ASSETS};
-use crate::util::{get_local_user, write_histfiles_for_test};
+use super::{TEST_ONLY_ASSETS, new_builder};
 use crate::Builder;
+use crate::util::{get_local_user, write_histfiles_for_test};
 
 /// The `history_with_metadata.sqlite` table looks like the following:
 ///
@@ -68,11 +68,12 @@ pub fn test_up_arrow_history() -> Builder {
                 let input_view: &ViewHandle<Input> = views.first().unwrap();
                 input_view.read(app, |view, ctx| {
                     // The history menu should be visible.
-                    assert!(view
-                        .suggestions_mode_model()
-                        .as_ref(ctx)
-                        .mode()
-                        .is_visible());
+                    assert!(
+                        view.suggestions_mode_model()
+                            .as_ref(ctx)
+                            .mode()
+                            .is_visible()
+                    );
 
                     // The cursor should be on the last row.
                     assert!(view.editor().as_ref(ctx).single_cursor_on_last_row(ctx));
@@ -95,11 +96,12 @@ pub fn test_up_arrow_history() -> Builder {
                 let input_view: &ViewHandle<Input> = views.first().unwrap();
                 input_view.read(app, |view, ctx| {
                     // The history menu should be visible.
-                    assert!(view
-                        .suggestions_mode_model()
-                        .as_ref(ctx)
-                        .mode()
-                        .is_visible());
+                    assert!(
+                        view.suggestions_mode_model()
+                            .as_ref(ctx)
+                            .mode()
+                            .is_visible()
+                    );
 
                     // The cursor should be on the first row.
                     assert!(view.editor().as_ref(ctx).single_cursor_on_first_row(ctx));

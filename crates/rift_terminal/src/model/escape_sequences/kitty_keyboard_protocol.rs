@@ -1,6 +1,6 @@
 use riftui_core::keymap::Keystroke;
-use riftui_core::platform::keyboard::KeyCode;
 use riftui_core::platform::OperatingSystem;
+use riftui_core::platform::keyboard::KeyCode;
 
 use super::{ModeProvider, TermMode};
 

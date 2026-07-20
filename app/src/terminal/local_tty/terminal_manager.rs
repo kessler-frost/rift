@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::mpsc::{SendError, SyncSender};
 use std::sync::Arc;
+use std::sync::mpsc::{SendError, SyncSender};
 use std::thread::JoinHandle;
 
 use anyhow::Context as _;
@@ -27,8 +27,8 @@ use {
 use super::event_loop::EventLoop;
 use super::shell::{ShellStarter, ShellStarterSource};
 use super::{mio_channel, recorder};
-use crate::auth::auth_state::AuthState;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_state::AuthState;
 use crate::banner::BannerState;
 use crate::context_chips::current_prompt::CurrentPrompt;
 use crate::context_chips::prompt_type::PromptType;
@@ -52,8 +52,8 @@ use crate::terminal::writeable_pty::terminal_manager_util::{
 };
 use crate::terminal::writeable_pty::{self, Message};
 use crate::terminal::{
-    terminal_manager, ShellLaunchData, ShellLaunchState, TerminalManager as _, TerminalModel,
-    TerminalView, PTY_READS_BROADCAST_CHANNEL_SIZE,
+    PTY_READS_BROADCAST_CHANNEL_SIZE, ShellLaunchData, ShellLaunchState, TerminalManager as _,
+    TerminalModel, TerminalView, terminal_manager,
 };
 
 type PtyController = writeable_pty::PtyController<mio_channel::Sender<Message>>;
@@ -114,12 +114,15 @@ impl TerminalManager {
             log::info!("Failed to send Shutdown {e:?}");
         }
 
-        if let Some(join_handle) = self.event_loop_handle.take() {
-            if let Err(e) = join_handle.join() {
-                log::error!("Failed to join event loop handle {e:?}");
+        match self.event_loop_handle.take() {
+            Some(join_handle) => {
+                if let Err(e) = join_handle.join() {
+                    log::error!("Failed to join event loop handle {e:?}");
+                }
             }
-        } else {
-            log::error!("No event loop handle to join when dropping terminal manager.")
+            _ => {
+                log::error!("No event loop handle to join when dropping terminal manager.")
+            }
         }
 
         self.inactive_pty_reads_rx.close();
@@ -262,7 +265,7 @@ impl TerminalManager {
             inactive_pty_reads_rx,
         };
 
-        let terminal_manager_model = ctx.add_model(|ctx| {
+        ctx.add_model(|ctx| {
             let terminal_manager: Box<dyn crate::terminal::TerminalManager> =
                 Box::new(terminal_manager);
 
@@ -298,9 +301,7 @@ impl TerminalManager {
             );
 
             terminal_manager
-        });
-
-        terminal_manager_model
+        })
     }
 
     /// Callback invoked upon determining the shell to be spawned when starting the event loop.
@@ -694,12 +695,13 @@ impl TerminalManager {
                     let is_navigated_away_from_window =
                         ctx.windows().active_window() != Some(view.window_id(ctx));
                     let password_notification_setting_on = show_password_notifications(ctx);
-                    if is_navigated_away_from_window && password_notification_setting_on {
-                        if let Some(block_index) = block_index_clone.borrow_mut().take() {
-                            view.update(ctx, |view, ctx| {
-                                view.maybe_send_password_notification(block_index, ctx);
-                            });
-                        }
+                    if is_navigated_away_from_window
+                        && password_notification_setting_on
+                        && let Some(block_index) = block_index_clone.borrow_mut().take()
+                    {
+                        view.update(ctx, |view, ctx| {
+                            view.maybe_send_password_notification(block_index, ctx);
+                        });
                     }
 
                     // TODO: this stops the notification stream for a single command

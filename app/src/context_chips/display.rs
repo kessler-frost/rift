@@ -10,13 +10,13 @@ use riftui::{
     ViewHandle,
 };
 
-use super::display_chip::{DisplayChip, DisplayChipConfig, PromptDisplayChipEvent};
-use super::prompt_type::PromptType;
 #[cfg(feature = "integration_tests")]
 use super::ContextChipKind;
-use super::{git_line_changes_from_chips, ChipResult};
+use super::display_chip::{DisplayChip, DisplayChipConfig, PromptDisplayChipEvent};
+use super::prompt_type::PromptType;
+use super::{ChipResult, git_line_changes_from_chips};
 use crate::completer::SessionContext;
-use crate::context_chips::display_chip::{format_git_branch_command, DisplayChipAction};
+use crate::context_chips::display_chip::{DisplayChipAction, format_git_branch_command};
 use crate::terminal::input::MenuPositioningProvider;
 use crate::terminal::model_events::ModelEventDispatcher;
 

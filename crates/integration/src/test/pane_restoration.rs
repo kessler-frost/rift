@@ -15,7 +15,7 @@ use rift::integration_testing::terminal::{
 };
 use rift::integration_testing::workspace::{assert_tab_count, trigger_undo_close};
 
-use super::{new_builder, Builder};
+use super::{Builder, new_builder};
 
 /// Tests the basic pane restoration workflow:
 /// 1. Split off a pane

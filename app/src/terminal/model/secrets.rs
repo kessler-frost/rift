@@ -2,8 +2,8 @@
 
 use std::collections::HashMap;
 use std::ops::{Not, RangeInclusive};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use anyhow::anyhow;
 use itertools::Itertools;
@@ -11,8 +11,8 @@ use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use rangemap::{RangeInclusiveMap, StepLite};
 use rift_core::safe_warn;
-use riftui::elements::SecretRange;
 use riftui::EntityId;
+use riftui::elements::SecretRange;
 
 use super::grid::grid_handler::GridHandler;
 use super::grid::{Dimensions as _, RespectDisplayedOutput};

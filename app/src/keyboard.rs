@@ -3,12 +3,12 @@ use std::env::var_os;
 
 use anyhow::Context;
 use itertools::Itertools;
+use riftui::AppContext;
 use riftui::keymap::Keystroke;
 #[cfg(not(test))]
 use riftui::keymap::Trigger;
-use riftui::AppContext;
 use serde::{Deserialize, Serialize};
-use vec1::{vec1, Vec1};
+use vec1::{Vec1, vec1};
 
 /// Environment variable to disable saving keybindings to file (used in integration tests)
 pub const DISABLE_SAVE_ENV_VAR: &str = "RIFT_TEST_DISABLE_KEYBINDING_SAVE";

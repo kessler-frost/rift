@@ -4,12 +4,12 @@ use std::sync::Arc;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
-use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::Fill;
+use rift_core::ui::theme::color::internal_colors;
 use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    Empty, Flex, Hoverable, MouseStateHandle, OffsetPositioning, ParentAnchor, ParentElement,
-    ParentOffsetBounds, Radius, Stack, Text, DEFAULT_UI_LINE_HEIGHT_RATIO,
+    DEFAULT_UI_LINE_HEIGHT_RATIO, Empty, Flex, Hoverable, MouseStateHandle, OffsetPositioning,
+    ParentAnchor, ParentElement, ParentOffsetBounds, Radius, Stack, Text,
 };
 use riftui::fonts::{Cache, FamilyId, Properties, Weight};
 use riftui::keymap::Keystroke;
@@ -26,11 +26,11 @@ use super::directory_fetcher::{
 use super::display_menu::{
     ChipMenuType, DisplayChipMenu, FixedFooter, GenericMenuItem, PromptDisplayMenuEvent,
 };
-use super::{github_pr_display_text_from_url, render_text_from_kind, ChipResult, ContextChipKind};
+use super::{ChipResult, ContextChipKind, github_pr_display_text_from_url, render_text_from_kind};
 use crate::appearance::Appearance;
 use crate::completer::SessionContext;
 use crate::context_chips::git_branch_on_click::{
-    is_plausible_new_branch_name, GitBranchOnClickValue,
+    GitBranchOnClickValue, is_plausible_new_branch_name,
 };
 use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersionPopupView};
 use crate::context_chips::spacing;
@@ -303,15 +303,15 @@ impl GitLineChanges {
 
         let words: Vec<&str> = line.split_whitespace().collect();
         for (i, word) in words.iter().enumerate() {
-            if let Ok(num) = word.parse::<u32>() {
-                if let Some(next_word) = words.get(i + 1) {
-                    if next_word.starts_with("file") {
-                        files_changed = num;
-                    } else if next_word.starts_with("insertion") {
-                        lines_added = num;
-                    } else if next_word.starts_with("deletion") {
-                        lines_removed = num;
-                    }
+            if let Ok(num) = word.parse::<u32>()
+                && let Some(next_word) = words.get(i + 1)
+            {
+                if next_word.starts_with("file") {
+                    files_changed = num;
+                } else if next_word.starts_with("insertion") {
+                    lines_added = num;
+                } else if next_word.starts_with("deletion") {
+                    lines_removed = num;
                 }
             }
         }
@@ -526,20 +526,21 @@ impl DisplayChip {
                 ctx.subscribe_to_view(&menu_view, |me, _, event, ctx| match event {
                     PromptDisplayMenuEvent::MenuAction(generic_event) => {
                         let action_item = generic_event.action_item.as_any();
-                        let command =
-                            if let Some(git_branch) = action_item.downcast_ref::<GitBranch>() {
-                                git_branch.command()
-                            } else if let Some(create_branch) =
-                                action_item.downcast_ref::<CreateGitBranch>()
-                            {
-                                create_branch.command()
-                            } else {
-                                log::warn!(
+                        let command = if let Some(git_branch) =
+                            action_item.downcast_ref::<GitBranch>()
+                        {
+                            git_branch.command()
+                        } else if let Some(create_branch) =
+                            action_item.downcast_ref::<CreateGitBranch>()
+                        {
+                            create_branch.command()
+                        } else {
+                            log::warn!(
                                 "MenuAction event should contain a GitBranch or CreateGitBranch \
                                  action item"
                             );
-                                return;
-                            };
+                            return;
+                        };
 
                         ctx.emit(PromptDisplayChipEvent::TryExecuteCommand(command));
                         me.close_git_branch_menu(ctx);
@@ -1264,12 +1265,11 @@ impl View for DisplayChip {
     }
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
-        if let Some(chip) = self.render_chip(app) {
-            Container::new(chip)
+        match self.render_chip(app) {
+            Some(chip) => Container::new(chip)
                 .with_margin_right(CHIP_MARGIN_RIGHT)
-                .finish()
-        } else {
-            Empty::new().finish()
+                .finish(),
+            _ => Empty::new().finish(),
         }
     }
 }

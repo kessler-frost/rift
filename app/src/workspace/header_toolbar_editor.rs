@@ -3,15 +3,15 @@ use riftui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 use settings::Setting as _;
 
 use crate::chip_configurator::{
-    render_chip_editor_modal, render_chip_editor_sections, ChipConfigurator,
-    ChipConfiguratorAction, ChipConfiguratorLayout, ChipEditorModalConfig, ChipEditorMouseHandles,
-    ChipEditorSectionsConfig, ConfigurableItem, ControlItemRenderer,
+    ChipConfigurator, ChipConfiguratorAction, ChipConfiguratorLayout, ChipEditorModalConfig,
+    ChipEditorMouseHandles, ChipEditorSectionsConfig, ConfigurableItem, ControlItemRenderer,
+    render_chip_editor_modal, render_chip_editor_sections,
 };
 use crate::workspace::header_toolbar_item::HeaderToolbarItemKind;
 use crate::workspace::tab_settings::{
     HeaderToolbarChipSelection, TabSettings, TabSettingsChangedEvent,
 };
-use crate::{report_if_error, Appearance};
+use crate::{Appearance, report_if_error};
 
 const MODAL_TITLE: &str = "Edit toolbar";
 
@@ -152,9 +152,11 @@ fn save_toolbar_selection<V: View>(
     };
 
     TabSettings::handle(ctx).update(ctx, |settings, ctx| {
-        report_if_error!(settings
-            .header_toolbar_chip_selection
-            .set_value(selection, ctx));
+        report_if_error!(
+            settings
+                .header_toolbar_chip_selection
+                .set_value(selection, ctx)
+        );
     });
 }
 

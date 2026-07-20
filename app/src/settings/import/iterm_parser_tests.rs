@@ -6,12 +6,12 @@ use riftui::fonts::FontInfo;
 use riftui::keymap::Keystroke;
 use virtual_fs::{Stub, VirtualFS};
 
-use super::{color_dictionary_to_coloru, ITermTheme, ITermThemeType};
+use super::{ITermTheme, ITermThemeType, color_dictionary_to_coloru};
 use crate::settings::import::config::{
     GlobalHotkey, HotkeyError, ImportedFont, ParseableConfig, ThemeType,
 };
 use crate::settings::import::iterm_parser::{
-    default_dark_theme, default_light_theme, Flags, ITermKeystroke, ITermProfile,
+    Flags, ITermKeystroke, ITermProfile, default_dark_theme, default_light_theme,
 };
 
 fn courier_new() -> Vec<FontInfo> {
@@ -173,7 +173,7 @@ fn test_import_from_file() {
 
         let config = profile.parse(&[]);
 
-        let ThemeType::Single(ref rift_theme) =
+        let ThemeType::Single(rift_theme) =
             config.theme.value().as_ref().expect("Should import theme!")
         else {
             panic!("Should have read a single theme!")

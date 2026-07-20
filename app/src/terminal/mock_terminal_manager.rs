@@ -119,8 +119,8 @@ mod testing {
     use riftui::{App, Element};
 
     use super::*;
-    use crate::terminal::shell::{ShellName, ShellType};
     use crate::terminal::ShellLaunchState;
+    use crate::terminal::shell::{ShellName, ShellType};
 
     struct TerminalRootView {
         terminal_view: ViewHandle<TerminalView>,

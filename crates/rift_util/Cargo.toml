@@ -2,7 +2,7 @@
 name = "rift_util"
 authors = ["Rift"]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "General utilities and helpers used across rift crates"
 publish.workspace = true
 license.workspace = true

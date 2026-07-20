@@ -21,8 +21,8 @@ use objc2_metal::{
 use objc2_quartz_core::CAMetalDrawable;
 use pathfinder_color::{ColorF, ColorU};
 use pathfinder_geometry::rect::{RectF, RectI};
-use pathfinder_geometry::vector::{vec2f, Vector2F};
-use riftui_core::fonts::{self, canvas, RasterizedGlyph, SubpixelAlignment};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
+use riftui_core::fonts::{self, RasterizedGlyph, SubpixelAlignment, canvas};
 use riftui_core::platform::CapturedFrame;
 use riftui_core::rendering::texture_cache::TextureCache;
 use riftui_core::rendering::{self};
@@ -32,7 +32,7 @@ use super::frame_capture::capture_frame;
 use crate::platform::mac::rendering::renderer::Device;
 use crate::platform::mac::window::WindowState;
 use crate::rendering::atlas::{AllocatedRegion, TextureId};
-use crate::rendering::{get_best_dash_gap, GlyphCache, GlyphRasterBoundsFn, RasterizeGlyphFn};
+use crate::rendering::{GlyphCache, GlyphRasterBoundsFn, RasterizeGlyphFn, get_best_dash_gap};
 
 const METAL_LIB_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/shaders.metallib"));
 static WRITE_LIB_TO_FILE: Once = Once::new();

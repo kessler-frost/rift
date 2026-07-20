@@ -1,11 +1,11 @@
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
+use rift_core::ui::Icon;
 use rift_core::ui::appearance::Appearance;
 use rift_core::ui::theme::Fill;
-use rift_core::ui::Icon;
 use riftui::elements::{
-    Border, CacheOption, Clipped, Container, CornerRadius, Element, FormattedTextElement,
-    Hoverable, Image, ParentElement, Radius, Wrap, WrapFill, DEFAULT_UI_LINE_HEIGHT_RATIO,
+    Border, CacheOption, Clipped, Container, CornerRadius, DEFAULT_UI_LINE_HEIGHT_RATIO, Element,
+    FormattedTextElement, Hoverable, Image, ParentElement, Radius, Wrap, WrapFill,
 };
 use riftui::platform::Cursor;
 use riftui::prelude::{Align, ConstrainedBox, CrossAxisAlignment, Flex, MainAxisSize, Text};

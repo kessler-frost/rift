@@ -1,3 +1,4 @@
+use riftui::Element;
 use riftui::elements::{
     Align, Border, ConstrainedBox, Container, CornerRadius, Flex, Highlight, ParentElement, Radius,
     Shrinkable, Text,
@@ -5,7 +6,6 @@ use riftui::elements::{
 use riftui::fonts::{Properties, Weight};
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::ui_components::text::Span;
-use riftui::Element;
 
 use crate::appearance::Appearance;
 use crate::launch_configs::launch_config::LaunchConfig;

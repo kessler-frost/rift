@@ -1,5 +1,5 @@
-use riftui::platform::WindowStyle;
 use riftui::App;
+use riftui::platform::WindowStyle;
 
 use super::*;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;

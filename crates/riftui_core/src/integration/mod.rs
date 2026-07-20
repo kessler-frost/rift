@@ -13,17 +13,17 @@ mod step;
 pub mod video_recorder;
 pub use action_log::ActionLog;
 pub use artifacts::ARTIFACTS_DIR_ENV_VAR;
-pub use driver::{Builder, SetupFn, TestDriver, RERUN_EXIT_CODE, RUNTIME_TAG_FAILURE_REASON};
+pub use driver::{Builder, RERUN_EXIT_CODE, RUNTIME_TAG_FAILURE_REASON, SetupFn, TestDriver};
 pub use overlay::OverlayLog;
 pub use step::{
     AssertionCallback, AssertionOutcome, AssertionWithDataCallback, IntegrationTestEvent,
     PersistedDataMap, StepData, StepDataMap, TestStep,
 };
-pub use video_recorder::{save_captured_frame_as_png, VideoRecorder};
+pub use video_recorder::{VideoRecorder, save_captured_frame_as_png};
 
 #[macro_export]
 macro_rules! async_assert {
-    ($left:expr) => {
+    ($left:expr_2021) => {
         match (&$left) {
             (left_val) => {
                 if *left_val {
@@ -35,7 +35,7 @@ macro_rules! async_assert {
             }
         }
     };
-    ($left:expr, $($arg:tt)+) => {
+    ($left:expr_2021, $($arg:tt)+) => {
         match (&$left) {
             (left_val) => {
                 if *left_val {
@@ -53,7 +53,7 @@ macro_rules! async_assert {
 /// but allows for some on_finish behavior in the app before it panics.
 #[macro_export]
 macro_rules! integration_assert {
-    ($left:expr) => {
+    ($left:expr_2021) => {
         match (&$left) {
             (left_val) => {
                 if !*left_val {
@@ -63,7 +63,7 @@ macro_rules! integration_assert {
             }
         }
     };
-    ($left:expr, $($arg:tt)+) => {
+    ($left:expr_2021, $($arg:tt)+) => {
         match (&$left) {
             (left_val) => {
                 if !*left_val {
@@ -77,7 +77,7 @@ macro_rules! integration_assert {
 
 #[macro_export]
 macro_rules! async_assert_eq {
-    ($left:expr, $right:expr) => {
+    ($left:expr_2021, $right:expr_2021) => {
         match (&$left, &$right) {
             (left_val, right_val) => {
                 if *left_val == *right_val {
@@ -94,7 +94,7 @@ macro_rules! async_assert_eq {
             }
         }
     };
-    ($left:expr, $right:expr, $($arg:tt)+) => {
+    ($left:expr_2021, $right:expr_2021, $($arg:tt)+) => {
         match (&$left, &$right) {
             (left_val, right_val) => {
                 if *left_val == *right_val {
@@ -144,12 +144,14 @@ impl TestSetupUtils {
                     key,
                     v.as_ref().to_string_lossy()
                 );
-                env::set_var(&key, v);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { env::set_var(&key, v) };
                 self.env_vars.insert(key);
             }
             None => {
                 println!("Clearing env var {key}");
-                env::remove_var(key);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { env::remove_var(key) };
             }
         };
     }
@@ -157,7 +159,8 @@ impl TestSetupUtils {
     pub fn cleanup_env(&mut self) {
         for key in &self.env_vars {
             println!("Clearing env var {key}");
-            env::remove_var(key);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::remove_var(key) };
         }
         self.env_vars = HashSet::new();
     }
@@ -186,10 +189,10 @@ impl TestSetupUtils {
         }
 
         let res = fs::create_dir_all(test_dir);
-        if let Err(err_code) = res {
-            if err_code.kind() != ErrorKind::AlreadyExists {
-                panic!("Failed to create directory {test_dir:?}");
-            }
+        if let Err(err_code) = res
+            && err_code.kind() != ErrorKind::AlreadyExists
+        {
+            panic!("Failed to create directory {test_dir:?}");
         }
     }
 

@@ -1,7 +1,7 @@
 use float_cmp::{approx_eq, assert_approx_eq};
+use riftui::App;
 use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
 use riftui::units::IntoLines;
-use riftui::App;
 
 use super::*;
 use crate::settings::TerminalSpacing;
@@ -404,15 +404,19 @@ pub fn visible_bootstrap_block_event_fires_when_script_execution_becomes_visible
     assert!(block_list.active_block().is_empty());
 
     let events = drain_terminal_events(&events_rx);
-    assert!(!events
-        .iter()
-        .any(|event| matches!(event, Event::VisibleBootstrapBlock)));
+    assert!(
+        !events
+            .iter()
+            .any(|event| matches!(event, Event::VisibleBootstrapBlock))
+    );
 
     block_list.input('c');
     let events = drain_terminal_events(&events_rx);
-    assert!(!events
-        .iter()
-        .any(|event| matches!(event, Event::VisibleBootstrapBlock)));
+    assert!(
+        !events
+            .iter()
+            .any(|event| matches!(event, Event::VisibleBootstrapBlock))
+    );
 
     block_list.update_active_block_height();
     let visible_events = drain_terminal_events(&events_rx)
@@ -1047,11 +1051,13 @@ fn test_removed_gap_with_banner() {
         InlineBannerType::NotificationsDiscovery,
     ));
     // Make sure the banner was inserted.
-    assert!(block_list
-        .block_heights
-        .items()
-        .iter()
-        .any(|it| matches!(it, BlockHeightItem::InlineBanner { banner, .. } if banner.id == 0)));
+    assert!(
+        block_list
+            .block_heights
+            .items()
+            .iter()
+            .any(|it| matches!(it, BlockHeightItem::InlineBanner { banner, .. } if banner.id == 0))
+    );
 
     // There's two bootstrap blocks, one gap and one block before the banner.
     assert_eq!(
@@ -1198,11 +1204,13 @@ fn test_block_height_update_shifts_indices() {
     );
 
     // Make sure the banner was inserted.
-    assert!(block_list
-        .block_heights
-        .items()
-        .iter()
-        .any(|it| matches!(it, BlockHeightItem::InlineBanner { banner, .. } if banner.id == 0)));
+    assert!(
+        block_list
+            .block_heights
+            .items()
+            .iter()
+            .any(|it| matches!(it, BlockHeightItem::InlineBanner { banner, .. } if banner.id == 0))
+    );
     assert_eq!(
         block_list
             .removable_blocklist_item_positions
@@ -1221,14 +1229,18 @@ fn test_block_height_update_shifts_indices() {
     block_list.remove_inline_banner(0);
 
     // Make sure the banner is gone.
-    assert!(!block_list
-        .block_heights
-        .items()
-        .iter()
-        .any(|it| matches!(&it, BlockHeightItem::InlineBanner { .. })));
-    assert!(!block_list
-        .removable_blocklist_item_positions
-        .contains_key(&RemovableBlocklistItem::InlineBanner(0)));
+    assert!(
+        !block_list
+            .block_heights
+            .items()
+            .iter()
+            .any(|it| matches!(&it, BlockHeightItem::InlineBanner { .. }))
+    );
+    assert!(
+        !block_list
+            .removable_blocklist_item_positions
+            .contains_key(&RemovableBlocklistItem::InlineBanner(0))
+    );
 
     // Make sure the gap was adjusted back.
     assert!(block_list.active_gap.is_some());
@@ -1313,11 +1325,13 @@ fn test_remove_rich_content_block() {
     // Remove second rich content block.
     block_list.remove_rich_content(view_id_b);
 
-    assert!(!block_list
-        .block_heights
-        .items()
-        .iter()
-        .any(|item| matches!(&item, BlockHeightItem::RichContent { .. })));
+    assert!(
+        !block_list
+            .block_heights
+            .items()
+            .iter()
+            .any(|item| matches!(&item, BlockHeightItem::RichContent { .. }))
+    );
 }
 
 #[test]
@@ -1588,12 +1602,11 @@ pub fn test_emits_after_block_completed_event() {
 
     let mut after_block_completed_events = Vec::new();
     while let Ok(event) = events_rx.try_recv() {
-        if let Event::AfterBlockCompleted(event) = event {
-            if matches!(event.block_type, BlockType::InBandCommand)
-                || matches!(event.block_type, BlockType::User(..))
-            {
-                after_block_completed_events.push(event);
-            }
+        if let Event::AfterBlockCompleted(event) = event
+            && (matches!(event.block_type, BlockType::InBandCommand)
+                || matches!(event.block_type, BlockType::User(..)))
+        {
+            after_block_completed_events.push(event);
         }
     }
     assert_eq!(after_block_completed_events.len(), 2);

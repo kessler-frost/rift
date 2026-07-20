@@ -1,6 +1,6 @@
 [package]
 name = "rift_core"
-edition = "2021"
+edition = "2024"
 authors = ["Rift"]
 publish.workspace = true
 license.workspace = true

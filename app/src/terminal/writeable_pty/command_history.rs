@@ -1,5 +1,5 @@
-use std::sync::mpsc::SyncSender;
 use std::sync::Arc;
+use std::sync::mpsc::SyncSender;
 
 use parking_lot::FairMutex;
 use riftui::{AppContext, ModelHandle, SingletonEntity};

@@ -15,8 +15,8 @@ use riftui::geometry::vector::Vector2F;
 use riftui::text::SelectionType;
 use riftui::units::{IntoLines, IntoPixels, Lines, Pixels};
 use riftui::{
-    end_trace, record_trace_event, start_trace, AfterLayoutContext, AppContext, Element, EntityId,
-    Event, EventContext, LayoutContext, ModelHandle, PaintContext, SizeConstraint,
+    AfterLayoutContext, AppContext, Element, EntityId, Event, EventContext, LayoutContext,
+    ModelHandle, PaintContext, SizeConstraint, end_trace, record_trace_event, start_trace,
 };
 use vec1::Vec1;
 
@@ -28,8 +28,9 @@ use crate::terminal::blockgrid_renderer::GridRenderParams;
 use crate::terminal::find::TerminalFindModel;
 use crate::terminal::grid_renderer::CellGlyphCache;
 use crate::terminal::meta_shortcuts::handle_keystroke_despite_composing;
+use crate::terminal::model::SecretHandle;
 use crate::terminal::model::escape_sequences::{
-    maybe_kitty_keyboard_escape_sequence, KeystrokeWithDetails, ToEscapeSequence,
+    KeystrokeWithDetails, ToEscapeSequence, maybe_kitty_keyboard_escape_sequence,
 };
 use crate::terminal::model::grid::grid_handler::{Link, TermMode};
 use crate::terminal::model::grid::{Dimensions, RespectDisplayedOutput};
@@ -37,12 +38,11 @@ use crate::terminal::model::index::Point;
 use crate::terminal::model::mouse::{MouseAction, MouseButton, MouseState};
 use crate::terminal::model::selection::{SelectAction, SelectionPoint};
 use crate::terminal::model::terminal_model::WithinModel;
-use crate::terminal::model::SecretHandle;
 use crate::terminal::safe_mode_settings::get_secret_obfuscation_mode;
 use crate::terminal::view::{
     ActiveSessionState, TerminalAction, TerminalEditor, TerminalViewRenderContext,
 };
-use crate::terminal::{grid_renderer, heights_approx_eq, SizeInfo, TerminalModel};
+use crate::terminal::{SizeInfo, TerminalModel, grid_renderer, heights_approx_eq};
 
 pub struct AltScreenElement {
     model: Arc<FairMutex<TerminalModel>>,

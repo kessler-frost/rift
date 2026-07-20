@@ -5,7 +5,7 @@ use objc2_metal::MTLDevice;
 use riftui_core::rendering::{
     GPUBackend, GPUDeviceInfo, GPUDeviceType, GPUPowerPreference, OnGPUDeviceSelected,
 };
-use riftui_core::{fonts, Scene};
+use riftui_core::{Scene, fonts};
 
 use crate::platform::mac::rendering::is_integrated_gpu;
 use crate::platform::mac::window::WindowState;

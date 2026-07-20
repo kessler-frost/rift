@@ -1,7 +1,7 @@
 use pathfinder_color::ColorU;
 use rift_core::ui::theme::Fill;
-use riftui::elements::{Align, ConstrainedBox, Container, Empty};
 use riftui::Element;
+use riftui::elements::{Align, ConstrainedBox, Container, Empty};
 
 use crate::appearance::Appearance;
 use crate::search::result_renderer::ItemHighlightState;

@@ -9,7 +9,7 @@ use crate::units::IntoPixels;
 use crate::{App, Element, Entity, Presenter, TypedActionView, WindowInvalidation};
 
 macro_rules! assert_float_eq {
-    ($lhs:expr, $rhs:expr) => {{
+    ($lhs:expr_2021, $rhs:expr_2021) => {{
         let lhs = $lhs;
         let rhs = $rhs;
         assert!(

@@ -14,12 +14,12 @@ use rift::root_view::SubshellCommandArg;
 use rift::terminal::riftify::settings::AddedSubshellCommands;
 use rift::terminal::shell::ShellType;
 use riftui_core::integration::{AssertionOutcome, TestStep};
-use riftui_core::windowing::state::ApplicationStage;
 use riftui_core::windowing::WindowManager;
-use riftui_core::{async_assert, UpdateModel};
+use riftui_core::windowing::state::ApplicationStage;
+use riftui_core::{UpdateModel, async_assert};
 use settings::Setting as _;
 
-use super::{new_builder, Builder};
+use super::{Builder, new_builder};
 use crate::util::skip_if_powershell_core_2303;
 
 /// Generates an integration test that asserts that a local subshell of the given shell type can be

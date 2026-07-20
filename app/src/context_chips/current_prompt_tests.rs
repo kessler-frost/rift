@@ -13,8 +13,8 @@ use riftui_extras::user_preferences;
 use settings::Setting as _;
 
 use super::{ChipUpdateStatus, CurrentPrompt, PromptContext};
-use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_manager::AuthManager;
 use crate::context_chips::context_chip::{Environment, PromptGenerator};
 use crate::context_chips::prompt::Prompt;
 use crate::context_chips::{ChipAvailability, ChipDisabledReason, ContextChipKind};
@@ -24,6 +24,7 @@ use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 use crate::settings::RiftPromptSeparator;
 #[cfg(windows)]
 use crate::system::SystemInfo;
+use crate::terminal::History;
 use crate::terminal::model::block::BlockMetadata;
 use crate::terminal::model::session::{
     CommandExecutor, ExecuteCommandOptions, SessionId, SessionInfo, Sessions,
@@ -31,7 +32,6 @@ use crate::terminal::model::session::{
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::shell::Shell;
 use crate::terminal::view::PromptPosition;
-use crate::terminal::History;
 
 #[test]
 fn test_context_menu_items() {

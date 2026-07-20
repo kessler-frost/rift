@@ -20,7 +20,7 @@ use crate::terminal::event::UserBlockCompleted;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::model::session::Session;
 use crate::terminal::view::inline_banner::{OpenInRiftBannerAction, OpenInRiftBannerState};
-use crate::util::openable_file_type::{is_file_openable_in_rift, OpenableFileType};
+use crate::util::openable_file_type::{OpenableFileType, is_file_openable_in_rift};
 
 #[cfg(test)]
 #[path = "open_in_rift_tests.rs"]
@@ -67,10 +67,10 @@ impl TerminalView {
                     .await
                 },
                 move |view, maybe_match, ctx| {
-                    if let Some(openable_path) = maybe_match {
-                        if matches!(openable_path.file_type, OpenableFileType::Markdown) {
-                            view.suggest_open_in_rift(openable_path, session, ctx);
-                        }
+                    if let Some(openable_path) = maybe_match
+                        && matches!(openable_path.file_type, OpenableFileType::Markdown)
+                    {
+                        view.suggest_open_in_rift(openable_path, session, ctx);
                     }
                 },
             );
@@ -171,16 +171,20 @@ impl TerminalView {
                     match banner_state.target.file_type {
                         OpenableFileType::Markdown => {
                             GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {
-                                report_if_error!(settings
-                                    .open_in_rift_banner_dismissed_for_markdown
-                                    .set_value(true, ctx));
+                                report_if_error!(
+                                    settings
+                                        .open_in_rift_banner_dismissed_for_markdown
+                                        .set_value(true, ctx)
+                                );
                             });
                         }
                         OpenableFileType::Code | OpenableFileType::Text => {
                             GeneralSettings::handle(ctx).update(ctx, |settings, ctx| {
-                                report_if_error!(settings
-                                    .open_in_rift_banner_dismissed_for_code_and_text
-                                    .set_value(true, ctx));
+                                report_if_error!(
+                                    settings
+                                        .open_in_rift_banner_dismissed_for_code_and_text
+                                        .set_value(true, ctx)
+                                );
                             });
                         }
                     }

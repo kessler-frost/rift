@@ -5,8 +5,8 @@ use riftui::{
 };
 use uuid::Uuid;
 
-use super::settings::UndoCloseSettingsChangedEvent;
 use super::UndoCloseSettings;
+use super::settings::UndoCloseSettingsChangedEvent;
 use crate::pane_group::{PaneGroup, PaneId};
 use crate::send_telemetry_from_app_ctx;
 use crate::tab::TabData;

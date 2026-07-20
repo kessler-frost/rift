@@ -4,9 +4,9 @@ use std::fmt::{Display, Formatter};
 use std::sync::OnceLock;
 
 #[cfg(target_family = "wasm")]
-use riftui_core::platform::wasm;
-#[cfg(target_family = "wasm")]
 use riftui_core::platform::OperatingSystem;
+#[cfg(target_family = "wasm")]
+use riftui_core::platform::wasm;
 use serde::Serialize;
 use serde_with::SerializeDisplay;
 

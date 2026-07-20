@@ -14,9 +14,9 @@ use rift::terminal::shell::ShellType;
 use rift::terminal::{History, ShellHost, TerminalView};
 use rift::workspace::Workspace;
 use riftui_core::integration::{AssertionOutcome, TestStep};
-use riftui_core::{async_assert_eq, SingletonEntity, ViewHandle};
+use riftui_core::{SingletonEntity, ViewHandle, async_assert_eq};
 
-use super::{new_builder, Builder, TEST_ONLY_ASSETS};
+use super::{Builder, TEST_ONLY_ASSETS, new_builder};
 use crate::util::{get_local_user, tab_title_in_home_dir};
 
 pub fn test_session_restoration() -> Builder {

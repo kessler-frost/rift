@@ -1,5 +1,5 @@
-use riftui::platform::SystemTheme;
 use riftui::AppContext;
+use riftui::platform::SystemTheme;
 use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
 

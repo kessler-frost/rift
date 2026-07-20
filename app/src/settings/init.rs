@@ -19,6 +19,7 @@ use super::{
 };
 use crate::banner::BannerState;
 use crate::resource_center::TipsCompleted;
+use crate::terminal::BlockListSettings;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::keys_settings::KeysSettings;
@@ -27,7 +28,6 @@ use crate::terminal::riftify::settings::RiftifySettings;
 use crate::terminal::safe_mode_settings::SafeModeSettings;
 use crate::terminal::session_settings::{SessionSettings, SessionSettingsChangedEvent};
 use crate::terminal::settings::TerminalSettings;
-use crate::terminal::BlockListSettings;
 use crate::undo_close::UndoCloseSettings;
 use crate::window_settings::WindowSettings;
 use crate::workspace::tab_settings::TabSettings;
@@ -392,16 +392,19 @@ fn migrate_native_settings_to_settings_file(ctx: &mut AppContext) {
         ))));
     }
 
-    log::info!("Settings file migration complete — migrated {migrated_count} settings, {failed_count} failed");
+    log::info!(
+        "Settings file migration complete — migrated {migrated_count} settings, {failed_count} failed"
+    );
 
     // Record the migration so it won't re-run if the user deletes the TOML
     // file. This marker is written unconditionally — for new users the native
     // store is empty so the migration is a no-op, but the marker still gets
     // written to indicate that migration was attempted.
-    report_if_error!(ctx
-        .private_user_preferences()
-        .write_value(SETTINGS_FILE_MIGRATION_COMPLETE_KEY, "true".to_owned())
-        .map_err(|err| anyhow::anyhow!(err)));
+    report_if_error!(
+        ctx.private_user_preferences()
+            .write_value(SETTINGS_FILE_MIGRATION_COMPLETE_KEY, "true".to_owned())
+            .map_err(|err| anyhow::anyhow!(err))
+    );
 }
 
 #[cfg(test)]

@@ -121,7 +121,7 @@ use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
 use riftui::keymap::Keystroke;
 use riftui::{AppContext, DisplayIdx, SingletonEntity};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use settings::Setting as _;
 
 use crate::root_view::QuakeModePinPosition;

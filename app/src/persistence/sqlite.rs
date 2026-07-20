@@ -5,7 +5,7 @@ use std::str::FromStr;
 use std::sync::Once;
 use std::{fs, thread};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use diesel::connection::{DefaultLoadingMode, SimpleConnection};
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;
@@ -21,39 +21,39 @@ use num_traits::FromPrimitive;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
 use rift_core::telemetry::EnablementState;
+use riftui::AppContext;
 use riftui::platform::FullscreenState;
 use riftui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
-use riftui::AppContext;
 
 use super::block_list::{delete_blocks, save_block};
 use super::model::{
     self, CurrentUserInformation, MCPEnvironmentVariables, NewApp, NewCommand, NewServerExperiment,
-    NewTab, NewTeam, NewWindow, NewWorkspace, NewWorkspaceTeam, Project, Tab, Window,
-    WorkspaceMetadata as WorkspaceMetadataModel, SETTINGS_PANE_KIND, TERMINAL_PANE_KIND,
-    WELCOME_PANE_KIND,
+    NewTab, NewTeam, NewWindow, NewWorkspace, NewWorkspaceTeam, Project, SETTINGS_PANE_KIND,
+    TERMINAL_PANE_KIND, Tab, WELCOME_PANE_KIND, Window,
+    WorkspaceMetadata as WorkspaceMetadataModel,
 };
 use super::{
-    schema, BlockCompleted, FinishedCommandMetadata, ModelEvent, PersistedData, PersistenceScope,
-    StartedCommandMetadata, WriterHandles,
+    BlockCompleted, FinishedCommandMetadata, ModelEvent, PersistedData, PersistenceScope,
+    StartedCommandMetadata, WriterHandles, schema,
 };
 use crate::app_state::{
     AppState, BranchSnapshot, LeafContents, LeafSnapshot, PaneFlex, PaneNodeSnapshot,
     SettingsPaneSnapshot, SplitDirection, TabSnapshot, TerminalPaneSnapshot, WindowSnapshot,
 };
-use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::auth::UserUid;
+use crate::auth::auth_manager::PersistedCurrentUserInformation;
 use crate::persistence::block_list::get_all_restored_blocks;
-use crate::persistence::model::{NewTeamSettings, UserProfile, GET_STARTED_PANE_KIND};
+use crate::persistence::model::{GET_STARTED_PANE_KIND, NewTeamSettings, UserProfile};
 use crate::server::experiments::ServerExperiment;
 use crate::server::ids::ServerId;
 use crate::settings_view::SettingsSection;
 use crate::suggestions::ignored_suggestions_model::SuggestionType;
 use crate::tab::SelectedTabColor;
-use crate::terminal::history::PersistedCommand;
 use crate::terminal::ShellLaunchData;
+use crate::terminal::history::PersistedCommand;
 use crate::themes::theme::AnsiColorIdentifier;
 use crate::workspaces::team::Team as TeamMetadata;
-use crate::workspaces::user_profiles::{user_profile_from_persistence, UserProfileWithUID};
+use crate::workspaces::user_profiles::{UserProfileWithUID, user_profile_from_persistence};
 use crate::workspaces::workspace::{Workspace as WorkspaceMetadata, WorkspaceUid};
 use crate::{report_error, safe_info, send_telemetry_from_app_ctx};
 
@@ -161,93 +161,95 @@ fn establish_connection(database_url: &str, read_only: bool) -> Result<SqliteCon
 /// Setting up SQLite logging is not thread-safe. No other SQLite calls may be made while this
 /// function is running.
 unsafe fn init_logging() {
-    use std::ffi::{c_char, c_int, c_void, CStr};
-    use std::{panic, ptr};
+    unsafe {
+        use std::ffi::{CStr, c_char, c_int, c_void};
+        use std::{panic, ptr};
 
-    extern "C-unwind" fn log_callback(_data: *mut c_void, err_code: c_int, msg: *const c_char) {
-        // `err_code` is an extended error code (https://www.sqlite.org/rescode.html#primary_result_codes_versus_extended_result_codes).
-        // In general, the least-significant byte of an extended error code is the primary error
-        // code it belongs to. Each primary error code can also be used where an extended error
-        // code is expected (for example, `SQLITE_SCHEMA` has no extended error codes).
-        let primary_error_code = err_code & 0xFF;
-        let level = match (primary_error_code, err_code) {
-            // This usually means that a schema change invalidated a prepared statement.
-            (sqlite3::SQLITE_SCHEMA, _) => log::Level::Debug,
-            // These are used with sqlite3_log, in extensions.
-            (sqlite3::SQLITE_NOTICE | sqlite3::SQLITE_WARNING, _) => log::Level::Warn,
-            // According to the docs, this error means that the database file was moved (or deleted),
-            // so SQLite can't safely modify it and the rollback journal:
-            //     https://www.sqlite.org/rescode.html#readonly_dbmoved
-            // This is mostly outside of Rift's control (e.g. the user or some system program is
-            // moving around files in the user data directory), so downgrade to a warning.
-            (_, sqlite3::SQLITE_READONLY_DBMOVED) => log::Level::Warn,
-            _ => log::Level::Error,
-        };
+        extern "C-unwind" fn log_callback(_data: *mut c_void, err_code: c_int, msg: *const c_char) {
+            // `err_code` is an extended error code (https://www.sqlite.org/rescode.html#primary_result_codes_versus_extended_result_codes).
+            // In general, the least-significant byte of an extended error code is the primary error
+            // code it belongs to. Each primary error code can also be used where an extended error
+            // code is expected (for example, `SQLITE_SCHEMA` has no extended error codes).
+            let primary_error_code = err_code & 0xFF;
+            let level = match (primary_error_code, err_code) {
+                // This usually means that a schema change invalidated a prepared statement.
+                (sqlite3::SQLITE_SCHEMA, _) => log::Level::Debug,
+                // These are used with sqlite3_log, in extensions.
+                (sqlite3::SQLITE_NOTICE | sqlite3::SQLITE_WARNING, _) => log::Level::Warn,
+                // According to the docs, this error means that the database file was moved (or deleted),
+                // so SQLite can't safely modify it and the rollback journal:
+                //     https://www.sqlite.org/rescode.html#readonly_dbmoved
+                // This is mostly outside of Rift's control (e.g. the user or some system program is
+                // moving around files in the user data directory), so downgrade to a warning.
+                (_, sqlite3::SQLITE_READONLY_DBMOVED) => log::Level::Warn,
+                _ => log::Level::Error,
+            };
 
-        // Safety: the message pointer came from the SQLite library, which promises that it's a
-        // valid C string pointer.
-        let msg = unsafe { CStr::from_ptr(msg) };
-        let err_message = String::from_utf8_lossy(msg.to_bytes());
-        // Sentry shouldn't panic, but to be safe, make sure we don't unwind across the FFI
-        // boundary.
-        let _ = panic::catch_unwind(|| {
-            // We report SQLite errors to Sentry in a more-structured format so that they have
-            // better grouping (all are under the same Sentry issue, with details for the specific
-            // error kind). Warning and debug SQLite messages are logged - with the default
-            // sentry_log configuration, warnings are added as breadcrumbs to other events and
-            // debug messages are ignored.
-            // In local builds without crash reporting, all SQLite messages get logged locally.
+            // Safety: the message pointer came from the SQLite library, which promises that it's a
+            // valid C string pointer.
+            let msg = unsafe { CStr::from_ptr(msg) };
+            let err_message = String::from_utf8_lossy(msg.to_bytes());
+            // Sentry shouldn't panic, but to be safe, make sure we don't unwind across the FFI
+            // boundary.
+            let _ = panic::catch_unwind(|| {
+                // We report SQLite errors to Sentry in a more-structured format so that they have
+                // better grouping (all are under the same Sentry issue, with details for the specific
+                // error kind). Warning and debug SQLite messages are logged - with the default
+                // sentry_log configuration, warnings are added as breadcrumbs to other events and
+                // debug messages are ignored.
+                // In local builds without crash reporting, all SQLite messages get logged locally.
 
-            #[cfg(feature = "crash_reporting")]
-            if level == log::Level::Error {
-                sentry::with_scope(
-                    |scope| {
-                        let mut context = std::collections::BTreeMap::new();
-                        context.insert("message".to_string(), err_message.into());
-                        context.insert("code".to_string(), err_code.into());
-                        context.insert(
-                            "code_description".to_string(),
-                            sqlite3::code_to_str(err_code).into(),
-                        );
-                        scope.set_context("sqlite", sentry::protocol::Context::Other(context));
-                    },
-                    || {
-                        sentry::capture_message(
-                            "Sqlite Error",
-                            sentry_log::convert_log_level(level),
-                        )
-                    },
+                #[cfg(feature = "crash_reporting")]
+                if level == log::Level::Error {
+                    sentry::with_scope(
+                        |scope| {
+                            let mut context = std::collections::BTreeMap::new();
+                            context.insert("message".to_string(), err_message.into());
+                            context.insert("code".to_string(), err_code.into());
+                            context.insert(
+                                "code_description".to_string(),
+                                sqlite3::code_to_str(err_code).into(),
+                            );
+                            scope.set_context("sqlite", sentry::protocol::Context::Other(context));
+                        },
+                        || {
+                            sentry::capture_message(
+                                "Sqlite Error",
+                                sentry_log::convert_log_level(level),
+                            )
+                        },
+                    );
+                    return;
+                }
+
+                log::log!(
+                    level,
+                    "SQLite error {} ({}): {}",
+                    err_code,
+                    sqlite3::code_to_str(err_code),
+                    err_message
                 );
-                return;
-            }
+            });
+        }
 
-            log::log!(
-                level,
-                "SQLite error {} ({}): {}",
-                err_code,
-                sqlite3::code_to_str(err_code),
-                err_message
+        static INIT: Once = Once::new();
+        INIT.call_once(|| {
+            let null: *const c_void = ptr::null();
+            // Diesel doesn't expose SQLite's logging/tracing APIs, but the FFI bindings do.
+            let status = sqlite3::sqlite3_config(
+                sqlite3::SQLITE_CONFIG_LOG,
+                log_callback as extern "C-unwind" fn(_, _, _),
+                null,
             );
+
+            if status != sqlite3::SQLITE_OK {
+                log::error!(
+                    "Error setting up SQLite logging: {}",
+                    sqlite3::code_to_str(status)
+                );
+            }
         });
     }
-
-    static INIT: Once = Once::new();
-    INIT.call_once(|| {
-        let null: *const c_void = ptr::null();
-        // Diesel doesn't expose SQLite's logging/tracing APIs, but the FFI bindings do.
-        let status = sqlite3::sqlite3_config(
-            sqlite3::SQLITE_CONFIG_LOG,
-            log_callback as extern "C-unwind" fn(_, _, _),
-            null,
-        );
-
-        if status != sqlite3::SQLITE_OK {
-            log::error!(
-                "Error setting up SQLite logging: {}",
-                sqlite3::code_to_str(status)
-            );
-        }
-    });
 }
 
 /// Determines the db path, establishes a connection and runs any migrations.
@@ -294,8 +296,10 @@ fn migrate_old_sqlite_into_secure_container_if_needed(db_path: &Path) {
 
             if let Err(err) = std::fs::rename(&old_wal, &new_wal) {
                 if err.kind() != std::io::ErrorKind::NotFound {
-                    report_error!(anyhow::Error::new(err)
-                        .context("Failed to migrate SQLite WAL into application container"));
+                    report_error!(
+                        anyhow::Error::new(err)
+                            .context("Failed to migrate SQLite WAL into application container")
+                    );
                 }
             } else {
                 log::info!("Migrated SQLite WAL into application container");
@@ -303,16 +307,20 @@ fn migrate_old_sqlite_into_secure_container_if_needed(db_path: &Path) {
 
             if let Err(err) = std::fs::rename(&old_shm, &new_shm) {
                 if err.kind() != std::io::ErrorKind::NotFound {
-                    report_error!(anyhow::Error::new(err)
-                        .context("Failed to migrate SQLite SHM into application container"));
+                    report_error!(
+                        anyhow::Error::new(err)
+                            .context("Failed to migrate SQLite SHM into application container")
+                    );
                 }
             } else {
                 log::info!("Migrated SQLite shared memory file into application container");
             }
         }
         Err(err) => {
-            report_error!(anyhow::Error::new(err)
-                .context("Failed to migrate SQLite database into application container"));
+            report_error!(
+                anyhow::Error::new(err)
+                    .context("Failed to migrate SQLite database into application container")
+            );
         }
     }
 }
@@ -382,8 +390,10 @@ fn start_writer(conn: SqliteConnection, database_path: PathBuf) -> Result<Writer
                             log::info!("SQLite Writer is paused");
 
                             if let Err(err) = std::fs::remove_file(&database_path) {
-                                report_error!(anyhow::Error::new(err)
-                                    .context("Error removing SQLite database"));
+                                report_error!(
+                                    anyhow::Error::new(err)
+                                        .context("Error removing SQLite database")
+                                );
                             } else {
                                 log::info!("Removed SQLite database");
                             }
@@ -702,10 +712,10 @@ fn save_app_state(conn: &mut SqliteConnection, app_state: &AppState) -> Result<(
                     // and `read_node` would fail to resolve the leaf on
                     // restore, causing the entire surrounding tab to be
                     // dropped. See `LeafContents::is_persisted`.
-                    if let PaneNodeSnapshot::Leaf(leaf) = pane_node {
-                        if !leaf.contents.is_persisted() {
-                            continue;
-                        }
+                    if let PaneNodeSnapshot::Leaf(leaf) = pane_node
+                        && !leaf.contents.is_persisted()
+                    {
+                        continue;
                     }
 
                     let is_leaf = matches!(pane_node, PaneNodeSnapshot::Leaf(_));
@@ -1234,20 +1244,19 @@ fn save_workspaces(
             .execute(conn)?;
     }
 
-    if let Some(current_workspace_uid) = current_workspace_uid {
-        if !workspaces_to_insert
+    if let Some(current_workspace_uid) = current_workspace_uid
+        && !workspaces_to_insert
             .iter()
             .any(|workspace| workspace.uid == current_workspace_uid)
-        {
-            // If the currently selected workspace is not in the list of workspaces, set
-            // the first workspace as the current workspace.
-            if let Some(first_workspace) = workspaces_to_insert.first() {
-                diesel::update(workspaces.filter(
-                    schema::workspaces::dsl::server_uid.eq::<String>(first_workspace.uid.into()),
-                ))
-                .set(is_selected.eq(true))
-                .execute(conn)?;
-            }
+    {
+        // If the currently selected workspace is not in the list of workspaces, set
+        // the first workspace as the current workspace.
+        if let Some(first_workspace) = workspaces_to_insert.first() {
+            diesel::update(workspaces.filter(
+                schema::workspaces::dsl::server_uid.eq::<String>(first_workspace.uid.into()),
+            ))
+            .set(is_selected.eq(true))
+            .execute(conn)?;
         }
     }
 

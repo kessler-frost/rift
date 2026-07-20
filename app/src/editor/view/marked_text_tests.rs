@@ -1,7 +1,7 @@
 use rift_core::features::FeatureFlag;
+use riftui::App;
 use riftui::keymap::Keystroke;
 use riftui::platform::WindowStyle;
-use riftui::App;
 use vim::vim::VimMode;
 
 use super::initialize_app;

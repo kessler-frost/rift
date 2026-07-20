@@ -37,8 +37,8 @@ use string_offset::ByteOffset;
 use style::BgAndStyle;
 
 use super::row::Row;
-use super::{cell, CellType};
-use crate::model::{ansi, Point};
+use super::{CellType, cell};
+use crate::model::{Point, ansi};
 
 const DEFAULT_FG_COLOR: ansi::Color = ansi::Color::Named(ansi::NamedColor::Foreground);
 

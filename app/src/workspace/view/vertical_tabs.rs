@@ -5,21 +5,21 @@ use std::sync::{Arc, Mutex};
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use rift_core::context_flag::ContextFlag;
+use rift_core::ui::Icon as RiftIcon;
 use rift_core::ui::color::blend::Blend;
 use rift_core::ui::theme::color::internal_colors;
 use rift_core::ui::theme::{AnsiColorIdentifier, Fill as RiftThemeFill, RiftTheme};
-use rift_core::ui::Icon as RiftIcon;
 use riftui::elements::{
-    resizable_state_handle, Border, ChildAnchor, Clipped, ClippedScrollStateHandle,
-    ClippedScrollable, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    DispatchEventResult, DragAxis, DragBarSide, Draggable, DropShadow, DropTarget, Element, Empty,
-    EventHandler, Expanded, Fill as ElementFill, Flex, Hoverable, MainAxisAlignment, MainAxisSize,
-    MouseStateHandle, OffsetPositioning, Padding, ParentAnchor, ParentElement, ParentOffsetBounds,
-    PositionedElementAnchor, PositionedElementOffsetBounds, Radius, Resizable,
-    ResizableStateHandle, SavePosition, ScrollTarget, ScrollToPositionMode, ScrollbarWidth,
-    Shrinkable, Stack, Text,
+    Border, ChildAnchor, Clipped, ClippedScrollStateHandle, ClippedScrollable, ConstrainedBox,
+    Container, CornerRadius, CrossAxisAlignment, DispatchEventResult, DragAxis, DragBarSide,
+    Draggable, DropShadow, DropTarget, Element, Empty, EventHandler, Expanded, Fill as ElementFill,
+    Flex, Hoverable, MainAxisAlignment, MainAxisSize, MouseStateHandle, OffsetPositioning, Padding,
+    ParentAnchor, ParentElement, ParentOffsetBounds, PositionedElementAnchor,
+    PositionedElementOffsetBounds, Radius, Resizable, ResizableStateHandle, SavePosition,
+    ScrollTarget, ScrollToPositionMode, ScrollbarWidth, Shrinkable, Stack, Text,
+    resizable_state_handle,
 };
 use riftui::fonts::{Properties, Weight};
 use riftui::platform::Cursor;
@@ -30,6 +30,7 @@ use riftui::ui_components::text_input::TextInput;
 use riftui::{AppContext, EntityId, SingletonEntity, ViewHandle, WindowId};
 use settings::Setting as _;
 
+use crate::FeatureFlag;
 use crate::appearance::Appearance;
 use crate::context_chips::display_chip::GitLineChanges;
 use crate::context_chips::github_pr_display_text_from_url;
@@ -37,10 +38,10 @@ use crate::editor::EditorView;
 use crate::pane_group::pane::IPaneType;
 use crate::pane_group::{PaneGroup, PaneId, TabBarHoverIndex, TerminalPane};
 use crate::safe_triangle::SafeTriangle;
-use crate::tab::{tab_position_id, SelectedTabColor, TabData};
+use crate::tab::{SelectedTabColor, TabData, tab_position_id};
+use crate::terminal::TerminalView;
 use crate::terminal::session_settings::SessionSettings;
 use crate::terminal::view::TerminalViewState;
-use crate::terminal::TerminalView;
 use crate::themes::theme::Fill as ThemeFill;
 use crate::ui_components::buttons::combo_inner_button;
 use crate::ui_components::icon_with_status::render_icon_with_status;
@@ -58,7 +59,6 @@ use crate::workspace::{
     PaneViewLocator, TabBarLocation, TabContextMenuAnchor, VerticalTabsPaneContextMenuTarget,
     VerticalTabsPaneDropTargetData, Workspace,
 };
-use crate::FeatureFlag;
 
 const PANEL_WIDTH: f32 = 248.;
 const MIN_PANEL_WIDTH: f32 = 200.;
@@ -3631,7 +3631,7 @@ fn render_summary_tab_item(
     let mut title_region = Flex::column()
         .with_main_axis_size(MainAxisSize::Min)
         .with_cross_axis_alignment(CrossAxisAlignment::Start);
-    if let Some(title_override) = render_title_override(
+    match render_title_override(
         &props,
         12.,
         main_text_color,
@@ -3639,50 +3639,57 @@ fn render_summary_tab_item(
         appearance,
         app,
     ) {
-        title_region.add_child(title_override);
-    } else if summary.primary_labels.is_empty() {
-        title_region.add_child(render_text_line(
-            &props.title,
-            main_text_color,
-            ClipConfig::end(),
-            appearance,
-        ));
-    } else {
-        let visible_labels: Vec<&VerticalTabsSummaryPrimaryLabel> = summary
-            .primary_labels
-            .iter()
-            .take(MAX_VISIBLE_PRIMARY_LABELS)
-            .collect();
-        let reserve_prefix_slot = false;
-
-        for (idx, label) in visible_labels.iter().enumerate() {
-            let line = render_summary_primary_label_line(
-                label,
-                reserve_prefix_slot,
-                main_text_color,
-                appearance,
-            );
-            title_region.add_child(if idx == 0 {
-                line
-            } else {
-                Container::new(line)
-                    .with_margin_top(INTRA_REGION_GAP)
-                    .finish()
-            });
+        Some(title_override) => {
+            title_region.add_child(title_override);
         }
-
-        let hidden_label_count =
-            summary_overflow_count(summary.primary_labels.len(), MAX_VISIBLE_PRIMARY_LABELS);
-        if hidden_label_count > 0 {
-            title_region.add_child(
-                Container::new(render_summary_overflow_line(
-                    hidden_label_count,
-                    sub_text_color,
+        _ => {
+            if summary.primary_labels.is_empty() {
+                title_region.add_child(render_text_line(
+                    &props.title,
+                    main_text_color,
+                    ClipConfig::end(),
                     appearance,
-                ))
-                .with_margin_top(INTRA_REGION_GAP)
-                .finish(),
-            );
+                ));
+            } else {
+                let visible_labels: Vec<&VerticalTabsSummaryPrimaryLabel> = summary
+                    .primary_labels
+                    .iter()
+                    .take(MAX_VISIBLE_PRIMARY_LABELS)
+                    .collect();
+                let reserve_prefix_slot = false;
+
+                for (idx, label) in visible_labels.iter().enumerate() {
+                    let line = render_summary_primary_label_line(
+                        label,
+                        reserve_prefix_slot,
+                        main_text_color,
+                        appearance,
+                    );
+                    title_region.add_child(if idx == 0 {
+                        line
+                    } else {
+                        Container::new(line)
+                            .with_margin_top(INTRA_REGION_GAP)
+                            .finish()
+                    });
+                }
+
+                let hidden_label_count = summary_overflow_count(
+                    summary.primary_labels.len(),
+                    MAX_VISIBLE_PRIMARY_LABELS,
+                );
+                if hidden_label_count > 0 {
+                    title_region.add_child(
+                        Container::new(render_summary_overflow_line(
+                            hidden_label_count,
+                            sub_text_color,
+                            appearance,
+                        ))
+                        .with_margin_top(INTRA_REGION_GAP)
+                        .finish(),
+                    );
+                }
+            }
         }
     }
     let title_region = title_region.finish();
@@ -4108,30 +4115,27 @@ fn render_terminal_right_badges(
         .with_spacing(4.);
     let mut has_badges = false;
 
-    if show_diff_stats {
-        if let Some(git_line_changes) = terminal_view.current_diff_line_changes(app) {
-            right_badges.add_child(render_terminal_diff_stats_badge(
-                &git_line_changes,
-                pane_group_id,
-                pane_id,
-                badge_mouse_states.diff_stats.clone(),
-                appearance,
-            ));
-            has_badges = true;
-        }
+    if show_diff_stats && let Some(git_line_changes) = terminal_view.current_diff_line_changes(app)
+    {
+        right_badges.add_child(render_terminal_diff_stats_badge(
+            &git_line_changes,
+            pane_group_id,
+            pane_id,
+            badge_mouse_states.diff_stats.clone(),
+            appearance,
+        ));
+        has_badges = true;
     }
 
-    if show_pr_link {
-        if let Some(pull_request_url) = terminal_view.current_pull_request_url(app) {
-            let label = terminal_pull_request_badge_label(&pull_request_url);
-            right_badges.add_child(render_terminal_pull_request_badge(
-                label,
-                pull_request_url,
-                badge_mouse_states.pull_request.clone(),
-                appearance,
-            ));
-            has_badges = true;
-        }
+    if show_pr_link && let Some(pull_request_url) = terminal_view.current_pull_request_url(app) {
+        let label = terminal_pull_request_badge_label(&pull_request_url);
+        right_badges.add_child(render_terminal_pull_request_badge(
+            label,
+            pull_request_url,
+            badge_mouse_states.pull_request.clone(),
+            appearance,
+        ));
+        has_badges = true;
     }
 
     has_badges.then(|| right_badges.finish())
@@ -4303,17 +4307,20 @@ fn compute_tab_group_color_mode(
     let per_pane: HashMap<PaneId, Option<AnsiColorIdentifier>> = visible_pane_ids
         .iter()
         .map(|&pane_id| {
-            let color = if let Some(tv) = pane_group.terminal_view_from_pane_id(pane_id, app) {
-                // Terminal pane: determine color from CWD.
-                tv.as_ref(app).pwd_if_local(app).and_then(|cwd| {
-                    dir_colors
-                        .color_for_directory(Path::new(&cwd))
-                        .and_then(|c| c.ansi_color())
-                })
-            } else {
-                // Other non-terminal panes: fall back to the cached directory color
-                // from the tab's last active terminal.
-                tab.default_directory_color
+            let color = match pane_group.terminal_view_from_pane_id(pane_id, app) {
+                Some(tv) => {
+                    // Terminal pane: determine color from CWD.
+                    tv.as_ref(app).pwd_if_local(app).and_then(|cwd| {
+                        dir_colors
+                            .color_for_directory(Path::new(&cwd))
+                            .and_then(|c| c.ansi_color())
+                    })
+                }
+                _ => {
+                    // Other non-terminal panes: fall back to the cached directory color
+                    // from the tab's last active terminal.
+                    tab.default_directory_color
+                }
             };
             (pane_id, color)
         })

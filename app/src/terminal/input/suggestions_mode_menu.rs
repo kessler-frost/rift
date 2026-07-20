@@ -11,7 +11,7 @@ use riftui::elements::{
 use riftui::presenter::ChildView;
 
 use super::{
-    Input, InputAction, MenuPositioning, HISTORY_DETAILS_VIEW_WIDTH_REQUIREMENT,
+    HISTORY_DETAILS_VIEW_WIDTH_REQUIREMENT, Input, InputAction, MenuPositioning,
     TERMINAL_VIEW_PADDING_LEFT,
 };
 use crate::appearance::Appearance;

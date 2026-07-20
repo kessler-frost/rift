@@ -1,7 +1,7 @@
 //! This module defines helper functions pertaining to the size/position of items in a Grid,
 //! such as the dimensions of a grid cell and the baseline position of text within a cell.
 use num_traits::Zero;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use riftui::elements::DEFAULT_UI_LINE_HEIGHT_RATIO;
 use riftui::fonts::{Cache as FontCache, FamilyId};
 use riftui::text_layout::ComputeBaselinePositionFn;

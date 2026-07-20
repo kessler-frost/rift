@@ -3,11 +3,11 @@ use std::path::Path;
 
 use command::r#async::Command;
 use instant::Instant;
-use objc2::rc::{autoreleasepool, Retained};
+use objc2::rc::{Retained, autoreleasepool};
 use objc2_app_kit::NSWorkspace;
 use objc2_foundation::{NSBundle, NSString, NSURL};
-use rift_core::channel::ChannelState;
 use rift_core::AppId;
+use rift_core::channel::ChannelState;
 use riftui::ApplicationBundleInfo;
 
 use super::*;
@@ -333,10 +333,10 @@ pub fn open_file_path_with_line_and_col(
                 .and_then(Editor::new_from_identifier)
         };
 
-        if let Some(editor) = editor {
-            if editor.open(line_column_number, full_path, ctx) {
-                return;
-            }
+        if let Some(editor) = editor
+            && editor.open(line_column_number, full_path, ctx)
+        {
+            return;
         }
 
         // NSWorkspace's default-app routing can hand files to a sibling

@@ -9,15 +9,15 @@ use std::time::Duration;
 use anyhow::Result;
 use instant::Instant;
 use parking_lot::Mutex;
-use pathfinder_geometry::vector::{vec2f, Vector2F};
+use pathfinder_geometry::vector::{Vector2F, vec2f};
 use rayon::prelude::*;
 use rift_completer::completer::Description;
 use riftui::fonts::{Cache as FontCache, FamilyId, Properties};
 use riftui::platform::LineStyle;
 use riftui::text::point::Point;
 use riftui::text_layout::{
-    self, default_compute_baseline_position_fn, ClipConfig, ComputeBaselinePositionFn, LayoutCache,
-    StyleAndFont, TextAlignment, TextStyle, DEFAULT_TOP_BOTTOM_RATIO,
+    self, ClipConfig, ComputeBaselinePositionFn, DEFAULT_TOP_BOTTOM_RATIO, LayoutCache,
+    StyleAndFont, TextAlignment, TextStyle, default_compute_baseline_position_fn,
 };
 use riftui::{AppContext, EntityId, ModelHandle};
 use string_offset::ByteOffset;
@@ -621,7 +621,7 @@ impl ViewSnapshot {
     pub fn vim_visual_tails<'a>(
         &self,
         app: &'a AppContext,
-    ) -> impl Iterator<Item = DisplayPoint> + 'a {
+    ) -> impl Iterator<Item = DisplayPoint> + 'a + use<'a> {
         let editor_model = self.editor_model.as_ref(app);
         let map = editor_model.display_map(app);
         editor_model

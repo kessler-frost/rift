@@ -3,8 +3,8 @@ use std::mem;
 use std::ops::Range;
 
 use pathfinder_geometry::vector::Vector2F;
-use riftui::text::point::Point;
 use riftui::AppContext;
+use riftui::text::point::Point;
 use serde::{Deserialize, Serialize};
 use string_offset::{ByteOffset, CharOffset};
 use vec1::Vec1;

@@ -1,8 +1,8 @@
 use anyhow::Result;
 use clap::Parser;
 use rift_cli::WorkerCommand;
-use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 use rift_core::AppId;
+use rift_core::channel::{Channel, ChannelConfig, ChannelState};
 
 #[derive(Debug, Default, Parser, Clone)]
 #[command(name = "rift-integration")]

@@ -16,19 +16,19 @@ use environment::get_shell_environment_variables;
 pub use environment::get_user_and_system_env_variable;
 use riftui::{AppContext, SingletonEntity};
 use thiserror::Error;
-use windows::core::{HSTRING, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{HANDLE, WAIT_OBJECT_0};
 use windows::Win32::System::Console::{COORD, HPCON};
 use windows::Win32::System::Threading::{
-    CreateProcessW, WaitForSingleObject, CREATE_BREAKAWAY_FROM_JOB, CREATE_UNICODE_ENVIRONMENT,
+    CREATE_BREAKAWAY_FROM_JOB, CREATE_UNICODE_ENVIRONMENT, CreateProcessW,
     EXTENDED_STARTUPINFO_PRESENT, PROCESS_CREATION_FLAGS, PROCESS_INFORMATION,
-    STARTF_USESTDHANDLES, STARTUPINFOEXW, STARTUPINFOW,
+    STARTF_USESTDHANDLES, STARTUPINFOEXW, STARTUPINFOW, WaitForSingleObject,
 };
+use windows::core::{HSTRING, PCWSTR, PWSTR};
 
 use super::event_loop::{PTY_TOKEN, SIGNALS_TOKEN};
 use super::shell::{DirectShellStarter, ShellStarter, WslShellStarter};
 use super::spawner::PtyHandle;
-use super::{mio_channel, EventedPty, EventedReadWrite, PtyOptions, SizeInfo};
+use super::{EventedPty, EventedReadWrite, PtyOptions, SizeInfo, mio_channel};
 use crate::terminal::local_tty::spawner::{PtySpawnInfo, PtySpawner};
 use crate::terminal::local_tty::windows::proc_thread_attribute_list::ProcThreadAttributeList;
 use crate::terminal::writeable_pty;

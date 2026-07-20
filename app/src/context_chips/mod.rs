@@ -20,7 +20,7 @@ use std::time::Duration;
 
 use context_chip::PromptGenerator;
 use rift_core::ui::color::blend::Blend;
-use rift_core::ui::color::contrast::{high_enough_contrast, MinimumAllowedContrast};
+use rift_core::ui::color::contrast::{MinimumAllowedContrast, high_enough_contrast};
 use rift_core::ui::theme::{Fill, RiftTheme};
 use riftui::color::ColorU;
 use riftui::elements::Text;

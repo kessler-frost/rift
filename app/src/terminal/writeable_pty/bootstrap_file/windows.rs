@@ -2,7 +2,7 @@
 use std::io::Write;
 use std::path::PathBuf;
 
-use rift_util::path::{convert_wsl_to_windows_host_path, WSLPathConversionError};
+use rift_util::path::{WSLPathConversionError, convert_wsl_to_windows_host_path};
 use typed_path::TypedPath;
 
 use crate::terminal::shell::ShellType;

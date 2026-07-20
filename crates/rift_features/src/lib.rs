@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
-use enum_iterator::{cardinality, Sequence};
+use enum_iterator::{Sequence, cardinality};
 #[cfg(feature = "test-util")]
 pub use overrides::{get_overrides, set_overrides};
 
@@ -768,7 +768,9 @@ impl FeatureFlag {
         // Allow calling this in integration tests because we sometimes use it in the app
         // during flows that integration tests cover.
         if cfg!(test) && cfg!(not(feature = "integration_tests")) {
-            panic!("Tried to globally enable {self:?} in a test. Use FeatureFlag::{self:?}.override_enabled instead");
+            panic!(
+                "Tried to globally enable {self:?} in a test. Use FeatureFlag::{self:?}.override_enabled instead"
+            );
         }
         FLAG_STATES[self as usize].store(enabled, Ordering::Relaxed);
     }
@@ -807,14 +809,22 @@ impl FeatureFlag {
             BlocklistMarkdownImages => {
                 Some("Enables rendering markdown images inline in AI block list responses.")
             }
-            CloudEnvironments => Some("Enables creating and managing Rift Environments via the CLI."),
-            CreateEnvironmentSlashCommand => Some("Enables the /create environment slash command for setting up Rift Environments with custom configurations."),
+            CloudEnvironments => {
+                Some("Enables creating and managing Rift Environments via the CLI.")
+            }
+            CreateEnvironmentSlashCommand => Some(
+                "Enables the /create environment slash command for setting up Rift Environments with custom configurations.",
+            ),
             GlobalSearch => Some("Enables global search in the left panel"),
             BlocklistMarkdownTableRendering => {
                 Some("Enables rendering markdown tables inline in AI block list responses.")
             }
-            MarkdownTables => Some("Enables rendering and interaction support for markdown tables in notebooks."),
-            SettingsFile => Some("Enables configuring Rift via a user-editable `settings.toml` file, with hot reload and error reporting for invalid values."),
+            MarkdownTables => {
+                Some("Enables rendering and interaction support for markdown tables in notebooks.")
+            }
+            SettingsFile => Some(
+                "Enables configuring Rift via a user-editable `settings.toml` file, with hot reload and error reporting for invalid values.",
+            ),
             _ => None,
         }
     }

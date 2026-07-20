@@ -13,8 +13,8 @@ use riftui::fonts::{FamilyId, Properties, Weight};
 use riftui::ui_components::components::{UiComponent as _, UiComponentStyles};
 use riftui::{AppContext, Element, EventContext, PaintContext, SingletonEntity as _};
 
-use super::settings::RiftifySettings;
 use super::SubshellSource;
+use super::settings::RiftifySettings;
 use crate::ui_components::blended_colors;
 
 /// The flag font size varies with the monospace font width, but if it gets too big it will start

@@ -1,6 +1,6 @@
 //! A UI sample demonstrating how the SelectableArea element can be used.
 
-use markdown_parser::{parse_markdown, FormattedTextFragment, FormattedTextLine};
+use markdown_parser::{FormattedTextFragment, FormattedTextLine, parse_markdown};
 use riftui::color::ColorU;
 use riftui::elements::{
     Align, ChildView, ConstrainedBox, Flex, FormattedTextElement, HeadingFontSizeMultipliers,

@@ -1,20 +1,20 @@
 use itertools::Itertools;
 use pathfinder_geometry::rect::RectF;
 use pathfinder_geometry::vector::Vector2F;
-use repo_metadata::repositories::DetectedRepositories;
-use repo_metadata::watcher::DirectoryWatcher;
 #[cfg(feature = "local_fs")]
 use repo_metadata::RepoMetadataModel;
+use repo_metadata::repositories::DetectedRepositories;
+use repo_metadata::watcher::DirectoryWatcher;
 use rift_core::features::FeatureFlag;
 use riftui::platform::{WindowBounds, WindowStyle};
-use riftui::windowing::state::ApplicationStage;
 use riftui::windowing::WindowManager;
+use riftui::windowing::state::ApplicationStage;
 use riftui::{App, ModelHandle};
 use watcher::HomeDirectoryWatcher;
 
 use super::*;
-use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_manager::AuthManager;
 use crate::context_chips::prompt::Prompt;
 use crate::launch_configs::launch_config::PaneMode;
 use crate::network::NetworkStatus;
@@ -27,10 +27,10 @@ use crate::settings::PrivacySettings;
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::suggestions::ignored_suggestions_model::IgnoredSuggestionsModel;
 use crate::system::{SystemInfo, SystemStats};
+use crate::terminal::History;
 use crate::terminal::alt_screen_reporting::AltScreenReporting;
 use crate::terminal::local_tty::spawner::PtySpawner;
 use crate::terminal::resizable_data::ResizableData;
-use crate::terminal::History;
 use crate::test_util::settings::initialize_settings_for_tests;
 use crate::undo_close::UndoCloseStack;
 use crate::workspace::sync_inputs::SyncedInputState;
@@ -353,11 +353,13 @@ fn test_terminal_pane_headers() {
 
             for terminal_pane in terminal_panes {
                 let pane_view = terminal_pane.pane_view();
-                assert!(pane_view
-                    .as_ref(ctx)
-                    .header()
-                    .as_ref(ctx)
-                    .is_visible_in_pane_group());
+                assert!(
+                    pane_view
+                        .as_ref(ctx)
+                        .header()
+                        .as_ref(ctx)
+                        .is_visible_in_pane_group()
+                );
             }
         });
 
@@ -371,11 +373,13 @@ fn test_terminal_pane_headers() {
             assert_eq!(terminal_panes.len(), 1);
 
             let pane_view = terminal_panes[0].pane_view();
-            assert!(pane_view
-                .as_ref(ctx)
-                .header()
-                .as_ref(ctx)
-                .is_visible_in_pane_group());
+            assert!(
+                pane_view
+                    .as_ref(ctx)
+                    .header()
+                    .as_ref(ctx)
+                    .is_visible_in_pane_group()
+            );
         });
     });
 }

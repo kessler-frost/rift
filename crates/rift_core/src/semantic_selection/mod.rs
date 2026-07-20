@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use riftui_core::elements::SmartSelectFn;
 use riftui_core::text::word_boundaries::WordBoundariesPolicy;
-use riftui_core::text::words::{is_default_word_boundary, DEFAULT_WORD_BOUNDARY_CHARS};
+use riftui_core::text::words::{DEFAULT_WORD_BOUNDARY_CHARS, is_default_word_boundary};
 use settings::macros::define_settings_group;
 use settings::{Setting, SupportedPlatforms, SyncToCloud};
 use string_offset::ByteOffset;

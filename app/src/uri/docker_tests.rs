@@ -1,8 +1,8 @@
 use riftui::App;
 
 use super::*;
-use crate::auth::auth_manager::AuthManager;
 use crate::auth::AuthStateProvider;
+use crate::auth::auth_manager::AuthManager;
 use crate::server::telemetry::context_provider::AppTelemetryContextProvider;
 
 #[test]

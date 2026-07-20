@@ -107,7 +107,7 @@ use auth::auth_state::{AuthState, AuthStateProvider};
 use quit_warning::UnsavedStateSummary;
 #[cfg(feature = "local_fs")]
 use repo_metadata::{
-    repositories::DetectedRepositories, watcher::DirectoryWatcher, RepoMetadataModel,
+    RepoMetadataModel, repositories::DetectedRepositories, watcher::DirectoryWatcher,
 };
 use server::telemetry::context_provider::AppTelemetryContextProvider;
 #[cfg(feature = "local_fs")]
@@ -130,7 +130,7 @@ use std::sync::Arc;
 use ::settings::{Setting, ToggleableSetting};
 #[cfg(feature = "local_tty")]
 use anyhow::Context;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use appearance::{Appearance, AppearanceManager};
 use channel::ChannelState;
 use interval_timer::IntervalTimer;
@@ -138,11 +138,11 @@ use itertools::Itertools;
 #[cfg(feature = "integration_tests")]
 pub use persistence::testing as sqlite_testing;
 #[cfg(feature = "plugin_host")]
-pub use plugin::{run_plugin_host, PLUGIN_HOST_FLAG};
-pub use rift_core::errors::{report_error, report_if_error};
-use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
+pub use plugin::{PLUGIN_HOST_FLAG, run_plugin_host};
 // Re-export the debounce function to simplify imports.
 pub use rift_core::r#async::debounce;
+pub use rift_core::errors::{report_error, report_if_error};
+use rift_core::execution_mode::{AppExecutionMode, ExecutionMode};
 // Re-export the send_telemetry_from_ctx macro at the crate root level
 pub use rift_core::send_telemetry_from_app_ctx;
 pub use rift_core::send_telemetry_from_ctx;
@@ -152,8 +152,8 @@ pub use rift_core::{safe_debug, safe_error, safe_info, safe_warn};
 use rift_files::FileModel;
 use rift_logging::LogDestination;
 use riftui::integration::TestDriver;
-use riftui::platform::app::{ApproveTerminateResult, TerminationRequestSource};
 use riftui::platform::TerminationMode;
+use riftui::platform::app::{ApproveTerminateResult, TerminationRequestSource};
 use riftui::windowing::state::ApplicationStage;
 use riftui::{App, AppContext, Event, SingletonEntity, WindowId};
 use settings::{ExtraMetaKeys, PrivacySettings};
@@ -175,17 +175,17 @@ use crate::notification::NotificationContext;
 use crate::palette::PaletteMode;
 use crate::persistence::PersistenceWriter;
 use crate::projects::ProjectManagementModel;
-use crate::rift_managed_paths_watcher::{ensure_rift_watch_roots_exist, RiftManagedPathsWatcher};
+use crate::rift_managed_paths_watcher::{RiftManagedPathsWatcher, ensure_rift_watch_roots_exist};
 use crate::root_view::{
-    quake_mode_window_id, quake_mode_window_is_open, OpenFromRestoredArg, OpenPath,
+    OpenFromRestoredArg, OpenPath, quake_mode_window_id, quake_mode_window_is_open,
 };
 pub use crate::server::telemetry::TelemetryEvent;
 use crate::server::telemetry::{AppStartupInfo, PaletteSource, TelemetryCollector};
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
 use crate::settings::manager::SettingsManager;
 use crate::settings::{AccessibilitySettings, ScrollSettings, SelectionSettings};
-use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::settings_view::DisplayCount;
+use crate::settings_view::keybindings::KeybindingChangedNotifier;
 use crate::suggestions::ignored_suggestions_model::IgnoredSuggestionsModel;
 use crate::system::SystemStats;
 use crate::terminal::resizable_data::ResizableData;
@@ -250,7 +250,7 @@ impl LaunchMode {
     /// Add an URL to open. Only supported for [`LaunchMode::App`]
     #[allow(dead_code)]
     fn add_url(&mut self, url: Url) {
-        if let LaunchMode::App { ref mut args, .. } = self {
+        if let LaunchMode::App { args, .. } = self {
             args.urls.push(url);
         }
     }
@@ -321,11 +321,11 @@ fn apply_extra_meta_keys(event: &mut Event, extra_metas: ExtraMetaKeys) {
 }
 
 fn apply_scroll_multiplier(event: &mut Event, app: &AppContext) {
-    if let Event::ScrollWheel { delta, precise, .. } = event {
-        if !*precise {
-            let scroll_multiplier = *ScrollSettings::as_ref(app).mouse_scroll_multiplier.value();
-            *delta *= scroll_multiplier;
-        }
+    if let Event::ScrollWheel { delta, precise, .. } = event
+        && !*precise
+    {
+        let scroll_multiplier = *ScrollSettings::as_ref(app).mouse_scroll_multiplier.value();
+        *delta *= scroll_multiplier;
     }
 }
 
@@ -627,8 +627,8 @@ fn run_internal(mut launch_mode: LaunchMode) -> Result<()> {
 
     #[cfg(target_os = "macos")]
     {
-        use riftui::platform::mac::AppExt;
         use riftui::AssetProvider as _;
+        use riftui::platform::mac::AppExt;
 
         let activate_on_launch = !launch_mode.is_integration_test()
             || std::env::var("RIFTUI_USE_REAL_DISPLAY_IN_INTEGRATION_TESTS").is_ok();
@@ -1329,9 +1329,11 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
         })),
         on_disable_warning_modal: Some(Box::new(move |ctx| {
             GeneralSettings::handle(ctx).update(ctx, |general_settings, ctx| {
-                report_if_error!(general_settings
-                    .show_warning_before_quitting
-                    .toggle_and_save_value(ctx));
+                report_if_error!(
+                    general_settings
+                        .show_warning_before_quitting
+                        .toggle_and_save_value(ctx)
+                );
             });
             send_telemetry_from_app_ctx!(TelemetryEvent::QuitModalDisabled, ctx);
         })),
@@ -1347,19 +1349,19 @@ pub(crate) fn app_callbacks(is_integration_test: bool) -> riftui::platform::AppC
                 {
                     // Ensure the window ID exists, if so dispatch an action to focus
                     // the correct pane.
-                    if ctx.window_ids().contains(&window_id) {
-                        if let Some(root_view_id) = ctx.root_view_id(window_id) {
-                            ctx.dispatch_action(
-                                window_id,
-                                &[root_view_id],
-                                "root_view:handle_notification_click",
-                                &PaneViewLocator {
-                                    pane_group_id,
-                                    pane_id,
-                                },
-                                log::Level::Info,
-                            );
-                        }
+                    if ctx.window_ids().contains(&window_id)
+                        && let Some(root_view_id) = ctx.root_view_id(window_id)
+                    {
+                        ctx.dispatch_action(
+                            window_id,
+                            &[root_view_id],
+                            "root_view:handle_notification_click",
+                            &PaneViewLocator {
+                                pane_group_id,
+                                pane_id,
+                            },
+                            log::Level::Info,
+                        );
                     }
                 }
             }
@@ -1458,18 +1460,18 @@ fn on_close_app_cancelled(open_navigation_palette: bool, ctx: &mut AppContext) {
     windowing_model.show_window_and_focus_app(window_id_to_focus);
 
     // open the nav palette in the selected window
-    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id_to_focus) {
-        if let Some(handle) = workspaces.first() {
-            ctx.dispatch_typed_action_for_view(
-                window_id_to_focus,
-                handle.id(),
-                &WorkspaceAction::OpenPalette {
-                    mode: PaletteMode::Navigation,
-                    source: PaletteSource::QuitModal,
-                    query: Some("running".to_owned()),
-                },
-            );
-        }
+    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id_to_focus)
+        && let Some(handle) = workspaces.first()
+    {
+        ctx.dispatch_typed_action_for_view(
+            window_id_to_focus,
+            handle.id(),
+            &WorkspaceAction::OpenPalette {
+                mode: PaletteMode::Navigation,
+                source: PaletteSource::QuitModal,
+                query: Some("running".to_owned()),
+            },
+        );
     }
 }
 
@@ -1503,18 +1505,18 @@ fn on_close_window_cancelled(
     // if we haven't returned early, it means open_navigation_palette is true as the
     // user pressed the modal button for opening the navigation palette to show their
     // running processes
-    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id) {
-        if let Some(handle) = workspaces.first() {
-            ctx.dispatch_typed_action_for_view(
-                window_id,
-                handle.id(),
-                &WorkspaceAction::OpenPalette {
-                    mode: PaletteMode::Navigation,
-                    source: PaletteSource::QuitModal,
-                    query: Some("running".to_owned()),
-                },
-            );
-        }
+    if let Some(workspaces) = ctx.views_of_type::<Workspace>(window_id)
+        && let Some(handle) = workspaces.first()
+    {
+        ctx.dispatch_typed_action_for_view(
+            window_id,
+            handle.id(),
+            &WorkspaceAction::OpenPalette {
+                mode: PaletteMode::Navigation,
+                source: PaletteSource::QuitModal,
+                query: Some("running".to_owned()),
+            },
+        );
     }
 }
 

@@ -2,7 +2,7 @@ use std::any::Any;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use command::r#async::Command;
 use itertools::Itertools as _;

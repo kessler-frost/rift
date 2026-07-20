@@ -2,7 +2,7 @@
 name = "repo_metadata"
 authors = ["Rift"]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Repository metadata utilities for Rift"
 publish.workspace = true
 license.workspace = true

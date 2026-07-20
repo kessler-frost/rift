@@ -5,6 +5,7 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use rift_core::ui::builder::UiBuilder;
 use rift_core::ui::theme::color::internal_colors;
+use riftui::r#async::{SpawnedFutureHandle, Timer};
 use riftui::elements::{
     Border, ChildAnchor, ChildView, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
     DispatchEventResult, EventHandler, Flex, Hoverable, Icon, MainAxisAlignment, MainAxisSize,
@@ -13,7 +14,6 @@ use riftui::elements::{
 };
 use riftui::fonts::Weight;
 use riftui::keymap::Keystroke;
-use riftui::r#async::{SpawnedFutureHandle, Timer};
 use riftui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use riftui::{
     Action, AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext,
