@@ -17,14 +17,125 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-20.**
+**Last reviewed/synced against upstream: 2026-07-22.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-20 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-22 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-22 review
+
+Reviewed 64 upstream commits (2026-07-20 … 2026-07-22). Ported 3; the rest were
+the ratatui **TUI** surface (the large majority of this window — status line V2,
+prompt history, ghost-text/NLD input hints, per-tool permission requests, image
+support, markdown spacing, etc.), AI/agents/orchestration/MCP, computer-use/VA
+voice+recording, cloud runners/IAP/sharing, telemetry/analytics, or
+Linux/Windows-only.
+
+- **Ported:**
+  - **vim `Ngg` respects the count (warp #13167).** `crates/vim/src/vim.rs`'s
+    `gg` mapping unconditionally returned `JumpToFirstLine`; now it checks
+    `get_action_count()` / `get_operand_count()` like `G` already does, so `5gg`,
+    `d5gg`, `v5gg` jump to line 5 (bare `gg` still → first line). Also wired up
+    the real editor behavior in `app/src/editor/view/mod.rs`:
+    `VimMotion::JumpToLine` (operator-pending) and the `jump_to_line` `VimHandler`
+    method were both `// not supported` stubs — they now move the cursor to
+    `(line-1).min(max_row)`. Skipped the upstream
+    `app/src/code/editor/view/vim_handler.rs` hunk (removed code editor). Ported
+    upstream's new `crates/vim/src/vim_tests.rs` verbatim (21 tests; Rift's
+    `vim.rs` had no test-module include, so added the `#[path]` include too).
+    `cargo test -p vim` → 59 passed.
+  - **Stale classic completions after user edits (warp #13606).** With Classic
+    Completions on, Tab-then-Backspace past the completion anchor left the old
+    suggestion list on screen (the pre-existing `TODO` in
+    `update_tab_completion_menu`). `app/src/terminal/input.rs` now distinguishes
+    system-applied edits (accept/cycle, via `editor.get_last_action`) from user
+    edits; the classic-completions exemption from the "buffer no longer starts
+    with the query" invalidation now applies only to system edits. Both upstream
+    regression tests ported into `input_tests.rs`
+    (`test_classic_tab_completions_close_after_user_backspace`,
+    `..._keep_menu_open_while_cycling`). Rift's `input.rs` was byte-identical to
+    upstream's pre-fix state at all five edit sites (modulo Rift's extra
+    as-you-type × classic recompute branch, so `is_user_edit` is consumed only in
+    the manual-tab `else` arm) — a zero-divergence port.
+  - **Invalid resizable bounds on small windows (warp #14091).** The suggestions
+    mode menu clamped its *max* resize bound to `window_size.x()` / `.y()` with no
+    floor, so on a window narrower/shorter than the menu min, max fell below min.
+    Now `.max(200.0)` / `.max(100.0)` in
+    `app/src/terminal/input/suggestions_mode_menu.rs`. Skipped the upstream
+    `app/src/code_review/comment_list_view.rs` hunk (removed AI code-review view;
+    absent in Rift).
+
+- **Deferred (mechanical but risky — take as its own pass):**
+  - **wgpu 29.0.1 → 30.0.0 (warp #14016 / APP-4885).** Not a bug fix; Rift's
+    29.0.1 renders correctly. The API delta is bounded and mechanical:
+    `surface_texture.present()` → `queue.present(surface_texture)`; each
+    pipeline's `VertexBufferLayout`s (`renderer/{glyph,image,rect}.rs`) wrap in
+    `Some(...)`; `get_mapped_range[_mut]()` now return `Result` (new
+    `Error::BufferMap(#[from] wgpu::MapRangeError)` variant + `?`/match at the two
+    `renderer.rs` / `renderer/util.rs` map sites); `request_adapter_options` gains
+    `apply_limit_buckets: true`; `AdapterInfo` gains `transient_saves_memory:
+    Some(..)` + `limit_bucket` (test-only); 2 one-line WGSL tweaks. **Deferred
+    because** a major graphics-API bump validated only by screenshots shouldn't
+    ride a daily sync that ends by merging to `main` (the daily-driver build).
+    Revisit as a dedicated, rendering-validated effort; the list above is the
+    recipe. Rift's paths are `crates/riftui/src/rendering/wgpu/` (warp→rift).
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **Rust 2024 macOS extern block (warp #14018)** — marks
+    `app/src/crash_reporting/mac.rs`'s extern block `unsafe extern "C"`. Rift has
+    **no `crash_reporting` module** (Sentry, stripped), so there is nothing to
+    fix; Rift's own 2024 migration (`cargo fix --edition` on macOS) already
+    handled every extern block it does have, and CI is green.
+  - **Align git branch status chip (warp #13349)** — a follow-up to #11938 ("Add
+    git branch status context chip"), which merged upstream 2026-06-18/06-30,
+    **after** Rift's 2026-06-06 fork point, and was never ported. Rift has no
+    `GitBranchStatus` chip (no `ContextChipKind`/`DisplayChipKind` variant, no
+    render fn), so all but one trivial diff hunk reference absent types. The
+    restyle also pulls in removed `AgentView` symbols (`is_in_agent_view`,
+    `agent_view_chip_color`, `FeatureFlag::AgentView`). Would require porting
+    #11938 in full first — net-new feature, not a portable follow-up.
+  - **`report_error!` → `log::error!` demotions (warp #14066 flex, #14032
+    EventHandler pre-paint "Sentry flood").** Same walk-back series as the
+    2026-07-19 caveat: Rift is at the pre-#13483 state and **already uses
+    `log::error!` at both sites**, so the upstream diffs are exact no-ops here.
+    Don't re-litigate.
+  - **Strip debuginfo from bundling profile (warp #14096)** — adds
+    `[profile.release-tui]` / `release-tui-debug-assertions` and routes the `tui`
+    bundle artifact to them. Rift builds no TUI artifact; the GUI/CLI profiles are
+    untouched, so nothing to port.
+  - **Promote OscHyperlinks to Preview (warp #14125)** — moves the flag
+    DOGFOOD→PREVIEW. Still not in `RELEASE_FLAGS`, so the stable-only rule still
+    applies (and Rift doesn't even declare the flag). See the 2026-07-19 OSC 8
+    note — revisit on graduation, with the scheme allow-list caveat.
+  - **diesel 2.3.9 → 2.3.10 (warp #13884)** — attempted, then dropped. It's a
+    lockfile-only patch bump with no known advisory, so pure hygiene. But
+    `cargo update -p diesel --precise 2.3.10` in this env cascaded a dozen
+    *unrelated* transitive versions (socket2 0.6.0→0.5.10, heck 0.5.0→0.4.1,
+    windows-core 0.61.2→0.62.2, several windows-sys 0.59.0→0.52.0/0.61.2) — the
+    committed lock resolves differently here than on whatever machine wrote it.
+    Shipping unexplained transitive churn (incl. cross-platform downgrades of
+    socket2/heck) to `main`, the daily-driver branch, for a marginal patch bump
+    isn't worth it. Reverted `Cargo.lock` to HEAD. Rift's dependabot can take
+    diesel on its own PR where the churn is reviewable in isolation.
+  - **CI action bumps (warp #13799 action-gh-release 2→3, #13798 setup-go)** —
+    Rift's own `.github/dependabot.yml` covers `github_actions`; setup-go isn't
+    used in Rift's CI, and action-gh-release is pinned `@v2` (a v2→v3 major bump
+    needs its own breaking-change review, not a blind sync).
+  - **Headless macOS main-thread run loop (#13986), staging IAP cache (#13984),
+    AgentTipShown analytics (#13837), read_files errors (#13966), common-skills
+    lock (#14059), docs-notify CI (#14008)** — headless (`is_headless()` is
+    hardcoded false), cloud/IAP, telemetry, agent tools, AI skills, and docs-team
+    CI respectively. None reachable.
+  - The remaining ~45 were the TUI surface (status line V2, up-arrow prompt
+    history, ghost-text/NLD hints, per-tool permission requests, image support,
+    markdown spacing, clipboard paste, zero-state, orchestration tab-bar,
+    don't-invert-colors-on-selection), AI/agents/orchestration, computer-use
+    focus/recording + voice, cloud runners / shared-object banner, or
+    Linux/Windows-only (Wayland IME, Ctrl+Shift+C ETX).
 
 ### Notes from the 2026-07-20 review
 
