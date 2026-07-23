@@ -17,14 +17,87 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-22.**
+**Last reviewed/synced against upstream: 2026-07-23.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-22 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-23 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-23 review
+
+Reviewed 40 upstream commits (2026-07-22 … 2026-07-23). Ported **1**; the rest
+were the ratatui **TUI** surface (the large majority — clipboard shortcuts,
+cmd-delete/KillToLineEnd, /cost & /logout & slash-command plumbing, zero-state
+starfield animation, login centering, inline-menu overflow arrows, up-arrow
+history, shell-edit hint, Linux TUI bundling, log paths, auto-update
+protection), AI/agents/orchestration/MCP (run_agents model_id, orchestration-tool
+cleanup, execution-profile migration, ask-question focus, Gemini creds),
+computer-use recording (ripples/trails, durations, background-CU, overlays),
+cloud runners/IAP/warpctrl/build-caches, Sentry/telemetry, or Linux/Windows-only.
+
+- **Ported:**
+  - **cmov 0.5.3 → 0.5.4 for CVE-2026-50185 / GHSA-3rjw-m598-pq24 (warp #13357).**
+    Security dep bump. `cmov`'s `Cmov`/`CmovEq` can produce **wrong results on
+    aarch64** when high bits of registers are set — directly relevant to Rift
+    (macOS/Apple Silicon). Rift was on 0.5.3. `cmov` is a pure leaf crate pulled
+    in via `ctutils → digest → {hmac, sha2} → aws-sigv4 → aws-runtime →
+    aws-config`, i.e. the AWS SigV4 request-signing crypto path. `cargo update -p
+    cmov --precise 0.5.4` produced a **single-package Cargo.lock diff, no cascade**
+    (unlike the diesel case — see the [[cargo-update-lockfile-cascade]] memory);
+    no `Cargo.toml`/API change. This is the revisit-condition firing on the
+    2026-07-19 note's "cmov (#13423) — no applicable advisory": #13423 was the
+    dependabot attempt skipped for lack of an advisory; #13357 carries the real
+    CVE. Verified: `cargo check --bin rift-oss` 0/0, `cargo check --tests -p rift`
+    0/0, `cargo build --bin rift-oss` 0/0 (links), full-workspace nextest
+    3654 passed / 12 failed (exactly the known environmental baseline: 7 ui_tests
+    + 5 ssh/history, all in CI's skip set — 0 regressions). No live GUI smoke-test
+    this run: the change has no UI/logic/rendering surface, and the user's
+    daily-driver Rift was running (a same-named dev `rift-oss` would make the
+    osascript/cliclick automation ambiguous — see
+    [[scheduled-run-computer-use-workaround]]).
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **Fix vim d%/c%/y% in the code editor (warp #14176)** — adds explicit
+    `JumpToMatchingBracket`/`JumpToUnmatchedBracket` operator-selection arms to
+    the **removed code editor**'s `app/src/code/editor/view/vim_handler.rs`. The PR
+    itself says it "mirrors the block editor's existing `vim_select_for_matching_bracket`,
+    which makes the same one-char adjustment." Rift keeps the block editor, which
+    already handles both motions (`app/src/editor/view/mod.rs:2130-2133` →
+    `vim_select_for_matching_bracket` at `view/model/mod.rs:2484`), so d%/c%/y%
+    already work in Rift's command input. Nothing to port.
+  - **tui: bind cmd-delete to KillToLineEnd in the input editor (warp #14100)** —
+    a `crates/warp_tui/` (TUI) binding whose stated goal is to "mirror the GUI's
+    `editor_view:delete_all_right` (cmd-delete on macOS)". Rift's GUI editor
+    already has that binding (`app/src/editor/view/mod.rs:768` →
+    `EditorAction::DeleteAllRight` → `delete_all(CutDirection::Right)`). N/A.
+  - **warpctrl: drop shell selection + fix Keychain security claims (warp #14158)** —
+    warpctrl is the remote-control API/CLI (cloud/control). Rift has no
+    ctrl/control crate and no `SECURITY.md`. The `tab.create`/`window.create`
+    `shell` param and the Keychain-ACL doc correction are both in stripped
+    surfaces. N/A.
+  - **Fix file-backed execution profile migration on restart (warp #14114)** —
+    entirely AI **execution profiles** (`base_model`, "Auto Genius", cloud-preference
+    sync, the `ExecutionProfiles` settings collection). Out of scope.
+  - **[APP-4943] Deduplicate SQLite Sentry error reports (warp #14180)** — gated on
+    the `crash_reporting` (Sentry) feature (`cargo check -p warp --lib --features
+    crash_reporting`). Rift stripped Sentry / has no `crash_reporting` module. N/A.
+  - **Clean up old, unused orchestration tools (warp #14174)** — removes AI
+    orchestration-tool code; its two Rift-existing touches
+    (`app/src/ai/blocklist/persistence.rs`, `pane_group/.../terminal_pane.rs`) are
+    both in/adjacent to stripped AI surfaces. Pure AI cleanup.
+  - **docs(specs): WSL distributions in tab configs (warp #13763)** — a spec doc;
+    WSL is Windows-only. N/A.
+  - The remaining ~32 were TUI (naming, clipboard, slash commands, /cost, login
+    centering, starfield/zero-state animation, inline-menu arrows, up-arrow
+    history, shell-edit hint, Linux bundling, log paths, auto-update protection,
+    orchestration hint), AI/agents/orchestration/MCP (run_agents model_id, Runner
+    picker, agent-event-stream auth, Gemini Enterprise creds, ask-question focus),
+    computer-use recording (ripples/trails, durations, background-CU, overlays),
+    cloud (build caches, IAP, oz report-external-reference, Agent CLI endpoints/auth),
+    or Sentry/telemetry.
 
 ### Notes from the 2026-07-22 review
 
