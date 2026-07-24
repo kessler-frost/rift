@@ -36,6 +36,27 @@ fn test_config_local_dir_path() {
     }
 }
 
+#[cfg(target_os = "macos")]
+#[test]
+fn test_macos_config_dir_name_scopes_to_data_profile() {
+    assert_eq!(macos_config_dir_name_for(Channel::Oss, None), ".rift");
+    assert_eq!(
+        macos_config_dir_name_for(Channel::Integration, None),
+        ".rift-integration"
+    );
+
+    // Each development profile must get its own directory so shared config
+    // (notably settings.toml) cannot leak between profiles.
+    assert_eq!(
+        macos_config_dir_name_for(Channel::Oss, Some("myprofile")),
+        ".rift-myprofile"
+    );
+    assert_eq!(
+        macos_config_dir_name_for(Channel::Integration, Some("myprofile")),
+        ".rift-integration-myprofile"
+    );
+}
+
 #[test]
 fn test_rift_home_config_dir_path() {
     let home_dir = home_dir().expect("Should be able to compute home directory");

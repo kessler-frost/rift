@@ -69,18 +69,37 @@ pub fn rift_home_mcp_config_file_path() -> Option<PathBuf> {
     rift_home_config_dir().map(|rift_config_dir| rift_config_dir.join(".mcp.json"))
 }
 
-/// Returns the macOS config directory name for the current channel.
+/// Returns the macOS config directory name for the current channel and data
+/// profile.
 ///
 /// The default OSS build uses `.rift`, while other channels include a channel
 /// suffix (e.g., `.rift-integration`).
+///
+/// Development data profiles append a further `-{profile}` suffix so each
+/// profile gets its own directory. Without it, every profile of a channel would
+/// share this directory — and with it the public settings in `settings.toml` —
+/// defeating the isolation that profiles already provide elsewhere (e.g. the
+/// home config directory and Application Support).
 ///
 /// These suffixes are persisted on disk as directory names and must not be
 /// changed once established, or existing user data will be orphaned.
 #[cfg(target_os = "macos")]
 fn macos_config_dir_name() -> String {
-    match ChannelState::channel() {
+    macos_config_dir_name_for(
+        ChannelState::channel(),
+        ChannelState::data_profile().as_deref(),
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn macos_config_dir_name_for(channel: Channel, data_profile: Option<&str>) -> String {
+    let base_dir_name = match channel {
         Channel::Oss => RIFT_CONFIG_DIR.to_string(),
         Channel::Integration => format!("{RIFT_CONFIG_DIR}-integration"),
+    };
+    match data_profile {
+        Some(profile) => format!("{base_dir_name}-{profile}"),
+        None => base_dir_name,
     }
 }
 
