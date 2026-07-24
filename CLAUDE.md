@@ -17,14 +17,109 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-23.**
+**Last reviewed/synced against upstream: 2026-07-24.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-23 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-24 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-24 review
+
+Reviewed 30 upstream commits (2026-07-23 … 2026-07-24). Ported **2**; the rest
+were the ratatui **TUI** surface (the large majority — zero-state animation
+revamp/stacking, stack element, cyan input prompt, multi-select question
+controls, shell-command tab completions, single NLD toggle, `/version`
+command, Linux panic fix), AI/agents/onboarding/orchestration (account-first
+onboarding pre-auth/offer/routing across #14075/#14212/#14223, account-backed
+toolbelt, Oz CLI `--model`, webhook-repo cloning for agent runs, eval API-key
+auth, runner-controls gating, Gemini spec doc), computer-use recording
+(release-build video, `should_persist`, click/drag annotation centering), or
+cloud/build-cache/Linux-bundling/docs.
+
+- **Ported:**
+  - **Scope macOS config dirs to the data profile (warp #14203).** On macOS
+    `data_dir()` and `config_local_dir()` derive from `macos_config_dir_name()`,
+    which matched only the channel and ignored `RIFT_DATA_PROFILE` — while
+    `rift_home_config_dir_name()` already appended the `-{profile}` suffix. So a
+    dev profile isolated `~/.rift-<profile>` (settings/skills/mcp) yet still
+    shared `~/.rift` for portable data (themes) and non-portable local config,
+    leaking between the profile and the default install — exactly the gap the
+    [[rift-data-profile-sandbox]] memory flags. Routed `macos_config_dir_name()`
+    through a new `macos_config_dir_name_for(channel, data_profile)` helper
+    (mirrors upstream), appending the suffix; **no change when no profile is
+    set** (the daily-driver path). Ported the upstream regression test, adapted
+    to Rift's two channels (Oss, Integration). `rift_core paths` 9/9.
+  - **Strip zsh explicit-width prompt constructs at render time (warp #14166).**
+    Dynamic prompts (`$(git_prompt_info)` emitting `%n{...%}`/`%G` glitch
+    constructs under PROMPT_SUBST) desynced zle's cursor-column model from the
+    physical cursor — the constructs are counted as visible "glitch" columns
+    even inside the zero-width `%{...%}` hidden-grid region, corrupting partial
+    redraws of the command (e.g. zsh-syntax-highlighting recoloring tokens). The
+    old approach stripped once at precmd time into `RIFT_STRIPPED_ORIGINAL_PROMPT`,
+    which can't see subshell output evaluated later. Now, when PROMPT_SUBST is
+    on, embed a live `$(_rift_stripped_prompt)` wrapper that re-strips
+    `_RIFT_RAW_PROMPT` on every render (incl. async `zle reset-prompt`); when
+    off, strip static content directly. Fixing the desync at its source removed
+    the command-grid **preexec-reconciliation** workaround in `header_grid.rs`
+    (`has_leading_prefix_redraw_artifact` + 4 friends + `parse_logical_text_into_command_grid`,
+    which existed to repair the redraw artifact the desync produced) and its 3
+    `block_tests.rs` tests. **Zero-divergence port:** the reworked
+    `rift_update_prompt_vars` region is byte-identical to upstream modulo
+    warp→rift (verified by full-function normalized diff, 178 lines, 0 delta),
+    and the removed Rust was byte-identical to upstream's pre-fix state.
+    Validated by the real-zsh integration suite (`shell_integration_tests` 46/46,
+    incl. `test_git_prompt`, `test_rift_prompt_unsets_zsh_rprompt`,
+    `test_zsh_bootstraps_with_nounset_option` — the new `${_RIFT_RAW_PROMPT:-}`
+    guards are nounset-safe) + prompt `ui_tests` 2/2 + `terminal::model` 517/517.
+
+- **No live GUI smoke-test this run (deliberate).** The user's daily-driver Rift
+  was running as a process **also named `rift-oss`** (`/Applications/Rift.app/…/rift-oss`),
+  so a second dev `rift-oss` would make the osascript/cliclick automation
+  ambiguous and risk typing into the user's live session — the exact ambiguity
+  the [[scheduled-run-computer-use-workaround]] memory warns about. The #14166
+  rendering change is instead covered headlessly through the app harness:
+  `test_git_prompt` bootstraps a real zsh with a dynamic git prompt and asserts
+  the rendered output, and all prompt/bootstrap integration tests pass.
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **Demote bootstrap stage report to error log (warp #14179)** — walks back
+    #13483's `log::error!`→`report_error!` at `terminal/model/bootstrap.rs`.
+    Rift is at the pre-#13483 state and **already uses `log::error!`** at that
+    site, so the diff is an exact no-op. Same series as the 2026-07-19/22
+    caveats — don't re-litigate.
+  - **add version command (warp #14169)** — adds a `/version` slash command. Its
+    non-TUI half lands in `app/src/terminal/input/slash_command_menu/static_commands/`,
+    a surface Rift **does not have** (no `slash_commands/` or `slash_command_menu/`
+    dir — the slash-command/AI-command palette is stripped). The rest is
+    `crates/warp_tui/`. N/A.
+  - **Fix settings search filtering for Code and AI subpages (warp #14116)** —
+    the fix (`reapply_search_filter_to_active_subpage` + `update_filter` calls)
+    is **exclusively** about the AI page (`ai_page_handle`/`AISubpage`/`AgentMCPServers`)
+    and Code page (`code_page_handle`/`CodeSubpage`), **both removed** in Rift
+    (`settings_view/` has no `ai_page`/`code_page`). The `settings_page.rs` hunk
+    is a pure refactor exposing `search_terms_match` for those removed consumers.
+    N/A.
+  - **bump h2 0.4.12 → 0.4.15 (warp #14196)** — a debug-build panic fix in
+    `Counts::drop`. Skipped: `cargo update -p h2 --precise 0.4.15` in this env
+    **cascades unrelated transitive churn** (windows-sys 0.59→0.52/0.61, socket2
+    0.6→0.5 — the same cross-platform downgrade pattern as the diesel case, see
+    [[cargo-update-lockfile-cascade]]), and h2 is only reachable via the AWS
+    SigV4 cloud-auth signing path (being stripped) and the local `http_server`
+    (axum) — the panic is debug-only and effectively never exercised in
+    local-only Rift. Marginal fix, real churn. Dependabot can take it in
+    isolation where the churn is reviewable (as with diesel).
+  - The remaining ~24 were TUI (zero-state animation revamp/stack/stacking,
+    stack element, cyan input prefix, multi-select question controls, shell tab
+    completions, single NLD toggle, `/version`, Linux panic), AI/agents/
+    onboarding/orchestration (account-first onboarding #14075/#14212/#14223,
+    toolbelt visibility, Oz CLI `--model`, webhook-repo cloning, eval API-key
+    auth, runner-controls gating, Gemini spec), computer-use recording
+    (release-build video, `should_persist`, annotation centering), or
+    cloud/build-cache (`build_cache` sudo fallback), Linux bundling, or docs
+    (Project Explorer font-size spec).
 
 ### Notes from the 2026-07-23 review
 
