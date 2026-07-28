@@ -17,14 +17,119 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-25.**
+**Last reviewed/synced against upstream: 2026-07-27.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-25 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-27 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-27 review
+
+Reviewed 16 upstream commits (2026-07-26 … 2026-07-27). Ported **2**; the rest
+were the ratatui **TUI** surface (statusline configuration picker, auto-copy
+highlighted text in the prompt input, centralized session-input-blocking state),
+AI/agents/oz/MCP (code-block file-reference editor routing, local-to-cloud
+handoff + shared handoff pipeline, oz named-agent prompt CLI, well-known MCP
+type), cloud/auth (more-reliable auth flow, GUI+TUI web logout, API-key login
+across channels, shared cloud-environment catalog, graphql-schema npm-advisory
+bumps), or CI/analytics infra.
+
+- **Ported:**
+  - **Cap and expand the shared dismissible toast stack (warp #14028).** The
+    shared `DismissibleToastStack` / `DismissibleToast` component (used by both
+    workspace toast surfaces, `toast_stack` + `update_toast_stack`, and widely
+    across Rift — welcome/get-started/theme-creator/editor/uri/terminal-input)
+    had **no bound on active toasts and no long-message handling**, so an error
+    flood filled the screen and a long/multi-line message (e.g. a multi-line TOML
+    tab-config error) overflowed with no way to collapse it. Ported the shared
+    fix: cap active toasts at three (evicting the oldest, aborting an evicted
+    ephemeral timer, preserving object-id dedup first); track expansion per toast;
+    truncate collapsed long messages with an ellipsis + clamp to two rendered
+    lines (incl. newline-heavy/wrapped); add a focusable, accessible `Show more`/
+    `Show less` toggle (dynamic label, unmodified Enter/Space activation, stop-
+    propagation). **Zero-divergence port:** Rift's `dismissible_toast.rs` was
+    byte-identical to upstream's pre-fix state modulo the warp→rift rename and one
+    rustfmt import-ordering line — only `warp_core`/`warpui`/`WarpA11yRole` tokens
+    needed renaming. Ported upstream's new `dismissible_toast_tests.rs` verbatim
+    (renamed). Verified: `cargo check --tests -p rift` 0/0, `cargo clippy -p rift
+    --all-targets --tests -D warnings` 0/0, all **10** ported regression tests
+    pass (ephemeral/persistent caps, eviction timer abortion, per-toast
+    expansion, newline-heavy collapsed-height bounds, truncation predicate,
+    keyboard toggle keys, object-id dedup, dismissal paths). No live GUI
+    smoke-test this run (deliberate — daily-driver `rift-oss` was running, so a
+    second dev `rift-oss` would make the osascript/cliclick automation ambiguous;
+    the change is a `view_component` with no UI integration-test surface and is
+    fully covered by the 10 unit tests — see [[scheduled-run-computer-use-workaround]]).
+    `AgentToastStack` is stripped in Rift; the notification toasts / global toast
+    model are unchanged, matching upstream.
+  - **Make macOS notarization polling resilient (warp #14361).** The release
+    bundler (`script/macos/bundle`) submitted each artifact with `notarytool
+    submit --wait`, so a single transient Apple polling/transport failure failed
+    the whole signed-DMG release job, and a retry re-uploaded a **duplicate**
+    notarization submission. Ported the shared bundler fix: submit once with
+    `--no-wait`, retain the returned submission ID, poll that same submission with
+    bounded exponential backoff (`NOTARIZATION_*` env-tunable), fail immediately
+    on a terminal Apple rejection (Invalid/Rejected, printing the log), and drop
+    the redundant post-staple `$? != 0` check (`set -e` at line 43 propagates the
+    helper's non-zero return). **Zero-divergence port:** Rift's notarization block
+    was byte-identical to upstream's pre-fix state modulo the
+    `WARP_NOTARIZATION_*`→`RIFT_NOTARIZATION_*` rename; the new `notarize_artifact`
+    function normalizes exactly to upstream's after the rename (`APPLE_TEAM_ID` is
+    already sourced from `$RIFT_APPLE_TEAM_ID` in Rift's flow). **Rift keeps and
+    actively uses this path** — `release.yml` wires up
+    `RIFT_NOTARIZATION_APPLE_ID`/`RIFT_NOTARIZATION_PASSWORD` to build a Developer
+    ID signed, notarized DMG. Verified `bash -n script/macos/bundle`; the
+    ported region normalizes byte-identically to upstream post-fix (all other
+    `bundle` divergences are pre-existing Rift customization: stripped
+    tui/warpctrl artifacts, oss-only channel, DMG staging, env-var Team ID).
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **Code-block file references respect configured editor (warp #14275)** —
+    entirely `app/src/ai/blocklist/` (removed AI code blocks) + the removed
+    internal code editor (`OpenCodeInWarp`/`CodeSource`/`EditorLayout`/
+    `open_in_warp_tooltip`/`should_show_open_in_warp_link`). None of these symbols
+    exist in Rift; `app/src/ai/blocklist/` is absent. The `terminal/view.rs` touch
+    is only a reorder of the stripped `open_code_in_warp` helper. N/A.
+  - **Make auth flow more reliable (warp #14357)** — its Rift-existing hunks are
+    a **dead-API** addition: `crates/warpui_core`'s `Delegate::open_url` gains a
+    `bool` return + a new `AppContext::try_open_url`, plumbed through the mac/
+    headless/winit/test delegates. The **only** consumer of the bool is the
+    stripped auth login flow (detecting whether the login browser opened); Rift's
+    kept `open_url` callers (terminal link opening, theme creator) work unchanged
+    and need no bool. Same "no dead public API" skip pattern as the 2026-07-19
+    keymap #13781 / app.rs #13545 notes. The rest is `app/src/auth/*` (stripped),
+    `crates/warp_server_client` (cloud), and `crates/warp_tui` (TUI).
+  - **Fix GUI and TUI web logout flow (warp #14284)** — adds `web_logout_url()`
+    (`ChannelState::server_root_url() + "/logout"`) and `log_out_and_open_web()`
+    which **opens the Warp web logout page in a browser** — precisely the
+    phone-home behavior Rift strips. Cloud/auth, and it *adds* cloud coupling
+    (opposite of Rift's direction). N/A.
+  - **Enable API key login across Warp channels (warp #14338)** / **[MCP] well-
+    known MCP type (warp #13792)** — auth login enablement (feature flags +
+    `app/src/lib.rs` + CLI) and MCP config plumbing (`app/src/ai/agent_sdk/*`,
+    `app/src/server/server_api/managed_mcp.rs`) respectively. Both stripped
+    subsystems. N/A.
+  - **Local-to-cloud handoff + shared handoff pipeline + shared cloud-environment
+    catalog (warp #14208, #14207, #14247)** — AI cloud handoff / ambient-agents /
+    cloud environments. Their `app/src/terminal/input.rs` touches are **all**
+    `crate::ai::*` imports and `#[cfg(feature = "local_fs")]` cloud-handoff
+    methods (`exit_cloud_handoff_compose*`, `handoff_compose_state`,
+    `ai_context_model`, `sort_environments_by_recency`) — none exist in Rift's
+    stripped `app/src/ai/`. N/A.
+  - **oz named-agent prompt CLI (warp #14261)** — AI/oz agent CLI. N/A.
+  - **graphql-schema npm-advisory bumps (warp #14366)** — lands entirely in
+    `crates/warp_graphql_schema/{package.json,yarn.lock}`, a cloud crate Rift does
+    not have. N/A.
+  - **trunk-io/analytics-uploader CI bump (warp #14048)** — patches
+    `.github/workflows/ci.yml` (which Rift does not have — Rift's CI is
+    `test.yml`/`release.yml`) to bump a CI **analytics** uploader. No
+    `analytics-uploader`/`trunk-io` reference anywhere in Rift's `.github/`. N/A.
+  - **Expandable-toast follow-through:** the remaining TUI commits (statusline
+    picker #14286, auto-copy #14340, session-input-blocking #14206) and the
+    `local-to-cloud handoff` TUI half are `crates/warp_tui/` — no GUI surface.
 
 ### Notes from the 2026-07-25 review
 
