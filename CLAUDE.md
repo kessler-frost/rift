@@ -76,6 +76,17 @@ review. Ported **2**.
     with matching surrounding context; the guard is POSIX-`sh`-compatible (Rift's
     script is `#!/bin/sh`). Testing-exempt (shell-only); validated `sh -n`.
 
+- **No live GUI smoke-test this run (deliberate).** Neither change has a
+  rendered-UI or app-runtime surface: diesel is a SQLite-ORM patch bump fully
+  exercised headlessly by **persistence 14/14** (all migration up/down/reapply +
+  model roundtrips — the exact SQLite surface) plus the full-workspace nextest
+  (0 regressions), and the powershell guard is a **dev-machine bootstrap shell
+  script** that never runs in the shipped app. Launching a second `rift-oss`
+  would also collide with the user's running daily-driver `rift-oss` (the
+  osascript/cliclick ambiguity + shared `~/.rift` state the
+  [[scheduled-run-computer-use-workaround]] / [[rift-data-profile-sandbox]]
+  memories warn about). Same call as the last several string/dep-only syncs.
+
 - **Deliberately NOT ported (verified N/A, not skipped blindly):**
   - **warp #14409, `script/bootstrap` half (unknown-args hard-fail).** Upstream
     also flipped the `*)` catch-all in `script/bootstrap`'s arg loop from silently
