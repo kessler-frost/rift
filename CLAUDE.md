@@ -17,14 +17,99 @@ option wins.
 Rift tracks `warpdotdev/warp` as the `upstream` remote and ports fixes by hand (the `warp→rift`
 rename means cherry-picks don't apply cleanly).
 
-**Last reviewed/synced against upstream: 2026-07-27.**
+**Last reviewed/synced against upstream: 2026-07-28.**
 
 To sync again, start from that date, not earlier:
 
 ```bash
 git fetch upstream
-git log upstream/master --since=2026-07-27 --date=short --pretty='%h %ad %s'
+git log upstream/master --since=2026-07-28 --date=short --pretty='%h %ad %s'
 ```
+
+### Notes from the 2026-07-28 review
+
+Reviewed 3 genuinely-new upstream commits (the 2026-07-28 pair plus the
+2026-07-27 cargo-group dependabot bump the 2026-07-27 pass hadn't named). The
+rest of the `--since=2026-07-27` listing was already triaged in the 2026-07-27
+review. Ported **2**.
+
+- **Ported:**
+  - **diesel 2.3.9 → 2.3.10 (warp #14260, diesel half only).** A dependabot
+    cargo-group bump. diesel is Rift's SQLite persistence ORM
+    (`crates/persistence`), and 2.3.10 carries **real SQLite security/correctness
+    fixes** — a potential use-after-free deserializing a database from a byte
+    buffer, a custom-aggregate double-call bug, and SQL-injection hardening in
+    `diesel print-schema` schema introspection. **The [[cargo-update-lockfile-cascade]]
+    caveat partially fired and was defeated by hand-pinning:** `cargo update -p
+    diesel --precise 2.3.10` bumped diesel cleanly but ALSO re-pointed ~9 unrelated
+    transitive *references* (windows-sys 0.59→0.52/0.61, socket2 0.6→0.5,
+    windows-core 0.61→0.62, heck 0.5→0.4) onto versions **already present** in the
+    lock — no `[[package]]` added/removed, pure gratuitous re-resolution (the same
+    non-determinism as the #13884 attempt, 2026-07-22). Proved it was gratuitous:
+    restored pristine HEAD, hand-edited **only** diesel's version + checksum, and
+    `cargo check --bin rift-oss --locked` compiled clean with **no** "lock needs
+    update" — i.e. diesel 2.3.10 does not require the churn. Shipped the
+    hand-pinned **diesel-only 2-line lock diff**. **Gotcha for next time:** plain
+    `cargo … --locked` respects the lock, but `cargo nextest run` re-drifts it
+    (its internal `cargo metadata` ignores `--locked`/`--frozen`) — verify with
+    `cargo test --locked` / `cargo check --locked` and re-pin the lock right before
+    committing. Verified: `cargo check --bin rift-oss --locked` 0 errors / 0
+    warnings, `cargo check --tests -p rift --locked` 0/0, `cargo clippy -p
+    persistence --all-targets --tests -D warnings` 0/0, **persistence 14/14**
+    (`cargo test -p persistence --locked`, incl. every migration up/down/reapply +
+    idempotency test — the exact SQLite surface a diesel regression would hit),
+    full-workspace **nextest 3662 passed / 12 failed** (exactly the known
+    ui_tests + ssh/history env baseline, 0 regressions).
+  - **Guard powershell install with cask + pwsh check (warp #14409,
+    `script/macos/bootstrap` half only).** The macOS dev bootstrap ran a bare
+    `brew install powershell` (the **formula**), which pulls in the `dotnet`
+    formula dependency; `brew link dotnet` then aborts the whole bootstrap when
+    `/opt/homebrew/bin/dotnet` already exists as a symlink to a non-Homebrew
+    install (Microsoft's `/usr/local/share/dotnet` or the Xcode toolchain) — a
+    real abort on **macOS arm64**, the user's daily-driver platform. Ported the
+    idempotent guard verbatim: skip entirely when a working `pwsh` is already on
+    PATH, else `brew install --cask powershell` (cask, no dotnet dep). Rift keeps
+    PowerShell as a supported shell (shell integration + PSScriptAnalyzer linting
+    at `script/macos/bootstrap:69`), so this is a live macOS dev-environment fix
+    in a kept subsystem (build/bootstrap). **Zero-divergence port:** Rift's
+    `brew install powershell` line was byte-identical to upstream's pre-fix state
+    with matching surrounding context; the guard is POSIX-`sh`-compatible (Rift's
+    script is `#!/bin/sh`). Testing-exempt (shell-only); validated `sh -n`.
+
+- **Deliberately NOT ported (verified N/A, not skipped blindly):**
+  - **warp #14409, `script/bootstrap` half (unknown-args hard-fail).** Upstream
+    also flipped the `*)` catch-all in `script/bootstrap`'s arg loop from silently
+    forwarding unknown args (`PLATFORM_ARGS+=`) to `exit 1`. **Skipped:** Rift's
+    `script/bootstrap` is substantially rewritten vs upstream (Git-LFS ensure step,
+    `rift_sudo` prompt flow, Rift-specific preview text, **no** `--skip-gcloud-auth`
+    / `WARP_SKIP_GCLOUD_AUTH` case) and has **two** `PLATFORM_ARGS+=` sites with a
+    different structure — upstream's "no legitimate flag relies on the passthrough"
+    audit doesn't transfer as-is. The value is marginal (typo protection on a dev
+    script) and it's a behavior change with real breakage risk if a platform
+    bootstrap consumes an arg. Took the reachable, high-value half (the macOS
+    powershell abort) and left this.
+  - **Client: warn on git credential bootstrap failures (warp #14304)** — lands
+    entirely in `app/src/ai/agent_sdk/mod.rs`'s `bootstrap_git_credentials_for_task`
+    (adds `tracing::warn!` alongside the existing `log::warn!` on the cloud-agent
+    task git-credential fetch/write failure arms). Stripped AI cloud-agent
+    subsystem; the file/function don't exist in Rift. N/A.
+  - **warp #14260, quinn-proto half (0.11.14 → 0.11.16).** The same dependabot
+    bump also moved quinn-proto, but quinn-proto is **unreachable in Rift** —
+    `cargo tree -i quinn-proto` (and `--target all`) print nothing, i.e. it's a
+    Cargo.lock ghost not compiled into `rift-oss` on any target. Its bump also
+    **adds 6 new transitive packages** (chacha20, getrandom 0.4.3, r-efi, rand
+    0.10.2, rand_core 0.10.1, rand_pcg) — pure lock churn for zero build effect.
+    Reverted it; kept only the diesel half.
+  - **Expand TUI statusline item catalog (warp #14257)** — 16 of its 17 files are
+    absent Rift surfaces (`crates/warp_tui/`, `app/src/ai/blocklist/`,
+    `app/src/settings/ai.rs`, `slash_command_menu/static_commands/`,
+    `slash_commands/`, `tui_export.rs`). The one file Rift has
+    (`context_chips/display_chip.rs`) is touched only to feed the AI/TUI statusline
+    catalog. TUI/AI surface. N/A.
+  - **fix(tui): better wrapping for shell command tool call for TUI (warp #14222)**
+    — lands entirely in `crates/warpui_core/src/elements/tui/collapsible.rs`, the
+    TUI element subdir Rift doesn't have (`crates/riftui_core/src/elements/tui/`
+    absent), and renders an AI shell-command tool call. TUI/AI surface. N/A.
 
 ### Notes from the 2026-07-27 review
 
